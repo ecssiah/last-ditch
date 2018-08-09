@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. It's become a place of refuge for people looking to escape the eye of more civilized planets. 
+After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. It's become a place of refuge for people looking to escape the eye of more civilized planets. 
 
 The starting level is the lowest occupied area of the skyscraper with the least established factions. The levels below this are almost entirely overrun with waste and junk that is mined to produce the basic necessities of life. As the floors rise above this, stronger and more well-established factions have staked out territories. They attempt to prevent access from the scavengers below.
 
@@ -15,6 +15,8 @@ The starting level is the lowest occupied area of the skyscraper with the least 
 ## Characters
 
 Each character can belong to a faction, but some will operate as individuals for periods of time.
+
+Characters can partner together into relationships of different kinds with characters inside and outside of their faction. Characters can also have children, although children between members of rival factions will cause tensions, and they will not immediately belong to either faction. 
 
 Every character has a series of characteristics that define how they interact with the faction and the world around them:
 
@@ -92,6 +94,12 @@ Each floor is a large tiled map viewed from above with a number of layers.
 4. Anything placed directly on the objects from layer 3
 
 The individual characters are placed on top of the map and move between tiles. They can move in all 8 directions from their current tile to any adjacent tile.
+
+### Environment
+
+The map experiences a day/night cycle as well as passing years. 
+
+Throughout the year, the building is visited by various traders and scavengers looking to take advantage of the outpost.
 
 ## Production
 
