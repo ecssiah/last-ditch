@@ -54,7 +54,7 @@ Each member also has a series of tastes that affect how certain actions change t
 
 ### Equipment
 
-Each charcter can equip items in these areas:
+Each character can equip items in these areas:
 * Head
 * Eyes
 * Undershirt
