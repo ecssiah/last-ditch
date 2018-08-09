@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-After massive urban growth on a remote planet, people are trying to survive in the ruins of towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. 
+After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. It's become a place of refuge for people looking to escape the eye of more civilized planets. 
 
 The starting level is the lowest occupied area of the skyscraper with the least established factions. The levels below this are almost entirely overrun with waste and junk that is mined to produce the basic necessities of life. As the floors rise above this, stronger and more well-established factions have staked out territories. They attempt to prevent access from the scavengers below.
 
