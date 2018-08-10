@@ -30,6 +30,13 @@ Main Personality:
 
 Each member also has a series of tastes that affect how certain actions change their mood.
 
+### Needds
+* Hunger
+* Thirst
+* Fatigue
+* Social
+* Wellbeing
+
 ### Attributes
 * Strength
 * Constitution
@@ -145,9 +152,15 @@ By building different new tools and developing new production techniques, the fa
   * Amphetamine
 * Weapons
   * Handgun
-  * Energygun
-  * Drone
+  * Pulsegun
   * Shock Baton
+  * Drone
+  * Fragmentation Mine
 * Shields
   * Riot
   * Magnetic
+
+## Implementation Details
+* Real-time turn system
+* VERY consequential damage to characters/fighting costly for both sides
+* Characters can move through each other
