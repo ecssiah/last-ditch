@@ -30,7 +30,7 @@ Main Personality:
 
 Each member also has a series of tastes that affect how certain actions change their mood.
 
-### Needds
+### Needs
 * Hunger
 * Thirst
 * Fatigue
@@ -77,6 +77,19 @@ Each character can equip items in these areas:
 * Right Leg
 * Left Foot
 * Right Foot
+
+### Health Problems
+
+Characters can undergo a series of health problems that will affect their behavior and performance. Some of these are caused by the character's actions throughout the game and others are random.
+
+* Physical Problems
+  1. Heart Disease
+  2. Diabetes
+  3. Cancer
+* Psychological Problems
+  1. Mental Retardation
+  2. Sociopathy
+  3. Psychopathy
 
 ## Factions
 

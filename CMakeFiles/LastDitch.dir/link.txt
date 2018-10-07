@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/LastDitch.dir/src/LastDitch.cpp.o  -o LastDitch -L/usr/local/Cellar/sdl2/2.0.8/lib  -lSDL2 
