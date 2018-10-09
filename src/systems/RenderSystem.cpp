@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
 
@@ -12,6 +14,8 @@ RenderSystem::~RenderSystem()
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);
   SDL_Quit();
+
+  std::cout << "Render System Shutdown" << std::endl;
 }
 
 void RenderSystem::Initialize()
