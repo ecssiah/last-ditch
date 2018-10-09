@@ -4,18 +4,27 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./src/LastDitch.h
+  ./src/Game.h
 )
 
 set(
   SOURCES
-  ./src/LastDitch.cpp
+  ./src/main.cpp
+  ./src/Game.cpp
 )
+
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(SDL2 REQUIRED)
 
 add_executable(LastDitch ${HEADERS} ${SOURCES})
 target_compile_features(LastDitch PRIVATE cxx_range_for)
 
-find_package(SDL2 REQUIRED)
+include_directories(
+  ${SDL2_INCLUDE_DIRS}
+)
 
-include_directories(${SDL2_INCLUDE_DIRS})
-target_link_libraries(LastDitch ${SDL2_LIBRARIES})
+target_link_libraries(
+  LastDitch 
+  Eigen3::Eigen
+  ${SDL2_LIBRARIES}
+)
