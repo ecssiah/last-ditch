@@ -6,26 +6,31 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include "GameObject.h"
+
 class Game 
 {
 public:
   Game();
   ~Game();
 
-  void init(
+  void Init(
     const char* title, 
     int xpos, int ypos, int width, int height, 
     bool fullscreen
   );
-  void handle_events();
-  void update();
-  void render();
-  void clean();
+  void HandleEvents();
+  void Update();
+  void Render();
+  void Clean();
 
-  bool running() { return is_running; }
+  bool IsRunning() { return is_running; }
 
 private:
   bool is_running;
+
+  GameObject* player;
+
   SDL_Window* window;
   SDL_Renderer* renderer;
 };

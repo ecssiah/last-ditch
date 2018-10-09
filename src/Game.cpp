@@ -1,8 +1,5 @@
 #include "Game.h"
 #include "TextureManager.h"
-#include "GameObject.h"
-
-GameObject* player;
 
 Game::Game()
 {
@@ -12,7 +9,7 @@ Game::~Game()
 {
 }
 
-void Game::init(
+void Game::Init(
   const char* title, 
   int xpos, int ypos, int width, int height, 
   bool fullscreen
@@ -35,10 +32,10 @@ void Game::init(
     is_running = true;
   }
 
-  player = new GameObject("assets/textures/character1.png", renderer);
+  player = new GameObject("assets/textures/character1.png", renderer, 0, 0);
 }
 
-void Game::handle_events()
+void Game::HandleEvents()
 {
   SDL_Event event;
   SDL_PollEvent(&event);
@@ -52,19 +49,19 @@ void Game::handle_events()
   }
 }
 
-void Game::update()
+void Game::Update()
 {
   player->Update();
 }
 
-void Game::render()
+void Game::Render()
 {
   SDL_RenderClear(renderer);
   player->Render();
   SDL_RenderPresent(renderer);
 }
 
-void Game::clean()
+void Game::Clean()
 {
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);

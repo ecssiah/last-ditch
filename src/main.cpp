@@ -12,19 +12,19 @@ int main(int argc, char *argv[])
 
   game = new Game();
 
-  game->init(
+  game->Init(
     "Last Ditch",
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
     800, 600, false
   );
 
-  while (game->running()) 
+  while (game->IsRunning()) 
   {
     frame_start = SDL_GetTicks();
 
-    game->handle_events();
-    game->update();
-    game->render();
+    game->HandleEvents();
+    game->Update();
+    game->Render();
 
     frame_time = SDL_GetTicks() - frame_start;
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  game->clean();
+  game->Clean();
 
   return 0;
 }
