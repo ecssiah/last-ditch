@@ -1,12 +1,10 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <iostream>
-#include <Eigen/Geometry>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-
-#include "GameObject.h"
+#include "components/Input.h"
+#include "systems/TimeSystem.h"
+#include "systems/InputSystem.h"
+#include "systems/RenderSystem.h"
 
 class Game 
 {
@@ -14,25 +12,14 @@ public:
   Game();
   ~Game();
 
-  void Init(
-    const char* title, 
-    int xpos, int ypos, int width, int height, 
-    bool fullscreen
-  );
-  void HandleEvents();
-  void Update();
-  void Render();
-  void Clean();
-
-  bool IsRunning() { return is_running; }
+  void Initialize();
 
 private:
-  bool is_running;
+  Input input;
 
-  GameObject* player;
-
-  SDL_Window* window;
-  SDL_Renderer* renderer;
+  TimeSystem time_system;
+  InputSystem input_system;
+  RenderSystem render_system;
 };
 
 #endif // GAME_H

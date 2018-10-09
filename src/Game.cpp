@@ -1,71 +1,34 @@
-#include "Game.h"
-#include "TextureManager.h"
+#include <iostream>
+#include <SDL2/SDL.h>
 
-Game::Game()
+#include "Game.h"
+
+Game::Game() :
+  time_system(input),
+  input_system(input),
+  render_system()
 {
 }
 
 Game::~Game()
 {
+  /* time_system.Destroy(); */
+  /* input_system.Destroy(); */
+  /* render_system.Destroy(); */
+
+  std::cout << "Successfully Exited" << std::endl;
 }
 
-void Game::Init(
-  const char* title, 
-  int xpos, int ypos, int width, int height, 
-  bool fullscreen
-) {
+void Game::Initialize() 
+{
+  time_system.Initialize();
+  input_system.Initialize();
+  render_system.Initialize();
 
-  int flags = 0;
-  if (fullscreen)
+  for (double dt(0.0); !input.exit; time_system.Tick())
   {
-    flags = SDL_WINDOW_FULLSCREEN;
+    input_system.Update();
+    render_system.Update(dt);
+    dt = time_system.Update();
   }
-
-  if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
-  {
-    window = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    if (renderer)
-    {
-      SDL_SetRenderDrawColor(renderer, 40, 0, 40, SDL_ALPHA_OPAQUE);
-    }
-    is_running = true;
-  }
-
-  player = new GameObject("assets/textures/character1.png", renderer, 0, 0);
-}
-
-void Game::HandleEvents()
-{
-  SDL_Event event;
-  SDL_PollEvent(&event);
-
-  switch (event.type) {
-  case SDL_QUIT:
-    is_running = false;
-    break;
-  default:
-    break;
-  }
-}
-
-void Game::Update()
-{
-  player->Update();
-}
-
-void Game::Render()
-{
-  SDL_RenderClear(renderer);
-  player->Render();
-  SDL_RenderPresent(renderer);
-}
-
-void Game::Clean()
-{
-  SDL_DestroyWindow(window);
-  SDL_DestroyRenderer(renderer);
-  SDL_Quit();
-
-  std::cout << "SDL Quit" << std::endl;
 }

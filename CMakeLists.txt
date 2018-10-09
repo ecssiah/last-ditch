@@ -4,15 +4,21 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./src/TextureManager.h
-  ./src/GameObject.h
+  ./src/constants/RenderConstants.h
+  ./src/constants/SimulationConstants.h
+  ./src/systems/TimeSystem.h
+  ./src/systems/InputSystem.h
+  ./src/systems/RenderSystem.h
   ./src/Game.h
 )
 
 set(
   SOURCES
-  ./src/TextureManager.cpp
-  ./src/GameObject.cpp
+  ./src/constants/RenderConstants.cpp
+  ./src/constants/SimulationConstants.cpp
+  ./src/systems/TimeSystem.cpp
+  ./src/systems/InputSystem.cpp
+  ./src/systems/RenderSystem.cpp
   ./src/Game.cpp
   ./src/main.cpp
 )
@@ -20,7 +26,8 @@ set(
 set(
   CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/dist/cmake/Modules")
+  "${CMAKE_CURRENT_SOURCE_DIR}/dist/cmake/Modules"
+)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
