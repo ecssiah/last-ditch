@@ -5,12 +5,16 @@ project(LastDitch)
 set(
   HEADERS
   ./src/Game.h
+  ./src/TextureManager.h
+  ./src/GameObject.h
 )
 
 set(
   SOURCES
   ./src/main.cpp
   ./src/Game.cpp
+  ./src/TextureManager.cpp
+  ./src/GameObject.cpp
 )
 
 set(

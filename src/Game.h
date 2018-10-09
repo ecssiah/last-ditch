@@ -6,8 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-class Game {
-
+class Game 
+{
 public:
   Game();
   ~Game();
@@ -28,7 +28,6 @@ private:
   bool is_running;
   SDL_Window* window;
   SDL_Renderer* renderer;
-
 };
 
 #endif // GAME_H
