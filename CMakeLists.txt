@@ -24,6 +24,13 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
+set(SDL2_LINK_FLAGS "-lSDL2 -lSDL2_image")
+
+set(
+  CMAKE_EXE_LINKER_FLAGS
+  "${CMAKE_EXE_LINKER_FLAGS} ${SDL2_LINK_FLAGS}"
+)
+
 add_executable(LastDitch ${HEADERS} ${SOURCES})
 target_compile_features(LastDitch PRIVATE cxx_range_for)
 
