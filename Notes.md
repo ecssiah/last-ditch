@@ -2,26 +2,35 @@
 
 ## Synopsis
 
-After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. It's become a place of refuge for people looking to escape the eye of more civilized planets. 
+After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. 
 
-The starting level is the lowest occupied area of the skyscraper with the least established factions. The levels below this are almost entirely overrun with waste and junk that is mined to produce the basic necessities of life. As the floors rise above this, stronger and more well-established factions have staked out territories. They attempt to prevent access from the scavengers below.
+The starting level is the lowest occupied area of the skyscraper with the least established factions. The levels below this are almost entirely overrun with waste and junk that is mined to produce the basic necessities of life. The floors above this are home to stronger and more well-established factions. They attempt to control access to these floors. 
 
 ## Features
 
-* Play as a community leader
-* Continue to pass on leadership to new generations
-* Help the community survive and grow
-* Rebuild the structure of the skyscraper
-* Interact with visiting traders/raiders from outside the skyscraper
-* Implement bi-lingual English/Essiah
+* The main character has the skills to become a community leader
+* They can pass this position on to a new generation
+* They help the community survive and grow
+* The community can restructure the building to better fit their needs
+* The building is visited by traders/scavengers from other areas 
+* Two main languages are spoken in the building: English and Essiah 
+
+## Implementation Notes
+
+* Real-time turn system
+* VERY consequential damage and social instability from fighting
+* Characters can move through each other
+* Camera controlled by WASD, character movement point/click
 
 ## Characters
 
-Each character can belong to a faction, but some will operate as individuals for periods of time.
+The main character can join or create a faction.
 
 Characters can partner together into relationships of different kinds with characters inside and outside of their faction. Characters can also have children, although children between members of rival factions will cause tensions, and they will not immediately belong to either faction. 
 
-Every character has a series of characteristics that define how they interact with the faction and the world around them:
+The children of a character can take over as leader, and this will pass the main character role on to the child. Faction leadership can also be passed on to a trusted member of the faction who is not related to main character. In both cases, the faction's trust of the new leader will have consequences.
+
+Every member of the faction has a series of traits that define how they interact with the faction and the world around them:
 
 ### Traits
 Main Personality:
@@ -98,7 +107,7 @@ Characters can undergo a series of health problems that will affect their behavi
 
 The player forms a faction at the beginning of the game with two other outcasts who have just arrived at the lowest level. As their faction grows in influence, they will be able to recruit characters from other, stronger factions, and there will also be periodic arrivals to the building looking for opportunity. More capable characters arrive at the higher floors looking for a faction to join. 
 
-As the player's faction gains more status and relocates to higher floors, they become a larger target of scavangers and rival factions.
+As the player's faction gains more status and relocates to higher floors, they become a larger target of scavangers and rival factions, but they also attract the attention of more wealthy traders and powerful recruits.
 
 ## Map
 
@@ -106,9 +115,9 @@ The map is comprised of all the upper floors of a massive skyscraper that is ran
 
 It consists of four major sections:
 * Sublevels - Abandoned floors below the lowest inhabited floor
-* Low - The initial floors sparsely populated and the least organized
-* Mid - Floors containing many average strength factions
-* High - Floors containing the strongest and most well-equipped factions
+* Lowlevels - The initial floors sparsely populated and the least organized
+* Midlevels - Floors containing many average strength factions
+* Upperlevels - Floors containing the strongest and most well-equipped factions
 
 Each floor is a large tiled map viewed from above with a number of layers.
 1. The floor itself
@@ -124,10 +133,9 @@ The map experiences a day/night cycle as well as seasons.
 
 Throughout the year, the building is visited by various traders and scavengers looking to take advantage of the outpost.
 
-
 ## Production
 
-By building different new tools and developing new production techniques, the faction is able to combine its skills to produce higher quality items to aid in its survival.
+By building different tools and developing new production techniques, the faction is able to combine its skills to produce higher quality items to aid in its survival.
 
 ### Production Facilities
 * Hydroponics
@@ -148,7 +156,6 @@ By building different new tools and developing new production techniques, the fa
 * Silver
 * Zinc
 * Oil
-* Fuel
 
 ### Items
 * Drinks
@@ -177,7 +184,3 @@ By building different new tools and developing new production techniques, the fa
   * Riot
   * Magnetic
 
-## Implementation Details
-* Real-time turn system
-* VERY consequential damage to characters/fighting costly for both sides
-* Characters can move through each other

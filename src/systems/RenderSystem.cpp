@@ -21,6 +21,31 @@ RenderSystem::~RenderSystem()
   std::cout << "Render System Shutdown" << std::endl;
 }
 
+
+// FOR TESTING ONLY
+void TestGLTextureLoading()
+{
+  GLuint vertex_buffer;
+  glGenBuffers(1, &vertex_buffer);
+
+  int width, height, nr_channels;
+  unsigned char* data = stbi_load(
+    "assets/textures/tileset1.png", &width, &height, &nr_channels, 0
+  );
+
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
+  );
+
+  stbi_image_free(data);
+}
+// FOR TESTING ONLY 
+
+
 void RenderSystem::Initialize()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -43,24 +68,7 @@ void RenderSystem::Initialize()
   glewExperimental = GL_TRUE;
   glewInit();
 
-  GLuint vertex_buffer;
-  glGenBuffers(1, &vertex_buffer);
-
-  int width, height, nr_channels;
-  unsigned char* data = stbi_load(
-    "assets/textures/tileset1.png", &width, &height, &nr_channels, 0
-  );
-
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
-  );
-
-  stbi_image_free(data);
-
+  TestGLTextureLoading();
 }
 
 void RenderSystem::Update(const double& dt)
