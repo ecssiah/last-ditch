@@ -8,7 +8,9 @@ The starting level is the lowest occupied area of the skyscraper with the least 
 
 ## Features
 
-* Survive as a community
+* Play as a community leader
+* Continue to pass on leadership to new generations
+* Help the community survive and grow
 * Rebuild the structure of the skyscraper
 * Interact with visiting traders/raiders from outside the skyscraper
 
