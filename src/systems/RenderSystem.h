@@ -2,8 +2,7 @@
 #define RENDER_SYSTEM_H
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-/* #include <SDL2/SDL_ttf.h> */
+#include <SDL2/SDL_opengl.h>
 
 class RenderSystem
 {
@@ -16,6 +15,7 @@ public:
 
 private:
   SDL_Window* window;
+  SDL_GLContext glcontext;
   SDL_Renderer* renderer;
 };
 

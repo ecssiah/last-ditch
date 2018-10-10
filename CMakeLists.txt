@@ -31,28 +31,32 @@ set(
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLM REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
 
-set(SDL2_LINK_FLAGS "-lSDL2 -lSDL2_image")
+set(LINKER_FLAGS "-framework OpenGL -lglew -lSDL2")
 
 set(
   CMAKE_EXE_LINKER_FLAGS
-  "${CMAKE_EXE_LINKER_FLAGS} ${SDL2_LINK_FLAGS}"
+  "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}"
 )
 
 add_executable(LastDitch ${HEADERS} ${SOURCES})
 target_compile_features(LastDitch PRIVATE cxx_range_for)
 
 include_directories(
+  ${OPENGL_INCLUDE_DIRS}
+  ${GLEW_INCLUDE_DIRS}
+  ${GLM_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIRS}
-  ${SDL2_IMAGE_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   LastDitch 
-  Eigen3::Eigen
+  ${OPENGL_LIBRARIES}
+  ${GLEW_LIBRARIES}
+  ${GLM_LIBRARIES}
   ${SDL2_LIBRARIES}
-  ${SDL2_IMAGE_LIBRARY}
 )
