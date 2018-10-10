@@ -32,13 +32,13 @@ set(
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 find_package(GLM REQUIRED)
-find_package(SDL2 REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLFW3 REQUIRED)
 
 set(
   LINKER_FLAGS 
-  "-framework OpenGL -lglew -lSDL2"
+  "-framework OpenGL -lglew -lglfw"
 )
 
 set(
@@ -51,15 +51,14 @@ target_compile_features(LastDitch PRIVATE cxx_range_for)
 
 include_directories(
   ${OPENGL_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIRS}
+  ${GLEW_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   LastDitch 
   ${OPENGL_LIBRARIES}
-  ${GLEW_LIBRARIES}
   ${GLM_LIBRARIES}
-  ${SDL2_LIBRARIES}
+  ${GLEW_LIBRARIES}
+  ${GLFW3_LIBRARIES}
 )

@@ -25,7 +25,7 @@ double TimeSystem::Update()
     std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
   );
 
-  dt = std::min(Simulation::MAX_DELTA_TIME, 1e-6 * microseconds);
+  dt = std::min(MAX_DELTA_TIME, 1e-6 * microseconds);
 
   if (!input.pause)
   {

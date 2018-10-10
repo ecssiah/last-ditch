@@ -1,21 +1,16 @@
 #include <iostream>
-#include <SDL2/SDL.h>
 
 #include "Game.h"
 
 Game::Game() :
   time_system(input),
   input_system(input),
-  render_system()
+  render_system(input)
 {
 }
 
 Game::~Game()
 {
-  /* time_system.Destroy(); */
-  /* input_system.Destroy(); */
-  /* render_system.Destroy(); */
-
   std::cout << "Successfully Exited" << std::endl;
 }
 
