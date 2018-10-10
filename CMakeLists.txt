@@ -6,9 +6,9 @@ set(
   HEADERS
   ./src/constants/RenderConstants.h
   ./src/constants/SimulationConstants.h
+  ./src/systems/RenderSystem.h
   ./src/systems/TimeSystem.h
   ./src/systems/InputSystem.h
-  ./src/systems/RenderSystem.h
   ./src/Game.h
 )
 
@@ -16,9 +16,9 @@ set(
   SOURCES
   ./src/constants/RenderConstants.cpp
   ./src/constants/SimulationConstants.cpp
+  ./src/systems/RenderSystem.cpp
   ./src/systems/TimeSystem.cpp
   ./src/systems/InputSystem.cpp
-  ./src/systems/RenderSystem.cpp
   ./src/Game.cpp
   ./src/main.cpp
 )

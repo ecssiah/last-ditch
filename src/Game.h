@@ -2,9 +2,9 @@
 #define GAME_H
 
 #include "components/Input.h"
+#include "systems/RenderSystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
-#include "systems/RenderSystem.h"
 
 class Game 
 {
@@ -17,9 +17,9 @@ public:
 private:
   Input input;
 
+  RenderSystem render_system;
   TimeSystem time_system;
   InputSystem input_system;
-  RenderSystem render_system;
 };
 
 #endif // GAME_H

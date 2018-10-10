@@ -15,6 +15,8 @@ public:
   void Initialize();
   void Update(const double& dt);
 
+  GLFWwindow* GetWindow() { return window; }
+
 private:
   Input& input;
   GLFWwindow* window;

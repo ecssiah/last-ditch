@@ -14,6 +14,7 @@ RenderSystem::RenderSystem(Input& _input) :
 
 RenderSystem::~RenderSystem()
 {
+  glfwTerminate();
   std::cout << "Render System Shutdown" << std::endl;
 }
 

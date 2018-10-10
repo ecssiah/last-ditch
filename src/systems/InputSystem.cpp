@@ -7,14 +7,17 @@ InputSystem::InputSystem(Input& _input) :
 {
 }
 
-void InputSystem::Initialize()
+void InputSystem::Initialize(GLFWwindow* _window)
 {
-
+  window = _window;
 }
 
 void InputSystem::Update()
 {
   glfwPollEvents();
+
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
 
   /* for (SDL_Event e; SDL_PollEvent(&e); ) */
   /* { */
