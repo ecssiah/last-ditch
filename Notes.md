@@ -120,9 +120,10 @@ The individual characters are placed on top of the map and move between tiles. T
 
 ### Environment
 
-The map experiences a day/night cycle as well as passing years. 
+The map experiences a day/night cycle as well as seasons. 
 
 Throughout the year, the building is visited by various traders and scavengers looking to take advantage of the outpost.
+
 
 ## Production
 
