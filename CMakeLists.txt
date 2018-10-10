@@ -36,7 +36,10 @@ find_package(GLEW REQUIRED)
 find_package(GLM REQUIRED)
 find_package(SDL2 REQUIRED)
 
-set(LINKER_FLAGS "-framework OpenGL -lglew -lSDL2")
+set(
+  LINKER_FLAGS 
+  "-framework OpenGL -lglew -lSDL2"
+)
 
 set(
   CMAKE_EXE_LINKER_FLAGS

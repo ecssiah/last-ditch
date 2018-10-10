@@ -3,6 +3,8 @@
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "../ext/stb/stb_image.h"
 
 RenderSystem::RenderSystem() :
   window(nullptr),
@@ -44,7 +46,11 @@ void RenderSystem::Initialize()
   GLuint vertex_buffer;
   glGenBuffers(1, &vertex_buffer);
 
-  std::cout << vertex_buffer << std::endl;
+  int width, height, nr_channels;
+  unsigned char* data = stbi_load(
+    "assets/textures/tileset1.png", &width, &height, &nr_channels, 0
+  );
+
 }
 
 void RenderSystem::Update(const double& dt)

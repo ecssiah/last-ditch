@@ -13,6 +13,7 @@ The starting level is the lowest occupied area of the skyscraper with the least 
 * Help the community survive and grow
 * Rebuild the structure of the skyscraper
 * Interact with visiting traders/raiders from outside the skyscraper
+* Implement bi-lingual English/Essiah
 
 ## Characters
 
