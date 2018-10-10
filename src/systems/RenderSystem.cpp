@@ -1,4 +1,5 @@
 #include <iostream>
+#include <GL/glew.h>
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
@@ -36,6 +37,14 @@ void RenderSystem::Initialize()
   );
 
   glcontext = SDL_GL_CreateContext(window);
+
+  glewExperimental = GL_TRUE;
+  glewInit();
+
+  GLuint vertex_buffer;
+  glGenBuffers(1, &vertex_buffer);
+
+  std::cout << vertex_buffer << std::endl;
 }
 
 void RenderSystem::Update(const double& dt)
