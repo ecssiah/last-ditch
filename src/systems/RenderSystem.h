@@ -1,6 +1,7 @@
 #ifndef RENDER_SYSTEM_H
 #define RENDER_SYSTEM_H
 
+#include <string>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -18,6 +19,9 @@ public:
   GLFWwindow* GetWindow() { return window; }
 
 private:
+  void CreateTestTriangle();
+  const GLchar** LoadShader(const std::string& filename);
+
   Input& input;
   GLFWwindow* window;
 };
