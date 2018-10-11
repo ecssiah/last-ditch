@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <fstream>
 #include <functional>
 
@@ -48,7 +49,19 @@ void RenderSystem::CreateTestTriangle()
   unsigned int vert_shader;
   vert_shader = glCreateShader(GL_VERTEX_SHADER);
 
-  LoadShader("assets/glsl/test.vert");  
+  GLchar** shader_source = LoadShader("assets/glsl/test.vert");  
+  glShaderSource(vert_shader, 1, shader_source, nullptr);
+  glCompileShader(vert_shader);
+
+  int success;
+  char info_log[512];
+  glGetShaderiv(vert_shader, GL_COMPILE_STATUS, &success);
+
+  if (!success)
+  {
+    glGetShaderInfoLog(vert_shader, 512, nullptr, info_log);
+    std::cout << info_log << std::endl;
+  }
 }
 
 void RenderSystem::Initialize()
@@ -98,8 +111,10 @@ void RenderSystem::Update(const double& dt)
 }
 
 
-const GLchar** RenderSystem::LoadShader(const std::string& filename)
+GLchar** RenderSystem::LoadShader(const std::string& filename)
 {
+  std::vector<char*> cstrings{};
+
   std::string line;
   std::ifstream shader_file(filename);
 
@@ -108,12 +123,12 @@ const GLchar** RenderSystem::LoadShader(const std::string& filename)
     while (shader_file.good())
     {
       std::getline(shader_file, line);
-      std::cout << line << std::endl;
+      cstrings.push_back(&line.front());
     }
     shader_file.close();
   } else {
     std::cout << "Failed to open shader: " << filename << std::endl;
   }
 
-  return nullptr;
+  return cstrings.data();
 }
