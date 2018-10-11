@@ -33,20 +33,8 @@ RenderSystem::~RenderSystem()
 /////////////
 // TESTING //
 /////////////
-void RenderSystem::CreateTestTriangle()
+void RenderSystem::SetupShaders()
 {
-  float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
-  };
-
-  unsigned int VBO;
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
   unsigned int vert_shader;
   vert_shader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -83,7 +71,6 @@ void RenderSystem::CreateTestTriangle()
     std::cout << info_log << std::endl;
   }
 
-  unsigned int shader_prog;
   shader_prog = glCreateProgram();
 
   glAttachShader(shader_prog, vert_shader);
@@ -98,10 +85,36 @@ void RenderSystem::CreateTestTriangle()
     std::cout << info_log << std::endl;
   }
 
-  glUseProgram(shader_prog);
-
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
+}
+
+void RenderSystem::CreateTestTriangle()
+{
+  SetupShaders();
+
+  float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+  };
+
+  unsigned int VBO;
+  glGenVertexArrays(1, &triangle_VAO);
+  glGenBuffers(1, &VBO);
+
+  glBindVertexArray(triangle_VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(
+    0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0
+  );
+  glEnableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 }
 
 void RenderSystem::Initialize()
@@ -146,6 +159,10 @@ void RenderSystem::Update(const double& dt)
 
   glClearColor(0.2f, 0.1f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  glUseProgram(shader_prog);
+  glBindVertexArray(triangle_VAO);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
       
   glfwSwapBuffers(window);
 }

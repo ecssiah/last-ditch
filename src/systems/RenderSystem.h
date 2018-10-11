@@ -19,11 +19,14 @@ public:
   GLFWwindow* GetWindow() { return window; }
 
 private:
+  void SetupShaders();
   void CreateTestTriangle();
   std::string LoadShader(const std::string& filename);
 
   Input& input;
   GLFWwindow* window;
+
+  unsigned int shader_prog, triangle_VAO;
 };
 
 #endif // RENDER_SYSTEM_H
