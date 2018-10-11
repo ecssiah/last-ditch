@@ -20,7 +20,7 @@ public:
 
 private:
   void CreateTestTriangle();
-  GLchar** LoadShader(const std::string& filename);
+  std::string LoadShader(const std::string& filename);
 
   Input& input;
   GLFWwindow* window;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <iterator>
 #include <fstream>
 #include <functional>
 
@@ -49,8 +50,10 @@ void RenderSystem::CreateTestTriangle()
   unsigned int vert_shader;
   vert_shader = glCreateShader(GL_VERTEX_SHADER);
 
-  GLchar** shader_source = LoadShader("assets/glsl/test.vert");  
-  glShaderSource(vert_shader, 1, shader_source, nullptr);
+  std::string vert_shader_str = LoadShader("assets/glsl/test.vert");
+  const GLchar* vert_shader_src = vert_shader_str.c_str(); 
+
+  glShaderSource(vert_shader, 1, &vert_shader_src, nullptr);
   glCompileShader(vert_shader);
 
   int success;
@@ -62,6 +65,43 @@ void RenderSystem::CreateTestTriangle()
     glGetShaderInfoLog(vert_shader, 512, nullptr, info_log);
     std::cout << info_log << std::endl;
   }
+
+  unsigned int frag_shader;
+  frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+  std::string frag_shader_str = LoadShader("assets/glsl/test.frag");
+  const GLchar* frag_shader_src = frag_shader_str.c_str();
+
+  glShaderSource(frag_shader, 1, &frag_shader_src, nullptr);
+  glCompileShader(frag_shader);
+
+  glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
+
+  if (!success)
+  {
+    glGetShaderInfoLog(frag_shader, 512, nullptr, info_log);
+    std::cout << info_log << std::endl;
+  }
+
+  unsigned int shader_prog;
+  shader_prog = glCreateProgram();
+
+  glAttachShader(shader_prog, vert_shader);
+  glAttachShader(shader_prog, frag_shader);
+  glLinkProgram(shader_prog);
+
+  glGetProgramiv(shader_prog, GL_LINK_STATUS, &success);
+
+  if (!success)
+  {
+    glGetProgramInfoLog(shader_prog, 512, nullptr, info_log);
+    std::cout << info_log << std::endl;
+  }
+
+  glUseProgram(shader_prog);
+
+  glDeleteShader(vert_shader);
+  glDeleteShader(frag_shader);
 }
 
 void RenderSystem::Initialize()
@@ -111,24 +151,23 @@ void RenderSystem::Update(const double& dt)
 }
 
 
-GLchar** RenderSystem::LoadShader(const std::string& filename)
+std::string RenderSystem::LoadShader(const std::string& filename)
 {
-  std::vector<char*> cstrings{};
+  std::string content;
+  std::ifstream fs(filename);
 
-  std::string line;
-  std::ifstream shader_file(filename);
-
-  if (shader_file.is_open())
+  if (!fs.is_open())
   {
-    while (shader_file.good())
-    {
-      std::getline(shader_file, line);
-      cstrings.push_back(&line.front());
-    }
-    shader_file.close();
-  } else {
-    std::cout << "Failed to open shader: " << filename << std::endl;
+    std::cerr << "Could not read file " << filename << std::endl;
+    return "";
   }
 
-  return cstrings.data();
+  std::string line("");
+  while (!fs.eof())
+  {
+    std::getline(fs, line);
+    content.append(line + "\n");
+  }
+  fs.close();
+  return content;
 }
