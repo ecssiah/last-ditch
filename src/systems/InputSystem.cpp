@@ -19,6 +19,12 @@ void InputSystem::Update()
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
   /* for (SDL_Event e; SDL_PollEvent(&e); ) */
   /* { */
   /*   switch (e.type) */
