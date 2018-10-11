@@ -5,19 +5,22 @@
 
 #include "../components/Input.h"
 
+namespace InputCallback
+{
+  void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+}
+
 class InputSystem
 {
 public:
   InputSystem(Input& input);
 
-  void Initialize(GLFWwindow* window);
+  void Initialize();
   void Update();
   void Destroy();
 
 private:
   Input& input;
-
-  GLFWwindow* window;
 };
 
 #endif // INPUT_SYSTEM_H

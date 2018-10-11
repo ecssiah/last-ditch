@@ -4,19 +4,33 @@
 #include <fstream>
 #include <functional>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "../ext/stb/stb_image.h"
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
 
-namespace glfw_callback
+
+void frame_buffer_size_callback(GLFWwindow* window, int width, int height) 
 {
-  void FramebufferSizeCallback(GLFWwindow* window, int width, int height) 
-  {
-    glViewport(0, 0, width, height);
-  }
+  glViewport(0, 0, width, height);
 }
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
+
+  if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
 
 RenderSystem::RenderSystem(Input& _input) :
   input(_input),
@@ -116,6 +130,10 @@ void RenderSystem::CreateTestTriangle()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
+/////////////
+// Testing //
+/////////////
+
 
 void RenderSystem::Initialize()
 {
@@ -138,10 +156,10 @@ void RenderSystem::Initialize()
   }
 
   glfwMakeContextCurrent(window);
-  glfwSetFramebufferSizeCallback(
-    window, glfw_callback::FramebufferSizeCallback
-  );
   glViewport(0, 0, SCREEN_SIZE_X, SCREEN_SIZE_Y);
+
+  glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
+  glfwSetKeyCallback(window, key_callback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -165,6 +183,7 @@ void RenderSystem::Update(const double& dt)
   glDrawArrays(GL_TRIANGLES, 0, 3);
       
   glfwSwapBuffers(window);
+  glfwPollEvents();
 }
 
 

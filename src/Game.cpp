@@ -18,7 +18,7 @@ void Game::Initialize()
 {
   render_system.Initialize();
   time_system.Initialize();
-  input_system.Initialize(render_system.GetWindow());
+  input_system.Initialize();
 
   for (double dt(0.0); !input.exit; time_system.Tick())
   {

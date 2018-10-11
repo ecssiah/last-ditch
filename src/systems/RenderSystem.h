@@ -2,10 +2,14 @@
 #define RENDER_SYSTEM_H
 
 #include <string>
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "../components/Input.h"
+
+namespace RenderCallbacks
+{
+  void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
+}
 
 class RenderSystem
 {
@@ -15,8 +19,6 @@ public:
 
   void Initialize();
   void Update(const double& dt);
-
-  GLFWwindow* GetWindow() { return window; }
 
 private:
   void SetupShaders();
