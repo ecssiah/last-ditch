@@ -17,6 +17,8 @@ public:
   void Update(const double& dt);
 
 private:
+  static void FrameBufferSizeCallback(GLFWwindow* window, int w, int h); 
+
   void SetupShaders();
   void CreateTestTriangle();
   std::string LoadShader(const std::string& filename);

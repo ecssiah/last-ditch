@@ -1,8 +1,6 @@
 #ifndef INPUT_SYSTEM_H
 #define INPUT_SYSTEM_H
 
-#include <GLFW/glfw3.h>
-
 #include "../components/Input.h"
 #include "../components/Window.h"
 
@@ -13,7 +11,6 @@ public:
 
   void Initialize();
   void Update();
-  void Destroy();
 
 private:
   Input& input;

@@ -13,20 +13,15 @@
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
 
-
-void frame_buffer_size_callback(GLFWwindow* window, int width, int height) 
-{
-  glViewport(0, 0, width, height);
-}
-
-RenderSystem::RenderSystem(Input& _input, Window& _window) :
-  input(_input),
-  window(_window)
+RenderSystem::RenderSystem(Input& _input, Window& _window) 
+  : input(_input)
+  , window(_window)
 {
 }
 
 RenderSystem::~RenderSystem()
 {
+  glfwDestroyWindow(window.ptr);
   glfwTerminate();
   std::cout << "Render System Shutdown" << std::endl;
 }
@@ -145,7 +140,7 @@ void RenderSystem::Initialize()
   glfwMakeContextCurrent(window.ptr);
   glViewport(0, 0, SCREEN_SIZE_X, SCREEN_SIZE_Y);
 
-  glfwSetFramebufferSizeCallback(window.ptr, frame_buffer_size_callback);
+  glfwSetFramebufferSizeCallback(window.ptr, FrameBufferSizeCallback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -193,3 +188,11 @@ std::string RenderSystem::LoadShader(const std::string& filename)
   fs.close();
   return content;
 }
+
+
+void RenderSystem::FrameBufferSizeCallback(
+  GLFWwindow* window, int w, int h
+) {
+  glViewport(0, 0, w, h);
+}
+

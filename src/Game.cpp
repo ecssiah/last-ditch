@@ -2,16 +2,15 @@
 
 #include "Game.h"
 
-Game::Game() :
-  time_system(input),
-  render_system(input, window),
-  input_system(input, window)
+Game::Game()
+  : time_system(input)
+  , render_system(input, window)
+  , input_system(input, window)
 {
 }
 
 Game::~Game()
 {
-  std::cout << "Successfully Exited" << std::endl;
 }
 
 void Game::Initialize() 

@@ -2,9 +2,9 @@
 
 #include "InputSystem.h"
 
-InputSystem::InputSystem(Input& _input, Window& _window) :
-  input(_input),
-  window(_window)
+InputSystem::InputSystem(Input& _input, Window& _window) 
+  : input(_input)
+  , window(_window)
 {
 }
 
@@ -22,8 +22,4 @@ void InputSystem::Update()
 
   if (glfwGetKey(window.ptr, GLFW_KEY_Q) == GLFW_PRESS)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-void InputSystem::Destroy()
-{
 }

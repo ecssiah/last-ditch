@@ -4,8 +4,8 @@
 #include "../constants/SimulationConstants.h"
 
 TimeSystem::TimeSystem(Input& _input)
-  : input(_input),
-    dt(0.0)
+  : input(_input)
+  , dt(0.0)
 {
 }
 
