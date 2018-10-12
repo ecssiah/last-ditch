@@ -91,9 +91,10 @@ void RenderSystem::CreateTestTriangle()
   SetupShaders();
 
   float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+     // positions       // colors
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
   };
 
   unsigned int VBO;
@@ -107,10 +108,17 @@ void RenderSystem::CreateTestTriangle()
 
   glCheckError();
 
+  // position attribute
   glVertexAttribPointer(
-    0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0
+    0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0
   );
   glEnableVertexAttribArray(0);
+
+  // color attribute
+  glVertexAttribPointer(
+    1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float))
+  );
+  glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -159,10 +167,11 @@ void RenderSystem::Update(const double& dt)
     return;
   }
 
-  glClearColor(0.2f, 0.1f, 0.3f, 1.0f);
+  glClearColor(0, 0, 0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   glUseProgram(shader_prog_);
+
   glBindVertexArray(triangle_VAO_);
   glDrawArrays(GL_TRIANGLES, 0, 3);
       
