@@ -3,13 +3,13 @@
 
 struct Input
 {
-  Input()
-    : up(false),
-      down(false),
-      left(false),
-      right(false),
-      exit(false),
-      pause(false)
+  Input() : 
+    up(false),
+    down(false),
+    left(false),
+    right(false),
+    exit(false),
+    pause(false)
   {}
 
   bool up, down, left, right;

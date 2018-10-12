@@ -3,9 +3,9 @@
 #include "Game.h"
 
 Game::Game() :
-  render_system(input),
   time_system(input),
-  input_system(input)
+  render_system(input, window),
+  input_system(input, window)
 {
 }
 

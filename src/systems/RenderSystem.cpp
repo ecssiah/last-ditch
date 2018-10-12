@@ -19,22 +19,9 @@ void frame_buffer_size_callback(GLFWwindow* window, int width, int height)
   glViewport(0, 0, width, height);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-
-  if (key == GLFW_KEY_W && action == GLFW_PRESS)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-  if (key == GLFW_KEY_Q && action == GLFW_PRESS)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-
-RenderSystem::RenderSystem(Input& _input) :
+RenderSystem::RenderSystem(Input& _input, Window& _window) :
   input(_input),
-  window(nullptr)
+  window(_window)
 {
 }
 
@@ -143,23 +130,22 @@ void RenderSystem::Initialize()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-  window = glfwCreateWindow(
+  window.ptr = glfwCreateWindow(
     SCREEN_SIZE_X, SCREEN_SIZE_Y, 
     "Last Ditch", nullptr, nullptr
   );
 
-  if (window == nullptr)
+  if (window.ptr == nullptr)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return;
   }
 
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(window.ptr);
   glViewport(0, 0, SCREEN_SIZE_X, SCREEN_SIZE_Y);
 
-  glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
-  glfwSetKeyCallback(window, key_callback);
+  glfwSetFramebufferSizeCallback(window.ptr, frame_buffer_size_callback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -169,7 +155,7 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update(const double& dt)
 {
-  if (glfwWindowShouldClose(window))
+  if (glfwWindowShouldClose(window.ptr))
   {
     input.exit = true;
     return;
@@ -182,7 +168,7 @@ void RenderSystem::Update(const double& dt)
   glBindVertexArray(triangle_VAO);
   glDrawArrays(GL_TRIANGLES, 0, 3);
       
-  glfwSwapBuffers(window);
+  glfwSwapBuffers(window.ptr);
   glfwPollEvents();
 }
 

@@ -5,16 +5,12 @@
 #include <GLFW/glfw3.h>
 
 #include "../components/Input.h"
-
-namespace RenderCallbacks
-{
-  void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
-}
+#include "../components/Window.h"
 
 class RenderSystem
 {
 public:
-  RenderSystem(Input& input);
+  RenderSystem(Input& input, Window& window);
   ~RenderSystem();
 
   void Initialize();
@@ -26,7 +22,7 @@ private:
   std::string LoadShader(const std::string& filename);
 
   Input& input;
-  GLFWwindow* window;
+  Window& window;
 
   unsigned int shader_prog, triangle_VAO;
 };

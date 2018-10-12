@@ -4,16 +4,12 @@
 #include <GLFW/glfw3.h>
 
 #include "../components/Input.h"
-
-namespace InputCallback
-{
-  void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-}
+#include "../components/Window.h"
 
 class InputSystem
 {
 public:
-  InputSystem(Input& input);
+  InputSystem(Input& input, Window& window);
 
   void Initialize();
   void Update();
@@ -21,6 +17,7 @@ public:
 
 private:
   Input& input;
+  Window& window;
 };
 
 #endif // INPUT_SYSTEM_H
