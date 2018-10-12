@@ -27,6 +27,7 @@ private:
   Window& window_;
 
   unsigned int shader_prog_, triangle_VAO_;
+  unsigned int texture0_, texture1_;
 };
 
 #endif // RENDER_SYSTEM_H

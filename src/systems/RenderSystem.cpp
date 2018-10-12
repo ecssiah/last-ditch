@@ -24,6 +24,7 @@ RenderSystem::RenderSystem(Input& input, Window& window)
 
 RenderSystem::~RenderSystem()
 {
+  glDeleteVertexArrays(1, &triangle_VAO_);
   glfwTerminate();
 
   cout << "Render System Shutdown" << endl;
@@ -136,28 +137,53 @@ void RenderSystem::CreateTestTriangle()
   glEnableVertexAttribArray(2);
 
   // texture loading
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  glGenTextures(1, &texture0_);
+  glBindTexture(GL_TEXTURE_2D, texture0_);
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   int width, height, nr_channels;
-  unsigned char* tex_data = stbi_load(
-    "assets/textures/test_texture.png", &width, &height, &nr_channels, 0
+  stbi_set_flip_vertically_on_load(true);
+  unsigned char* tex_data0 = stbi_load(
+    "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0
   );
 
-  if (tex_data)
+  if (tex_data0)
   {
     glTexImage2D(
       GL_TEXTURE_2D, 0, GL_RGB, width, height, 
-      0, GL_RGB, GL_UNSIGNED_BYTE, tex_data
+      0, GL_RGB, GL_UNSIGNED_BYTE, tex_data0
     );
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
-    cout << "Failed to load texture" << endl;
+    cout << "Failed to load texture0" << endl;
   }
-  stbi_image_free(tex_data);
+  stbi_image_free(tex_data0);
+
+  glGenTextures(1, &texture1_);
+  glBindTexture(GL_TEXTURE_2D, texture1_);
+
+  unsigned char* tex_data1 = stbi_load(
+    "assets/textures/test_texture1.jpg", &width, &height, &nr_channels, 0
+  );
+
+  if (tex_data1)
+  {
+    glTexImage2D(
+      GL_TEXTURE_2D, 0, GL_RGB, width, height, 
+      0, GL_RGB, GL_UNSIGNED_BYTE, tex_data1
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    cout << "Failed to load texture1" << endl;
+  }
+  stbi_image_free(tex_data1);
+
+  glUseProgram(shader_prog_);
+
+  glUniform1i(glGetUniformLocation(shader_prog_, "texture0"), 0); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "texture1"), 1); 
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -208,6 +234,11 @@ void RenderSystem::Update(const double& dt)
 
   glClearColor(0, 0, 0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture0_);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, texture1_);
 
   glUseProgram(shader_prog_);
 
