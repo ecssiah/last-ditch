@@ -8,10 +8,11 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../ext/stb/stb_image.h"
+#include "../external/stb/stb_image.h"
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
+#include "../utils/GLCheckError.h"
 
 RenderSystem::RenderSystem(Input& input, Window& window) 
   : input_(input)
@@ -103,6 +104,8 @@ void RenderSystem::CreateTestTriangle()
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glCheckError();
 
   glVertexAttribPointer(
     0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0
