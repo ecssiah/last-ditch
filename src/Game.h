@@ -16,8 +16,8 @@ public:
   void Initialize();
 
 private:
-  Input input;
-  Window window;
+  Input input_;
+  Window window_;
 
   RenderSystem render_system;
   TimeSystem time_system;

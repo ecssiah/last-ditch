@@ -15,12 +15,12 @@ public:
   double Update();
 
 private:
-  Input& input;
+  Input& input_;
 
-  double dt;
+  double dt_;
 
-  std::chrono::steady_clock::time_point start;
-  std::chrono::steady_clock::time_point end;
+  std::chrono::steady_clock::time_point start_;
+  std::chrono::steady_clock::time_point end_;
 };
 
 #endif /* TIMESYSTEM_H */

@@ -3,9 +3,9 @@
 #include "Game.h"
 
 Game::Game()
-  : time_system(input)
-  , render_system(input, window)
-  , input_system(input, window)
+  : time_system(input_)
+  , render_system(input_, window_)
+  , input_system(input_, window_)
 {
 }
 
@@ -19,7 +19,7 @@ void Game::Initialize()
   time_system.Initialize();
   input_system.Initialize();
 
-  for (double dt(0.0); !input.exit; time_system.Tick())
+  for (double dt(0.0); !input_.exit; time_system.Tick())
   {
     input_system.Update();
     render_system.Update(dt);

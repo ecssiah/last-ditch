@@ -13,15 +13,15 @@
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
 
-RenderSystem::RenderSystem(Input& _input, Window& _window) 
-  : input(_input)
-  , window(_window)
+RenderSystem::RenderSystem(Input& input, Window& window) 
+  : input_(input)
+  , window_(window)
 {
 }
 
 RenderSystem::~RenderSystem()
 {
-  glfwDestroyWindow(window.ptr);
+  glfwDestroyWindow(window_.ptr);
   glfwTerminate();
   std::cout << "Render System Shutdown" << std::endl;
 }
@@ -67,17 +67,17 @@ void RenderSystem::SetupShaders()
     std::cout << info_log << std::endl;
   }
 
-  shader_prog = glCreateProgram();
+  shader_prog_ = glCreateProgram();
 
-  glAttachShader(shader_prog, vert_shader);
-  glAttachShader(shader_prog, frag_shader);
-  glLinkProgram(shader_prog);
+  glAttachShader(shader_prog_, vert_shader);
+  glAttachShader(shader_prog_, frag_shader);
+  glLinkProgram(shader_prog_);
 
-  glGetProgramiv(shader_prog, GL_LINK_STATUS, &success);
+  glGetProgramiv(shader_prog_, GL_LINK_STATUS, &success);
 
   if (!success)
   {
-    glGetProgramInfoLog(shader_prog, 512, nullptr, info_log);
+    glGetProgramInfoLog(shader_prog_, 512, nullptr, info_log);
     std::cout << info_log << std::endl;
   }
 
@@ -96,10 +96,10 @@ void RenderSystem::CreateTestTriangle()
   };
 
   unsigned int VBO;
-  glGenVertexArrays(1, &triangle_VAO);
+  glGenVertexArrays(1, &triangle_VAO_);
   glGenBuffers(1, &VBO);
 
-  glBindVertexArray(triangle_VAO);
+  glBindVertexArray(triangle_VAO_);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -125,22 +125,22 @@ void RenderSystem::Initialize()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-  window.ptr = glfwCreateWindow(
+  window_.ptr = glfwCreateWindow(
     SCREEN_SIZE_X, SCREEN_SIZE_Y, 
     "Last Ditch", nullptr, nullptr
   );
 
-  if (window.ptr == nullptr)
+  if (window_.ptr == nullptr)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return;
   }
 
-  glfwMakeContextCurrent(window.ptr);
+  glfwMakeContextCurrent(window_.ptr);
   glViewport(0, 0, SCREEN_SIZE_X, SCREEN_SIZE_Y);
 
-  glfwSetFramebufferSizeCallback(window.ptr, FrameBufferSizeCallback);
+  glfwSetFramebufferSizeCallback(window_.ptr, FrameBufferSizeCallback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -150,20 +150,20 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update(const double& dt)
 {
-  if (glfwWindowShouldClose(window.ptr))
+  if (glfwWindowShouldClose(window_.ptr))
   {
-    input.exit = true;
+    input_.exit = true;
     return;
   }
 
   glClearColor(0.2f, 0.1f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glUseProgram(shader_prog);
-  glBindVertexArray(triangle_VAO);
+  glUseProgram(shader_prog_);
+  glBindVertexArray(triangle_VAO_);
   glDrawArrays(GL_TRIANGLES, 0, 3);
       
-  glfwSwapBuffers(window.ptr);
+  glfwSwapBuffers(window_.ptr);
   glfwPollEvents();
 }
 

@@ -13,8 +13,8 @@ public:
   void Update();
 
 private:
-  Input& input;
-  Window& window;
+  Input& input_;
+  Window& window_;
 };
 
 #endif // INPUT_SYSTEM_H

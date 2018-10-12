@@ -23,10 +23,10 @@ private:
   void CreateTestTriangle();
   std::string LoadShader(const std::string& filename);
 
-  Input& input;
-  Window& window;
+  Input& input_;
+  Window& window_;
 
-  unsigned int shader_prog, triangle_VAO;
+  unsigned int shader_prog_, triangle_VAO_;
 };
 
 #endif // RENDER_SYSTEM_H

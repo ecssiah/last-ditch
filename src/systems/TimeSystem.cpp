@@ -3,9 +3,9 @@
 #include "TimeSystem.h"
 #include "../constants/SimulationConstants.h"
 
-TimeSystem::TimeSystem(Input& _input)
-  : input(_input)
-  , dt(0.0)
+TimeSystem::TimeSystem(Input& input)
+  : input_(input)
+  , dt_(0.0)
 {
 }
 
@@ -15,21 +15,21 @@ void TimeSystem::Initialize()
 
 void TimeSystem::Tick()
 {
-  start = std::chrono::steady_clock::now();
+  start_ = std::chrono::steady_clock::now();
 }
 
 double TimeSystem::Update()
 {
-  end = std::chrono::steady_clock::now();
+  end_ = std::chrono::steady_clock::now();
   auto microseconds(
-    std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
+    std::chrono::duration_cast<std::chrono::microseconds>(end_ - start_).count()
   );
 
-  dt = std::min(MAX_DELTA_TIME, 1e-6 * microseconds);
+  dt_ = std::min(MAX_DELTA_TIME, 1e-6 * microseconds);
 
-  if (!input.pause)
+  if (!input_.pause)
   {
   }
 
-  return dt;
+  return dt_;
 }
