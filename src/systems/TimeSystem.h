@@ -11,8 +11,8 @@ public:
   TimeSystem(Input& input);
 
   void Initialize();
-  void Tick();
   double Update();
+  void Tick();
 
 private:
   Input& input_;

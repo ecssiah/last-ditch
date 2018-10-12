@@ -13,14 +13,8 @@ void TimeSystem::Initialize()
 {
 }
 
-void TimeSystem::Tick()
-{
-  start_ = std::chrono::steady_clock::now();
-}
-
 double TimeSystem::Update()
 {
-  end_ = std::chrono::steady_clock::now();
   auto microseconds(
     std::chrono::duration_cast<std::chrono::microseconds>(end_ - start_).count()
   );
@@ -31,5 +25,13 @@ double TimeSystem::Update()
   {
   }
 
+  start_ = std::chrono::steady_clock::now();
+
   return dt_;
 }
+
+void TimeSystem::Tick()
+{
+  end_ = std::chrono::steady_clock::now();
+}
+

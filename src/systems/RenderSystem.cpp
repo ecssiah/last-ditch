@@ -22,8 +22,8 @@ RenderSystem::RenderSystem(Input& input, Window& window)
 
 RenderSystem::~RenderSystem()
 {
-  glfwDestroyWindow(window_.ptr);
   glfwTerminate();
+
   std::cout << "Render System Shutdown" << std::endl;
 }
 
