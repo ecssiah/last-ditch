@@ -14,6 +14,8 @@
 #include "../constants/RenderConstants.h"
 #include "../utils/GLCheckError.h"
 
+using namespace std;
+
 RenderSystem::RenderSystem(Input& input, Window& window) 
   : input_(input)
   , window_(window)
@@ -24,7 +26,7 @@ RenderSystem::~RenderSystem()
 {
   glfwTerminate();
 
-  std::cout << "Render System Shutdown" << std::endl;
+  cout << "Render System Shutdown" << endl;
 }
 
 /////////////
@@ -35,7 +37,7 @@ void RenderSystem::SetupShaders()
   unsigned int vert_shader;
   vert_shader = glCreateShader(GL_VERTEX_SHADER);
 
-  std::string vert_shader_str = LoadShader("assets/glsl/test.vert");
+  string vert_shader_str = LoadShader("assets/glsl/test.vert");
   const GLchar* vert_shader_src = vert_shader_str.c_str(); 
 
   glShaderSource(vert_shader, 1, &vert_shader_src, nullptr);
@@ -48,13 +50,13 @@ void RenderSystem::SetupShaders()
   if (!success)
   {
     glGetShaderInfoLog(vert_shader, 512, nullptr, info_log);
-    std::cout << info_log << std::endl;
+    cout << info_log << endl;
   }
 
   unsigned int frag_shader;
   frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
-  std::string frag_shader_str = LoadShader("assets/glsl/test.frag");
+  string frag_shader_str = LoadShader("assets/glsl/test.frag");
   const GLchar* frag_shader_src = frag_shader_str.c_str();
 
   glShaderSource(frag_shader, 1, &frag_shader_src, nullptr);
@@ -65,7 +67,7 @@ void RenderSystem::SetupShaders()
   if (!success)
   {
     glGetShaderInfoLog(frag_shader, 512, nullptr, info_log);
-    std::cout << info_log << std::endl;
+    cout << info_log << endl;
   }
 
   shader_prog_ = glCreateProgram();
@@ -79,7 +81,7 @@ void RenderSystem::SetupShaders()
   if (!success)
   {
     glGetProgramInfoLog(shader_prog_, 512, nullptr, info_log);
-    std::cout << info_log << std::endl;
+    cout << info_log << endl;
   }
 
   glDeleteShader(vert_shader);
@@ -143,7 +145,7 @@ void RenderSystem::Initialize()
 
   if (window_.ptr == nullptr)
   {
-    std::cout << "Failed to create GLFW window" << std::endl;
+    cout << "Failed to create GLFW window" << endl;
     glfwTerminate();
     return;
   }
@@ -179,32 +181,30 @@ void RenderSystem::Update(const double& dt)
   glfwPollEvents();
 }
 
-
-std::string RenderSystem::LoadShader(const std::string& filename)
+string RenderSystem::LoadShader(const string& filename)
 {
-  std::string content;
-  std::ifstream fs(filename);
+  string content;
+  ifstream fs(filename);
 
   if (!fs.is_open())
   {
-    std::cerr << "Could not read file " << filename << std::endl;
+    cerr << "Could not read file " << filename << endl;
     return "";
   }
 
-  std::string line("");
+  string line;
   while (!fs.eof())
   {
-    std::getline(fs, line);
+    getline(fs, line);
     content.append(line + "\n");
   }
+
   fs.close();
   return content;
 }
 
-
-void RenderSystem::FrameBufferSizeCallback(
-  GLFWwindow* window, int w, int h
-) {
+void RenderSystem::FrameBufferSizeCallback(GLFWwindow* window, int w, int h) 
+{
   glViewport(0, 0, w, h);
 }
 
