@@ -4,20 +4,20 @@
 #include <chrono>
 
 #include "../components/Input.h"
+#include "../components/Window.h"
 
 class TimeSystem
 {
 public:
-  TimeSystem(Input& input);
+  TimeSystem(Input& input, Window& window);
 
   void Initialize();
-  double Update();
-  void Tick();
+  void StartFrame();
+  void EndFrame();
 
 private:
   Input& input_;
-
-  double dt_;
+  Window& window_;
 
   std::chrono::steady_clock::time_point start_;
   std::chrono::steady_clock::time_point end_;

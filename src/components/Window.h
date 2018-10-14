@@ -5,9 +5,11 @@
 
 struct Window
 {
-  Window() : 
-    ptr(nullptr)
+  Window() 
+    : ptr(nullptr)
   {}
+
+  double dt;
 
   GLFWwindow* ptr;
 };

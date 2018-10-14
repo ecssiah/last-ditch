@@ -5,9 +5,9 @@
 
 using namespace std;
 
-TimeSystem::TimeSystem(Input& input)
+TimeSystem::TimeSystem(Input& input, Window& window)
   : input_(input)
-  , dt_(0.0)
+  , window_(window)
 {
 }
 
@@ -15,24 +15,22 @@ void TimeSystem::Initialize()
 {
 }
 
-double TimeSystem::Update()
+void TimeSystem::StartFrame()
 {
+  start_ = chrono::steady_clock::now();
+}
+
+void TimeSystem::EndFrame()
+{
+  end_ = chrono::steady_clock::now();
+
   auto microseconds = 
     chrono::duration_cast<chrono::microseconds>(end_ - start_).count();
 
-  dt_ = min(MAX_DELTA_TIME, 1e-6 * microseconds);
+  window_.dt = min(MAX_DELTA_TIME, 1e-6 * microseconds);
 
   if (!input_.pause)
   {
   }
-
-  start_ = chrono::steady_clock::now();
-
-  return dt_;
-}
-
-void TimeSystem::Tick()
-{
-  end_ = chrono::steady_clock::now();
 }
 

@@ -3,6 +3,7 @@
 
 #include "components/Input.h"
 #include "components/Window.h"
+#include "components/Camera.h"
 #include "systems/RenderSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/TimeSystem.h"

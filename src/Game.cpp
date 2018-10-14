@@ -3,10 +3,10 @@
 #include "Game.h"
 
 Game::Game()
-  : time_system(input_)
-  , input_system(input_, window_)
+  : input_system(input_, window_)
+  , time_system(input_, window_)
   , render_system(input_, window_, camera_)
-  , camera_system(input_, camera_)
+  , camera_system(input_, window_, camera_)
 {
 }
 
@@ -23,12 +23,12 @@ void Game::Initialize()
 
   while (!input_.exit)
   {
-    auto dt {time_system.Update()};
+    time_system.StartFrame();
 
     input_system.Update();
     camera_system.Update();
-    render_system.Update(dt);
+    render_system.Update();
 
-    time_system.Tick();
+    time_system.EndFrame();
   }
 }

@@ -15,7 +15,7 @@ public:
   ~RenderSystem();
 
   void Initialize();
-  void Update(const double& dt);
+  void Update();
 
 private:
   void RunTests();

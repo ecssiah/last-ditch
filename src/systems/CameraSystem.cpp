@@ -3,8 +3,9 @@
 
 #include "CameraSystem.h"
 
-CameraSystem::CameraSystem(Input& input, Camera& camera) 
+CameraSystem::CameraSystem(Input& input, Window& window, Camera& camera) 
   : input_(input)
+  , window_(window)
   , camera_(camera)
 {
 }
