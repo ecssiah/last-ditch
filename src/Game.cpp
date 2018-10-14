@@ -17,9 +17,9 @@ Game::~Game()
 void Game::Initialize() 
 {
   time_system.Initialize();
-  input_system.Initialize();
   camera_system.Initialize();
   render_system.Initialize();
+  input_system.Initialize();
 
   while (!input_.exit)
   {

@@ -183,6 +183,12 @@ void RenderSystem::Update()
   glClearColor(0, 0, 0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
+  if (input_.debug) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  } else { 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture0_);
   glActiveTexture(GL_TEXTURE1);
