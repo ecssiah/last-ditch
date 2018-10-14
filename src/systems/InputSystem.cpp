@@ -19,9 +19,7 @@ void InputSystem::Update()
 {
 }
 
-void InputSystem::KeyCallback(
-  GLFWwindow* window, int key, int scancode, int action, int mods
-) {
+void InputSystem::KeyCallback(int key, int scancode, int action, int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     input_.exit = true;
   if (key == GLFW_KEY_W && action == GLFW_PRESS)
@@ -44,22 +42,21 @@ void InputSystem::KeyCallback(
     input_.debug = !input_.debug;
 }
 
-void InputSystem::CursorPosCallback(
-  GLFWwindow* window, double xpos, double ypos
-) {
+void InputSystem::CursorPosCallback(double xpos, double ypos) 
+{
 }
 
 void InputSystem::key_callback(
   GLFWwindow* window, int key, int scancode, int action, int mods
 ) {
-  InputSystem* input_system = (InputSystem*)glfwGetWindowUserPointer(window);
-  input_system->KeyCallback(window, key, scancode, action, mods);
+  auto input_system = (InputSystem*)glfwGetWindowUserPointer(window);
+  input_system->KeyCallback(key, scancode, action, mods);
 }
 
 void InputSystem::cursor_position_callback(
   GLFWwindow* window, double xpos, double ypos
 ) {
-  InputSystem* input_system = (InputSystem*)glfwGetWindowUserPointer(window);
-  input_system->CursorPosCallback(window, xpos, ypos);
+  auto input_system = (InputSystem*)glfwGetWindowUserPointer(window);
+  input_system->CursorPosCallback(xpos, ypos);
 }
 

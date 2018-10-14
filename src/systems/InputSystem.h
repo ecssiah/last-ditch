@@ -14,12 +14,8 @@ public:
   void Initialize();
   void Update();
 
-  void KeyCallback(
-    GLFWwindow* window, int key, int scancode, int action, int mods
-  );
-  void CursorPosCallback(
-    GLFWwindow* window, double xpos, double ypos
-  );
+  void KeyCallback(int key, int scancode, int action, int mods);
+  void CursorPosCallback(double xpos, double ypos);
 
 private:
   static void key_callback(
