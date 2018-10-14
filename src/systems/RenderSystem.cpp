@@ -92,8 +92,8 @@ void RenderSystem::RunTests()
   glGenTextures(1, &texture0_);
   glBindTexture(GL_TEXTURE_2D, texture0_);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   unsigned char* tex_data0 = stbi_load(
     "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0
@@ -204,12 +204,15 @@ void RenderSystem::Update()
   glm::mat4 view {
     glm::lookAt(camera_.pos, camera_.pos + camera_.z_dir, camera_.y_dir)
   };
+  /* glm::mat4 projection { */
+  /*   glm::ortho(0.0f, (float)SCREEN_SIZE_X, 0.0f, (float)SCREEN_SIZE_Y) */
+  /* }; */
   glm::mat4 projection {
     glm::perspective(
-      glm::radians(45.0f), 
-      (float)SCREEN_SIZE_X / (float)SCREEN_SIZE_Y, 
-      0.1f, 100.0f
-    )
+        glm::radians(45.0f), 
+        (float)SCREEN_SIZE_X / (float)SCREEN_SIZE_Y, 
+        0.1f, 100.0f
+        )
   };
 
   int model_loc = glGetUniformLocation(shader_prog_, "model");

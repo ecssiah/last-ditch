@@ -30,6 +30,10 @@ void InputSystem::KeyCallback(int key, int scancode, int action, int mods) {
     input_.down = true;
   if (key == GLFW_KEY_D && action == GLFW_PRESS)
     input_.right = true;
+  if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    input_.min = true;
+  if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    input_.mag = true;
   if (key == GLFW_KEY_W && action == GLFW_RELEASE)
     input_.up = false;
   if (key == GLFW_KEY_A && action == GLFW_RELEASE)
@@ -38,6 +42,10 @@ void InputSystem::KeyCallback(int key, int scancode, int action, int mods) {
     input_.down = false;
   if (key == GLFW_KEY_D && action == GLFW_RELEASE)
     input_.right = false;
+  if (key == GLFW_KEY_Q && action == GLFW_RELEASE)
+    input_.min = false;
+  if (key == GLFW_KEY_E && action == GLFW_RELEASE)
+    input_.mag = false;
   if (key == GLFW_KEY_T && action == GLFW_RELEASE)
     input_.debug = !input_.debug;
 }

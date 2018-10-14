@@ -8,12 +8,14 @@ struct Input
     , down(false)
     , left(false)
     , right(false)
+    , mag(false)
+    , min(false)
     , exit(false)
     , pause(false)
     , debug(false)
   {}
 
-  bool up, down, left, right;
+  bool up, down, left, right, mag, min;
   bool exit, pause, debug;
 };
 
