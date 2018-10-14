@@ -6,11 +6,12 @@
 
 #include "../components/Input.h"
 #include "../components/Window.h"
+#include "../components/Camera.h"
 
 class RenderSystem
 {
 public:
-  RenderSystem(Input& input, Window& window);
+  RenderSystem(Input& input, Window& window, Camera& camera);
   ~RenderSystem();
 
   void Initialize();
@@ -21,6 +22,7 @@ private:
 
   Input& input_;
   Window& window_;
+  Camera& camera_;
 
   unsigned int shader_prog_, VAO_;
   unsigned int texture0_, texture1_;

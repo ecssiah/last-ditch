@@ -5,8 +5,8 @@
 Game::Game()
   : time_system(input_)
   , input_system(input_, window_)
-  , render_system(input_, window_)
-  , camera_system()
+  , render_system(input_, window_, camera_)
+  , camera_system(input_, camera_)
 {
 }
 

@@ -18,6 +18,7 @@ public:
 
 private:
   Input input_;
+  Camera camera_;
   Window window_;
 
   RenderSystem render_system;
