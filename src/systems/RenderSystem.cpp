@@ -6,6 +6,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../external/stb/stb_image.h"
@@ -13,6 +16,7 @@
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
 #include "../utils/GLCheckError.h"
+#include "../utils/GLLoadShader.h"
 
 using namespace std;
 
@@ -24,7 +28,7 @@ RenderSystem::RenderSystem(Input& input, Window& window)
 
 RenderSystem::~RenderSystem()
 {
-  glDeleteVertexArrays(1, &triangle_VAO_);
+  glDeleteVertexArrays(1, &VAO_);
   glfwTerminate();
 
   cout << "Render System Shutdown" << endl;
@@ -33,65 +37,9 @@ RenderSystem::~RenderSystem()
 /////////////
 // TESTING //
 /////////////
-void RenderSystem::SetupShaders()
+void RenderSystem::RunTests()
 {
-  unsigned int vert_shader;
-  vert_shader = glCreateShader(GL_VERTEX_SHADER);
-
-  string vert_shader_str = LoadShader("assets/glsl/test.vert");
-  const GLchar* vert_shader_src = vert_shader_str.c_str(); 
-
-  glShaderSource(vert_shader, 1, &vert_shader_src, nullptr);
-  glCompileShader(vert_shader);
-
-  int success;
-  char info_log[512];
-  glGetShaderiv(vert_shader, GL_COMPILE_STATUS, &success);
-
-  if (!success)
-  {
-    glGetShaderInfoLog(vert_shader, 512, nullptr, info_log);
-    cout << info_log << endl;
-  }
-
-  unsigned int frag_shader;
-  frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-  string frag_shader_str = LoadShader("assets/glsl/test.frag");
-  const GLchar* frag_shader_src = frag_shader_str.c_str();
-
-  glShaderSource(frag_shader, 1, &frag_shader_src, nullptr);
-  glCompileShader(frag_shader);
-
-  glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
-
-  if (!success)
-  {
-    glGetShaderInfoLog(frag_shader, 512, nullptr, info_log);
-    cout << info_log << endl;
-  }
-
-  shader_prog_ = glCreateProgram();
-
-  glAttachShader(shader_prog_, vert_shader);
-  glAttachShader(shader_prog_, frag_shader);
-  glLinkProgram(shader_prog_);
-
-  glGetProgramiv(shader_prog_, GL_LINK_STATUS, &success);
-
-  if (!success)
-  {
-    glGetProgramInfoLog(shader_prog_, 512, nullptr, info_log);
-    cout << info_log << endl;
-  }
-
-  glDeleteShader(vert_shader);
-  glDeleteShader(frag_shader);
-}
-
-void RenderSystem::CreateTestTriangle()
-{
-  SetupShaders();
+  shader_prog_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
 
   float vertices[] = {
     // positions          // colors           // texture coords
@@ -106,11 +54,11 @@ void RenderSystem::CreateTestTriangle()
   };
 
   unsigned int VBO, EBO;
-  glGenVertexArrays(1, &triangle_VAO_);
+  glGenVertexArrays(1, &VAO_);
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &EBO);
 
-  glBindVertexArray(triangle_VAO_);
+  glBindVertexArray(VAO_);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -136,15 +84,16 @@ void RenderSystem::CreateTestTriangle()
   );
   glEnableVertexAttribArray(2);
 
-  // texture loading
+  // texture0 loading
+  int width, height, nr_channels;
+  stbi_set_flip_vertically_on_load(true);
+
   glGenTextures(1, &texture0_);
   glBindTexture(GL_TEXTURE_2D, texture0_);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  int width, height, nr_channels;
-  stbi_set_flip_vertically_on_load(true);
   unsigned char* tex_data0 = stbi_load(
     "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0
   );
@@ -161,6 +110,7 @@ void RenderSystem::CreateTestTriangle()
   }
   stbi_image_free(tex_data0);
 
+  // texture1 loading
   glGenTextures(1, &texture1_);
   glBindTexture(GL_TEXTURE_2D, texture1_);
 
@@ -221,7 +171,7 @@ void RenderSystem::Initialize()
   glewExperimental = GL_TRUE;
   glewInit();
 
-  CreateTestTriangle();
+  RunTests();
 }
 
 void RenderSystem::Update(const double& dt)
@@ -242,33 +192,11 @@ void RenderSystem::Update(const double& dt)
 
   glUseProgram(shader_prog_);
 
-  glBindVertexArray(triangle_VAO_);
+  glBindVertexArray(VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
       
   glfwSwapBuffers(window_.ptr);
   glfwPollEvents();
-}
-
-string RenderSystem::LoadShader(const string& filename)
-{
-  string content;
-  ifstream fs(filename);
-
-  if (!fs.is_open())
-  {
-    cerr << "Could not read file " << filename << endl;
-    return "";
-  }
-
-  string line;
-  while (!fs.eof())
-  {
-    getline(fs, line);
-    content.append(line + "\n");
-  }
-
-  fs.close();
-  return content;
 }
 
 void RenderSystem::FrameBufferSizeCallback(GLFWwindow* window, int w, int h) 

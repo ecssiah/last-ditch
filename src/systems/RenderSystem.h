@@ -20,13 +20,13 @@ private:
   static void FrameBufferSizeCallback(GLFWwindow* window, int w, int h); 
 
   void SetupShaders();
-  void CreateTestTriangle();
+  void RunTests();
   std::string LoadShader(const std::string& filename);
 
   Input& input_;
   Window& window_;
 
-  unsigned int shader_prog_, triangle_VAO_;
+  unsigned int shader_prog_, VAO_;
   unsigned int texture0_, texture1_;
 };
 
