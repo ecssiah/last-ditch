@@ -4,6 +4,7 @@
 #include "components/Input.h"
 #include "components/Window.h"
 #include "systems/RenderSystem.h"
+#include "systems/CameraSystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
 
@@ -20,6 +21,7 @@ private:
   Window window_;
 
   RenderSystem render_system;
+  CameraSystem camera_system;
   TimeSystem time_system;
   InputSystem input_system;
 };

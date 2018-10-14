@@ -92,7 +92,7 @@ void RenderSystem::RunTests()
   glBindTexture(GL_TEXTURE_2D, texture0_);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   unsigned char* tex_data0 = stbi_load(
     "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0
@@ -164,9 +164,6 @@ void RenderSystem::Initialize()
   }
 
   glfwMakeContextCurrent(window_.ptr);
-  glViewport(0, 0, SCREEN_SIZE_X, SCREEN_SIZE_Y);
-
-  glfwSetFramebufferSizeCallback(window_.ptr, FrameBufferSizeCallback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -224,9 +221,3 @@ void RenderSystem::Update(const double& dt)
   glfwSwapBuffers(window_.ptr);
   glfwPollEvents();
 }
-
-void RenderSystem::FrameBufferSizeCallback(GLFWwindow* window, int w, int h) 
-{
-  glViewport(0, 0, w, h);
-}
-
