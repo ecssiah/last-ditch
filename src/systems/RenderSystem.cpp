@@ -189,16 +189,20 @@ void RenderSystem::Update(const double& dt)
 
   glUseProgram(shader_prog_);
 
+  // Camera
+  float radius {2.0f};
+  glm::vec3 cam_pos {
+    sin(glfwGetTime()) * radius, 1.0f, cos(glfwGetTime()) * radius
+  };
+  glm::vec3 cam_targ {0.0f};
+  glm::vec3 up {0.0f, 1.0f, 0.0f};
+
   glm::mat4 model {
     glm::rotate(
       glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
   };
-  glm::mat4 view {
-    glm::translate(
-      glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -3.0f)
-    ) 
-  };
+  glm::mat4 view {glm::lookAt(cam_pos, cam_targ, up)};
   glm::mat4 projection {
     glm::perspective(
       glm::radians(45.0f), 
