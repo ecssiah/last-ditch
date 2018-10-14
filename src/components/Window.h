@@ -9,7 +9,7 @@ struct Window
     : ptr(nullptr)
   {}
 
-  double dt;
+  float dt;
 
   GLFWwindow* ptr;
 };
