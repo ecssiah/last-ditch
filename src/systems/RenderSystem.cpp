@@ -192,6 +192,32 @@ void RenderSystem::Update(const double& dt)
 
   glUseProgram(shader_prog_);
 
+  glm::mat4 model {
+    glm::rotate(
+      glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  };
+  glm::mat4 view {
+    glm::translate(
+      glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -3.0f)
+    ) 
+  };
+  glm::mat4 projection {
+    glm::perspective(
+      glm::radians(45.0f), 
+      (float)SCREEN_SIZE_X / (float)SCREEN_SIZE_Y, 
+      0.1f, 100.0f
+    )
+  };
+
+  int model_loc = glGetUniformLocation(shader_prog_, "model");
+  int view_loc = glGetUniformLocation(shader_prog_, "view");
+  int projection_loc = glGetUniformLocation(shader_prog_, "projection");
+
+  glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
+  glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
+  glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
+
   glBindVertexArray(VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
       
