@@ -22,11 +22,11 @@ void CameraSystem::Initialize()
 void CameraSystem::Update()
 {
   if (input_.up)
-    camera_.pos += window_.dt * camera_.speed * camera_.z_dir; 
+    camera_.pos += window_.dt * camera_.speed * camera_.y_dir; 
   if (input_.down)
-    camera_.pos -= window_.dt * camera_.speed * camera_.z_dir;
-  if (input_.right)
-    camera_.pos += window_.dt * camera_.speed * camera_.x_dir;
+    camera_.pos -= window_.dt * camera_.speed * camera_.y_dir;
   if (input_.left)
     camera_.pos -= window_.dt * camera_.speed * camera_.x_dir; 
+  if (input_.right)
+    camera_.pos += window_.dt * camera_.speed * camera_.x_dir;
 }
