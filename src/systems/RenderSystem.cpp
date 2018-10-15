@@ -97,14 +97,14 @@ void RenderSystem::RunTests()
   stbi_set_flip_vertically_on_load(true);
 
   unsigned char* tex_data0 = stbi_load(
-    "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0
+    "assets/textures/test_block.png", &width, &height, &nr_channels, 0
   );
 
   if (tex_data0)
   {
     glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGB, width, height, 
-      0, GL_RGB, GL_UNSIGNED_BYTE, tex_data0
+      GL_TEXTURE_2D, 0, GL_RGBA, width, height, 
+      0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data0
     );
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
@@ -203,9 +203,8 @@ void RenderSystem::Update()
   };
   glm::mat4 projection {
     glm::ortho(
-      camera_.zoom * -ASPECT_RATIO, camera_.zoom * ASPECT_RATIO, 
-      -camera_.zoom, camera_.zoom, 
-      0.5f, 1.5f
+      -1.0f / camera_.zoom * ASPECT_RATIO, 1.0f / camera_.zoom * ASPECT_RATIO, 
+      -1.0f / camera_.zoom,                1.0f / camera_.zoom
     ) 
   };
 

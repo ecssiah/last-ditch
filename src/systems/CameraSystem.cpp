@@ -12,9 +12,9 @@ CameraSystem::CameraSystem(Input& input, Window& window, Camera& camera)
 
 void CameraSystem::Initialize()
 {
-  camera_.speed = 4.5f;
+  camera_.speed = 2.5f;
   camera_.zoom = 1.0f;
-  camera_.pos = {0.0f, 0.0f, 1.0f};
+  camera_.pos = {0.0f, 0.0f, 0.0f};
   camera_.x_dir = {-1.0f, 0.0f, 0.0f};
   camera_.y_dir = {0.0f, 1.0f, 0.0f};
   camera_.z_dir = {0.0f, 0.0f, -1.0f}; 
@@ -22,16 +22,21 @@ void CameraSystem::Initialize()
 
 void CameraSystem::Update()
 {
-  if (input_.up)
-    camera_.pos += window_.dt * camera_.speed * camera_.y_dir; 
-  if (input_.down)
-    camera_.pos -= window_.dt * camera_.speed * camera_.y_dir;
-  if (input_.left)
-    camera_.pos -= window_.dt * camera_.speed * camera_.x_dir; 
-  if (input_.right)
-    camera_.pos += window_.dt * camera_.speed * camera_.x_dir;
-  if (input_.min)
+  auto inv_zoom {1.0f / camera_.zoom};
+  auto modifier {inv_zoom * window_.dt * camera_.speed};
+
+  if (input_.up) camera_.pos += modifier * camera_.y_dir; 
+  if (input_.down) camera_.pos -= modifier * camera_.y_dir;
+  if (input_.left) camera_.pos += modifier * camera_.x_dir; 
+  if (input_.right) camera_.pos -= modifier * camera_.x_dir;
+  if (input_.min) 
+  {
     camera_.zoom -= window_.dt;
+    if (camera_.zoom < 0.05f) camera_.zoom = 0.05f; 
+  }
   if (input_.mag)
+  {
     camera_.zoom += window_.dt;
+    if (camera_.zoom > 3.0f) camera_.zoom = 3.0f;
+  }
 }
