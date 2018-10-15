@@ -197,23 +197,16 @@ void RenderSystem::Update()
 
   glUseProgram(shader_prog_);
 
-  glm::mat4 model {
-    glm::rotate(
-      glm::mat4(1.0), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  };
+  glm::mat4 model {1.0f};
   glm::mat4 view {
     glm::lookAt(camera_.pos, camera_.pos + camera_.z_dir, camera_.y_dir)
   };
-  /* glm::mat4 projection { */
-  /*   glm::ortho(0.0f, (float)SCREEN_SIZE_X, 0.0f, (float)SCREEN_SIZE_Y) */
-  /* }; */
   glm::mat4 projection {
-    glm::perspective(
-        glm::radians(45.0f), 
-        (float)SCREEN_SIZE_X / (float)SCREEN_SIZE_Y, 
-        0.1f, 100.0f
-        )
+    glm::ortho(
+      camera_.zoom * -ASPECT_RATIO, camera_.zoom * ASPECT_RATIO, 
+      -camera_.zoom, camera_.zoom, 
+      0.5f, 1.5f
+    ) 
   };
 
   int model_loc = glGetUniformLocation(shader_prog_, "model");

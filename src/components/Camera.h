@@ -11,7 +11,7 @@ struct Camera
   {
   }
 
-  float speed;
+  float speed, zoom;
   glm::vec3 pos, x_dir, y_dir, z_dir;
 };
 
