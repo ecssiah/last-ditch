@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "CameraSystem.h"
+#include "../constants/CameraConstants.h"
 
 CameraSystem::CameraSystem(Input& input, Window& window, Camera& camera) 
   : input_(input)
@@ -32,11 +33,11 @@ void CameraSystem::Update()
   if (input_.min) 
   {
     camera_.zoom -= window_.dt;
-    if (camera_.zoom < 0.5f) camera_.zoom = 0.5f; 
+    if (camera_.zoom < MIN_ZOOM) camera_.zoom = MIN_ZOOM; 
   }
   if (input_.mag)
   {
     camera_.zoom += window_.dt;
-    if (camera_.zoom > 4.0f) camera_.zoom = 4.0f;
+    if (camera_.zoom > MAX_ZOOM) camera_.zoom = MAX_ZOOM;
   }
 }
