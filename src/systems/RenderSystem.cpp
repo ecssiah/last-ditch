@@ -87,13 +87,14 @@ void RenderSystem::RunTests()
 
   // texture0 loading
   int width, height, nr_channels;
-  stbi_set_flip_vertically_on_load(true);
 
   glGenTextures(1, &texture0_);
   glBindTexture(GL_TEXTURE_2D, texture0_);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  stbi_set_flip_vertically_on_load(true);
 
   unsigned char* tex_data0 = stbi_load(
     "assets/textures/test_texture0.jpg", &width, &height, &nr_channels, 0

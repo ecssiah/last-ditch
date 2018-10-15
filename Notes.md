@@ -21,6 +21,8 @@ The starting level is the lowest occupied area of the skyscraper with the least 
 * VERY consequential damage and social instability from fighting
 * Characters can move through each other
 * Camera controlled by WASD, character movement point/click
+* Wiring and plumbing in walls and floors, possibility of developing wireless
+* Lightning setup using transparent black overlays
 
 ## Characters
 

@@ -16,6 +16,7 @@ public:
 
   void KeyCallback(int key, int scancode, int action, int mods);
   void CursorPosCallback(double xpos, double ypos);
+  void MouseButtonCallback(int button, int action, int mods);
 
 private:
   static void key_callback(
@@ -23,6 +24,9 @@ private:
   );
   static void cursor_position_callback(
     GLFWwindow* window, double xpos, double ypos
+  );
+  static void mouse_button_callback(
+    GLFWwindow* window, int button, int action, int mods
   );
 
   Input& input_;

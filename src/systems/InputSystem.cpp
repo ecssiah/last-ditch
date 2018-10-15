@@ -2,6 +2,8 @@
 
 #include "InputSystem.h"
 
+using namespace std;
+
 InputSystem::InputSystem(Input& input, Window& window) 
   : input_(input)
   , window_(window)
@@ -13,6 +15,7 @@ void InputSystem::Initialize()
   glfwSetWindowUserPointer(window_.ptr, this);
   glfwSetKeyCallback(window_.ptr, key_callback);
   glfwSetCursorPosCallback(window_.ptr, cursor_position_callback);
+  glfwSetMouseButtonCallback(window_.ptr, mouse_button_callback);
 }
 
 void InputSystem::Update()
@@ -54,6 +57,11 @@ void InputSystem::CursorPosCallback(double xpos, double ypos)
 {
 }
 
+void InputSystem::MouseButtonCallback(int button, int action, int mods)
+{
+  cout << button << " " << action << " " << mods << endl;
+}
+
 void InputSystem::key_callback(
   GLFWwindow* window, int key, int scancode, int action, int mods
 ) {
@@ -68,3 +76,9 @@ void InputSystem::cursor_position_callback(
   input_system->CursorPosCallback(xpos, ypos);
 }
 
+void InputSystem::mouse_button_callback(
+  GLFWwindow* window, int button, int action, int mods
+) {
+  auto input_system = (InputSystem*)glfwGetWindowUserPointer(window);
+  input_system->MouseButtonCallback(button, action, mods);
+}
