@@ -32,11 +32,11 @@ void CameraSystem::Update()
   if (input_.min) 
   {
     camera_.zoom -= window_.dt;
-    if (camera_.zoom < 0.05f) camera_.zoom = 0.05f; 
+    if (camera_.zoom < 0.5f) camera_.zoom = 0.5f; 
   }
   if (input_.mag)
   {
     camera_.zoom += window_.dt;
-    if (camera_.zoom > 3.0f) camera_.zoom = 3.0f;
+    if (camera_.zoom > 4.0f) camera_.zoom = 4.0f;
   }
 }
