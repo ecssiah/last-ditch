@@ -9,6 +9,7 @@ set(
   ./src/constants/CameraConstants.h
   ./src/constants/SimulationConstants.h
   ./src/systems/RenderSystem.h
+  ./src/systems/MapSystem.h
   ./src/systems/CameraSystem.h
   ./src/systems/TimeSystem.h
   ./src/systems/InputSystem.h
@@ -22,6 +23,7 @@ set(
   ./src/constants/CameraConstants.cpp
   ./src/constants/SimulationConstants.cpp
   ./src/systems/RenderSystem.cpp
+  ./src/systems/MapSystem.cpp
   ./src/systems/CameraSystem.cpp
   ./src/systems/TimeSystem.cpp
   ./src/systems/InputSystem.cpp

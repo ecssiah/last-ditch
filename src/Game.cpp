@@ -3,10 +3,11 @@
 #include "Game.h"
 
 Game::Game()
-  : input_system(input_, window_)
-  , time_system(input_, window_)
-  , render_system(input_, window_, camera_)
-  , camera_system(input_, window_, camera_)
+  : input_system_(input_, window_)
+  , time_system_(input_, window_)
+  , render_system_(input_, window_, camera_)
+  , camera_system_(input_, window_, camera_)
+  , map_system_()
 {
 }
 
@@ -16,19 +17,21 @@ Game::~Game()
 
 void Game::Initialize() 
 {
-  time_system.Initialize();
-  camera_system.Initialize();
-  render_system.Initialize();
-  input_system.Initialize();
+  time_system_.Initialize();
+  camera_system_.Initialize();
+  render_system_.Initialize();
+  input_system_.Initialize();
+  map_system_.Initialize();
 
   while (!input_.exit)
   {
-    time_system.StartFrame();
+    time_system_.StartFrame();
 
-    input_system.Update();
-    camera_system.Update();
-    render_system.Update();
+    input_system_.Update();
+    camera_system_.Update();
+    map_system_.Update();
+    render_system_.Update();
 
-    time_system.EndFrame();
+    time_system_.EndFrame();
   }
 }
