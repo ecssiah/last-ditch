@@ -1,13 +1,13 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
+#include "Tile.h"
+
 struct Chunk
 {
   Chunk() 
   {
   }
-
-  double x, y, z;
 };
 
 #endif // CHUNK_H

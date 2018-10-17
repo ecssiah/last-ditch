@@ -1,9 +1,10 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "components/Input.h"
 #include "components/Window.h"
+#include "components/Input.h"
 #include "components/Camera.h"
+#include "components/Map.h"
 #include "systems/RenderSystem.h"
 #include "systems/MapSystem.h"
 #include "systems/CameraSystem.h"
@@ -19,9 +20,10 @@ public:
   void Initialize();
 
 private:
+  Window window_;
   Input input_;
   Camera camera_;
-  Window window_;
+  Map map_;
 
   RenderSystem render_system_;
   MapSystem map_system_;

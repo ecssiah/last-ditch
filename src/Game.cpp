@@ -5,9 +5,9 @@
 Game::Game()
   : input_system_(input_, window_)
   , time_system_(input_, window_)
-  , render_system_(input_, window_, camera_)
+  , render_system_(input_, window_, camera_, map_)
   , camera_system_(input_, window_, camera_)
-  , map_system_()
+  , map_system_(map_)
 {
 }
 

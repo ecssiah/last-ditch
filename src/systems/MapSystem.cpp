@@ -1,8 +1,7 @@
 #include "MapSystem.h"
 
-using namespace std;
-
-MapSystem::MapSystem()
+MapSystem::MapSystem(Map& map)
+  : map_(map)
 {
 }
 

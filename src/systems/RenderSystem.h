@@ -2,16 +2,18 @@
 #define RENDER_SYSTEM_H
 
 #include <string>
+#include <map>
 #include <GLFW/glfw3.h>
 
-#include "../components/Input.h"
 #include "../components/Window.h"
+#include "../components/Input.h"
 #include "../components/Camera.h"
+#include "../components/Map.h"
 
 class RenderSystem
 {
 public:
-  RenderSystem(Input& input, Window& window, Camera& camera);
+  RenderSystem(Input& input, Window& window, Camera& camera, Map& map);
   ~RenderSystem();
 
   void Initialize();
@@ -19,13 +21,16 @@ public:
 
 private:
   void RunTests();
+  void LoadTexture(const std::string& filename);
 
-  Input& input_;
   Window& window_;
+  Input& input_;
   Camera& camera_;
+  Map& map_;
 
-  unsigned int shader_prog_, VAO_;
-  unsigned int texture0_, texture1_;
+  std::map<std::string, unsigned> textures;
+
+  unsigned shader_prog_, VAO_;
 };
 
 #endif // RENDER_SYSTEM_H

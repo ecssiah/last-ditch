@@ -4,10 +4,10 @@ in vec2 tex_coord;
 
 out vec4 FragColor;
 
-uniform sampler2D texture0;
-uniform sampler2D texture1;
+uniform sampler2D object_tileset;
+uniform sampler2D character_tileset;
 
 void main()
 {
-  FragColor = texture(texture0, tex_coord);
+  FragColor = texture(object_tileset, tex_coord);
 }

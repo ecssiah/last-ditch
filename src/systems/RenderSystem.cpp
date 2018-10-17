@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <vector>
 #include <iterator>
 #include <fstream>
@@ -20,10 +21,13 @@
 
 using namespace std;
 
-RenderSystem::RenderSystem(Input& input, Window& window, Camera& camera) 
+RenderSystem::RenderSystem(
+  Input& input, Window& window, Camera& camera, Map& map
+) 
   : input_(input)
   , window_(window)
   , camera_(camera)
+  , map_(map)
 {
 }
 
@@ -85,57 +89,13 @@ void RenderSystem::RunTests()
   );
   glEnableVertexAttribArray(2);
 
-  // texture0 loading
-  int width, height, nr_channels;
-
-  glGenTextures(1, &texture0_);
-  glBindTexture(GL_TEXTURE_2D, texture0_);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  stbi_set_flip_vertically_on_load(true);
-
-  unsigned char* tex_data0 = stbi_load(
-    "assets/textures/test_block.png", &width, &height, &nr_channels, 0
-  );
-
-  if (tex_data0)
-  {
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGBA, width, height, 
-      0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data0
-    );
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    cout << "Failed to load texture0" << endl;
-  }
-  stbi_image_free(tex_data0);
-
-  // texture1 loading
-  glGenTextures(1, &texture1_);
-  glBindTexture(GL_TEXTURE_2D, texture1_);
-
-  unsigned char* tex_data1 = stbi_load(
-    "assets/textures/test_texture1.jpg", &width, &height, &nr_channels, 0
-  );
-
-  if (tex_data1)
-  {
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGB, width, height, 
-      0, GL_RGB, GL_UNSIGNED_BYTE, tex_data1
-    );
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    cout << "Failed to load texture1" << endl;
-  }
-  stbi_image_free(tex_data1);
+  LoadTexture("object_tileset");
+  LoadTexture("character_tileset");
 
   glUseProgram(shader_prog_);
 
-  glUniform1i(glGetUniformLocation(shader_prog_, "texture0"), 0); 
-  glUniform1i(glGetUniformLocation(shader_prog_, "texture1"), 1); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "object_tileset"), 0); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "character_tileset"), 1); 
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -191,9 +151,9 @@ void RenderSystem::Update()
   }
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture0_);
+  glBindTexture(GL_TEXTURE_2D, textures["object_tileset"]);
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, texture1_);
+  glBindTexture(GL_TEXTURE_2D, textures["character_tileset"]);
 
   glUseProgram(shader_prog_);
 
@@ -221,4 +181,35 @@ void RenderSystem::Update()
       
   glfwSwapBuffers(window_.ptr);
   glfwPollEvents();
+}
+
+void RenderSystem::LoadTexture(const string& filename)
+{
+  int width, height, nr_channels;
+
+  stbi_set_flip_vertically_on_load(true);
+
+  glGenTextures(1, &textures[filename]);
+  glBindTexture(GL_TEXTURE_2D, textures[filename]);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  const string filepath {"assets/textures/" + filename + ".png"};
+
+  unsigned char* tex_data = stbi_load(
+    filepath.c_str(), &width, &height, &nr_channels, 0
+  );
+
+  if (tex_data)
+  {
+    glTexImage2D(
+      GL_TEXTURE_2D, 0, GL_RGBA, width, height, 
+      0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data
+    );
+  } else {
+    cout << "Failed to load: " << filename << endl;
+  }
+
+  stbi_image_free(tex_data);
 }
