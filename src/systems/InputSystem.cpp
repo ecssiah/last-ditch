@@ -4,18 +4,18 @@
 
 using namespace std;
 
-InputSystem::InputSystem(Input& input, Window& window) 
+InputSystem::InputSystem(Input& input, Render& render) 
   : input_(input)
-  , window_(window)
+  , render_(render)
 {
 }
 
 void InputSystem::Initialize()
 {
-  glfwSetWindowUserPointer(window_.ptr, this);
-  glfwSetKeyCallback(window_.ptr, key_callback);
-  glfwSetCursorPosCallback(window_.ptr, cursor_position_callback);
-  glfwSetMouseButtonCallback(window_.ptr, mouse_button_callback);
+  glfwSetWindowUserPointer(render_.window, this);
+  glfwSetKeyCallback(render_.window, key_callback);
+  glfwSetCursorPosCallback(render_.window, cursor_position_callback);
+  glfwSetMouseButtonCallback(render_.window, mouse_button_callback);
 }
 
 void InputSystem::Update()
@@ -60,7 +60,7 @@ void InputSystem::CursorPosCallback(double xpos, double ypos)
 
 void InputSystem::MouseButtonCallback(int button, int action, int mods)
 {
-  glfwGetCursorPos(window_.ptr, &input_.mx, &input_.my);
+  glfwGetCursorPos(render_.window, &input_.mx, &input_.my);
 
   if (button == GLFW_MOUSE_BUTTON_LEFT)
     input_.lclick = action == GLFW_PRESS ? true : false;

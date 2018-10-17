@@ -2,20 +2,20 @@
 #define CAMERA_SYSTEM_H
 
 #include "../components/Input.h"
-#include "../components/Window.h"
+#include "../components/Render.h"
 #include "../components/Camera.h"
 
 class CameraSystem
 {
 public:
-  CameraSystem(Input& input, Window& window, Camera& camera);
+  CameraSystem(Input& input, Render& render, Camera& camera);
 
   void Initialize();
   void Update();
 
 private:
   Input& input_;
-  Window& window_;
+  Render& render_;
   Camera& camera_;
 };
 

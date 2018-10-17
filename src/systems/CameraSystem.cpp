@@ -4,9 +4,9 @@
 #include "CameraSystem.h"
 #include "../constants/CameraConstants.h"
 
-CameraSystem::CameraSystem(Input& input, Window& window, Camera& camera) 
+CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera) 
   : input_(input)
-  , window_(window)
+  , render_(render)
   , camera_(camera)
 {
 }
@@ -24,7 +24,7 @@ void CameraSystem::Initialize()
 void CameraSystem::Update()
 {
   auto inv_zoom {1.0f / camera_.zoom};
-  auto modifier {inv_zoom * window_.dt * camera_.speed};
+  auto modifier {inv_zoom * render_.dt * camera_.speed};
 
   if (input_.up) camera_.pos += modifier * camera_.y_dir; 
   if (input_.down) camera_.pos -= modifier * camera_.y_dir;
@@ -32,12 +32,12 @@ void CameraSystem::Update()
   if (input_.right) camera_.pos -= modifier * camera_.x_dir;
   if (input_.min) 
   {
-    camera_.zoom -= window_.dt;
+    camera_.zoom -= render_.dt;
     if (camera_.zoom < MIN_ZOOM) camera_.zoom = MIN_ZOOM; 
   }
   if (input_.mag)
   {
-    camera_.zoom += window_.dt;
+    camera_.zoom += render_.dt;
     if (camera_.zoom > MAX_ZOOM) camera_.zoom = MAX_ZOOM;
   }
 }

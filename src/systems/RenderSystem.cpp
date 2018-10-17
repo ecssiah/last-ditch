@@ -22,10 +22,10 @@
 using namespace std;
 
 RenderSystem::RenderSystem(
-  Input& input, Window& window, Camera& camera, Map& map
+  Input& input, Render& render, Camera& camera, Map& map
 ) 
   : input_(input)
-  , window_(window)
+  , render_(render)
   , camera_(camera)
   , map_(map)
 {
@@ -113,19 +113,18 @@ void RenderSystem::Initialize()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-  window_.ptr = glfwCreateWindow(
-    SCREEN_SIZE_X, SCREEN_SIZE_Y, 
-    "Last Ditch", nullptr, nullptr
+  render_.window = glfwCreateWindow(
+    SCREEN_SIZE_X, SCREEN_SIZE_Y, "Last Ditch", nullptr, nullptr
   );
 
-  if (window_.ptr == nullptr)
+  if (render_.window == nullptr)
   {
     cout << "Failed to create GLFW window" << endl;
     glfwTerminate();
     return;
   }
 
-  glfwMakeContextCurrent(window_.ptr);
+  glfwMakeContextCurrent(render_.window);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -135,7 +134,7 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
-  if (glfwWindowShouldClose(window_.ptr))
+  if (glfwWindowShouldClose(render_.window))
   {
     input_.exit = true;
     return;
@@ -179,7 +178,7 @@ void RenderSystem::Update()
   glBindVertexArray(VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
       
-  glfwSwapBuffers(window_.ptr);
+  glfwSwapBuffers(render_.window);
   glfwPollEvents();
 }
 

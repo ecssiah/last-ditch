@@ -4,12 +4,12 @@
 #include <chrono>
 
 #include "../components/Input.h"
-#include "../components/Window.h"
+#include "../components/Render.h"
 
 class TimeSystem
 {
 public:
-  TimeSystem(Input& input, Window& window);
+  TimeSystem(Input& input, Render& render);
 
   void Initialize();
   void StartFrame();
@@ -17,7 +17,7 @@ public:
 
 private:
   Input& input_;
-  Window& window_;
+  Render& render_;
 
   std::chrono::steady_clock::time_point start_;
   std::chrono::steady_clock::time_point end_;

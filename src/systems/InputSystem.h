@@ -4,12 +4,12 @@
 #include <GLFW/glfw3.h>
 
 #include "../components/Input.h"
-#include "../components/Window.h"
+#include "../components/Render.h"
 
 class InputSystem
 {
 public:
-  InputSystem(Input& input, Window& window);
+  InputSystem(Input& input, Render& render);
 
   void Initialize();
   void Update();
@@ -30,7 +30,7 @@ private:
   );
 
   Input& input_;
-  Window& window_;
+  Render& render_;
 }; 
 
 #endif // INPUT_SYSTEM_H

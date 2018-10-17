@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "components/Window.h"
+#include "components/Render.h"
 #include "components/Input.h"
 #include "components/Camera.h"
 #include "components/Map.h"
@@ -20,7 +20,7 @@ public:
   void Initialize();
 
 private:
-  Window window_;
+  Render render_;
   Input input_;
   Camera camera_;
   Map map_;

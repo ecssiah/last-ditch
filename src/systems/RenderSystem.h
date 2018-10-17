@@ -5,7 +5,7 @@
 #include <map>
 #include <GLFW/glfw3.h>
 
-#include "../components/Window.h"
+#include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/Camera.h"
 #include "../components/Map.h"
@@ -13,7 +13,7 @@
 class RenderSystem
 {
 public:
-  RenderSystem(Input& input, Window& window, Camera& camera, Map& map);
+  RenderSystem(Input& input, Render& render, Camera& camera, Map& map);
   ~RenderSystem();
 
   void Initialize();
@@ -23,7 +23,7 @@ private:
   void RunTests();
   void LoadTexture(const std::string& filename);
 
-  Window& window_;
+  Render& render_;
   Input& input_;
   Camera& camera_;
   Map& map_;
