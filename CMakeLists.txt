@@ -8,6 +8,7 @@ set(
   ./src/constants/MapConstants.h
   ./src/constants/CameraConstants.h
   ./src/constants/SimulationConstants.h
+  ./src/systems/ConfigSystem.h
   ./src/systems/RenderSystem.h
   ./src/systems/MapSystem.h
   ./src/systems/CameraSystem.h
@@ -22,6 +23,7 @@ set(
   ./src/constants/MapConstants.cpp
   ./src/constants/CameraConstants.cpp
   ./src/constants/SimulationConstants.cpp
+  ./src/systems/ConfigSystem.cpp
   ./src/systems/RenderSystem.cpp
   ./src/systems/MapSystem.cpp
   ./src/systems/CameraSystem.cpp
@@ -43,6 +45,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLM REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLFW3 REQUIRED)
+find_package(YamlCpp REQUIRED)
 
 set(
   LINKER_FLAGS 
@@ -61,6 +64,7 @@ include_directories(
   ${OPENGL_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
+  ${YAMLCPP_INCLUDE_DIR}
 )
 
 target_link_libraries(
@@ -69,4 +73,5 @@ target_link_libraries(
   ${GLM_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${GLFW3_LIBRARIES}
+  ${YAMLCPP_LIBRARY})
 )

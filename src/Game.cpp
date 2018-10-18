@@ -3,7 +3,8 @@
 #include "Game.h"
 
 Game::Game()
-  : input_system_(input_, render_)
+  : config_system_()
+  , input_system_(input_, render_)
   , time_system_(input_, render_)
   , render_system_(input_, render_, camera_, map_)
   , camera_system_(input_, render_, camera_)
@@ -17,6 +18,7 @@ Game::~Game()
 
 void Game::Initialize() 
 {
+  config_system_.Initialize();
   time_system_.Initialize();
   camera_system_.Initialize();
   render_system_.Initialize();

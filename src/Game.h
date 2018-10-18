@@ -5,6 +5,7 @@
 #include "components/Input.h"
 #include "components/Camera.h"
 #include "components/Map.h"
+#include "systems/ConfigSystem.h"
 #include "systems/RenderSystem.h"
 #include "systems/MapSystem.h"
 #include "systems/CameraSystem.h"
@@ -25,6 +26,7 @@ private:
   Camera camera_;
   Map map_;
 
+  ConfigSystem config_system_;
   RenderSystem render_system_;
   MapSystem map_system_;
   CameraSystem camera_system_;
