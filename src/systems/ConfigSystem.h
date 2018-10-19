@@ -11,6 +11,8 @@ public:
   void Initialize();
 
 private:
+  void LoadTileInfo();
+
 }; 
 
 #endif // CONFIG_SYSTEM_H

@@ -73,5 +73,5 @@ target_link_libraries(
   ${GLM_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${GLFW3_LIBRARIES}
-  ${YAMLCPP_LIBRARY})
+  ${YAMLCPP_LIBRARY}
 )

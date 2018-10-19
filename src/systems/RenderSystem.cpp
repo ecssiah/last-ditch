@@ -47,11 +47,11 @@ void RenderSystem::RunTests()
   shader_prog_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
 
   float vertices[] = {
-    // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+    // positions        // texture coords
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f, 1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f    // top left 
   };
   unsigned int indices[] = {
     0, 1, 3,
@@ -73,29 +73,25 @@ void RenderSystem::RunTests()
 
   // position attribute
   glVertexAttribPointer(
-    0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)0
+    0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)0
   );
   glEnableVertexAttribArray(0);
 
-  // color attribute
+  // texture attribute
   glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float))
+    1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float))
   );
   glEnableVertexAttribArray(1);
 
-  // texture attribute
-  glVertexAttribPointer(
-    2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)(6 * sizeof(float))
-  );
-  glEnableVertexAttribArray(2);
-
-  LoadTexture("object_tileset");
   LoadTexture("character_tileset");
+  LoadTexture("map_tileset");
+  LoadTexture("object_tileset");
 
   glUseProgram(shader_prog_);
 
-  glUniform1i(glGetUniformLocation(shader_prog_, "object_tileset"), 0); 
-  glUniform1i(glGetUniformLocation(shader_prog_, "character_tileset"), 1); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "character_tileset"), 0); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "map_tileset"), 1); 
+  glUniform1i(glGetUniformLocation(shader_prog_, "object_tileset"), 2); 
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -129,6 +125,9 @@ void RenderSystem::Initialize()
   glewExperimental = GL_TRUE;
   glewInit();
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   RunTests();
 }
 
@@ -150,9 +149,11 @@ void RenderSystem::Update()
   }
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textures["object_tileset"]);
-  glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, textures["character_tileset"]);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textures["map_tileset"]);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, textures["object_tileset"]);
 
   glUseProgram(shader_prog_);
 
@@ -184,31 +185,32 @@ void RenderSystem::Update()
 
 void RenderSystem::LoadTexture(const string& filename)
 {
-  int width, height, nr_channels;
+  int width, height, channels;
 
   stbi_set_flip_vertically_on_load(true);
 
   glGenTextures(1, &textures[filename]);
   glBindTexture(GL_TEXTURE_2D, textures[filename]);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   const string filepath {"assets/textures/" + filename + ".png"};
 
   unsigned char* tex_data = stbi_load(
-    filepath.c_str(), &width, &height, &nr_channels, 0
+    filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha 
   );
 
   if (tex_data)
   {
     glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGBA, width, height, 
-      0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data
+      GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+      tex_data
     );
   } else {
     cout << "Failed to load: " << filename << endl;
   }
 
+  glBindTexture(GL_TEXTURE_2D, 0);
   stbi_image_free(tex_data);
 }

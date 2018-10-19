@@ -2,7 +2,7 @@
 #define RENDER_SYSTEM_H
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <GLFW/glfw3.h>
 
 #include "../components/Render.h"
@@ -28,7 +28,7 @@ private:
   Camera& camera_;
   Map& map_;
 
-  std::map<std::string, unsigned> textures;
+  std::unordered_map<std::string, unsigned> textures;
 
   unsigned shader_prog_, VAO_;
 };

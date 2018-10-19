@@ -12,10 +12,6 @@ Game::Game()
 {
 }
 
-Game::~Game()
-{
-}
-
 void Game::Initialize() 
 {
   config_system_.Initialize();
