@@ -39,13 +39,8 @@ RenderSystem::~RenderSystem()
   cout << "Render System Shutdown" << endl;
 }
 
-/////////////
-// TESTING //
-/////////////
 void RenderSystem::RunTests()
 {
-  shader_program_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
-
   float vertices[] = {
     // positions         // texture coords
      0.5f,  0.5f, 0.0f,  1.0f, 1.0f,   // top right
@@ -56,7 +51,6 @@ void RenderSystem::RunTests()
     -0.5f,  0.5f, 0.0f,  0.0f, 1.0f    // top left 
   };
 
-  unsigned int VBO_;
   glGenVertexArrays(1, &VAO_);
   glGenBuffers(1, &VBO_);
 
@@ -90,10 +84,6 @@ void RenderSystem::RunTests()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
-/////////////
-// Testing //
-/////////////
-
 
 void RenderSystem::Initialize()
 {
@@ -121,6 +111,8 @@ void RenderSystem::Initialize()
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  shader_program_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
 
   RunTests();
 }
