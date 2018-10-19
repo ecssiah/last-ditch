@@ -119,12 +119,6 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
-  if (glfwWindowShouldClose(render_.window))
-  {
-    input_.exit = true;
-    return;
-  }
-
   glClearColor(0, 0, 0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 

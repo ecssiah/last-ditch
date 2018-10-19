@@ -20,6 +20,7 @@ void InputSystem::Initialize()
 
 void InputSystem::Update()
 {
+  if (glfwWindowShouldClose(render_.window)) input_.exit = true;
 }
 
 void InputSystem::KeyCallback(int key, int scancode, int action, int mods) {
