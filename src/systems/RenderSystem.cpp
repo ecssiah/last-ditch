@@ -44,32 +44,26 @@ RenderSystem::~RenderSystem()
 /////////////
 void RenderSystem::RunTests()
 {
-  shader_prog_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
+  shader_program_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
 
   float vertices[] = {
-    // positions        // texture coords
-     0.5f,  0.5f, 0.0f, 1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f, 1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f    // top left 
-  };
-  unsigned int indices[] = {
-    0, 1, 3,
-    1, 2, 3
+    // positions         // texture coords
+     0.5f,  0.5f, 0.0f,  1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f,   // bottom right
+    -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,   // top left 
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f,  0.0f, 1.0f    // top left 
   };
 
-  unsigned int VBO, EBO;
+  unsigned int VBO_;
   glGenVertexArrays(1, &VAO_);
-  glGenBuffers(1, &VBO);
-  glGenBuffers(1, &EBO);
+  glGenBuffers(1, &VBO_);
 
   glBindVertexArray(VAO_);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   // position attribute
   glVertexAttribPointer(
@@ -87,11 +81,11 @@ void RenderSystem::RunTests()
   LoadTexture("map_tileset");
   LoadTexture("object_tileset");
 
-  glUseProgram(shader_prog_);
+  glUseProgram(shader_program_);
 
-  glUniform1i(glGetUniformLocation(shader_prog_, "character_tileset"), 0); 
-  glUniform1i(glGetUniformLocation(shader_prog_, "map_tileset"), 1); 
-  glUniform1i(glGetUniformLocation(shader_prog_, "object_tileset"), 2); 
+  glUniform1i(glGetUniformLocation(shader_program_, "character_tileset"), 0); 
+  glUniform1i(glGetUniformLocation(shader_program_, "map_tileset"), 1); 
+  glUniform1i(glGetUniformLocation(shader_program_, "object_tileset"), 2); 
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -155,7 +149,7 @@ void RenderSystem::Update()
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, textures["object_tileset"]);
 
-  glUseProgram(shader_prog_);
+  glUseProgram(shader_program_);
 
   glm::mat4 model {1.0f};
   glm::mat4 view {
@@ -168,16 +162,17 @@ void RenderSystem::Update()
     ) 
   };
 
-  int model_loc = glGetUniformLocation(shader_prog_, "model");
-  int view_loc = glGetUniformLocation(shader_prog_, "view");
-  int projection_loc = glGetUniformLocation(shader_prog_, "projection");
+  int model_loc = glGetUniformLocation(shader_program_, "model");
+  int view_loc = glGetUniformLocation(shader_program_, "view");
+  int projection_loc = glGetUniformLocation(shader_program_, "projection");
 
   glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
   glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
 
   glBindVertexArray(VAO_);
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
       
   glfwSwapBuffers(render_.window);
   glfwPollEvents();
