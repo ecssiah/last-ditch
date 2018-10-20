@@ -97,8 +97,7 @@ void RenderSystem::Initialize()
     SCREEN_SIZE_X, SCREEN_SIZE_Y, "Last Ditch", nullptr, nullptr
   );
 
-  if (render_.window == nullptr)
-  {
+  if (render_.window == nullptr) {
     cout << "Failed to create GLFW window" << endl;
     glfwTerminate();
     return;
@@ -148,9 +147,9 @@ void RenderSystem::Update()
     ) 
   };
 
-  int model_loc = glGetUniformLocation(shader_program_, "model");
-  int view_loc = glGetUniformLocation(shader_program_, "view");
-  int projection_loc = glGetUniformLocation(shader_program_, "projection");
+  int model_loc {glGetUniformLocation(shader_program_, "model")};
+  int view_loc {glGetUniformLocation(shader_program_, "view")};
+  int projection_loc {glGetUniformLocation(shader_program_, "projection")};
 
   glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
   glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
@@ -177,12 +176,11 @@ void RenderSystem::LoadTexture(const string& filename)
 
   const string filepath {"assets/textures/" + filename + ".png"};
 
-  unsigned char* tex_data = stbi_load(
+  unsigned char* tex_data {stbi_load(
     filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha 
-  );
+  )};
 
-  if (tex_data)
-  {
+  if (tex_data) {
     glTexImage2D(
       GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
       tex_data

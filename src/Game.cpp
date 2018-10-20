@@ -21,8 +21,7 @@ void Game::Initialize()
   input_system_.Initialize();
   map_system_.Initialize();
 
-  while (!input_.exit)
-  {
+  while (!input_.exit) {
     time_system_.StartFrame();
 
     camera_system_.Update();

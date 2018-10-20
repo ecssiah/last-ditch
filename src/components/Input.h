@@ -12,14 +12,15 @@ struct Input
     , min(false)
     , lclick(false)
     , rclick(false)
-    , mx(0.0f)
-    , my(0.0f)
     , exit(false)
     , pause(false)
     , debug(false)
+    , mx(0)
+    , my(0)
   {}
 
-  bool up, down, left, right, mag, min;
+  bool up, down, left, right; 
+  bool mag, min;
   bool lclick, rclick;
   bool exit, pause, debug;
 
