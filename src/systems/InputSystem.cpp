@@ -20,6 +20,8 @@ void InputSystem::Initialize()
 
 void InputSystem::Update()
 {
+  glfwPollEvents();
+
   if (glfwWindowShouldClose(render_.window)) input_.exit = true;
 }
 

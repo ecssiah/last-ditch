@@ -161,7 +161,6 @@ void RenderSystem::Update()
   glDrawArrays(GL_TRIANGLES, 0, 6);
       
   glfwSwapBuffers(render_.window);
-  glfwPollEvents();
 }
 
 void RenderSystem::LoadTexture(const string& filename)

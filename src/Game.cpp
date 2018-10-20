@@ -25,10 +25,10 @@ void Game::Initialize()
   {
     time_system_.StartFrame();
 
-    input_system_.Update();
     camera_system_.Update();
     map_system_.Update();
     render_system_.Update();
+    input_system_.Update();
 
     time_system_.EndFrame();
   }
