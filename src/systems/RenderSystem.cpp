@@ -112,7 +112,7 @@ void RenderSystem::Initialize()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   shader_program_ = GLLoadShader(
-    "assets/glsl/test.vert", "assets/glsl/test.frag"
+    "assets/glsl/map.vert", "assets/glsl/map.frag"
   );
 
   RunTests();
