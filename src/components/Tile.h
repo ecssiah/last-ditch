@@ -1,16 +1,12 @@
 #ifndef TILE_H
 #define TILE_H
 
-struct TileInfo
-{
-
-};
-
 struct Tile
 {
   Tile()
-  { }
+  {}
 
+  unsigned category;
   unsigned type;
 };
 
