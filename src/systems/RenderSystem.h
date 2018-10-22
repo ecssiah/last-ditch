@@ -33,8 +33,8 @@ private:
 
   std::unordered_map<std::string, unsigned> textures;
 
-  unsigned shader_program_; 
   unsigned VBO_, VAO_;
+  unsigned shader_program_; 
 };
 
 #endif // RENDER_SYSTEM_H

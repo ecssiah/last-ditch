@@ -57,18 +57,18 @@ void RenderSystem::RunTests()
   glBindVertexArray(VAO_);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
   // position attribute
   glVertexAttribPointer(
     0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)0
   );
+  glEnableVertexAttribArray(0);
+
   // texture attribute
   glVertexAttribPointer(
     1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float))
   );
-
-  glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
 
   LoadTexture("character_tileset");
@@ -83,12 +83,6 @@ void RenderSystem::RunTests()
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-}
-
-void RenderSystem::RenderChunk(Chunk& chunk)
-{
-        
-
 }
 
 void RenderSystem::Initialize()
@@ -118,7 +112,7 @@ void RenderSystem::Initialize()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   shader_program_ = GLLoadShader(
-    "assets/glsl/test.vert", "assets/glsl/test.frag"
+    "assets/glsl/map.vert", "assets/glsl/map.frag"
   );
 
   RunTests();
