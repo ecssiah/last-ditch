@@ -111,7 +111,9 @@ void RenderSystem::Initialize()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  shader_program_ = GLLoadShader("assets/glsl/test.vert", "assets/glsl/test.frag");
+  shader_program_ = GLLoadShader(
+    "assets/glsl/test.vert", "assets/glsl/test.frag"
+  );
 
   RunTests();
 }
@@ -176,9 +178,9 @@ void RenderSystem::LoadTexture(const string& filename)
 
   const string filepath {"assets/textures/" + filename + ".png"};
 
-  unsigned char* tex_data {stbi_load(
-    filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha 
-  )};
+  unsigned char* tex_data {
+    stbi_load(filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha)
+  };
 
   if (tex_data) {
     glTexImage2D(
