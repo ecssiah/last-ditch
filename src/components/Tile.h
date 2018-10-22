@@ -9,9 +9,9 @@ struct TileInfo
 struct Tile
 {
   Tile()
-  {
+  { }
 
-  }
+  unsigned type;
 };
 
 #endif // TILE_H

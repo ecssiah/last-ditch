@@ -13,3 +13,10 @@ void MapSystem::Update()
 {
 
 }
+
+void MapSystem::GenerateMap()
+{
+
+
+
+}
