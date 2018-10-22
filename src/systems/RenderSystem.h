@@ -9,6 +9,7 @@
 #include "../components/Input.h"
 #include "../components/Camera.h"
 #include "../components/Map.h"
+#include "../components/Chunk.h"
 
 class RenderSystem
 {
@@ -21,6 +22,8 @@ public:
 
 private:
   void RunTests();
+  void RenderChunk(Chunk& chunk);
+
   void LoadTexture(const std::string& filename);
 
   Render& render_;
