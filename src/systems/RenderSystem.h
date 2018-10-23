@@ -24,6 +24,7 @@ private:
   void RunTests();
   void RenderChunk(Chunk& chunk);
 
+  void BuildMap();
   void LoadTexture(const std::string& filename);
 
   Render& render_;

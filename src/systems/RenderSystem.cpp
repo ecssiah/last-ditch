@@ -16,6 +16,7 @@
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
+#include "../constants/MapConstants.h"
 #include "../utils/GLCheckError.h"
 #include "../utils/GLLoadShader.h"
 
@@ -43,12 +44,12 @@ void RenderSystem::RunTests()
 {
   float vertices[] = {
     // positions         // texture coords
-     0.5f,  0.5f, 0.0f,  1.0f / 25.0f, 16.0f / 16.0f, // top right
-     0.5f, -0.5f, 0.0f,  1.0f / 25.0f, 15.0f / 16.0f, // bottom right
-    -0.5f,  0.5f, 0.0f,  0.0f / 25.0f, 16.0f / 16.0f, // top left 
-     0.5f, -0.5f, 0.0f,  1.0f / 25.0f, 15.0f / 16.0f, // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f / 25.0f, 15.0f / 16.0f, // bottom left
-    -0.5f,  0.5f, 0.0f,  0.0f / 25.0f, 16.0f / 16.0f  // top left 
+     0.5f,  0.5f, 0.0f,  1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TR 
+     0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR 
+    -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TL 
+     0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR 
+    -0.5f, -0.5f, 0.0f,  0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BL
+    -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT  // TL
   };
 
   glGenVertexArrays(1, &VAO_);
@@ -118,6 +119,12 @@ void RenderSystem::Initialize()
   RunTests();
 }
 
+void RenderSystem::BuildMap()
+{
+
+
+}
+
 void RenderSystem::Update()
 {
   glClearColor(0, 0, 0, 1.0f);
@@ -159,7 +166,10 @@ void RenderSystem::Update()
 
   glBindVertexArray(VAO_);
 
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glDrawArraysInstanced(
+    GL_TRIANGLES, 0, 6, 
+    4
+  );
       
   glfwSwapBuffers(render_.window);
 }
