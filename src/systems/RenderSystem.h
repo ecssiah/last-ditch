@@ -34,7 +34,7 @@ private:
 
   std::unordered_map<std::string, unsigned> textures;
 
-  unsigned VBO_, VAO_;
+  unsigned tile_vbo_, map_vbo_, vao_;
   unsigned shader_program_; 
 };
 
