@@ -14,15 +14,15 @@ void main()
   model[3].xy = aWorldPos;
 
   if (gl_VertexID == 0 || gl_VertexID == 1 || gl_VertexID == 4) {
-    tex_coord.x = aTexCoord[3];
+    tex_coord.x = aTexCoord[2];
   } else {
-    tex_coord.x = aTexCoord[1];
+    tex_coord.x = aTexCoord[0];
   }
 
-  if (gl_VertexID == 0 || gl_VertexID == 1) {
-    tex_coord.y = aTexCoord[2];
+  if (gl_VertexID == 0 || gl_VertexID == 2) {
+    tex_coord.y = aTexCoord[3];
   } else {
-    tex_coord.y = aTexCoord[0];
+    tex_coord.y = aTexCoord[1];
   }
 
   gl_Position = projection * view * model * vec4(aVertexPos, 0.0, 1.0);
