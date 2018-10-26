@@ -13,10 +13,10 @@ void main()
   mat4 model = mat4(1.0);
   model[3].xy = aWorldPos;
 
-  if (gl_VertexID == 0 || gl_VertexID == 1 || gl_VertexID == 4) {
-    tex_coord.x = aTexCoord[2];
-  } else {
+  if (gl_VertexID == 2 || gl_VertexID == 3) {
     tex_coord.x = aTexCoord[0];
+  } else {
+    tex_coord.x = aTexCoord[2];
   }
 
   if (gl_VertexID == 0 || gl_VertexID == 2) {
