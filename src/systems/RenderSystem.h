@@ -9,6 +9,7 @@
 #include "../components/Input.h"
 #include "../components/Camera.h"
 #include "../components/Map.h"
+#include "../components/Chunk.h"
 
 class RenderSystem
 {
@@ -21,6 +22,9 @@ public:
 
 private:
   void RunTests();
+  void RenderChunk(Chunk& chunk);
+
+  void BuildMap();
   void LoadTexture(const std::string& filename);
 
   Render& render_;
@@ -30,8 +34,8 @@ private:
 
   std::unordered_map<std::string, unsigned> textures;
 
+  unsigned tile_vbo_, map_vbo_, vao_;
   unsigned shader_program_; 
-  unsigned VBO_, VAO_;
 };
 
 #endif // RENDER_SYSTEM_H

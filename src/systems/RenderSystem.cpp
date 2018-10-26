@@ -16,6 +16,7 @@
 
 #include "RenderSystem.h"
 #include "../constants/RenderConstants.h"
+#include "../constants/MapConstants.h"
 #include "../utils/GLCheckError.h"
 #include "../utils/GLLoadShader.h"
 
@@ -33,7 +34,7 @@ RenderSystem::RenderSystem(
 
 RenderSystem::~RenderSystem()
 {
-  glDeleteVertexArrays(1, &VAO_);
+  glDeleteVertexArrays(1, &vao_);
   glfwTerminate();
 
   cout << "Render System Shutdown" << endl;
@@ -41,48 +42,52 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::RunTests()
 {
-  float vertices[] = {
-    // positions         // texture coords
-     0.5f,  0.5f, 0.0f,  1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f,  1.0f, 0.0f,   // bottom right
-    -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,   // top left 
-     0.5f, -0.5f, 0.0f,  1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f,  0.0f, 1.0f    // top left 
-  };
+  /* float vertices[] = { */
+  /*   // positions         // texture coords */
+  /*    0.5f,  0.5f, 0.0f,  1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TR */ 
+  /*    0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR */ 
+  /*   -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TL */ 
+  /*    0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR */ 
+  /*   -0.5f, -0.5f, 0.0f,  0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BL */
+  /*   -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT  // TL */
+  /* }; */
 
-  glGenVertexArrays(1, &VAO_);
-  glGenBuffers(1, &VBO_);
+  /* glGenVertexArrays(1, &vao_); */
+  /* glGenBuffers(1, &VBO_); */
 
-  glBindVertexArray(VAO_);
+  /* glBindVertexArray(vao_); */
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  /* glBindBuffer(GL_ARRAY_BUFFER, VBO_); */
+  /* glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); */
 
-  // position attribute
-  glVertexAttribPointer(
-    0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)0
-  );
-  glEnableVertexAttribArray(0);
+  /* // position attribute */
+  /* glVertexAttribPointer( */
+  /*   0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)0 */
+  /* ); */
+  /* glEnableVertexAttribArray(0); */
 
-  // texture attribute
-  glVertexAttribPointer(
-    1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float))
-  );
-  glEnableVertexAttribArray(1);
+  /* // model matrix attribute */
 
-  LoadTexture("character_tileset");
-  LoadTexture("map_tileset");
-  LoadTexture("object_tileset");
+  /* // texcoords attribute */
 
-  glUseProgram(shader_program_);
+  /* // texture attribute */
+  /* glVertexAttribPointer( */
+  /*   1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float)) */
+  /* ); */
+  /* glEnableVertexAttribArray(1); */
 
-  glUniform1i(glGetUniformLocation(shader_program_, "character_tileset"), 0); 
-  glUniform1i(glGetUniformLocation(shader_program_, "map_tileset"), 1); 
-  glUniform1i(glGetUniformLocation(shader_program_, "object_tileset"), 2); 
+  /* LoadTexture("character_tileset"); */
+  /* LoadTexture("map_tileset"); */
+  /* LoadTexture("object_tileset"); */
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+  /* glUseProgram(shader_program_); */
+
+  /* glUniform1i(glGetUniformLocation(shader_program_, "character_tileset"), 0); */ 
+  /* glUniform1i(glGetUniformLocation(shader_program_, "map_tileset"), 1); */ 
+  /* glUniform1i(glGetUniformLocation(shader_program_, "object_tileset"), 2); */ 
+
+  /* glBindBuffer(GL_ARRAY_BUFFER, 0); */
+  /* glBindVertexArray(0); */
 }
 
 void RenderSystem::Initialize()
@@ -115,7 +120,94 @@ void RenderSystem::Initialize()
     "assets/glsl/map.vert", "assets/glsl/map.frag"
   );
 
-  RunTests();
+  BuildMap();
+}
+
+void RenderSystem::BuildMap()
+{
+  // tile setup
+  float tile_vertices[] = {
+     0.5f,  0.5f,
+     0.5f, -0.5f,
+    -0.5f,  0.5f,
+    -0.5f, -0.5f,
+     0.5f, -0.5f,
+  };
+
+  glGenVertexArrays(1, &vao_);
+  glBindVertexArray(vao_);
+
+  glGenBuffers(1, &tile_vbo_);
+
+  glBindBuffer(GL_ARRAY_BUFFER, tile_vbo_);
+
+  glBufferData(
+    GL_ARRAY_BUFFER, sizeof(tile_vertices), tile_vertices, GL_STATIC_DRAW
+  );
+
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+  glGenBuffers(1, &map_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, map_vbo_);
+
+  map_.attributes.insert(
+    map_.attributes.end(), 
+    {
+      0.0f, 0.0f, 
+      0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
+      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
+      1.0f, 0.0f, 
+      0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
+      1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
+      0.0f, 1.0f, 
+      1.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
+      2.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
+      1.0f, 1.0f, 
+      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
+      2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
+    }
+  );
+
+  /* float map_test_array[] = { */
+  /*   0.0f, 0.0f, 0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, */ 
+  /*   1.0f, 0.0f, 1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT */
+  /* }; */
+
+  glBufferData(
+    GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * map_.attributes.size(), 
+    map_.attributes.data(), GL_STREAM_DRAW
+  );
+  /* glBufferData( */
+  /*   GL_ARRAY_BUFFER, sizeof(map_test_array), map_test_array, GL_STREAM_DRAW */
+  /* ); */
+
+  glVertexAttribPointer(
+    1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0
+  );
+  glVertexAttribPointer(
+    2, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(2 * sizeof(GL_FLOAT))
+  );
+
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+
+  glVertexAttribDivisor(0, 0);
+  glVertexAttribDivisor(1, 1);
+  glVertexAttribDivisor(2, 1);
+
+  LoadTexture("character_tileset");
+  LoadTexture("map_tileset");
+  LoadTexture("object_tileset");
+
+  glUseProgram(shader_program_);
+
+  glUniform1i(glGetUniformLocation(shader_program_, "character_tileset"), 0); 
+  glUniform1i(glGetUniformLocation(shader_program_, "map_tileset"), 1); 
+  glUniform1i(glGetUniformLocation(shader_program_, "object_tileset"), 2); 
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 }
 
 void RenderSystem::Update()
@@ -138,7 +230,6 @@ void RenderSystem::Update()
 
   glUseProgram(shader_program_);
 
-  glm::mat4 model {1.0f};
   glm::mat4 view {
     glm::lookAt(camera_.pos, camera_.pos + camera_.z_dir, camera_.y_dir)
   };
@@ -149,17 +240,15 @@ void RenderSystem::Update()
     ) 
   };
 
-  int model_loc {glGetUniformLocation(shader_program_, "model")};
   int view_loc {glGetUniformLocation(shader_program_, "view")};
   int projection_loc {glGetUniformLocation(shader_program_, "projection")};
 
-  glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
   glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
 
-  glBindVertexArray(VAO_);
+  glBindVertexArray(vao_);
 
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 5, 4);
       
   glfwSwapBuffers(render_.window);
 }

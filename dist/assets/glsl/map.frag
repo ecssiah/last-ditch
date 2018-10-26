@@ -1,5 +1,4 @@
 #version 330 core
-in vec3 vertex_color;
 in vec2 tex_coord;
 
 out vec4 FragColor;
@@ -10,5 +9,5 @@ uniform sampler2D object_tileset;
 
 void main()
 {
-  FragColor = texture(character_tileset, tex_coord);
+  FragColor = texture(map_tileset, tex_coord);
 }
