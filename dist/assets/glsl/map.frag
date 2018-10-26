@@ -9,5 +9,5 @@ uniform sampler2D object_tileset;
 
 void main()
 {
-  FragColor = texture(character_tileset, tex_coord);
+  FragColor = texture(map_tileset, tex_coord);
 }
