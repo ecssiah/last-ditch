@@ -1,6 +1,8 @@
 character_tileset:
   test_character1:
     uv: [0, 0]
+  test_character2:
+    uv: [1, 0]
 
 map_tileset:
   floor1:
