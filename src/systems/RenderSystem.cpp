@@ -161,10 +161,10 @@ void RenderSystem::BuildMap()
       1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
       0.0f, 1.0f, 
       1.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
+      2.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
       1.0f, 1.0f, 
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
+      2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
     }
   );
 
