@@ -1,15 +1,29 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
+layout (location = 0) in vec2 aVertexPos;
+layout (location = 1) in vec2 aWorldPos;
+layout (location = 2) in vec4 aTexCoord;
 
 out vec2 tex_coord;
 
-uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
 void main()
 {
-  gl_Position = projection * view * model * vec4(aPos, 1.0);
-  tex_coord = aTexCoord;
+  mat4 model = mat4(1.0);
+  model[3].xy = aWorldPos;
+
+  if (gl_VertexID == 0 || gl_VertexID == 1 || gl_VertexID == 4) {
+    tex_coord.x = aTexCoord[3];
+  } else {
+    tex_coord.x = aTexCoord[1];
+  }
+
+  if (gl_VertexID == 0 || gl_VertexID == 1) {
+    tex_coord.y = aTexCoord[2];
+  } else {
+    tex_coord.y = aTexCoord[0];
+  }
+
+  gl_Position = projection * view * model * vec4(aVertexPos, 0.0, 1.0);
 }

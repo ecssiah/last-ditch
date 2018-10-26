@@ -40,56 +40,6 @@ RenderSystem::~RenderSystem()
   cout << "Render System Shutdown" << endl;
 }
 
-void RenderSystem::RunTests()
-{
-  /* float vertices[] = { */
-  /*   // positions         // texture coords */
-  /*    0.5f,  0.5f, 0.0f,  1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TR */ 
-  /*    0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR */ 
-  /*   -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT, // TL */ 
-  /*    0.5f, -0.5f, 0.0f,  1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BR */ 
-  /*   -0.5f, -0.5f, 0.0f,  0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, // BL */
-  /*   -0.5f,  0.5f, 0.0f,  0.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT  // TL */
-  /* }; */
-
-  /* glGenVertexArrays(1, &vao_); */
-  /* glGenBuffers(1, &VBO_); */
-
-  /* glBindVertexArray(vao_); */
-
-  /* glBindBuffer(GL_ARRAY_BUFFER, VBO_); */
-  /* glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); */
-
-  /* // position attribute */
-  /* glVertexAttribPointer( */
-  /*   0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)0 */
-  /* ); */
-  /* glEnableVertexAttribArray(0); */
-
-  /* // model matrix attribute */
-
-  /* // texcoords attribute */
-
-  /* // texture attribute */
-  /* glVertexAttribPointer( */
-  /*   1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float)) */
-  /* ); */
-  /* glEnableVertexAttribArray(1); */
-
-  /* LoadTexture("character_tileset"); */
-  /* LoadTexture("map_tileset"); */
-  /* LoadTexture("object_tileset"); */
-
-  /* glUseProgram(shader_program_); */
-
-  /* glUniform1i(glGetUniformLocation(shader_program_, "character_tileset"), 0); */ 
-  /* glUniform1i(glGetUniformLocation(shader_program_, "map_tileset"), 1); */ 
-  /* glUniform1i(glGetUniformLocation(shader_program_, "object_tileset"), 2); */ 
-
-  /* glBindBuffer(GL_ARRAY_BUFFER, 0); */
-  /* glBindVertexArray(0); */
-}
-
 void RenderSystem::Initialize()
 {
   glfwInit();
@@ -168,18 +118,10 @@ void RenderSystem::BuildMap()
     }
   );
 
-  /* float map_test_array[] = { */
-  /*   0.0f, 0.0f, 0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, */ 
-  /*   1.0f, 0.0f, 1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT */
-  /* }; */
-
   glBufferData(
     GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * map_.attributes.size(), 
     map_.attributes.data(), GL_STREAM_DRAW
   );
-  /* glBufferData( */
-  /*   GL_ARRAY_BUFFER, sizeof(map_test_array), map_test_array, GL_STREAM_DRAW */
-  /* ); */
 
   glVertexAttribPointer(
     1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0
