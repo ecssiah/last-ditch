@@ -103,18 +103,21 @@ void RenderSystem::BuildMap()
   map_.attributes.insert(
     map_.attributes.end(), 
     {
-      0.0f, 0.0f, 
+      0.0f, 0.0f, 0.0f,
       0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
-      1.0f, 0.0f, 
+      1.0f, 0.0f, 0.0f,
       0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
       1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
-      0.0f, 1.0f, 
+      0.0f, 1.0f, 0.0f,
       1.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
       2.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
-      1.0f, 1.0f, 
+      1.0f, 1.0f, 0.0f,
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
       2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
+      0.0f, 0.0f, -1.0f,
+      0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
+      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
     }
   );
 
@@ -124,10 +127,10 @@ void RenderSystem::BuildMap()
   );
 
   glVertexAttribPointer(
-    1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0
+    1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), (void*)0
   );
   glVertexAttribPointer(
-    2, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(2 * sizeof(GL_FLOAT))
+    2, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT))
   );
 
   glEnableVertexAttribArray(0);
@@ -155,7 +158,7 @@ void RenderSystem::BuildMap()
 void RenderSystem::Update()
 {
   glClearColor(0, 0, 0, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if (input_.debug) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
