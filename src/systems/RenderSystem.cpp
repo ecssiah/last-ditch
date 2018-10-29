@@ -103,16 +103,16 @@ void RenderSystem::BuildMap()
   map_.attributes.insert(
     map_.attributes.end(), 
     {
-      0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, -2.0f,
       0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
-      1.0f, 0.0f, 0.0f,
+      1.0f, 0.0f, -2.0f,
       0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
       1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
-      0.0f, 1.0f, 0.0f,
+      0.0f, 1.0f, -2.0f,
       1.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
       2.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
-      1.0f, 1.0f, 0.0f,
+      1.0f, 1.0f, -2.0f,
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
       2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
       0.0f, 0.0f, -1.0f,
@@ -127,7 +127,7 @@ void RenderSystem::BuildMap()
   );
 
   glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), (void*)0
+    1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), 0
   );
   glVertexAttribPointer(
     2, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT))
