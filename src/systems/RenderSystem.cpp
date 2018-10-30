@@ -77,11 +77,10 @@ void RenderSystem::BuildMap()
 {
   // tile setup
   float tile_vertices[] = {
-     0.5f,  0.5f,
-     0.5f, -0.5f,
-    -0.5f,  0.5f,
     -0.5f, -0.5f,
+    -0.5f,  0.5f,
      0.5f, -0.5f,
+     0.5f,  0.5f,
   };
 
   glGenVertexArrays(1, &vao_);
@@ -115,9 +114,9 @@ void RenderSystem::BuildMap()
       1.0f, 1.0f, -2.0f,
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
       2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
-      0.0f, 0.0f, -1.0f,
-      0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
+      0.0f, 0.0f, 0.0f,
+      0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
+      1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
     }
   );
 
@@ -158,7 +157,7 @@ void RenderSystem::BuildMap()
 void RenderSystem::Update()
 {
   glClearColor(0, 0, 0, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   if (input_.debug) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -193,7 +192,7 @@ void RenderSystem::Update()
 
   glBindVertexArray(vao_);
 
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 5, 4);
+  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, map_.attributes.size() / 7);
       
   glfwSwapBuffers(render_.window);
 }
