@@ -77,10 +77,10 @@ void RenderSystem::BuildMap()
 {
   // tile setup
   float tile_vertices[] = {
-    -0.5f, -0.5f,
-    -0.5f,  0.5f,
-     0.5f, -0.5f,
-     0.5f,  0.5f,
+    -0.5f, -0.5f,  0.0f,                 0.0f, 
+    -0.5f,  0.5f,  0.0f,                 1.0f / TILESET_HEIGHT,
+     0.5f, -0.5f,  1.0f / TILESET_WIDTH, 0.0f,
+     0.5f,  0.5f,  1.0f / TILESET_WIDTH, 1.0f / TILESET_HEIGHT
   };
 
   glGenVertexArrays(1, &vao_);
@@ -94,7 +94,12 @@ void RenderSystem::BuildMap()
     GL_ARRAY_BUFFER, sizeof(tile_vertices), tile_vertices, GL_STATIC_DRAW
   );
 
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(
+    0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+  glVertexAttribPointer(
+    1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)) 
+  );
+
 
   glGenBuffers(1, &map_vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, map_vbo_);
@@ -104,19 +109,14 @@ void RenderSystem::BuildMap()
     {
       0.0f, 0.0f, -2.0f,
       0.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
       1.0f, 0.0f, -2.0f,
       0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
       0.0f, 1.0f, -2.0f,
       1.0f / TILESET_WIDTH, 13.0f / TILESET_HEIGHT, 
-      2.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT,
       1.0f, 1.0f, -2.0f,
       1.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
-      2.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
       0.0f, 0.0f, 0.0f,
       0.0f / TILESET_WIDTH, 14.0f / TILESET_HEIGHT, 
-      1.0f / TILESET_WIDTH, 15.0f / TILESET_HEIGHT,
     }
   );
 
@@ -126,10 +126,10 @@ void RenderSystem::BuildMap()
   );
 
   glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), 0
+    2, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0
   );
   glVertexAttribPointer(
-    2, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT))
+    3, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float))
   );
 
   glEnableVertexAttribArray(0);
