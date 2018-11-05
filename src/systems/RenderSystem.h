@@ -27,8 +27,8 @@ private:
   Camera& camera_;
   Map& map_;
 
-
-  SDL_Window* window;
+  SDL_Window* window_;
+  SDL_Renderer* renderer_;
 };
 
 #endif // RENDER_SYSTEM_H
