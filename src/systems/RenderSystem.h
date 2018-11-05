@@ -3,7 +3,8 @@
 
 #include <string>
 #include <unordered_map>
-#include <GLFW/glfw3.h>
+
+#include <SDL2/SDL.h>
 
 #include "../components/Render.h"
 #include "../components/Input.h"
@@ -21,21 +22,13 @@ public:
   void Update();
 
 private:
-  void RunTests();
-  void RenderChunk(Chunk& chunk);
-
-  void BuildMap();
-  void LoadTexture(const std::string& filename);
-
   Render& render_;
   Input& input_;
   Camera& camera_;
   Map& map_;
 
-  std::unordered_map<std::string, unsigned> textures;
 
-  unsigned tile_vbo_, map_vbo_, vao_;
-  unsigned shader_program_; 
+  SDL_Window* window;
 };
 
 #endif // RENDER_SYSTEM_H
