@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #include "../components/Render.h"
 #include "../components/Input.h"
@@ -29,6 +30,8 @@ private:
 
   SDL_Window* window_;
   SDL_Renderer* renderer_;
+
+  SDL_Surface* surface_;
 };
 
 #endif // RENDER_SYSTEM_H

@@ -13,6 +13,9 @@ public:
   void Update();
 
 private:
+  void OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
+  void OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
+
   Input& input_;
   Render& render_;
 }; 

@@ -46,7 +46,7 @@ find_package(SDL2_image REQUIRED)
 find_package(YamlCpp REQUIRED)
 
 set(SDL2_COMPILE_FLAGS "-I/usr/local/include/SDL2 -D_THREAD_SAFE")
-set(SDL2_LINK_FLAGS "-L/usr/local/lib -lSDL2")
+set(SDL2_LINK_FLAGS "-L/usr/local/lib -lSDL2 -lSDL2_image")
 
 set(
   CMAKE_CXX_FLAGS

@@ -41,7 +41,10 @@ void RenderSystem::Initialize()
   }
 
   window_ = SDL_CreateWindow(
-    "Last Ditch", 100, 100, SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_SHOWN
+    "Last Ditch", 
+    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+    SCREEN_SIZE_X, SCREEN_SIZE_Y, 
+    SDL_WINDOW_SHOWN
   );
 
   if (window_ == nullptr) {

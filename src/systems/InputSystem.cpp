@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <SDL2/SDL.h>
+
 #include "InputSystem.h"
 
 using namespace std;
@@ -16,4 +18,62 @@ void InputSystem::Initialize()
 
 void InputSystem::Update()
 {
+  SDL_Event event;
+
+  while (SDL_PollEvent(&event)) {
+    switch(event.type)
+    {
+      case SDL_QUIT:
+      {
+        input_.exit = true;
+        break;
+      }
+      case SDL_KEYDOWN:
+      {
+        OnKeyDown(
+          event.key.keysym.sym, 
+          event.key.keysym.mod, 
+          event.key.keysym.scancode
+        );
+        break;
+      }
+      case SDL_KEYUP:
+      {
+        OnKeyUp(
+          event.key.keysym.sym, 
+          event.key.keysym.mod, 
+          event.key.keysym.scancode
+        );
+        break;
+      }
+      default:
+        break;
+    }     
+  }
 }
+
+void InputSystem::OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
+{
+  switch (sym)
+  {
+    case SDLK_w: input_.up = true; break;
+    case SDLK_a: input_.left = true; break;
+    case SDLK_s: input_.down = true; break;
+    case SDLK_d: input_.right = true; break;
+    case SDLK_ESCAPE: input_.exit = true; break;
+    default: break;
+  }
+}
+
+void InputSystem::OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
+{
+  switch (sym)
+  {
+    case SDLK_w: input_.up = false; break;
+    case SDLK_a: input_.left = false; break;
+    case SDLK_s: input_.down = false; break;
+    case SDLK_d: input_.right = false; break;
+    default: break;
+  }
+}
+
