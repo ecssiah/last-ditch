@@ -35,6 +35,20 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::Initialize()
 {
+  InitializeSDL();
+  InitializeSDLImage();
+  
+  LoadTilesets();
+}
+
+void RenderSystem::Update()
+{
+  SDL_RenderClear(renderer_);
+  SDL_RenderPresent(renderer_);
+}
+
+void RenderSystem::InitializeSDL()
+{
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     cout << "SDL_Init Error: " << SDL_GetError() << endl;
     return;
@@ -48,7 +62,7 @@ void RenderSystem::Initialize()
   );
 
   if (window_ == nullptr) {
-    cout << "SDL_CreateWindow Error: " << SDL_GetError() << endl;
+    cout << "SDL_CreateWindow error: " << SDL_GetError() << endl;
     SDL_Quit();
     return;
   }
@@ -59,15 +73,46 @@ void RenderSystem::Initialize()
 
   if (renderer_ == nullptr){
     SDL_DestroyWindow(window_);
-    cout << "SDL_CreateRenderer Error: " << SDL_GetError() << endl;
+    cout << "SDL_CreateRenderer error: " << SDL_GetError() << endl;
     SDL_Quit();
     return;
   }
 }
 
-void RenderSystem::Update()
+void RenderSystem::InitializeSDLImage()
 {
-  SDL_RenderClear(renderer_);
-  SDL_RenderPresent(renderer_);
+  int img_flags {IMG_INIT_PNG};
+  
+  if (!(IMG_Init(img_flags) & img_flags)) {
+    cout << "SDL_image error: " << IMG_GetError() << endl;
+    return;
+  }
+}
+
+void RenderSystem::LoadTilesets()
+{
+  map_tileset = LoadTexture("map_tileset"); 
+  object_tileset = LoadTexture("object_tileset"); 
+  character_tileset = LoadTexture("character_tileset"); 
+}
+
+SDL_Texture* RenderSystem::LoadTexture(string texturename)
+{
+  string filename {"assets/textures/" + texturename + ".png"};
+  SDL_Surface* surface {IMG_Load(filename.c_str())};
+
+  if (!surface) { 
+    cout << "IMG_Load error: " << IMG_GetError() << endl;
+  }
+
+  SDL_Texture* texture {SDL_CreateTextureFromSurface(renderer_, surface)};
+
+  if (!texture) {
+    cout << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << endl;
+  }
+  
+  SDL_FreeSurface(surface);
+
+  return texture;
 }
 

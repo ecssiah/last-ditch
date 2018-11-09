@@ -23,6 +23,12 @@ public:
   void Update();
 
 private:
+  void InitializeSDL();
+  void InitializeSDLImage();
+  void LoadTilesets();
+
+  SDL_Texture* LoadTexture(std::string texturename);
+
   Render& render_;
   Input& input_;
   Camera& camera_;
@@ -32,6 +38,10 @@ private:
   SDL_Renderer* renderer_;
 
   SDL_Surface* surface_;
+
+  SDL_Texture* map_tileset;
+  SDL_Texture* object_tileset;
+  SDL_Texture* character_tileset;
 };
 
 #endif // RENDER_SYSTEM_H
