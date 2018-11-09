@@ -2,8 +2,6 @@
 #define CAMERA_H
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 struct Camera
 {
@@ -12,7 +10,7 @@ struct Camera
   }
 
   float speed, zoom;
-  glm::vec3 pos, x_dir, y_dir, z_dir;
+  glm::vec2 pos, xdir, ydir;
 };
 
 #endif // CAMERA_H

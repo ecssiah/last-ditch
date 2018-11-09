@@ -18,10 +18,8 @@ void InputSystem::Initialize()
 
 void InputSystem::Update()
 {
-  SDL_Event event;
-
-  while (SDL_PollEvent(&event)) {
-    switch(event.type)
+  for(SDL_Event e; SDL_PollEvent(&e); ) {
+    switch(e.type)
     {
       case SDL_QUIT:
       {
@@ -30,20 +28,12 @@ void InputSystem::Update()
       }
       case SDL_KEYDOWN:
       {
-        OnKeyDown(
-          event.key.keysym.sym, 
-          event.key.keysym.mod, 
-          event.key.keysym.scancode
-        );
+        OnKeyDown(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
         break;
       }
       case SDL_KEYUP:
       {
-        OnKeyUp(
-          event.key.keysym.sym, 
-          event.key.keysym.mod, 
-          event.key.keysym.scancode
-        );
+        OnKeyUp(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
         break;
       }
       default:
