@@ -4,6 +4,8 @@
 struct Tile
 {
   Tile()
+    : type(0)
+    , category(0)
   {}
 
   unsigned category;
