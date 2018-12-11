@@ -20,7 +20,7 @@ void MapSystem::Update()
 
 }
 
-void MapSystem::BuildChunk(int x, int y) 
+void MapSystem::BuildChunk(int cx, int cy) 
 {
   for (auto x{0}; x < TILES_PER_CHUNK; ++x) {
     for (auto y{0}; y < TILES_PER_CHUNK; ++y) {
