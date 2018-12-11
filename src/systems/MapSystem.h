@@ -13,6 +13,7 @@ public:
   void Update();
 
 private:
+  void BuildChunk(int x, int y); 
   void GenerateMap();
 
   Map& map_;
