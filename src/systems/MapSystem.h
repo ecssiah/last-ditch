@@ -1,7 +1,6 @@
 #ifndef MAP_SYSTEM_H
 #define MAP_SYSTEM_H
 
-#include "../components/Chunk.h"
 #include "../components/Map.h"
 
 class MapSystem
@@ -13,7 +12,6 @@ public:
   void Update();
 
 private:
-  void BuildChunk(int x, int y); 
   void GenerateMap();
 
   Map& map_;

@@ -44,7 +44,18 @@ void RenderSystem::Initialize()
 void RenderSystem::Update()
 {
   SDL_RenderClear(renderer_);
+
+  RenderMap(); 
+
   SDL_RenderPresent(renderer_);
+}
+
+void RenderSystem::RenderMap()
+{
+  for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
+    for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+    }
+  }
 }
 
 void RenderSystem::InitializeSDL()

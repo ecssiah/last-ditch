@@ -1,6 +1,5 @@
 #include "MapConstants.h"
 
-const unsigned CHUNKS_PER_LAYER {2};
-const unsigned TILES_PER_CHUNK {4}; 
-extern const unsigned TILESET_WIDTH {25};
-extern const unsigned TILESET_HEIGHT {15};
+const unsigned TILES_PER_LAYER {8}; 
+const unsigned TILESET_WIDTH {25};
+const unsigned TILESET_HEIGHT {15};

@@ -3,16 +3,16 @@
 
 #include <vector>
 
-#include "Chunk.h"
+#include "Tile.h"
 #include "../constants/MapConstants.h"
 
 struct Layer
 {
   Layer() 
-    : chunks(CHUNKS_PER_LAYER, std::vector<Chunk>(CHUNKS_PER_LAYER)) 
+    : tiles(TILES_PER_LAYER, std::vector<Tile>(TILES_PER_LAYER)) 
   {}
 
-  std::vector<std::vector<Chunk> > chunks;
+  std::vector<std::vector<Tile> > tiles;
 
 };
 

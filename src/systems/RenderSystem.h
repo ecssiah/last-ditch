@@ -11,7 +11,6 @@
 #include "../components/Input.h"
 #include "../components/Camera.h"
 #include "../components/Map.h"
-#include "../components/Chunk.h"
 
 class RenderSystem
 {
@@ -26,6 +25,7 @@ private:
   void InitializeSDL();
   void InitializeSDLImage();
   void LoadTilesets();
+  void RenderMap();
 
   SDL_Texture* LoadTexture(std::string texturename);
 
