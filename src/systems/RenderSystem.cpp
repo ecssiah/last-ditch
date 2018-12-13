@@ -66,10 +66,13 @@ void RenderSystem::RenderTile(string layer, int x, int y)
   Tile& tile = map_.layers[layer].tiles[x][y];
 
   if (tile.type != 0) {
+    double scale_factor{camera_.zoom * TILE_SIZE};
+
     SDL_Rect dst;
-    dst.x = (x - camera_.pos.x) * TILE_SIZE; 
-    dst.y = (y - camera_.pos.y) * TILE_SIZE;
-    dst.w = dst.h = TILE_SIZE;
+    dst.x = (x + camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
+    dst.y = (y + camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
+    dst.w = scale_factor;
+    dst.h = scale_factor;
 
     SDL_RenderCopyEx(
       renderer_, tilesets_[layer], 
