@@ -127,8 +127,8 @@ void RenderSystem::InitializeSDLImage()
 void RenderSystem::LoadTilesets()
 {
   tilesets_["map"] = LoadTexture("map_tileset"); 
-  tilesets_["obj"] = LoadTexture("object_tileset"); 
-  tilesets_["chr"] = LoadTexture("character_tileset"); 
+  tilesets_["obj"] = LoadTexture("obj_tileset"); 
+  tilesets_["chr"] = LoadTexture("chr_tileset"); 
 }
 
 SDL_Texture* RenderSystem::LoadTexture(string texturename)
