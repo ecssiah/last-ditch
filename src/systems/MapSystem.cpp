@@ -30,12 +30,13 @@ void MapSystem::GenerateMap()
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
       // Generate Test Data
       if (x % 2 == 0) {
-        SetTile("map", x, y, 1);
+        SetTile("map", x, y, TileData["floor1"].type);
       } else {
+        SetTile("map", x, y, 2);
         SetTile("obj", x, y, 1);
       }
 
-      if (y % 2 == 0) {
+      if (y % 3 == 0) {
         SetTile("chr", x, y, 1);
       }
     }
@@ -44,6 +45,7 @@ void MapSystem::GenerateMap()
 
 void MapSystem::SetTile(std::string layer, int x, int y, int type) {
   Tile& tile = map_.layers[layer].tiles[x][y];
+
   tile.type = type;
 
   tile.src.x = (tile.type - 1) % TILESET_WIDTH * TILE_SIZE;  

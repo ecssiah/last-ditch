@@ -66,7 +66,7 @@ void RenderSystem::RenderTile(string layer, int x, int y)
   Tile& tile = map_.layers[layer].tiles[x][y];
 
   if (tile.type != 0) {
-    double scale_factor{camera_.zoom * TILE_SIZE};
+    float scale_factor{camera_.zoom * TILE_SIZE};
 
     SDL_Rect dst;
     dst.x = (x + camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 

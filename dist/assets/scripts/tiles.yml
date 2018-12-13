@@ -1,12 +1,9 @@
 character_tileset: 
   - test_character1 
   - test_character2
-
 map_tileset:
   - floor1
   - wall1
   - wall2
-
 object_tileset:
   - test1
-  
