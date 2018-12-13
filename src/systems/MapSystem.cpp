@@ -28,21 +28,27 @@ void MapSystem::GenerateMap()
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+      // Generate Test Data
       if (x % 2 == 0) {
-        map_.layers["map"].tiles[x][y].type = 1;
+        SetTile("map", x, y, 1);
       } else {
-        map_.layers["object"].tiles[x][y].type = 1;
+        SetTile("object", x, y, 1);
       }
 
       if (y % 2 == 0) {
-        map_.layers["character"].tiles[x][y].type = 1;
+        SetTile("character", x, y, 1);
       }
+      // Generate Test Data
 
-      cout << map_.layers["map"].tiles[x][y].type;
-      cout << map_.layers["object"].tiles[x][y].type;
-      cout << map_.layers["character"].tiles[x][y].type;
-      cout << " ";
+      Tile& tile = map_.layers["map"].tiles[x][y];
     }
-    cout << endl;
   }
+}
+
+void MapSystem::SetTile(std::string layer, int x, int y, int type) {
+  Tile& tile = map_.layers[layer].tiles[x][y];
+  tile.type = type;
+
+  tile.src.x = tile.type % TILESET_WIDTH * TILE_SIZE;  
+  tile.src.y = tile.type / TILESET_HEIGHT * TILE_SIZE;
 }

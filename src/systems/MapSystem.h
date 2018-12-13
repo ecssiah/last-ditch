@@ -14,6 +14,8 @@ public:
 private:
   void GenerateMap();
 
+  void SetTile(std::string layer, int x, int y, int type);
+
   Map& map_;
 }; 
 
