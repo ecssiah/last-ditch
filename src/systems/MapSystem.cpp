@@ -38,7 +38,6 @@ void MapSystem::GenerateMap()
       if (y % 2 == 0) {
         SetTile("chr", x, y, 1);
       }
-      // Generate Test Data
     }
   }
 }
@@ -47,6 +46,6 @@ void MapSystem::SetTile(std::string layer, int x, int y, int type) {
   Tile& tile = map_.layers[layer].tiles[x][y];
   tile.type = type;
 
-  tile.src.x = tile.type % TILESET_WIDTH * TILE_SIZE;  
-  tile.src.y = tile.type / TILESET_HEIGHT * TILE_SIZE;
+  tile.src.x = (tile.type - 1) % TILESET_WIDTH * TILE_SIZE;  
+  tile.src.y = (tile.type - 1) / TILESET_HEIGHT * TILE_SIZE;
 }

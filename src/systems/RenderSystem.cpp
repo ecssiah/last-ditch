@@ -67,8 +67,8 @@ void RenderSystem::RenderTile(string layer, int x, int y)
 
   if (tile.type != 0) {
     SDL_Rect dst;
-    dst.x = x * TILE_SIZE;
-    dst.y = y * TILE_SIZE;
+    dst.x = (x - camera_.pos.x) * TILE_SIZE; 
+    dst.y = (y - camera_.pos.y) * TILE_SIZE;
     dst.w = dst.h = TILE_SIZE;
 
     SDL_RenderCopyEx(
