@@ -12,7 +12,7 @@ CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera)
 
 void CameraSystem::Initialize()
 {
-  camera_.speed = 2.5f;
+  camera_.speed = 10.0f;
   camera_.zoom = 1.0f;
   camera_.pos = {0.0f, 0.0f};
   camera_.xdir = {1.0f, 0.0f};
