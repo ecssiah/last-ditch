@@ -27,6 +27,7 @@ private:
   void LoadTilesets();
 
   void RenderMap();
+  void RenderTile(std::string layer, int x, int y);
 
   SDL_Texture* LoadTexture(std::string texturename);
 
@@ -40,9 +41,7 @@ private:
 
   SDL_Surface* surface_;
 
-  SDL_Texture* map_tileset_;
-  SDL_Texture* object_tileset_;
-  SDL_Texture* character_tileset_;
+  std::unordered_map<std::string, SDL_Texture*> tilesets_;
 };
 
 #endif // RENDER_SYSTEM_H

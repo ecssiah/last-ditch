@@ -23,8 +23,8 @@ void MapSystem::Update()
 void MapSystem::GenerateMap()
 {
   map_.layers["map"] = Layer();
-  map_.layers["object"] = Layer();
-  map_.layers["character"] = Layer();
+  map_.layers["obj"] = Layer();
+  map_.layers["chr"] = Layer();
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
@@ -32,15 +32,13 @@ void MapSystem::GenerateMap()
       if (x % 2 == 0) {
         SetTile("map", x, y, 1);
       } else {
-        SetTile("object", x, y, 1);
+        SetTile("obj", x, y, 1);
       }
 
       if (y % 2 == 0) {
-        SetTile("character", x, y, 1);
+        SetTile("chr", x, y, 1);
       }
       // Generate Test Data
-
-      Tile& tile = map_.layers["map"].tiles[x][y];
     }
   }
 }

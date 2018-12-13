@@ -54,21 +54,28 @@ void RenderSystem::RenderMap()
 {
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      Tile& tile = map_.layers["map"].tiles[x][y];
-
-      if (tile.type != 0) {
-        SDL_Rect dst;
-        dst.x = x * TILE_SIZE;
-        dst.y = y * TILE_SIZE;
-        dst.w = dst.h = TILE_SIZE;
-
-        SDL_RenderCopyEx(
-          renderer_, map_tileset_, 
-          &tile.src, &dst, 
-          0, nullptr, SDL_FLIP_NONE
-        ); 
-      }
+      RenderTile("map", x, y);
+      RenderTile("obj", x, y);
+      RenderTile("chr", x, y);
     }
+  }
+}
+
+void RenderSystem::RenderTile(string layer, int x, int y)
+{
+  Tile& tile = map_.layers[layer].tiles[x][y];
+
+  if (tile.type != 0) {
+    SDL_Rect dst;
+    dst.x = x * TILE_SIZE;
+    dst.y = y * TILE_SIZE;
+    dst.w = dst.h = TILE_SIZE;
+
+    SDL_RenderCopyEx(
+      renderer_, tilesets_[layer], 
+      &tile.src, &dst, 
+      0, nullptr, SDL_FLIP_NONE
+    ); 
   }
 }
 
@@ -116,9 +123,9 @@ void RenderSystem::InitializeSDLImage()
 
 void RenderSystem::LoadTilesets()
 {
-  map_tileset_ = LoadTexture("map_tileset"); 
-  object_tileset_ = LoadTexture("object_tileset"); 
-  character_tileset_ = LoadTexture("character_tileset"); 
+  tilesets_["map"] = LoadTexture("map_tileset"); 
+  tilesets_["obj"] = LoadTexture("object_tileset"); 
+  tilesets_["chr"] = LoadTexture("character_tileset"); 
 }
 
 SDL_Texture* RenderSystem::LoadTexture(string texturename)
