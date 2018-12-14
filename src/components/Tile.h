@@ -8,15 +8,13 @@
 struct Tile
 {
   Tile()
-    : type(0)
-    , category(0)
+    : active(false)
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
   }
 
-  unsigned category;
-  unsigned type;
+  bool active;
 
   SDL_Rect src;
 
