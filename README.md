@@ -1,7 +1,7 @@
 Last Ditch
 ==========
 
-Last Ditch is an open source survival management simulation.
+Last Ditch is an open source survival simulation.
 
 Contributions
 =============

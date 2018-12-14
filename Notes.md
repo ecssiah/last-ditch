@@ -1,5 +1,11 @@
 # Last Ditch Project
 
+## TODO
+1. Generate map
+2. Save maps
+3. Pathfinding
+4. UI
+
 ## Synopsis
 
 After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. 
@@ -122,12 +128,11 @@ It consists of four major sections:
 * Upperlevels - Floors containing the strongest and most well-equipped factions
 
 Each floor is a large tiled map viewed from above with a number of layers.
-1. The floor itself
-2. Anything placed directly on the floor.
-3. Furniture and other structural objects like walls 
-4. Anything placed directly on the objects from layer 3
-
-The individual characters are placed on top of the map and move between tiles. They can move in all 8 directions from their current tile to any adjacent tile.
+1. Floor - The floor
+2. Wall - The building structures (i.e. walls, doors, windows)
+3. Object - Furniture and other objects like machinery 
+4. Entity - Entities like humans or animals
+5. Overlay - User interface tiles like selection
 
 ### Environment
 
