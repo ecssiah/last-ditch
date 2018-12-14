@@ -6,17 +6,20 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Layer.h"
+#include "Floor.h"
 
 struct Map
 {
   Map() 
-    : layers()
+    : cur_floor(0)
+    , floors()
     , attributes()
   {
   }
 
-  std::unordered_map<std::string, Layer> layers;
+  unsigned cur_floor;
+
+  std::vector<Floor> floors;
   std::vector<float> attributes;
 };
 

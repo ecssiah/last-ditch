@@ -10,6 +10,8 @@ struct Input
     , right(false)
     , mag(false)
     , min(false)
+    , ascend(false)
+    , descend(false)
     , lclick(false)
     , rclick(false)
     , exit(false)
@@ -21,6 +23,7 @@ struct Input
 
   bool up, down, left, right; 
   bool mag, min;
+  bool ascend, descend;
   bool lclick, rclick;
   bool exit, pause, debug;
 

@@ -5,50 +5,64 @@
 
 using namespace std;
 
-MapSystem::MapSystem(Map& map)
-  : map_(map)
+MapSystem::MapSystem(Input& input, Map& map)
+  : input_(input)
+  , map_(map)
 {
 }
 
 void MapSystem::Initialize()
 {
-  map_.layers["floor"] = Layer();
-  map_.layers["wall"] = Layer();
-  map_.layers["object"] = Layer();
-  map_.layers["entity"] = Layer();
-  map_.layers["overlay"] = Layer();
+  map_.floors.resize(NUM_FLOORS);
+
+  for (auto i{0}; i < NUM_FLOORS; ++i) {
+    map_.floors[i].layers["floor"] = Layer();
+    map_.floors[i].layers["wall"] = Layer();
+    map_.floors[i].layers["object"] = Layer();
+    map_.floors[i].layers["entity"] = Layer();
+    map_.floors[i].layers["overlay"] = Layer();
+  }
 
   GenerateMap();
 }
 
 void MapSystem::Update()
 {
-
+  if (input_.ascend && map_.cur_floor < NUM_FLOORS - 1) map_.cur_floor++; 
+  if (input_.descend && map_.cur_floor > 0) map_.cur_floor--;
 }
 
 void MapSystem::GenerateMap()
 {
-  for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
-    for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      SetTile("floor", x, y, "concrete");
+  for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
+    for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
+      for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+        SetTile("floor", x, y, floor, "concrete");
+      }
     }
   }
 
-  SetTile("wall", 8, 8, "wall2-str");
-  SetTile("wall", 9, 8, "wall2-tee");
-  SetTile("wall", 10, 8, "wall2-str");
-  SetTile("wall", 11, 8, "door1");
-  SetTile("wall", 12, 8, "wall2-cor");
+  SetTile("wall", 8, 8, 0, "wall2-str");
+  SetTile("wall", 9, 8, 0, "wall2-tee");
+  SetTile("wall", 10, 8, 0, "wall2-str");
+  SetTile("wall", 11, 8, 0, "door1");
+  SetTile("wall", 12, 8, 0, "wall2-cor");
 
-  SetTile("overlay", 9, 8, "selection");
+  SetTile("overlay", 9, 8, 0, "selection");
 
-  SetTile("entity", 10, 10, "test_character1");
+  SetTile("entity", 10, 10, 0, "test_character1");
+
+  SetTile("wall", 10, 10, 1, "door1");
+  SetTile("wall", 10, 12, 2, "wall1-str");
+  SetTile("wall", 8, 10, 3, "wall2-str");
 }
 
 void MapSystem::SetTile(
-  string layer, int x, int y, string type, float rotation, SDL_RendererFlip flip
+  string layer, 
+  int x, int y, int floor, 
+  string type, float rotation, SDL_RendererFlip flip
 ) {
-  Tile& tile = map_.layers[layer].tiles[x][y];
+  Tile& tile = map_.floors[floor].layers[layer].tiles[x][y];
 
   if (TileData.find(type) != TileData.end()) {
     tile.active = true;

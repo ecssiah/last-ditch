@@ -18,6 +18,9 @@ void InputSystem::Initialize()
 
 void InputSystem::Update()
 {
+  if (input_.ascend) input_.ascend = false;
+  if (input_.descend) input_.descend = false;
+
   for(SDL_Event e; SDL_PollEvent(&e); ) {
     switch(e.type)
     {
@@ -52,6 +55,8 @@ void InputSystem::OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
     case SDLK_d: input_.right = true; break;
     case SDLK_q: input_.min = true; break;
     case SDLK_e: input_.mag = true; break;
+    case SDLK_r: input_.ascend = true; break;
+    case SDLK_f: input_.descend = true; break;
     case SDLK_ESCAPE: input_.exit = true; break;
     default: break;
   }

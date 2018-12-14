@@ -8,7 +8,7 @@ Game::Game()
   , time_system_(input_, render_)
   , render_system_(input_, render_, camera_, map_)
   , camera_system_(input_, render_, camera_)
-  , map_system_(map_)
+  , map_system_(input_, map_)
 {
 }
 

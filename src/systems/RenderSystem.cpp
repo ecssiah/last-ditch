@@ -75,7 +75,7 @@ void RenderSystem::RenderMap()
 
 void RenderSystem::RenderTile(string layer, int x, int y)
 {
-  Tile& tile = map_.layers[layer].tiles[x][y];
+  Tile& tile = map_.floors[map_.cur_floor].layers[layer].tiles[x][y];
 
   if (tile.active) {
     float scale_factor{camera_.zoom * TILE_SIZE};
