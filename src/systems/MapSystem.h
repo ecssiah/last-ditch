@@ -14,7 +14,10 @@ public:
 private:
   void GenerateMap();
 
-  void SetTile(std::string layer, int x, int y, std::string type);
+  void SetTile(
+    std::string layer, int x, int y, std::string type, 
+    float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
+  );
 
   Map& map_;
 }; 

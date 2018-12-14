@@ -88,7 +88,7 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     SDL_RenderCopyEx(
       renderer_, tilesets_[layer], 
       &tile.src, &dst, 
-      0, nullptr, SDL_FLIP_NONE
+      tile.rotation, nullptr, tile.flip
     ); 
   }
 }

@@ -10,6 +10,8 @@ struct Tile
   Tile()
     : active(false)
     , solid(false)
+    , flip(SDL_FLIP_NONE)
+    , rotation(0)
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
@@ -17,6 +19,9 @@ struct Tile
 
   bool active;
   bool solid;
+  SDL_RendererFlip flip;
+
+  double rotation; 
 
   SDL_Rect src;
 
