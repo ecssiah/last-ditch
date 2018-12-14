@@ -82,8 +82,8 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     SDL_Rect dst;
     dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
     dst.y = (y - camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
-    dst.w = scale_factor;
-    dst.h = scale_factor;
+    dst.w = scale_factor + 1;
+    dst.h = scale_factor + 1;
 
     SDL_RenderCopyEx(
       renderer_, tilesets_[layer], 

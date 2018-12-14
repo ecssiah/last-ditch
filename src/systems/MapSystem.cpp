@@ -29,19 +29,20 @@ void MapSystem::GenerateMap()
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      // Generate Test Data
       if (x % 2 == 0) {
         SetTile("floor", x, y, "floor1");
       } else {
         SetTile("floor", x, y, "floor2");
-        SetTile("wall", x, y, "wall1");
-      }
-
-      if (y % 3 == 1) {
-        SetTile("chr", x, y, "test_character1");
       }
     }
   }
+
+  SetTile("wall", 8, 8, "wall1");
+  SetTile("wall", 9, 8, "wall1");
+  SetTile("wall", 10, 8, "wall1");
+  SetTile("wall", 11, 8, "wall1");
+
+  SetTile("chr", 10, 10, "test_character1");
 }
 
 void MapSystem::SetTile(string layer, int x, int y, string type) 

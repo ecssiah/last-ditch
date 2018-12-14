@@ -9,12 +9,14 @@ struct Tile
 {
   Tile()
     : active(false)
+    , solid(false)
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
   }
 
   bool active;
+  bool solid;
 
   SDL_Rect src;
 
