@@ -22,7 +22,8 @@ void MapSystem::Update()
 
 void MapSystem::GenerateMap()
 {
-  map_.layers["map"] = Layer();
+  map_.layers["floor"] = Layer();
+  map_.layers["wall"] = Layer();
   map_.layers["obj"] = Layer();
   map_.layers["chr"] = Layer();
 
@@ -30,9 +31,10 @@ void MapSystem::GenerateMap()
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
       // Generate Test Data
       if (x % 2 == 0) {
-        SetTile("map", x, y, "floor1");
+        SetTile("floor", x, y, "floor1");
       } else {
-        SetTile("map", x, y, "floor2");
+        SetTile("floor", x, y, "floor2");
+        SetTile("wall", x, y, "wall1");
         SetTile("obj", x, y, "test1");
       }
 

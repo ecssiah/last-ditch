@@ -1,8 +1,3 @@
-character_tileset: 
-  test_character1:
-    uv: [0, 0] 
-  test_character2:
-    uv: [1, 0]
 map_tileset:
   floor1:
     uv: [0, 0]
@@ -12,8 +7,15 @@ map_tileset:
     uv: [0, 1]
   wall2:
     uv: [1, 1]
+
 object_tileset:
   test1:
     uv: [0, 0]
   test2:
+    uv: [1, 0]
+
+character_tileset: 
+  test_character1:
+    uv: [0, 0] 
+  test_character2:
     uv: [1, 0]

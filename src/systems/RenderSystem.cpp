@@ -54,7 +54,8 @@ void RenderSystem::RenderMap()
 {
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      RenderTile("map", x, y);
+      RenderTile("floor", x, y);
+      RenderTile("wall", x, y);
       RenderTile("obj", x, y);
       RenderTile("chr", x, y);
     }
@@ -126,7 +127,8 @@ void RenderSystem::InitializeSDLImage()
 
 void RenderSystem::LoadTilesets()
 {
-  tilesets_["map"] = LoadTexture("map_tileset"); 
+  tilesets_["floor"] = LoadTexture("map_tileset"); 
+  tilesets_["wall"] = tilesets_["floor"];
   tilesets_["obj"] = LoadTexture("obj_tileset"); 
   tilesets_["chr"] = LoadTexture("chr_tileset"); 
 }
