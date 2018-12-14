@@ -24,10 +24,10 @@ void CameraSystem::Update()
   auto inv_zoom {1.0f / camera_.zoom};
   auto modifier {inv_zoom * render_.dt * camera_.speed};
 
-  if (input_.up) camera_.pos += modifier * camera_.ydir; 
-  if (input_.down) camera_.pos -= modifier * camera_.ydir;
-  if (input_.left) camera_.pos += modifier * camera_.xdir; 
-  if (input_.right) camera_.pos -= modifier * camera_.xdir;
+  if (input_.up) camera_.pos -= modifier * camera_.ydir; 
+  if (input_.down) camera_.pos += modifier * camera_.ydir;
+  if (input_.left) camera_.pos -= modifier * camera_.xdir; 
+  if (input_.right) camera_.pos += modifier * camera_.xdir;
 
   if (input_.min) {
     camera_.zoom -= render_.dt;

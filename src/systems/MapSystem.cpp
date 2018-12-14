@@ -35,17 +35,17 @@ void MapSystem::GenerateMap()
       } else {
         SetTile("floor", x, y, "floor2");
         SetTile("wall", x, y, "wall1");
-        SetTile("obj", x, y, "test1");
       }
 
-      if (y % 3 == 0) {
+      if (y % 3 == 1) {
         SetTile("chr", x, y, "test_character1");
       }
     }
   }
 }
 
-void MapSystem::SetTile(string layer, int x, int y, string type) {
+void MapSystem::SetTile(string layer, int x, int y, string type) 
+{
   Tile& tile = map_.layers[layer].tiles[x][y];
   tile.active = true;
 

@@ -52,8 +52,18 @@ void RenderSystem::Update()
 
 void RenderSystem::RenderMap()
 {
-  for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
-    for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+  int x_min = camera_.pos.x - VIEW_X * 1.0f / camera_.zoom; 
+  int y_min = camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom;
+  int x_max = camera_.pos.x + VIEW_X * 1.0f / camera_.zoom;
+  int y_max = camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom; 
+  
+  if (x_min < 0) x_min = 0;
+  if (y_min < 0) y_min = 0;
+  if (x_max > TILES_PER_LAYER - 1) x_max = TILES_PER_LAYER - 1;
+  if (y_max > TILES_PER_LAYER - 1) y_max = TILES_PER_LAYER - 1;
+
+  for (auto x{x_min}; x <= x_max; ++x) { 
+    for (auto y{y_min}; y <= y_max; ++y) {
       RenderTile("floor", x, y);
       RenderTile("wall", x, y);
       RenderTile("obj", x, y);
@@ -70,8 +80,8 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     float scale_factor{camera_.zoom * TILE_SIZE};
 
     SDL_Rect dst;
-    dst.x = (x + camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
-    dst.y = (y + camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
+    dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
+    dst.y = (y - camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
     dst.w = scale_factor;
     dst.h = scale_factor;
 
