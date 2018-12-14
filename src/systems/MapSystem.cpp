@@ -26,6 +26,7 @@ void MapSystem::GenerateMap()
   map_.layers["wall"] = Layer();
   map_.layers["obj"] = Layer();
   map_.layers["chr"] = Layer();
+  map_.layers["overlay"] = Layer();
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
@@ -36,7 +37,11 @@ void MapSystem::GenerateMap()
   SetTile("wall", 8, 8, "wall2-str");
   SetTile("wall", 9, 8, "wall2-tee");
   SetTile("wall", 10, 8, "wall2-str");
-  SetTile("wall", 11, 8, "wall2-cor");
+  SetTile("wall", 11, 8, "door1");
+  SetTile("wall", 12, 8, "wall2-cor");
+
+  SetTile("ovr", 10, 10, "highlight");
+  SetTile("ovr", 9, 8, "selection");
 
   SetTile("chr", 10, 10, "test_character1");
 }

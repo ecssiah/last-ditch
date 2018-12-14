@@ -68,6 +68,7 @@ void RenderSystem::RenderMap()
       RenderTile("wall", x, y);
       RenderTile("obj", x, y);
       RenderTile("chr", x, y);
+      RenderTile("ovr", x, y);
     }
   }
 }
@@ -141,6 +142,7 @@ void RenderSystem::LoadTilesets()
   tilesets_["wall"] = tilesets_["floor"];
   tilesets_["obj"] = LoadTexture("obj_tileset"); 
   tilesets_["chr"] = LoadTexture("chr_tileset"); 
+  tilesets_["ovr"] = LoadTexture("ovr_tileset");
 }
 
 SDL_Texture* RenderSystem::LoadTexture(string texturename)

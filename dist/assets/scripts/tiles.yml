@@ -19,15 +19,23 @@ map_tileset:
     uv: [2, 2]
   wall2-int:
     uv: [3, 2]
+  door1:
+    uv: [0, 3]
 
-object_tileset:
+obj_tileset:
   test1:
     uv: [0, 0]
   test2:
     uv: [1, 0]
 
-character_tileset: 
+chr_tileset: 
   test_character1:
     uv: [0, 0] 
   test_character2:
+    uv: [1, 0]
+
+ovr_tileset:
+  selection:
+    uv: [0, 0]
+  highlight:
     uv: [1, 0]
