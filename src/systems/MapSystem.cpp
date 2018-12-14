@@ -48,8 +48,13 @@ void MapSystem::GenerateMap()
 void MapSystem::SetTile(string layer, int x, int y, string type) 
 {
   Tile& tile = map_.layers[layer].tiles[x][y];
-  tile.active = true;
 
-  tile.src.x = TileData[type].uv[0] * TILE_SIZE;  
-  tile.src.y = TileData[type].uv[1] * TILE_SIZE;
+  if (TileData.find(type) != TileData.end()) {
+    tile.active = true;
+
+    tile.src.x = TileData[type].uv[0] * TILE_SIZE;  
+    tile.src.y = TileData[type].uv[1] * TILE_SIZE;
+  } else {
+    cerr << "Tile(" << x << "," << y << ") has invalid type: " << type << endl; 
+  }
 }
