@@ -66,9 +66,9 @@ void RenderSystem::RenderMap()
     for (auto y{y_min}; y <= y_max; ++y) {
       RenderTile("floor", x, y);
       RenderTile("wall", x, y);
-      RenderTile("obj", x, y);
-      RenderTile("chr", x, y);
-      RenderTile("ovr", x, y);
+      RenderTile("object", x, y);
+      RenderTile("entity", x, y);
+      RenderTile("overlay", x, y);
     }
   }
 }
@@ -140,9 +140,9 @@ void RenderSystem::LoadTilesets()
 {
   tilesets_["floor"] = LoadTexture("map_tileset"); 
   tilesets_["wall"] = tilesets_["floor"];
-  tilesets_["obj"] = LoadTexture("obj_tileset"); 
-  tilesets_["chr"] = LoadTexture("chr_tileset"); 
-  tilesets_["ovr"] = LoadTexture("ovr_tileset");
+  tilesets_["object"] = LoadTexture("object_tileset"); 
+  tilesets_["entity"] = LoadTexture("entity_tileset"); 
+  tilesets_["overlay"] = LoadTexture("overlay_tileset");
 }
 
 SDL_Texture* RenderSystem::LoadTexture(string texturename)

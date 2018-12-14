@@ -12,6 +12,12 @@ MapSystem::MapSystem(Map& map)
 
 void MapSystem::Initialize()
 {
+  map_.layers["floor"] = Layer();
+  map_.layers["wall"] = Layer();
+  map_.layers["object"] = Layer();
+  map_.layers["entity"] = Layer();
+  map_.layers["overlay"] = Layer();
+
   GenerateMap();
 }
 
@@ -22,12 +28,6 @@ void MapSystem::Update()
 
 void MapSystem::GenerateMap()
 {
-  map_.layers["floor"] = Layer();
-  map_.layers["wall"] = Layer();
-  map_.layers["obj"] = Layer();
-  map_.layers["chr"] = Layer();
-  map_.layers["overlay"] = Layer();
-
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
       SetTile("floor", x, y, "concrete");
@@ -40,10 +40,9 @@ void MapSystem::GenerateMap()
   SetTile("wall", 11, 8, "door1");
   SetTile("wall", 12, 8, "wall2-cor");
 
-  SetTile("ovr", 10, 10, "highlight");
-  SetTile("ovr", 9, 8, "selection");
+  SetTile("overlay", 9, 8, "selection");
 
-  SetTile("chr", 10, 10, "test_character1");
+  SetTile("entity", 10, 10, "test_character1");
 }
 
 void MapSystem::SetTile(
