@@ -29,28 +29,16 @@ void MapSystem::GenerateMap()
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      if (y % 2 == 0) {
-        if (x % 2 == 0) {
-          SetTile("floor", x, y, "floor1");
-        } else {
-          SetTile("floor", x, y, "floor2");
-        }
-      } else {
-        if (x % 2 == 0) {
-          SetTile("floor", x, y, "floor2");
-        } else {
-          SetTile("floor", x, y, "floor1");
-        }
-      }
+      SetTile("floor", x, y, "floor1");
     }
   }
 
-  SetTile("wall", 8, 8, "wall1");
-  SetTile("wall", 9, 8, "wall1");
-  SetTile("wall", 10, 8, "wall1", 90);
-  SetTile("wall", 11, 8, "wall1");
+  SetTile("wall", 8, 8, "wall2-str");
+  SetTile("wall", 9, 8, "wall2-tee");
+  SetTile("wall", 10, 8, "wall2-str");
+  SetTile("wall", 11, 8, "wall2-cor");
 
-  SetTile("chr", 10, 10, "test_character1", 0, SDL_FLIP_HORIZONTAL);
+  SetTile("chr", 10, 10, "test_character1");
 }
 
 void MapSystem::SetTile(
