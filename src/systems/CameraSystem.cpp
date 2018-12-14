@@ -30,11 +30,11 @@ void CameraSystem::Update()
   if (input_.right) camera_.pos += modifier * camera_.xdir;
 
   if (input_.min) {
-    camera_.zoom -= render_.dt;
+    camera_.zoom -= render_.dt * camera_.zoom;
     if (camera_.zoom < MIN_ZOOM) camera_.zoom = MIN_ZOOM; 
   }
   if (input_.mag) {
-    camera_.zoom += render_.dt;
+    camera_.zoom += render_.dt * camera_.zoom;
     if (camera_.zoom > MAX_ZOOM) camera_.zoom = MAX_ZOOM;
   }
 }

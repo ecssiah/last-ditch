@@ -29,7 +29,7 @@ void MapSystem::GenerateMap()
 
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      SetTile("floor", x, y, "floor1");
+      SetTile("floor", x, y, "concrete");
     }
   }
 

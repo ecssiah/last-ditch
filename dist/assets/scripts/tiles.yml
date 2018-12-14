@@ -1,7 +1,7 @@
 map_tileset:
   floor1:
     uv: [0, 0]
-  floor2:
+  concrete:
     uv: [1, 0]
   wall1-str:
     uv: [0, 1]
