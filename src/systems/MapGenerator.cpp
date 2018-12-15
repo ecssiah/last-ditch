@@ -20,7 +20,20 @@ void MapGenerator::GenerateMap(string name)
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
       for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-        SetTile("floor", x, y, floor, "concrete");
+        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
+        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
+        auto on_x_main{
+          x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
+        };
+        auto on_y_main{
+          y > TILES_PER_LAYER / 2 - 4 && y < TILES_PER_LAYER / 2 + 3
+        };
+
+        if (on_x_border || on_y_border || on_x_main || on_y_main) {
+          SetTile("floor", x, y, floor, "concrete-dark");
+        } else {
+          SetTile("floor", x, y, floor, "concrete-light");
+        }
       }
     }
 
@@ -57,7 +70,6 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-
 }
 
 void MapGenerator::BuildRooms(unsigned floor)

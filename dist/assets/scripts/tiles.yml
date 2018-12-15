@@ -1,8 +1,10 @@
 map_tileset:
   floor1:
     uv: [0, 0]
-  concrete:
+  concrete-light:
     uv: [1, 0]
+  concrete-dark:
+    uv: [2, 0]
   wall1-str:
     uv: [0, 1]
   wall1-cor:
