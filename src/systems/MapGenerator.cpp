@@ -91,12 +91,10 @@ void MapGenerator::BuildRooms(unsigned floor)
 
 bool MapGenerator::Intersects(const Room& r1, const Room& r2)
 {
-  if (r1.l < r2.r && r1.r > r2.l && r1.t < r2.b && r1.b > r2.t ) {
-    cout << "Intersection!" << endl;
-    return true;
-  } else {
-    return false;
-  }
+  auto lr_check{r1.l < r2.r && r1.r > r2.l};
+  auto tb_check{r1.t < r2.b && r1.b > r2.t};
+
+  return lr_check && tb_check ? true : false;
 }
 
 void MapGenerator::SetTile(
