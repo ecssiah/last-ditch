@@ -78,34 +78,59 @@ void MapGenerator::GenerateMap(string name)
 void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 {
   for (auto i{0}; i < num_rooms; ++i) {
-    bool found{false};
+    bool room_collision{true};
 
     Room test_room;
     test_room.floor_type = "floor1";
     test_room.wall_type = "wall1";
 
-    while (!found) {
+    while (room_collision) {
       test_room.l = rand() % (TILES_PER_LAYER - 8) + 3;
       test_room.t = rand() % (TILES_PER_LAYER - 8) + 3;
       test_room.r = test_room.l + 2;
       test_room.b = test_room.t + 2;
 
-      found = true;
-      for (const auto& room : rooms_[floor]) {
-        if (Intersects(room, test_room)) found = false;
-      }
-      for (const auto& room : blocked_rooms_[floor]) {
-        if (Intersects(room, test_room)) found = false;
-      }
+      room_collision = RoomCollision(floor, test_room);
     }
 
     rooms_[floor].push_back(test_room);
   }
 }
 
+bool MapGenerator::RoomCollision(unsigned floor, const Room& test_room) 
+{
+  for (const auto& room : blocked_rooms_[floor]) {
+    if (Intersects(room, test_room)) return true;
+  }
+  for (const auto& room : rooms_[floor]) {
+    if (room != test_room && Intersects(room, test_room)) return true;
+  }
+
+  return false;
+}
+
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-   
+  for (auto i{0}; i < 100; ++i) {
+    Room& room = rooms_[floor][rand() % (rooms_[floor].size() - 1)]; 
+
+    auto choice{rand() % 4};
+    switch (choice) {
+      case 0: room.l--; break;
+      case 1: room.r++; break;
+      case 2: room.t--; break;
+      case 3: room.b++; break;
+    }
+    
+    if (RoomCollision(floor, room)) {
+      switch (choice) {
+        case 0: room.l++; break;
+        case 1: room.r--; break;
+        case 2: room.t++; break;
+        case 3: room.b--; break;
+      }
+    }
+  }   
 }
 
 void MapGenerator::BuildRooms(unsigned floor)

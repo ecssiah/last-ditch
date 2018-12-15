@@ -31,6 +31,7 @@ private:
   bool Intersects(
     const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
   );
+  bool RoomCollision(unsigned floor, const Room& test_room); 
 
   Map& map_;
 

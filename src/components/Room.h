@@ -15,6 +15,14 @@ struct Room
     , b(_b)
   {}
 
+  bool operator ==(const Room& room) const {
+    return l == room.l && r == room.r && t == room.t && b == room.b; 
+  }
+
+  bool operator !=(const Room& room) const {
+    return !(*this == room); 
+  }
+
   unsigned l, r, t, b;
 
   std::string wall_type;
