@@ -83,8 +83,8 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     SDL_Rect dst;
     dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
     dst.y = (y - camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
-    dst.w = scale_factor;
-    dst.h = scale_factor;
+    dst.w = scale_factor + 2;
+    dst.h = scale_factor + 2;
 
     SDL_RenderCopyEx(
       renderer_, tilesets_[layer], 
@@ -124,6 +124,8 @@ void RenderSystem::InitializeSDL()
     SDL_Quit();
     return;
   }
+
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 }
 
 void RenderSystem::InitializeSDLImage()
