@@ -43,6 +43,7 @@ set(
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
+find_package(Boost 1.66.0 REQUIRED COMPONENTS filesystem iostreams)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(YamlCpp REQUIRED)
@@ -63,6 +64,7 @@ add_executable(LastDitch ${HEADERS} ${SOURCES})
 target_compile_features(LastDitch PRIVATE cxx_range_for)
 
 include_directories(
+  ${Boost_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${YAMLCPP_INCLUDE_DIR}
@@ -70,6 +72,7 @@ include_directories(
 
 target_link_libraries(
   LastDitch 
+  ${Boost_LIBRARIES}
   ${SDL2_LIBRARY}
   ${SDL2_IMAGE_LIBRARY}
   ${YAMLCPP_LIBRARY}
