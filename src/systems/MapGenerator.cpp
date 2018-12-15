@@ -20,8 +20,8 @@ void MapGenerator::GenerateMap(string name)
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
       for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 3};
-        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 3}; 
+        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
+        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
         auto on_x_main{
           x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
         };
@@ -56,8 +56,8 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
     test_room.wall_type = "wall1";
 
     while (!found) {
-      test_room.l = rand() % (TILES_PER_LAYER - 7) + 3;
-      test_room.t = rand() % (TILES_PER_LAYER - 7) + 3;
+      test_room.l = rand() % (TILES_PER_LAYER - 6 - 2) + 3;
+      test_room.t = rand() % (TILES_PER_LAYER - 6 - 2) + 3;
       test_room.r = test_room.l + 2;
       test_room.b = test_room.t + 2;
 
