@@ -42,18 +42,22 @@ void MapSystem::GenerateMap()
     }
   }
 
-  SetTile("wall", 8, 8, 0, "wall2-str");
-  SetTile("wall", 9, 8, 0, "wall2-tee");
-  SetTile("wall", 10, 8, 0, "wall2-str");
+  SetTile("wall", 7, 8, 0, "wall1-end", 0, SDL_FLIP_HORIZONTAL);
+  SetTile("wall", 8, 8, 0, "wall1-str");
+  SetTile("wall", 9, 8, 0, "wall1-tee");
+  SetTile("wall", 9, 9, 0, "wall1-str", 90);
+  SetTile("wall", 9, 10, 0, "wall1-end", 90);
+  SetTile("wall", 10, 8, 0, "wall1-str");
   SetTile("wall", 11, 8, 0, "door1");
-  SetTile("wall", 12, 8, 0, "wall2-cor");
-
+  SetTile("wall", 12, 8, 0, "wall1-cor");
+  SetTile("wall", 12, 9, 0, "wall1-end", 90);
   SetTile("overlay", 9, 8, 0, "selection");
-
   SetTile("entity", 10, 10, 0, "test_character1");
 
   SetTile("wall", 10, 10, 1, "door1");
+
   SetTile("wall", 10, 12, 2, "wall1-str");
+
   SetTile("wall", 8, 10, 3, "wall2-str");
 }
 

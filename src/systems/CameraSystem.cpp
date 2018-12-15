@@ -1,7 +1,10 @@
+#include <iostream>
 #include <glm/glm.hpp>
 
 #include "CameraSystem.h"
 #include "../constants/CameraConstants.h"
+
+using namespace std;
 
 CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera) 
   : input_(input)
@@ -28,13 +31,6 @@ void CameraSystem::Update()
   if (input_.down) camera_.pos += modifier * camera_.ydir;
   if (input_.left) camera_.pos -= modifier * camera_.xdir; 
   if (input_.right) camera_.pos += modifier * camera_.xdir;
-
-  if (input_.min) {
-    camera_.zoom -= render_.dt * camera_.zoom;
-    if (camera_.zoom < MIN_ZOOM) camera_.zoom = MIN_ZOOM; 
-  }
-  if (input_.mag) {
-    camera_.zoom += render_.dt * camera_.zoom;
-    if (camera_.zoom > MAX_ZOOM) camera_.zoom = MAX_ZOOM;
-  }
+  if (input_.min && camera_.zoom > MIN_ZOOM) camera_.zoom /= 2;
+  if (input_.mag && camera_.zoom < MAX_ZOOM) camera_.zoom *= 2;
 }
