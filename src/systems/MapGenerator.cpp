@@ -11,12 +11,41 @@ using namespace std;
 MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
+  , blocked_rooms_(NUM_FLOORS, vector<Room>())
 {
   srand(time(nullptr));
+
+  for (auto floor{0}; floor < NUM_FLOORS; ++floor) DefineBlockedRooms(floor);
+}
+
+void MapGenerator::DefineBlockedRooms(unsigned floor)
+{
+  blocked_rooms_[floor].push_back({
+    0, 3, 0, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 0, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, 0, 3
+  });  
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3, 0, TILES_PER_LAYER - 1
+  });
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3
+  });
 }
 
 void MapGenerator::GenerateMap(string name)
 {
+  SetTile(
+    "entity", TILES_PER_LAYER / 2, TILES_PER_LAYER / 2, 0, "test_character1"
+  );
+
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
       for (auto y{0}; y < TILES_PER_LAYER; ++y) {
@@ -56,13 +85,16 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
     test_room.wall_type = "wall1";
 
     while (!found) {
-      test_room.l = rand() % (TILES_PER_LAYER - 6 - 2) + 3;
-      test_room.t = rand() % (TILES_PER_LAYER - 6 - 2) + 3;
+      test_room.l = rand() % (TILES_PER_LAYER - 8) + 3;
+      test_room.t = rand() % (TILES_PER_LAYER - 8) + 3;
       test_room.r = test_room.l + 2;
       test_room.b = test_room.t + 2;
 
       found = true;
       for (const auto& room : rooms_[floor]) {
+        if (Intersects(room, test_room)) found = false;
+      }
+      for (const auto& room : blocked_rooms_[floor]) {
         if (Intersects(room, test_room)) found = false;
       }
     }
@@ -73,7 +105,7 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-
+   
 }
 
 void MapGenerator::BuildRooms(unsigned floor)

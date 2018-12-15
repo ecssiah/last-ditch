@@ -22,6 +22,7 @@ private:
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
 
+  void DefineBlockedRooms(unsigned floor);
   void SeedRooms(unsigned floor, unsigned num_floors);
   void ExpandRooms(unsigned floor);
   void BuildRooms(unsigned floor);
@@ -34,6 +35,7 @@ private:
   Map& map_;
 
   std::vector<std::vector<Room> > rooms_;
+  std::vector<std::vector<Room> > blocked_rooms_; 
 };
 
 #endif // MAP_GENERATOR_H
