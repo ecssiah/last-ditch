@@ -3,6 +3,7 @@
 
 #include "../components/Input.h"
 #include "../components/Map.h"
+#include "MapGenerator.h"
 
 class MapSystem
 {
@@ -24,6 +25,8 @@ private:
 
   Input& input_;
   Map& map_;
+
+  MapGenerator map_generator_;
 }; 
 
 #endif // MAP_SYSTEM_H

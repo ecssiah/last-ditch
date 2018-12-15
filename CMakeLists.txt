@@ -11,6 +11,7 @@ set(
   ./src/systems/ConfigSystem.h
   ./src/systems/RenderSystem.h
   ./src/systems/MapSystem.h
+  ./src/systems/MapGenerator.h
   ./src/systems/CameraSystem.h
   ./src/systems/TimeSystem.h
   ./src/systems/InputSystem.h
@@ -26,6 +27,7 @@ set(
   ./src/systems/ConfigSystem.cpp
   ./src/systems/RenderSystem.cpp
   ./src/systems/MapSystem.cpp
+  ./src/systems/MapGenerator.cpp
   ./src/systems/CameraSystem.cpp
   ./src/systems/TimeSystem.cpp
   ./src/systems/InputSystem.cpp
