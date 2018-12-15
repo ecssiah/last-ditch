@@ -27,6 +27,9 @@ private:
   void BuildRooms(unsigned floor);
 
   bool Intersects(const Room& r1, const Room& r2);
+  bool Intersects(
+    const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
+  );
 
   Map& map_;
 

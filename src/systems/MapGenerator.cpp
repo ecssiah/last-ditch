@@ -20,8 +20,8 @@ void MapGenerator::GenerateMap(string name)
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
       for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
-        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
+        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 3};
+        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 3}; 
         auto on_x_main{
           x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
         };
@@ -34,10 +34,13 @@ void MapGenerator::GenerateMap(string name)
         } else {
           SetTile("floor", x, y, floor, "concrete-light");
         }
+
+        // Debugging Grid
+        SetTile("overlay", x, y, floor, "selection");
       }
     }
 
-    SeedRooms(floor, 10);
+    SeedRooms(floor, 20);
     ExpandRooms(floor);
     BuildRooms(floor);
   }
@@ -53,10 +56,10 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
     test_room.wall_type = "wall1";
 
     while (!found) {
-      test_room.l = rand() % (TILES_PER_LAYER - 9) + 3;
-      test_room.t = rand() % (TILES_PER_LAYER - 9) + 3;
-      test_room.r = test_room.l + 3;
-      test_room.b = test_room.t + 3;
+      test_room.l = rand() % (TILES_PER_LAYER - 7) + 3;
+      test_room.t = rand() % (TILES_PER_LAYER - 7) + 3;
+      test_room.r = test_room.l + 2;
+      test_room.b = test_room.t + 2;
 
       found = true;
       for (const auto& room : rooms_[floor]) {
@@ -70,6 +73,7 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
+
 }
 
 void MapGenerator::BuildRooms(unsigned floor)
@@ -93,6 +97,15 @@ bool MapGenerator::Intersects(const Room& r1, const Room& r2)
 {
   auto lr_check{r1.l < r2.r && r1.r > r2.l};
   auto tb_check{r1.t < r2.b && r1.b > r2.t};
+
+  return lr_check && tb_check ? true : false;
+}
+
+bool MapGenerator::Intersects(
+  const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
+) {
+  auto lr_check{r1.l < r && r1.r > l};
+  auto tb_check{r1.t < b && r1.b > t};
 
   return lr_check && tb_check ? true : false;
 }
