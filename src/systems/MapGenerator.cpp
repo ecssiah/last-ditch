@@ -219,28 +219,28 @@ void MapGenerator::FinishRooms(unsigned floor)
       auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
       if (choice == 0) {
-        auto place{(rand() % (room.r - room.l - 1)) + room.l};
+        auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
         if (tiles[place][room.t - 1].type == "") {
           found = true;
           SetTile("wall", place, room.t, floor, "door1");
         }
       } else if (choice == 1) {
-        auto place{(rand() % (room.b - room.t - 1)) + room.t};
+        auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
         if (tiles[room.r + 1][place].type == "") {
           found = true;
           SetTile("wall", room.r, place, floor, "door1", 90);
         }
       } else if (choice == 2) {
-        auto place{(rand() % (room.r - room.l - 1)) + room.l};
+        auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
         if (tiles[place][room.b + 1].type == "") {
           found = true;
           SetTile("wall", place, room.b, floor, "door1");
         }
       } else if (choice == 3) {
-        auto place{(rand() % (room.b - room.t - 1)) + room.t};
+        auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
         if (tiles[room.l - 1][place].type == "") {
           found = true;
