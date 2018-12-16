@@ -13,7 +13,7 @@ MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
-  , num_rooms_(10)
+  , num_rooms_(60)
   , expansion_iterations_(1200)
 {
   srand(MAP_SEED);
