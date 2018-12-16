@@ -12,32 +12,12 @@ MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
+  , num_rooms_(40)
+  , expansion_iterations_(2400)
 {
-  srand(time(nullptr));
+  srand(MAP_SEED);
 
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) DefineBlockedRooms(floor);
-}
-
-void MapGenerator::DefineBlockedRooms(unsigned floor)
-{
-  blocked_rooms_[floor].push_back({
-    0, 3, 0, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 0, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, 0, 3
-  });  
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3, 0, TILES_PER_LAYER - 1
-  });
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3
-  });
 }
 
 void MapGenerator::GenerateMap(string name)
@@ -69,7 +49,7 @@ void MapGenerator::GenerateMap(string name)
       }
     }
 
-    SeedRooms(floor, 20);
+    SeedRooms(floor, num_rooms_);
     ExpandRooms(floor);
     BuildRooms(floor);
   }
@@ -99,19 +79,18 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 
 bool MapGenerator::RoomCollision(unsigned floor, const Room& test_room) 
 {
-  for (const auto& room : blocked_rooms_[floor]) {
+  for (const auto& room : blocked_rooms_[floor]) 
     if (Intersects(room, test_room)) return true;
-  }
-  for (const auto& room : rooms_[floor]) {
+
+  for (const auto& room : rooms_[floor]) 
     if (room != test_room && Intersects(room, test_room)) return true;
-  }
 
   return false;
 }
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-  for (auto i{0}; i < 100; ++i) {
+  for (auto i{0}; i < expansion_iterations_; ++i) {
     Room& room = rooms_[floor][rand() % (rooms_[floor].size() - 1)]; 
 
     auto choice{rand() % 4};
@@ -165,6 +144,28 @@ bool MapGenerator::Intersects(
   auto tb_check{r1.t < b && r1.b > t};
 
   return lr_check && tb_check ? true : false;
+}
+
+void MapGenerator::DefineBlockedRooms(unsigned floor)
+{
+  blocked_rooms_[floor].push_back({
+    0, 3, 0, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 0, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, 0, 3
+  });  
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1
+  });  
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3, 0, TILES_PER_LAYER - 1
+  });
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 1, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3
+  });
 }
 
 void MapGenerator::SetTile(

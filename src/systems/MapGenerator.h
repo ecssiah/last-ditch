@@ -22,16 +22,20 @@ private:
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
 
-  void DefineBlockedRooms(unsigned floor);
   void SeedRooms(unsigned floor, unsigned num_floors);
   void ExpandRooms(unsigned floor);
   void BuildRooms(unsigned floor);
+
+  void DefineBlockedRooms(unsigned floor);
 
   bool Intersects(const Room& r1, const Room& r2);
   bool Intersects(
     const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
   );
   bool RoomCollision(unsigned floor, const Room& test_room); 
+
+  unsigned num_rooms_;
+  unsigned expansion_iterations_;
 
   Map& map_;
 

@@ -11,6 +11,8 @@ extern const unsigned TILES_PER_LAYER;
 extern const unsigned TILESET_WIDTH;
 extern const unsigned TILESET_HEIGHT;
 
+extern const long MAP_SEED;
+
 extern const unsigned NUM_FLOORS;
 
 extern std::unordered_map<std::string, TileInfo> TileData;
