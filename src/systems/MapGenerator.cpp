@@ -14,7 +14,7 @@ MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
-  , num_rooms_(6)
+  , num_rooms_(100)
   , expansion_iterations_(1200)
 {
   srand(MAP_SEED);
@@ -211,20 +211,42 @@ void MapGenerator::FinishRooms(unsigned floor)
   }
 
   for (auto& room : rooms_[floor]) {
-    auto choice{rand() % 4}; 
+    unsigned count{0};
+    bool found{false};
 
-    if (choice == 0) {
-      auto place{(rand() % (room.r - room.l - 1)) + room.l};
-      SetTile("wall", place, room.t, floor, "door1");
-    } else if (choice == 1) {
-      auto place{(rand() % (room.b - room.t - 1)) + room.t};
-      SetTile("wall", room.r, place, floor, "door1", 90);
-    } else if (choice == 2) {
-      auto place{(rand() % (room.r - room.l - 1)) + room.l};
-      SetTile("wall", place, room.b, floor, "door1");
-    } else if (choice == 3) {
-      auto place{(rand() % (room.b - room.t - 1)) + room.t};
-      SetTile("wall", room.l, place, floor, "door1", 90);
+    while (!found && count++ < 40) {
+      auto choice{rand() % 4}; 
+      auto& tiles{map_.floors[floor].layers["wall"].tiles};
+
+      if (choice == 0) {
+        auto place{(rand() % (room.r - room.l - 1)) + room.l};
+        
+        if (tiles[place][room.t - 1].type == "") {
+          found = true;
+          SetTile("wall", place, room.t, floor, "door1");
+        }
+      } else if (choice == 1) {
+        auto place{(rand() % (room.b - room.t - 1)) + room.t};
+
+        if (tiles[room.r + 1][place].type == "") {
+          found = true;
+          SetTile("wall", room.r, place, floor, "door1", 90);
+        }
+      } else if (choice == 2) {
+        auto place{(rand() % (room.r - room.l - 1)) + room.l};
+        
+        if (tiles[place][room.b + 1].type == "") {
+          found = true;
+          SetTile("wall", place, room.b, floor, "door1");
+        }
+      } else if (choice == 3) {
+        auto place{(rand() % (room.b - room.t - 1)) + room.t};
+
+        if (tiles[room.l - 1][place].type == "") {
+          found = true;
+          SetTile("wall", room.l, place, floor, "door1", 90);
+        }
+      }
     }
   }
 }
