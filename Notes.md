@@ -5,6 +5,7 @@
 2. Save maps
 3. Pathfinding
 4. UI
+5. World Map Generation
 
 ## Synopsis
 

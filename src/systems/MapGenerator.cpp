@@ -18,51 +18,50 @@ MapGenerator::MapGenerator(Map& map)
   , expansion_iterations_(1200)
 {
   srand(MAP_SEED);
-
-  for (auto floor{0}; floor < NUM_FLOORS; ++floor) DefineBlockedRooms(floor);
 }
 
 
 void MapGenerator::GenerateMap(string name)
 {
-  SetTile(
-    "entity", TILES_PER_LAYER / 2, TILES_PER_LAYER / 2, 0, "test_character1"
-  );
-
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
-    for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
-      for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-        auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
-        auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
-        auto on_x_main{
-          x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
-        };
-        auto on_y_main{
-          y > TILES_PER_LAYER / 2 - 4 && y < TILES_PER_LAYER / 2 + 3
-        };
-
-        if (on_x_border || on_y_border || on_x_main || on_y_main) {
-          SetTile("floor", x, y, floor, "concrete-dark");
-        } else {
-          SetTile("floor", x, y, floor, "concrete-light");
-        }
-
-        // Debugging Grid
-        /* SetTile("overlay", x, y, floor, "selection"); */
-      }
-    }
-
-    SeedRooms(floor, num_rooms_);
+    DefineBlockedRooms(floor);
+    LayoutMainFloor(floor);
+    SeedRooms(floor);
     ExpandRooms(floor);
     BuildRooms(floor);
     FinishRooms(floor);
   }
 }
 
-
-void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
+void MapGenerator::LayoutMainFloor(unsigned floor)
 {
-  for (auto i{0}; i < num_rooms; ++i) {
+  for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
+    for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+      auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
+      auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
+      auto on_x_main{
+        x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
+      };
+      auto on_y_main{
+        y > TILES_PER_LAYER / 2 - 4 && y < TILES_PER_LAYER / 2 + 3
+      };
+
+      if (on_x_border || on_y_border || on_x_main || on_y_main) {
+        SetTile("floor", x, y, floor, "concrete-dark");
+      } else {
+        SetTile("floor", x, y, floor, "concrete-light");
+      }
+
+      // Debugging Grid
+      /* SetTile("overlay", x, y, floor, "selection"); */
+    }
+  }
+}
+
+
+void MapGenerator::SeedRooms(unsigned floor)
+{
+  for (auto i{0}; i < num_rooms_; ++i) {
     bool room_collision{true};
 
     Room test_room;
@@ -86,7 +85,7 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 void MapGenerator::ExpandRooms(unsigned floor)
 {
   // Randomize room expansion
-  // srand(time(nullptr));
+  srand(time(nullptr));
 
   for (auto i{0}; i < expansion_iterations_; ++i) {
     Room& room = rooms_[floor][rand() % rooms_[floor].size()]; 
@@ -135,7 +134,7 @@ void MapGenerator::BuildRooms(unsigned floor)
     }
   } 
 
-  cout << "Floor " << floor << " rooms built successfully" << endl;
+  cout << "Floor " << floor << " rooms built" << endl;
 }
 
 

@@ -22,7 +22,8 @@ private:
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
 
-  void SeedRooms(unsigned floor, unsigned num_floors);
+  void LayoutMainFloor(unsigned floor);
+  void SeedRooms(unsigned floor);
   void ExpandRooms(unsigned floor);
   void BuildRooms(unsigned floor);
 
