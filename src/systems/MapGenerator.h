@@ -25,6 +25,7 @@ private:
   void SeedRooms(unsigned floor, unsigned num_floors);
   void ExpandRooms(unsigned floor);
   void BuildRooms(unsigned floor);
+  void FinishRooms(unsigned floor);
 
   void DefineBlockedRooms(unsigned floor);
 

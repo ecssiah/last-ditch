@@ -29,4 +29,5 @@ struct Room
   std::string floor_type;
 };
 
+
 #endif // ROOM_H

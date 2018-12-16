@@ -1,6 +1,7 @@
 #ifndef TILE_H
 #define TILE_H
 
+#include <string>
 #include <SDL2/SDL.h>
 
 #include "../constants/MapConstants.h"
@@ -8,7 +9,8 @@
 struct Tile
 {
   Tile()
-    : active(false)
+    : type()
+    , active(false)
     , solid(false)
     , flip(SDL_FLIP_NONE)
     , rotation(0)
@@ -16,6 +18,8 @@ struct Tile
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
   }
+
+  std::string type;
 
   bool active;
   bool solid;

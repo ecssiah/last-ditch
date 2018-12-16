@@ -43,7 +43,11 @@ set(
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
-find_package(Boost 1.66.0 REQUIRED COMPONENTS filesystem iostreams)
+find_package(
+  Boost 1.66.0 REQUIRED 
+  COMPONENTS 
+  filesystem iostreams
+)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(YamlCpp REQUIRED)
