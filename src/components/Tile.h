@@ -9,8 +9,7 @@
 struct Tile
 {
   Tile()
-    : type()
-    , active(false)
+    : active(false)
     , solid(false)
     , flip(SDL_FLIP_NONE)
     , rotation(0)
@@ -20,6 +19,8 @@ struct Tile
   }
 
   std::string type;
+  std::string subtype;
+  std::string category;
 
   bool active;
   bool solid;

@@ -1,47 +1,53 @@
 map_tileset:
-  floor1:
-    uv: [0, 0]
-  concrete-light:
-    uv: [1, 0]
-  concrete-dark:
-    uv: [2, 0]
-  wall1-str:
-    uv: [0, 1]
-  wall1-cor:
-    uv: [1, 1]
-  wall1-tee:
-    uv: [2, 1]
-  wall1-int:
-    uv: [3, 1]
-  wall1-end:
-    uv: [4, 1]
-  wall2-str:
-    uv: [0, 2]
-  wall2-cor:
-    uv: [1, 2]
-  wall2-tee:
-    uv: [2, 2]
-  wall2-int:
-    uv: [3, 2]
-  wall2-end:
-    uv: [4, 2]
-  door1:
-    uv: [0, 3]
+  floor:
+    floor1:
+      uv: [0, 0]
+    concrete-light:
+      uv: [1, 0]
+    concrete-dark:
+      uv: [2, 0]
+  wall:
+    wall1-str:
+      uv: [0, 1]
+    wall1-cor:
+      uv: [1, 1]
+    wall1-tee:
+      uv: [2, 1]
+    wall1-int:
+      uv: [3, 1]
+    wall1-end:
+      uv: [4, 1]
+    wall2-str:
+      uv: [0, 2]
+    wall2-cor:
+      uv: [1, 2]
+    wall2-tee:
+      uv: [2, 2]
+    wall2-int:
+      uv: [3, 2]
+    wall2-end:
+      uv: [4, 2]
+  door:
+    door1:
+      uv: [0, 3]
 
 obj_tileset:
-  test1:
-    uv: [0, 0]
-  test2:
-    uv: [1, 0]
+  test:
+    test1:
+      uv: [0, 0]
+    test2:
+      uv: [1, 0]
 
 chr_tileset: 
-  test_character1:
-    uv: [0, 0] 
-  test_character2:
-    uv: [1, 0]
+  players:
+    test_character1:
+      uv: [0, 0] 
+    test_character2:
+      uv: [1, 0]
 
 ovr_tileset:
-  selection:
-    uv: [0, 0]
-  highlight:
-    uv: [1, 0]
+  ui:
+    selection:
+      uv: [0, 0]
+    highlight:
+      uv: [1, 0]

@@ -14,13 +14,14 @@ MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
-  , num_rooms_(100)
+  , num_rooms_(60)
   , expansion_iterations_(1200)
 {
   srand(MAP_SEED);
 
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) DefineBlockedRooms(floor);
 }
+
 
 void MapGenerator::GenerateMap(string name)
 {
@@ -58,6 +59,7 @@ void MapGenerator::GenerateMap(string name)
   }
 }
 
+
 void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
 {
   for (auto i{0}; i < num_rooms; ++i) {
@@ -80,16 +82,6 @@ void MapGenerator::SeedRooms(unsigned floor, unsigned num_rooms)
   }
 }
 
-bool MapGenerator::RoomCollision(unsigned floor, const Room& test_room) 
-{
-  for (const auto& room : blocked_rooms_[floor]) 
-    if (Intersects(room, test_room)) return true;
-
-  for (const auto& room : rooms_[floor]) 
-    if (room != test_room && Intersects(room, test_room)) return true;
-
-  return false;
-}
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
@@ -128,6 +120,7 @@ void MapGenerator::ExpandRooms(unsigned floor)
   }   
 }
 
+
 void MapGenerator::BuildRooms(unsigned floor)
 {
   for (const auto& room : rooms_[floor]) {
@@ -148,6 +141,13 @@ void MapGenerator::BuildRooms(unsigned floor)
 
 void MapGenerator::FinishRooms(unsigned floor)
 {
+  IntegrateWalls(floor);
+  PlaceDoors(floor);
+}
+
+
+void MapGenerator::IntegrateWalls(unsigned floor)
+{
   for (auto x{3}; x < TILES_PER_LAYER - 3; ++x) {
     for (auto y{3}; y < TILES_PER_LAYER - 3; ++y) {
       Tile& tile = map_.floors[floor].layers["wall"].tiles[x][y];
@@ -158,58 +158,52 @@ void MapGenerator::FinishRooms(unsigned floor)
         Tile& ltile = map_.floors[floor].layers["wall"].tiles[x - 1][y];
         Tile& rtile = map_.floors[floor].layers["wall"].tiles[x + 1][y];
 
-        vector<string> tstrings;
-        boost::split(tstrings, tile.type, boost::is_any_of("-"));
-
-        vector<string> ustrings;
-        boost::split(ustrings, utile.type, boost::is_any_of("-"));
-        vector<string> dstrings;
-        boost::split(dstrings, dtile.type, boost::is_any_of("-"));
-        vector<string> lstrings;
-        boost::split(lstrings, ltile.type, boost::is_any_of("-"));
-        vector<string> rstrings;
-        boost::split(rstrings, rtile.type, boost::is_any_of("-"));
-
-        bool umatch{tstrings[0] == ustrings[0]};  
-        bool dmatch{tstrings[0] == dstrings[0]};  
-        bool lmatch{tstrings[0] == lstrings[0]};  
-        bool rmatch{tstrings[0] == rstrings[0]};  
+        bool umatch{tile.type == utile.type};
+        bool rmatch{tile.type == rtile.type};
+        bool dmatch{tile.type == dtile.type};
+        bool lmatch{tile.type == ltile.type};
 
         if (umatch && lmatch && dmatch && rmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-int");
+          SetTile("wall", x, y, floor, tile.type + "-int");
         } else if (umatch && rmatch && dmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-tee");
+          SetTile("wall", x, y, floor, tile.type + "-tee");
         } else if (rmatch && dmatch && lmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-tee", 90);
+          SetTile("wall", x, y, floor, tile.type + "-tee", 90);
         } else if (dmatch && lmatch && umatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-tee", 180);
+          SetTile("wall", x, y, floor, tile.type + "-tee", 180);
         } else if (lmatch && umatch && rmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-tee", 270);
+          SetTile("wall", x, y, floor, tile.type + "-tee", 270);
         } else if (umatch && rmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-cor");
+          SetTile("wall", x, y, floor, tile.type + "-cor");
         } else if (rmatch && dmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-cor", 90);
+          SetTile("wall", x, y, floor, tile.type + "-cor", 90);
         } else if (dmatch && lmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-cor", 180);
+          SetTile("wall", x, y, floor, tile.type + "-cor", 180);
         } else if (lmatch && umatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-cor", 270);
+          SetTile("wall", x, y, floor, tile.type + "-cor", 270);
         } else if (lmatch && rmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-str");
+          SetTile("wall", x, y, floor, tile.type + "-str");
         } else if (umatch && dmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-str", 90);
+          SetTile("wall", x, y, floor, tile.type + "-str", 90);
         } else if (umatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-end");
+          SetTile("wall", x, y, floor, tile.type + "-end");
         } else if (rmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-end", 90);
+          SetTile("wall", x, y, floor, tile.type + "-end", 90);
         } else if (dmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-end", 180);
+          SetTile("wall", x, y, floor, tile.type + "-end", 180);
         } else if (lmatch) {
-          SetTile("wall", x, y, floor, tstrings[0] + "-end", 270);
+          SetTile("wall", x, y, floor, tile.type + "-end", 270);
         }
       }
     }
   }
 
+  cout << "Floor " << floor << " rooms integrated" << endl;
+}
+
+
+void MapGenerator::PlaceDoors(unsigned floor)
+{
   for (auto& room : rooms_[floor]) {
     unsigned count{0};
     bool found{false};
@@ -220,35 +214,53 @@ void MapGenerator::FinishRooms(unsigned floor)
 
       if (choice == 0) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
+
+        auto place_free{tiles[place][room.t - 1].type == ""};
+        auto no_door_left{tiles[place - 1][room.t].category != "door"};
+        auto no_door_right{tiles[place + 1][room.t].category != "door"};
         
-        if (tiles[place][room.t - 1].type == "") {
+        if (place_free && no_door_left && no_door_right) {
           found = true;
           SetTile("wall", place, room.t, floor, "door1");
         }
       } else if (choice == 1) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        if (tiles[room.r + 1][place].type == "") {
+        auto place_free{tiles[room.r + 1][place].type == ""};
+        auto no_door_left{tiles[room.r][place - 1].category != "door"};
+        auto no_door_right{tiles[room.r][place + 1].category != "door"};
+
+        if (place_free && no_door_left && no_door_right) {
           found = true;
           SetTile("wall", room.r, place, floor, "door1", 90);
         }
       } else if (choice == 2) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
-        if (tiles[place][room.b + 1].type == "") {
+        auto place_free{tiles[place][room.b + 1].type == ""};
+        auto no_door_left{tiles[place + 1][room.b].category != "door"};
+        auto no_door_right{tiles[place - 1][room.b].category != "door"};
+
+        if (place_free && no_door_left && no_door_right) {
           found = true;
           SetTile("wall", place, room.b, floor, "door1");
         }
       } else if (choice == 3) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        if (tiles[room.l - 1][place].type == "") {
+        auto place_free{tiles[room.l - 1][place].type == ""};
+        auto no_door_left{tiles[room.l][place + 1].category != "door"};
+        auto no_door_right{tiles[room.l][place - 1].category != "door"};
+
+        if (place_free && no_door_left && no_door_right) {
           found = true;
           SetTile("wall", room.l, place, floor, "door1", 90);
         }
       }
     }
   }
+
+  cout << "Floor " << floor << " doors placed" << endl;
 }
 
 
@@ -261,10 +273,24 @@ bool MapGenerator::Intersects(
   return lr_check && tb_check ? true : false;
 }
 
+
 bool MapGenerator::Intersects(const Room& r1, const Room& r2)
 {
   return Intersects(r1, r2.l, r2.r, r2.t, r2.b);
 }
+
+
+bool MapGenerator::RoomCollision(unsigned floor, const Room& test_room) 
+{
+  for (const auto& room : blocked_rooms_[floor]) 
+    if (Intersects(room, test_room)) return true;
+
+  for (const auto& room : rooms_[floor]) 
+    if (room != test_room && Intersects(room, test_room)) return true;
+
+  return false;
+}
+
 
 void MapGenerator::DefineBlockedRooms(unsigned floor)
 {
@@ -288,23 +314,31 @@ void MapGenerator::DefineBlockedRooms(unsigned floor)
   });
 }
 
+
 void MapGenerator::SetTile(
   string layer, 
   int x, int y, int floor, 
-  string type, 
+  string full_type,
   float rotation, SDL_RendererFlip flip
 ) {
   Tile& tile = map_.floors[floor].layers[layer].tiles[x][y];
 
-  if (TileData.find(type) != TileData.end()) {
-    tile.type = type;
+  if (TileData.find(full_type) != TileData.end()) {
+    vector<string> type_vector; 
+    boost::split(type_vector, full_type, boost::is_any_of("-"));
+
     tile.active = true;
+    tile.type = type_vector[0];
+    tile.subtype = type_vector.size() > 1 ? type_vector[1] : "";
+    tile.category = TileData[full_type].category;
     tile.rotation = rotation;
     tile.flip = flip;
 
-    tile.src.x = TileData[type].uv[0] * TILE_SIZE;  
-    tile.src.y = TileData[type].uv[1] * TILE_SIZE;
+    tile.src.x = TileData[full_type].uv[0] * TILE_SIZE;  
+    tile.src.y = TileData[full_type].uv[1] * TILE_SIZE;
   } else {
-    cerr << "Tile(" << x << "," << y << ") has invalid type: " << type << endl; 
+    cerr << "Tile(" << x << "," << y << ") has invalid type: "; 
+    cerr << full_type << endl; 
   }
 }
+

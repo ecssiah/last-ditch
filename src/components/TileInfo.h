@@ -6,8 +6,10 @@
 struct TileInfo
 {
   TileInfo()
-    : uv()
   {}
+
+  std::string subtype;
+  std::string category;
 
   std::vector<int> uv;
 };
