@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 
 #include "../components/Room.h"
 #include "../constants/MapConstants.h"
@@ -12,8 +13,8 @@ MapGenerator::MapGenerator(Map& map)
   : map_(map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
-  , num_rooms_(40)
-  , expansion_iterations_(2400)
+  , num_rooms_(10)
+  , expansion_iterations_(1200)
 {
   srand(MAP_SEED);
 
@@ -45,7 +46,7 @@ void MapGenerator::GenerateMap(string name)
         }
 
         // Debugging Grid
-        SetTile("overlay", x, y, floor, "selection");
+        /* SetTile("overlay", x, y, floor, "selection"); */
       }
     }
 
@@ -90,23 +91,35 @@ bool MapGenerator::RoomCollision(unsigned floor, const Room& test_room)
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-  for (auto i{0}; i < expansion_iterations_; ++i) {
-    Room& room = rooms_[floor][rand() % (rooms_[floor].size() - 1)]; 
+  srand(time(nullptr));
 
-    auto choice{rand() % 4};
-    switch (choice) {
-      case 0: room.l--; break;
-      case 1: room.r++; break;
-      case 2: room.t--; break;
-      case 3: room.b++; break;
-    }
-    
-    if (RoomCollision(floor, room)) {
+  for (auto i{0}; i < expansion_iterations_; ++i) {
+    Room& room = rooms_[floor][rand() % rooms_[floor].size()]; 
+
+    bool found = false;
+    vector<int> dirs = {0, 1, 2, 3}; 
+
+    while (!found && dirs.size() > 0) {
+      int choice{dirs[(int)(rand() % dirs.size())]};
+
       switch (choice) {
-        case 0: room.l++; break;
-        case 1: room.r--; break;
-        case 2: room.t++; break;
-        case 3: room.b--; break;
+        case 0: room.l--; break;
+        case 1: room.r++; break;
+        case 2: room.t--; break;
+        case 3: room.b++; break;
+      }
+
+      if (RoomCollision(floor, room)) {
+        dirs.erase(remove(dirs.begin(), dirs.end(), choice), dirs.end());
+
+        switch (choice) {
+          case 0: room.l++; break;
+          case 1: room.r--; break;
+          case 2: room.t++; break;
+          case 3: room.b--; break;
+        }
+      } else {
+        found = true;
       }
     }
   }   
@@ -129,14 +142,6 @@ void MapGenerator::BuildRooms(unsigned floor)
   cout << "Floor " << floor << " rooms built successfully" << endl;
 }
 
-bool MapGenerator::Intersects(const Room& r1, const Room& r2)
-{
-  auto lr_check{r1.l < r2.r && r1.r > r2.l};
-  auto tb_check{r1.t < r2.b && r1.b > r2.t};
-
-  return lr_check && tb_check ? true : false;
-}
-
 bool MapGenerator::Intersects(
   const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
 ) {
@@ -144,6 +149,11 @@ bool MapGenerator::Intersects(
   auto tb_check{r1.t < b && r1.b > t};
 
   return lr_check && tb_check ? true : false;
+}
+
+bool MapGenerator::Intersects(const Room& r1, const Room& r2)
+{
+  return Intersects(r1, r2.l, r2.r, r2.t, r2.b);
 }
 
 void MapGenerator::DefineBlockedRooms(unsigned floor)
