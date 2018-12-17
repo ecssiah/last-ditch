@@ -214,6 +214,7 @@ bool MapGenerator::CheckClearance(
 ) {
   auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
+  unsigned place;
   unsigned dx1, dx2, dx3;
   unsigned dy1, dy2, dy3;
 

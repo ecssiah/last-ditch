@@ -12,6 +12,7 @@ MapSystem::MapSystem(Input& input, Map& map)
 {
 }
 
+
 void MapSystem::Initialize()
 {
   map_.floors.resize(NUM_FLOORS);
@@ -27,8 +28,22 @@ void MapSystem::Initialize()
   map_generator_.GenerateMap("test_map");
 }
 
+
 void MapSystem::Update()
 {
   if (input_.ascend && map_.cur_floor < NUM_FLOORS - 1) map_.cur_floor++; 
   if (input_.descend && map_.cur_floor > 0) map_.cur_floor--;
 }
+
+
+void MapSystem::SaveMap(std::string filename)
+{
+
+}
+
+
+bool MapSystem::LoadMap(std::string filename)
+{
+
+}
+
