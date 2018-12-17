@@ -17,6 +17,8 @@ map_tileset:
       uv: [3, 1]
     wall1-end:
       uv: [4, 1]
+    wall1-one:
+      uv: [5, 1]
     wall2-str:
       uv: [0, 2]
     wall2-cor:
@@ -27,6 +29,8 @@ map_tileset:
       uv: [3, 2]
     wall2-end:
       uv: [4, 2]
+    wall2-one:
+      uv: [5, 2]
   door:
     door1:
       uv: [0, 3]

@@ -66,7 +66,7 @@ void MapGenerator::SeedRooms(unsigned floor)
 
     Room test_room;
     test_room.floor_type = "floor1";
-    test_room.wall_type = "wall2";
+    test_room.wall_type = "wall1";
 
     while (room_collision) {
       test_room.l = rand() % (TILES_PER_LAYER - 8) + 3;
@@ -124,6 +124,12 @@ void MapGenerator::BuildRooms(unsigned floor)
 {
   for (const auto& room : rooms_[floor]) {
     for (auto x{room.l}; x <= room.r; ++x) {
+      for (auto y{room.t + 1}; y <= room.b - 1; ++y) {
+        SetTile("floor", x, y, floor, room.floor_type);
+      }
+    }
+
+    for (auto x{room.l}; x <= room.r; ++x) {
       SetTile("wall", x, room.t, floor, room.wall_type + "-str"); 
       SetTile("wall", x, room.b, floor, room.wall_type + "-str");
     }
@@ -140,8 +146,8 @@ void MapGenerator::BuildRooms(unsigned floor)
 
 void MapGenerator::FinishRooms(unsigned floor)
 {
-  IntegrateWalls(floor);
   PlaceDoors(floor);
+  IntegrateWalls(floor);
 }
 
 
@@ -151,7 +157,7 @@ void MapGenerator::IntegrateWalls(unsigned floor)
     for (auto y{3}; y < TILES_PER_LAYER - 3; ++y) {
       Tile& tile = map_.floors[floor].layers["wall"].tiles[x][y];
 
-      if (tile.type != "") {
+      if (tile.category == "wall") {
         Tile& utile = map_.floors[floor].layers["wall"].tiles[x][y - 1];
         Tile& dtile = map_.floors[floor].layers["wall"].tiles[x][y + 1];
         Tile& ltile = map_.floors[floor].layers["wall"].tiles[x - 1][y];
@@ -192,6 +198,8 @@ void MapGenerator::IntegrateWalls(unsigned floor)
           SetTile("wall", x, y, floor, tile.type + "-end", 180);
         } else if (lmatch) {
           SetTile("wall", x, y, floor, tile.type + "-end", 270);
+        } else {
+          SetTile("wall", x, y, floor, tile.type + "-one");
         }
       }
     }
