@@ -209,6 +209,40 @@ void MapGenerator::IntegrateWalls(unsigned floor)
 }
 
 
+bool MapGenerator::CheckClearance(
+  string category, unsigned x, unsigned y, unsigned floor, unsigned direction
+) {
+  auto& tiles{map_.floors[floor].layers["wall"].tiles};
+
+  unsigned dx1, dx2, dx3;
+  unsigned dy1, dy2, dy3;
+
+  if (direction == 0) {
+    dx1 = 0; dy1 = -1;
+    dx2 = -1; dy2 = 0;
+    dx3 = 1; dy3 = 0;
+  } else if (direction == 1) {
+    dx1 = 1; dy1 = 0;
+    dx2 = 0; dy2 = -1;
+    dx3 = 0; dy3 = 1;
+  } else if (direction == 2) {
+    dx1 = 0; dy1 = 1;
+    dx2 = 1; dy2 = 0;
+    dx3 = -1; dy3 = 0;
+  } else if (direction == 3) {
+    dx1 = -1; dy1 = 0;
+    dx2 = 0; dy2 = 1;
+    dx3 = 0; dy3 = -1;
+  }
+
+  auto place_free{tiles[x + dx1][y + dy1].type == ""};
+  auto clear_left{tiles[x + dx2][y + dy2].category != "door"};
+  auto clear_right{tiles[x + dx3][y + dy3].category != "door"};
+
+  return place_free && clear_left && clear_right;
+}
+
+
 void MapGenerator::PlaceDoors(unsigned floor)
 {
   for (auto& room : rooms_[floor]) {
@@ -217,49 +251,32 @@ void MapGenerator::PlaceDoors(unsigned floor)
 
     while (!found && count++ < 40) {
       auto choice{rand() % 4}; 
-      auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
       if (choice == 0) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
 
-        auto place_free{tiles[place][room.t - 1].type == ""};
-        auto no_door_left{tiles[place - 1][room.t].category != "door"};
-        auto no_door_right{tiles[place + 1][room.t].category != "door"};
-        
-        if (place_free && no_door_left && no_door_right) {
+        if (CheckClearance("door1", place, room.t, floor, choice)) {
           found = true;
           SetTile("wall", place, room.t, floor, "door1");
         }
       } else if (choice == 1) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        auto place_free{tiles[room.r + 1][place].type == ""};
-        auto no_door_left{tiles[room.r][place - 1].category != "door"};
-        auto no_door_right{tiles[room.r][place + 1].category != "door"};
-
-        if (place_free && no_door_left && no_door_right) {
+        if (CheckClearance("door1", room.r, place, floor, choice)) {
           found = true;
           SetTile("wall", room.r, place, floor, "door1", 90);
         }
       } else if (choice == 2) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
-        auto place_free{tiles[place][room.b + 1].type == ""};
-        auto no_door_left{tiles[place + 1][room.b].category != "door"};
-        auto no_door_right{tiles[place - 1][room.b].category != "door"};
-
-        if (place_free && no_door_left && no_door_right) {
+        if (CheckClearance("door1", place, room.b, floor, choice)) {
           found = true;
           SetTile("wall", place, room.b, floor, "door1");
         }
       } else if (choice == 3) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        auto place_free{tiles[room.l - 1][place].type == ""};
-        auto no_door_left{tiles[room.l][place + 1].category != "door"};
-        auto no_door_right{tiles[room.l][place - 1].category != "door"};
-
-        if (place_free && no_door_left && no_door_right) {
+        if (CheckClearance("door1", room.l, place, floor, choice)) {
           found = true;
           SetTile("wall", room.l, place, floor, "door1", 90);
         }

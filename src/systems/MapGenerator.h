@@ -31,6 +31,11 @@ private:
   void IntegrateWalls(unsigned floor);
   void PlaceDoors(unsigned floor);
 
+  bool CheckClearance(
+    std::string category, 
+    unsigned x, unsigned y, unsigned floor, unsigned direction
+  );
+
   void DefineBlockedRooms(unsigned floor);
 
   bool Intersects(const Room& r1, const Room& r2);
