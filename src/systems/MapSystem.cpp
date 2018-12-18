@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
@@ -40,13 +41,26 @@ void MapSystem::Update()
 
 void MapSystem::SaveMap(std::string filename)
 {
+  ofstream ofs("assets/maps/" + filename);
 
+  boost::archive::text_oarchive oa(ofs);
+  oa << map_;
 }
 
 
 bool MapSystem::LoadMap(std::string filename)
 {
+  ifstream ifs("assets/maps/" + filename);
 
-  return false;
+  if (ifs.fail()) {
+    cerr << "Error: " << strerror(errno);
+
+    return false;
+  } else {
+    boost::archive::text_iarchive ia(ifs);
+    ia >> map_;
+
+    return true;
+  }
 }
 

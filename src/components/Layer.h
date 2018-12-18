@@ -2,6 +2,8 @@
 #define LAYER_H
 
 #include <vector>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "Tile.h"
 #include "../constants/MapConstants.h"
@@ -14,6 +16,14 @@ struct Layer
 
   std::vector<std::vector<Tile> > tiles;
 
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar & tiles;
+  }
 };
 
 #endif // LAYER_H

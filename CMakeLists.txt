@@ -46,7 +46,7 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 find_package(
   Boost 1.66.0 REQUIRED 
   COMPONENTS 
-  filesystem iostreams
+  filesystem iostreams serialization 
 )
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)

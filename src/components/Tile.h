@@ -3,6 +3,8 @@
 
 #include <string>
 #include <SDL2/SDL.h>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "../constants/MapConstants.h"
 
@@ -30,6 +32,27 @@ struct Tile
 
   SDL_Rect src;
 
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar & type;
+    ar & subtype;
+    ar & category;
+
+    ar & active;
+    ar & solid;
+    ar & flip;
+
+    ar & rotation;
+
+    ar & src.x;
+    ar & src.y;
+    ar & src.w;
+    ar & src.h;
+  }
 };
 
 #endif // TILE_H
