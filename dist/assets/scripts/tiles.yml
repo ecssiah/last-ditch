@@ -60,6 +60,10 @@ map_tileset:
     door1-opn:
       uv: [1, 4]
 
+  stairs:
+    stairs1:
+      uv: [0, 5]
+
 obj_tileset:
   test:
     test1:

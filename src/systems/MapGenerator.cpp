@@ -71,8 +71,8 @@ void MapGenerator::SeedRooms(unsigned floor)
 {
   for (auto i{0}; i < num_rooms_; ++i) {
     bool room_collision{true};
-
     string floor_type, wall_type;
+
     if (floor + 1 > 2 * NUM_FLOORS / 3) {
       floor_type = "bright_light_concrete";
       wall_type = "wall3";
@@ -89,8 +89,8 @@ void MapGenerator::SeedRooms(unsigned floor)
     test_room.wall_type = wall_type;
 
     while (room_collision) {
-      test_room.l = rand() % (TILES_PER_LAYER - 8) + 3;
-      test_room.t = rand() % (TILES_PER_LAYER - 8) + 3;
+      test_room.l = 3 + rand() % (TILES_PER_LAYER - 8);
+      test_room.t = 3 + rand() % (TILES_PER_LAYER - 8);
       test_room.r = test_room.l + 2;
       test_room.b = test_room.t + 2;
 
@@ -108,10 +108,10 @@ void MapGenerator::ExpandRooms(unsigned floor)
   /* srand(time(nullptr)); */
 
   for (auto i{0}; i < expansion_iterations_; ++i) {
-    Room& room = rooms_[floor][rand() % rooms_[floor].size()]; 
+    bool found{false};
+    vector<int> dirs{0, 1, 2, 3}; 
 
-    bool found = false;
-    vector<int> dirs = {0, 1, 2, 3}; 
+    Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() > 0) {
       int choice{dirs[(int)(rand() % dirs.size())]};
@@ -152,11 +152,15 @@ void MapGenerator::BuildRooms(unsigned floor)
     for (auto x{room.l}; x <= room.r; ++x) {
       SetTile("wall", x, room.t, floor, room.wall_type + "-str"); 
       SetTile("wall", x, room.b, floor, room.wall_type + "-str");
+      SetSolid(x, room.t, floor, true);
+      SetSolid(x, room.b, floor, true);
     }
 
     for (auto y{room.t + 1}; y <= room.b - 1; ++y) {
       SetTile("wall", room.l, y, floor, room.wall_type + "-str", 90); 
       SetTile("wall", room.r, y, floor, room.wall_type + "-str", 90);
+      SetSolid(room.l, y, floor, true);
+      SetSolid(room.r, y, floor, true);
     }
   } 
 
@@ -175,13 +179,13 @@ void MapGenerator::IntegrateWalls(unsigned floor)
 {
   for (auto x{3}; x < TILES_PER_LAYER - 3; ++x) {
     for (auto y{3}; y < TILES_PER_LAYER - 3; ++y) {
-      Tile& tile = map_.floors[floor].layers["wall"].tiles[x][y];
+      Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
 
       if (tile.category == "wall") {
-        Tile& utile = map_.floors[floor].layers["wall"].tiles[x][y - 1];
-        Tile& dtile = map_.floors[floor].layers["wall"].tiles[x][y + 1];
-        Tile& ltile = map_.floors[floor].layers["wall"].tiles[x - 1][y];
-        Tile& rtile = map_.floors[floor].layers["wall"].tiles[x + 1][y];
+        Tile& utile{map_.floors[floor].layers["wall"].tiles[x][y - 1]};
+        Tile& dtile{map_.floors[floor].layers["wall"].tiles[x][y + 1]};
+        Tile& ltile{map_.floors[floor].layers["wall"].tiles[x - 1][y]};
+        Tile& rtile{map_.floors[floor].layers["wall"].tiles[x + 1][y]};
 
         bool umatch{tile.type == utile.type};
         bool rmatch{tile.type == rtile.type};
@@ -272,36 +276,39 @@ void MapGenerator::PlaceDoors(unsigned floor)
 
     while (!found && count++ < 40) {
       auto choice{rand() % 4}; 
-      string door_type{"door1"};
-      string door_subtype{rand() % 2 ? "-opn" : "-cls" };
+      string door_type{"door1-cls"};
 
       if (choice == 0) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
 
         if (CheckClearance("door", place, room.t, floor, choice)) {
           found = true;
-          SetTile("wall", place, room.t, floor, door_type + door_subtype);
+          SetTile("wall", place, room.t, floor, door_type);
+          SetSolid(place, room.t, floor, true);
         }
       } else if (choice == 1) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
         if (CheckClearance("door", room.r, place, floor, choice)) {
           found = true;
-          SetTile("wall", room.r, place, floor, door_type + door_subtype, 90);
+          SetTile("wall", room.r, place, floor, door_type, 90);
+          SetSolid(room.r, place, floor, true);
         }
       } else if (choice == 2) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
         if (CheckClearance("door", place, room.b, floor, choice)) {
           found = true;
-          SetTile("wall", place, room.b, floor, door_type + door_subtype);
+          SetTile("wall", place, room.b, floor, door_type);
+          SetSolid(place, room.b, floor, true);
         }
       } else if (choice == 3) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
         if (CheckClearance("door", room.l, place, floor, choice)) {
           found = true;
-          SetTile("wall", room.l, place, floor, door_type + door_subtype, 90);
+          SetTile("wall", room.l, place, floor, door_type, 90);
+          SetSolid(room.l, place, floor, true);
         }
       }
     }
@@ -368,7 +375,7 @@ void MapGenerator::SetTile(
   string full_type,
   float rotation, SDL_RendererFlip flip
 ) {
-  Tile& tile = map_.floors[floor].layers[layer].tiles[x][y];
+  Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   if (TileData.find(full_type) != TileData.end()) {
     vector<string> type_vector; 
@@ -387,5 +394,12 @@ void MapGenerator::SetTile(
     cerr << "Tile(" << x << "," << y << ") has invalid type: "; 
     cerr << full_type << endl; 
   }
+}
+
+
+void MapGenerator::SetSolid(int x, int y, int floor, bool solid)
+{
+  Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
+  tile.solid = solid;
 }
 

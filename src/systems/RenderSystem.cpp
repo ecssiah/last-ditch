@@ -52,10 +52,10 @@ void RenderSystem::Update()
 
 void RenderSystem::RenderMap()
 {
-  int x_min = camera_.pos.x - VIEW_X * 1.0f / camera_.zoom; 
-  int y_min = camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom;
-  int x_max = camera_.pos.x + VIEW_X * 1.0f / camera_.zoom;
-  int y_max = camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom; 
+  int x_min(camera_.pos.x - VIEW_X * 1.0f / camera_.zoom); 
+  int y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
+  int x_max(camera_.pos.x + VIEW_X * 1.0f / camera_.zoom);
+  int y_max(camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom); 
   
   if (x_min < 0) x_min = 0;
   if (y_min < 0) y_min = 0;
@@ -75,7 +75,7 @@ void RenderSystem::RenderMap()
 
 void RenderSystem::RenderTile(string layer, int x, int y)
 {
-  Tile& tile = map_.floors[map_.cur_floor].layers[layer].tiles[x][y];
+  Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
     float scale_factor{camera_.zoom * TILE_SIZE};
@@ -130,7 +130,7 @@ void RenderSystem::InitializeSDL()
 
 void RenderSystem::InitializeSDLImage()
 {
-  int img_flags {IMG_INIT_PNG};
+  int img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
     cout << "SDL_image error: " << IMG_GetError() << endl;
@@ -149,14 +149,14 @@ void RenderSystem::LoadTilesets()
 
 SDL_Texture* RenderSystem::LoadTexture(string texturename)
 {
-  string filename {"assets/textures/" + texturename + ".png"};
-  SDL_Surface* surface {IMG_Load(filename.c_str())};
+  string filename{"assets/textures/" + texturename + ".png"};
+  SDL_Surface* surface{IMG_Load(filename.c_str())};
 
   if (!surface) { 
     cout << "IMG_Load error: " << IMG_GetError() << endl;
   }
 
-  SDL_Texture* texture {SDL_CreateTextureFromSurface(renderer_, surface)};
+  SDL_Texture* texture{SDL_CreateTextureFromSurface(renderer_, surface)};
 
   if (!texture) {
     cout << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << endl;

@@ -19,7 +19,7 @@ void ConfigSystem::Initialize()
 
 void ConfigSystem::LoadTileInfo()
 {
-  YAML::Node tileset_map = YAML::LoadFile("assets/scripts/tiles.yml");
+  YAML::Node tileset_map{YAML::LoadFile("assets/scripts/tiles.yml")};
 
   for (auto tileset_data : tileset_map) {
     YAML::Node category_map{tileset_data.second};   
@@ -30,7 +30,7 @@ void ConfigSystem::LoadTileInfo()
       auto category{category_data.first.as<string>()};
 
       for (auto tile_data : tile_map) {
-        YAML::Node tile_node(tile_data.second);
+        YAML::Node tile_node{tile_data.second};
 
         TileInfo tile_info;
         tile_info.category = category;

@@ -16,18 +16,12 @@ public:
   void GenerateMap(std::string name);
 
 private:
-  void SetTile(
-    std::string layer, int x, int y, int floor, 
-    std::string type, 
-    float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
-  );
-
   void SetupLayers();
+  void DefineBlockedRooms(unsigned floor);
   void LayoutMainFloor(unsigned floor);
   void SeedRooms(unsigned floor);
   void ExpandRooms(unsigned floor);
   void BuildRooms(unsigned floor);
-
   void FinishRooms(unsigned floor);
   void IntegrateWalls(unsigned floor);
   void PlaceDoors(unsigned floor);
@@ -36,14 +30,18 @@ private:
     std::string category, 
     unsigned x, unsigned y, unsigned floor, unsigned direction
   );
-
-  void DefineBlockedRooms(unsigned floor);
-
   bool Intersects(const Room& r1, const Room& r2);
   bool Intersects(
     const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
   );
   bool RoomCollision(unsigned floor, const Room& test_room); 
+
+  void SetTile(
+    std::string layer, int x, int y, int floor, 
+    std::string type, 
+    float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
+  );
+  void SetSolid(int x, int y, int floor, bool solid);
 
   unsigned num_rooms_;
   unsigned expansion_iterations_;

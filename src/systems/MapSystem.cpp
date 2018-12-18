@@ -20,7 +20,7 @@ void MapSystem::Initialize()
 {
   map_generator_.GenerateMap("test_map");
 
-  /* SaveMap("test_map1"); */
+  SaveMap("test_map1");
   /* LoadMap("test_map1"); */
 }
 
