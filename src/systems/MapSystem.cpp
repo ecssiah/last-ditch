@@ -18,10 +18,10 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::Initialize()
 {
-  /* map_generator_.GenerateMap("test_map"); */
+  map_generator_.GenerateMap("test_map");
 
   /* SaveMap("test_map1"); */
-  LoadMap("test_map1");
+  /* LoadMap("test_map1"); */
 }
 
 

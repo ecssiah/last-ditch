@@ -7,6 +7,6 @@ const unsigned TILESET_HEIGHT{15};
 
 const long MAP_SEED{123456};
 
-const unsigned NUM_FLOORS{4};
+const unsigned NUM_FLOORS{6};
 
 std::unordered_map<std::string, TileInfo> TileData;

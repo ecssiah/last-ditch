@@ -15,7 +15,7 @@ MapGenerator::MapGenerator(Map& map)
   , rooms_(NUM_FLOORS, vector<Room>())
   , blocked_rooms_(NUM_FLOORS, vector<Room>())
   , num_rooms_(60)
-  , expansion_iterations_(1200)
+  , expansion_iterations_(20000)
 {
   srand(MAP_SEED);
 }
@@ -50,25 +50,18 @@ void MapGenerator::SetupLayers()
 
 void MapGenerator::LayoutMainFloor(unsigned floor)
 {
+  string floor_type;
+  if (floor + 1 > 2 * NUM_FLOORS / 3) {
+    floor_type = "bright_dark_concrete";
+  } else if (floor + 1 > NUM_FLOORS / 3) {
+    floor_type = "smooth_dark_concrete"; 
+  } else {
+    floor_type = "dark_concrete";
+  }
+
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
-      auto on_x_border{x < 3 || x > TILES_PER_LAYER - 4};
-      auto on_y_border{y < 3 || y > TILES_PER_LAYER - 4}; 
-      auto on_x_main{
-        x > TILES_PER_LAYER / 2 - 4 && x < TILES_PER_LAYER / 2 + 3
-      };
-      auto on_y_main{
-        y > TILES_PER_LAYER / 2 - 4 && y < TILES_PER_LAYER / 2 + 3
-      };
-
-      if (on_x_border || on_y_border || on_x_main || on_y_main) {
-        SetTile("floor", x, y, floor, "concrete-dark");
-      } else {
-        SetTile("floor", x, y, floor, "concrete-light");
-      }
-
-      // Debugging Grid
-      /* SetTile("overlay", x, y, floor, "selection"); */
+      SetTile("floor", x, y, floor, floor_type);
     }
   }
 }
@@ -79,9 +72,21 @@ void MapGenerator::SeedRooms(unsigned floor)
   for (auto i{0}; i < num_rooms_; ++i) {
     bool room_collision{true};
 
+    string floor_type, wall_type;
+    if (floor + 1 > 2 * NUM_FLOORS / 3) {
+      floor_type = "bright_light_concrete";
+      wall_type = "wall3";
+    } else if (floor + 1 > NUM_FLOORS / 3) {
+      floor_type = "smooth_light_concrete";
+      wall_type = "wall2";
+    } else {
+      floor_type = "light_concrete";
+      wall_type = "wall1";
+    }
+
     Room test_room;
-    test_room.floor_type = "floor1";
-    test_room.wall_type = "wall1";
+    test_room.floor_type = floor_type;
+    test_room.wall_type = wall_type;
 
     while (room_collision) {
       test_room.l = rand() % (TILES_PER_LAYER - 8) + 3;
@@ -99,8 +104,8 @@ void MapGenerator::SeedRooms(unsigned floor)
 
 void MapGenerator::ExpandRooms(unsigned floor)
 {
-  // Randomize room expansion
-  srand(time(nullptr));
+  /* Randomize room expansion */
+  /* srand(time(nullptr)); */
 
   for (auto i{0}; i < expansion_iterations_; ++i) {
     Room& room = rooms_[floor][rand() % rooms_[floor].size()]; 
@@ -139,7 +144,7 @@ void MapGenerator::BuildRooms(unsigned floor)
 {
   for (const auto& room : rooms_[floor]) {
     for (auto x{room.l}; x <= room.r; ++x) {
-      for (auto y{room.t + 1}; y <= room.b - 1; ++y) {
+      for (auto y{room.t}; y <= room.b; ++y) {
         SetTile("floor", x, y, floor, room.floor_type);
       }
     }
@@ -267,34 +272,36 @@ void MapGenerator::PlaceDoors(unsigned floor)
 
     while (!found && count++ < 40) {
       auto choice{rand() % 4}; 
+      string door_type{"door1"};
+      string door_subtype{rand() % 2 ? "-opn" : "-cls" };
 
       if (choice == 0) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
 
-        if (CheckClearance("door1", place, room.t, floor, choice)) {
+        if (CheckClearance("door", place, room.t, floor, choice)) {
           found = true;
-          SetTile("wall", place, room.t, floor, "door1");
+          SetTile("wall", place, room.t, floor, door_type + door_subtype);
         }
       } else if (choice == 1) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        if (CheckClearance("door1", room.r, place, floor, choice)) {
+        if (CheckClearance("door", room.r, place, floor, choice)) {
           found = true;
-          SetTile("wall", room.r, place, floor, "door1", 90);
+          SetTile("wall", room.r, place, floor, door_type + door_subtype, 90);
         }
       } else if (choice == 2) {
         auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
         
-        if (CheckClearance("door1", place, room.b, floor, choice)) {
+        if (CheckClearance("door", place, room.b, floor, choice)) {
           found = true;
-          SetTile("wall", place, room.b, floor, "door1");
+          SetTile("wall", place, room.b, floor, door_type + door_subtype);
         }
       } else if (choice == 3) {
         auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
 
-        if (CheckClearance("door1", room.l, place, floor, choice)) {
+        if (CheckClearance("door", room.l, place, floor, choice)) {
           found = true;
-          SetTile("wall", room.l, place, floor, "door1", 90);
+          SetTile("wall", room.l, place, floor, door_type + door_subtype, 90);
         }
       }
     }
