@@ -18,17 +18,10 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::Initialize()
 {
-  map_.floors.resize(NUM_FLOORS);
+  /* map_generator_.GenerateMap("test_map"); */
 
-  for (auto i{0}; i < NUM_FLOORS; ++i) {
-    map_.floors[i].layers["floor"] = Layer();
-    map_.floors[i].layers["wall"] = Layer();
-    map_.floors[i].layers["object"] = Layer();
-    map_.floors[i].layers["entity"] = Layer();
-    map_.floors[i].layers["overlay"] = Layer();
-  }
-
-  map_generator_.GenerateMap("test_map");
+  /* SaveMap("test_map1"); */
+  LoadMap("test_map1");
 }
 
 
@@ -45,6 +38,8 @@ void MapSystem::SaveMap(std::string filename)
 
   boost::archive::text_oarchive oa(ofs);
   oa << map_;
+
+  cout << "Map saved as: " << filename << endl;
 }
 
 
@@ -59,6 +54,8 @@ bool MapSystem::LoadMap(std::string filename)
   } else {
     boost::archive::text_iarchive ia(ifs);
     ia >> map_;
+
+    cout << "Map loaded: " << filename << endl;
 
     return true;
   }

@@ -22,6 +22,7 @@ private:
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
 
+  void SetupLayers();
   void LayoutMainFloor(unsigned floor);
   void SeedRooms(unsigned floor);
   void ExpandRooms(unsigned floor);
