@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 #include "MapSystem.h"
 #include "../constants/MapConstants.h"
@@ -36,7 +36,7 @@ void MapSystem::SaveMap(std::string filename)
 {
   ofstream ofs("assets/maps/" + filename);
 
-  boost::archive::text_oarchive oa(ofs);
+  boost::archive::binary_oarchive oa(ofs);
   oa << map_;
 
   cout << "Map saved as: " << filename << endl;
@@ -52,7 +52,7 @@ bool MapSystem::LoadMap(std::string filename)
 
     return false;
   } else {
-    boost::archive::text_iarchive ia(ifs);
+    boost::archive::binary_iarchive ia(ifs);
     ia >> map_;
 
     cout << "Map loaded: " << filename << endl;

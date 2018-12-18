@@ -2,8 +2,8 @@
 #define LAYER_H
 
 #include <vector>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 #include "Tile.h"
 #include "../constants/MapConstants.h"
