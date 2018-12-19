@@ -5,8 +5,9 @@
 
 using namespace std;
 
-UISystem::UISystem(Input& input, Map& map)
+UISystem::UISystem(Input& input, Render& render, Map& map)
   : input_(input)
+  , render_(render)
   , map_(map)
 {
 }

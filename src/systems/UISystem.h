@@ -3,15 +3,17 @@
 
 #include <string>
 #include <unordered_map>
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
 #include "../components/Map.h"
+#include "../components/Render.h"
 #include "../components/Input.h"
 
 class UISystem
 {
 public:
-  UISystem(Input& input, Map& map);
+  UISystem(Input& input, Render& render, Map& map);
 
   void Initialize();
   void Update();
@@ -24,6 +26,7 @@ private:
   TTF_Font* LoadFont(std::string fontname);
 
   Input& input_;
+  Render& render_;
   Map& map_;
 
   std::unordered_map<std::string, TTF_Font*> fonts_;
