@@ -51,6 +51,7 @@ private:
     ar & color.z;
 
     ar & flip;
+
     ar & src.x;
     ar & src.y;
     ar & src.w;

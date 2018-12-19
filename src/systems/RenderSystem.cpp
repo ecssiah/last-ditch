@@ -21,6 +21,7 @@ RenderSystem::RenderSystem(
   , render_(render)
   , camera_(camera)
   , map_(map)
+  , ui_system_(input)
 {
 }
 
@@ -28,14 +29,12 @@ RenderSystem::RenderSystem(
 RenderSystem::~RenderSystem()
 {
   IMG_Quit();
-  for (auto kv : fonts_) TTF_CloseFont(kv.second);
-  TTF_Quit();
 
   SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
 
-  cout << "Render System Shutdown" << endl;
+  cout << "RenderSystem shutdown" << endl;
 }
 
 
@@ -43,10 +42,10 @@ void RenderSystem::Initialize()
 {
   InitializeSDL();
   InitializeSDLImage();
-  InitializeSDLTTF();
   
   LoadTilesets();
-  LoadFonts();
+
+  ui_system_.Initialize();
 }
 
 
@@ -55,6 +54,7 @@ void RenderSystem::Update()
   SDL_RenderClear(renderer_);
 
   RenderMap(); 
+  ui_system_.Update();
 
   SDL_RenderPresent(renderer_);
 }
@@ -152,15 +152,6 @@ void RenderSystem::InitializeSDLImage()
 }
 
 
-void RenderSystem::InitializeSDLTTF()
-{
-  if (TTF_Init()) {
-    cout << "TTF_Init: " << TTF_GetError() << endl;  
-    return;
-  } 
-}
-
-
 void RenderSystem::LoadTilesets()
 {
   tilesets_["floor"] = LoadTexture("map_tileset"); 
@@ -168,27 +159,6 @@ void RenderSystem::LoadTilesets()
   tilesets_["object"] = LoadTexture("object_tileset"); 
   tilesets_["entity"] = LoadTexture("entity_tileset"); 
   tilesets_["overlay"] = LoadTexture("overlay_tileset");
-}
-
-
-void RenderSystem::LoadFonts()
-{
-  fonts_["OpenSans-Regular"] = LoadFont("OpenSans-Regular");
-  fonts_["Fantasque-Regular"] = LoadFont("FantasqueSansMono-Regular");
-}
-
-
-TTF_Font* RenderSystem::LoadFont(string fontname)
-{
-  string font_path{"assets/fonts/" + fontname + ".ttf"};
-  TTF_Font* font{TTF_OpenFont(font_path.c_str(), 14)};
-
-  if (!font) {
-    cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
-    return nullptr;
-  }
-
-  return font;
 }
 
 
