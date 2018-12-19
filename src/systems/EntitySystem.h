@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../components/Map.h"
+#include "../components/Entity.h"
 
 class EntitySystem
 {
@@ -15,6 +16,8 @@ public:
 
 private:
   Map& map_;
+
+  std::vector<Entity> entities_;
 };
 
 #endif // ENTITY_SYSTEM_H
