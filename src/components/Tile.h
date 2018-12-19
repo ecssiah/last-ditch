@@ -3,6 +3,7 @@
 
 #include <string>
 #include <SDL2/SDL.h>
+#include <glm/glm.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 
@@ -12,6 +13,7 @@ struct Tile
 {
   Tile()
     : flip(SDL_FLIP_NONE)
+    , color(255, 255, 255)
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
@@ -23,6 +25,8 @@ struct Tile
 
   bool active;
   bool solid;
+
+  glm::vec3 color;
 
   SDL_Rect src;
   SDL_RendererFlip flip;
@@ -41,14 +45,18 @@ private:
 
     ar & active;
     ar & solid;
+
+    ar & color.x;
+    ar & color.y;
+    ar & color.z;
+
     ar & flip;
-
-    ar & rotation;
-
     ar & src.x;
     ar & src.y;
     ar & src.w;
     ar & src.h;
+
+    ar & rotation;
   }
 };
 
