@@ -11,10 +11,7 @@
 struct Tile
 {
   Tile()
-    : active(false)
-    , solid(false)
-    , flip(SDL_FLIP_NONE)
-    , rotation(0)
+    : flip(SDL_FLIP_NONE)
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
@@ -26,11 +23,11 @@ struct Tile
 
   bool active;
   bool solid;
+
+  SDL_Rect src;
   SDL_RendererFlip flip;
 
   double rotation; 
-
-  SDL_Rect src;
 
 private:
   friend class boost::serialization::access;

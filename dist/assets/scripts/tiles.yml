@@ -14,6 +14,7 @@ map_tileset:
       uv: [5, 0]
     floor1:
       uv: [6, 0]
+
   wall:
     wall1-str:
       uv: [0, 1]
@@ -72,10 +73,10 @@ obj_tileset:
       uv: [1, 0]
 
 chr_tileset: 
-  players:
-    test_character1:
+  outcasts:
+    outcast1:
       uv: [0, 0] 
-    test_character2:
+    outcast2:
       uv: [1, 0]
 
 ovr_tileset:

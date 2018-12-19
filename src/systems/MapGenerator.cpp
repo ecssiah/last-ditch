@@ -372,8 +372,7 @@ void MapGenerator::DefineBlockedRooms(unsigned floor)
 void MapGenerator::SetTile(
   string layer, 
   int x, int y, int floor, 
-  string full_type,
-  float rotation, SDL_RendererFlip flip
+  string full_type, float rotation, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
