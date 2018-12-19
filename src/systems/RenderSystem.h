@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "../components/Render.h"
 #include "../components/Input.h"
@@ -24,12 +25,15 @@ public:
 private:
   void InitializeSDL();
   void InitializeSDLImage();
+  void InitializeSDLTTF();
   void LoadTilesets();
+  void LoadFonts();
 
   void RenderMap();
   void RenderTile(std::string layer, int x, int y);
 
   SDL_Texture* LoadTexture(std::string texturename);
+  TTF_Font* LoadFont(std::string fontname);
 
   Render& render_;
   Input& input_;
@@ -39,8 +43,7 @@ private:
   SDL_Window* window_;
   SDL_Renderer* renderer_;
 
-  SDL_Surface* surface_;
-
+  std::unordered_map<std::string, TTF_Font*> fonts_;
   std::unordered_map<std::string, SDL_Texture*> tilesets_;
 };
 

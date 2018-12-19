@@ -24,8 +24,13 @@ RenderSystem::RenderSystem(
 {
 }
 
+
 RenderSystem::~RenderSystem()
 {
+  IMG_Quit();
+  for (auto kv : fonts_) TTF_CloseFont(kv.second);
+  TTF_Quit();
+
   SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
@@ -33,13 +38,17 @@ RenderSystem::~RenderSystem()
   cout << "Render System Shutdown" << endl;
 }
 
+
 void RenderSystem::Initialize()
 {
   InitializeSDL();
   InitializeSDLImage();
+  InitializeSDLTTF();
   
   LoadTilesets();
+  LoadFonts();
 }
+
 
 void RenderSystem::Update()
 {
@@ -49,6 +58,7 @@ void RenderSystem::Update()
 
   SDL_RenderPresent(renderer_);
 }
+
 
 void RenderSystem::RenderMap()
 {
@@ -73,6 +83,7 @@ void RenderSystem::RenderMap()
   }
 }
 
+
 void RenderSystem::RenderTile(string layer, int x, int y)
 {
   Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
@@ -93,6 +104,7 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     ); 
   }
 }
+
 
 void RenderSystem::InitializeSDL()
 {
@@ -128,6 +140,7 @@ void RenderSystem::InitializeSDL()
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 }
 
+
 void RenderSystem::InitializeSDLImage()
 {
   int img_flags{IMG_INIT_PNG};
@@ -138,6 +151,16 @@ void RenderSystem::InitializeSDLImage()
   }
 }
 
+
+void RenderSystem::InitializeSDLTTF()
+{
+  if (TTF_Init()) {
+    cout << "TTF_Init: " << TTF_GetError() << endl;  
+    return;
+  } 
+}
+
+
 void RenderSystem::LoadTilesets()
 {
   tilesets_["floor"] = LoadTexture("map_tileset"); 
@@ -147,6 +170,28 @@ void RenderSystem::LoadTilesets()
   tilesets_["overlay"] = LoadTexture("overlay_tileset");
 }
 
+
+void RenderSystem::LoadFonts()
+{
+  fonts_["OpenSans-Regular"] = LoadFont("OpenSans-Regular");
+  fonts_["Fantasque-Regular"] = LoadFont("FantasqueSansMono-Regular");
+}
+
+
+TTF_Font* RenderSystem::LoadFont(string fontname)
+{
+  string font_path{"assets/fonts/" + fontname + ".ttf"};
+  TTF_Font* font{TTF_OpenFont(font_path.c_str(), 14)};
+
+  if (!font) {
+    cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
+    return nullptr;
+  }
+
+  return font;
+}
+
+
 SDL_Texture* RenderSystem::LoadTexture(string texturename)
 {
   string filename{"assets/textures/" + texturename + ".png"};
@@ -154,12 +199,14 @@ SDL_Texture* RenderSystem::LoadTexture(string texturename)
 
   if (!surface) { 
     cout << "IMG_Load error: " << IMG_GetError() << endl;
+    return nullptr;
   }
 
   SDL_Texture* texture{SDL_CreateTextureFromSurface(renderer_, surface)};
 
   if (!texture) {
     cout << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << endl;
+    return nullptr;
   }
   
   SDL_FreeSurface(surface);
