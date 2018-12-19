@@ -21,7 +21,7 @@ RenderSystem::RenderSystem(
   , render_(render)
   , camera_(camera)
   , map_(map)
-  , ui_system_(input)
+  , ui_system_(input, map)
 {
 }
 
