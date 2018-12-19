@@ -10,7 +10,6 @@ Game::Game()
   , camera_system_(input_, render_, camera_)
   , map_system_(input_, map_)
   , entity_system_(map_)
-  , ui_system_(input_)
 {
   config_system_.Initialize();
   time_system_.Initialize();
@@ -19,7 +18,6 @@ Game::Game()
   input_system_.Initialize();
   map_system_.Initialize();
   entity_system_.Initialize();
-  ui_system_.Initialize();
 
   while (!input_.exit) {
     time_system_.StartFrame();
@@ -29,12 +27,8 @@ Game::Game()
     entity_system_.Update();
     render_system_.Update();
     input_system_.Update();
-    ui_system_.Update();
 
     time_system_.EndFrame();
   }
 }
 
-void Game::Initialize() 
-{
-}

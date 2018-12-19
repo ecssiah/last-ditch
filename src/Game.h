@@ -12,14 +12,11 @@
 #include "systems/CameraSystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
-#include "systems/UISystem.h"
 
 class Game 
 {
 public:
   Game();
-
-  void Initialize();
 
 private:
   Render render_;
@@ -34,7 +31,6 @@ private:
   CameraSystem camera_system_;
   TimeSystem time_system_;
   InputSystem input_system_;
-  UISystem ui_system_;
 };
 
 #endif // GAME_H

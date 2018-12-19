@@ -11,15 +11,6 @@ UISystem::UISystem(Input& input)
 }
 
 
-UISystem::~UISystem()
-{
-  for (auto kv : fonts_) TTF_CloseFont(kv.second);
-  TTF_Quit();
-
-  cout << "UISystem shutdown" << endl;
-}
-
-
 void UISystem::Initialize()
 {
   InitializeSDLTTF();

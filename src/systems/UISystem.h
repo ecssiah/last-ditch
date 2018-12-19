@@ -11,7 +11,6 @@ class UISystem
 {
 public:
   UISystem(Input& input);
-  ~UISystem();
 
   void Initialize();
   void Update();
