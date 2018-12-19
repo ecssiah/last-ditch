@@ -5,8 +5,9 @@
 
 using namespace std;
 
-UISystem::UISystem(Input& input)
+UISystem::UISystem(Input& input, Map& map)
   : input_(input)
+  , map_(map)
 {
 }
 
@@ -53,5 +54,4 @@ TTF_Font* UISystem::LoadFont(string fontname)
 
   return font;
 }
-
 
