@@ -12,9 +12,11 @@ set(
   ./src/systems/RenderSystem.h
   ./src/systems/MapSystem.h
   ./src/systems/MapGenerator.h
+  ./src/systems/EntitySystem.h
   ./src/systems/CameraSystem.h
   ./src/systems/TimeSystem.h
   ./src/systems/InputSystem.h
+  ./src/systems/UISystem.h
   ./src/Game.h
 )
 
@@ -28,9 +30,11 @@ set(
   ./src/systems/RenderSystem.cpp
   ./src/systems/MapSystem.cpp
   ./src/systems/MapGenerator.cpp
+  ./src/systems/EntitySystem.cpp
   ./src/systems/CameraSystem.cpp
   ./src/systems/TimeSystem.cpp
   ./src/systems/InputSystem.cpp
+  ./src/systems/UISystem.cpp
   ./src/Game.cpp
   ./src/main.cpp
 )

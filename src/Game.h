@@ -8,9 +8,11 @@
 #include "systems/ConfigSystem.h"
 #include "systems/RenderSystem.h"
 #include "systems/MapSystem.h"
+#include "systems/EntitySystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
+#include "systems/UISystem.h"
 
 class Game 
 {
@@ -28,9 +30,11 @@ private:
   ConfigSystem config_system_;
   RenderSystem render_system_;
   MapSystem map_system_;
+  EntitySystem entity_system_;
   CameraSystem camera_system_;
   TimeSystem time_system_;
   InputSystem input_system_;
+  UISystem ui_system_;
 };
 
 #endif // GAME_H
