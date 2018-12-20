@@ -18,6 +18,7 @@ struct Camera
 
   float speed, zoom;
   glm::vec2 pos, xdir, ydir;
+
 };
 
 #endif // CAMERA_H

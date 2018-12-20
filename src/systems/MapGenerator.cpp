@@ -373,8 +373,8 @@ void MapGenerator::SetTile(
     tile.rotation = rotation;
     tile.flip = flip;
 
-    tile.src.x = TileData[full_type].uv[0] * TILE_SIZE;  
-    tile.src.y = TileData[full_type].uv[1] * TILE_SIZE;
+    tile.src.x = TileData[full_type].uv.x * TILE_SIZE;  
+    tile.src.y = TileData[full_type].uv.y * TILE_SIZE;
   } else {
     cerr << "Tile(" << x << "," << y << ") has invalid type: "; 
     cerr << full_type << endl; 

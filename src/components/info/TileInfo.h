@@ -1,7 +1,6 @@
 #ifndef TILE_INFO_H
 #define TILE_INFO_H
 
-#include <vector>
 #include <glm/glm.hpp>
 
 struct TileInfo
@@ -9,14 +8,13 @@ struct TileInfo
   TileInfo()
     : subtype{}
     , category{}
-    , uv{2}
+    , uv{}
   {}
 
   std::string subtype;
   std::string category;
 
-  std::vector<int> uv;
-  glm::vec2 uv2;
+  glm::vec2 uv;
 };
 
 #endif // TILE_INFO_H

@@ -6,6 +6,9 @@
 struct Render
 {
   Render() 
+    : dt{} 
+    , window{nullptr}
+    , renderer{nullptr}
   {}
 
   float dt;

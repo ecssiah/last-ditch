@@ -3,7 +3,7 @@
 
 #include <string>
 #include <SDL2/SDL.h>
-#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/access.hpp>
 
 #include "../constants/MapConstants.h"
 
