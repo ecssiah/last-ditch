@@ -10,7 +10,7 @@
 #include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/Camera.h"
-#include "../components/Map.h"
+#include "../components/map/Map.h"
 #include "../systems/UISystem.h"
 
 class RenderSystem

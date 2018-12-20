@@ -5,8 +5,8 @@
 #include <vector>
 #include <SDL2/SDL.h>
 
-#include "../components/Map.h"
-#include "../components/Room.h"
+#include "../components/map/Map.h"
+#include "../components/map/Room.h"
 
 class MapGenerator 
 {

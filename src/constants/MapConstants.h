@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../components/TileInfo.h"
+#include "../components/info/TileInfo.h"
 
 extern const unsigned TILE_SIZE;
 extern const unsigned TILES_PER_LAYER;

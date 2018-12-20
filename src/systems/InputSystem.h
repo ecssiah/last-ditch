@@ -15,6 +15,8 @@ public:
 private:
   void OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
   void OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
+  void OnMouseDown(Sint32 x, Sint32 y, Uint8 button);
+  void OnMouseUp(Sint32 x, Sint32 y, Uint8 button);
 
   Input& input_;
   Render& render_;

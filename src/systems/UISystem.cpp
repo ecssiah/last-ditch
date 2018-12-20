@@ -46,7 +46,7 @@ void UISystem::UpdateFloorDisplay()
   string floor_text{to_string(map_.cur_floor + 1)};
 
   SDL_Surface* floor_display_sur = TTF_RenderUTF8_Blended(
-    fonts_["OpenSans-Regular"], floor_text.c_str(), floor_text_color_ 
+    fonts_["Fantasque-Regular"], floor_text.c_str(), floor_text_color_ 
   ); 
 
   floor_text_dst_.w = floor_display_sur->w;

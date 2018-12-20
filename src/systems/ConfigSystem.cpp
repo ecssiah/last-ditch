@@ -2,8 +2,8 @@
 #include <boost/algorithm/string.hpp>
 
 #include "ConfigSystem.h"
-#include "../components/Tile.h"
 #include "../constants/MapConstants.h"
+#include "../components/map/Tile.h"
 
 using namespace std;
 

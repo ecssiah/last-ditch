@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 
-#include "../components/Room.h"
 #include "../constants/MapConstants.h"
+#include "../components/map/Room.h"
 
 using namespace std;
 

@@ -13,7 +13,11 @@ struct Input
     , ascend(false)
     , descend(false)
     , lclick(false)
+    , mclick(false)
     , rclick(false)
+    , lpressed(false)
+    , mpressed(false)
+    , rpressed(false)
     , exit(false)
     , pause(false)
     , debug(false)
@@ -24,10 +28,11 @@ struct Input
   bool up, down, left, right; 
   bool mag, min;
   bool ascend, descend;
-  bool lclick, rclick;
+  bool lclick, mclick, rclick;
+  bool lpressed, mpressed, rpressed;
   bool exit, pause, debug;
 
-  double mx, my;
+  int mx, my;
 };
 
 #endif // INPUT_H

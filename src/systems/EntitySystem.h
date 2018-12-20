@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "../components/Map.h"
 #include "../components/Entity.h"
+#include "../components/map/Map.h"
 
 class EntitySystem
 {

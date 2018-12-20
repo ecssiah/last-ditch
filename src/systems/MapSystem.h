@@ -2,7 +2,7 @@
 #define MAP_SYSTEM_H
 
 #include "../components/Input.h"
-#include "../components/Map.h"
+#include "../components/map/Map.h"
 #include "MapGenerator.h"
 
 class MapSystem
