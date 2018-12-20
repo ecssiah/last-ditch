@@ -9,6 +9,8 @@
 #include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/map/Map.h"
+#include "../components/ui/TextElement.h"
+#include "../components/ui/WindowElement.h"
 
 class UISystem
 {
@@ -19,13 +21,15 @@ public:
   void Update();
 
 private:
+  void InitializeSDLTTF();
+  TTF_Font* LoadFont(std::string fontname, unsigned size);
   void LoadFonts();
 
-  void InitializeSDLTTF();
+  void BuildTextElement(TextElement& element, std::string text);
+  void RenderTextElement(const TextElement& element);
+  void RenderWindowElement(const WindowElement& element);
 
-  void UpdateFloorDisplay();
-
-  TTF_Font* LoadFont(std::string fontname, unsigned size);
+  void SetupFloorDisplay();
 
   Input& input_;
   Render& render_;
@@ -36,6 +40,7 @@ private:
   SDL_Texture* floor_text_tex_;
 
   std::unordered_map<std::string, TTF_Font*> fonts_;
+  std::unordered_map<std::string, TextElement> text_elements_;
 
 };
 

@@ -11,7 +11,6 @@ UISystem::UISystem(Input& input, Render& render, Map& map)
   : input_{input}
   , render_{render}
   , map_{map}
-  , floor_text_color_{240, 240, 255}
 {
 }
 
@@ -21,44 +20,20 @@ void UISystem::Initialize()
   InitializeSDLTTF();
   LoadFonts();
 
-  floor_text_dst_.x = 4;
-  floor_text_dst_.y = 4;
-
-  UpdateFloorDisplay();
+  SetupFloorDisplay();
 }
 
 
 void UISystem::Update()
 {
   if (map_.floor_changed) {
-    map_.floor_changed = false;
-    UpdateFloorDisplay();
+    BuildTextElement(
+      text_elements_["floor_display"], 
+      to_string(map_.cur_floor + 1)
+    );
   }
 
-  SDL_RenderCopy(
-    render_.renderer, floor_text_tex_, nullptr, &floor_text_dst_
-  ); 
-}
-
-
-void UISystem::UpdateFloorDisplay()
-{
-  string floor_text{to_string(map_.cur_floor + 1)};
-
-  SDL_Surface* floor_display_sur = TTF_RenderUTF8_Blended(
-    fonts_["Fantasque-Regular"], floor_text.c_str(), floor_text_color_ 
-  ); 
-
-  floor_text_dst_.w = floor_display_sur->w;
-  floor_text_dst_.h = floor_display_sur->h;
-
-  if (floor_display_sur == nullptr) {
-    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
-  } else {
-    floor_text_tex_ = SDL_CreateTextureFromSurface(
-      render_.renderer, floor_display_sur
-    ); 
-  }
+  for (auto kv : text_elements_) RenderTextElement(kv.second);
 }
 
 
@@ -90,4 +65,49 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 
   return font;
 }
+
+
+void UISystem::BuildTextElement(TextElement& element, string text)
+{
+  element.text = text;
+
+  TTF_Font* font{LoadFont("FantasqueSansMono-Regular", 14)};
+
+  SDL_Surface* surface{TTF_RenderUTF8_Blended(
+    font, element.text.c_str(), element.color
+  )}; 
+
+  element.rect.w = surface->w;
+  element.rect.h = surface->h;
+
+  if (surface == nullptr) {
+    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
+  } else {
+    element.texture = SDL_CreateTextureFromSurface(render_.renderer, surface); 
+  }
+
+  TTF_CloseFont(font);
+}
+
+
+void UISystem::RenderTextElement(const TextElement& text_element)
+{
+  SDL_RenderCopy(
+    render_.renderer, text_element.texture, nullptr, &text_element.rect
+  ); 
+}
+
+
+void UISystem::SetupFloorDisplay()
+{
+  text_elements_["floor_display"] = TextElement();
+
+  text_elements_["floor_display"].rect.x = 4;
+  text_elements_["floor_display"].rect.y = 4;
+
+  BuildTextElement(
+    text_elements_["floor_display"], to_string(map_.cur_floor + 1)
+  );
+}
+
 

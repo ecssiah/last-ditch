@@ -8,7 +8,7 @@ struct UIElement
   UIElement()
   {}
 
-  SDL_Rect dst;
+  SDL_Rect rect;
 
 };
 
