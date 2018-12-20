@@ -27,10 +27,8 @@ void UISystem::Initialize()
 void UISystem::Update()
 {
   if (map_.floor_changed) {
-    BuildTextElement(
-      text_elements_["floor_display"], 
-      to_string(map_.cur_floor + 1)
-    );
+    text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
+    BuildTextElement(text_elements_["floor_display"]);
   }
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);
@@ -48,8 +46,9 @@ void UISystem::InitializeSDLTTF()
 
 void UISystem::LoadFonts()
 {
-  fonts_["OpenSans-Regular"] = LoadFont("OpenSans-Regular", 14);
-  fonts_["Fantasque-Regular"] = LoadFont("FantasqueSansMono-Regular", 14);
+  fonts_["Fantasque-Small"] = LoadFont("FantasqueSansMono-Regular", 14);
+  fonts_["Fantasque-Medium"] = LoadFont("FantasqueSansMono-Regular", 18);
+  fonts_["Fantasque-Large"] = LoadFont("FantasqueSansMono-Regular", 22);
 }
 
 
@@ -67,14 +66,10 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
-void UISystem::BuildTextElement(TextElement& element, string text)
+void UISystem::BuildTextElement(TextElement& element)
 {
-  element.text = text;
-
-  TTF_Font* font{LoadFont("FantasqueSansMono-Regular", 14)};
-
   SDL_Surface* surface{TTF_RenderUTF8_Blended(
-    font, element.text.c_str(), element.color
+    element.font, element.text.c_str(), element.color
   )}; 
 
   element.rect.w = surface->w;
@@ -85,8 +80,6 @@ void UISystem::BuildTextElement(TextElement& element, string text)
   } else {
     element.texture = SDL_CreateTextureFromSurface(render_.renderer, surface); 
   }
-
-  TTF_CloseFont(font);
 }
 
 
@@ -104,10 +97,10 @@ void UISystem::SetupFloorDisplay()
 
   text_elements_["floor_display"].rect.x = 4;
   text_elements_["floor_display"].rect.y = 4;
+  text_elements_["floor_display"].font = fonts_["Fantasque-Small"];
+  text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
 
-  BuildTextElement(
-    text_elements_["floor_display"], to_string(map_.cur_floor + 1)
-  );
+  BuildTextElement(text_elements_["floor_display"]);
 }
 
 

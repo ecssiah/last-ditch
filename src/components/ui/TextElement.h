@@ -3,6 +3,7 @@
 
 #include <string>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "UIElement.h"
 
@@ -19,6 +20,7 @@ struct TextElement : public UIElement
 
   SDL_Color color;
 
+  TTF_Font* font;
   SDL_Texture* texture;
 
 };

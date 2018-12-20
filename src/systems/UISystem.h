@@ -25,7 +25,7 @@ private:
   TTF_Font* LoadFont(std::string fontname, unsigned size);
   void LoadFonts();
 
-  void BuildTextElement(TextElement& element, std::string text);
+  void BuildTextElement(TextElement& element);
   void RenderTextElement(const TextElement& element);
   void RenderWindowElement(const WindowElement& element);
 
