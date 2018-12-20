@@ -30,8 +30,8 @@ RenderSystem::~RenderSystem()
 {
   IMG_Quit();
 
-  SDL_DestroyRenderer(renderer_);
-  SDL_DestroyWindow(window_);
+  SDL_DestroyRenderer(render_.renderer);
+  SDL_DestroyWindow(render_.window);
   SDL_Quit();
 
   cout << "RenderSystem shutdown" << endl;
@@ -51,12 +51,12 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
-  SDL_RenderClear(renderer_);
+  SDL_RenderClear(render_.renderer);
 
   RenderMap(); 
   ui_system_.Update();
 
-  SDL_RenderPresent(renderer_);
+  SDL_RenderPresent(render_.renderer);
 }
 
 
@@ -98,7 +98,7 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     dst.h = scale_factor + 2;
 
     SDL_RenderCopyEx(
-      renderer_, tilesets_[layer], 
+      render_.renderer, tilesets_[layer], 
       &tile.src, &dst, 
       tile.rotation, nullptr, tile.flip
     ); 
@@ -113,25 +113,26 @@ void RenderSystem::InitializeSDL()
     return;
   }
 
-  window_ = SDL_CreateWindow(
+  render_.window = SDL_CreateWindow(
     "Last Ditch", 
     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
     SCREEN_SIZE_X, SCREEN_SIZE_Y, 
     SDL_WINDOW_SHOWN
   );
 
-  if (window_ == nullptr) {
+  if (render_.window == nullptr) {
     cout << "SDL_CreateWindow error: " << SDL_GetError() << endl;
     SDL_Quit();
     return;
   }
 
-  renderer_ = SDL_CreateRenderer(
-    window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+  render_.renderer = SDL_CreateRenderer(
+    render_.window, -1, 
+    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
   );
 
-  if (renderer_ == nullptr){
-    SDL_DestroyWindow(window_);
+  if (render_.renderer == nullptr){
+    SDL_DestroyWindow(render_.window);
     cout << "SDL_CreateRenderer error: " << SDL_GetError() << endl;
     SDL_Quit();
     return;
@@ -172,7 +173,7 @@ SDL_Texture* RenderSystem::LoadTexture(string texturename)
     return nullptr;
   }
 
-  SDL_Texture* texture{SDL_CreateTextureFromSurface(renderer_, surface)};
+  SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, surface)};
 
   if (!texture) {
     cout << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << endl;

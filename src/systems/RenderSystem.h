@@ -39,9 +39,6 @@ private:
   Camera& camera_;
   Map& map_;
 
-  SDL_Window* window_;
-  SDL_Renderer* renderer_;
-
   std::unordered_map<std::string, SDL_Texture*> tilesets_;
 };
 

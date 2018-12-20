@@ -23,11 +23,17 @@ private:
 
   void InitializeSDLTTF();
 
+  void UpdateFloorDisplay();
+
   TTF_Font* LoadFont(std::string fontname);
 
   Input& input_;
   Render& render_;
   Map& map_;
+
+  SDL_Color floor_text_color_;
+  SDL_Rect floor_text_dst_;
+  SDL_Texture* floor_text_tex_;
 
   std::unordered_map<std::string, TTF_Font*> fonts_;
 

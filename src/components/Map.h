@@ -15,10 +15,11 @@
 struct Map
 {
   Map() 
-    : cur_floor(0)
-    , floors()
+    : floor_changed{false} 
+    , cur_floor{0}
   { }
 
+  bool floor_changed;
   unsigned cur_floor;
 
   std::vector<Floor> floors;
