@@ -15,13 +15,13 @@
 using namespace std;
 
 RenderSystem::RenderSystem(
-  Input& input, Render& render, Camera& camera, Map& map
+  Input& input, Render& render, Camera& camera, Map& map, Time& time
 ) 
   : input_{input}
   , render_{render}
   , camera_{camera}
   , map_{map}
-  , ui_system_{input, render, map}
+  , ui_system_{input, render, map, time}
 {
 }
 

@@ -1,16 +1,19 @@
 #include "UISystem.h"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
+#include <sstream>
 
 #include "../constants/RenderConstants.h"
 
 using namespace std;
 
-UISystem::UISystem(Input& input, Render& render, Map& map)
+UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
   : input_{input}
   , render_{render}
   , map_{map}
+  , time_{time}
   , fonts_{}
   , text_elements_{}
   , window_elements_{}
@@ -24,6 +27,8 @@ void UISystem::Initialize()
   LoadFonts();
 
   SetupFloorDisplay();
+  SetupTimeDisplay();
+  SetupDateDisplay();
 }
 
 
@@ -32,6 +37,11 @@ void UISystem::Update()
   if (map_.floor_changed) {
     text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
     BuildTextElement(text_elements_["floor_display"]);
+  }
+
+  if (time_.has_changed) {
+    text_elements_["time_display"].text = FormatTime();
+    BuildTextElement(text_elements_["time_display"]);
   }
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);
@@ -94,14 +104,74 @@ void UISystem::RenderTextElement(const TextElement& text_element)
 }
 
 
+void UISystem::RenderWindowElement(const WindowElement& window_element)
+{
+
+
+}
+
+
 void UISystem::SetupFloorDisplay()
 {
-  text_elements_["floor_display"].rect.x = 4;
-  text_elements_["floor_display"].rect.y = 4;
   text_elements_["floor_display"].font = fonts_["Fantasque-Small"];
   text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
 
   BuildTextElement(text_elements_["floor_display"]);
+  
+  text_elements_["floor_display"].rect.x = 4;
+  text_elements_["floor_display"].rect.y = 4;
+}
+
+
+void UISystem::SetupTimeDisplay()
+{
+  text_elements_["time_display"].font = fonts_["Fantasque-Small"];
+  text_elements_["time_display"].text = FormatTime();
+
+  BuildTextElement(text_elements_["time_display"]);
+
+  auto& rect{text_elements_["time_display"].rect};
+
+  rect.x = SCREEN_SIZE_X - 4 - rect.w;
+  rect.y = 4;
+}
+
+
+string UISystem::FormatTime()
+{
+  stringstream ss;
+  ss << setfill('0');
+  ss << setw(2) << time_.hour << ":";
+  ss << setw(2) << time_.minute << ":"; 
+  ss << setw(2) << time_.second; 
+
+  return ss.str();
+}
+
+
+void UISystem::SetupDateDisplay()
+{
+  text_elements_["date_display"].font = fonts_["Fantasque-Small"];
+  text_elements_["date_display"].text = FormatDate();
+
+  BuildTextElement(text_elements_["date_display"]);
+
+  auto& rect{text_elements_["date_display"].rect};
+
+  rect.x = SCREEN_SIZE_X - 4 - rect.w;
+  rect.y = 16;
+}
+
+
+string UISystem::FormatDate()
+{
+  stringstream ss;
+  ss << setfill('0');
+  ss << setw(2) << time_.day << "/"; 
+  ss << setw(2) << time_.month << "/";
+  ss << setw(2) << time_.year;
+
+  return ss.str();
 }
 
 

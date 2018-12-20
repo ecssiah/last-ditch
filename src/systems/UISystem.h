@@ -8,6 +8,7 @@
 
 #include "../components/Render.h"
 #include "../components/Input.h"
+#include "../components/Time.h"
 #include "../components/map/Map.h"
 #include "../components/ui/TextElement.h"
 #include "../components/ui/WindowElement.h"
@@ -15,7 +16,7 @@
 class UISystem
 {
 public:
-  UISystem(Input& input, Render& render, Map& map);
+  UISystem(Input& input, Render& render, Map& map, Time& time);
 
   void Initialize();
   void Update();
@@ -26,6 +27,11 @@ private:
   void LoadFonts();
 
   void SetupFloorDisplay();
+  void SetupTimeDisplay();
+  void SetupDateDisplay();
+
+  std::string FormatTime();
+  std::string FormatDate();
 
   void BuildTextElement(TextElement& element);
   void RenderTextElement(const TextElement& element);
@@ -34,6 +40,7 @@ private:
   Input& input_;
   Render& render_;
   Map& map_;
+  Time& time_;
 
   std::unordered_map<std::string, TTF_Font*> fonts_;
 

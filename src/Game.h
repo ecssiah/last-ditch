@@ -23,6 +23,7 @@ private:
   Input input_;
   Camera camera_;
   Map map_;
+  Time time_;
 
   ConfigSystem config_system_;
   RenderSystem render_system_;
