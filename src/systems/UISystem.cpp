@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include "../constants/RenderConstants.h"
+
 using namespace std;
 
 UISystem::UISystem(Input& input, Render& render, Map& map)
@@ -19,7 +21,8 @@ void UISystem::Initialize()
   InitializeSDLTTF();
   LoadFonts();
 
-  floor_text_dst_ = {0, 0, 20, 16};
+  floor_text_dst_.x = 4;
+  floor_text_dst_.y = 4;
 
   UpdateFloorDisplay();
 }
@@ -40,11 +43,14 @@ void UISystem::Update()
 
 void UISystem::UpdateFloorDisplay()
 {
-  string floor_text{to_string(map_.cur_floor)};
+  string floor_text{to_string(map_.cur_floor + 1)};
 
   SDL_Surface* floor_display_sur = TTF_RenderUTF8_Blended(
     fonts_["OpenSans-Regular"], floor_text.c_str(), floor_text_color_ 
   ); 
+
+  floor_text_dst_.w = floor_display_sur->w;
+  floor_text_dst_.h = floor_display_sur->h;
 
   if (floor_display_sur == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
