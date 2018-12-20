@@ -39,9 +39,14 @@ void UISystem::Update()
     BuildTextElement(text_elements_["floor_display"]);
   }
 
-  if (time_.has_changed) {
+  if (time_.time_changed) {
     text_elements_["time_display"].text = FormatTime();
     BuildTextElement(text_elements_["time_display"]);
+  }
+
+  if (time_.date_changed) {
+    text_elements_["date_display"].text = FormatDate();
+    BuildTextElement(text_elements_["date_display"]);
   }
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);

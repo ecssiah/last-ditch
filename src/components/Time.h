@@ -4,17 +4,19 @@
 struct Time
 {
   Time()
-    : has_changed{false}
+    : time_changed{false}
+    , date_changed{false}
     , ticks{0}
     , year{2612}
-    , month{1}
-    , day{12}
-    , hour{12}
-    , minute{12}
-    , second{12}
+    , month{12}
+    , day{30}
+    , hour{23}
+    , minute{59}
+    , second{50}
   {}
 
-  bool has_changed;
+  bool time_changed;
+  bool date_changed;
 
   unsigned ticks; 
   unsigned year, month, day;

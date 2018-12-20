@@ -2,7 +2,7 @@
 
 const double MAX_DELTA_TIME{.2};
 
-const unsigned TICKS_PER_SECOND{180};
+const unsigned TICKS_PER_SECOND{80};
 const unsigned SECONDS_PER_MINUTE{60};
 const unsigned MINUTES_PER_HOUR{60};
 const unsigned HOURS_PER_DAY{24};

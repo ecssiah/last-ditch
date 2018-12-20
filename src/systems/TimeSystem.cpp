@@ -43,23 +43,25 @@ void TimeSystem::EndFrame()
 void TimeSystem::Tick()
 {
   time_.ticks += 1;
-  time_.has_changed = false;
+  time_.time_changed = false;
+  time_.date_changed = false;
 
   if (time_.ticks > TICKS_PER_SECOND) {
-    time_.has_changed = true;
+    time_.time_changed = true;
 
     time_.ticks = 0;
     time_.second += 1;
 
-    if (time_.second > SECONDS_PER_MINUTE) {
+    if (time_.second >= SECONDS_PER_MINUTE) {
       time_.second = 0;
       time_.minute += 1;
 
-      if (time_.minute > MINUTES_PER_HOUR) {
+      if (time_.minute >= MINUTES_PER_HOUR) {
         time_.minute = 0;
         time_.hour += 1;
 
-        if (time_.hour > HOURS_PER_DAY) {
+        if (time_.hour >= HOURS_PER_DAY) {
+          time_.date_changed = true;
           time_.hour = 0;
           time_.day += 1;
 
