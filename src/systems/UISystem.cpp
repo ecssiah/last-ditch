@@ -93,8 +93,6 @@ void UISystem::RenderTextElement(const TextElement& text_element)
 
 void UISystem::SetupFloorDisplay()
 {
-  text_elements_["floor_display"] = TextElement();
-
   text_elements_["floor_display"].rect.x = 4;
   text_elements_["floor_display"].rect.y = 4;
   text_elements_["floor_display"].font = fonts_["Fantasque-Small"];

@@ -5,18 +5,18 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/unordered_map.hpp>
 
 #include "Floor.h"
+#include "../../constants/MapConstants.h"
 
 struct Map
 {
   Map() 
     : floor_changed{false} 
     , cur_floor{0}
+    , floors{NUM_FLOORS}
   { }
 
   bool floor_changed;

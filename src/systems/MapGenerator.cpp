@@ -23,8 +23,6 @@ MapGenerator::MapGenerator(Map& map)
 
 void MapGenerator::GenerateMap(string name)
 {
-  SetupLayers();
-
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     DefineBlockedRooms(floor);
     LayoutMainFloor(floor);
@@ -35,18 +33,6 @@ void MapGenerator::GenerateMap(string name)
   }
 }
 
-void MapGenerator::SetupLayers()
-{
-  map_.floors.resize(NUM_FLOORS);
-
-  for (auto i{0}; i < NUM_FLOORS; ++i) {
-    map_.floors[i].layers["floor"] = Layer();
-    map_.floors[i].layers["wall"] = Layer();
-    map_.floors[i].layers["object"] = Layer();
-    map_.floors[i].layers["entity"] = Layer();
-    map_.floors[i].layers["overlay"] = Layer();
-  }
-}
 
 void MapGenerator::LayoutMainFloor(unsigned floor)
 {

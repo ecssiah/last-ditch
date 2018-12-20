@@ -3,14 +3,14 @@
 
 #include <string>
 #include <unordered_map>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/access.hpp>
 
 #include "Layer.h"
 
 struct Floor
 {
   Floor()
+    : layers{}
   {}
 
   std::unordered_map<std::string, Layer> layers;

@@ -16,7 +16,6 @@ public:
   void GenerateMap(std::string name);
 
 private:
-  void SetupLayers();
   void DefineBlockedRooms(unsigned floor);
   void LayoutMainFloor(unsigned floor);
   void SeedRooms(unsigned floor);

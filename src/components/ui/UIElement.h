@@ -6,6 +6,7 @@
 struct UIElement
 {
   UIElement()
+    : rect{}
   {}
 
   SDL_Rect rect;

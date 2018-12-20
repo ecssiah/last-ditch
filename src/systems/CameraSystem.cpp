@@ -15,11 +15,6 @@ CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera)
 
 void CameraSystem::Initialize()
 {
-  camera_.speed = CAMERA_SPEED;
-  camera_.zoom = 1.0f;
-  camera_.pos = {0.0f, 0.0f};
-  camera_.xdir = {1.0f, 0.0f};
-  camera_.ydir = {0.0f, 1.0f};
 }
 
 void CameraSystem::Update()

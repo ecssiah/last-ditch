@@ -6,6 +6,7 @@
 struct WindowElement
 {
   WindowElement()
+    : texture{nullptr}
   {}
 
   SDL_Texture* texture;

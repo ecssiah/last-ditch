@@ -13,6 +13,8 @@ struct Room
     , r{_r}
     , t{_t}
     , b{_b}
+    , wall_type{}
+    , floor_type{}
   {}
 
   bool operator ==(const Room& room) const {

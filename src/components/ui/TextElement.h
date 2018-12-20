@@ -11,7 +11,10 @@ struct TextElement : public UIElement
 {
   TextElement()
     : size{14}
+    , text{}
     , color{255, 255, 255}
+    , font{nullptr}
+    , texture{nullptr}
   {}
 
   unsigned size;

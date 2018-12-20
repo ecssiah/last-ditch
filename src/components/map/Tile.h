@@ -4,16 +4,22 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/access.hpp>
 
 #include "../../constants/MapConstants.h"
 
 struct Tile
 {
   Tile()
-    : flip{SDL_FLIP_NONE}
+    : type{}
+    , subtype{}
+    , category{}
+    , active{false}
+    , solid{false}
     , color{255, 255, 255}
+    , src{}
+    , flip{SDL_FLIP_NONE}
+    , rotation{}
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;
