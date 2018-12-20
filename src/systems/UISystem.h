@@ -25,22 +25,20 @@ private:
   TTF_Font* LoadFont(std::string fontname, unsigned size);
   void LoadFonts();
 
+  void SetupFloorDisplay();
+
   void BuildTextElement(TextElement& element);
   void RenderTextElement(const TextElement& element);
   void RenderWindowElement(const WindowElement& element);
-
-  void SetupFloorDisplay();
 
   Input& input_;
   Render& render_;
   Map& map_;
 
-  SDL_Color floor_text_color_;
-  SDL_Rect floor_text_dst_;
-  SDL_Texture* floor_text_tex_;
-
   std::unordered_map<std::string, TTF_Font*> fonts_;
+
   std::unordered_map<std::string, TextElement> text_elements_;
+  std::unordered_map<std::string, WindowElement> window_elements_;
 
 };
 

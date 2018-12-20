@@ -11,6 +11,9 @@ UISystem::UISystem(Input& input, Render& render, Map& map)
   : input_{input}
   , render_{render}
   , map_{map}
+  , fonts_{}
+  , text_elements_{}
+  , window_elements_{}
 {
 }
 
