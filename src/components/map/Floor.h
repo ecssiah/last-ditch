@@ -11,7 +11,6 @@
 struct Floor
 {
   Floor()
-    :layers()
   {}
 
   std::unordered_map<std::string, Layer> layers;

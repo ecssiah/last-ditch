@@ -12,8 +12,8 @@
 struct Tile
 {
   Tile()
-    : flip(SDL_FLIP_NONE)
-    , color(255, 255, 255)
+    : flip{SDL_FLIP_NONE}
+    , color{255, 255, 255}
   {
     src.w = TILE_SIZE; 
     src.h = TILE_SIZE;

@@ -3,8 +3,8 @@
 #include "../constants/MapConstants.h"
 
 EntitySystem::EntitySystem(Map& map)
-  : map_(map)
-  , entities_(NUM_FLOORS)
+  : map_{map}
+  , entities_{NUM_FLOORS}
 {
 }
 

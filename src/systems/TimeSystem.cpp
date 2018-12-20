@@ -6,8 +6,8 @@
 using namespace std;
 
 TimeSystem::TimeSystem(Input& input, Render& render)
-  : input_(input)
-  , render_(render)
+  : input_{input}
+  , render_{render}
 {
 }
 

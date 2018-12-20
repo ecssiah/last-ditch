@@ -8,10 +8,10 @@
 using namespace std;
 
 UISystem::UISystem(Input& input, Render& render, Map& map)
-  : input_(input)
-  , render_(render)
-  , map_(map)
-  , floor_text_color_({240, 240, 255})
+  : input_{input}
+  , render_{render}
+  , map_{map}
+  , floor_text_color_{240, 240, 255}
 {
 }
 
@@ -73,15 +73,15 @@ void UISystem::InitializeSDLTTF()
 
 void UISystem::LoadFonts()
 {
-  fonts_["OpenSans-Regular"] = LoadFont("OpenSans-Regular");
-  fonts_["Fantasque-Regular"] = LoadFont("FantasqueSansMono-Regular");
+  fonts_["OpenSans-Regular"] = LoadFont("OpenSans-Regular", 14);
+  fonts_["Fantasque-Regular"] = LoadFont("FantasqueSansMono-Regular", 14);
 }
 
 
-TTF_Font* UISystem::LoadFont(string fontname)
+TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 {
   string font_path{"assets/fonts/" + fontname + ".ttf"};
-  TTF_Font* font{TTF_OpenFont(font_path.c_str(), 14)};
+  TTF_Font* font{TTF_OpenFont(font_path.c_str(), size)};
 
   if (!font) {
     cout << "TTF_OpenFont error: " << TTF_GetError() << endl;

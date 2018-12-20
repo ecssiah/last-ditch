@@ -25,7 +25,7 @@ private:
 
   void UpdateFloorDisplay();
 
-  TTF_Font* LoadFont(std::string fontname);
+  TTF_Font* LoadFont(std::string fontname, unsigned size);
 
   Input& input_;
   Render& render_;

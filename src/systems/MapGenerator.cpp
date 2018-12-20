@@ -11,11 +11,11 @@
 using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
-  : map_(map)
-  , rooms_(NUM_FLOORS, vector<Room>())
-  , blocked_rooms_(NUM_FLOORS, vector<Room>())
-  , num_rooms_(60)
-  , expansion_iterations_(20000)
+  : map_{map}
+  , rooms_{NUM_FLOORS, vector<Room>()}
+  , blocked_rooms_{NUM_FLOORS, vector<Room>()}
+  , num_rooms_{60}
+  , expansion_iterations_{20000}
 {
   srand(MAP_SEED);
 }

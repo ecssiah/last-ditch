@@ -9,9 +9,9 @@
 using namespace std;
 
 MapSystem::MapSystem(Input& input, Map& map)
-  : input_(input)
-  , map_(map)
-  , map_generator_(map)
+  : input_{input}
+  , map_{map}
+  , map_generator_{map}
 {
 }
 

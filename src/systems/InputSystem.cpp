@@ -7,8 +7,8 @@
 using namespace std;
 
 InputSystem::InputSystem(Input& input, Render& render) 
-  : input_(input)
-  , render_(render)
+  : input_{input}
+  , render_{render}
 {
 }
 

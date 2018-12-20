@@ -7,9 +7,9 @@
 using namespace std;
 
 CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera) 
-  : input_(input)
-  , render_(render)
-  , camera_(camera)
+  : input_{input}
+  , render_{render}
+  , camera_{camera}
 {
 }
 

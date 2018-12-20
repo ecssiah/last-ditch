@@ -9,10 +9,10 @@ struct Room
   {}
 
   Room(unsigned _l, unsigned _r, unsigned _t, unsigned _b)
-    : l(_l)
-    , r(_r)
-    , t(_t)
-    , b(_b)
+    : l{_l}
+    , r{_r}
+    , t{_t}
+    , b{_b}
   {}
 
   bool operator ==(const Room& room) const {
