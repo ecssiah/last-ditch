@@ -34,6 +34,14 @@ void UISystem::Initialize()
 
 void UISystem::Update()
 {
+  BuildTextElements();
+
+  for (auto kv : text_elements_) RenderTextElement(kv.second);
+}
+
+
+void UISystem::BuildTextElements()
+{
   if (map_.floor_changed) {
     text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
     BuildTextElement(text_elements_["floor_display"]);
@@ -48,8 +56,6 @@ void UISystem::Update()
     text_elements_["date_display"].text = FormatDate();
     BuildTextElement(text_elements_["date_display"]);
   }
-
-  for (auto kv : text_elements_) RenderTextElement(kv.second);
 }
 
 

@@ -18,6 +18,9 @@ private:
   void OnMouseDown(Sint32 x, Sint32 y, Uint8 button);
   void OnMouseUp(Sint32 x, Sint32 y, Uint8 button);
 
+  void ClearInputs();
+  void CallInputFunctions();
+
   Input& input_;
   Render& render_;
 }; 

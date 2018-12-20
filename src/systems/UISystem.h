@@ -33,6 +33,8 @@ private:
   std::string FormatTime();
   std::string FormatDate();
 
+  void BuildTextElements();
+
   void BuildTextElement(TextElement& element);
   void RenderTextElement(const TextElement& element);
   void RenderWindowElement(const WindowElement& element);
