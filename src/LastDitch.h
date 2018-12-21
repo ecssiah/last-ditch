@@ -7,9 +7,10 @@
 #include "components/map/Map.h"
 #include "systems/ConfigSystem.h"
 #include "systems/RenderSystem.h"
+#include "systems/CameraSystem.h"
 #include "systems/MapSystem.h"
 #include "systems/EntitySystem.h"
-#include "systems/CameraSystem.h"
+#include "systems/UISystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
 #include "systems/FileSystem.h"
@@ -30,6 +31,7 @@ private:
   RenderSystem render_system_;
   MapSystem map_system_;
   EntitySystem entity_system_;
+  UISystem ui_system_;
   CameraSystem camera_system_;
   TimeSystem time_system_;
   InputSystem input_system_;

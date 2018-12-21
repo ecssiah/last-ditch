@@ -14,13 +14,12 @@
 using namespace std;
 
 RenderSystem::RenderSystem(
-  Input& input, Render& render, Camera& camera, Map& map, Time& time
+  Input& input, Render& render, Camera& camera, Map& map
 ) 
   : input_{input}
   , render_{render}
   , camera_{camera}
   , map_{map}
-  , ui_system_{input, render, map, time}
 {
 }
 
@@ -43,8 +42,6 @@ void RenderSystem::Initialize()
   InitializeSDLImage();
   
   LoadTilesets();
-
-  ui_system_.Initialize();
 }
 
 
@@ -53,9 +50,11 @@ void RenderSystem::Update()
   SDL_RenderClear(render_.renderer);
 
   RenderMap(); 
+}
 
-  ui_system_.Update();
 
+void RenderSystem::Display()
+{
   SDL_RenderPresent(render_.renderer);
 }
 

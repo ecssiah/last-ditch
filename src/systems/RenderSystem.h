@@ -10,20 +10,19 @@
 #include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/Camera.h"
-#include "../components/Time.h"
 #include "../components/map/Map.h"
-#include "../systems/UISystem.h"
 
 class RenderSystem
 {
 public:
   RenderSystem(
-    Input& input, Render& render, Camera& camera, Map& map, Time& time
+    Input& input, Render& render, Camera& camera, Map& map
   );
   ~RenderSystem();
 
   void Initialize();
   void Update();
+  void Display();
 
 private:
   void InitializeSDL();
@@ -33,8 +32,6 @@ private:
 
   void RenderMap();
   void RenderTile(std::string layer, int x, int y);
-
-  UISystem ui_system_;
 
   Render& render_;
   Input& input_;
