@@ -13,7 +13,7 @@ public:
   void Initialize();
   void Update();
 
-  void SaveMap(std::string filename);
+  bool SaveMap(std::string filename);
   bool LoadMap(std::string filename);
 
 private:

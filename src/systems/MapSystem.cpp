@@ -40,14 +40,22 @@ void MapSystem::Update()
 }
 
 
-void MapSystem::SaveMap(std::string filename)
+bool MapSystem::SaveMap(std::string filename)
 {
   ofstream ofs("assets/maps/" + filename);
 
-  boost::archive::binary_oarchive oa(ofs);
-  oa << map_;
+  if (ofs.fail()) {
+    cerr << "Error: " << strerror(errno);
 
-  cout << "Map saved as: " << filename << endl;
+    return false;
+  } else {
+    boost::archive::binary_oarchive oa(ofs);
+    oa << map_;
+
+    cout << "Map saved as: " << filename << endl;
+
+    return true;
+  }
 }
 
 
