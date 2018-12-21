@@ -41,9 +41,7 @@ void UISystem::Update()
 {
   BuildTextElements();
 
-  if (input_.menu) {
-    RenderWindowElement(window_elements_["main_window"]);
-  }
+  if (input_.menu) RenderWindowElement(window_elements_["main_window"]);
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);
 }
@@ -99,104 +97,83 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
-void UISystem::BuildWindowElement(WindowElement& element)
+void UISystem::BuildWindowElement(WindowElement& el)
 {
-  auto element_size{TILE_SIZE / 4};
+  auto el_size{TILE_SIZE / 4};
 
-  element.tl_dst = {
-    element.rect.x, element.rect.y, 
-    element_size, element_size
+  el.tl_dst = { 
+    el.rect.x, el.rect.y, 
+    el_size, el_size 
   };
-  element.tm_dst = {
-    element.rect.x + element_size, element.rect.y, 
-    element.rect.w - 2 * element_size, element_size
+  el.tm_dst = {
+    el.rect.x + el_size, el.rect.y, 
+    el.rect.w - 2 * el_size, el_size
   }; 
-  element.tr_dst = {
-    element.rect.x + element.rect.w - element_size, element.rect.y, 
-    element_size, element_size
+  el.tr_dst = {
+    el.rect.x + el.rect.w - el_size, 
+    el.rect.y, el_size, el_size
   };
-  element.ll_dst = {
-    element.rect.x, element.rect.y + element_size,
-    element_size, element.rect.h - 2 * element_size
+  el.ll_dst = {
+    el.rect.x, el.rect.y + el_size, 
+    el_size, el.rect.h - 2 * el_size
   };
-  element.mm_dst = {
-    element.rect.x + element_size, element.rect.y + element_size,
-    element.rect.w - 2 * element_size, element.rect.h - 2 * element_size
+  el.mm_dst = {
+    el.rect.x + el_size, el.rect.y + el_size, 
+    el.rect.w - 2 * el_size, el.rect.h - 2 * el_size
   };
-  element.rr_dst = {
-    element.rect.x + element.rect.w - element_size,
-    element.rect.y + element_size,
-    element_size, element.rect.h - 2 * element_size 
+  el.rr_dst = {
+    el.rect.x + el.rect.w - el_size, el.rect.y + el_size,
+    el_size, el.rect.h - 2 * el_size 
   };
-  element.bl_dst = {
-    element.rect.x, element.rect.y + element.rect.h - element_size,
-    element_size, element_size
+  el.bl_dst = {
+    el.rect.x, el.rect.y + el.rect.h - el_size,
+    el_size, el_size
   }; 
-  element.bm_dst = {
-    element.rect.x + element_size, 
-    element.rect.y + element.rect.h - element_size,
-    element.rect.w - 2 * element_size, element_size
+  el.bm_dst = {
+    el.rect.x + el_size, el.rect.y + el.rect.h - el_size,
+    el.rect.w - 2 * el_size, el_size
   };
-  element.br_dst = {
-    element.rect.x + element.rect.w - element_size, 
-    element.rect.y + element.rect.h - element_size,
-    element_size, element_size
+  el.br_dst = {
+    el.rect.x + el.rect.w - el_size, el.rect.y + el.rect.h - el_size,
+    el_size, el_size
   };
 }
 
 
-void UISystem::BuildTextElement(TextElement& element)
+void UISystem::BuildTextElement(TextElement& el)
 {
   SDL_Surface* surface{TTF_RenderUTF8_Blended(
-    element.font, element.text.c_str(), element.color
+    el.font, el.text.c_str(), el.color
   )}; 
 
-  element.rect.w = surface->w;
-  element.rect.h = surface->h;
+  el.rect.w = surface->w;
+  el.rect.h = surface->h;
 
   if (surface == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   } else {
-    element.texture = SDL_CreateTextureFromSurface(render_.renderer, surface); 
+    el.texture = SDL_CreateTextureFromSurface(render_.renderer, surface); 
   }
 }
 
 
-void UISystem::RenderTextElement(const TextElement& element)
+void UISystem::RenderTextElement(const TextElement& el)
 {
-  SDL_RenderCopy(render_.renderer, element.texture, nullptr, &element.rect); 
+  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
 }
 
 
-void UISystem::RenderWindowElement(const WindowElement& element)
+void UISystem::RenderWindowElement(const WindowElement& el)
 {
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.tl_src, &element.tl_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.tm_src, &element.tm_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.tr_src, &element.tr_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.ll_src, &element.ll_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.mm_src, &element.mm_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.rr_src, &element.rr_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.bl_src, &element.bl_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.bm_src, &element.bm_dst
-  );
-  SDL_RenderCopy(
-    render_.renderer, overlay_texture_, &element.br_src, &element.br_dst
-  );
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tl_src, &el.tl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tm_src, &el.tm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tr_src, &el.tr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.ll_src, &el.ll_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.mm_src, &el.mm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.rr_src, &el.rr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.bl_src, &el.bl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.bm_src, &el.bm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.br_src, &el.br_dst);
 }
 
 
