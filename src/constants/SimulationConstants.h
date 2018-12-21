@@ -10,4 +10,4 @@ extern const unsigned HOURS_PER_DAY;
 extern const unsigned DAYS_PER_MONTH;
 extern const unsigned MONTHS_PER_YEAR;
 
-#endif /* SIMULATION_CONSTANTS_H */
+#endif

@@ -5,4 +5,4 @@ extern const float MAX_ZOOM;
 extern const float MIN_ZOOM;
 extern const float CAMERA_SPEED;
 
-#endif /* CAMERA_CONSTANTS_H */
+#endif

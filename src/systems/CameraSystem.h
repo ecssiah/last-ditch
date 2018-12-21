@@ -19,4 +19,4 @@ private:
   Camera& camera_;
 };
 
-#endif // CAMERA_SYSTEM_H
+#endif

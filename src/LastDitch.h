@@ -34,5 +34,5 @@ private:
   InputSystem input_system_;
 };
 
-#endif // LAST_DITCH_H
+#endif
 

@@ -10,8 +10,8 @@
 #include "../components/Input.h"
 #include "../components/Time.h"
 #include "../components/map/Map.h"
-#include "../components/ui/TextElement.h"
-#include "../components/ui/WindowElement.h"
+#include "../components/ui/Text.h"
+#include "../components/ui/Window.h"
 
 class UISystem
 {
@@ -38,10 +38,10 @@ private:
   void BuildWindowElements();
   void BuildTextElements();
 
-  void BuildWindowElement(WindowElement& element);
-  void BuildTextElement(TextElement& element);
-  void RenderWindowElement(const WindowElement& element);
-  void RenderTextElement(const TextElement& element);
+  void BuildWindowElement(Window& element);
+  void BuildTextElement(Text& element);
+  void RenderWindowElement(const Window& element);
+  void RenderTextElement(const Text& element);
 
   Input& input_;
   Render& render_;
@@ -50,9 +50,9 @@ private:
 
   std::unordered_map<std::string, TTF_Font*> fonts_;
 
-  std::unordered_map<std::string, TextElement> text_elements_;
-  std::unordered_map<std::string, WindowElement> window_elements_;
+  std::unordered_map<std::string, Text> text_elements_;
+  std::unordered_map<std::string, Window> window_elements_;
 
 };
 
-#endif // UI_SYSTEM_H
+#endif

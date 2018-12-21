@@ -17,5 +17,5 @@ extern const unsigned NUM_FLOORS;
 
 extern std::unordered_map<std::string, TileInfo> TileData;
 
-#endif // MAP_CONSTANTS_H
+#endif
 

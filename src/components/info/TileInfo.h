@@ -17,4 +17,4 @@ struct TileInfo
   glm::vec2 uv;
 };
 
-#endif // TILE_INFO_H
+#endif

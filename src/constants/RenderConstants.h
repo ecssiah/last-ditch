@@ -9,4 +9,4 @@ extern const unsigned VIEW_X;
 extern const unsigned VIEW_Y;
 extern const float ASPECT_RATIO;
 
-#endif /* RENDER_CONSTANTS_H */
+#endif

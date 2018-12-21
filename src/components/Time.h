@@ -24,4 +24,4 @@ struct Time
 
 };
 
-#endif // TIME_H
+#endif

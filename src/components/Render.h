@@ -23,4 +23,4 @@ struct Render
 
 };
 
-#endif // RENDER_H
+#endif

@@ -67,4 +67,4 @@ private:
   }
 };
 
-#endif // TILE_H
+#endif

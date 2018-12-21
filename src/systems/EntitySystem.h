@@ -20,4 +20,4 @@ private:
   std::vector<Entity> entities_;
 };
 
-#endif // ENTITY_SYSTEM_H
+#endif

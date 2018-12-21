@@ -35,4 +35,4 @@ private:
   }
 };
 
-#endif // MAP_H
+#endif

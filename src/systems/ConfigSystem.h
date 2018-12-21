@@ -15,4 +15,4 @@ private:
 
 }; 
 
-#endif // CONFIG_SYSTEM_H
+#endif

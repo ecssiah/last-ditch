@@ -25,4 +25,4 @@ private:
   }
 };
 
-#endif // FLOOR_H
+#endif

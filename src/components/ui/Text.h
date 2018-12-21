@@ -1,15 +1,15 @@
-#ifndef TEXT_ELEMENT_H
-#define TEXT_ELEMENT_H
+#ifndef TEXT_H
+#define TEXT_H
 
 #include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "UIElement.h"
+#include "Element.h"
 
-struct TextElement : public UIElement
+struct Text : public Element
 {
-  TextElement()
+  Text()
     : size{14}
     , text{}
     , color{255, 255, 255}
@@ -28,4 +28,4 @@ struct TextElement : public UIElement
 
 };
 
-#endif // UI_ELEMENT_H
+#endif

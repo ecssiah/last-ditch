@@ -25,4 +25,4 @@ private:
   }
 };
 
-#endif // LAYER_H
+#endif

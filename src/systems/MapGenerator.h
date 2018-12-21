@@ -51,4 +51,4 @@ private:
   std::vector<std::vector<Room> > blocked_rooms_; 
 };
 
-#endif // MAP_GENERATOR_H
+#endif

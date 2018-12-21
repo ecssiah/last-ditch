@@ -28,15 +28,11 @@ void TimeSystem::EndFrame()
 {
   end_ = chrono::steady_clock::now();
 
-  auto microseconds{ 
-    chrono::duration_cast<chrono::microseconds>(end_ - start_).count()
-  };
+  auto ms{chrono::duration_cast<chrono::microseconds>(end_ - start_).count()};
 
-  render_.dt = min(MAX_DELTA_TIME, 1e-6 * microseconds);
+  render_.dt = min(MAX_DELTA_TIME, 1e-6 * ms);
 
-  if (!input_.pause) {
-    Tick();
-  }
+  if (!input_.pause) Tick();
 }
 
 

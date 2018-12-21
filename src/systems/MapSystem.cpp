@@ -42,7 +42,7 @@ void MapSystem::Update()
 
 bool MapSystem::SaveMap(std::string filename)
 {
-  ofstream ofs("assets/maps/" + filename);
+  ofstream ofs("maps/" + filename);
 
   if (ofs.fail()) {
     cerr << "Error: " << strerror(errno);
@@ -61,7 +61,7 @@ bool MapSystem::SaveMap(std::string filename)
 
 bool MapSystem::LoadMap(std::string filename)
 {
-  ifstream ifs("assets/maps/" + filename);
+  ifstream ifs("maps/" + filename);
 
   if (ifs.fail()) {
     cerr << "Error: " << strerror(errno);

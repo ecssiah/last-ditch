@@ -27,4 +27,4 @@ private:
   std::chrono::steady_clock::time_point end_;
 };
 
-#endif /* TIMESYSTEM_H */
+#endif

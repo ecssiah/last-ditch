@@ -21,4 +21,4 @@ struct Camera
 
 };
 
-#endif // CAMERA_H
+#endif

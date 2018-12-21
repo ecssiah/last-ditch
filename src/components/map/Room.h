@@ -32,4 +32,4 @@ struct Room
 };
 
 
-#endif // ROOM_H
+#endif

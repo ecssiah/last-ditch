@@ -36,4 +36,4 @@ struct Input
   int mx, my;
 };
 
-#endif // INPUT_H
+#endif

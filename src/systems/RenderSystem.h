@@ -43,4 +43,4 @@ private:
 
 };
 
-#endif // RENDER_SYSTEM_H
+#endif

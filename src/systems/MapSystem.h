@@ -31,4 +31,4 @@ private:
   MapGenerator map_generator_;
 }; 
 
-#endif // MAP_SYSTEM_H
+#endif

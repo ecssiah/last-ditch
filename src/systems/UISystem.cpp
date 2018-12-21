@@ -94,7 +94,7 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
-void UISystem::BuildWindowElement(WindowElement& el)
+void UISystem::BuildWindowElement(Window& el)
 {
   auto size{TILE_SIZE / 4};
 
@@ -137,7 +137,7 @@ void UISystem::BuildWindowElement(WindowElement& el)
 }
 
 
-void UISystem::BuildTextElement(TextElement& el)
+void UISystem::BuildTextElement(Text& el)
 {
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
 
@@ -152,13 +152,13 @@ void UISystem::BuildTextElement(TextElement& el)
 }
 
 
-void UISystem::RenderTextElement(const TextElement& el)
+void UISystem::RenderTextElement(const Text& el)
 {
   SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
 }
 
 
-void UISystem::RenderWindowElement(const WindowElement& el)
+void UISystem::RenderWindowElement(const Window& el)
 {
   auto* overlay_texture{render_.textures["overlay"]};
 

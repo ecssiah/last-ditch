@@ -1,14 +1,14 @@
-#ifndef WINDOW_ELEMENT_H
-#define WINDOW_ELEMENT_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include <SDL2/SDL.h>
 
-#include "UIElement.h"
+#include "Element.h"
 #include "../../constants/MapConstants.h"
 
-struct WindowElement : public UIElement
+struct Window: public Element
 {
-  WindowElement()
+  Window()
     : texture{nullptr}
     , tl_src{0, 0, TILE_SIZE / 4, TILE_SIZE / 4}
     , tm_src{TILE_SIZE / 4, 0, TILE_SIZE / 2, TILE_SIZE / 4}
@@ -42,4 +42,4 @@ struct WindowElement : public UIElement
   SDL_Rect bl_dst, bm_dst, br_dst;
 };
 
-#endif // WINDOW_ELEMENT_H
+#endif
