@@ -6,7 +6,7 @@
 
 #include "../components/info/TileInfo.h"
 
-extern const unsigned TILE_SIZE;
+extern const int TILE_SIZE;
 extern const unsigned TILES_PER_LAYER;
 extern const unsigned TILESET_WIDTH;
 extern const unsigned TILESET_HEIGHT;

@@ -17,14 +17,19 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
   , fonts_{}
   , text_elements_{}
   , window_elements_{}
+  , overlay_texture_{nullptr}
 {
 }
 
 
-void UISystem::Initialize()
+void UISystem::Initialize(SDL_Texture* overlay_texture)
 {
+  overlay_texture_ = overlay_texture;
+
   InitializeSDLTTF();
   LoadFonts();
+
+  SetupMainWindow();
 
   SetupFloorDisplay();
   SetupTimeDisplay();
@@ -35,6 +40,10 @@ void UISystem::Initialize()
 void UISystem::Update()
 {
   BuildTextElements();
+
+  if (input_.menu) {
+    RenderWindowElement(window_elements_["main_window"]);
+  }
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);
 }
@@ -90,6 +99,52 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
+void UISystem::BuildWindowElement(WindowElement& element)
+{
+  auto element_size{TILE_SIZE / 4};
+
+  element.tl_dst = {
+    element.rect.x, element.rect.y, 
+    element_size, element_size
+  };
+  element.tm_dst = {
+    element.rect.x + element_size, element.rect.y, 
+    element.rect.w - 2 * element_size, element_size
+  }; 
+  element.tr_dst = {
+    element.rect.x + element.rect.w - element_size, element.rect.y, 
+    element_size, element_size
+  };
+  element.ll_dst = {
+    element.rect.x, element.rect.y + element_size,
+    element_size, element.rect.h - 2 * element_size
+  };
+  element.mm_dst = {
+    element.rect.x + element_size, element.rect.y + element_size,
+    element.rect.w - 2 * element_size, element.rect.h - 2 * element_size
+  };
+  element.rr_dst = {
+    element.rect.x + element.rect.w - element_size,
+    element.rect.y + element_size,
+    element_size, element.rect.h - 2 * element_size 
+  };
+  element.bl_dst = {
+    element.rect.x, element.rect.y + element.rect.h - element_size,
+    element_size, element_size
+  }; 
+  element.bm_dst = {
+    element.rect.x + element_size, 
+    element.rect.y + element.rect.h - element_size,
+    element.rect.w - 2 * element_size, element_size
+  };
+  element.br_dst = {
+    element.rect.x + element.rect.w - element_size, 
+    element.rect.y + element.rect.h - element_size,
+    element_size, element_size
+  };
+}
+
+
 void UISystem::BuildTextElement(TextElement& element)
 {
   SDL_Surface* surface{TTF_RenderUTF8_Blended(
@@ -107,18 +162,52 @@ void UISystem::BuildTextElement(TextElement& element)
 }
 
 
-void UISystem::RenderTextElement(const TextElement& text_element)
+void UISystem::RenderTextElement(const TextElement& element)
 {
-  SDL_RenderCopy(
-    render_.renderer, text_element.texture, nullptr, &text_element.rect
-  ); 
+  SDL_RenderCopy(render_.renderer, element.texture, nullptr, &element.rect); 
 }
 
 
-void UISystem::RenderWindowElement(const WindowElement& window_element)
+void UISystem::RenderWindowElement(const WindowElement& element)
 {
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.tl_src, &element.tl_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.tm_src, &element.tm_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.tr_src, &element.tr_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.ll_src, &element.ll_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.mm_src, &element.mm_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.rr_src, &element.rr_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.bl_src, &element.bl_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.bm_src, &element.bm_dst
+  );
+  SDL_RenderCopy(
+    render_.renderer, overlay_texture_, &element.br_src, &element.br_dst
+  );
+}
 
 
+void UISystem::SetupMainWindow()
+{
+  window_elements_["main_window"].rect.x = 0.1 * SCREEN_SIZE_X;
+  window_elements_["main_window"].rect.y = 0.1 * SCREEN_SIZE_Y;
+  window_elements_["main_window"].rect.w = 0.8 * SCREEN_SIZE_X;  
+  window_elements_["main_window"].rect.h = 0.8 * SCREEN_SIZE_Y;  
+
+  BuildWindowElement(window_elements_["main_window"]);
 }
 
 

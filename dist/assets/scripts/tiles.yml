@@ -82,6 +82,6 @@ chr_tileset:
 ovr_tileset:
   ui:
     selection:
-      uv: [0, 0]
+      uv: [0, 1]
     highlight:
-      uv: [1, 0]
+      uv: [1, 1]

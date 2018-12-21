@@ -45,7 +45,7 @@ void RenderSystem::Initialize()
   
   LoadTilesets();
 
-  ui_system_.Initialize();
+  ui_system_.Initialize(tilesets_["overlay"]);
 }
 
 

@@ -18,13 +18,15 @@ class UISystem
 public:
   UISystem(Input& input, Render& render, Map& map, Time& time);
 
-  void Initialize();
+  void Initialize(SDL_Texture* overlay_texture);
   void Update();
 
 private:
   void InitializeSDLTTF();
   TTF_Font* LoadFont(std::string fontname, unsigned size);
   void LoadFonts();
+
+  void SetupMainWindow();
 
   void SetupFloorDisplay();
   void SetupTimeDisplay();
@@ -33,11 +35,13 @@ private:
   std::string FormatTime();
   std::string FormatDate();
 
+  void BuildWindowElements();
   void BuildTextElements();
 
+  void BuildWindowElement(WindowElement& element);
   void BuildTextElement(TextElement& element);
-  void RenderTextElement(const TextElement& element);
   void RenderWindowElement(const WindowElement& element);
+  void RenderTextElement(const TextElement& element);
 
   Input& input_;
   Render& render_;
@@ -49,6 +53,7 @@ private:
   std::unordered_map<std::string, TextElement> text_elements_;
   std::unordered_map<std::string, WindowElement> window_elements_;
 
+  SDL_Texture* overlay_texture_;
 };
 
 #endif // UI_SYSTEM_H
