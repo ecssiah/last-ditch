@@ -1,5 +1,5 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef LAST_DITCH_H
+#define LAST_DITCH_H
 
 #include "components/Render.h"
 #include "components/Input.h"
@@ -13,10 +13,10 @@
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
 
-class Game 
+class LastDitch 
 {
 public:
-  Game();
+  LastDitch();
 
 private:
   Render render_;
@@ -34,5 +34,5 @@ private:
   InputSystem input_system_;
 };
 
-#endif // GAME_H
+#endif // LAST_DITCH_H
 

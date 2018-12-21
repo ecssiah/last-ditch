@@ -17,7 +17,7 @@ set(
   ./src/systems/TimeSystem.h
   ./src/systems/InputSystem.h
   ./src/systems/UISystem.h
-  ./src/Game.h
+  ./src/LastDitch.h
 )
 
 set(
@@ -35,7 +35,7 @@ set(
   ./src/systems/TimeSystem.cpp
   ./src/systems/InputSystem.cpp
   ./src/systems/UISystem.cpp
-  ./src/Game.cpp
+  ./src/LastDitch.cpp
   ./src/main.cpp
 )
 

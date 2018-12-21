@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "Game.h"
+#include "LastDitch.h"
 
-Game::Game()
+LastDitch::LastDitch()
   : config_system_()
   , input_system_(input_, render_)
   , time_system_(input_, render_, time_)

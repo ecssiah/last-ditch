@@ -1,8 +1,8 @@
-#include "Game.h"
+#include "LastDitch.h"
 
 int main(int argc, char *argv[])
 {
-  Game game;
+  LastDitch last_ditch;
 
   return 0;
 }
