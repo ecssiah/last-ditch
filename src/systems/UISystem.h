@@ -18,7 +18,7 @@ class UISystem
 public:
   UISystem(Input& input, Render& render, Map& map, Time& time);
 
-  void Initialize(SDL_Texture* overlay_texture);
+  void Initialize();
   void Update();
 
 private:
@@ -53,7 +53,6 @@ private:
   std::unordered_map<std::string, TextElement> text_elements_;
   std::unordered_map<std::string, WindowElement> window_elements_;
 
-  SDL_Texture* overlay_texture_;
 };
 
 #endif // UI_SYSTEM_H

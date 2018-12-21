@@ -29,20 +29,18 @@ private:
   void InitializeSDL();
   void InitializeSDLImage();
   void LoadTilesets();
+  SDL_Texture* LoadTexture(std::string texturename);
 
   void RenderMap();
   void RenderTile(std::string layer, int x, int y);
 
   UISystem ui_system_;
 
-  SDL_Texture* LoadTexture(std::string texturename);
-
   Render& render_;
   Input& input_;
   Camera& camera_;
   Map& map_;
 
-  std::unordered_map<std::string, SDL_Texture*> tilesets_;
 };
 
 #endif // RENDER_SYSTEM_H

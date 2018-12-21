@@ -17,15 +17,12 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
   , fonts_{}
   , text_elements_{}
   , window_elements_{}
-  , overlay_texture_{nullptr}
 {
 }
 
 
-void UISystem::Initialize(SDL_Texture* overlay_texture)
+void UISystem::Initialize()
 {
-  overlay_texture_ = overlay_texture;
-
   InitializeSDLTTF();
   LoadFonts();
 
@@ -85,8 +82,8 @@ void UISystem::LoadFonts()
 
 TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 {
-  string font_path{"assets/fonts/" + fontname + ".ttf"};
-  TTF_Font* font{TTF_OpenFont(font_path.c_str(), size)};
+  string fontpath{"assets/fonts/" + fontname + ".ttf"};
+  TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
   if (!font) {
     cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
@@ -99,60 +96,58 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 
 void UISystem::BuildWindowElement(WindowElement& el)
 {
-  auto el_size{TILE_SIZE / 4};
+  auto size{TILE_SIZE / 4};
 
   el.tl_dst = { 
     el.rect.x, el.rect.y, 
-    el_size, el_size 
+    size, size 
   };
   el.tm_dst = {
-    el.rect.x + el_size, el.rect.y, 
-    el.rect.w - 2 * el_size, el_size
+    el.rect.x + size, el.rect.y, 
+    el.rect.w - 2 * size, size
   }; 
   el.tr_dst = {
-    el.rect.x + el.rect.w - el_size, 
-    el.rect.y, el_size, el_size
+    el.rect.x + el.rect.w - size, el.rect.y, 
+    size, size
   };
   el.ll_dst = {
-    el.rect.x, el.rect.y + el_size, 
-    el_size, el.rect.h - 2 * el_size
+    el.rect.x, el.rect.y + size, 
+    size, el.rect.h - 2 * size
   };
   el.mm_dst = {
-    el.rect.x + el_size, el.rect.y + el_size, 
-    el.rect.w - 2 * el_size, el.rect.h - 2 * el_size
+    el.rect.x + size, el.rect.y + size, 
+    el.rect.w - 2 * size, el.rect.h - 2 * size
   };
   el.rr_dst = {
-    el.rect.x + el.rect.w - el_size, el.rect.y + el_size,
-    el_size, el.rect.h - 2 * el_size 
+    el.rect.x + el.rect.w - size, el.rect.y + size,
+    size, el.rect.h - 2 * size 
   };
   el.bl_dst = {
-    el.rect.x, el.rect.y + el.rect.h - el_size,
-    el_size, el_size
+    el.rect.x, el.rect.y + el.rect.h - size,
+    size, size
   }; 
   el.bm_dst = {
-    el.rect.x + el_size, el.rect.y + el.rect.h - el_size,
-    el.rect.w - 2 * el_size, el_size
+    el.rect.x + size, el.rect.y + el.rect.h - size,
+    el.rect.w - 2 * size, size
   };
   el.br_dst = {
-    el.rect.x + el.rect.w - el_size, el.rect.y + el.rect.h - el_size,
-    el_size, el_size
+    el.rect.x + el.rect.w - size, el.rect.y + el.rect.h - size,
+    size, size
   };
 }
 
 
 void UISystem::BuildTextElement(TextElement& el)
 {
-  SDL_Surface* surface{TTF_RenderUTF8_Blended(
-    el.font, el.text.c_str(), el.color
-  )}; 
+  SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
 
-  el.rect.w = surface->w;
-  el.rect.h = surface->h;
+  el.rect.w = sur->w;
+  el.rect.h = sur->h;
 
-  if (surface == nullptr) {
+  if (sur == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   } else {
-    el.texture = SDL_CreateTextureFromSurface(render_.renderer, surface); 
+    el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
   }
 }
 
@@ -165,15 +160,17 @@ void UISystem::RenderTextElement(const TextElement& el)
 
 void UISystem::RenderWindowElement(const WindowElement& el)
 {
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tl_src, &el.tl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tm_src, &el.tm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.tr_src, &el.tr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.ll_src, &el.ll_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.mm_src, &el.mm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.rr_src, &el.rr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.bl_src, &el.bl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.bm_src, &el.bm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture_, &el.br_src, &el.br_dst);
+  auto* overlay_texture{render_.textures["overlay"]};
+
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tm_src, &el.tm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tr_src, &el.tr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.ll_src, &el.ll_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.mm_src, &el.mm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.rr_src, &el.rr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bl_src, &el.bl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bm_src, &el.bm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
 }
 
 
@@ -209,7 +206,7 @@ void UISystem::SetupTimeDisplay()
 
   auto& rect{text_elements_["time_display"].rect};
 
-  rect.x = SCREEN_SIZE_X - 4 - rect.w;
+  rect.x = SCREEN_SIZE_X - rect.w - 4;
   rect.y = 4;
 }
 
@@ -235,7 +232,7 @@ void UISystem::SetupDateDisplay()
 
   auto& rect{text_elements_["date_display"].rect};
 
-  rect.x = SCREEN_SIZE_X - 4 - rect.w;
+  rect.x = SCREEN_SIZE_X - rect.w - 4;
   rect.y = 16;
 }
 

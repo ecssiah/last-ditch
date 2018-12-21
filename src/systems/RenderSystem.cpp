@@ -45,7 +45,7 @@ void RenderSystem::Initialize()
   
   LoadTilesets();
 
-  ui_system_.Initialize(tilesets_["overlay"]);
+  ui_system_.Initialize();
 }
 
 
@@ -54,6 +54,7 @@ void RenderSystem::Update()
   SDL_RenderClear(render_.renderer);
 
   RenderMap(); 
+
   ui_system_.Update();
 
   SDL_RenderPresent(render_.renderer);
@@ -98,9 +99,8 @@ void RenderSystem::RenderTile(string layer, int x, int y)
     dst.h = scale_factor + 2;
 
     SDL_RenderCopyEx(
-      render_.renderer, tilesets_[layer], 
-      &tile.src, &dst, 
-      tile.rotation, nullptr, tile.flip
+      render_.renderer, render_.textures[layer], 
+      &tile.src, &dst, tile.rotation, nullptr, tile.flip
     ); 
   }
 }
@@ -133,8 +133,9 @@ void RenderSystem::InitializeSDL()
 
   if (render_.renderer == nullptr){
     SDL_DestroyWindow(render_.window);
-    cout << "SDL_CreateRenderer error: " << SDL_GetError() << endl;
     SDL_Quit();
+
+    cout << "SDL_CreateRenderer error: " << SDL_GetError() << endl;
     return;
   }
 
@@ -155,11 +156,11 @@ void RenderSystem::InitializeSDLImage()
 
 void RenderSystem::LoadTilesets()
 {
-  tilesets_["floor"] = LoadTexture("map_tileset"); 
-  tilesets_["wall"] = tilesets_["floor"];
-  tilesets_["object"] = LoadTexture("object_tileset"); 
-  tilesets_["entity"] = LoadTexture("entity_tileset"); 
-  tilesets_["overlay"] = LoadTexture("overlay_tileset");
+  render_.textures["floor"] = LoadTexture("map_tileset"); 
+  render_.textures["wall"] = render_.textures["floor"];
+  render_.textures["object"] = LoadTexture("object_tileset"); 
+  render_.textures["entity"] = LoadTexture("entity_tileset"); 
+  render_.textures["overlay"] = LoadTexture("overlay_tileset");
 }
 
 
