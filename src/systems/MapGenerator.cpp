@@ -21,7 +21,7 @@ MapGenerator::MapGenerator(Map& map)
 }
 
 
-void MapGenerator::GenerateMap(string name)
+void MapGenerator::GenerateMap()
 {
   for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
     DefineBlockedRooms(floor);

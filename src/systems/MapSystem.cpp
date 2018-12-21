@@ -1,7 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 
 #include "MapSystem.h"
 #include "../constants/MapConstants.h"
@@ -18,10 +15,7 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::Initialize()
 {
-  map_generator_.GenerateMap("test_map");
-
-  SaveMap("test_map1");
-  /* LoadMap("test_map1"); */
+  map_generator_.GenerateMap();
 }
 
 
@@ -39,41 +33,4 @@ void MapSystem::Update()
   }
 }
 
-
-bool MapSystem::SaveMap(std::string filename)
-{
-  ofstream ofs("maps/" + filename);
-
-  if (ofs.fail()) {
-    cerr << "Error: " << strerror(errno);
-
-    return false;
-  } else {
-    boost::archive::binary_oarchive oa(ofs);
-    oa << map_;
-
-    cout << "Map saved as: " << filename << endl;
-
-    return true;
-  }
-}
-
-
-bool MapSystem::LoadMap(std::string filename)
-{
-  ifstream ifs("maps/" + filename);
-
-  if (ifs.fail()) {
-    cerr << "Error: " << strerror(errno);
-
-    return false;
-  } else {
-    boost::archive::binary_iarchive ia(ifs);
-    ia >> map_;
-
-    cout << "Map loaded: " << filename << endl;
-
-    return true;
-  }
-}
 

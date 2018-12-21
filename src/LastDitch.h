@@ -12,6 +12,7 @@
 #include "systems/CameraSystem.h"
 #include "systems/TimeSystem.h"
 #include "systems/InputSystem.h"
+#include "systems/FileSystem.h"
 
 class LastDitch 
 {
@@ -32,6 +33,7 @@ private:
   CameraSystem camera_system_;
   TimeSystem time_system_;
   InputSystem input_system_;
+  FileSystem file_system_;
 };
 
 #endif

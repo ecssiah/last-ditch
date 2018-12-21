@@ -13,9 +13,6 @@ public:
   void Initialize();
   void Update();
 
-  bool SaveMap(std::string filename);
-  bool LoadMap(std::string filename);
-
 private:
   void GenerateMap();
 

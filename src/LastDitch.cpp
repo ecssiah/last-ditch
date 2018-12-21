@@ -3,13 +3,14 @@
 #include "LastDitch.h"
 
 LastDitch::LastDitch()
-  : config_system_()
-  , input_system_(input_, render_)
-  , time_system_(input_, render_, time_)
-  , render_system_(input_, render_, camera_, map_, time_)
-  , camera_system_(input_, render_, camera_)
-  , map_system_(input_, map_)
-  , entity_system_(map_)
+  : config_system_{}
+  , input_system_{input_, render_}
+  , time_system_{input_, render_, time_}
+  , render_system_{input_, render_, camera_, map_, time_}
+  , camera_system_{input_, render_, camera_}
+  , map_system_{input_, map_}
+  , entity_system_{map_}
+  , file_system_{input_, map_}
 {
   config_system_.Initialize();
   time_system_.Initialize();
@@ -18,6 +19,7 @@ LastDitch::LastDitch()
   input_system_.Initialize();
   map_system_.Initialize();
   entity_system_.Initialize();
+  file_system_.Initialize();
 
   while (!input_.exit) {
     time_system_.StartFrame();

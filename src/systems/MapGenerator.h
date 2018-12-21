@@ -13,7 +13,7 @@ class MapGenerator
 public:
   MapGenerator(Map& map);
 
-  void GenerateMap(std::string name);
+  void GenerateMap();
 
 private:
   void DefineBlockedRooms(unsigned floor);
