@@ -18,9 +18,9 @@ struct Time
   bool time_changed;
   bool date_changed;
 
-  unsigned ticks; 
-  unsigned year, month, day;
-  unsigned hour, minute, second;
+  int ticks; 
+  int year, month, day;
+  int hour, minute, second;
 
 };
 

@@ -16,11 +16,11 @@ struct Map
   Map() 
     : floor_changed{false} 
     , cur_floor{0}
-    , floors{NUM_FLOORS}
+    , floors{(size_t)NUM_FLOORS}
   { }
 
   bool floor_changed;
-  unsigned cur_floor;
+  int cur_floor;
 
   std::vector<Floor> floors;
 

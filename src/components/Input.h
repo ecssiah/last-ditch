@@ -24,6 +24,8 @@ struct Input
     , menu{false}
     , mx{0}
     , my{0}
+    , sx{0}
+    , sy{0}
   {}
 
   bool up, down, left, right; 
@@ -34,6 +36,7 @@ struct Input
   bool exit, pause, debug, menu;
 
   int mx, my;
+  int sx, sy;
 };
 
 #endif

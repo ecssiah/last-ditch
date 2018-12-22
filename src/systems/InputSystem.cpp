@@ -1,25 +1,33 @@
+#include <cmath>
 #include <iostream>
 
 #include <SDL2/SDL.h>
 
 #include "InputSystem.h"
+#include "../constants/MapConstants.h"
+#include "../constants/RenderConstants.h"
 
 using namespace std;
 
-InputSystem::InputSystem(Input& input, Render& render) 
+InputSystem::InputSystem(Input& input, Camera& camera, Render& render) 
   : input_{input}
+  , camera_{camera}
   , render_{render}
 {
 }
+
 
 void InputSystem::Initialize()
 {
 }
 
+
 void InputSystem::Update()
 {
   ClearInputs();
   CallInputFunctions();
+  
+  if (input_.lclick) CalculateSelectedTile();
 }
 
 
@@ -120,6 +128,18 @@ void InputSystem::OnMouseUp(Sint32 x, Sint32 y, Uint8 button)
     case SDL_BUTTON_RMASK: input_.rpressed = false; input_.rclick = true; break;
     default: break;
   }
+}
+
+
+void InputSystem::CalculateSelectedTile()
+{
+  float tx{(input_.mx - HALF_SCREEN_SIZE_X) / (float)TILE_SIZE};
+  float ty{(input_.my - HALF_SCREEN_SIZE_Y) / (float)TILE_SIZE};
+
+  input_.sx = floor(tx + camera_.pos.x);
+  input_.sy = floor(ty + camera_.pos.y);
+
+  cout << "Tile: " << input_.sx << " " << input_.sy << endl;
 }
 
 

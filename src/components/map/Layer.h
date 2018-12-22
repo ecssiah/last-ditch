@@ -10,7 +10,7 @@
 struct Layer
 {
   Layer() 
-    : tiles{TILES_PER_LAYER, std::vector<Tile>(TILES_PER_LAYER)} 
+    : tiles{(size_t)TILES_PER_LAYER, std::vector<Tile>((size_t)TILES_PER_LAYER)} 
   {}
 
   std::vector<std::vector<Tile> > tiles;

@@ -17,7 +17,7 @@ struct Text : public Element
     , texture{nullptr}
   {}
 
-  unsigned size;
+  int size;
 
   std::string text;
 

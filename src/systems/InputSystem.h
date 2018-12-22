@@ -2,12 +2,13 @@
 #define INPUT_SYSTEM_H
 
 #include "../components/Input.h"
+#include "../components/Camera.h"
 #include "../components/Render.h"
 
 class InputSystem
 {
 public:
-  InputSystem(Input& input, Render& render);
+  InputSystem(Input& input, Camera& camera, Render& render);
 
   void Initialize();
   void Update();
@@ -20,8 +21,10 @@ private:
 
   void ClearInputs();
   void CallInputFunctions();
+  void CalculateSelectedTile();
 
   Input& input_;
+  Camera& camera_;
   Render& render_;
 }; 
 

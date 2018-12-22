@@ -12,10 +12,11 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , rooms_{NUM_FLOORS, vector<Room>()}
-  , blocked_rooms_{NUM_FLOORS, vector<Room>()}
+  , rooms_{(size_t)NUM_FLOORS, vector<Room>()}
+  , blocked_rooms_{(size_t)NUM_FLOORS, vector<Room>()}
   , num_rooms_{60}
   , expansion_iterations_{20000}
+  , show_grid_{true}
 {
   srand(MAP_SEED);
 }
@@ -48,6 +49,10 @@ void MapGenerator::LayoutMainFloor(unsigned floor)
   for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
     for (auto y{0}; y < TILES_PER_LAYER; ++y) {
       SetTile("floor", x, y, floor, floor_type);
+
+      if (show_grid_) {
+        SetTile("overlay", x, y, floor, "selection"); 
+      }
     }
   }
 }
