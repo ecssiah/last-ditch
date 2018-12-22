@@ -1,11 +1,11 @@
 # Last Ditch Project
 
 ## TODO
-1. Generate map
-2. Save maps
-3. Pathfinding
-4. UI
-5. World Map Generation
+- [ ] Generate map
+- [ ] Save maps
+- [ ] Pathfinding
+- [ ] UI
+- [ ] World Map Generation
 
 ## Synopsis
 
