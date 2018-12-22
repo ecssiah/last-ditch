@@ -133,8 +133,8 @@ void InputSystem::OnMouseUp(Sint32 x, Sint32 y, Uint8 button)
 
 void InputSystem::CalculateSelectedTile()
 {
-  float tx{(input_.mx - HALF_SCREEN_SIZE_X) / (float)TILE_SIZE};
-  float ty{(input_.my - HALF_SCREEN_SIZE_Y) / (float)TILE_SIZE};
+  float tx{(input_.mx - HALF_SCREEN_SIZE_X) / (float)TILE_SIZE / camera_.zoom};
+  float ty{(input_.my - HALF_SCREEN_SIZE_Y) / (float)TILE_SIZE / camera_.zoom};
 
   input_.sx = floor(tx + camera_.pos.x);
   input_.sy = floor(ty + camera_.pos.y);

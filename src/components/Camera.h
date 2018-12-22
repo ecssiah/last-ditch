@@ -10,7 +10,7 @@ struct Camera
   Camera() 
     : speed{CAMERA_SPEED}
     , zoom{1.0f}
-    , pos{4, 1}
+    , pos{0, 0}
     , xdir{1, 0}
     , ydir{0, 1}
   {
