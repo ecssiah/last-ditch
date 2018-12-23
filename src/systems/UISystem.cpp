@@ -42,29 +42,23 @@ void UISystem::Update()
   if (input_.menu) {
     if (input_.lclick) {
       auto& info_btn{button_elements_["info"]};    
-
-      if (CheckElementIntersect(info_btn, input_.mx, input_.my)) 
-        info_btn.active = true;
-
       auto& save_btn{button_elements_["save"]};    
-
-      if (CheckElementIntersect(save_btn, input_.mx, input_.my)) 
-        save_btn.active = true;
-
       auto& options_btn{button_elements_["options"]};    
 
-      if (CheckElementIntersect(options_btn, input_.mx, input_.my)) 
+      if (CheckElementIntersect(info_btn, input_.mx, input_.my)) 
+      {
+        info_btn.active = true;
+        save_btn.active = false;
+        options_btn.active = false;
+      } else if (CheckElementIntersect(save_btn, input_.mx, input_.my)) {
+        info_btn.active = false;
+        save_btn.active = true;
+        options_btn.active = false;
+      } else if (CheckElementIntersect(options_btn, input_.mx, input_.my)) {
+        info_btn.active = false;
+        save_btn.active = false;
         options_btn.active = true;
-    }
-
-    if (input_.lreleased) {
-      auto& info_btn{button_elements_["info"]};    
-      auto& save_btn{button_elements_["save"]};
-      auto& options_btn{button_elements_["options"]};
-
-      if (info_btn.active) info_btn.active = false;
-      if (save_btn.active) save_btn.active = false;
-      if (options_btn.active) options_btn.active = false;
+      }
     }
 
     RenderWindowElement("main_window");
