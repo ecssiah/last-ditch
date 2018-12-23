@@ -43,22 +43,29 @@ void UISystem::Update()
     if (input_.lclick) {
       auto& info_btn{button_elements_["info"]};    
 
-      auto lcheck{input_.mx > info_btn.rect.x};
-      auto rcheck{input_.mx < info_btn.rect.x + info_btn.rect.w};
-      auto tcheck{input_.my > info_btn.rect.y};
-      auto bcheck{input_.my < info_btn.rect.y + info_btn.rect.h};
-
-      if (lcheck && rcheck && tcheck && bcheck) {
+      if (CheckElementIntersect(info_btn, input_.mx, input_.my)) 
         info_btn.active = true;
-      }
+
+      auto& save_btn{button_elements_["save"]};    
+
+      if (CheckElementIntersect(save_btn, input_.mx, input_.my)) 
+        save_btn.active = true;
+
+      auto& options_btn{button_elements_["options"]};    
+
+      if (CheckElementIntersect(options_btn, input_.mx, input_.my)) 
+        options_btn.active = true;
     }
 
     if (input_.lreleased) {
       auto& info_btn{button_elements_["info"]};    
+      auto& save_btn{button_elements_["save"]};
+      auto& options_btn{button_elements_["options"]};
 
-      info_btn.active = false;
+      if (info_btn.active) info_btn.active = false;
+      if (save_btn.active) save_btn.active = false;
+      if (options_btn.active) options_btn.active = false;
     }
-
 
     RenderWindowElement("main_window");
 
@@ -74,6 +81,21 @@ void UISystem::Update()
   RenderTextElement("floor_display");
   RenderTextElement("time_display");
   RenderTextElement("date_display");
+}
+
+
+bool UISystem::CheckElementIntersect(Element& el, int x, int y)
+{
+  auto lcheck{input_.mx > el.rect.x};
+  auto rcheck{input_.mx < el.rect.x + el.rect.w};
+  auto tcheck{input_.my > el.rect.y};
+  auto bcheck{input_.my < el.rect.y + el.rect.h};
+
+  if (lcheck && rcheck && tcheck && bcheck) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 

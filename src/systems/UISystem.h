@@ -46,6 +46,8 @@ private:
   void RenderTextElement(std::string id);
   void RenderButtonElement(std::string id);
 
+  bool CheckElementIntersect(Element& el, int x, int y);
+
   Input& input_;
   Render& render_;
   Map& map_;
