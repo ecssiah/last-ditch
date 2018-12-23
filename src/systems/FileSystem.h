@@ -18,9 +18,11 @@ public:
 
   bool Save(std::string filename);
   bool Load(std::string filename);
+  bool Delete(std::string filename);
 
   bool SaveMap(std::string filename);
   bool LoadMap(std::string filename);
+  bool DeleteMap(std::string filename);
 
 private:
   Input& input_;

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <string>
 #include <algorithm>
 #include <boost/archive/binary_oarchive.hpp>
@@ -22,11 +23,13 @@ void FileSystem::Initialize()
 {
   CreateUser("test user");
 
-  /* Save("michael1"); */
-  /* Load("michael1"); */
+  Save("michael1");
+  Load("michael1");
+  Delete("michael1");
 
-  /* SaveMap("test_map1"); */
-  /* LoadMap("test_map1"); */
+  SaveMap("test_map1");
+  LoadMap("test_map1");
+  DeleteMap("test_map1");
 }
 
 
@@ -39,7 +42,7 @@ bool FileSystem::CreateUser(string username)
   } 
 
   if (user_exists) {
-    cerr << "User: " << username << " already exists" << endl;
+    cerr << "User exists: " << username << endl;
 
     return false;
   } else {
@@ -48,7 +51,7 @@ bool FileSystem::CreateUser(string username)
 
     users_.push_back(user);
 
-    cout << "User: " << username << " created" << endl;
+    cout << "User created: " << username << endl;
 
     return true;
   }
@@ -70,11 +73,11 @@ bool FileSystem::DeleteUser(string username)
   if (user_exists) {
     users_.erase(users_.begin() + index);
 
-    cout << "User: " << username << " erased" << endl;
+    cout << "User erased: " << username << endl;
 
     return true;
   } else {
-    cerr << "User: " << username << " does not exist" << endl;
+    cerr << "User does not exist: " << username << endl;
 
     return false;
   }
@@ -114,9 +117,23 @@ bool FileSystem::Load(string filename)
     ia >> users_;
     ia >> time_;
 
-    cout << "Saved: " << filename << endl;
+    cout << "Loaded: " << filename << endl;
 
     return true;
+  }
+}
+
+
+bool FileSystem::Delete(string filename)
+{
+  string filepath{"saves/" + filename};
+
+  if (remove(filepath.c_str()) == 0) {
+    cout << "Save deleted: " << filename << endl;
+    return true;
+  } else {
+    cerr << "Error " << errno << ":" << filename << " was not deleted" << endl;
+    return false;
   }
 }
 
@@ -133,7 +150,7 @@ bool FileSystem::SaveMap(string filename)
     boost::archive::binary_oarchive oa(ofs);
     oa << map_;
 
-    cout << "Map saved as: " << filename << endl;
+    cout << "Map saved : " << filename << endl;
 
     return true;
   }
@@ -157,4 +174,19 @@ bool FileSystem::LoadMap(string filename)
     return true;
   }
 }
+
+
+bool FileSystem::DeleteMap(string filename)
+{
+  string filepath{"maps/" + filename};
+
+  if (remove(filepath.c_str()) == 0) {
+    cout << "Map deleted: " << filename << endl;
+    return true;
+  } else {
+    cerr << "Error " << errno << ": " << filename << " was not deleted" << endl;
+    return false;
+  }
+}
+
 
