@@ -1,21 +1,15 @@
 # Last Ditch Project
 
-## TODO
-- [ ] Generate map
-- [ ] Save maps
-- [ ] Pathfinding
-- [ ] UI
-- [ ] World Map Generation
-
 ## Synopsis
 
 After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. 
 
-The starting level is the lowest occupied area of the skyscraper with the least established factions. The levels below this are almost entirely overrun with waste and junk that is mined to produce the basic necessities of life. The floors above this are home to stronger and more well-established factions. They attempt to control access to these floors. 
+The user starts in the lowest occupied area of a skyscraper. These levels are overrun with waste and junk that is mined to produce the basic necessities of life. The floors above these are home to the weakest and most disorganized factions where the user can first establish themselves. The higher floors have stronger and more well-established factions. They attempt to control access to these floors. 
 
 ## Features
 
 * The main character has the skills to become a community leader
+* The leader will have to deal with disloyalty based on quality of faction life
 * They can pass this position on to a new generation
 * They help the community survive and grow
 * The community can restructure the building to better fit their needs
@@ -29,7 +23,7 @@ The starting level is the lowest occupied area of the skyscraper with the least 
 * Characters can move through each other
 * Camera controlled by WASD, character movement point/click
 * Wiring and plumbing in walls and floors, possibility of developing wireless
-* Lightning setup using transparent black overlays
+* Lighting setup using transparent black overlays
 
 ## Characters
 

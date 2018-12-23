@@ -155,7 +155,7 @@ void MapGenerator::BuildRooms(unsigned floor)
     }
   } 
 
-  cout << "Floor " << floor << " rooms built" << endl;
+  cout << "Floor " << floor + 1 << " rooms built" << endl;
 }
 
 
@@ -220,7 +220,7 @@ void MapGenerator::IntegrateWalls(unsigned floor)
     }
   }
 
-  cout << "Floor " << floor << " rooms integrated" << endl;
+  cout << "Floor " << floor + 1 << " rooms integrated" << endl;
 }
 
 
@@ -305,7 +305,7 @@ void MapGenerator::PlaceDoors(unsigned floor)
     }
   }
 
-  cout << "Floor " << floor << " doors placed" << endl;
+  cout << "Floor " << floor + 1 << " doors placed" << endl;
 }
 
 

@@ -45,8 +45,7 @@ void UISystem::Update()
       auto& save_btn{button_elements_["save"]};    
       auto& options_btn{button_elements_["options"]};    
 
-      if (CheckElementIntersect(info_btn, input_.mx, input_.my)) 
-      {
+      if (CheckElementIntersect(info_btn, input_.mx, input_.my)) {
         info_btn.active = true;
         save_btn.active = false;
         options_btn.active = false;
@@ -66,10 +65,6 @@ void UISystem::Update()
     RenderButtonElement("info");
     RenderButtonElement("save");
     RenderButtonElement("options");
-
-    RenderTextElement("info");
-    RenderTextElement("save");
-    RenderTextElement("options");
   }
 
   RenderTextElement("floor_display");
@@ -344,6 +339,8 @@ void UISystem::RenderButtonElement(string id)
       render_.renderer, overlay_texture, &el.inactive_br_src, &el.br_dst
     );
   }
+
+  RenderTextElement(id);
 }
 
 
