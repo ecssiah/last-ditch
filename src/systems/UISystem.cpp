@@ -193,13 +193,15 @@ void UISystem::BuildButtonElement(string id)
     size, size
   };
 
-  text_elements_[id].font = fonts_["Fantasque-Medium"];
-  text_elements_[id].text = el.text;
+  auto& txt_el{text_elements_[id]};
+
+  txt_el.font = fonts_["Fantasque-Medium"];
+  txt_el.text = el.text;
 
   BuildTextElement(id);
   
-  text_elements_[id].rect.x = el.rect.x + 2;
-  text_elements_[id].rect.y = el.rect.y + 2;
+  txt_el.rect.x = el.rect.x + el.rect.w / 2 - txt_el.rect.w / 2;
+  txt_el.rect.y = el.rect.y + el.rect.h / 2 - txt_el.rect.h / 2;
 }
 
 
@@ -323,7 +325,7 @@ void UISystem::SetupMainWindow()
 void UISystem::SetupMainButtons()
 {
   auto width{120};
-  auto height{40};
+  auto height{32};
 
   button_elements_["info"].text = "Info";
   button_elements_["info"].rect.x = .25 * SCREEN_SIZE_X - width / 2;
