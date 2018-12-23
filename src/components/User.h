@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "Save.h"
 
@@ -16,6 +18,17 @@ struct User
   std::string username;
 
   std::vector<Save> saves;
+
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar & username;
+    ar & saves;
+  }
+
 };
 
 #endif

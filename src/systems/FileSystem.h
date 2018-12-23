@@ -3,12 +3,13 @@
 
 #include "../components/Input.h"
 #include "../components/User.h"
+#include "../components/Time.h"
 #include "../components/map/Map.h"
 
 class FileSystem
 {
 public:
-  FileSystem(Input& input, Map& map);
+  FileSystem(Input& input, Map& map, Time& time);
 
   void Initialize();
 
@@ -24,6 +25,7 @@ public:
 private:
   Input& input_;
   Map& map_;
+  Time& time_;
 
   std::vector<User> users_;
 

@@ -9,9 +9,10 @@
 
 using namespace std;
 
-FileSystem::FileSystem(Input& input, Map& map)
+FileSystem::FileSystem(Input& input, Map& map, Time& time)
   : input_{input}
   , map_{map}
+  , time_{time}
   , users_{}
 {
 }
@@ -20,6 +21,9 @@ FileSystem::FileSystem(Input& input, Map& map)
 void FileSystem::Initialize()
 {
   CreateUser("test user");
+
+  /* Save("michael1"); */
+  /* Load("michael1"); */
 
   /* SaveMap("test_map1"); */
   /* LoadMap("test_map1"); */
@@ -79,15 +83,41 @@ bool FileSystem::DeleteUser(string username)
 
 bool FileSystem::Save(string filename)
 {
+  ofstream ofs("saves/" + filename);
 
-  return false;
+  if (ofs.fail()) {
+    cerr << "Error: " << strerror(errno);
+
+    return false;
+  } else {
+    boost::archive::binary_oarchive oa(ofs);
+    oa << users_;
+    oa << time_;
+
+    cout << "Saved: " << filename << endl;
+
+    return true;
+  }
 }
 
 
 bool FileSystem::Load(string filename)
 {
+  ifstream ifs("saves/" + filename);
 
-  return false;
+  if (ifs.fail()) {
+    cerr << "Error: " << strerror(errno);
+
+    return false;
+  } else {
+    boost::archive::binary_iarchive ia(ifs);
+    ia >> users_;
+    ia >> time_;
+
+    cout << "Saved: " << filename << endl;
+
+    return true;
+  }
 }
 
 

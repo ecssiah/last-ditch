@@ -1,6 +1,8 @@
 #ifndef TIME_H
 #define TIME_H
 
+#include <boost/serialization/access.hpp>
+
 struct Time
 {
   Time()
@@ -21,6 +23,20 @@ struct Time
   int ticks; 
   int year, month, day;
   int hour, minute, second;
+
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar & year;
+    ar & month;
+    ar & day;
+    ar & hour;
+    ar & minute;
+    ar & second;
+  }
 
 };
 

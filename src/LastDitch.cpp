@@ -11,7 +11,7 @@ LastDitch::LastDitch()
   , map_system_{input_, map_}
   , entity_system_{map_}
   , ui_system_{input_, render_, map_, time_} 
-  , file_system_{input_, map_}
+  , file_system_{input_, map_, time_}
 {
   config_system_.Initialize();
   time_system_.Initialize();
