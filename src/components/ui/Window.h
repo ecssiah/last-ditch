@@ -10,15 +10,15 @@ struct Window: public Element
 {
   Window()
     : texture{nullptr}
-    , tl_src{0, 0, TILE_SIZE / 4, TILE_SIZE / 4}
-    , tm_src{TILE_SIZE / 4, 0, TILE_SIZE / 2, TILE_SIZE / 4}
-    , tr_src{3 * TILE_SIZE / 4, 0, TILE_SIZE / 4, TILE_SIZE / 4}
-    , ll_src{0, TILE_SIZE / 4, TILE_SIZE / 4, 2 * TILE_SIZE / 4}
-    , mm_src{TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 2, TILE_SIZE / 2}
-    , rr_src{3 * TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 2}
-    , bl_src{0, 3 * TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 4}
-    , bm_src{TILE_SIZE / 4, 3 * TILE_SIZE / 4, TILE_SIZE / 2, TILE_SIZE / 4}
-    , br_src{3 * TILE_SIZE / 4, 3 * TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 4}
+    , tl_src{}
+    , tm_src{}
+    , tr_src{}
+    , ll_src{}
+    , mm_src{}
+    , rr_src{}
+    , bl_src{}
+    , bm_src{}
+    , br_src{}
     , tl_dst{}
     , tm_dst{}
     , tr_dst{}
@@ -29,6 +29,17 @@ struct Window: public Element
     , bm_dst{}
     , br_dst{}
   {
+    auto size{TILE_SIZE / 4};
+
+    tl_src = {0, 0, size, size};
+    tm_src = {size, 0, size, size};
+    tr_src = {2 * size, 0, size, size};
+    ll_src = {0, size, size, size};
+    mm_src = {size, size, size, size};
+    rr_src = {2 * size, size, size, size};
+    bl_src = {0, 2 * size, size, size};
+    bm_src = {size, 2 * size, size, size};
+    br_src = {2 * size, 2 * size, size, size};
   }
 
   SDL_Texture* texture;

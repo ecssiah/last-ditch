@@ -12,6 +12,7 @@
 #include "../components/map/Map.h"
 #include "../components/ui/Text.h"
 #include "../components/ui/Window.h"
+#include "../components/ui/Button.h"
 
 class UISystem
 {
@@ -27,7 +28,7 @@ private:
   void LoadFonts();
 
   void SetupMainWindow();
-
+  void SetupMainButtons();
   void SetupFloorDisplay();
   void SetupTimeDisplay();
   void SetupDateDisplay();
@@ -40,8 +41,11 @@ private:
 
   void BuildWindowElement(Window& element);
   void BuildTextElement(Text& element);
+  void BuildButtonElement(Button& element);
+
   void RenderWindowElement(const Window& element);
   void RenderTextElement(const Text& element);
+  void RenderButtonElement(const Button& element);
 
   Input& input_;
   Render& render_;
@@ -52,6 +56,7 @@ private:
 
   std::unordered_map<std::string, Text> text_elements_;
   std::unordered_map<std::string, Window> window_elements_;
+  std::unordered_map<std::string, Button> button_elements_;
 
 };
 

@@ -27,6 +27,7 @@ void UISystem::Initialize()
   LoadFonts();
 
   SetupMainWindow();
+  SetupMainButtons();
 
   SetupFloorDisplay();
   SetupTimeDisplay();
@@ -36,9 +37,15 @@ void UISystem::Initialize()
 
 void UISystem::Update()
 {
-  BuildTextElements();
+  if (input_.menu) {
+    RenderWindowElement(window_elements_["main_window"]);
 
-  if (input_.menu) RenderWindowElement(window_elements_["main_window"]);
+    RenderButtonElement(button_elements_["info"]);
+    RenderButtonElement(button_elements_["save"]);
+    RenderButtonElement(button_elements_["options"]);
+  }
+
+  BuildTextElements();
 
   for (auto kv : text_elements_) RenderTextElement(kv.second);
 }
@@ -137,6 +144,49 @@ void UISystem::BuildWindowElement(Window& el)
 }
 
 
+void UISystem::BuildButtonElement(Button& el)
+{
+  auto size{TILE_SIZE / 4};
+
+  el.tl_dst = { 
+    el.rect.x, el.rect.y, 
+    size, size 
+  };
+  el.tm_dst = {
+    el.rect.x + size, el.rect.y, 
+    el.rect.w - 2 * size, size
+  }; 
+  el.tr_dst = {
+    el.rect.x + el.rect.w - size, el.rect.y, 
+    size, size
+  };
+  el.ll_dst = {
+    el.rect.x, el.rect.y + size, 
+    size, el.rect.h - 2 * size
+  };
+  el.mm_dst = {
+    el.rect.x + size, el.rect.y + size, 
+    el.rect.w - 2 * size, el.rect.h - 2 * size
+  };
+  el.rr_dst = {
+    el.rect.x + el.rect.w - size, el.rect.y + size,
+    size, el.rect.h - 2 * size 
+  };
+  el.bl_dst = {
+    el.rect.x, el.rect.y + el.rect.h - size,
+    size, size
+  }; 
+  el.bm_dst = {
+    el.rect.x + size, el.rect.y + el.rect.h - size,
+    el.rect.w - 2 * size, size
+  };
+  el.br_dst = {
+    el.rect.x + el.rect.w - size, el.rect.y + el.rect.h - size,
+    size, size
+  };
+}
+
+
 void UISystem::BuildTextElement(Text& el)
 {
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
@@ -173,6 +223,69 @@ void UISystem::RenderWindowElement(const Window& el)
   SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
 }
 
+void UISystem::RenderButtonElement(const Button& el)
+{
+  auto* overlay_texture{render_.textures["overlay"]};
+
+  if (el.active) {
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tl_src, &el.tl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tm_src, &el.tm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tr_src, &el.tr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_ll_src, &el.ll_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_mm_src, &el.mm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_rr_src, &el.rr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_bl_src, &el.bl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_bm_src, &el.bm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_br_src, &el.br_dst
+    );
+  } else {
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tl_src, &el.tl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tm_src, &el.tm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tr_src, &el.tr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_ll_src, &el.ll_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_mm_src, &el.mm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_rr_src, &el.rr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_bl_src, &el.bl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_bm_src, &el.bm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_br_src, &el.br_dst
+    );
+  }
+}
+
 
 void UISystem::SetupMainWindow()
 {
@@ -182,6 +295,37 @@ void UISystem::SetupMainWindow()
   window_elements_["main_window"].rect.h = 0.8 * SCREEN_SIZE_Y;  
 
   BuildWindowElement(window_elements_["main_window"]);
+}
+
+
+void UISystem::SetupMainButtons()
+{
+  auto width{120};
+  auto height{40};
+
+  button_elements_["info"].text = "Info";
+  button_elements_["info"].rect.x = .25 * SCREEN_SIZE_X - width / 2;
+  button_elements_["info"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["info"].rect.w = width;
+  button_elements_["info"].rect.h = height;
+
+  BuildButtonElement(button_elements_["info"]);
+
+  button_elements_["save"].text = "Save/Load";
+  button_elements_["save"].rect.x = .50 * SCREEN_SIZE_X - width / 2;
+  button_elements_["save"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["save"].rect.w = width;
+  button_elements_["save"].rect.h = height;
+
+  BuildButtonElement(button_elements_["save"]);
+
+  button_elements_["options"].text = "Options";
+  button_elements_["options"].rect.x = .75 * SCREEN_SIZE_X - width / 2;
+  button_elements_["options"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["options"].rect.w = width;
+  button_elements_["options"].rect.h = height;
+
+  BuildButtonElement(button_elements_["options"]);
 }
 
 
