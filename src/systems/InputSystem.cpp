@@ -40,6 +40,9 @@ void InputSystem::ClearInputs()
   if (input_.lclick) input_.lclick = false;
   if (input_.mclick) input_.mclick = false;
   if (input_.rclick) input_.rclick = false;
+  if (input_.lreleased) input_.lreleased = false;
+  if (input_.mreleased) input_.mreleased = false;
+  if (input_.rreleased) input_.rreleased = false;
 }
 
 
@@ -109,9 +112,21 @@ void InputSystem::OnMouseDown(Sint32 x, Sint32 y, Uint8 button)
   input_.my = y;
 
   switch (button) {
-    case SDL_BUTTON_LMASK: input_.lpressed = true; break;
-    case SDL_BUTTON_MMASK: input_.mpressed = true; break;
-    case SDL_BUTTON_RMASK: input_.rpressed = true; break;
+    case SDL_BUTTON_LMASK: {
+      input_.lclick = true;
+      input_.lpressed = true; 
+      break;
+    }
+    case SDL_BUTTON_MMASK: {
+      input_.mclick = true;
+      input_.mpressed = true; 
+      break;
+    }
+    case SDL_BUTTON_RMASK: {
+      input_.rclick = true;
+      input_.rpressed = true; 
+      break;
+    }
     default: break;
   }
 }
@@ -123,9 +138,21 @@ void InputSystem::OnMouseUp(Sint32 x, Sint32 y, Uint8 button)
   input_.my = y;
 
   switch (button) {
-    case SDL_BUTTON_LMASK: input_.lpressed = false; input_.lclick = true; break;
-    case SDL_BUTTON_MMASK: input_.mpressed = false; input_.mclick = true; break;
-    case SDL_BUTTON_RMASK: input_.rpressed = false; input_.rclick = true; break;
+    case SDL_BUTTON_LMASK: {
+      input_.lreleased = true;
+      input_.lpressed = false; 
+      break;
+    }
+    case SDL_BUTTON_MMASK: {
+      input_.mreleased = true;
+      input_.mpressed = false; 
+      break;
+    }
+    case SDL_BUTTON_RMASK: {
+      input_.rreleased = true;
+      input_.rpressed = false; 
+      break;
+    }
     default: break;
   }
 }

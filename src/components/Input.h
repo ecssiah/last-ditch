@@ -18,6 +18,9 @@ struct Input
     , lpressed{false}
     , mpressed{false}
     , rpressed{false}
+    , lreleased{false}
+    , mreleased{false}
+    , rreleased{false}
     , exit{false}
     , pause{false}
     , debug{false}
@@ -33,6 +36,7 @@ struct Input
   bool ascend, descend;
   bool lclick, mclick, rclick;
   bool lpressed, mpressed, rpressed;
+  bool lreleased, mreleased, rreleased;
   bool exit, pause, debug, menu;
 
   int mx, my;

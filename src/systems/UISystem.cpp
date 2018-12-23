@@ -40,6 +40,26 @@ void UISystem::Update()
   UpdateMainText();
 
   if (input_.menu) {
+    if (input_.lclick) {
+      auto& info_btn{button_elements_["info"]};    
+
+      auto lcheck{input_.mx > info_btn.rect.x};
+      auto rcheck{input_.mx < info_btn.rect.x + info_btn.rect.w};
+      auto tcheck{input_.my > info_btn.rect.y};
+      auto bcheck{input_.my < info_btn.rect.y + info_btn.rect.h};
+
+      if (lcheck && rcheck && tcheck && bcheck) {
+        info_btn.active = true;
+      }
+    }
+
+    if (input_.lreleased) {
+      auto& info_btn{button_elements_["info"]};    
+
+      info_btn.active = false;
+    }
+
+
     RenderWindowElement("main_window");
 
     RenderButtonElement("info");
