@@ -36,16 +36,15 @@ private:
   std::string FormatTime();
   std::string FormatDate();
 
-  void BuildWindowElements();
-  void BuildTextElements();
+  void UpdateMainText();
 
-  void BuildWindowElement(Window& element);
-  void BuildTextElement(Text& element);
-  void BuildButtonElement(Button& element);
+  void BuildWindowElement(std::string id);
+  void BuildTextElement(std::string id);
+  void BuildButtonElement(std::string id);
 
-  void RenderWindowElement(const Window& element);
-  void RenderTextElement(const Text& element);
-  void RenderButtonElement(const Button& element);
+  void RenderWindowElement(std::string id);
+  void RenderTextElement(std::string id);
+  void RenderButtonElement(std::string id);
 
   Input& input_;
   Render& render_;

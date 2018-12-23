@@ -37,35 +37,41 @@ void UISystem::Initialize()
 
 void UISystem::Update()
 {
-  if (input_.menu) {
-    RenderWindowElement(window_elements_["main_window"]);
+  UpdateMainText();
 
-    RenderButtonElement(button_elements_["info"]);
-    RenderButtonElement(button_elements_["save"]);
-    RenderButtonElement(button_elements_["options"]);
+  if (input_.menu) {
+    RenderWindowElement("main_window");
+
+    RenderButtonElement("info");
+    RenderButtonElement("save");
+    RenderButtonElement("options");
+
+    RenderTextElement("info");
+    RenderTextElement("save");
+    RenderTextElement("options");
   }
 
-  BuildTextElements();
-
-  for (auto kv : text_elements_) RenderTextElement(kv.second);
+  RenderTextElement("floor_display");
+  RenderTextElement("time_display");
+  RenderTextElement("date_display");
 }
 
 
-void UISystem::BuildTextElements()
+void UISystem::UpdateMainText()
 {
   if (map_.floor_changed) {
     text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
-    BuildTextElement(text_elements_["floor_display"]);
+    BuildTextElement("floor_display");
   }
 
   if (time_.time_changed) {
     text_elements_["time_display"].text = FormatTime();
-    BuildTextElement(text_elements_["time_display"]);
+    BuildTextElement("time_display");
   }
 
   if (time_.date_changed) {
     text_elements_["date_display"].text = FormatDate();
-    BuildTextElement(text_elements_["date_display"]);
+    BuildTextElement("date_display");
   }
 }
 
@@ -101,9 +107,10 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
-void UISystem::BuildWindowElement(Window& el)
+void UISystem::BuildWindowElement(string id)
 {
   auto size{TILE_SIZE / 4};
+  auto& el{window_elements_[id]};
 
   el.tl_dst = { 
     el.rect.x, el.rect.y, 
@@ -144,9 +151,10 @@ void UISystem::BuildWindowElement(Window& el)
 }
 
 
-void UISystem::BuildButtonElement(Button& el)
+void UISystem::BuildButtonElement(string id)
 {
   auto size{TILE_SIZE / 4};
+  auto& el{button_elements_[id]};
 
   el.tl_dst = { 
     el.rect.x, el.rect.y, 
@@ -184,11 +192,21 @@ void UISystem::BuildButtonElement(Button& el)
     el.rect.x + el.rect.w - size, el.rect.y + el.rect.h - size,
     size, size
   };
+
+  text_elements_[id].font = fonts_["Fantasque-Medium"];
+  text_elements_[id].text = el.text;
+
+  BuildTextElement(id);
+  
+  text_elements_[id].rect.x = el.rect.x + 2;
+  text_elements_[id].rect.y = el.rect.y + 2;
 }
 
 
-void UISystem::BuildTextElement(Text& el)
+void UISystem::BuildTextElement(string id)
 {
+  auto& el{text_elements_[id]};
+
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
 
   el.rect.w = sur->w;
@@ -202,14 +220,17 @@ void UISystem::BuildTextElement(Text& el)
 }
 
 
-void UISystem::RenderTextElement(const Text& el)
+void UISystem::RenderTextElement(string id)
 {
+  auto& el{text_elements_[id]};
+
   SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
 }
 
 
-void UISystem::RenderWindowElement(const Window& el)
+void UISystem::RenderWindowElement(string id)
 {
+  auto& el{window_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};
 
   SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
@@ -223,8 +244,9 @@ void UISystem::RenderWindowElement(const Window& el)
   SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
 }
 
-void UISystem::RenderButtonElement(const Button& el)
+void UISystem::RenderButtonElement(string id)
 {
+  auto& el{button_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};
 
   if (el.active) {
@@ -294,7 +316,7 @@ void UISystem::SetupMainWindow()
   window_elements_["main_window"].rect.w = 0.8 * SCREEN_SIZE_X;  
   window_elements_["main_window"].rect.h = 0.8 * SCREEN_SIZE_Y;  
 
-  BuildWindowElement(window_elements_["main_window"]);
+  BuildWindowElement("main_window");
 }
 
 
@@ -305,27 +327,27 @@ void UISystem::SetupMainButtons()
 
   button_elements_["info"].text = "Info";
   button_elements_["info"].rect.x = .25 * SCREEN_SIZE_X - width / 2;
-  button_elements_["info"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["info"].rect.y = .11 * SCREEN_SIZE_Y;
   button_elements_["info"].rect.w = width;
   button_elements_["info"].rect.h = height;
 
-  BuildButtonElement(button_elements_["info"]);
+  BuildButtonElement("info");
 
   button_elements_["save"].text = "Save/Load";
   button_elements_["save"].rect.x = .50 * SCREEN_SIZE_X - width / 2;
-  button_elements_["save"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["save"].rect.y = .11 * SCREEN_SIZE_Y;
   button_elements_["save"].rect.w = width;
   button_elements_["save"].rect.h = height;
 
-  BuildButtonElement(button_elements_["save"]);
+  BuildButtonElement("save");
 
   button_elements_["options"].text = "Options";
   button_elements_["options"].rect.x = .75 * SCREEN_SIZE_X - width / 2;
-  button_elements_["options"].rect.y = .12 * SCREEN_SIZE_Y;
+  button_elements_["options"].rect.y = .11 * SCREEN_SIZE_Y;
   button_elements_["options"].rect.w = width;
   button_elements_["options"].rect.h = height;
 
-  BuildButtonElement(button_elements_["options"]);
+  BuildButtonElement("options");
 }
 
 
@@ -334,7 +356,7 @@ void UISystem::SetupFloorDisplay()
   text_elements_["floor_display"].font = fonts_["Fantasque-Small"];
   text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
 
-  BuildTextElement(text_elements_["floor_display"]);
+  BuildTextElement("floor_display");
   
   text_elements_["floor_display"].rect.x = 4;
   text_elements_["floor_display"].rect.y = 4;
@@ -346,7 +368,7 @@ void UISystem::SetupTimeDisplay()
   text_elements_["time_display"].font = fonts_["Fantasque-Small"];
   text_elements_["time_display"].text = FormatTime();
 
-  BuildTextElement(text_elements_["time_display"]);
+  BuildTextElement("time_display");
 
   auto& rect{text_elements_["time_display"].rect};
 
@@ -372,7 +394,7 @@ void UISystem::SetupDateDisplay()
   text_elements_["date_display"].font = fonts_["Fantasque-Small"];
   text_elements_["date_display"].text = FormatDate();
 
-  BuildTextElement(text_elements_["date_display"]);
+  BuildTextElement("date_display");
 
   auto& rect{text_elements_["date_display"].rect};
 
