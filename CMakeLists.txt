@@ -44,10 +44,10 @@ set(
 set(
   CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/dist/cmake/Modules"
+  "${CMAKE_CURRENT_SOURCE_DIR}/build/cmake/Modules"
 )
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/build")
 
 find_package(
   Boost 1.66.0 REQUIRED 
