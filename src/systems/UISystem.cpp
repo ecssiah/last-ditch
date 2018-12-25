@@ -365,6 +365,7 @@ void UISystem::SetupMainButtons()
   button_elements_["info"].rect.y = .11 * SCREEN_SIZE_Y;
   button_elements_["info"].rect.w = width;
   button_elements_["info"].rect.h = height;
+  button_elements_["info"].active = true;
 
   BuildButtonElement("info");
 

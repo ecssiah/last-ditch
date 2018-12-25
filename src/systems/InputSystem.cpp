@@ -166,6 +166,14 @@ void InputSystem::CalculateSelectedTile()
   input_.sx = floor(tx + camera_.pos.x);
   input_.sy = floor(ty + camera_.pos.y);
 
+  auto xcheck{input_.sx < 0 || input_.sx > TILES_PER_LAYER - 1};
+  auto ycheck{input_.sy < 0 || input_.sy > TILES_PER_LAYER - 1}; 
+
+  if (xcheck || ycheck) {
+    input_.sx = -1;
+    input_.sy = -1;
+  }
+
   cout << "Tile: " << input_.sx << " " << input_.sy << endl;
 }
 
