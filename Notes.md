@@ -28,7 +28,7 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 
 ## Characters
 
-The main character can join or create a faction.
+The main character begins unaffiliated with any faction. The lower floors contain other characters who have no faction. The main character has a leadership ability that allows them to form a faction by aligning with some of these characters.
 
 Characters can partner together into relationships of different kinds with characters inside and outside of their faction. Characters can also have children, although children between members of rival factions will cause tensions, and they will not immediately belong to either faction. 
 
@@ -38,8 +38,15 @@ When a character dies the current faction can still be played by choosing a new 
 
 Every member of the faction has a series of traits that define how they interact with the faction and the world around them:
 
-### Traits
-Main Personality:
+### Character Aspects
+
+#### Traits
+* Full Name
+* Age
+* Gender
+* Faction Temperaments
+
+#### Main Personality:
 * Openness
 * Conscientiousness
 * Extraversion
@@ -48,14 +55,14 @@ Main Personality:
 
 Each member also has a series of tastes that affect how certain actions change their mood.
 
-### Needs
+#### Needs
 * Hunger
 * Thirst
 * Fatigue
 * Social
 * Wellbeing
 
-### Attributes
+#### Attributes
 * Strength
 * Constitution
 * Agility
@@ -64,7 +71,7 @@ Each member also has a series of tastes that affect how certain actions change t
 * Willpower
 * Charisma
 
-### Skills
+#### Skills
 * Botany
 * Brewing
 * Chemistry
@@ -77,7 +84,7 @@ Each member also has a series of tastes that affect how certain actions change t
 * Software
 * Trade
 
-### Equipment
+#### Equipment
 
 Each character can equip items in these areas:
 * Head
@@ -96,7 +103,7 @@ Each character can equip items in these areas:
 * Left Foot
 * Right Foot
 
-### Body Condition
+#### Body Condition
 
 Each body part can become damaged (range: 0-100):
 * Eyes
@@ -122,7 +129,7 @@ Each body part can become damaged (range: 0-100):
 
 A number health problems can arise from damage to body parts. Damage to the head can cause mental health problems. Drinking something rotten can cause stomach poisoning.
 
-### Health Problems
+#### Health Problems
 
 Characters can undergo a series of health problems that will affect their behavior and performance. Some of these are caused by the character's actions throughout the game and others are random.
 
