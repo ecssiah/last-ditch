@@ -14,7 +14,6 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 * They help the community survive and grow
 * The community can restructure the building to better fit their needs
 * The building is visited by traders/scavengers from other areas 
-* Two main languages are spoken in the building: English and Essiah 
 
 ## Implementation Notes
 
@@ -24,6 +23,8 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 * Camera controlled by WASD, character movement point/click
 * Wiring and plumbing in walls and floors, possibility of developing wireless
 * Lighting setup using transparent black overlays
+* Left click = Select Tile / Right click = Tile Menu
+
 
 ## Characters
 
@@ -32,6 +33,8 @@ The main character can join or create a faction.
 Characters can partner together into relationships of different kinds with characters inside and outside of their faction. Characters can also have children, although children between members of rival factions will cause tensions, and they will not immediately belong to either faction. 
 
 The children of a character can take over as leader, and this will pass the main character role on to the child. Faction leadership can also be passed on to a trusted member of the faction who is not related to main character. In both cases, the faction's trust of the new leader will have consequences.
+
+When a character dies the current faction can still be played by choosing a new leader. But if the entire faction dies, then a new game must be started with an unaffiliated character arriving at the lowest floors.
 
 Every member of the faction has a series of traits that define how they interact with the faction and the world around them:
 
@@ -92,6 +95,32 @@ Each character can equip items in these areas:
 * Right Leg
 * Left Foot
 * Right Foot
+
+### Body Condition
+
+Each body part can become damaged (range: 0-100):
+* Eyes
+* Head  
+* Neck
+* Shoulders
+* Upper Arms
+* Elbows
+* Forearms
+* Hands
+* Fingers
+* Upper Chest  
+* Abdomen
+* Upper Back
+* Lower Back
+* Hips
+* Groin
+* Thighs
+* Knees
+* Calves
+* Feet
+* Toes
+
+A number health problems can arise from damage to body parts. Damage to the head can cause mental health problems. Drinking something rotten can cause stomach poisoning.
 
 ### Health Problems
 

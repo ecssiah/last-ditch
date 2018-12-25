@@ -71,6 +71,8 @@ obj_tileset:
       uv: [0, 0]
     test2:
       uv: [1, 0]
+    item_storage:
+      uv: [0, 1]
 
 chr_tileset: 
   outcasts:
