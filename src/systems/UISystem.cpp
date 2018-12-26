@@ -124,7 +124,7 @@ void UISystem::LoadFonts()
 }
 
 
-TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
+TTF_Font* UISystem::LoadFont(const string& fontname, unsigned size)
 {
   string fontpath{"assets/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
@@ -138,7 +138,7 @@ TTF_Font* UISystem::LoadFont(string fontname, unsigned size)
 }
 
 
-void UISystem::BuildWindowElement(string id)
+void UISystem::BuildWindowElement(const string& id)
 {
   auto size{TILE_SIZE / 4};
   auto& el{window_elements_[id]};
@@ -182,7 +182,7 @@ void UISystem::BuildWindowElement(string id)
 }
 
 
-void UISystem::BuildButtonElement(string id)
+void UISystem::BuildButtonElement(const string& id)
 {
   auto size{TILE_SIZE / 4};
   auto& el{button_elements_[id]};
@@ -236,7 +236,7 @@ void UISystem::BuildButtonElement(string id)
 }
 
 
-void UISystem::BuildTextElement(string id)
+void UISystem::BuildTextElement(const string& id)
 {
   auto& el{text_elements_[id]};
 
@@ -253,7 +253,7 @@ void UISystem::BuildTextElement(string id)
 }
 
 
-void UISystem::RenderTextElement(string id)
+void UISystem::RenderTextElement(const string& id)
 {
   auto& el{text_elements_[id]};
 
@@ -261,7 +261,7 @@ void UISystem::RenderTextElement(string id)
 }
 
 
-void UISystem::RenderWindowElement(string id)
+void UISystem::RenderWindowElement(const string& id)
 {
   auto& el{window_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};
@@ -277,7 +277,7 @@ void UISystem::RenderWindowElement(string id)
   SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
 }
 
-void UISystem::RenderButtonElement(string id)
+void UISystem::RenderButtonElement(const string& id)
 {
   auto& el{button_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};

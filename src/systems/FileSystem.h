@@ -13,16 +13,16 @@ public:
 
   void Initialize();
 
-  bool CreateUser(std::string username);
-  bool DeleteUser(std::string username);
+  bool CreateUser(const std::string& username);
+  bool DeleteUser(const std::string& username);
 
-  bool Save(std::string filename);
-  bool Load(std::string filename);
-  bool Delete(std::string filename);
+  bool Save(const std::string& filename);
+  bool Load(const std::string& filename);
+  bool Delete(const std::string& filename);
 
-  bool SaveMap(std::string filename);
-  bool LoadMap(std::string filename);
-  bool DeleteMap(std::string filename);
+  bool SaveMap(const std::string& filename);
+  bool LoadMap(const std::string& filename);
+  bool DeleteMap(const std::string& filename);
 
 private:
   Input& input_;

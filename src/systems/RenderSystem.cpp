@@ -83,7 +83,7 @@ void RenderSystem::RenderMap()
 }
 
 
-void RenderSystem::RenderTile(string layer, int x, int y)
+void RenderSystem::RenderTile(const string& layer, int x, int y)
 {
   Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
@@ -162,7 +162,7 @@ void RenderSystem::LoadTilesets()
 }
 
 
-SDL_Texture* RenderSystem::LoadTexture(string texturename)
+SDL_Texture* RenderSystem::LoadTexture(const string& texturename)
 {
   string filename{"assets/textures/" + texturename + ".png"};
   SDL_Surface* surface{IMG_Load(filename.c_str())};

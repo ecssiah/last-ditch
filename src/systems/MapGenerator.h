@@ -26,7 +26,7 @@ private:
   void PlaceDoors(unsigned floor);
 
   bool CheckClearance(
-    std::string category, 
+    const std::string& category, 
     unsigned x, unsigned y, unsigned floor, unsigned direction
   );
   bool Intersects(const Room& r1, const Room& r2);
@@ -36,8 +36,8 @@ private:
   bool RoomCollision(unsigned floor, const Room& test_room); 
 
   void SetTile(
-    std::string layer, int x, int y, int floor, 
-    std::string type, 
+    const std::string& layer, int x, int y, int floor, 
+    const std::string& type, 
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
   void SetSolid(int x, int y, int floor, bool solid);

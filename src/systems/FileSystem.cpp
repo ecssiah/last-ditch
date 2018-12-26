@@ -33,7 +33,7 @@ void FileSystem::Initialize()
 }
 
 
-bool FileSystem::CreateUser(string username)
+bool FileSystem::CreateUser(const string& username)
 {
   bool user_exists{false};
 
@@ -58,7 +58,7 @@ bool FileSystem::CreateUser(string username)
 }
 
 
-bool FileSystem::DeleteUser(string username)
+bool FileSystem::DeleteUser(const string& username)
 {
   int index;
   bool user_exists{false};
@@ -84,7 +84,7 @@ bool FileSystem::DeleteUser(string username)
 }
 
 
-bool FileSystem::Save(string filename)
+bool FileSystem::Save(const string& filename)
 {
   ofstream ofs("saves/" + filename);
 
@@ -104,7 +104,7 @@ bool FileSystem::Save(string filename)
 }
 
 
-bool FileSystem::Load(string filename)
+bool FileSystem::Load(const string& filename)
 {
   ifstream ifs("saves/" + filename);
 
@@ -124,7 +124,7 @@ bool FileSystem::Load(string filename)
 }
 
 
-bool FileSystem::Delete(string filename)
+bool FileSystem::Delete(const string& filename)
 {
   string filepath{"saves/" + filename};
 
@@ -138,7 +138,7 @@ bool FileSystem::Delete(string filename)
 }
 
 
-bool FileSystem::SaveMap(string filename)
+bool FileSystem::SaveMap(const string& filename)
 {
   ofstream ofs("maps/" + filename);
 
@@ -157,7 +157,7 @@ bool FileSystem::SaveMap(string filename)
 }
 
 
-bool FileSystem::LoadMap(string filename)
+bool FileSystem::LoadMap(const string& filename)
 {
   ifstream ifs("maps/" + filename);
 
@@ -176,7 +176,7 @@ bool FileSystem::LoadMap(string filename)
 }
 
 
-bool FileSystem::DeleteMap(string filename)
+bool FileSystem::DeleteMap(const string& filename)
 {
   string filepath{"maps/" + filename};
 

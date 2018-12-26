@@ -16,7 +16,7 @@ MapGenerator::MapGenerator(Map& map)
   , blocked_rooms_{(size_t)NUM_FLOORS, vector<Room>()}
   , num_rooms_{60}
   , expansion_iterations_{20000}
-  , show_grid_{true}
+  , show_grid_{false}
 {
   srand(MAP_SEED);
 }
@@ -24,7 +24,7 @@ MapGenerator::MapGenerator(Map& map)
 
 void MapGenerator::GenerateMap()
 {
-  for (auto floor{0}; floor < NUM_FLOORS; ++floor) {
+  for (auto floor{0}; floor < NUM_FLOORS; floor++) {
     DefineBlockedRooms(floor);
     LayoutMainFloor(floor);
     SeedRooms(floor);
@@ -46,8 +46,8 @@ void MapGenerator::LayoutMainFloor(unsigned floor)
     floor_type = "dark_concrete";
   }
 
-  for (auto x{0}; x < TILES_PER_LAYER; ++x) { 
-    for (auto y{0}; y < TILES_PER_LAYER; ++y) {
+  for (auto x{0}; x < TILES_PER_LAYER; x++) { 
+    for (auto y{0}; y < TILES_PER_LAYER; y++) {
       SetTile("floor", x, y, floor, floor_type);
 
       if (show_grid_) {
@@ -60,7 +60,7 @@ void MapGenerator::LayoutMainFloor(unsigned floor)
 
 void MapGenerator::SeedRooms(unsigned floor)
 {
-  for (auto i{0}; i < num_rooms_; ++i) {
+  for (auto i{0}; i < num_rooms_; i++) {
     bool room_collision{true};
     string floor_type, wall_type;
 
@@ -98,7 +98,7 @@ void MapGenerator::ExpandRooms(unsigned floor)
   /* Randomize room expansion */
   /* srand(time(nullptr)); */
 
-  for (auto i{0}; i < expansion_iterations_; ++i) {
+  for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
     vector<int> dirs{0, 1, 2, 3}; 
 
@@ -134,20 +134,20 @@ void MapGenerator::ExpandRooms(unsigned floor)
 void MapGenerator::BuildRooms(unsigned floor)
 {
   for (const auto& room : rooms_[floor]) {
-    for (auto x{room.l}; x <= room.r; ++x) {
-      for (auto y{room.t}; y <= room.b; ++y) {
+    for (auto x{room.l}; x <= room.r; x++) {
+      for (auto y{room.t}; y <= room.b; y++) {
         SetTile("floor", x, y, floor, room.floor_type);
       }
     }
 
-    for (auto x{room.l}; x <= room.r; ++x) {
+    for (auto x{room.l}; x <= room.r; x++) {
       SetTile("wall", x, room.t, floor, room.wall_type + "-str"); 
       SetTile("wall", x, room.b, floor, room.wall_type + "-str");
       SetSolid(x, room.t, floor, true);
       SetSolid(x, room.b, floor, true);
     }
 
-    for (auto y{room.t + 1}; y <= room.b - 1; ++y) {
+    for (auto y{room.t + 1}; y <= room.b - 1; y++) {
       SetTile("wall", room.l, y, floor, room.wall_type + "-str", 90); 
       SetTile("wall", room.r, y, floor, room.wall_type + "-str", 90);
       SetSolid(room.l, y, floor, true);
@@ -168,8 +168,8 @@ void MapGenerator::FinishRooms(unsigned floor)
 
 void MapGenerator::IntegrateWalls(unsigned floor)
 {
-  for (auto x{3}; x < TILES_PER_LAYER - 3; ++x) {
-    for (auto y{3}; y < TILES_PER_LAYER - 3; ++y) {
+  for (auto x{3}; x < TILES_PER_LAYER - 3; x++) {
+    for (auto y{3}; y < TILES_PER_LAYER - 3; y++) {
       Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
 
       if (tile.category == "wall") {
@@ -225,7 +225,8 @@ void MapGenerator::IntegrateWalls(unsigned floor)
 
 
 bool MapGenerator::CheckClearance(
-  string category, unsigned x, unsigned y, unsigned floor, unsigned direction
+  const string& category, 
+  unsigned x, unsigned y, unsigned floor, unsigned direction
 ) {
   auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
@@ -361,9 +362,9 @@ void MapGenerator::DefineBlockedRooms(unsigned floor)
 
 
 void MapGenerator::SetTile(
-  string layer, 
+  const string& layer, 
   int x, int y, int floor, 
-  string full_type, float rotation, SDL_RendererFlip flip
+  const string& full_type, float rotation, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 

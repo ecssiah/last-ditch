@@ -14,14 +14,6 @@ public:
   void Update();
 
 private:
-  void GenerateMap();
-
-  void SetTile(
-    std::string layer, 
-    int x, int y, int floor, 
-    std::string type, float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
-  );
-
   Input& input_;
   Map& map_;
 

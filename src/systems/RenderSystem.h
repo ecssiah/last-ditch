@@ -28,10 +28,10 @@ private:
   void InitializeSDL();
   void InitializeSDLImage();
   void LoadTilesets();
-  SDL_Texture* LoadTexture(std::string texturename);
+  SDL_Texture* LoadTexture(const std::string& texturename);
 
   void RenderMap();
-  void RenderTile(std::string layer, int x, int y);
+  void RenderTile(const std::string& layer, int x, int y);
 
   Render& render_;
   Input& input_;

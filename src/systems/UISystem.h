@@ -24,7 +24,7 @@ public:
 
 private:
   void InitializeSDLTTF();
-  TTF_Font* LoadFont(std::string fontname, unsigned size);
+  TTF_Font* LoadFont(const std::string& fontname, unsigned size);
   void LoadFonts();
 
   void SetupMainWindow();
@@ -38,13 +38,13 @@ private:
 
   void UpdateMainText();
 
-  void BuildWindowElement(std::string id);
-  void BuildTextElement(std::string id);
-  void BuildButtonElement(std::string id);
+  void BuildWindowElement(const std::string& id);
+  void BuildTextElement(const std::string& id);
+  void BuildButtonElement(const std::string& id);
 
-  void RenderWindowElement(std::string id);
-  void RenderTextElement(std::string id);
-  void RenderButtonElement(std::string id);
+  void RenderWindowElement(const std::string& id);
+  void RenderTextElement(const std::string& id);
+  void RenderButtonElement(const std::string& id);
 
   bool CheckElementIntersect(Element& el, int x, int y);
 
