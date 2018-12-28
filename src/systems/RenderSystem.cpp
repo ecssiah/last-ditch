@@ -36,30 +36,30 @@ RenderSystem::~RenderSystem()
 }
 
 
-void RenderSystem::Initialize()
+void RenderSystem::init()
 {
-  InitializeSDL();
-  InitializeSDLImage();
+  init_SDL();
+  init_SDL_image();
   
-  LoadTilesets();
+  load_tilesets();
 }
 
 
-void RenderSystem::Update()
+void RenderSystem::update()
 {
   SDL_RenderClear(render_.renderer);
 
-  RenderMap(); 
+  render_map(); 
 }
 
 
-void RenderSystem::Display()
+void RenderSystem::display()
 {
   SDL_RenderPresent(render_.renderer);
 }
 
 
-void RenderSystem::RenderMap()
+void RenderSystem::render_map()
 {
   int x_min(camera_.pos.x - VIEW_X * 1.0f / camera_.zoom); 
   int y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
@@ -73,17 +73,17 @@ void RenderSystem::RenderMap()
 
   for (auto x{x_min}; x <= x_max; ++x) { 
     for (auto y{y_min}; y <= y_max; ++y) {
-      RenderTile("floor", x, y);
-      RenderTile("wall", x, y);
-      RenderTile("object", x, y);
-      RenderTile("entity", x, y);
-      RenderTile("overlay", x, y);
+      render_tile("floor", x, y);
+      render_tile("wall", x, y);
+      render_tile("object", x, y);
+      render_tile("entity", x, y);
+      render_tile("overlay", x, y);
     }
   }
 }
 
 
-void RenderSystem::RenderTile(const string& layer, int x, int y)
+void RenderSystem::render_tile(const string& layer, int x, int y)
 {
   Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
@@ -104,7 +104,7 @@ void RenderSystem::RenderTile(const string& layer, int x, int y)
 }
 
 
-void RenderSystem::InitializeSDL()
+void RenderSystem::init_SDL()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     cout << "SDL_Init Error: " << SDL_GetError() << endl;
@@ -141,7 +141,7 @@ void RenderSystem::InitializeSDL()
 }
 
 
-void RenderSystem::InitializeSDLImage()
+void RenderSystem::init_SDL_image()
 {
   int img_flags{IMG_INIT_PNG};
   
@@ -152,17 +152,17 @@ void RenderSystem::InitializeSDLImage()
 }
 
 
-void RenderSystem::LoadTilesets()
+void RenderSystem::load_tilesets()
 {
-  render_.textures["floor"] = LoadTexture("map_tileset"); 
+  render_.textures["floor"] = load_texture("map_tileset"); 
   render_.textures["wall"] = render_.textures["floor"];
-  render_.textures["object"] = LoadTexture("object_tileset"); 
-  render_.textures["entity"] = LoadTexture("entity_tileset"); 
-  render_.textures["overlay"] = LoadTexture("overlay_tileset");
+  render_.textures["object"] = load_texture("object_tileset"); 
+  render_.textures["entity"] = load_texture("entity_tileset"); 
+  render_.textures["overlay"] = load_texture("overlay_tileset");
 }
 
 
-SDL_Texture* RenderSystem::LoadTexture(const string& texturename)
+SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
   string filename{"assets/textures/" + texturename + ".png"};
   SDL_Surface* surface{IMG_Load(filename.c_str())};

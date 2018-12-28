@@ -10,8 +10,8 @@ class MapSystem
 public:
   MapSystem(Input& input, Map& map);
 
-  void Initialize();
-  void Update();
+  void init();
+  void update();
 
 private:
   Input& input_;

@@ -13,29 +13,29 @@ LastDitch::LastDitch()
   , ui_system_{input_, render_, map_, time_} 
   , file_system_{input_, map_, time_}
 {
-  config_system_.Initialize();
-  time_system_.Initialize();
-  camera_system_.Initialize();
-  render_system_.Initialize();
-  ui_system_.Initialize();
-  input_system_.Initialize();
-  map_system_.Initialize();
-  entity_system_.Initialize();
-  file_system_.Initialize();
+  config_system_.init();
+  time_system_.init();
+  camera_system_.init();
+  render_system_.init();
+  ui_system_.init();
+  input_system_.init();
+  map_system_.init();
+  entity_system_.init();
+  file_system_.init();
 
   while (!input_.exit) {
-    time_system_.StartFrame();
+    time_system_.start_frame();
 
-    input_system_.Update();
-    camera_system_.Update();
-    map_system_.Update();
-    entity_system_.Update();
-    render_system_.Update();
-    ui_system_.Update();
+    input_system_.update();
+    camera_system_.update();
+    map_system_.update();
+    entity_system_.update();
+    render_system_.update();
+    ui_system_.update();
 
-    render_system_.Display();
+    render_system_.display();
 
-    time_system_.EndFrame();
+    time_system_.end_frame();
   }
 }
 

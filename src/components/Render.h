@@ -5,10 +5,12 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 
+#include "../constants/SimulationConstants.h"
+
 struct Render
 {
   Render() 
-    : dt{} 
+    : dt{FRAME_TIME} 
     , window{nullptr}
     , renderer{nullptr}
     , textures{}

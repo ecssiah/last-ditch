@@ -12,12 +12,12 @@ ConfigSystem::ConfigSystem()
 
 }
 
-void ConfigSystem::Initialize()
+void ConfigSystem::init()
 {
-  LoadTileInfo();
+  load_tile_info();
 }
 
-void ConfigSystem::LoadTileInfo()
+void ConfigSystem::load_tile_info()
 {
   YAML::Node tileset_map{YAML::LoadFile("assets/scripts/tiles.yml")};
 

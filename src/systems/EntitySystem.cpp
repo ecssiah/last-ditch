@@ -8,12 +8,12 @@ EntitySystem::EntitySystem(Map& map)
 {
 }
 
-void EntitySystem::Initialize()
+void EntitySystem::init()
 {
 
 }
 
-void EntitySystem::Update()
+void EntitySystem::update()
 {
 
 }

@@ -12,12 +12,12 @@ class TimeSystem
 public:
   TimeSystem(Input& input, Render& render, Time& time);
 
-  void Initialize();
-  void StartFrame();
-  void EndFrame();
+  void init();
+  void start_frame();
+  void end_frame();
 
 private:
-  void Tick();
+  void tick();
 
   Input& input_;
   Render& render_;

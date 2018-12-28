@@ -10,18 +10,18 @@ class InputSystem
 public:
   InputSystem(Input& input, Camera& camera, Render& render);
 
-  void Initialize();
-  void Update();
+  void init();
+  void update();
 
 private:
-  void OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
-  void OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
-  void OnMouseDown(Sint32 x, Sint32 y, Uint8 button);
-  void OnMouseUp(Sint32 x, Sint32 y, Uint8 button);
+  void on_key_down(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
+  void on_key_up(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
+  void on_mouse_down(Sint32 x, Sint32 y, Uint8 button);
+  void on_mouse_up(Sint32 x, Sint32 y, Uint8 button);
 
-  void ClearInputs();
-  void CallInputFunctions();
-  void CalculateSelectedTile();
+  void clear_inputs();
+  void call_input_functions();
+  void calculate_selected_tile();
 
   Input& input_;
   Camera& camera_;

@@ -10,8 +10,8 @@ class CameraSystem
 public:
   CameraSystem(Input& input, Render& render, Camera& camera);
 
-  void Initialize();
-  void Update();
+  void init();
+  void update();
 
 private:
   Input& input_;

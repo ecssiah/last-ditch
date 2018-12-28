@@ -13,30 +13,30 @@ TimeSystem::TimeSystem(Input& input, Render& render, Time& time)
 }
 
 
-void TimeSystem::Initialize()
+void TimeSystem::init()
 {
 }
 
 
-void TimeSystem::StartFrame()
+void TimeSystem::start_frame()
 {
   start_ = chrono::steady_clock::now();
 }
 
 
-void TimeSystem::EndFrame()
+void TimeSystem::end_frame()
 {
+  if (!input_.pause) tick();
+
   end_ = chrono::steady_clock::now();
 
   auto ms{chrono::duration_cast<chrono::microseconds>(end_ - start_).count()};
 
-  render_.dt = min(MAX_DELTA_TIME, 1e-6 * ms);
-
-  if (!input_.pause) Tick();
+  render_.dt = min((double)FRAME_TIME, 1e-6 * ms);
 }
 
 
-void TimeSystem::Tick()
+void TimeSystem::tick()
 {
   time_.ticks += 1;
   time_.time_changed = false;

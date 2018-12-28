@@ -8,16 +8,16 @@
 
 class EntitySystem
 {
-public:
-  EntitySystem(Map& map);
-
-  void Initialize();
-  void Update();
-
-private:
   Map& map_;
 
   std::vector<Entity> entities_;
+
+public:
+  EntitySystem(Map& map);
+
+  void init();
+  void update();
+
 };
 
 #endif

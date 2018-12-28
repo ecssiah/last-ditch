@@ -17,21 +17,21 @@ InputSystem::InputSystem(Input& input, Camera& camera, Render& render)
 }
 
 
-void InputSystem::Initialize()
+void InputSystem::init()
 {
 }
 
 
-void InputSystem::Update()
+void InputSystem::update()
 {
-  ClearInputs();
-  CallInputFunctions();
+  clear_inputs();
+  call_input_functions();
   
-  if (input_.lclick) CalculateSelectedTile();
+  if (input_.lclick) calculate_selected_tile();
 }
 
 
-void InputSystem::ClearInputs()
+void InputSystem::clear_inputs()
 {
   if (input_.ascend) input_.ascend = false;
   if (input_.descend) input_.descend = false;
@@ -46,7 +46,7 @@ void InputSystem::ClearInputs()
 }
 
 
-void InputSystem::CallInputFunctions()
+void InputSystem::call_input_functions()
 {
   for(SDL_Event e; SDL_PollEvent(&e); ) {
     switch(e.type) {
@@ -55,19 +55,19 @@ void InputSystem::CallInputFunctions()
         break;
       }
       case SDL_KEYDOWN: {
-        OnKeyDown(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
+        on_key_down(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
         break;
       }
       case SDL_KEYUP: {
-        OnKeyUp(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
+        on_key_up(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
         break;
       }
       case SDL_MOUSEBUTTONDOWN: {
-        OnMouseDown(e.button.x, e.button.y, e.button.button);
+        on_mouse_down(e.button.x, e.button.y, e.button.button);
         break;
       }
       case SDL_MOUSEBUTTONUP: {
-        OnMouseUp(e.button.x, e.button.y, e.button.button);
+        on_mouse_up(e.button.x, e.button.y, e.button.button);
         break;
       }
       default: break;
@@ -76,7 +76,7 @@ void InputSystem::CallInputFunctions()
 }
 
 
-void InputSystem::OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
+void InputSystem::on_key_down(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
 {
   switch (sym) {
     case SDLK_w: input_.up = true; break;
@@ -93,7 +93,7 @@ void InputSystem::OnKeyDown(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
 }
 
 
-void InputSystem::OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
+void InputSystem::on_key_up(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
 {
   switch (sym) {
     case SDLK_w: input_.up = false; break;
@@ -106,7 +106,7 @@ void InputSystem::OnKeyUp(SDL_Keycode sym, Uint16 mod, Uint16 scancode)
 }
 
 
-void InputSystem::OnMouseDown(Sint32 x, Sint32 y, Uint8 button)
+void InputSystem::on_mouse_down(Sint32 x, Sint32 y, Uint8 button)
 {
   input_.mx = x;
   input_.my = y;
@@ -132,7 +132,7 @@ void InputSystem::OnMouseDown(Sint32 x, Sint32 y, Uint8 button)
 }
 
 
-void InputSystem::OnMouseUp(Sint32 x, Sint32 y, Uint8 button)
+void InputSystem::on_mouse_up(Sint32 x, Sint32 y, Uint8 button)
 {
   input_.mx = x;
   input_.my = y;
@@ -158,7 +158,7 @@ void InputSystem::OnMouseUp(Sint32 x, Sint32 y, Uint8 button)
 }
 
 
-void InputSystem::CalculateSelectedTile()
+void InputSystem::calculate_selected_tile()
 {
   float tx{(input_.mx - HALF_SCREEN_SIZE_X) / (float)TILE_SIZE / camera_.zoom};
   float ty{(input_.my - HALF_SCREEN_SIZE_Y) / (float)TILE_SIZE / camera_.zoom};

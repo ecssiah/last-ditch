@@ -13,34 +13,34 @@ class MapGenerator
 public:
   MapGenerator(Map& map);
 
-  void GenerateMap();
+  void generate_map();
 
 private:
-  void DefineBlockedRooms(unsigned floor);
-  void LayoutMainFloor(unsigned floor);
-  void SeedRooms(unsigned floor);
-  void ExpandRooms(unsigned floor);
-  void BuildRooms(unsigned floor);
-  void FinishRooms(unsigned floor);
-  void IntegrateWalls(unsigned floor);
-  void PlaceDoors(unsigned floor);
+  void define_blocked_rooms(unsigned floor);
+  void layout_main_floor(unsigned floor);
+  void seed_rooms(unsigned floor);
+  void expand_rooms(unsigned floor);
+  void build_rooms(unsigned floor);
+  void finish_rooms(unsigned floor);
+  void integrate_walls(unsigned floor);
+  void place_doors(unsigned floor);
 
-  bool CheckClearance(
+  bool check_clearance(
     const std::string& category, 
     unsigned x, unsigned y, unsigned floor, unsigned direction
   );
-  bool Intersects(const Room& r1, const Room& r2);
-  bool Intersects(
+  bool intersects(const Room& r1, const Room& r2);
+  bool intersects(
     const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
   );
-  bool RoomCollision(unsigned floor, const Room& test_room); 
+  bool room_collision(unsigned floor, const Room& test_room); 
 
-  void SetTile(
+  void set_tile(
     const std::string& layer, int x, int y, int floor, 
     const std::string& type, 
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
-  void SetSolid(int x, int y, int floor, bool solid);
+  void set_solid(int x, int y, int floor, bool solid);
 
   unsigned num_rooms_;
   unsigned expansion_iterations_;

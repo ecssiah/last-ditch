@@ -20,18 +20,18 @@ public:
   );
   ~RenderSystem();
 
-  void Initialize();
-  void Update();
-  void Display();
+  void init();
+  void update();
+  void display();
 
 private:
-  void InitializeSDL();
-  void InitializeSDLImage();
-  void LoadTilesets();
-  SDL_Texture* LoadTexture(const std::string& texturename);
+  void init_SDL();
+  void init_SDL_image();
+  void load_tilesets();
+  SDL_Texture* load_texture(const std::string& texturename);
 
-  void RenderMap();
-  void RenderTile(const std::string& layer, int x, int y);
+  void render_map();
+  void render_tile(const std::string& layer, int x, int y);
 
   Render& render_;
   Input& input_;

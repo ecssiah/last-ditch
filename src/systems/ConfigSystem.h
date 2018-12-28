@@ -8,10 +8,10 @@ class ConfigSystem
 public:
   ConfigSystem();
 
-  void Initialize();
+  void init();
 
 private:
-  void LoadTileInfo();
+  void load_tile_info();
 
 }; 
 

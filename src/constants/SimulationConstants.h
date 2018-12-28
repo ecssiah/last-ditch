@@ -1,7 +1,9 @@
 #ifndef SIMULATION_CONSTANTS_H
 #define SIMULATION_CONSTANTS_H
 
-extern const double MAX_DELTA_TIME;
+extern const int FPS;
+
+extern const float FRAME_TIME;
 
 extern const int TICKS_PER_SECOND;
 extern const int SECONDS_PER_MINUTE;

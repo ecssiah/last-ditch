@@ -19,34 +19,34 @@ class UISystem
 public:
   UISystem(Input& input, Render& render, Map& map, Time& time);
 
-  void Initialize();
-  void Update();
+  void init();
+  void update();
 
 private:
-  void InitializeSDLTTF();
-  TTF_Font* LoadFont(const std::string& fontname, unsigned size);
-  void LoadFonts();
+  void init_SDL_ttf();
+  TTF_Font* load_font(const std::string& fontname, unsigned size);
+  void load_fonts();
 
-  void SetupMainWindow();
-  void SetupMainButtons();
-  void SetupFloorDisplay();
-  void SetupTimeDisplay();
-  void SetupDateDisplay();
+  void setup_main_window();
+  void setup_main_buttons();
+  void setup_floor_display();
+  void setup_time_display();
+  void setup_date_display();
 
-  std::string FormatTime();
-  std::string FormatDate();
+  std::string format_time();
+  std::string format_date();
 
-  void UpdateMainText();
+  void update_main_text();
 
-  void BuildWindowElement(const std::string& id);
-  void BuildTextElement(const std::string& id);
-  void BuildButtonElement(const std::string& id);
+  void build_window_element(const std::string& id);
+  void build_text_element(const std::string& id);
+  void build_button_element(const std::string& id);
 
-  void RenderWindowElement(const std::string& id);
-  void RenderTextElement(const std::string& id);
-  void RenderButtonElement(const std::string& id);
+  void render_window_element(const std::string& id);
+  void render_text_element(const std::string& id);
+  void render_button_element(const std::string& id);
 
-  bool CheckElementIntersect(Element& el, int x, int y);
+  bool check_intersection(Element& el, int x, int y);
 
   Input& input_;
   Render& render_;

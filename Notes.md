@@ -15,16 +15,23 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 * The community can restructure the building to better fit their needs
 * The building is visited by traders/scavengers from other areas 
 
-## Implementation Notes
+## Implementation 
 
+* Int and Float platform independent types
 * Real-time turn system
+* Pause simulation time while allowing render time to continue
 * VERY consequential damage and social instability from fighting
 * Characters can move through each other
 * Camera controlled by WASD, character movement point/click
 * Wiring and plumbing in walls and floors, possibility of developing wireless
 * Lighting setup using transparent black overlays
 * Left click = Select Tile / Right click = Tile Menu
+* Game Clock class
 
+### Asset Manager
+* GUIDs
+* Asset registry - map(GUID, pointer) 
+*  
 
 ## Characters
 

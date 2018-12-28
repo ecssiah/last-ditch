@@ -1,6 +1,8 @@
 #include "SimulationConstants.h"
 
-const double MAX_DELTA_TIME{.2};
+const int FPS{30};
+
+const float FRAME_TIME{1.0 / FPS};
 
 const int TICKS_PER_SECOND{80};
 const int SECONDS_PER_MINUTE{60};

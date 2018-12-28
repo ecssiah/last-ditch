@@ -13,13 +13,13 @@ MapSystem::MapSystem(Input& input, Map& map)
 }
 
 
-void MapSystem::Initialize()
+void MapSystem::init()
 {
-  map_generator_.GenerateMap();
+  map_generator_.generate_map();
 }
 
 
-void MapSystem::Update()
+void MapSystem::update()
 {
   if (map_.floor_changed) map_.floor_changed = false;
 

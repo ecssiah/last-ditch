@@ -11,18 +11,18 @@ class FileSystem
 public:
   FileSystem(Input& input, Map& map, Time& time);
 
-  void Initialize();
+  void init();
 
-  bool CreateUser(const std::string& username);
-  bool DeleteUser(const std::string& username);
+  bool create_user(const std::string& username);
+  bool delete_user(const std::string& username);
 
-  bool Save(const std::string& filename);
-  bool Load(const std::string& filename);
-  bool Delete(const std::string& filename);
+  bool save_state(const std::string& filename);
+  bool load_state(const std::string& filename);
+  bool delete_state(const std::string& filename);
 
-  bool SaveMap(const std::string& filename);
-  bool LoadMap(const std::string& filename);
-  bool DeleteMap(const std::string& filename);
+  bool save_map(const std::string& filename);
+  bool load_map(const std::string& filename);
+  bool delete_map(const std::string& filename);
 
 private:
   Input& input_;

@@ -13,11 +13,11 @@ CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera)
 {
 }
 
-void CameraSystem::Initialize()
+void CameraSystem::init()
 {
 }
 
-void CameraSystem::Update()
+void CameraSystem::update()
 {
   auto inv_zoom{1.0f / camera_.zoom};
   auto modifier{inv_zoom * render_.dt * camera_.speed};

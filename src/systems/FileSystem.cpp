@@ -19,21 +19,21 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 }
 
 
-void FileSystem::Initialize()
+void FileSystem::init()
 {
-  CreateUser("test user");
+  create_user("test user");
 
-  Save("michael1");
-  Load("michael1");
-  Delete("michael1");
+  save_state("michael1");
+  load_state("michael1");
+  delete_state("michael1");
 
-  SaveMap("test_map1");
-  LoadMap("test_map1");
-  DeleteMap("test_map1");
+  save_map("test_map1");
+  load_map("test_map1");
+  delete_map("test_map1");
 }
 
 
-bool FileSystem::CreateUser(const string& username)
+bool FileSystem::create_user(const string& username)
 {
   bool user_exists{false};
 
@@ -58,7 +58,7 @@ bool FileSystem::CreateUser(const string& username)
 }
 
 
-bool FileSystem::DeleteUser(const string& username)
+bool FileSystem::delete_user(const string& username)
 {
   int index;
   bool user_exists{false};
@@ -84,7 +84,7 @@ bool FileSystem::DeleteUser(const string& username)
 }
 
 
-bool FileSystem::Save(const string& filename)
+bool FileSystem::save_state(const string& filename)
 {
   ofstream ofs("saves/" + filename);
 
@@ -104,7 +104,7 @@ bool FileSystem::Save(const string& filename)
 }
 
 
-bool FileSystem::Load(const string& filename)
+bool FileSystem::load_state(const string& filename)
 {
   ifstream ifs("saves/" + filename);
 
@@ -124,7 +124,7 @@ bool FileSystem::Load(const string& filename)
 }
 
 
-bool FileSystem::Delete(const string& filename)
+bool FileSystem::delete_state(const string& filename)
 {
   string filepath{"saves/" + filename};
 
@@ -138,7 +138,7 @@ bool FileSystem::Delete(const string& filename)
 }
 
 
-bool FileSystem::SaveMap(const string& filename)
+bool FileSystem::save_map(const string& filename)
 {
   ofstream ofs("maps/" + filename);
 
@@ -157,7 +157,7 @@ bool FileSystem::SaveMap(const string& filename)
 }
 
 
-bool FileSystem::LoadMap(const string& filename)
+bool FileSystem::load_map(const string& filename)
 {
   ifstream ifs("maps/" + filename);
 
@@ -176,7 +176,7 @@ bool FileSystem::LoadMap(const string& filename)
 }
 
 
-bool FileSystem::DeleteMap(const string& filename)
+bool FileSystem::delete_map(const string& filename)
 {
   string filepath{"maps/" + filename};
 
