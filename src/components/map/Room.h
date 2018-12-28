@@ -2,30 +2,30 @@
 #define ROOM_H
 
 #include <string>
+#include <SDL2/SDL.h>
 
 struct Room
 {
   Room()
   {}
 
-  Room(int _l, int _r, int _t, int _b)
-    : l{_l}
-    , r{_r}
-    , t{_t}
-    , b{_b}
+  Room(int x, int y, int w, int h)
+    : rect{x, y, w, h}
     , wall_type{}
     , floor_type{}
   {}
 
-  bool operator ==(const Room& room) const {
-    return l == room.l && r == room.r && t == room.t && b == room.b; 
-  }
+  int x() const { return rect.x; }
+  int y() const { return rect.y; }
+  int w() const { return rect.w; }
+  int h() const { return rect.h; }
 
-  bool operator !=(const Room& room) const {
-    return !(*this == room); 
-  }
+  int l() const { return rect.x; }
+  int r() const { return rect.x + rect.w; }
+  int t() const { return rect.y; }
+  int b() const { return rect.y + rect.h; }
 
-  int l, r, t, b;
+  SDL_Rect rect;
 
   std::string wall_type;
   std::string floor_type;

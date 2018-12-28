@@ -80,10 +80,10 @@ void MapGenerator::seed_rooms(unsigned floor)
     test_room.wall_type = wall_type;
 
     while (collision) {
-      test_room.l = 3 + rand() % (TILES_PER_LAYER - 8);
-      test_room.t = 3 + rand() % (TILES_PER_LAYER - 8);
-      test_room.r = test_room.l + 2;
-      test_room.b = test_room.t + 2;
+      test_room.rect.x = 3 + rand() % (TILES_PER_LAYER - 8);
+      test_room.rect.y = 3 + rand() % (TILES_PER_LAYER - 8);
+      test_room.rect.w = 2;
+      test_room.rect.h = 2;
 
       collision = room_collision(floor, test_room);
     }
@@ -108,52 +108,52 @@ void MapGenerator::expand_rooms(unsigned floor)
       int choice{dirs[(int)(rand() % dirs.size())]};
 
       switch (choice) {
-        case 0: room.l--; break;
-        case 1: room.r++; break;
-        case 2: room.t--; break;
-        case 3: room.b++; break;
+        case 0: room.rect.x--; break;
+        case 1: room.rect.y--; break;
+        case 2: room.rect.w++; break;
+        case 3: room.rect.h++; break;
       }
 
       if (room_collision(floor, room)) {
         dirs.erase(remove(dirs.begin(), dirs.end(), choice), dirs.end());
 
         switch (choice) {
-          case 0: room.l++; break;
-          case 1: room.r--; break;
-          case 2: room.t++; break;
-          case 3: room.b--; break;
+          case 0: room.rect.x++; break;
+          case 1: room.rect.y++; break;
+          case 2: room.rect.w--; break;
+          case 3: room.rect.h--; break;
         }
       } else {
         found = true;
       }
     }
-  }   
+  }  
 }
 
 
 void MapGenerator::build_rooms(unsigned floor)
 {
   for (const auto& room : rooms_[floor]) {
-    for (auto x{room.l}; x <= room.r; x++) {
-      for (auto y{room.t}; y <= room.b; y++) {
+    for (auto x{room.l()}; x <= room.r(); x++) {
+      for (auto y{room.t()}; y <= room.b(); y++) {
         set_tile("floor", x, y, floor, room.floor_type);
       }
     }
 
-    for (auto x{room.l}; x <= room.r; x++) {
-      set_tile("wall", x, room.t, floor, room.wall_type + "-str"); 
-      set_tile("wall", x, room.b, floor, room.wall_type + "-str");
-      set_solid(x, room.t, floor, true);
-      set_solid(x, room.b, floor, true);
+    for (auto x{room.l()}; x <= room.r(); x++) {
+      set_tile("wall", x, room.t(), floor, room.wall_type + "-str"); 
+      set_tile("wall", x, room.b(), floor, room.wall_type + "-str");
+      set_solid(x, room.t(), floor, true);
+      set_solid(x, room.b(), floor, true);
     }
 
-    for (auto y{room.t + 1}; y <= room.b - 1; y++) {
-      set_tile("wall", room.l, y, floor, room.wall_type + "-str", 90); 
-      set_tile("wall", room.r, y, floor, room.wall_type + "-str", 90);
-      set_solid(room.l, y, floor, true);
-      set_solid(room.r, y, floor, true);
+    for (auto y{room.t() + 1}; y <= room.b(); y++) {
+      set_tile("wall", room.l(), y, floor, room.wall_type + "-str", 90); 
+      set_tile("wall", room.r(), y, floor, room.wall_type + "-str", 90);
+      set_solid(room.l(), y, floor, true);
+      set_solid(room.r(), y, floor, true);
     }
-  } 
+  }
 
   cout << "Floor " << floor + 1 << " rooms built" << endl;
 }
@@ -271,36 +271,36 @@ void MapGenerator::place_doors(unsigned floor)
       string door_type{"door1-cls"};
 
       if (choice == 0) {
-        auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
+        auto place{(rand() % (room.w() - 1)) + room.l() + 1};
 
-        if (check_clearance("door", place, room.t, floor, choice)) {
+        if (check_clearance("door", place, room.t(), floor, choice)) {
           found = true;
-          set_tile("wall", place, room.t, floor, door_type);
-          set_solid(place, room.t, floor, true);
+          set_tile("wall", place, room.t(), floor, door_type);
+          set_solid(place, room.t(), floor, true);
         }
       } else if (choice == 1) {
-        auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
+        auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (check_clearance("door", room.r, place, floor, choice)) {
+        if (check_clearance("door", room.r(), place, floor, choice)) {
           found = true;
-          set_tile("wall", room.r, place, floor, door_type, 90);
-          set_solid(room.r, place, floor, true);
+          set_tile("wall", room.l(), place, floor, door_type, 90);
+          set_solid(room.l(), place, floor, true);
         }
       } else if (choice == 2) {
-        auto place{(rand() % (room.r - room.l - 1)) + room.l + 1};
+        auto place{(rand() % (room.w() - 1)) + room.l() + 1};
         
-        if (check_clearance("door", place, room.b, floor, choice)) {
+        if (check_clearance("door", place, room.b(), floor, choice)) {
           found = true;
-          set_tile("wall", place, room.b, floor, door_type);
-          set_solid(place, room.b, floor, true);
+          set_tile("wall", place, room.b(), floor, door_type);
+          set_solid(place, room.b(), floor, true);
         }
       } else if (choice == 3) {
-        auto place{(rand() % (room.b - room.t - 1)) + room.t + 1};
+        auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (check_clearance("door", room.l, place, floor, choice)) {
+        if (check_clearance("door", room.l(), place, floor, choice)) {
           found = true;
-          set_tile("wall", room.l, place, floor, door_type, 90);
-          set_solid(room.l, place, floor, true);
+          set_tile("wall", room.l(), place, floor, door_type, 90);
+          set_solid(room.l(), place, floor, true);
         }
       }
     }
@@ -310,29 +310,15 @@ void MapGenerator::place_doors(unsigned floor)
 }
 
 
-bool MapGenerator::intersects(
-  const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
-) {
-  auto lr_check{r1.l < r && r1.r > l};
-  auto tb_check{r1.t < b && r1.b > t};
-
-  return lr_check && tb_check ? true : false;
-}
-
-
-bool MapGenerator::intersects(const Room& r1, const Room& r2)
-{
-  return intersects(r1, r2.l, r2.r, r2.t, r2.b);
-}
-
-
 bool MapGenerator::room_collision(unsigned floor, const Room& test_room) 
 {
   for (const auto& room : blocked_rooms_[floor]) 
-    if (intersects(room, test_room)) return true;
+    if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
 
-  for (const auto& room : rooms_[floor]) 
-    if (room != test_room && intersects(room, test_room)) return true;
+  for (const auto& room : rooms_[floor]) {
+    auto intersection{SDL_HasIntersection(&room.rect, &test_room.rect)};
+    if (&room.rect != &test_room.rect && intersection) return true;
+  }
 
   return false;
 }
@@ -340,23 +326,29 @@ bool MapGenerator::room_collision(unsigned floor, const Room& test_room)
 
 void MapGenerator::define_blocked_rooms(unsigned floor)
 {
+  // left edge
   blocked_rooms_[floor].push_back({
-    0, 3, 0, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 0, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, 0, 3
-  });  
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1
-  });  
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3, 0, TILES_PER_LAYER - 1
+    0, 0, 3, TILES_PER_LAYER - 1
   });
+  // right edge
   blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 1, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER / 2 + 3
+    TILES_PER_LAYER - 4, 0, 3, TILES_PER_LAYER - 1
+  });  
+  // top edge 
+  blocked_rooms_[floor].push_back({
+    0, 0, TILES_PER_LAYER - 1, 3
+  });  
+  // bottom edge
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 3
+  });
+  // middle horizontal
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER - 1, 6
+  });
+  // middle vertical
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER / 2 - 4, 0, 6, TILES_PER_LAYER - 1
   });
 }
 
