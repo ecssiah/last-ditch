@@ -16,7 +16,7 @@ MapGenerator::MapGenerator(Map& map)
   , blocked_rooms_{(size_t)NUM_FLOORS, vector<Room>()}
   , num_rooms_{60}
   , expansion_iterations_{20000}
-  , show_grid_{false}
+  , show_grid_{true}
 {
   srand(MAP_SEED);
 }
@@ -49,10 +49,7 @@ void MapGenerator::layout_main_floor(unsigned floor)
   for (auto x{0}; x < TILES_PER_LAYER; x++) { 
     for (auto y{0}; y < TILES_PER_LAYER; y++) {
       set_tile("floor", x, y, floor, floor_type);
-
-      if (show_grid_) {
-        set_tile("overlay", x, y, floor, "selection"); 
-      }
+      if (show_grid_) set_tile("overlay", x, y, floor, "selection");
     }
   }
 }
@@ -67,7 +64,7 @@ void MapGenerator::seed_rooms(unsigned floor)
     if (floor + 1 > 2 * NUM_FLOORS / 3) {
       floor_type = "bright_light_concrete";
       wall_type = "wall3";
-    } else if (floor + 1 > NUM_FLOORS / 3) {
+    } else if (floor + 1 > 1 * NUM_FLOORS / 3) {
       floor_type = "smooth_light_concrete";
       wall_type = "wall2";
     } else {
@@ -80,8 +77,8 @@ void MapGenerator::seed_rooms(unsigned floor)
     test_room.wall_type = wall_type;
 
     while (collision) {
-      test_room.rect.x = 3 + rand() % (TILES_PER_LAYER - 8);
-      test_room.rect.y = 3 + rand() % (TILES_PER_LAYER - 8);
+      test_room.rect.x = rand() % (TILES_PER_LAYER - 1);
+      test_room.rect.y = rand() % (TILES_PER_LAYER - 1);
       test_room.rect.w = 2;
       test_room.rect.h = 2;
 
@@ -168,15 +165,15 @@ void MapGenerator::finish_rooms(unsigned floor)
 
 void MapGenerator::integrate_walls(unsigned floor)
 {
-  for (auto x{3}; x < TILES_PER_LAYER - 3; x++) {
-    for (auto y{3}; y < TILES_PER_LAYER - 3; y++) {
-      Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
+  for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
+    for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
+      const Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
 
       if (tile.category == "wall") {
-        Tile& utile{map_.floors[floor].layers["wall"].tiles[x][y - 1]};
-        Tile& dtile{map_.floors[floor].layers["wall"].tiles[x][y + 1]};
-        Tile& ltile{map_.floors[floor].layers["wall"].tiles[x - 1][y]};
-        Tile& rtile{map_.floors[floor].layers["wall"].tiles[x + 1][y]};
+        const Tile& utile{map_.floors[floor].layers["wall"].tiles[x][y - 1]};
+        const Tile& dtile{map_.floors[floor].layers["wall"].tiles[x][y + 1]};
+        const Tile& ltile{map_.floors[floor].layers["wall"].tiles[x - 1][y]};
+        const Tile& rtile{map_.floors[floor].layers["wall"].tiles[x + 1][y]};
 
         bool umatch{tile.type == utile.type};
         bool rmatch{tile.type == rtile.type};
@@ -228,7 +225,7 @@ bool MapGenerator::check_clearance(
   const string& category, 
   unsigned x, unsigned y, unsigned floor, unsigned direction
 ) {
-  auto& tiles{map_.floors[floor].layers["wall"].tiles};
+  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
   unsigned place;
   unsigned dx1, dx2, dx3;
@@ -328,27 +325,29 @@ void MapGenerator::define_blocked_rooms(unsigned floor)
 {
   // left edge
   blocked_rooms_[floor].push_back({
-    0, 0, 3, TILES_PER_LAYER - 1
+    0, 0, OUTER_PATH, TILES_PER_LAYER - 1
   });
   // right edge
   blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER - 4, 0, 3, TILES_PER_LAYER - 1
+    TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
   });  
   // top edge 
   blocked_rooms_[floor].push_back({
-    0, 0, TILES_PER_LAYER - 1, 3
-  });  
+    0, 0, TILES_PER_LAYER - 1, OUTER_PATH
+  });
   // bottom edge
   blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - 4, TILES_PER_LAYER - 1, 3
+    0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
   });
   // middle horizontal
   blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER / 2 - 4, TILES_PER_LAYER - 1, 6
+    0, TILES_PER_LAYER / 2 - OUTER_PATH - 1, 
+    TILES_PER_LAYER - 1, CENTRAL_PATH + 1
   });
   // middle vertical
   blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - 4, 0, 6, TILES_PER_LAYER - 1
+    TILES_PER_LAYER / 2 - OUTER_PATH - 1, 0, 
+    CENTRAL_PATH + 1, TILES_PER_LAYER - 1
   });
 }
 
@@ -385,4 +384,3 @@ void MapGenerator::set_solid(int x, int y, int floor, bool solid)
   Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
   tile.solid = solid;
 }
-

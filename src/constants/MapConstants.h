@@ -10,6 +10,8 @@ extern const int TILE_SIZE;
 extern const int TILES_PER_LAYER;
 extern const int TILESET_WIDTH;
 extern const int TILESET_HEIGHT;
+extern const int OUTER_PATH;
+extern const int CENTRAL_PATH;
 
 extern const long MAP_SEED;
 
