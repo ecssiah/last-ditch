@@ -35,7 +35,7 @@ void MapGenerator::generate_map()
 }
 
 
-void MapGenerator::layout_main_floor(unsigned floor)
+void MapGenerator::layout_main_floor(I16 floor)
 {
   string floor_type;
   if (floor + 1 > 2 * NUM_FLOORS / 3) {
@@ -55,7 +55,7 @@ void MapGenerator::layout_main_floor(unsigned floor)
 }
 
 
-void MapGenerator::seed_rooms(unsigned floor)
+void MapGenerator::seed_rooms(I16 floor)
 {
   for (auto i{0}; i < num_rooms_; i++) {
     bool collision{true};
@@ -90,7 +90,7 @@ void MapGenerator::seed_rooms(unsigned floor)
 }
 
 
-void MapGenerator::expand_rooms(unsigned floor)
+void MapGenerator::expand_rooms(I16 floor)
 {
   /* Randomize room expansion */
   /* srand(time(nullptr)); */
@@ -128,7 +128,7 @@ void MapGenerator::expand_rooms(unsigned floor)
 }
 
 
-void MapGenerator::build_rooms(unsigned floor)
+void MapGenerator::build_rooms(I16 floor)
 {
   for (const auto& room : rooms_[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++) {
@@ -156,14 +156,14 @@ void MapGenerator::build_rooms(unsigned floor)
 }
 
 
-void MapGenerator::finish_rooms(unsigned floor)
+void MapGenerator::finish_rooms(I16 floor)
 {
   place_doors(floor);
   integrate_walls(floor);
 }
 
 
-void MapGenerator::integrate_walls(unsigned floor)
+void MapGenerator::integrate_walls(I16 floor)
 {
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
@@ -224,12 +224,11 @@ void MapGenerator::integrate_walls(unsigned floor)
 
 bool MapGenerator::has_clearance(
   const string& category, 
-  unsigned x, unsigned y, unsigned floor, unsigned direction
+  I16 x, I16 y, I16 floor, U8 direction
 ) {
-  unsigned place;
-  unsigned dx1, dy1;
-  unsigned dx2, dy2;
-  unsigned dx3, dy3;
+  I8 dx1, dy1;
+  I8 dx2, dy2;
+  I8 dx3, dy3;
 
   if (direction == 0) {
     dx1 =  0; dy1 = -1;
@@ -259,10 +258,10 @@ bool MapGenerator::has_clearance(
 }
 
 
-void MapGenerator::place_doors(unsigned floor)
+void MapGenerator::place_doors(I16 floor)
 {
   for (auto& room : rooms_[floor]) {
-    unsigned count{0};
+    U8 count{0};
     bool found{false};
 
     while (!found && count++ < 40) {
@@ -309,7 +308,7 @@ void MapGenerator::place_doors(unsigned floor)
 }
 
 
-bool MapGenerator::room_collision(unsigned floor, const Room& test_room) 
+bool MapGenerator::room_collision(I16 floor, const Room& test_room) 
 {
   for (const auto& room : blocked_rooms_[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
@@ -323,7 +322,7 @@ bool MapGenerator::room_collision(unsigned floor, const Room& test_room)
 }
 
 
-void MapGenerator::define_blocked_rooms(unsigned floor)
+void MapGenerator::define_blocked_rooms(I16 floor)
 {
   // left edge
   blocked_rooms_[floor].push_back({
@@ -355,8 +354,7 @@ void MapGenerator::define_blocked_rooms(unsigned floor)
 
 
 void MapGenerator::set_tile(
-  const string& layer, 
-  int x, int y, int floor, 
+  const string& layer, I16 x, I16 y, I16 floor, 
   const string& full_type, float rotation, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
@@ -381,7 +379,7 @@ void MapGenerator::set_tile(
 }
 
 
-void MapGenerator::set_solid(int x, int y, int floor, bool solid)
+void MapGenerator::set_solid(I16 x, I16 y, I16 floor, bool solid)
 {
   Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
   tile.solid = solid;

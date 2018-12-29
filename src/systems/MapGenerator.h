@@ -5,6 +5,7 @@
 #include <vector>
 #include <SDL2/SDL.h>
 
+#include "../Types.h"
 #include "../components/map/Map.h"
 #include "../components/map/Room.h"
 
@@ -16,31 +17,31 @@ public:
   void generate_map();
 
 private:
-  void layout_main_floor(unsigned floor);
-  void define_blocked_rooms(unsigned floor);
+  void layout_main_floor(I16 floor);
+  void define_blocked_rooms(I16 floor);
 
-  void seed_rooms(unsigned floor);
-  void expand_rooms(unsigned floor);
-  void build_rooms(unsigned floor);
-  void finish_rooms(unsigned floor);
-  void integrate_walls(unsigned floor);
-  void place_doors(unsigned floor);
+  void seed_rooms(I16 floor);
+  void expand_rooms(I16 floor);
+  void build_rooms(I16 floor);
+  void finish_rooms(I16 floor);
+  void integrate_walls(I16 floor);
+  void place_doors(I16 floor);
 
   bool has_clearance(
     const std::string& category, 
-    unsigned x, unsigned y, unsigned floor, unsigned direction
+    I16 x, I16 y, I16 floor, U8 direction
   );
-  bool room_collision(unsigned floor, const Room& test_room); 
+  bool room_collision(I16 floor, const Room& test_room); 
 
   void set_tile(
-    const std::string& layer, int x, int y, int floor, 
+    const std::string& layer, I16 x, I16 y, I16 floor, 
     const std::string& type, 
     float rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
-  void set_solid(int x, int y, int floor, bool solid);
+  void set_solid(I16 x, I16 y, I16 floor, bool solid);
 
-  unsigned num_rooms_;
-  unsigned expansion_iterations_;
+  U16 num_rooms_;
+  U16 expansion_iterations_;
 
   Map& map_;
 
