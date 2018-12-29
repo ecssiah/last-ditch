@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <boost/serialization/access.hpp>
 
+#include "../Types.h"
 #include "../constants/MapConstants.h"
 
 struct Entity
@@ -20,13 +21,13 @@ struct Entity
   SDL_Rect src;
   SDL_RendererFlip flip;
 
-  double rotation; 
+  F64 rotation; 
 
 private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & flip;
 

@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "../Types.h"
 #include "../components/Entity.h"
 #include "../components/map/Map.h"
 

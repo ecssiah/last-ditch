@@ -60,7 +60,7 @@ bool FileSystem::create_user(const string& username)
 
 bool FileSystem::delete_user(const string& username)
 {
-  int index;
+  I32 index;
   bool user_exists{false};
 
   for (auto i{0}; i < users_.size(); ++i) {
@@ -188,5 +188,4 @@ bool FileSystem::delete_map(const string& filename)
     return false;
   }
 }
-
 

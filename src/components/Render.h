@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 
+#include "../Types.h"
 #include "../constants/SimulationConstants.h"
 
 struct Render
@@ -16,7 +17,7 @@ struct Render
     , textures{}
   {}
 
-  float dt;
+  F32 dt;
 
   SDL_Window* window;
   SDL_Renderer* renderer;

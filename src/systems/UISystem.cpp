@@ -73,25 +73,21 @@ void UISystem::update()
 }
 
 
-bool UISystem::check_intersection(Element& el, int x, int y)
+bool UISystem::check_intersection(Element& el, I32 x, I32 y)
 {
   auto lcheck{input_.mx > el.rect.x};
   auto rcheck{input_.mx < el.rect.x + el.rect.w};
   auto tcheck{input_.my > el.rect.y};
   auto bcheck{input_.my < el.rect.y + el.rect.h};
 
-  if (lcheck && rcheck && tcheck && bcheck) {
-    return true;
-  } else {
-    return false;
-  }
+  return lcheck && rcheck && tcheck && bcheck ? true : false;
 }
 
 
 void UISystem::update_main_text()
 {
   if (map_.floor_changed) {
-    text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
+    text_elements_["floor_display"].text = format_floor();
     build_text_element("floor_display");
   }
 
@@ -124,7 +120,7 @@ void UISystem::load_fonts()
 }
 
 
-TTF_Font* UISystem::load_font(const string& fontname, unsigned size)
+TTF_Font* UISystem::load_font(const string& fontname, U16 size)
 {
   string fontpath{"assets/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
@@ -390,7 +386,7 @@ void UISystem::setup_main_buttons()
 void UISystem::setup_floor_display()
 {
   text_elements_["floor_display"].font = fonts_["Fantasque-Small"];
-  text_elements_["floor_display"].text = to_string(map_.cur_floor + 1);
+  text_elements_["floor_display"].text = format_floor();
 
   build_text_element("floor_display");
   
@@ -410,6 +406,12 @@ void UISystem::setup_time_display()
 
   rect.x = SCREEN_SIZE_X - rect.w - 4;
   rect.y = 4;
+}
+
+
+string UISystem::format_floor()
+{
+  return to_string(map_.cur_floor + 1) + "F";
 }
 
 
@@ -449,5 +451,4 @@ string UISystem::format_date()
 
   return ss.str();
 }
-
 

@@ -3,6 +3,7 @@
 
 #include <chrono>
 
+#include "../Types.h"
 #include "../components/Input.h"
 #include "../components/Render.h"
 #include "../components/Time.h"

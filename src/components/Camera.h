@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 
+#include "../Types.h"
 #include "../constants/CameraConstants.h"
 
 struct Camera
@@ -16,7 +17,7 @@ struct Camera
   {
   }
 
-  float speed, zoom;
+  F32 speed, zoom;
   glm::vec2 pos, xdir, ydir;
 
 };

@@ -1,6 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include "../Types.h"
+
 struct Input
 {
   Input() 
@@ -39,8 +41,8 @@ struct Input
   bool lreleased, mreleased, rreleased;
   bool exit, pause, debug, menu;
 
-  int mx, my;
-  int sx, sy;
+  I32 mx, my;
+  I32 sx, sy;
 };
 
 #endif

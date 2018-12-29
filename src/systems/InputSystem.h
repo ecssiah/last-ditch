@@ -1,6 +1,7 @@
 #ifndef INPUT_SYSTEM_H
 #define INPUT_SYSTEM_H
 
+#include "../Types.h"
 #include "../components/Input.h"
 #include "../components/Camera.h"
 #include "../components/Render.h"
@@ -14,10 +15,10 @@ public:
   void update();
 
 private:
-  void on_key_down(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
-  void on_key_up(SDL_Keycode sym, Uint16 mod, Uint16 scancode);
-  void on_mouse_down(Sint32 x, Sint32 y, Uint8 button);
-  void on_mouse_up(Sint32 x, Sint32 y, Uint8 button);
+  void on_key_down(SDL_Keycode sym, U16 mod, U16 scancode);
+  void on_key_up(SDL_Keycode sym, U16 mod, U16 scancode);
+  void on_mouse_down(Sint32 x, I32 y, U8 button);
+  void on_mouse_up(Sint32 x, I32 y, U8 button);
 
   void clear_inputs();
   void call_input_functions();

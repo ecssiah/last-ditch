@@ -1,6 +1,7 @@
 #ifndef FILE_SYSTEM_H
 #define FILE_SYSTEM_H
 
+#include "../Types.h"
 #include "../components/Input.h"
 #include "../components/User.h"
 #include "../components/Time.h"

@@ -35,7 +35,7 @@ void ConfigSystem::load_tile_info()
         TileInfo tile_info;
         tile_info.category = category;
 
-        auto uv_vec{tile_node["uv"].as<vector<int> >()};
+        auto uv_vec{tile_node["uv"].as<vector<I32> >()};
         tile_info.uv.x = uv_vec[0];
         tile_info.uv.y = uv_vec[1];
 

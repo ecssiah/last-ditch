@@ -3,6 +3,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "../Types.h"
+
 class ConfigSystem
 {
 public:

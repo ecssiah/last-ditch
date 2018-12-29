@@ -9,6 +9,7 @@
 #include <boost/serialization/unordered_map.hpp>
 
 #include "Floor.h"
+#include "../../Types.h"
 #include "../../constants/MapConstants.h"
 
 struct Map
@@ -16,11 +17,11 @@ struct Map
   Map() 
     : floor_changed{false} 
     , cur_floor{0}
-    , floors{(size_t)NUM_FLOORS}
+    , floors{(U16)NUM_FLOORS}
   { }
 
   bool floor_changed;
-  int cur_floor;
+  U16 cur_floor;
 
   std::vector<Floor> floors;
 
@@ -28,7 +29,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & cur_floor;
     ar & floors;

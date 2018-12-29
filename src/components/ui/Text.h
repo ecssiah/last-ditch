@@ -6,6 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "Element.h"
+#include "../../Types.h"
 
 struct Text : public Element
 {
@@ -17,7 +18,7 @@ struct Text : public Element
     , texture{nullptr}
   {}
 
-  int size;
+  I32 size;
 
   std::string text;
 

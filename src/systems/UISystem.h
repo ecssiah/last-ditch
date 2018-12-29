@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "../Types.h"
 #include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/Time.h"
@@ -24,7 +25,7 @@ public:
 
 private:
   void init_SDL_ttf();
-  TTF_Font* load_font(const std::string& fontname, unsigned size);
+  TTF_Font* load_font(const std::string& fontname, U16 size);
   void load_fonts();
 
   void setup_main_window();
@@ -33,6 +34,7 @@ private:
   void setup_time_display();
   void setup_date_display();
 
+  std::string format_floor();
   std::string format_time();
   std::string format_date();
 
@@ -46,7 +48,7 @@ private:
   void render_text_element(const std::string& id);
   void render_button_element(const std::string& id);
 
-  bool check_intersection(Element& el, int x, int y);
+  bool check_intersection(Element& el, I32 x, I32 y);
 
   Input& input_;
   Render& render_;

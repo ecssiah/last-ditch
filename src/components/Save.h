@@ -4,6 +4,8 @@
 #include <string>
 #include <boost/serialization/access.hpp>
 
+#include "../Types.h"
+
 struct Save
 {
   Save()
@@ -18,7 +20,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & filename;
     ar & map_name;

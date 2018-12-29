@@ -1,8 +1,10 @@
 #ifndef CAMERA_CONSTANTS_H
 #define CAMERA_CONSTANTS_H
 
-extern const float MAX_ZOOM;
-extern const float MIN_ZOOM;
-extern const float CAMERA_SPEED;
+#include "../Types.h"
+
+extern const F32 MAX_ZOOM;
+extern const F32 MIN_ZOOM;
+extern const F32 CAMERA_SPEED;
 
 #endif

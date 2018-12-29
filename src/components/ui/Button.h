@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Element.h"
+#include "../../Types.h"
 #include "../../constants/MapConstants.h"
 
 struct Button : public Element
@@ -41,8 +42,8 @@ struct Button : public Element
     , bm_dst{}
     , br_dst{}
   {
-    auto base{TILE_SIZE};
-    auto size{TILE_SIZE / 4};
+    I32 base{TILE_SIZE};
+    I32 size{TILE_SIZE / 4};
 
     active_tl_src = {base, 0, size, size};
     active_tm_src = {base + size, 0, size, size};
@@ -54,7 +55,7 @@ struct Button : public Element
     active_bm_src = {base + size, 2 * size, size, size};
     active_br_src = {base + 2 * size, 2 * size, size, size};
 
-    base = {2 * TILE_SIZE};
+    base = 2 * TILE_SIZE;
 
     inactive_tl_src = {base, 0, size, size};
     inactive_tm_src = {base + size, 0, size, size};

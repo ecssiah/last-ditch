@@ -3,6 +3,8 @@
 
 #include <boost/serialization/access.hpp>
 
+#include "../Types.h"
+
 struct Time
 {
   Time()
@@ -20,15 +22,15 @@ struct Time
   bool time_changed;
   bool date_changed;
 
-  int ticks; 
-  int year, month, day;
-  int hour, minute, second;
+  I32 ticks; 
+  I32 year, month, day;
+  I32 hour, minute, second;
 
 private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & year;
     ar & month;

@@ -6,6 +6,7 @@
 #include <boost/serialization/access.hpp>
 
 #include "Layer.h"
+#include "../../Types.h"
 
 struct Floor
 {
@@ -19,7 +20,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & layers;
   }

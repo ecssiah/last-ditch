@@ -35,7 +35,7 @@ void MapGenerator::generate_map()
 }
 
 
-void MapGenerator::layout_main_floor(I16 floor)
+void MapGenerator::layout_main_floor(I32 floor)
 {
   string floor_type;
   if (floor + 1 > 2 * NUM_FLOORS / 3) {
@@ -55,7 +55,7 @@ void MapGenerator::layout_main_floor(I16 floor)
 }
 
 
-void MapGenerator::seed_rooms(I16 floor)
+void MapGenerator::seed_rooms(I32 floor)
 {
   for (auto i{0}; i < num_rooms_; i++) {
     bool collision{true};
@@ -90,19 +90,19 @@ void MapGenerator::seed_rooms(I16 floor)
 }
 
 
-void MapGenerator::expand_rooms(I16 floor)
+void MapGenerator::expand_rooms(I32 floor)
 {
   /* Randomize room expansion */
   /* srand(time(nullptr)); */
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<int> dirs{0, 1, 2, 3}; 
+    vector<I8> dirs{0, 1, 2, 3}; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() > 0) {
-      int choice{dirs[(int)(rand() % dirs.size())]};
+      I8 choice{dirs[(I8)(rand() % dirs.size())]};
 
       switch (choice) {
         case 0: room.rect.x--; break;
@@ -128,7 +128,7 @@ void MapGenerator::expand_rooms(I16 floor)
 }
 
 
-void MapGenerator::build_rooms(I16 floor)
+void MapGenerator::build_rooms(I32 floor)
 {
   for (const auto& room : rooms_[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++) {
@@ -156,14 +156,14 @@ void MapGenerator::build_rooms(I16 floor)
 }
 
 
-void MapGenerator::finish_rooms(I16 floor)
+void MapGenerator::finish_rooms(I32 floor)
 {
   place_doors(floor);
   integrate_walls(floor);
 }
 
 
-void MapGenerator::integrate_walls(I16 floor)
+void MapGenerator::integrate_walls(I32 floor)
 {
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
@@ -223,8 +223,7 @@ void MapGenerator::integrate_walls(I16 floor)
 
 
 bool MapGenerator::has_clearance(
-  const string& category, 
-  I16 x, I16 y, I16 floor, U8 direction
+  const string& category, I32 x, I32 y, I32 floor, U8 direction
 ) {
   I8 dx1, dy1;
   I8 dx2, dy2;
@@ -258,7 +257,7 @@ bool MapGenerator::has_clearance(
 }
 
 
-void MapGenerator::place_doors(I16 floor)
+void MapGenerator::place_doors(I32 floor)
 {
   for (auto& room : rooms_[floor]) {
     U8 count{0};
@@ -308,7 +307,7 @@ void MapGenerator::place_doors(I16 floor)
 }
 
 
-bool MapGenerator::room_collision(I16 floor, const Room& test_room) 
+bool MapGenerator::room_collision(I32 floor, const Room& test_room) 
 {
   for (const auto& room : blocked_rooms_[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
@@ -322,7 +321,7 @@ bool MapGenerator::room_collision(I16 floor, const Room& test_room)
 }
 
 
-void MapGenerator::define_blocked_rooms(I16 floor)
+void MapGenerator::define_blocked_rooms(I32 floor)
 {
   // left edge
   blocked_rooms_[floor].push_back({
@@ -354,32 +353,32 @@ void MapGenerator::define_blocked_rooms(I16 floor)
 
 
 void MapGenerator::set_tile(
-  const string& layer, I16 x, I16 y, I16 floor, 
-  const string& full_type, float rotation, SDL_RendererFlip flip
+  const string& layer, I32 x, I32 y, I32 floor, const string& type, 
+  F32 rotation, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
-  if (TileData.find(full_type) != TileData.end()) {
+  if (TileData.find(type) != TileData.end()) {
     vector<string> type_vector; 
-    boost::split(type_vector, full_type, boost::is_any_of("-"));
+    boost::split(type_vector, type, boost::is_any_of("-"));
 
     tile.active = true;
     tile.type = type_vector[0];
     tile.subtype = type_vector.size() <= 1 ? "" : type_vector[1];
-    tile.category = TileData[full_type].category;
+    tile.category = TileData[type].category;
     tile.rotation = rotation;
     tile.flip = flip;
 
-    tile.src.x = TileData[full_type].uv.x * TILE_SIZE;  
-    tile.src.y = TileData[full_type].uv.y * TILE_SIZE;
+    tile.src.x = TileData[type].uv.x * TILE_SIZE;  
+    tile.src.y = TileData[type].uv.y * TILE_SIZE;
   } else {
     cerr << "Tile(" << x << "," << y << ") has invalid type: "; 
-    cerr << full_type << endl; 
+    cerr << type << endl; 
   }
 }
 
 
-void MapGenerator::set_solid(I16 x, I16 y, I16 floor, bool solid)
+void MapGenerator::set_solid(I32 x, I32 y, I32 floor, bool solid)
 {
   Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
   tile.solid = solid;

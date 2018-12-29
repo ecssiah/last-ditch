@@ -4,18 +4,19 @@
 #include <string>
 #include <unordered_map>
 
+#include "../Types.h"
 #include "../components/info/TileInfo.h"
 
-extern const int TILE_SIZE;
-extern const int TILES_PER_LAYER;
-extern const int TILESET_WIDTH;
-extern const int TILESET_HEIGHT;
-extern const int OUTER_PATH;
-extern const int CENTRAL_PATH;
+extern const I32 TILE_SIZE;
+extern const I32 TILES_PER_LAYER;
+extern const I32 TILESET_WIDTH;
+extern const I32 TILESET_HEIGHT;
+extern const I32 OUTER_PATH;
+extern const I32 CENTRAL_PATH;
 
-extern const long MAP_SEED;
+extern const I32 MAP_SEED;
 
-extern const int NUM_FLOORS;
+extern const I32 NUM_FLOORS;
 
 extern std::unordered_map<std::string, TileInfo> TileData;
 

@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Element.h"
+#include "../../Types.h"
 #include "../../constants/MapConstants.h"
 
 struct Window: public Element
@@ -29,7 +30,7 @@ struct Window: public Element
     , bm_dst{}
     , br_dst{}
   {
-    auto size{TILE_SIZE / 4};
+    I32 size{TILE_SIZE / 4};
 
     tl_src = {0, 0, size, size};
     tm_src = {size, 0, size, size};

@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include "../Types.h"
 #include "../components/Render.h"
 #include "../components/Input.h"
 #include "../components/Camera.h"
@@ -31,7 +32,7 @@ private:
   SDL_Texture* load_texture(const std::string& texturename);
 
   void render_map();
-  void render_tile(const std::string& layer, int x, int y);
+  void render_tile(const std::string& layer, I32 x, I32 y);
 
   Render& render_;
   Input& input_;

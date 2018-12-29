@@ -4,7 +4,7 @@
 
 EntitySystem::EntitySystem(Map& map)
   : map_{map}
-  , entities_{(size_t)NUM_FLOORS}
+  , entities_{(U16)NUM_FLOORS}
 {
 }
 

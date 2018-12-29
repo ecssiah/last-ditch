@@ -7,6 +7,7 @@
 #include <boost/serialization/vector.hpp>
 
 #include "Save.h"
+#include "../Types.h"
 
 struct User
 {
@@ -23,7 +24,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  void serialize(Archive& ar, const U32 version)
   {
     ar & username;
     ar & saves;
