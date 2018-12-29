@@ -1,7 +1,7 @@
 #include "MapGenerator.h"
 
-#include <cstdlib>
 #include <ctime>
+#include <cstdlib>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 
@@ -167,13 +167,14 @@ void MapGenerator::integrate_walls(unsigned floor)
 {
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
-      const Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
+      const auto& tiles{map_.floors[floor].layers["wall"].tiles};
+      const Tile& tile{tiles[x][y]};
 
       if (tile.category == "wall") {
-        const Tile& utile{map_.floors[floor].layers["wall"].tiles[x][y - 1]};
-        const Tile& dtile{map_.floors[floor].layers["wall"].tiles[x][y + 1]};
-        const Tile& ltile{map_.floors[floor].layers["wall"].tiles[x - 1][y]};
-        const Tile& rtile{map_.floors[floor].layers["wall"].tiles[x + 1][y]};
+        const Tile& utile{tiles[x][y - 1]};
+        const Tile& dtile{tiles[x][y + 1]};
+        const Tile& ltile{tiles[x - 1][y]};
+        const Tile& rtile{tiles[x + 1][y]};
 
         bool umatch{tile.type == utile.type};
         bool rmatch{tile.type == rtile.type};
