@@ -5,8 +5,8 @@ project(LastDitch)
 set(
   HEADERS
   ./src/AssetManager.h
-  ./src/constants/RenderConstants.h
   ./src/constants/MapConstants.h
+  ./src/constants/RenderConstants.h
   ./src/constants/CameraConstants.h
   ./src/constants/SimulationConstants.h
   ./src/systems/ConfigSystem.h
@@ -25,8 +25,8 @@ set(
 set(
   SOURCES
   ./src/AssetManager.cpp
-  ./src/constants/RenderConstants.cpp
   ./src/constants/MapConstants.cpp
+  ./src/constants/RenderConstants.cpp
   ./src/constants/CameraConstants.cpp
   ./src/constants/SimulationConstants.cpp
   ./src/systems/ConfigSystem.cpp

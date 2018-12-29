@@ -65,7 +65,7 @@ void RenderSystem::render_map()
   int y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
   int x_max(camera_.pos.x + VIEW_X * 1.0f / camera_.zoom);
   int y_max(camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom); 
-  
+
   if (x_min < 0) x_min = 0;
   if (y_min < 0) y_min = 0;
   if (x_max > TILES_PER_LAYER - 1) x_max = TILES_PER_LAYER - 1;
