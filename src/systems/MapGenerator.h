@@ -16,8 +16,9 @@ public:
   void generate_map();
 
 private:
-  void define_blocked_rooms(unsigned floor);
   void layout_main_floor(unsigned floor);
+  void define_blocked_rooms(unsigned floor);
+
   void seed_rooms(unsigned floor);
   void expand_rooms(unsigned floor);
   void build_rooms(unsigned floor);
@@ -25,13 +26,9 @@ private:
   void integrate_walls(unsigned floor);
   void place_doors(unsigned floor);
 
-  bool check_clearance(
+  bool has_clearance(
     const std::string& category, 
     unsigned x, unsigned y, unsigned floor, unsigned direction
-  );
-  bool intersects(const Room& r1, const Room& r2);
-  bool intersects(
-    const Room& r1, unsigned l, unsigned r, unsigned t, unsigned b
   );
   bool room_collision(unsigned floor, const Room& test_room); 
 

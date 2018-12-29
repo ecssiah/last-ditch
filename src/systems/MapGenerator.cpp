@@ -221,33 +221,34 @@ void MapGenerator::integrate_walls(unsigned floor)
 }
 
 
-bool MapGenerator::check_clearance(
+bool MapGenerator::has_clearance(
   const string& category, 
   unsigned x, unsigned y, unsigned floor, unsigned direction
 ) {
-  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
-
   unsigned place;
-  unsigned dx1, dx2, dx3;
-  unsigned dy1, dy2, dy3;
+  unsigned dx1, dy1;
+  unsigned dx2, dy2;
+  unsigned dx3, dy3;
 
   if (direction == 0) {
-    dx1 = 0; dy1 = -1;
-    dx2 = -1; dy2 = 0;
-    dx3 = 1; dy3 = 0;
+    dx1 =  0; dy1 = -1;
+    dx2 = -1; dy2 =  0;
+    dx3 =  1; dy3 =  0;
   } else if (direction == 1) {
-    dx1 = 1; dy1 = 0;
-    dx2 = 0; dy2 = -1;
-    dx3 = 0; dy3 = 1;
+    dx1 =  1; dy1 =  0;
+    dx2 =  0; dy2 = -1;
+    dx3 =  0; dy3 =  1;
   } else if (direction == 2) {
-    dx1 = 0; dy1 = 1;
-    dx2 = 1; dy2 = 0;
-    dx3 = -1; dy3 = 0;
+    dx1 =  0; dy1 =  1;
+    dx2 =  1; dy2 =  0;
+    dx3 = -1; dy3 =  0;
   } else if (direction == 3) {
-    dx1 = -1; dy1 = 0;
-    dx2 = 0; dy2 = 1;
-    dx3 = 0; dy3 = -1;
+    dx1 = -1; dy1 =  0;
+    dx2 =  0; dy2 =  1;
+    dx3 =  0; dy3 = -1;
   }
+
+  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
   auto place_free{tiles[x + dx1][y + dy1].type == ""};
   auto clear_left{tiles[x + dx2][y + dy2].category != "door"};
@@ -270,7 +271,7 @@ void MapGenerator::place_doors(unsigned floor)
       if (choice == 0) {
         auto place{(rand() % (room.w() - 1)) + room.l() + 1};
 
-        if (check_clearance("door", place, room.t(), floor, choice)) {
+        if (has_clearance("door", place, room.t(), floor, choice)) {
           found = true;
           set_tile("wall", place, room.t(), floor, door_type);
           set_solid(place, room.t(), floor, true);
@@ -278,7 +279,7 @@ void MapGenerator::place_doors(unsigned floor)
       } else if (choice == 1) {
         auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (check_clearance("door", room.r(), place, floor, choice)) {
+        if (has_clearance("door", room.r(), place, floor, choice)) {
           found = true;
           set_tile("wall", room.l(), place, floor, door_type, 90);
           set_solid(room.l(), place, floor, true);
@@ -286,7 +287,7 @@ void MapGenerator::place_doors(unsigned floor)
       } else if (choice == 2) {
         auto place{(rand() % (room.w() - 1)) + room.l() + 1};
         
-        if (check_clearance("door", place, room.b(), floor, choice)) {
+        if (has_clearance("door", place, room.b(), floor, choice)) {
           found = true;
           set_tile("wall", place, room.b(), floor, door_type);
           set_solid(place, room.b(), floor, true);
@@ -294,7 +295,7 @@ void MapGenerator::place_doors(unsigned floor)
       } else if (choice == 3) {
         auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (check_clearance("door", room.l(), place, floor, choice)) {
+        if (has_clearance("door", room.l(), place, floor, choice)) {
           found = true;
           set_tile("wall", room.l(), place, floor, door_type, 90);
           set_solid(room.l(), place, floor, true);
@@ -365,7 +366,7 @@ void MapGenerator::set_tile(
 
     tile.active = true;
     tile.type = type_vector[0];
-    tile.subtype = type_vector.size() > 1 ? type_vector[1] : "";
+    tile.subtype = type_vector.size() <= 1 ? "" : type_vector[1];
     tile.category = TileData[full_type].category;
     tile.rotation = rotation;
     tile.flip = flip;
