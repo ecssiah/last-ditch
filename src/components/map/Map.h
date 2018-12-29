@@ -17,7 +17,7 @@ struct Map
   Map() 
     : floor_changed{false} 
     , cur_floor{0}
-    , floors{(U16)NUM_FLOORS}
+    , floors{(U32)NUM_FLOORS}
   { }
 
   bool floor_changed;

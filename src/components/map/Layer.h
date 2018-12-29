@@ -11,7 +11,7 @@
 struct Layer
 {
   Layer() 
-    : tiles{(U16)TILES_PER_LAYER, std::vector<Tile>((U16)TILES_PER_LAYER)} 
+    : tiles{(U32)TILES_PER_LAYER, std::vector<Tile>((U32)TILES_PER_LAYER)} 
   {}
 
   std::vector<std::vector<Tile> > tiles;

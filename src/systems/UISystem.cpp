@@ -120,7 +120,7 @@ void UISystem::load_fonts()
 }
 
 
-TTF_Font* UISystem::load_font(const string& fontname, U16 size)
+TTF_Font* UISystem::load_font(const string& fontname, U32 size)
 {
   string fontpath{"assets/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};

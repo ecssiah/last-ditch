@@ -25,7 +25,7 @@ public:
 
 private:
   void init_SDL_ttf();
-  TTF_Font* load_font(const std::string& fontname, U16 size);
+  TTF_Font* load_font(const std::string& fontname, U32 size);
   void load_fonts();
 
   void setup_main_window();
