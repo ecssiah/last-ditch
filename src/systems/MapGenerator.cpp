@@ -16,7 +16,7 @@ MapGenerator::MapGenerator(Map& map)
   , blocked_rooms_{(size_t)NUM_FLOORS, vector<Room>()}
   , num_rooms_{60}
   , expansion_iterations_{20000}
-  , show_grid_{true}
+  , show_grid_{false}
 {
   srand(MAP_SEED);
 }

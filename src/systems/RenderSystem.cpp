@@ -85,7 +85,7 @@ void RenderSystem::render_map()
 
 void RenderSystem::render_tile(const string& layer, int x, int y)
 {
-  Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
+  const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
     float scale_factor{camera_.zoom * TILE_SIZE};
@@ -93,8 +93,8 @@ void RenderSystem::render_tile(const string& layer, int x, int y)
     SDL_Rect dst;
     dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
     dst.y = (y - camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
-    dst.w = scale_factor + 2;
-    dst.h = scale_factor + 2;
+    dst.w = scale_factor;
+    dst.h = scale_factor;
 
     SDL_RenderCopyEx(
       render_.renderer, render_.textures[layer], 
@@ -137,7 +137,7 @@ void RenderSystem::init_SDL()
     return;
   }
 
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 }
 
 
