@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 #include <functional>
 
 #include <SDL2/SDL.h>
@@ -61,15 +62,13 @@ void RenderSystem::display()
 
 void RenderSystem::render_map()
 {
-  i32 x_min(camera_.pos.x - VIEW_X * 1.0f / camera_.zoom); 
-  i32 y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
-  i32 x_max(camera_.pos.x + VIEW_X * 1.0f / camera_.zoom);
-  i32 y_max(camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom); 
+  const f32 lower{0};
+  const f32 upper{(f32)TILES_PER_LAYER - 1};
 
-  if (x_min < 0) x_min = 0;
-  if (y_min < 0) y_min = 0;
-  if (x_max > TILES_PER_LAYER - 1) x_max = TILES_PER_LAYER - 1;
-  if (y_max > TILES_PER_LAYER - 1) y_max = TILES_PER_LAYER - 1;
+  i32 x_min(max(lower, camera_.pos.x - VIEW_X * camera_.inv_zoom)); 
+  i32 y_min(max(lower, camera_.pos.y - VIEW_Y * camera_.inv_zoom));
+  i32 x_max(min(upper, camera_.pos.x + VIEW_X * camera_.inv_zoom));
+  i32 y_max(min(upper, camera_.pos.y + VIEW_Y * camera_.inv_zoom)); 
 
   for (auto x{x_min}; x <= x_max; ++x) { 
     for (auto y{y_min}; y <= y_max; ++y) {
@@ -88,11 +87,11 @@ void RenderSystem::render_tile(const string& layer, i32 x, i32 y)
   const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
-    f32 scale_factor{camera_.zoom * TILE_SIZE};
+    const f32 scale_factor{camera_.zoom * TILE_SIZE};
 
     SDL_Rect dst;
-    dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
-    dst.y = (y - camera_.pos.y) * scale_factor + HALF_SCREEN_SIZE_Y;
+    dst.x = scale_factor * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X; 
+    dst.y = scale_factor * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
     dst.w = scale_factor;
     dst.h = scale_factor;
 
@@ -143,7 +142,7 @@ void RenderSystem::init_SDL()
 
 void RenderSystem::init_SDL_image()
 {
-  i32 img_flags{IMG_INIT_PNG};
+  const i32 img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
     cout << "SDL_image error: " << IMG_GetError() << endl;

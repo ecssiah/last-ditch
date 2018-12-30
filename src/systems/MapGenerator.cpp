@@ -98,28 +98,28 @@ void MapGenerator::expand_rooms(i32 floor)
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<Dirs> dirs{UP, DOWN, LEFT, RIGHT}; 
+    vector<Dirs> dirs; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
-    while (!found && dirs.size() > 0) {
-      const Dirs dir{dirs[rand() % dirs.size()]};
+    while (!found && dirs.size() < 4) {
+      Dirs dir{static_cast<Dirs>(rand() % 4)};
 
       switch (dir) {
-      case RIGHT: room.rect.w++; break;
       case UP:    room.rect.y--; break;
-      case LEFT:  room.rect.x--; break;
       case DOWN:  room.rect.h++; break;
+      case LEFT:  room.rect.x--; break;
+      case RIGHT: room.rect.w++; break;
       }
 
       if (room_collision(floor, room)) {
-        dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
+        dirs.push_back(dir);
 
         switch (dir) {
-        case RIGHT: room.rect.w--; break;
         case UP:    room.rect.y++; break;
-        case LEFT:  room.rect.x++; break;
         case DOWN:  room.rect.h--; break;
+        case LEFT:  room.rect.x++; break;
+        case RIGHT: room.rect.w--; break;
         }
       } else {
         found = true;
