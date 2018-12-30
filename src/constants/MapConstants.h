@@ -7,6 +7,11 @@
 #include "../Types.h"
 #include "../components/info/TileInfo.h"
 
+extern const u8 RIGHT;
+extern const u8 UP;
+extern const u8 LEFT;
+extern const u8 DOWN;
+
 extern const i32 TILE_SIZE;
 extern const i32 TILES_PER_LAYER;
 extern const i32 TILESET_WIDTH;

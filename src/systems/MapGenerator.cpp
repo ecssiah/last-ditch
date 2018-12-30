@@ -98,29 +98,26 @@ void MapGenerator::expand_rooms(i32 floor)
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<i8> dirs{0, 1, 2, 3}; 
+    vector<u8> dirs{UP, DOWN, LEFT, RIGHT}; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() > 0) {
-      i8 choice{dirs[(i8)(rand() % dirs.size())]};
+      u8 choice{dirs[(u8)(rand() % dirs.size())]};
 
-      switch (choice) {
-        case 0: room.rect.x--; break;
-        case 1: room.rect.y--; break;
-        case 2: room.rect.w++; break;
-        case 3: room.rect.h++; break;
-      }
+      if (choice == LEFT) room.rect.x--;
+      else if (choice == UP) room.rect.y--; 
+      else if (choice == RIGHT) room.rect.w++;
+      else if (choice == DOWN) room.rect.h++;
 
       if (room_collision(floor, room)) {
         dirs.erase(remove(dirs.begin(), dirs.end(), choice), dirs.end());
 
-        switch (choice) {
-          case 0: room.rect.x++; break;
-          case 1: room.rect.y++; break;
-          case 2: room.rect.w--; break;
-          case 3: room.rect.h--; break;
-        }
+        if (choice == LEFT) room.rect.x++;
+        else if (choice == UP) room.rect.y++; 
+        else if (choice == RIGHT) room.rect.w--;
+        else if (choice == DOWN) room.rect.h--;
+
       } else {
         found = true;
       }

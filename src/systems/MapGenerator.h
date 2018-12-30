@@ -38,12 +38,13 @@ private:
   );
   void set_solid(i32 x, i32 y, i32 floor, bool solid);
 
-  u16 num_rooms_;
-  u16 expansion_iterations_;
-
   Map& map_;
 
-  bool show_grid_, randomize_rooms_;
+  bool show_grid_;
+  bool randomize_rooms_;
+
+  u16 num_rooms_;
+  u16 expansion_iterations_;
 
   std::vector<std::vector<Room> > rooms_;
   std::vector<std::vector<Room> > blocked_rooms_; 

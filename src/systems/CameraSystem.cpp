@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 
 #include "CameraSystem.h"
+#include "../constants/MapConstants.h"
 #include "../constants/CameraConstants.h"
 
 using namespace std;
@@ -19,13 +20,10 @@ void CameraSystem::init()
 
 void CameraSystem::update()
 {
-  auto inv_zoom{1.0f / camera_.zoom};
-  auto modifier{inv_zoom * render_.dt * camera_.speed};
-
-  if (input_.up) camera_.pos -= modifier * camera_.ydir; 
-  if (input_.down) camera_.pos += modifier * camera_.ydir;
-  if (input_.left) camera_.pos -= modifier * camera_.xdir; 
-  if (input_.right) camera_.pos += modifier * camera_.xdir;
-  if (input_.min && camera_.zoom > MIN_ZOOM) camera_.zoom /= 2;
-  if (input_.mag && camera_.zoom < MAX_ZOOM) camera_.zoom *= 2;
+  if (input_.mag) camera_.inc_zoom();
+  if (input_.min) camera_.dec_zoom();
+  if (input_.right) camera_.move(render_.dt, RIGHT);
+  if (input_.left) camera_.move(render_.dt, LEFT);
+  if (input_.up) camera_.move(render_.dt, UP);
+  if (input_.down) camera_.move(render_.dt, DOWN);
 }

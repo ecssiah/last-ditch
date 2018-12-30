@@ -1,5 +1,10 @@
 #include "MapConstants.h"
 
+const u8 RIGHT{0};
+const u8 UP{1};
+const u8 LEFT{2};
+const u8 DOWN{3};
+
 const i32 TILE_SIZE{64};
 const i32 TILES_PER_LAYER{64}; 
 const i32 TILESET_WIDTH{25};
