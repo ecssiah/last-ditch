@@ -20,7 +20,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const U32 version)
+  void serialize(Archive& ar, const u32 version)
   {
     ar & layers;
   }

@@ -17,11 +17,11 @@ struct Map
   Map() 
     : floor_changed{false} 
     , cur_floor{0}
-    , floors{(U32)NUM_FLOORS}
+    , floors{(u32)NUM_FLOORS}
   { }
 
   bool floor_changed;
-  U16 cur_floor;
+  u16 cur_floor;
 
   std::vector<Floor> floors;
 
@@ -29,7 +29,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const U32 version)
+  void serialize(Archive& ar, const u32 version)
   {
     ar & cur_floor;
     ar & floors;

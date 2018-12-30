@@ -3,12 +3,12 @@
 
 #include "../Types.h"
 
-extern const I32 SCREEN_SIZE_X;
-extern const I32 SCREEN_SIZE_Y;
-extern const I32 HALF_SCREEN_SIZE_X;
-extern const I32 HALF_SCREEN_SIZE_Y;
-extern const I32 VIEW_X;
-extern const I32 VIEW_Y;
-extern const F32 ASPECT_RATIO;
+extern const i32 SCREEN_SIZE_X;
+extern const i32 SCREEN_SIZE_Y;
+extern const i32 HALF_SCREEN_SIZE_X;
+extern const i32 HALF_SCREEN_SIZE_Y;
+extern const i32 VIEW_X;
+extern const i32 VIEW_Y;
+extern const f32 ASPECT_RATIO;
 
 #endif

@@ -7,16 +7,16 @@
 #include "../Types.h"
 #include "../components/info/TileInfo.h"
 
-extern const I32 TILE_SIZE;
-extern const I32 TILES_PER_LAYER;
-extern const I32 TILESET_WIDTH;
-extern const I32 TILESET_HEIGHT;
-extern const I32 OUTER_PATH;
-extern const I32 CENTRAL_PATH;
+extern const i32 TILE_SIZE;
+extern const i32 TILES_PER_LAYER;
+extern const i32 TILESET_WIDTH;
+extern const i32 TILESET_HEIGHT;
+extern const i32 OUTER_PATH;
+extern const i32 CENTRAL_PATH;
 
-extern const I32 MAP_SEED;
+extern const i32 MAP_SEED;
 
-extern const I32 NUM_FLOORS;
+extern const i32 NUM_FLOORS;
 
 extern std::unordered_map<std::string, TileInfo> TileData;
 

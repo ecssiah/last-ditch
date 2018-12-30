@@ -61,10 +61,10 @@ void RenderSystem::display()
 
 void RenderSystem::render_map()
 {
-  I32 x_min(camera_.pos.x - VIEW_X * 1.0f / camera_.zoom); 
-  I32 y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
-  I32 x_max(camera_.pos.x + VIEW_X * 1.0f / camera_.zoom);
-  I32 y_max(camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom); 
+  i32 x_min(camera_.pos.x - VIEW_X * 1.0f / camera_.zoom); 
+  i32 y_min(camera_.pos.y - VIEW_Y * 1.0f / camera_.zoom);
+  i32 x_max(camera_.pos.x + VIEW_X * 1.0f / camera_.zoom);
+  i32 y_max(camera_.pos.y + VIEW_Y * 1.0f / camera_.zoom); 
 
   if (x_min < 0) x_min = 0;
   if (y_min < 0) y_min = 0;
@@ -83,12 +83,12 @@ void RenderSystem::render_map()
 }
 
 
-void RenderSystem::render_tile(const string& layer, I32 x, I32 y)
+void RenderSystem::render_tile(const string& layer, i32 x, i32 y)
 {
   const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
-    F32 scale_factor{camera_.zoom * TILE_SIZE};
+    f32 scale_factor{camera_.zoom * TILE_SIZE};
 
     SDL_Rect dst;
     dst.x = (x - camera_.pos.x) * scale_factor + HALF_SCREEN_SIZE_X; 
@@ -143,7 +143,7 @@ void RenderSystem::init_SDL()
 
 void RenderSystem::init_SDL_image()
 {
-  I32 img_flags{IMG_INIT_PNG};
+  i32 img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
     cout << "SDL_image error: " << IMG_GetError() << endl;

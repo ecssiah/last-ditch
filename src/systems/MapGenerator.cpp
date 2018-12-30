@@ -12,8 +12,8 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , rooms_{(U16)NUM_FLOORS, vector<Room>()}
-  , blocked_rooms_{(U16)NUM_FLOORS, vector<Room>()}
+  , rooms_{(u16)NUM_FLOORS, vector<Room>()}
+  , blocked_rooms_{(u16)NUM_FLOORS, vector<Room>()}
   , num_rooms_{60}
   , expansion_iterations_{20000}
   , show_grid_{false}
@@ -36,7 +36,7 @@ void MapGenerator::generate_map()
 }
 
 
-void MapGenerator::layout_main_floor(I32 floor)
+void MapGenerator::layout_main_floor(i32 floor)
 {
   string floor_type;
   if (floor + 1 > 2 * NUM_FLOORS / 3) {
@@ -57,7 +57,7 @@ void MapGenerator::layout_main_floor(I32 floor)
 }
 
 
-void MapGenerator::seed_rooms(I32 floor)
+void MapGenerator::seed_rooms(i32 floor)
 {
   for (auto i{0}; i < num_rooms_; i++) {
     bool collision{true};
@@ -92,18 +92,18 @@ void MapGenerator::seed_rooms(I32 floor)
 }
 
 
-void MapGenerator::expand_rooms(I32 floor)
+void MapGenerator::expand_rooms(i32 floor)
 {
   if (randomize_rooms_) srand(time(nullptr));
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<I8> dirs{0, 1, 2, 3}; 
+    vector<i8> dirs{0, 1, 2, 3}; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() > 0) {
-      I8 choice{dirs[(I8)(rand() % dirs.size())]};
+      i8 choice{dirs[(i8)(rand() % dirs.size())]};
 
       switch (choice) {
         case 0: room.rect.x--; break;
@@ -129,7 +129,7 @@ void MapGenerator::expand_rooms(I32 floor)
 }
 
 
-void MapGenerator::build_rooms(I32 floor)
+void MapGenerator::build_rooms(i32 floor)
 {
   for (const auto& room : rooms_[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++) {
@@ -157,14 +157,14 @@ void MapGenerator::build_rooms(I32 floor)
 }
 
 
-void MapGenerator::finish_rooms(I32 floor)
+void MapGenerator::finish_rooms(i32 floor)
 {
   place_doors(floor);
   integrate_walls(floor);
 }
 
 
-void MapGenerator::integrate_walls(I32 floor)
+void MapGenerator::integrate_walls(i32 floor)
 {
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
@@ -224,11 +224,11 @@ void MapGenerator::integrate_walls(I32 floor)
 
 
 bool MapGenerator::has_clearance(
-  const string& category, I32 x, I32 y, I32 floor, U8 direction
+  const string& category, i32 x, i32 y, i32 floor, u8 direction
 ) {
-  I8 dx1, dy1;
-  I8 dx2, dy2;
-  I8 dx3, dy3;
+  i8 dx1, dy1;
+  i8 dx2, dy2;
+  i8 dx3, dy3;
 
   if (direction == 0) {
     dx1 =  0; dy1 = -1;
@@ -258,10 +258,10 @@ bool MapGenerator::has_clearance(
 }
 
 
-void MapGenerator::place_doors(I32 floor)
+void MapGenerator::place_doors(i32 floor)
 {
   for (auto& room : rooms_[floor]) {
-    U8 count{0};
+    u8 count{0};
     bool found{false};
 
     while (!found && count++ < 40) {
@@ -308,7 +308,7 @@ void MapGenerator::place_doors(I32 floor)
 }
 
 
-bool MapGenerator::room_collision(I32 floor, const Room& test_room) 
+bool MapGenerator::room_collision(i32 floor, const Room& test_room) 
 {
   for (const auto& room : blocked_rooms_[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
@@ -322,7 +322,7 @@ bool MapGenerator::room_collision(I32 floor, const Room& test_room)
 }
 
 
-void MapGenerator::define_blocked_rooms(I32 floor)
+void MapGenerator::define_blocked_rooms(i32 floor)
 {
   // left edge
   blocked_rooms_[floor].push_back({
@@ -354,8 +354,8 @@ void MapGenerator::define_blocked_rooms(I32 floor)
 
 
 void MapGenerator::set_tile(
-  const string& layer, I32 x, I32 y, I32 floor, const string& type, 
-  F32 rotation, SDL_RendererFlip flip
+  const string& layer, i32 x, i32 y, i32 floor, const string& type, 
+  f32 rotation, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
@@ -379,7 +379,7 @@ void MapGenerator::set_tile(
 }
 
 
-void MapGenerator::set_solid(I32 x, I32 y, I32 floor, bool solid)
+void MapGenerator::set_solid(i32 x, i32 y, i32 floor, bool solid)
 {
   Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
   tile.solid = solid;

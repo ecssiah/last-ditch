@@ -17,7 +17,7 @@ struct Camera
   {
   }
 
-  F32 speed, zoom;
+  f32 speed, zoom;
   glm::vec2 pos, xdir, ydir;
 
 };

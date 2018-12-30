@@ -18,7 +18,7 @@ struct Text : public Element
     , texture{nullptr}
   {}
 
-  I32 size;
+  i32 size;
 
   std::string text;
 

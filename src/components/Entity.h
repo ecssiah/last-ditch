@@ -21,13 +21,13 @@ struct Entity
   SDL_Rect src;
   SDL_RendererFlip flip;
 
-  F64 rotation; 
+  f64 rotation; 
 
 private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const U32 version)
+  void serialize(Archive& ar, const u32 version)
   {
     ar & flip;
 

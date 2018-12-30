@@ -41,8 +41,8 @@ struct Input
   bool lreleased, mreleased, rreleased;
   bool exit, pause, debug, menu;
 
-  I32 mx, my;
-  I32 sx, sy;
+  i32 mx, my;
+  i32 sx, sy;
 };
 
 #endif

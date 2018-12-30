@@ -42,8 +42,8 @@ struct Button : public Element
     , bm_dst{}
     , br_dst{}
   {
-    I32 base{TILE_SIZE};
-    I32 size{TILE_SIZE / 4};
+    i32 base{TILE_SIZE};
+    i32 size{TILE_SIZE / 4};
 
     active_tl_src = {base, 0, size, size};
     active_tm_src = {base + size, 0, size, size};

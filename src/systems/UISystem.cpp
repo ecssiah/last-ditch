@@ -73,7 +73,7 @@ void UISystem::update()
 }
 
 
-bool UISystem::check_intersection(Element& el, I32 x, I32 y)
+bool UISystem::check_intersection(Element& el, i32 x, i32 y)
 {
   auto lcheck{input_.mx > el.rect.x};
   auto rcheck{input_.mx < el.rect.x + el.rect.w};
@@ -120,7 +120,7 @@ void UISystem::load_fonts()
 }
 
 
-TTF_Font* UISystem::load_font(const string& fontname, U32 size)
+TTF_Font* UISystem::load_font(const string& fontname, u32 size)
 {
   string fontpath{"assets/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};

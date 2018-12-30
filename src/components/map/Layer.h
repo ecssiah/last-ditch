@@ -11,7 +11,7 @@
 struct Layer
 {
   Layer() 
-    : tiles{(U32)TILES_PER_LAYER, std::vector<Tile>((U32)TILES_PER_LAYER)} 
+    : tiles{(u32)TILES_PER_LAYER, std::vector<Tile>((u32)TILES_PER_LAYER)} 
   {}
 
   std::vector<std::vector<Tile> > tiles;
@@ -20,7 +20,7 @@ private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const U32 version)
+  void serialize(Archive& ar, const u32 version)
   {
     ar & tiles;
   }

@@ -22,15 +22,15 @@ struct Time
   bool time_changed;
   bool date_changed;
 
-  I32 ticks; 
-  I32 year, month, day;
-  I32 hour, minute, second;
+  i32 ticks; 
+  i32 year, month, day;
+  i32 hour, minute, second;
 
 private:
   friend class boost::serialization::access;
 
   template<class Archive>
-  void serialize(Archive& ar, const U32 version)
+  void serialize(Archive& ar, const u32 version)
   {
     ar & year;
     ar & month;

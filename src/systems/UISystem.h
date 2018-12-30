@@ -25,7 +25,7 @@ public:
 
 private:
   void init_SDL_ttf();
-  TTF_Font* load_font(const std::string& fontname, U32 size);
+  TTF_Font* load_font(const std::string& fontname, u32 size);
   void load_fonts();
 
   void setup_main_window();
@@ -48,7 +48,7 @@ private:
   void render_text_element(const std::string& id);
   void render_button_element(const std::string& id);
 
-  bool check_intersection(Element& el, I32 x, I32 y);
+  bool check_intersection(Element& el, i32 x, i32 y);
 
   Input& input_;
   Render& render_;

@@ -17,7 +17,7 @@ struct Render
     , textures{}
   {}
 
-  F32 dt;
+  f32 dt;
 
   SDL_Window* window;
   SDL_Renderer* renderer;

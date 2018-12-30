@@ -30,7 +30,7 @@ struct Window: public Element
     , bm_dst{}
     , br_dst{}
   {
-    I32 size{TILE_SIZE / 4};
+    i32 size{TILE_SIZE / 4};
 
     tl_src = {0, 0, size, size};
     tm_src = {size, 0, size, size};

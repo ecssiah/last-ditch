@@ -15,10 +15,10 @@ public:
   void update();
 
 private:
-  void on_key_down(SDL_Keycode sym, U16 mod, U16 scancode);
-  void on_key_up(SDL_Keycode sym, U16 mod, U16 scancode);
-  void on_mouse_down(Sint32 x, I32 y, U8 button);
-  void on_mouse_up(Sint32 x, I32 y, U8 button);
+  void on_key_down(SDL_Keycode sym, u16 mod, u16 scancode);
+  void on_key_up(SDL_Keycode sym, u16 mod, u16 scancode);
+  void on_mouse_down(Sint32 x, i32 y, u8 button);
+  void on_mouse_up(Sint32 x, i32 y, u8 button);
 
   void clear_inputs();
   void call_input_functions();

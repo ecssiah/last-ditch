@@ -32,7 +32,7 @@ private:
   SDL_Texture* load_texture(const std::string& texturename);
 
   void render_map();
-  void render_tile(const std::string& layer, I32 x, I32 y);
+  void render_tile(const std::string& layer, i32 x, i32 y);
 
   Render& render_;
   Input& input_;

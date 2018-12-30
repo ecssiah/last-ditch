@@ -76,7 +76,7 @@ void InputSystem::call_input_functions()
 }
 
 
-void InputSystem::on_key_down(SDL_Keycode sym, U16 mod, U16 scancode)
+void InputSystem::on_key_down(SDL_Keycode sym, u16 mod, u16 scancode)
 {
   switch (sym) {
     case SDLK_w: input_.up = true; break;
@@ -93,7 +93,7 @@ void InputSystem::on_key_down(SDL_Keycode sym, U16 mod, U16 scancode)
 }
 
 
-void InputSystem::on_key_up(SDL_Keycode sym, U16 mod, U16 scancode)
+void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
 {
   switch (sym) {
     case SDLK_w: input_.up = false; break;
@@ -106,7 +106,7 @@ void InputSystem::on_key_up(SDL_Keycode sym, U16 mod, U16 scancode)
 }
 
 
-void InputSystem::on_mouse_down(I32 x, I32 y, U8 button)
+void InputSystem::on_mouse_down(i32 x, i32 y, u8 button)
 {
   input_.mx = x;
   input_.my = y;
@@ -132,7 +132,7 @@ void InputSystem::on_mouse_down(I32 x, I32 y, U8 button)
 }
 
 
-void InputSystem::on_mouse_up(I32 x, I32 y, U8 button)
+void InputSystem::on_mouse_up(i32 x, i32 y, u8 button)
 {
   input_.mx = x;
   input_.my = y;
@@ -160,8 +160,8 @@ void InputSystem::on_mouse_up(I32 x, I32 y, U8 button)
 
 void InputSystem::calculate_selected_tile()
 {
-  F32 tx{(input_.mx - HALF_SCREEN_SIZE_X) / (F32)TILE_SIZE / camera_.zoom};
-  F32 ty{(input_.my - HALF_SCREEN_SIZE_Y) / (F32)TILE_SIZE / camera_.zoom};
+  f32 tx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
+  f32 ty{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
 
   input_.sx = floor(tx + camera_.pos.x);
   input_.sy = floor(ty + camera_.pos.y);
