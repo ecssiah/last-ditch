@@ -251,7 +251,7 @@ void UISystem::build_text_element(const string& id)
 
 void UISystem::render_text_element(const string& id)
 {
-  auto& el{text_elements_[id]};
+  const auto& el{text_elements_[id]};
 
   SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
 }
@@ -259,7 +259,7 @@ void UISystem::render_text_element(const string& id)
 
 void UISystem::render_window_element(const string& id)
 {
-  auto& el{window_elements_[id]};
+  const auto& el{window_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};
 
   SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
@@ -275,7 +275,7 @@ void UISystem::render_window_element(const string& id)
 
 void UISystem::render_button_element(const string& id)
 {
-  auto& el{button_elements_[id]};
+  const auto& el{button_elements_[id]};
   auto* overlay_texture{render_.textures["overlay"]};
 
   if (el.active) {

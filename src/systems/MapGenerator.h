@@ -43,7 +43,7 @@ private:
 
   Map& map_;
 
-  bool show_grid_;
+  bool show_grid_, randomize_rooms_;
 
   std::vector<std::vector<Room> > rooms_;
   std::vector<std::vector<Room> > blocked_rooms_; 
