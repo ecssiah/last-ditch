@@ -21,19 +21,16 @@ public:
   {
   }
 
-  inline void move(f32 dt, u8 dir)
+  inline void move(f32 dt, Dirs dir)
   {
     auto modifier{inv_zoom * speed * dt};
 
-    if (dir == RIGHT) {
-      pos += modifier * xdir;
-    } else if (dir == UP) {
-      pos -= modifier * ydir; 
-    } else if (dir == LEFT) {
-      pos -= modifier * xdir; 
-    } else if (dir == DOWN) {
-      pos += modifier * ydir;
-    }
+    switch (dir) {
+    case RIGHT: pos += modifier * xdir; break;
+    case UP:    pos -= modifier * ydir; break;
+    case LEFT:  pos -= modifier * xdir; break;
+    case DOWN:  pos += modifier * ydir; break;
+    };
   }
 
   inline void inc_zoom() 

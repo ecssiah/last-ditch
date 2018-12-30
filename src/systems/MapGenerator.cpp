@@ -98,26 +98,29 @@ void MapGenerator::expand_rooms(i32 floor)
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<u8> dirs{UP, DOWN, LEFT, RIGHT}; 
+    vector<Dirs> dirs{UP, DOWN, LEFT, RIGHT}; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() > 0) {
-      u8 choice{dirs[(u8)(rand() % dirs.size())]};
+      const Dirs dir{dirs[rand() % dirs.size()]};
 
-      if (choice == LEFT) room.rect.x--;
-      else if (choice == UP) room.rect.y--; 
-      else if (choice == RIGHT) room.rect.w++;
-      else if (choice == DOWN) room.rect.h++;
+      switch (dir) {
+      case RIGHT: room.rect.w++; break;
+      case UP:    room.rect.y--; break;
+      case LEFT:  room.rect.x--; break;
+      case DOWN:  room.rect.h++; break;
+      }
 
       if (room_collision(floor, room)) {
-        dirs.erase(remove(dirs.begin(), dirs.end(), choice), dirs.end());
+        dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
 
-        if (choice == LEFT) room.rect.x++;
-        else if (choice == UP) room.rect.y++; 
-        else if (choice == RIGHT) room.rect.w--;
-        else if (choice == DOWN) room.rect.h--;
-
+        switch (dir) {
+        case RIGHT: room.rect.w--; break;
+        case UP:    room.rect.y++; break;
+        case LEFT:  room.rect.x++; break;
+        case DOWN:  room.rect.h--; break;
+        }
       } else {
         found = true;
       }
@@ -221,25 +224,25 @@ void MapGenerator::integrate_walls(i32 floor)
 
 
 bool MapGenerator::has_clearance(
-  const string& category, i32 x, i32 y, i32 floor, u8 direction
+  const string& category, i32 x, i32 y, i32 floor, Dirs dir
 ) {
   i8 dx1, dy1;
   i8 dx2, dy2;
   i8 dx3, dy3;
 
-  if (direction == 0) {
+  if (dir == UP) {
     dx1 =  0; dy1 = -1;
     dx2 = -1; dy2 =  0;
     dx3 =  1; dy3 =  0;
-  } else if (direction == 1) {
+  } else if (dir == RIGHT) {
     dx1 =  1; dy1 =  0;
     dx2 =  0; dy2 = -1;
     dx3 =  0; dy3 =  1;
-  } else if (direction == 2) {
+  } else if (dir == DOWN) {
     dx1 =  0; dy1 =  1;
     dx2 =  1; dy2 =  0;
     dx3 = -1; dy3 =  0;
-  } else if (direction == 3) {
+  } else if (dir == LEFT) {
     dx1 = -1; dy1 =  0;
     dx2 =  0; dy2 =  1;
     dx3 =  0; dy3 = -1;
@@ -262,37 +265,37 @@ void MapGenerator::place_doors(i32 floor)
     bool found{false};
 
     while (!found && count++ < 40) {
-      const auto choice{rand() % 4}; 
+      const Dirs dir{Dirs(rand() % 4)}; 
       string door_type{"door1-cls"};
 
-      if (choice == 0) {
+      if (dir == UP) {
         const auto place{(rand() % (room.w() - 1)) + room.l() + 1};
 
-        if (has_clearance("door", place, room.t(), floor, choice)) {
+        if (has_clearance("door", place, room.t(), floor, dir)) {
           found = true;
           set_tile("wall", place, room.t(), floor, door_type);
           set_solid(place, room.t(), floor, true);
         }
-      } else if (choice == 1) {
+      } else if (dir == RIGHT) {
         const auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (has_clearance("door", room.r(), place, floor, choice)) {
+        if (has_clearance("door", room.r(), place, floor, dir)) {
           found = true;
           set_tile("wall", room.l(), place, floor, door_type, 90);
           set_solid(room.l(), place, floor, true);
         }
-      } else if (choice == 2) {
+      } else if (dir == DOWN) {
         const auto place{(rand() % (room.w() - 1)) + room.l() + 1};
         
-        if (has_clearance("door", place, room.b(), floor, choice)) {
+        if (has_clearance("door", place, room.b(), floor, dir)) {
           found = true;
           set_tile("wall", place, room.b(), floor, door_type);
           set_solid(place, room.b(), floor, true);
         }
-      } else if (choice == 3) {
+      } else if (dir == LEFT) {
         const auto place{(rand() % (room.h() - 1)) + room.t() + 1};
 
-        if (has_clearance("door", room.l(), place, floor, choice)) {
+        if (has_clearance("door", room.l(), place, floor, dir)) {
           found = true;
           set_tile("wall", room.l(), place, floor, door_type, 90);
           set_solid(room.l(), place, floor, true);

@@ -28,7 +28,7 @@ private:
   void place_doors(i32 floor);
 
   bool has_clearance(
-    const std::string& category, i32 x, i32 y, i32 floor, u8 direction
+    const std::string& category, i32 x, i32 y, i32 floor, Dirs dir
   );
   bool room_collision(i32 floor, const Room& test_room); 
 

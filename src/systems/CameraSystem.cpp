@@ -22,8 +22,9 @@ void CameraSystem::update()
 {
   if (input_.mag) camera_.inc_zoom();
   if (input_.min) camera_.dec_zoom();
+
   if (input_.right) camera_.move(render_.dt, RIGHT);
-  if (input_.left) camera_.move(render_.dt, LEFT);
-  if (input_.up) camera_.move(render_.dt, UP);
-  if (input_.down) camera_.move(render_.dt, DOWN);
+  if (input_.up)    camera_.move(render_.dt, UP);
+  if (input_.left)  camera_.move(render_.dt, LEFT);
+  if (input_.down)  camera_.move(render_.dt, DOWN);
 }
