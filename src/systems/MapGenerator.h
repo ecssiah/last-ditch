@@ -23,7 +23,6 @@ private:
   void seed_rooms(i32 floor);
   void expand_rooms(i32 floor);
   void build_rooms(i32 floor);
-  void finish_rooms(i32 floor);
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
 

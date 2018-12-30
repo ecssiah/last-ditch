@@ -31,7 +31,8 @@ void MapGenerator::generate_map()
     seed_rooms(floor);
     expand_rooms(floor);
     build_rooms(floor);
-    finish_rooms(floor);
+    place_doors(floor);
+    integrate_walls(floor);
   }
 }
 
@@ -103,7 +104,7 @@ void MapGenerator::expand_rooms(i32 floor)
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() < 4) {
-      Dirs dir{static_cast<Dirs>(rand() % 4)};
+      const Dirs dir{static_cast<Dirs>(rand() % 4)};
 
       switch (dir) {
       case UP:    room.rect.y--; break;
@@ -139,28 +140,21 @@ void MapGenerator::build_rooms(i32 floor)
     }
 
     for (auto x{room.l()}; x <= room.r(); x++) {
-      set_tile("wall", x, room.t(), floor, room.wall_type + "-str"); 
-      set_tile("wall", x, room.b(), floor, room.wall_type + "-str");
       set_solid(x, room.t(), floor, true);
       set_solid(x, room.b(), floor, true);
+      set_tile("wall", x, room.t(), floor, room.wall_type + "-str"); 
+      set_tile("wall", x, room.b(), floor, room.wall_type + "-str");
     }
 
     for (auto y{room.t() + 1}; y <= room.b(); y++) {
-      set_tile("wall", room.l(), y, floor, room.wall_type + "-str", 90); 
-      set_tile("wall", room.r(), y, floor, room.wall_type + "-str", 90);
       set_solid(room.l(), y, floor, true);
       set_solid(room.r(), y, floor, true);
+      set_tile("wall", room.l(), y, floor, room.wall_type + "-str", 90); 
+      set_tile("wall", room.r(), y, floor, room.wall_type + "-str", 90);
     }
   }
 
   cout << "Floor " << floor + 1 << " rooms built" << endl;
-}
-
-
-void MapGenerator::finish_rooms(i32 floor)
-{
-  place_doors(floor);
-  integrate_walls(floor);
 }
 
 

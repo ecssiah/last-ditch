@@ -24,6 +24,8 @@ private:
   Render& render_;
   Time& time_;
 
+  u32 ticks_;
+
   std::chrono::steady_clock::time_point start_;
   std::chrono::steady_clock::time_point end_;
 };

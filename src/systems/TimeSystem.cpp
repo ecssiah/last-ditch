@@ -9,6 +9,7 @@ TimeSystem::TimeSystem(Input& input, Render& render, Time& time)
   : input_{input}
   , render_{render}
   , time_{time}
+  , ticks_{0}
 {
 }
 
@@ -38,15 +39,14 @@ void TimeSystem::end_frame()
 
 void TimeSystem::tick()
 {
-  time_.ticks += 1;
+  ticks_ += 1;
   time_.time_changed = false;
   time_.date_changed = false;
 
-  if (time_.ticks > TICKS_PER_SECOND) {
-    time_.time_changed = true;
-
-    time_.ticks = 0;
+  if (ticks_ >= TICKS_PER_SECOND) {
+    ticks_ = 0;
     time_.second += 1;
+    time_.time_changed = true;
 
     if (time_.second >= SECONDS_PER_MINUTE) {
       time_.second = 0;
@@ -57,9 +57,9 @@ void TimeSystem::tick()
         time_.hour += 1;
 
         if (time_.hour >= HOURS_PER_DAY) {
-          time_.date_changed = true;
           time_.hour = 0;
           time_.day += 1;
+          time_.date_changed = true;
 
           if (time_.day > DAYS_PER_MONTH) {
             time_.day = 1;
