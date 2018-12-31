@@ -7,7 +7,7 @@
 #include "../Types.h"
 #include "../components/info/TileInfo.h"
 
-enum Dirs { RIGHT = 0, UP, LEFT, DOWN };
+enum Dirs { RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3 };
 
 extern const i32 TILE_SIZE;
 extern const i32 TILES_PER_LAYER;

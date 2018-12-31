@@ -17,7 +17,7 @@ MapGenerator::MapGenerator(Map& map)
   , num_rooms_{60}
   , expansion_iterations_{20000}
   , show_grid_{false}
-  , randomize_rooms_{true}
+  , randomize_rooms_{false}
 {
   srand(MAP_SEED);
 }
@@ -259,11 +259,11 @@ void MapGenerator::place_doors(i32 floor)
     bool found{false};
 
     while (!found && count++ < 40) {
-      const Dirs dir{Dirs(rand() % 4)}; 
       string door_type{"door1-cls"};
+      const Dirs dir{static_cast<Dirs>(rand() % 4)}; 
 
       if (dir == UP) {
-        const auto place{(rand() % (room.w() - 1)) + room.l() + 1};
+        const auto place{room.l() + 1 + rand() % (room.w() - 1)};
 
         if (has_clearance("door", place, room.t(), floor, dir)) {
           found = true;
@@ -271,15 +271,15 @@ void MapGenerator::place_doors(i32 floor)
           set_solid(place, room.t(), floor, true);
         }
       } else if (dir == RIGHT) {
-        const auto place{(rand() % (room.h() - 1)) + room.t() + 1};
+        const auto place{room.t() + 1 + rand() % (room.h() - 1)};
 
         if (has_clearance("door", room.r(), place, floor, dir)) {
           found = true;
-          set_tile("wall", room.l(), place, floor, door_type, 90);
+          set_tile("wall", room.r(), place, floor, door_type, 90);
           set_solid(room.l(), place, floor, true);
         }
       } else if (dir == DOWN) {
-        const auto place{(rand() % (room.w() - 1)) + room.l() + 1};
+        const auto place{room.l() + 1 + rand() % (room.w() - 1)};
         
         if (has_clearance("door", place, room.b(), floor, dir)) {
           found = true;
@@ -287,7 +287,7 @@ void MapGenerator::place_doors(i32 floor)
           set_solid(place, room.b(), floor, true);
         }
       } else if (dir == LEFT) {
-        const auto place{(rand() % (room.h() - 1)) + room.t() + 1};
+        const auto place{room.t() + 1 + rand() % (room.h() - 1)};
 
         if (has_clearance("door", room.l(), place, floor, dir)) {
           found = true;

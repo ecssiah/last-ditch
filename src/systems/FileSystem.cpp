@@ -21,15 +21,15 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 
 void FileSystem::init()
 {
-  create_user("test user");
+  // create_user("test user");
 
-  save_state("michael1");
-  load_state("michael1");
-  delete_state("michael1");
+  // save_state("michael1");
+  // load_state("michael1");
+  // delete_state("michael1");
 
-  save_map("test_map1");
-  load_map("test_map1");
-  delete_map("test_map1");
+  // save_map("test_map1");
+  // load_map("test_map1");
+  // delete_map("test_map1");
 }
 
 
