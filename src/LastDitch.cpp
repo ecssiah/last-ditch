@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "LastDitch.h"
+#include "../include/LastDitch.h"
 
 LastDitch::LastDitch()
   : config_system_{}

@@ -4,43 +4,43 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./src/AssetManager.h
-  ./src/constants/MapConstants.h
-  ./src/constants/RenderConstants.h
-  ./src/constants/CameraConstants.h
-  ./src/constants/SimulationConstants.h
-  ./src/components/Camera.h
-  ./src/systems/ConfigSystem.h
-  ./src/systems/RenderSystem.h
-  ./src/systems/MapSystem.h
-  ./src/systems/MapGenerator.h
-  ./src/systems/EntitySystem.h
-  ./src/systems/CameraSystem.h
-  ./src/systems/TimeSystem.h
-  ./src/systems/InputSystem.h
-  ./src/systems/UISystem.h
-  ./src/systems/FileSystem.h
-  ./src/LastDitch.h
+  ./include/AssetManager.h
+  ./include/map/MapConstants.h
+  ./include/render/RenderConstants.h
+  ./include/render/CameraConstants.h
+  ./include/render/Camera.h
+  ./include/SimulationConstants.h
+  ./include/ConfigSystem.h
+  ./include/render/RenderSystem.h
+  ./include/map/MapSystem.h
+  ./include/map/MapGenerator.h
+  ./include/EntitySystem.h
+  ./include/render/CameraSystem.h
+  ./include/TimeSystem.h
+  ./include/InputSystem.h
+  ./include/ui/UISystem.h
+  ./include/FileSystem.h
+  ./include/LastDitch.h
 )
 
 set(
   SOURCES
   ./src/AssetManager.cpp
-  ./src/constants/MapConstants.cpp
-  ./src/constants/RenderConstants.cpp
-  ./src/constants/CameraConstants.cpp
-  ./src/constants/SimulationConstants.cpp
-  ./src/components/Camera.cpp
-  ./src/systems/ConfigSystem.cpp
-  ./src/systems/RenderSystem.cpp
-  ./src/systems/MapSystem.cpp
-  ./src/systems/MapGenerator.cpp
-  ./src/systems/EntitySystem.cpp
-  ./src/systems/CameraSystem.cpp
-  ./src/systems/TimeSystem.cpp
-  ./src/systems/InputSystem.cpp
-  ./src/systems/UISystem.cpp
-  ./src/systems/FileSystem.cpp
+  ./src/map/MapConstants.cpp
+  ./src/render/RenderConstants.cpp
+  ./src/render/CameraConstants.cpp
+  ./src/SimulationConstants.cpp
+  ./src/render/Camera.cpp
+  ./src/ConfigSystem.cpp
+  ./src/render/RenderSystem.cpp
+  ./src/map/MapSystem.cpp
+  ./src/map/MapGenerator.cpp
+  ./src/EntitySystem.cpp
+  ./src/render/CameraSystem.cpp
+  ./src/TimeSystem.cpp
+  ./src/InputSystem.cpp
+  ./src/ui/UISystem.cpp
+  ./src/FileSystem.cpp
   ./src/LastDitch.cpp
   ./src/main.cpp
 )

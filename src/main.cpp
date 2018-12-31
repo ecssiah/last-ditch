@@ -1,4 +1,4 @@
-#include "LastDitch.h"
+#include "../include/LastDitch.h"
 
 int main(int argc, char *argv[])
 {
