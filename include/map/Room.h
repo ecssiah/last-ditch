@@ -17,15 +17,15 @@ struct Room
     , floor_type{}
   {}
 
-  i32 x() const { return rect.x; }
-  i32 y() const { return rect.y; }
-  i32 w() const { return rect.w; }
-  i32 h() const { return rect.h; }
+  inline const i32 x() const { return rect.x; }
+  inline const i32 y() const { return rect.y; }
+  inline const i32 w() const { return rect.w; }
+  inline const i32 h() const { return rect.h; }
 
-  i32 l() const { return rect.x; }
-  i32 r() const { return rect.x + rect.w; }
-  i32 t() const { return rect.y; }
-  i32 b() const { return rect.y + rect.h; }
+  inline const i32 l() const { return rect.x; }
+  inline const i32 r() const { return rect.x + rect.w; }
+  inline const i32 t() const { return rect.y; }
+  inline const i32 b() const { return rect.y + rect.h; }
 
   SDL_Rect rect;
 
