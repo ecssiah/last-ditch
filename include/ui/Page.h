@@ -6,7 +6,10 @@
 struct Page 
 {
   Page()
+    : title{}
   {}
 
   std::string title;
 };
+
+#endif

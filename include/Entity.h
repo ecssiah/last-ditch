@@ -11,17 +11,19 @@
 struct Entity
 {
   Entity()
+    : type{}
+    , rotation{0}
+    , src{0, 0, TILE_SIZE, TILE_SIZE}
+    , flip{SDL_FLIP_NONE}
   {
-    src.w = TILE_SIZE; 
-    src.h = TILE_SIZE;
   }
 
   std::string type;
 
+  f64 rotation; 
+
   SDL_Rect src;
   SDL_RendererFlip flip;
-
-  f64 rotation; 
 
 private:
   friend class boost::serialization::access;
@@ -30,13 +32,12 @@ private:
   void serialize(Archive& ar, const u32 version)
   {
     ar & flip;
+    ar & rotation;
 
     ar & src.x;
     ar & src.y;
     ar & src.w;
     ar & src.h;
-
-    ar & rotation;
   }
 };
 

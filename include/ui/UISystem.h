@@ -10,9 +10,9 @@
 #include "Window.h"
 #include "Button.h"
 #include "../Types.h"
-#include "../render/Render.h"
 #include "../Input.h"
 #include "../Time.h"
+#include "../render/Render.h"
 #include "../map/Map.h"
 
 class UISystem
@@ -24,10 +24,6 @@ public:
   void update();
 
 private:
-  void init_SDL_ttf();
-  TTF_Font* load_font(const std::string& fontname, u32 size);
-  void load_fonts();
-
   void setup_main_window();
   void setup_main_buttons();
   void setup_floor_display();
@@ -44,11 +40,7 @@ private:
   void build_text_element(const std::string& id);
   void build_button_element(const std::string& id);
 
-  void render_window_element(const std::string& id);
-  void render_text_element(const std::string& id);
-  void render_button_element(const std::string& id);
-
-  bool check_intersection(Element& el, i32 x, i32 y);
+  bool check_intersection(i32 x, i32 y, Element& el);
 
   Input& input_;
   Render& render_;

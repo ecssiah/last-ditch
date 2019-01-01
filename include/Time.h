@@ -11,12 +11,8 @@ struct Time
     : time_changed{false}
     , date_changed{false}
     , ticks{0}
-    , year{2612}
-    , month{12}
-    , day{30}
-    , hour{23}
-    , minute{59}
-    , second{50}
+    , day{30}, month{12}, year{2612}
+    , second{50}, minute{59}, hour{23}
   {}
 
   bool time_changed;

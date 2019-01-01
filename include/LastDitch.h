@@ -1,19 +1,19 @@
 #ifndef LAST_DITCH_H
 #define LAST_DITCH_H
 
-#include "render/Render.h"
 #include "Input.h"
-#include "render/Camera.h"
-#include "map/Map.h"
-#include "ConfigSystem.h"
-#include "render/RenderSystem.h"
-#include "render/CameraSystem.h"
-#include "map/MapSystem.h"
-#include "EntitySystem.h"
-#include "ui/UISystem.h"
 #include "TimeSystem.h"
 #include "InputSystem.h"
 #include "FileSystem.h"
+#include "ConfigSystem.h"
+#include "render/Render.h"
+#include "render/Camera.h"
+#include "render/RenderSystem.h"
+#include "render/CameraSystem.h"
+#include "map/Map.h"
+#include "map/MapSystem.h"
+#include "ui/UISystem.h"
+#include "EntitySystem.h"
 
 class LastDitch 
 {

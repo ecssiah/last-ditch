@@ -28,6 +28,7 @@ RenderSystem::RenderSystem(
 RenderSystem::~RenderSystem()
 {
   IMG_Quit();
+  TTF_Quit();
 
   SDL_DestroyRenderer(render_.renderer);
   SDL_DestroyWindow(render_.window);
@@ -41,65 +42,12 @@ void RenderSystem::init()
 {
   init_SDL();
   init_SDL_image();
-  
+  init_SDL_ttf();
+
+  load_fonts();
   load_tilesets();
-}
 
-
-void RenderSystem::update()
-{
-  SDL_RenderClear(render_.renderer);
-
-  render_map(); 
-}
-
-
-void RenderSystem::display()
-{
-  SDL_RenderPresent(render_.renderer);
-}
-
-
-void RenderSystem::render_map()
-{
-  const f32 lower{0};
-  const f32 upper{(f32)TILES_PER_LAYER - 1};
-
-  i32 x_min(max(lower, camera_.pos.x - VIEW_X * camera_.inv_zoom)); 
-  i32 y_min(max(lower, camera_.pos.y - VIEW_Y * camera_.inv_zoom));
-  i32 x_max(min(upper, camera_.pos.x + VIEW_X * camera_.inv_zoom));
-  i32 y_max(min(upper, camera_.pos.y + VIEW_Y * camera_.inv_zoom)); 
-
-  for (auto x{x_min}; x <= x_max; ++x) { 
-    for (auto y{y_min}; y <= y_max; ++y) {
-      render_tile("floor", x, y);
-      render_tile("wall", x, y);
-      render_tile("object", x, y);
-      render_tile("entity", x, y);
-      render_tile("overlay", x, y);
-    }
-  }
-}
-
-
-void RenderSystem::render_tile(const string& layer, i32 x, i32 y)
-{
-  const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
-
-  if (tile.active) {
-    const f32 scale_factor{camera_.zoom * TILE_SIZE};
-
-    SDL_Rect dst;
-    dst.x = scale_factor * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X; 
-    dst.y = scale_factor * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
-    dst.w = scale_factor;
-    dst.h = scale_factor;
-
-    SDL_RenderCopyEx(
-      render_.renderer, render_.textures[layer], 
-      &tile.src, &dst, tile.rotation, nullptr, tile.flip
-    ); 
-  }
+  cout << "RenderSystem init" << endl;
 }
 
 
@@ -151,13 +99,12 @@ void RenderSystem::init_SDL_image()
 }
 
 
-void RenderSystem::load_tilesets()
+void RenderSystem::init_SDL_ttf()
 {
-  render_.textures["floor"] = load_texture("map_tileset"); 
-  render_.textures["wall"] = render_.textures["floor"];
-  render_.textures["object"] = load_texture("object_tileset"); 
-  render_.textures["entity"] = load_texture("entity_tileset"); 
-  render_.textures["overlay"] = load_texture("overlay_tileset");
+  if (TTF_Init()) {
+    cout << "TTF_Init: " << TTF_GetError() << endl;  
+    return;
+  } 
 }
 
 
@@ -181,5 +128,199 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
   SDL_FreeSurface(surface);
 
   return texture;
+}
+
+
+TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
+{
+  string fontpath{"assets/fonts/" + fontname + ".ttf"};
+  TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
+
+  if (!font) {
+    cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
+    return nullptr;
+  }
+
+  return font;
+}
+
+
+void RenderSystem::load_tilesets()
+{
+  render_.textures["floor"] = load_texture("map_tileset"); 
+  render_.textures["wall"] = render_.textures["floor"];
+  render_.textures["object"] = load_texture("object_tileset"); 
+  render_.textures["entity"] = load_texture("entity_tileset"); 
+  render_.textures["overlay"] = load_texture("overlay_tileset");
+}
+
+
+void RenderSystem::load_fonts()
+{
+  render_.fonts["Fantasque-Small"] = load_font("FantasqueSansMono-Regular", 14);
+  render_.fonts["Fantasque-Medium"] = load_font("FantasqueSansMono-Regular", 18);
+  render_.fonts["Fantasque-Large"] = load_font("FantasqueSansMono-Regular", 22);
+}
+
+
+void RenderSystem::update()
+{
+  SDL_RenderClear(render_.renderer);
+
+  render_map(); 
+  render_ui();
+
+  SDL_RenderPresent(render_.renderer);
+}
+
+
+void RenderSystem::render_map()
+{
+  const f32 lower{0};
+  const f32 upper{(f32)TILES_PER_LAYER - 1};
+
+  i32 x_min(max(lower, camera_.pos.x - VIEW_X * camera_.inv_zoom)); 
+  i32 y_min(max(lower, camera_.pos.y - VIEW_Y * camera_.inv_zoom));
+  i32 x_max(min(upper, camera_.pos.x + VIEW_X * camera_.inv_zoom));
+  i32 y_max(min(upper, camera_.pos.y + VIEW_Y * camera_.inv_zoom)); 
+
+  for (auto x{x_min}; x <= x_max; ++x) { 
+    for (auto y{y_min}; y <= y_max; ++y) {
+      render_tile("floor", x, y);
+      render_tile("wall", x, y);
+      render_tile("object", x, y);
+      render_tile("entity", x, y);
+      render_tile("overlay", x, y);
+    }
+  }
+}
+
+
+void RenderSystem::render_ui()
+{
+  if (input_.menu) {
+    render_window_element("main_window");
+
+    render_button_element("info");
+    render_button_element("save");
+    render_button_element("options");
+  }
+
+  render_text_element("floor_display");
+  render_text_element("time_display");
+  render_text_element("date_display");
+}
+
+
+void RenderSystem::render_tile(const string& layer, i32 x, i32 y)
+{
+  const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
+
+  if (tile.active) {
+    const f32 scale_factor{camera_.zoom * TILE_SIZE};
+
+    SDL_Rect dst;
+    dst.x = scale_factor * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X; 
+    dst.y = scale_factor * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
+    dst.w = scale_factor;
+    dst.h = scale_factor;
+
+    SDL_RenderCopyEx(
+      render_.renderer, render_.textures[layer], 
+      &tile.src, &dst, tile.rotation, nullptr, tile.flip
+    ); 
+  }
+}
+
+
+void RenderSystem::render_text_element(const string& id)
+{
+  const auto& el{render_.text_elements[id]};
+
+  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
+}
+
+
+void RenderSystem::render_window_element(const string& id)
+{
+  const auto& el{render_.window_elements[id]};
+  auto* overlay_texture{render_.textures["overlay"]};
+
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tm_src, &el.tm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tr_src, &el.tr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.ll_src, &el.ll_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.mm_src, &el.mm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.rr_src, &el.rr_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bl_src, &el.bl_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bm_src, &el.bm_dst);
+  SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
+}
+
+
+void RenderSystem::render_button_element(const string& id)
+{
+  const auto& el{render_.button_elements[id]};
+  auto* overlay_texture{render_.textures["overlay"]};
+
+  if (el.active) {
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tl_src, &el.tl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tm_src, &el.tm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_tr_src, &el.tr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_ll_src, &el.ll_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_mm_src, &el.mm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_rr_src, &el.rr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_bl_src, &el.bl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_bm_src, &el.bm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.active_br_src, &el.br_dst
+    );
+  } else {
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tl_src, &el.tl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tm_src, &el.tm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_tr_src, &el.tr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_ll_src, &el.ll_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_mm_src, &el.mm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_rr_src, &el.rr_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_bl_src, &el.bl_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_bm_src, &el.bm_dst
+    );
+    SDL_RenderCopy(
+      render_.renderer, overlay_texture, &el.inactive_br_src, &el.br_dst
+    );
+  }
+
+  render_text_element(id);
 }
 

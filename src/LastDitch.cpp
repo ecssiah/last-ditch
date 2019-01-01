@@ -30,10 +30,8 @@ LastDitch::LastDitch()
     camera_system_.update();
     map_system_.update();
     entity_system_.update();
-    render_system_.update();
     ui_system_.update();
-
-    render_system_.display();
+    render_system_.update();
 
     time_system_.end_frame();
   }

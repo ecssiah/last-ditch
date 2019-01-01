@@ -12,9 +12,9 @@ struct Room
   {}
 
   Room(i32 x, i32 y, i32 w, i32 h)
-    : rect{x, y, w, h}
-    , wall_type{}
+    : wall_type{}
     , floor_type{}
+    , rect{x, y, w, h}
   {}
 
   inline const i32 x() const { return rect.x; }
@@ -27,10 +27,11 @@ struct Room
   inline const i32 t() const { return rect.y; }
   inline const i32 b() const { return rect.y + rect.h; }
 
-  SDL_Rect rect;
-
   std::string wall_type;
   std::string floor_type;
+
+  SDL_Rect rect;
+
 };
 
 

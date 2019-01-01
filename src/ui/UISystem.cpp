@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include "../../include/render/RenderConstants.h"
-
 using namespace std;
 
 UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
@@ -14,24 +13,20 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
   , render_{render}
   , map_{map}
   , time_{time}
-  , fonts_{}
-  , text_elements_{}
-  , window_elements_{}
 {
 }
 
 
 void UISystem::init()
 {
-  init_SDL_ttf();
-  load_fonts();
-
   setup_main_window();
   setup_main_buttons();
 
   setup_floor_display();
   setup_time_display();
   setup_date_display();
+
+  cout << "UISystem init" << endl;
 }
 
 
@@ -41,103 +36,62 @@ void UISystem::update()
 
   if (input_.menu) {
     if (input_.lclick) {
-      auto& info_btn{button_elements_["info"]};    
-      auto& save_btn{button_elements_["save"]};    
-      auto& options_btn{button_elements_["options"]};    
+      auto& info_btn{render_.button_elements["info"]};    
+      auto& save_btn{render_.button_elements["save"]};    
+      auto& options_btn{render_.button_elements["options"]};    
 
-      if (check_intersection(info_btn, input_.mx, input_.my)) {
+      if (check_intersection(input_.mx, input_.my, info_btn)) {
         info_btn.active = true;
         save_btn.active = false;
         options_btn.active = false;
-      } else if (check_intersection(save_btn, input_.mx, input_.my)) {
+      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
         info_btn.active = false;
         save_btn.active = true;
         options_btn.active = false;
-      } else if (check_intersection(options_btn, input_.mx, input_.my)) {
+      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
         info_btn.active = false;
         save_btn.active = false;
         options_btn.active = true;
       }
     }
-
-    render_window_element("main_window");
-
-    render_button_element("info");
-    render_button_element("save");
-    render_button_element("options");
   }
-
-  render_text_element("floor_display");
-  render_text_element("time_display");
-  render_text_element("date_display");
 }
 
 
-bool UISystem::check_intersection(Element& el, i32 x, i32 y)
+bool UISystem::check_intersection(i32 x, i32 y, Element& el)
 {
   auto lcheck{input_.mx > el.rect.x};
   auto rcheck{input_.mx < el.rect.x + el.rect.w};
   auto tcheck{input_.my > el.rect.y};
   auto bcheck{input_.my < el.rect.y + el.rect.h};
 
-  return lcheck && rcheck && tcheck && bcheck ? true : false;
+  return lcheck && rcheck && tcheck && bcheck;
 }
 
 
 void UISystem::update_main_text()
 {
   if (map_.floor_changed) {
-    text_elements_["floor_display"].text = format_floor();
+    render_.text_elements["floor_display"].text = format_floor();
     build_text_element("floor_display");
   }
 
   if (time_.time_changed) {
-    text_elements_["time_display"].text = format_time();
+    render_.text_elements["time_display"].text = format_time();
     build_text_element("time_display");
   }
 
   if (time_.date_changed) {
-    text_elements_["date_display"].text = format_date();
+    render_.text_elements["date_display"].text = format_date();
     build_text_element("date_display");
   }
-}
-
-
-void UISystem::init_SDL_ttf()
-{
-  if (TTF_Init()) {
-    cout << "TTF_Init: " << TTF_GetError() << endl;  
-    return;
-  } 
-}
-
-
-void UISystem::load_fonts()
-{
-  fonts_["Fantasque-Small"] = load_font("FantasqueSansMono-Regular", 14);
-  fonts_["Fantasque-Medium"] = load_font("FantasqueSansMono-Regular", 18);
-  fonts_["Fantasque-Large"] = load_font("FantasqueSansMono-Regular", 22);
-}
-
-
-TTF_Font* UISystem::load_font(const string& fontname, u32 size)
-{
-  string fontpath{"assets/fonts/" + fontname + ".ttf"};
-  TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
-
-  if (!font) {
-    cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
-    return nullptr;
-  }
-
-  return font;
 }
 
 
 void UISystem::build_window_element(const string& id)
 {
   auto size{TILE_SIZE / 4};
-  auto& el{window_elements_[id]};
+  auto& el{render_.window_elements[id]};
 
   el.tl_dst = { 
     el.rect.x, el.rect.y, 
@@ -181,7 +135,7 @@ void UISystem::build_window_element(const string& id)
 void UISystem::build_button_element(const string& id)
 {
   auto size{TILE_SIZE / 4};
-  auto& el{button_elements_[id]};
+  auto& el{render_.button_elements[id]};
 
   el.tl_dst = { 
     el.rect.x, el.rect.y, 
@@ -220,9 +174,9 @@ void UISystem::build_button_element(const string& id)
     size, size
   };
 
-  auto& txt_el{text_elements_[id]};
+  auto& txt_el{render_.text_elements[id]};
 
-  txt_el.font = fonts_["Fantasque-Medium"];
+  txt_el.font = render_.fonts["Fantasque-Medium"];
   txt_el.text = el.text;
 
   build_text_element(id);
@@ -234,7 +188,7 @@ void UISystem::build_button_element(const string& id)
 
 void UISystem::build_text_element(const string& id)
 {
-  auto& el{text_elements_[id]};
+  auto& el{render_.text_elements[id]};
 
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
 
@@ -249,103 +203,12 @@ void UISystem::build_text_element(const string& id)
 }
 
 
-void UISystem::render_text_element(const string& id)
-{
-  const auto& el{text_elements_[id]};
-
-  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
-}
-
-
-void UISystem::render_window_element(const string& id)
-{
-  const auto& el{window_elements_[id]};
-  auto* overlay_texture{render_.textures["overlay"]};
-
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tm_src, &el.tm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tr_src, &el.tr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.ll_src, &el.ll_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.mm_src, &el.mm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.rr_src, &el.rr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bl_src, &el.bl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bm_src, &el.bm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
-}
-
-void UISystem::render_button_element(const string& id)
-{
-  const auto& el{button_elements_[id]};
-  auto* overlay_texture{render_.textures["overlay"]};
-
-  if (el.active) {
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tl_src, &el.tl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tm_src, &el.tm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tr_src, &el.tr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_ll_src, &el.ll_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_mm_src, &el.mm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_rr_src, &el.rr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_bl_src, &el.bl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_bm_src, &el.bm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_br_src, &el.br_dst
-    );
-  } else {
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tl_src, &el.tl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tm_src, &el.tm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tr_src, &el.tr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_ll_src, &el.ll_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_mm_src, &el.mm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_rr_src, &el.rr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_bl_src, &el.bl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_bm_src, &el.bm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_br_src, &el.br_dst
-    );
-  }
-
-  render_text_element(id);
-}
-
-
 void UISystem::setup_main_window()
 {
-  window_elements_["main_window"].rect.x = 0.1 * SCREEN_SIZE_X;
-  window_elements_["main_window"].rect.y = 0.1 * SCREEN_SIZE_Y;
-  window_elements_["main_window"].rect.w = 0.8 * SCREEN_SIZE_X;  
-  window_elements_["main_window"].rect.h = 0.8 * SCREEN_SIZE_Y;  
+  render_.window_elements["main_window"].rect.x = 0.1 * SCREEN_SIZE_X;
+  render_.window_elements["main_window"].rect.y = 0.1 * SCREEN_SIZE_Y;
+  render_.window_elements["main_window"].rect.w = 0.8 * SCREEN_SIZE_X;  
+  render_.window_elements["main_window"].rect.h = 0.8 * SCREEN_SIZE_Y;  
 
   build_window_element("main_window");
 }
@@ -356,28 +219,28 @@ void UISystem::setup_main_buttons()
   auto width{120};
   auto height{32};
 
-  button_elements_["info"].text = "Info";
-  button_elements_["info"].rect.x = .25 * SCREEN_SIZE_X - width / 2;
-  button_elements_["info"].rect.y = .11 * SCREEN_SIZE_Y;
-  button_elements_["info"].rect.w = width;
-  button_elements_["info"].rect.h = height;
-  button_elements_["info"].active = true;
+  render_.button_elements["info"].text = "Info";
+  render_.button_elements["info"].rect.x = .25 * SCREEN_SIZE_X - width / 2;
+  render_.button_elements["info"].rect.y = .11 * SCREEN_SIZE_Y;
+  render_.button_elements["info"].rect.w = width;
+  render_.button_elements["info"].rect.h = height;
+  render_.button_elements["info"].active = true;
 
   build_button_element("info");
 
-  button_elements_["save"].text = "Save/Load";
-  button_elements_["save"].rect.x = .50 * SCREEN_SIZE_X - width / 2;
-  button_elements_["save"].rect.y = .11 * SCREEN_SIZE_Y;
-  button_elements_["save"].rect.w = width;
-  button_elements_["save"].rect.h = height;
+  render_.button_elements["save"].text = "Save/Load";
+  render_.button_elements["save"].rect.x = .50 * SCREEN_SIZE_X - width / 2;
+  render_.button_elements["save"].rect.y = .11 * SCREEN_SIZE_Y;
+  render_.button_elements["save"].rect.w = width;
+  render_.button_elements["save"].rect.h = height;
 
   build_button_element("save");
 
-  button_elements_["options"].text = "Options";
-  button_elements_["options"].rect.x = .75 * SCREEN_SIZE_X - width / 2;
-  button_elements_["options"].rect.y = .11 * SCREEN_SIZE_Y;
-  button_elements_["options"].rect.w = width;
-  button_elements_["options"].rect.h = height;
+  render_.button_elements["options"].text = "Options";
+  render_.button_elements["options"].rect.x = .75 * SCREEN_SIZE_X - width / 2;
+  render_.button_elements["options"].rect.y = .11 * SCREEN_SIZE_Y;
+  render_.button_elements["options"].rect.w = width;
+  render_.button_elements["options"].rect.h = height;
 
   build_button_element("options");
 }
@@ -385,24 +248,24 @@ void UISystem::setup_main_buttons()
 
 void UISystem::setup_floor_display()
 {
-  text_elements_["floor_display"].font = fonts_["Fantasque-Small"];
-  text_elements_["floor_display"].text = format_floor();
+  render_.text_elements["floor_display"].font = render_.fonts["Fantasque-Small"];
+  render_.text_elements["floor_display"].text = format_floor();
 
   build_text_element("floor_display");
   
-  text_elements_["floor_display"].rect.x = 4;
-  text_elements_["floor_display"].rect.y = 4;
+  render_.text_elements["floor_display"].rect.x = 4;
+  render_.text_elements["floor_display"].rect.y = 4;
 }
 
 
 void UISystem::setup_time_display()
 {
-  text_elements_["time_display"].font = fonts_["Fantasque-Small"];
-  text_elements_["time_display"].text = format_time();
+  render_.text_elements["time_display"].font = render_.fonts["Fantasque-Small"];
+  render_.text_elements["time_display"].text = format_time();
 
   build_text_element("time_display");
 
-  auto& rect{text_elements_["time_display"].rect};
+  auto& rect{render_.text_elements["time_display"].rect};
 
   rect.x = SCREEN_SIZE_X - rect.w - 4;
   rect.y = 4;
@@ -429,12 +292,12 @@ string UISystem::format_time()
 
 void UISystem::setup_date_display()
 {
-  text_elements_["date_display"].font = fonts_["Fantasque-Small"];
-  text_elements_["date_display"].text = format_date();
+  render_.text_elements["date_display"].font = render_.fonts["Fantasque-Small"];
+  render_.text_elements["date_display"].text = format_date();
 
   build_text_element("date_display");
 
-  auto& rect{text_elements_["date_display"].rect};
+  auto& rect{render_.text_elements["date_display"].rect};
 
   rect.x = SCREEN_SIZE_X - rect.w - 4;
   rect.y = 16;

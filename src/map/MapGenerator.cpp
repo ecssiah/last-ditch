@@ -12,12 +12,12 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , rooms_{(u16)NUM_FLOORS, vector<Room>()}
-  , blocked_rooms_{(u16)NUM_FLOORS, vector<Room>()}
-  , num_rooms_{60}
-  , expansion_iterations_{20000}
   , show_grid_{false}
   , randomize_rooms_{false}
+  , num_rooms_{60}
+  , expansion_iterations_{20000}
+  , rooms_{(u16)NUM_FLOORS, vector<Room>()}
+  , blocked_rooms_{(u16)NUM_FLOORS, vector<Room>()}
 {
   srand(MAP_SEED);
 }
@@ -62,31 +62,30 @@ void MapGenerator::seed_rooms(i32 floor)
 {
   for (auto i{0}; i < num_rooms_; i++) {
     bool collision{true};
-    string floor_type, wall_type;
+    string wall_type, floor_type;
 
     if (floor + 1 > 2 * NUM_FLOORS / 3) {
-      floor_type = "bright_light_concrete";
       wall_type = "wall3";
+      floor_type = "bright_light_concrete";
     } else if (floor + 1 > 1 * NUM_FLOORS / 3) {
-      floor_type = "smooth_light_concrete";
       wall_type = "wall2";
+      floor_type = "smooth_light_concrete";
     } else {
-      floor_type = "light_concrete";
       wall_type = "wall1";
+      floor_type = "light_concrete";
     }
 
     Room test_room;
-    test_room.floor_type = floor_type;
     test_room.wall_type = wall_type;
+    test_room.floor_type = floor_type;
 
-    while (collision) {
+    do {
       test_room.rect.x = rand() % (TILES_PER_LAYER - 1);
       test_room.rect.y = rand() % (TILES_PER_LAYER - 1);
       test_room.rect.w = 2;
       test_room.rect.h = 2;
-
-      collision = room_collision(floor, test_room);
-    }
+    } 
+    while (room_collision(floor, test_room));
 
     rooms_[floor].push_back(test_room);
   }
@@ -166,10 +165,10 @@ void MapGenerator::integrate_walls(i32 floor)
       const Tile& tile{tiles[x][y]};
 
       if (tile.category == "wall") {
-        const Tile& utile{tiles[x][y - 1]};
-        const Tile& dtile{tiles[x][y + 1]};
-        const Tile& ltile{tiles[x - 1][y]};
-        const Tile& rtile{tiles[x + 1][y]};
+        const Tile& utile{tiles[x + 0][y - 1]};
+        const Tile& dtile{tiles[x + 0][y + 1]};
+        const Tile& ltile{tiles[x - 1][y + 0]};
+        const Tile& rtile{tiles[x + 1][y + 0]};
 
         bool umatch{tile.type == utile.type};
         bool rmatch{tile.type == rtile.type};
@@ -244,11 +243,11 @@ bool MapGenerator::has_clearance(
 
   const auto& tiles{map_.floors[floor].layers["wall"].tiles};
 
-  const auto place_free{tiles[x + dx1][y + dy1].type == ""};
-  const auto clear_left{tiles[x + dx2][y + dy2].category != "door"};
-  const auto clear_right{tiles[x + dx3][y + dy3].category != "door"};
+  const auto front_clear{tiles[x + dx1][y + dy1].type == ""};
+  const auto left_clear{tiles[x + dx2][y + dy2].category != "door"};
+  const auto right_clear{tiles[x + dx3][y + dy3].category != "door"};
 
-  return place_free && clear_left && clear_right;
+  return front_clear && left_clear && right_clear;
 }
 
 
@@ -259,44 +258,38 @@ void MapGenerator::place_doors(i32 floor)
     bool found{false};
 
     while (!found && count++ < 40) {
-      string door_type{"door1-cls"};
+      string door_type{rand() % 2 == 0 ? "door1-opn" : "door1-cls"};
+
+      i32 x, y, rot;
+      const auto horz_range{room.w() - 1};
+      const auto horz_start{room.l() + 1};
+      const auto vert_range{room.h() - 1};
+      const auto vert_start{room.t() + 1};
+
       const Dirs dir{static_cast<Dirs>(rand() % 4)}; 
 
-      const auto ud_range{room.w() - 1};
-      const auto lr_range{room.h() - 1};
-
       if (dir == UP) {
-        const auto place{room.l() + 1 + rand() % ud_range};
-
-        if (has_clearance("door", place, room.t(), floor, dir)) {
-          found = true;
-          set_tile("wall", place, room.t(), floor, door_type);
-          set_solid(place, room.t(), floor, true);
-        }
-      } else if (dir == RIGHT) {
-        const auto place{room.t() + 1 + rand() % lr_range};
-
-        if (has_clearance("door", room.r(), place, floor, dir)) {
-          found = true;
-          set_tile("wall", room.r(), place, floor, door_type, 90);
-          set_solid(room.l(), place, floor, true);
-        }
+        x = {horz_start + rand() % horz_range};
+        y = {room.t()}; 
+        rot = {0};
       } else if (dir == DOWN) {
-        const auto place{room.l() + 1 + rand() % ud_range};
-        
-        if (has_clearance("door", place, room.b(), floor, dir)) {
-          found = true;
-          set_tile("wall", place, room.b(), floor, door_type);
-          set_solid(place, room.b(), floor, true);
-        }
+        x = {horz_start + rand() % horz_range};
+        y = {room.b()};
+        rot = {180};
       } else if (dir == LEFT) {
-        const auto place{room.t() + 1 + rand() % lr_range};
+        x = {room.l()};
+        y = {vert_start + rand() % vert_range};
+        rot = {270};
+      } else if (dir == RIGHT) {
+        x = {room.r()};
+        y = {vert_start + rand() % vert_range};
+        rot = {90};
+      }
 
-        if (has_clearance("door", room.l(), place, floor, dir)) {
-          found = true;
-          set_tile("wall", room.l(), place, floor, door_type, 90);
-          set_solid(room.l(), place, floor, true);
-        }
+      if (has_clearance("door", x, y, floor, dir)) {
+        found = true;
+        set_solid(x, y, floor, true);
+        set_tile("wall", x, y, floor, door_type, rot);
       }
     }
   }
@@ -339,12 +332,12 @@ void MapGenerator::define_blocked_rooms(i32 floor)
   });
   // middle horizontal
   blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER / 2 - OUTER_PATH - 1, 
+    0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
     TILES_PER_LAYER - 1, CENTRAL_PATH + 1
   });
   // middle vertical
   blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - OUTER_PATH - 1, 0, 
+    TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
     CENTRAL_PATH + 1, TILES_PER_LAYER - 1
   });
 }

@@ -11,35 +11,23 @@ struct Window: public Element
 {
   Window()
     : texture{nullptr}
-    , tl_src{}
-    , tm_src{}
-    , tr_src{}
-    , ll_src{}
-    , mm_src{}
-    , rr_src{}
-    , bl_src{}
-    , bm_src{}
-    , br_src{}
-    , tl_dst{}
-    , tm_dst{}
-    , tr_dst{}
-    , ll_dst{}
-    , mm_dst{}
-    , rr_dst{}
-    , bl_dst{}
-    , bm_dst{}
-    , br_dst{}
+    , tl_src{}, tm_src{}, tr_src{}
+    , ll_src{}, mm_src{}, rr_src{}
+    , bl_src{}, bm_src{}, br_src{}
+    , tl_dst{}, tm_dst{}, tr_dst{}
+    , ll_dst{}, mm_dst{}, rr_dst{}
+    , bl_dst{}, bm_dst{}, br_dst{}
   {
     i32 size{TILE_SIZE / 4};
 
-    tl_src = {0, 0, size, size};
-    tm_src = {size, 0, size, size};
-    tr_src = {2 * size, 0, size, size};
-    ll_src = {0, size, size, size};
-    mm_src = {size, size, size, size};
-    rr_src = {2 * size, size, size, size};
-    bl_src = {0, 2 * size, size, size};
-    bm_src = {size, 2 * size, size, size};
+    tl_src = {0 * size, 0 * size, size, size};
+    tm_src = {1 * size, 0 * size, size, size};
+    tr_src = {2 * size, 0 * size, size, size};
+    ll_src = {0 * size, 1 * size, size, size};
+    mm_src = {1 * size, 1 * size, size, size};
+    rr_src = {2 * size, 1 * size, size, size};
+    bl_src = {0 * size, 2 * size, size, size};
+    bm_src = {1 * size, 2 * size, size, size};
     br_src = {2 * size, 2 * size, size, size};
   }
 

@@ -17,14 +17,11 @@ struct Tile
     , category{}
     , active{false}
     , solid{false}
+    , rotation{0}
     , color{255, 255, 255}
-    , src{}
+    , src{0, 0, TILE_SIZE, TILE_SIZE}
     , flip{SDL_FLIP_NONE}
-    , rotation{}
-  {
-    src.w = TILE_SIZE; 
-    src.h = TILE_SIZE;
-  }
+  {}
 
   std::string type;
   std::string subtype;
@@ -32,13 +29,12 @@ struct Tile
 
   bool active;
   bool solid;
+  f64 rotation; 
 
   glm::vec3 color;
 
   SDL_Rect src;
   SDL_RendererFlip flip;
-
-  f64 rotation; 
 
 private:
   friend class boost::serialization::access;
@@ -52,6 +48,7 @@ private:
 
     ar & active;
     ar & solid;
+    ar & rotation;
 
     ar & color.x;
     ar & color.y;
@@ -63,8 +60,6 @@ private:
     ar & src.y;
     ar & src.w;
     ar & src.h;
-
-    ar & rotation;
   }
 };
 

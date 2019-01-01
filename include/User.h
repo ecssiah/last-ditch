@@ -6,8 +6,8 @@
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "Save.h"
 #include "Types.h"
+#include "Save.h"
 
 struct User
 {

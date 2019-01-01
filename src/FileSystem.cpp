@@ -30,6 +30,8 @@ void FileSystem::init()
   // save_map("test_map1");
   // load_map("test_map1");
   // delete_map("test_map1");
+
+  cout << "FileSystem init" << endl;
 }
 
 
@@ -72,13 +74,10 @@ bool FileSystem::delete_user(const string& username)
 
   if (user_exists) {
     users_.erase(users_.begin() + index);
-
     cout << "User erased: " << username << endl;
-
     return true;
   } else {
     cerr << "User does not exist: " << username << endl;
-
     return false;
   }
 }
@@ -90,7 +89,6 @@ bool FileSystem::save_state(const string& filename)
 
   if (ofs.fail()) {
     cerr << "Error: " << strerror(errno);
-
     return false;
   } else {
     boost::archive::binary_oarchive oa(ofs);
@@ -110,7 +108,6 @@ bool FileSystem::load_state(const string& filename)
 
   if (ifs.fail()) {
     cerr << "Error: " << strerror(errno);
-
     return false;
   } else {
     boost::archive::binary_iarchive ia(ifs);
@@ -144,7 +141,6 @@ bool FileSystem::save_map(const string& filename)
 
   if (ofs.fail()) {
     cerr << "Error: " << strerror(errno);
-
     return false;
   } else {
     boost::archive::binary_oarchive oa(ofs);
@@ -163,7 +159,6 @@ bool FileSystem::load_map(const string& filename)
 
   if (ifs.fail()) {
     cerr << "Error: " << strerror(errno);
-
     return false;
   } else {
     boost::archive::binary_iarchive ia(ifs);

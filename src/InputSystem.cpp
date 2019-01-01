@@ -33,16 +33,16 @@ void InputSystem::update()
 
 void InputSystem::clear_inputs()
 {
-  if (input_.ascend) input_.ascend = false;
-  if (input_.descend) input_.descend = false;
-  if (input_.mag) input_.mag = false;
-  if (input_.min) input_.min = false;
-  if (input_.lclick) input_.lclick = false;
-  if (input_.mclick) input_.mclick = false;
-  if (input_.rclick) input_.rclick = false;
-  if (input_.lreleased) input_.lreleased = false;
-  if (input_.mreleased) input_.mreleased = false;
-  if (input_.rreleased) input_.rreleased = false;
+  input_.ascend = false;
+  input_.descend = false;
+  input_.mag = false;
+  input_.min = false;
+  input_.lclick = false;
+  input_.mclick = false;
+  input_.rclick = false;
+  input_.lreleased = false;
+  input_.mreleased = false;
+  input_.rreleased = false;
 }
 
 

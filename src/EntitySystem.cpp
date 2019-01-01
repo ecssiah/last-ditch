@@ -2,6 +2,8 @@
 
 #include "../include/map/MapConstants.h"
 
+using namespace std;
+
 EntitySystem::EntitySystem(Map& map)
   : map_{map}
   , entities_{(u16)NUM_FLOORS}
@@ -10,7 +12,7 @@ EntitySystem::EntitySystem(Map& map)
 
 void EntitySystem::init()
 {
-
+  cout << "EntitySystem init" << endl;
 }
 
 void EntitySystem::update()

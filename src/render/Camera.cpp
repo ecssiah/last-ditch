@@ -1,5 +1,7 @@
 #include "../../include/render/Camera.h"
 
+using namespace std;
+
 Camera::Camera()
   : speed{CAMERA_SPEED}
   , zoom{1.0f}
@@ -26,13 +28,13 @@ void Camera::move(f32 dt, Dirs dir)
 
 void Camera::inc_zoom() 
 { 
-  zoom = std::min(MAX_ZOOM, zoom * 2); 
+  zoom = min(MAX_ZOOM, zoom * 2); 
   inv_zoom = 1.0 / zoom;
 }
 
 
 void Camera::dec_zoom() 
 { 
-  zoom = std::max(MIN_ZOOM, zoom / 2); 
+  zoom = max(MIN_ZOOM, zoom / 2); 
   inv_zoom = 1.0 / zoom;
 }

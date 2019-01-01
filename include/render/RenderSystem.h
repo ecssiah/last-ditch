@@ -8,8 +8,8 @@
 #include <SDL2/SDL_image.h>
 
 #include "../Types.h"
-#include "../render/Render.h"
 #include "../Input.h"
+#include "../render/Render.h"
 #include "../render/Camera.h"
 #include "../map/Map.h"
 
@@ -23,16 +23,26 @@ public:
 
   void init();
   void update();
-  void display();
 
 private:
   void init_SDL();
   void init_SDL_image();
-  void load_tilesets();
+  void init_SDL_ttf();
+
   SDL_Texture* load_texture(const std::string& texturename);
+  TTF_Font* load_font(const std::string& fontname, u32 size);
+
+  void load_fonts();
+  void load_tilesets();
+
+  void render_tile(const std::string& layer, i32 x, i32 y);
+
+  void render_window_element(const std::string& id);
+  void render_text_element(const std::string& id);
+  void render_button_element(const std::string& id);
 
   void render_map();
-  void render_tile(const std::string& layer, i32 x, i32 y);
+  void render_ui();
 
   Render& render_;
   Input& input_;

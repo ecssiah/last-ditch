@@ -7,7 +7,7 @@
 #include "../Types.h"
 #include "TileInfo.h"
 
-enum Dirs { RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3 };
+enum Dirs { RIGHT, UP, LEFT, DOWN };
 
 extern const i32 TILE_SIZE;
 extern const i32 TILES_PER_LAYER;
@@ -21,4 +21,3 @@ extern const i32 NUM_FLOORS;
 extern std::unordered_map<std::string, TileInfo> TileData;
 
 #endif
-

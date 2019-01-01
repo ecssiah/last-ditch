@@ -23,7 +23,6 @@ struct Text : public Element
   std::string text;
 
   SDL_Color color;
-
   TTF_Font* font;
   SDL_Texture* texture;
 
