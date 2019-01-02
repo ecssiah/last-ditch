@@ -21,7 +21,6 @@ struct Button : public Element
     , base{_type + "-off"}
     , pressed{_type + "-on"}
   {
-
   }
 
   Scalable base;

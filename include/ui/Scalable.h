@@ -22,8 +22,6 @@ struct Scalable : public Element
     i32 basex{(i32)(TILE_SIZE * TileData[type].uv.x)};
     i32 basey{(i32)(TILE_SIZE * TileData[type].uv.y)};
 
-    std::cout << type << " " << basex << " " << basey << std::endl;
-
     src["tl"] = {basex + 0 * size, basey + 0 * size, size, size};
     src["tm"] = {basex + 1 * size, basey + 0 * size, size, size};
     src["tr"] = {basex + 2 * size, basey + 0 * size, size, size};
