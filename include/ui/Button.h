@@ -11,15 +11,11 @@
 struct Button : public Element
 {
   Button()
-    : Button{"button1"}
-  {}
-
-  Button(const std::string& _type)
-    : type{_type}
+    : type{}
     , text{}
     , active{false}
-    , base{_type + "-off"}
-    , pressed{_type + "-on"}
+    , base{}
+    , pressed{}
   {
   }
 

@@ -92,7 +92,7 @@ void UISystem::update_main_text()
 void UISystem::setup_main_window()
 {
   auto& main_win{render_.window_elements["main"]};
-  main_win = {"window1"};
+  main_win.type = "window1";
   main_win.bounds.x = 0.1 * SCREEN_SIZE_X;
   main_win.bounds.y = 0.1 * SCREEN_SIZE_Y;
   main_win.bounds.w = 0.8 * SCREEN_SIZE_X;  
@@ -108,8 +108,8 @@ void UISystem::setup_main_buttons()
   auto height{32};
 
   auto& info_btn{render_.button_elements["info"]};
-  info_btn = {"button2"};
   info_btn.active = true;
+  info_btn.type = "button2";
   info_btn.text = "Info";
   info_btn.bounds.x = .25 * SCREEN_SIZE_X - width / 2;
   info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
@@ -119,7 +119,7 @@ void UISystem::setup_main_buttons()
   build_button_element("info");
 
   auto& save_btn{render_.button_elements["save"]};
-  save_btn = {"button2"};
+  save_btn.type = "button2";
   save_btn.text = "Save/Load";
   save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
   save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
@@ -129,7 +129,7 @@ void UISystem::setup_main_buttons()
   build_button_element("save");
 
   auto& options_btn{render_.button_elements["options"]};
-  options_btn = {"button2"};
+  options_btn.type = "button2";
   options_btn.text = "Options";
   options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
   options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
@@ -212,6 +212,7 @@ string UISystem::format_date()
 void UISystem::build_window_element(const string& id)
 {
   auto& el{render_.window_elements[id]};
+  el.base.type = el.type;
   el.base.bounds = el.bounds;
 
   build_scalable_element(el.base);
@@ -221,7 +222,9 @@ void UISystem::build_window_element(const string& id)
 void UISystem::build_button_element(const string& id)
 {
   auto& el{render_.button_elements[id]};
+  el.base.type = el.type + "-off";
   el.base.bounds = el.bounds;
+  el.pressed.type = el.type + "-on";
   el.pressed.bounds = el.bounds;
 
   build_scalable_element(el.base);
@@ -259,6 +262,44 @@ void UISystem::build_text_element(const string& id)
 void UISystem::build_scalable_element(Scalable& el) 
 {
   el.texture = render_.textures["overlay"];
+
+  if (TileData.find(el.type) != TileData.end()) {
+    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+  } else {
+    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
+
+    el.basex = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.y)};
+  }
+
+  el.src["tl"] = {
+    el.basex + 0 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["tm"] = {
+    el.basex + 1 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["tr"] = {
+    el.basex + 2 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["ll"] = {
+    el.basex + 0 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["mm"] = {
+    el.basex + 1 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["rr"] = {
+    el.basex + 2 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["bl"] = {
+    el.basex + 0 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
+  el.src["bm"] = {
+    el.basex + 1 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
+  el.src["br"] = {
+    el.basex + 2 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
 
   el.dst["tl"] = { 
     el.bounds.x, el.bounds.y, 

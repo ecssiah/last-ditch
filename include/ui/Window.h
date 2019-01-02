@@ -10,12 +10,8 @@
 struct Window: public Element
 {
   Window()
-    : Window("window1")
-  {}
-
-  Window(const std::string& _type)
-    : type{_type}
-    , base{_type}
+    : type{}
+    , base{}
   {}
 
   Scalable base;
