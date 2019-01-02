@@ -40,14 +40,14 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::init()
 {
+  cout << "RenderSystem init" << endl;
+
   init_SDL();
   init_SDL_image();
   init_SDL_ttf();
 
   load_fonts();
   load_tilesets();
-
-  cout << "RenderSystem init" << endl;
 }
 
 

@@ -14,9 +14,9 @@ ConfigSystem::ConfigSystem()
 
 void ConfigSystem::init()
 {
-  load_tile_info();
-
   cout << "ConfigSystem init" << endl;
+
+  load_tile_info();
 }
 
 void ConfigSystem::load_tile_info()

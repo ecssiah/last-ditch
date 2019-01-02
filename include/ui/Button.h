@@ -23,13 +23,13 @@ struct Button : public Element
   {
   }
 
-  Scalable base;
-  Scalable pressed;
+  bool active;
 
   std::string type;
   std::string text;
 
-  bool active;
+  Scalable base;
+  Scalable pressed;
 
 };
 

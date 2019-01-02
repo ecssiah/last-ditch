@@ -15,9 +15,9 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::init()
 {
-  map_generator_.generate_map();
-
   cout << "MapSystem init" << endl;
+
+  map_generator_.generate_map();
 }
 
 

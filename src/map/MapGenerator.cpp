@@ -153,7 +153,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  cout << "Floor " << floor + 1 << " rooms built" << endl;
+  cout << " Floor " << floor + 1 << " rooms built" << endl;
 }
 
 
@@ -212,7 +212,7 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  cout << "Floor " << floor + 1 << " rooms integrated" << endl;
+  cout << " Floor " << floor + 1 << " rooms integrated" << endl;
 }
 
 
@@ -294,7 +294,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  cout << "Floor " << floor + 1 << " doors placed" << endl;
+  cout << " Floor " << floor + 1 << " doors placed" << endl;
 }
 
 

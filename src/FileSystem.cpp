@@ -21,6 +21,8 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 
 void FileSystem::init()
 {
+  cout << "FileSystem init" << endl;
+
   // create_user("test user");
 
   // save_state("michael1");
@@ -30,8 +32,6 @@ void FileSystem::init()
   // save_map("test_map1");
   // load_map("test_map1");
   // delete_map("test_map1");
-
-  cout << "FileSystem init" << endl;
 }
 
 

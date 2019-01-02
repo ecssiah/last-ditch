@@ -19,14 +19,14 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
 
 void UISystem::init()
 {
+  cout << "UISystem init" << endl;
+
   setup_main_window();
   setup_main_buttons();
 
   setup_floor_display();
   setup_time_display();
   setup_date_display();
-
-  cout << "UISystem init" << endl;
 }
 
 
