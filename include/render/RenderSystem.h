@@ -7,8 +7,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "../Types.h"
-#include "../Input.h"
+#include "../utility/Types.h"
+#include "../interface/Input.h"
 #include "../render/Render.h"
 #include "../render/Camera.h"
 #include "../map/Map.h"

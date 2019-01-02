@@ -10,9 +10,9 @@
 #include "Scalable.h"
 #include "Window.h"
 #include "Button.h"
-#include "../Types.h"
-#include "../Input.h"
-#include "../Time.h"
+#include "../utility/Types.h"
+#include "../interface/Input.h"
+#include "../time/Time.h"
 #include "../render/Render.h"
 #include "../map/Map.h"
 

@@ -4,43 +4,43 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./include/AssetManager.h
+  ./include/utility/AssetManager.h
   ./include/map/MapConstants.h
   ./include/render/RenderConstants.h
   ./include/render/CameraConstants.h
   ./include/render/Camera.h
-  ./include/SimulationConstants.h
-  ./include/ConfigSystem.h
+  ./include/time/TimeConstants.h
+  ./include/utility/ConfigSystem.h
   ./include/render/RenderSystem.h
   ./include/map/MapSystem.h
   ./include/map/MapGenerator.h
-  ./include/EntitySystem.h
+  ./include/entity/EntitySystem.h
   ./include/render/CameraSystem.h
-  ./include/TimeSystem.h
-  ./include/InputSystem.h
+  ./include/time/TimeSystem.h
+  ./include/interface/InputSystem.h
   ./include/ui/UISystem.h
-  ./include/FileSystem.h
+  ./include/utility/FileSystem.h
   ./include/LastDitch.h
 )
 
 set(
   SOURCES
-  ./src/AssetManager.cpp
+  ./src/utility/AssetManager.cpp
   ./src/map/MapConstants.cpp
   ./src/render/RenderConstants.cpp
   ./src/render/CameraConstants.cpp
-  ./src/SimulationConstants.cpp
+  ./src/time/TimeConstants.cpp
   ./src/render/Camera.cpp
-  ./src/ConfigSystem.cpp
+  ./src/utility/ConfigSystem.cpp
   ./src/render/RenderSystem.cpp
   ./src/map/MapSystem.cpp
   ./src/map/MapGenerator.cpp
-  ./src/EntitySystem.cpp
+  ./src/entity/EntitySystem.cpp
   ./src/render/CameraSystem.cpp
-  ./src/TimeSystem.cpp
-  ./src/InputSystem.cpp
+  ./src/time/TimeSystem.cpp
+  ./src/interface/InputSystem.cpp
   ./src/ui/UISystem.cpp
-  ./src/FileSystem.cpp
+  ./src/utility/FileSystem.cpp
   ./src/LastDitch.cpp
   ./src/main.cpp
 )

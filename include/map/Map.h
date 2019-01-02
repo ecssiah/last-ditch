@@ -10,7 +10,7 @@
 
 #include "Floor.h"
 #include "MapConstants.h"
-#include "../Types.h"
+#include "../utility/Types.h"
 
 struct Map
 {

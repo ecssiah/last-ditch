@@ -1,7 +1,7 @@
 #ifndef MAP_SYSTEM_H
 #define MAP_SYSTEM_H
 
-#include "../Input.h"
+#include "../interface/Input.h"
 #include "Map.h"
 #include "MapGenerator.h"
 

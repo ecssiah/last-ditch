@@ -2,6 +2,9 @@
 
 #include "../../include/map/MapConstants.h"
 
+const i32 FPS{30};
+const f32 FRAME_TIME{1.0 / FPS};
+
 const i32 SCREEN_SIZE_X{1024};
 const i32 SCREEN_SIZE_Y{768};
 const i32 HALF_SCREEN_SIZE_X{SCREEN_SIZE_X / 2};

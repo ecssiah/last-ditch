@@ -1,6 +1,6 @@
-#include "../include/EntitySystem.h"
+#include "../../include/entity/EntitySystem.h"
 
-#include "../include/map/MapConstants.h"
+#include "../../include/map/MapConstants.h"
 
 using namespace std;
 

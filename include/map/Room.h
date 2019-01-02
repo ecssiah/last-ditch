@@ -4,7 +4,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 
-#include "../Types.h"
+#include "../utility/Types.h"
 
 struct Room
 {

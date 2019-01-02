@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "../../include/render/RenderConstants.h"
+
 using namespace std;
 
 UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)

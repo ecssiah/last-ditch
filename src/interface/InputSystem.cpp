@@ -3,9 +3,9 @@
 
 #include <SDL2/SDL.h>
 
-#include "../include/InputSystem.h"
-#include "../include/map/MapConstants.h"
-#include "../include/render/RenderConstants.h"
+#include "../../include/interface/InputSystem.h"
+#include "../../include/map/MapConstants.h"
+#include "../../include/render/RenderConstants.h"
 
 using namespace std;
 

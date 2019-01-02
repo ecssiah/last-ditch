@@ -1,8 +1,4 @@
-#include "../include/SimulationConstants.h"
-
-const i32 FPS{30};
-
-const f32 FRAME_TIME{1.0 / FPS};
+#include "../../include/time/TimeConstants.h"
 
 const i32 TICKS_PER_SECOND{180};
 const i32 SECONDS_PER_MINUTE{60};

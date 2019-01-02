@@ -3,10 +3,10 @@
 
 #include <chrono>
 
-#include "Types.h"
-#include "Input.h"
-#include "Time.h"
-#include "render/Render.h"
+#include "../utility/Types.h"
+#include "../interface/Input.h"
+#include "../time/Time.h"
+#include "../render/Render.h"
 
 class TimeSystem
 {

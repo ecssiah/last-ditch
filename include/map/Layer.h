@@ -5,7 +5,7 @@
 #include <boost/serialization/access.hpp>
 
 #include "Tile.h"
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "MapConstants.h"
 
 struct Layer

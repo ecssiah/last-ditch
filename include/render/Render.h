@@ -6,8 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "../Types.h"
-#include "../SimulationConstants.h"
+#include "../utility/Types.h"
+#include "../render/RenderConstants.h"
 #include "../ui/Text.h"
 #include "../ui/Scalable.h"
 #include "../ui/Window.h"

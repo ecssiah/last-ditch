@@ -1,9 +1,9 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-#include "../include/ConfigSystem.h"
-#include "../include/map/MapConstants.h"
-#include "../include/map/Tile.h"
+#include "../../include/utility/ConfigSystem.h"
+#include "../../include/map/MapConstants.h"
+#include "../../include/map/Tile.h"
 
 using namespace std;
 

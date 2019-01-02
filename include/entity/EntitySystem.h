@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "Types.h"
 #include "Entity.h"
-#include "map/Map.h"
+#include "../utility/Types.h"
+#include "../map/Map.h"
 
 class EntitySystem
 {

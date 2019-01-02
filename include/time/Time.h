@@ -3,7 +3,7 @@
 
 #include <boost/serialization/access.hpp>
 
-#include "Types.h"
+#include "../utility/Types.h"
 
 struct Time
 {

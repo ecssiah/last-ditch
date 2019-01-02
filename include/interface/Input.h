@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include "Types.h"
+#include "../utility/Types.h"
 
 struct Input
 {

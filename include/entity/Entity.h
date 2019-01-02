@@ -5,8 +5,8 @@
 #include <SDL2/SDL.h>
 #include <boost/serialization/access.hpp>
 
-#include "Types.h"
-#include "map/MapConstants.h"
+#include "../utility/Types.h"
+#include "../map/MapConstants.h"
 
 struct Entity
 {

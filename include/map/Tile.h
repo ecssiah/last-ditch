@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <boost/serialization/access.hpp>
 
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "MapConstants.h"
 
 struct Tile

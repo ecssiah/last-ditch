@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Scalable.h"
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "../map/MapConstants.h"
 
 struct Window: public Element

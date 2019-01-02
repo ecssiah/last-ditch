@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "TileInfo.h"
 
 enum Dirs { RIGHT, UP, LEFT, DOWN };

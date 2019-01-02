@@ -1,11 +1,11 @@
 #ifndef LAST_DITCH_H
 #define LAST_DITCH_H
 
-#include "Input.h"
-#include "TimeSystem.h"
-#include "InputSystem.h"
-#include "FileSystem.h"
-#include "ConfigSystem.h"
+#include "interface/Input.h"
+#include "interface/InputSystem.h"
+#include "time/TimeSystem.h"
+#include "utility/FileSystem.h"
+#include "utility/ConfigSystem.h"
 #include "render/Render.h"
 #include "render/Camera.h"
 #include "render/RenderSystem.h"
@@ -13,7 +13,7 @@
 #include "map/Map.h"
 #include "map/MapSystem.h"
 #include "ui/UISystem.h"
-#include "EntitySystem.h"
+#include "entity/EntitySystem.h"
 
 class LastDitch 
 {

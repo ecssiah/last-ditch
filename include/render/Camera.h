@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "../map/MapConstants.h"
 #include "../render/CameraConstants.h"
 

@@ -1,7 +1,10 @@
 #ifndef RENDER_CONSTANTS_H
 #define RENDER_CONSTANTS_H
 
-#include "../Types.h"
+#include "../utility/Types.h"
+
+extern const i32 FPS;
+extern const f32 FRAME_TIME;
 
 extern const i32 SCREEN_SIZE_X;
 extern const i32 SCREEN_SIZE_Y;

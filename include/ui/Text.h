@@ -6,7 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "Element.h"
-#include "../Types.h"
+#include "../utility/Types.h"
 
 struct Text : public Element
 {

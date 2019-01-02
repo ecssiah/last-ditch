@@ -2,10 +2,10 @@
 #define FILE_SYSTEM_H
 
 #include "Types.h"
-#include "Input.h"
 #include "User.h"
-#include "Time.h"
-#include "map/Map.h"
+#include "../time/Time.h"
+#include "../interface/Input.h"
+#include "../map/Map.h"
 
 class FileSystem
 {

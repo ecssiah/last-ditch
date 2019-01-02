@@ -1,7 +1,7 @@
 #ifndef CAMERA_SYSTEM_H
 #define CAMERA_SYSTEM_H
 
-#include "../Input.h"
+#include "../interface/Input.h"
 #include "../render/Render.h"
 #include "../render/Camera.h"
 

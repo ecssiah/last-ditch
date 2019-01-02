@@ -5,7 +5,7 @@
 #include <vector>
 #include <SDL2/SDL.h>
 
-#include "../Types.h"
+#include "../utility/Types.h"
 #include "Map.h"
 #include "Room.h"
 

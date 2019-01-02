@@ -1,10 +1,10 @@
 #ifndef INPUT_SYSTEM_H
 #define INPUT_SYSTEM_H
 
-#include "Types.h"
+#include "../utility/Types.h"
 #include "Input.h"
-#include "render/Camera.h"
-#include "render/Render.h"
+#include "../render/Camera.h"
+#include "../render/Render.h"
 
 class InputSystem
 {
