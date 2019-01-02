@@ -19,8 +19,17 @@ struct Scalable : public Element
     , src{}
     , dst{}
   {
-    i32 basex{(i32)(TILE_SIZE * TileData[type].uv.x)};
-    i32 basey{(i32)(TILE_SIZE * TileData[type].uv.y)};
+    i32 basex, basey;
+
+    if (TileData.find(type) != TileData.end()) {
+      basex = {(i32)(TILE_SIZE * TileData[type].uv.x)};
+      basey = {(i32)(TILE_SIZE * TileData[type].uv.y)};
+    } else {
+      std::cerr << "Scalable has invalid type: " << type << std::endl;
+
+      basex = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.x)};
+      basey = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.y)};
+    }
 
     src["tl"] = {basex + 0 * size, basey + 0 * size, size, size};
     src["tm"] = {basex + 1 * size, basey + 0 * size, size, size};

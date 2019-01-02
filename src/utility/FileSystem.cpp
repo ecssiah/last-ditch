@@ -21,7 +21,7 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 
 void FileSystem::init()
 {
-  cout << "FileSystem init" << endl;
+  cout << "FileSystem initializing" << endl;
 
   // create_user("test user");
 

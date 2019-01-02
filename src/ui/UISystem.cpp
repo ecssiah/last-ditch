@@ -20,7 +20,7 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
 
 void UISystem::init()
 {
-  cout << "UISystem init" << endl;
+  cout << "UISystem initializing" << endl;
 
   setup_main_window();
   setup_main_buttons();
@@ -91,11 +91,12 @@ void UISystem::update_main_text()
 
 void UISystem::setup_main_window()
 {
-  render_.window_elements["main"] = {"window2"};
-  render_.window_elements["main"].bounds.x = 0.1 * SCREEN_SIZE_X;
-  render_.window_elements["main"].bounds.y = 0.1 * SCREEN_SIZE_Y;
-  render_.window_elements["main"].bounds.w = 0.8 * SCREEN_SIZE_X;  
-  render_.window_elements["main"].bounds.h = 0.8 * SCREEN_SIZE_Y;  
+  auto& main_win{render_.window_elements["main"]};
+  main_win = {"window1"};
+  main_win.bounds.x = 0.1 * SCREEN_SIZE_X;
+  main_win.bounds.y = 0.1 * SCREEN_SIZE_Y;
+  main_win.bounds.w = 0.8 * SCREEN_SIZE_X;  
+  main_win.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
   build_window_element("main");
 }
@@ -106,31 +107,34 @@ void UISystem::setup_main_buttons()
   auto width{120};
   auto height{32};
 
-  render_.button_elements["info"] = {"button1"};
-  render_.button_elements["info"].active = true;
-  render_.button_elements["info"].text = "Info";
-  render_.button_elements["info"].bounds.x = .25 * SCREEN_SIZE_X - width / 2;
-  render_.button_elements["info"].bounds.y = .11 * SCREEN_SIZE_Y;
-  render_.button_elements["info"].bounds.w = width;
-  render_.button_elements["info"].bounds.h = height;
+  auto& info_btn{render_.button_elements["info"]};
+  info_btn = {"button2"};
+  info_btn.active = true;
+  info_btn.text = "Info";
+  info_btn.bounds.x = .25 * SCREEN_SIZE_X - width / 2;
+  info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
+  info_btn.bounds.w = width;
+  info_btn.bounds.h = height;
 
   build_button_element("info");
 
-  render_.button_elements["save"] = {"button1"};
-  render_.button_elements["save"].text = "Save/Load";
-  render_.button_elements["save"].bounds.x = .50 * SCREEN_SIZE_X - width / 2;
-  render_.button_elements["save"].bounds.y = .11 * SCREEN_SIZE_Y;
-  render_.button_elements["save"].bounds.w = width;
-  render_.button_elements["save"].bounds.h = height;
+  auto& save_btn{render_.button_elements["save"]};
+  save_btn = {"button2"};
+  save_btn.text = "Save/Load";
+  save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
+  save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
+  save_btn.bounds.w = width;
+  save_btn.bounds.h = height;
 
   build_button_element("save");
 
-  render_.button_elements["options"] = {"button1"};
-  render_.button_elements["options"].text = "Options";
-  render_.button_elements["options"].bounds.x = .75 * SCREEN_SIZE_X - width / 2;
-  render_.button_elements["options"].bounds.y = .11 * SCREEN_SIZE_Y;
-  render_.button_elements["options"].bounds.w = width;
-  render_.button_elements["options"].bounds.h = height;
+  auto& options_btn{render_.button_elements["options"]};
+  options_btn = {"button2"};
+  options_btn.text = "Options";
+  options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
+  options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
+  options_btn.bounds.w = width;
+  options_btn.bounds.h = height;
 
   build_button_element("options");
 }

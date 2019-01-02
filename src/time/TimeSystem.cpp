@@ -19,7 +19,7 @@ void TimeSystem::init()
 }
 
 
-void TimeSystem::start_frame()
+void TimeSystem::begin_frame()
 {
   start_ = chrono::steady_clock::now();
 }

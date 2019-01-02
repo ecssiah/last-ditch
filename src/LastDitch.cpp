@@ -24,7 +24,7 @@ LastDitch::LastDitch()
   file_system_.init();
 
   while (!input_.exit) {
-    time_system_.start_frame();
+    time_system_.begin_frame();
 
     input_system_.update();
     camera_system_.update();
@@ -37,3 +37,10 @@ LastDitch::LastDitch()
   }
 }
 
+
+int main(int argc, char *argv[])
+{
+  LastDitch last_ditch;
+
+  return 0;
+}

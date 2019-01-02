@@ -12,7 +12,7 @@ EntitySystem::EntitySystem(Map& map)
 
 void EntitySystem::init()
 {
-  cout << "EntitySystem init" << endl;
+  cout << "EntitySystem initializing" << endl;
 }
 
 void EntitySystem::update()

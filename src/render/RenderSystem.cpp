@@ -40,7 +40,7 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::init()
 {
-  cout << "RenderSystem init" << endl;
+  cout << "RenderSystem initializing" << endl;
 
   init_SDL();
   init_SDL_image();
@@ -186,11 +186,11 @@ void RenderSystem::render_map()
 
   for (auto x{x_min}; x <= x_max; ++x) { 
     for (auto y{y_min}; y <= y_max; ++y) {
-      render_tile("floor", x, y);
-      render_tile("wall", x, y);
-      render_tile("object", x, y);
-      render_tile("entity", x, y);
-      render_tile("overlay", x, y);
+      render_tile("floor", x, y, map_.cur_floor);
+      render_tile("wall", x, y, map_.cur_floor);
+      render_tile("object", x, y, map_.cur_floor);
+      render_tile("entity", x, y, map_.cur_floor);
+      render_tile("overlay", x, y, map_.cur_floor);
     }
   }
 }
@@ -212,9 +212,9 @@ void RenderSystem::render_ui()
 }
 
 
-void RenderSystem::render_tile(const string& layer, i32 x, i32 y)
+void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 {
-  const Tile& tile{map_.floors[map_.cur_floor].layers[layer].tiles[x][y]};
+  const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
     const f32 scale_factor{camera_.zoom * TILE_SIZE};

@@ -42,7 +42,6 @@ set(
   ./src/ui/UISystem.cpp
   ./src/utility/FileSystem.cpp
   ./src/LastDitch.cpp
-  ./src/main.cpp
 )
 
 set(

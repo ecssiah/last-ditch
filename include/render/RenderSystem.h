@@ -35,7 +35,7 @@ private:
   void load_fonts();
   void load_tilesets();
 
-  void render_tile(const std::string& layer, i32 x, i32 y);
+  void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
 
   void render_scalable_element(Scalable& el);
 

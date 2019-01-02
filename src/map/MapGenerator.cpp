@@ -353,19 +353,24 @@ void MapGenerator::set_tile(
     vector<string> type_vector; 
     boost::split(type_vector, type, boost::is_any_of("-"));
 
-    tile.active = true;
     tile.type = type_vector[0];
     tile.subtype = type_vector.size() <= 1 ? "" : type_vector[1];
     tile.category = TileData[type].category;
-    tile.rotation = rotation;
-    tile.flip = flip;
 
-    tile.src.x = TileData[type].uv.x * TILE_SIZE;  
+    tile.src.x = TileData[type].uv.x * TILE_SIZE;
     tile.src.y = TileData[type].uv.y * TILE_SIZE;
   } else {
-    cerr << "Tile(" << x << "," << y << ") has invalid type: "; 
+    cerr << "  Tile(" << x << "," << y << ") has invalid type: "; 
     cerr << type << endl; 
+
+    tile.category = "error";
+    tile.src.x = TileData["missing_map"].uv.x * TILE_SIZE;
+    tile.src.y = TileData["missing_map"].uv.y * TILE_SIZE;
   }
+
+  tile.active = true;
+  tile.rotation = rotation;
+  tile.flip = flip;
 }
 
 

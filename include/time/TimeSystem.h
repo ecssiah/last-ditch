@@ -14,7 +14,7 @@ public:
   TimeSystem(Input& input, Render& render, Time& time);
 
   void init();
-  void start_frame();
+  void begin_frame();
   void end_frame();
 
 private:
