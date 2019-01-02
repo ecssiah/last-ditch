@@ -124,7 +124,7 @@ void UISystem::setup_main_buttons()
 
   build_button_element("save");
 
-  render_.button_elements["options"] = {"button2"};
+  render_.button_elements["options"] = {"button1"};
   render_.button_elements["options"].text = "Options";
   render_.button_elements["options"].bounds.x = .75 * SCREEN_SIZE_X - width / 2;
   render_.button_elements["options"].bounds.y = .11 * SCREEN_SIZE_Y;
@@ -137,26 +137,40 @@ void UISystem::setup_main_buttons()
 
 void UISystem::setup_floor_display()
 {
-  render_.text_elements["floor_display"].font = render_.fonts["Fantasque-Small"];
-  render_.text_elements["floor_display"].text = format_floor();
+  auto& el{render_.text_elements["floor_display"]};
+  el.font = render_.fonts["Fantasque-Small"];
+  el.text = format_floor();
 
   build_text_element("floor_display");
-  
-  render_.text_elements["floor_display"].bounds.x = 4;
-  render_.text_elements["floor_display"].bounds.y = 4;
+
+  el.bounds.x = 4;
+  el.bounds.y = 4;
 }
 
 
 void UISystem::setup_time_display()
 {
-  render_.text_elements["time_display"].font = render_.fonts["Fantasque-Small"];
-  render_.text_elements["time_display"].text = format_time();
+  auto& el{render_.text_elements["time_display"]};
+  el.font = render_.fonts["Fantasque-Small"];
+  el.text = format_time();
 
   build_text_element("time_display");
 
-  auto& bounds{render_.text_elements["time_display"].bounds};
-  bounds.x = SCREEN_SIZE_X - bounds.w - 4;
-  bounds.y = 4;
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
+  el.bounds.y = 4;
+}
+
+
+void UISystem::setup_date_display()
+{
+  auto& el{render_.text_elements["date_display"]};
+  el.font = render_.fonts["Fantasque-Small"];
+  el.text = format_date();
+
+  build_text_element("date_display");
+
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
+  el.bounds.y = 16;
 }
 
 
@@ -178,19 +192,6 @@ string UISystem::format_time()
 }
 
 
-void UISystem::setup_date_display()
-{
-  render_.text_elements["date_display"].font = render_.fonts["Fantasque-Small"];
-  render_.text_elements["date_display"].text = format_date();
-
-  build_text_element("date_display");
-
-  auto& bounds{render_.text_elements["date_display"].bounds};
-  bounds.x = SCREEN_SIZE_X - bounds.w - 4;
-  bounds.y = 16;
-}
-
-
 string UISystem::format_date()
 {
   stringstream ss;
@@ -200,49 +201,6 @@ string UISystem::format_date()
   ss << setw(2) << time_.year;
 
   return ss.str();
-}
-
-
-void UISystem::build_scalable_element(Scalable& el) 
-{
-  el.texture = render_.textures["overlay"];
-
-  el.dst["tl"] = { 
-    el.bounds.x, el.bounds.y, 
-    el.size, el.size 
-  };
-  el.dst["tm"] = {
-    el.bounds.x + el.size, el.bounds.y, 
-    el.bounds.w - 2 * el.size, el.size
-  }; 
-  el.dst["tr"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y, 
-    el.size, el.size
-  };
-  el.dst["ll"] = {
-    el.bounds.x, el.bounds.y + el.size, 
-    el.size, el.bounds.h - 2 * el.size
-  };
-  el.dst["mm"] = {
-    el.bounds.x + el.size, el.bounds.y + el.size, 
-    el.bounds.w - 2 * el.size, el.bounds.h - 2 * el.size
-  };
-  el.dst["rr"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.size,
-    el.size, el.bounds.h - 2 * el.size 
-  };
-  el.dst["bl"] = {
-    el.bounds.x, el.bounds.y + el.bounds.h - el.size,
-    el.size, el.size
-  }; 
-  el.dst["bm"] = {
-    el.bounds.x + el.size, el.bounds.y + el.bounds.h - el.size,
-    el.bounds.w - 2 * el.size, el.size
-  };
-  el.dst["br"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.bounds.h - el.size,
-    el.size, el.size
-  };
 }
 
 
@@ -290,5 +248,48 @@ void UISystem::build_text_element(const string& id)
   } else {
     el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
   }
+}
+
+
+void UISystem::build_scalable_element(Scalable& el) 
+{
+  el.texture = render_.textures["overlay"];
+
+  el.dst["tl"] = { 
+    el.bounds.x, el.bounds.y, 
+    el.size, el.size 
+  };
+  el.dst["tm"] = {
+    el.bounds.x + el.size, el.bounds.y, 
+    el.bounds.w - 2 * el.size, el.size
+  }; 
+  el.dst["tr"] = {
+    el.bounds.x + el.bounds.w - el.size, el.bounds.y, 
+    el.size, el.size
+  };
+  el.dst["ll"] = {
+    el.bounds.x, el.bounds.y + el.size, 
+    el.size, el.bounds.h - 2 * el.size
+  };
+  el.dst["mm"] = {
+    el.bounds.x + el.size, el.bounds.y + el.size, 
+    el.bounds.w - 2 * el.size, el.bounds.h - 2 * el.size
+  };
+  el.dst["rr"] = {
+    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.size,
+    el.size, el.bounds.h - 2 * el.size 
+  };
+  el.dst["bl"] = {
+    el.bounds.x, el.bounds.y + el.bounds.h - el.size,
+    el.size, el.size
+  }; 
+  el.dst["bm"] = {
+    el.bounds.x + el.size, el.bounds.y + el.bounds.h - el.size,
+    el.bounds.w - 2 * el.size, el.size
+  };
+  el.dst["br"] = {
+    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.bounds.h - el.size,
+    el.size, el.size
+  };
 }
 

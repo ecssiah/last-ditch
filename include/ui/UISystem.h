@@ -37,11 +37,11 @@ private:
 
   void update_main_text();
 
-  void build_scalable_element(Scalable& el);
-
   void build_window_element(const std::string& id);
   void build_text_element(const std::string& id);
   void build_button_element(const std::string& id);
+
+  void build_scalable_element(Scalable& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
 
