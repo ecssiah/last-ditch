@@ -9,6 +9,7 @@
 #include "../Types.h"
 #include "../SimulationConstants.h"
 #include "../ui/Text.h"
+#include "../ui/Scalable.h"
 #include "../ui/Window.h"
 #include "../ui/Button.h"
 
@@ -21,6 +22,7 @@ struct Render
     , fonts{}
     , textures{}
     , text_elements{}
+    , scalable_elements{}
     , window_elements{}
     , button_elements{}
   {}
@@ -34,6 +36,7 @@ struct Render
   std::unordered_map<std::string, SDL_Texture*> textures;
 
   std::unordered_map<std::string, Text> text_elements;
+  std::unordered_map<std::string, Scalable> scalable_elements;
   std::unordered_map<std::string, Window> window_elements;
   std::unordered_map<std::string, Button> button_elements;
 

@@ -6,10 +6,10 @@
 struct Element
 {
   Element()
-    : rect{}
+    : bounds{}
   {}
 
-  SDL_Rect rect;
+  SDL_Rect bounds;
 
 };
 

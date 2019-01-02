@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "Text.h"
+#include "Scalable.h"
 #include "Window.h"
 #include "Button.h"
 #include "../Types.h"
@@ -36,6 +37,8 @@ private:
 
   void update_main_text();
 
+  void build_scalable_element(Scalable& el);
+
   void build_window_element(const std::string& id);
   void build_text_element(const std::string& id);
   void build_button_element(const std::string& id);
@@ -46,12 +49,6 @@ private:
   Render& render_;
   Map& map_;
   Time& time_;
-
-  std::unordered_map<std::string, TTF_Font*> fonts_;
-
-  std::unordered_map<std::string, Text> text_elements_;
-  std::unordered_map<std::string, Window> window_elements_;
-  std::unordered_map<std::string, Button> button_elements_;
 
 };
 

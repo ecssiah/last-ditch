@@ -199,7 +199,7 @@ void RenderSystem::render_map()
 void RenderSystem::render_ui()
 {
   if (input_.menu) {
-    render_window_element("main_window");
+    render_window_element("main");
 
     render_button_element("info");
     render_button_element("save");
@@ -237,90 +237,41 @@ void RenderSystem::render_text_element(const string& id)
 {
   const auto& el{render_.text_elements[id]};
 
-  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.rect); 
-}
-
-
-void RenderSystem::render_window_element(const string& id)
-{
-  const auto& el{render_.window_elements[id]};
-  auto* overlay_texture{render_.textures["overlay"]};
-
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tl_src, &el.tl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tm_src, &el.tm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.tr_src, &el.tr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.ll_src, &el.ll_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.mm_src, &el.mm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.rr_src, &el.rr_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bl_src, &el.bl_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.bm_src, &el.bm_dst);
-  SDL_RenderCopy(render_.renderer, overlay_texture, &el.br_src, &el.br_dst);
+  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.bounds); 
 }
 
 
 void RenderSystem::render_button_element(const string& id)
 {
-  const auto& el{render_.button_elements[id]};
-  auto* overlay_texture{render_.textures["overlay"]};
+  auto& el{render_.button_elements[id]};
 
   if (el.active) {
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tl_src, &el.tl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tm_src, &el.tm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_tr_src, &el.tr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_ll_src, &el.ll_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_mm_src, &el.mm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_rr_src, &el.rr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_bl_src, &el.bl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_bm_src, &el.bm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.active_br_src, &el.br_dst
-    );
+    render_scalable_element(el.pressed);
   } else {
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tl_src, &el.tl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tm_src, &el.tm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_tr_src, &el.tr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_ll_src, &el.ll_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_mm_src, &el.mm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_rr_src, &el.rr_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_bl_src, &el.bl_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_bm_src, &el.bm_dst
-    );
-    SDL_RenderCopy(
-      render_.renderer, overlay_texture, &el.inactive_br_src, &el.br_dst
-    );
+    render_scalable_element(el.base);
   }
 
   render_text_element(id);
 }
 
+
+void RenderSystem::render_window_element(const string& id)
+{
+  auto& el{render_.window_elements[id]};
+
+  render_scalable_element(el.base);
+}
+
+
+void RenderSystem::render_scalable_element(Scalable& el)
+{
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tl"], &el.dst["tl"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tm"], &el.dst["tm"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tr"], &el.dst["tr"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["ll"], &el.dst["ll"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["mm"], &el.dst["mm"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["rr"], &el.dst["rr"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["bl"], &el.dst["bl"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["bm"], &el.dst["bm"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["br"], &el.dst["br"]);
+}

@@ -37,9 +37,11 @@ private:
 
   void render_tile(const std::string& layer, i32 x, i32 y);
 
+  void render_scalable_element(Scalable& el);
+
   void render_window_element(const std::string& id);
-  void render_text_element(const std::string& id);
   void render_button_element(const std::string& id);
+  void render_text_element(const std::string& id);
 
   void render_map();
   void render_ui();

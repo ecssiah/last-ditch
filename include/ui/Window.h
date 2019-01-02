@@ -3,43 +3,25 @@
 
 #include <SDL2/SDL.h>
 
-#include "Element.h"
+#include "Scalable.h"
 #include "../Types.h"
 #include "../map/MapConstants.h"
 
 struct Window: public Element
 {
   Window()
-    : texture{nullptr}
-    , tl_src{}, tm_src{}, tr_src{}
-    , ll_src{}, mm_src{}, rr_src{}
-    , bl_src{}, bm_src{}, br_src{}
-    , tl_dst{}, tm_dst{}, tr_dst{}
-    , ll_dst{}, mm_dst{}, rr_dst{}
-    , bl_dst{}, bm_dst{}, br_dst{}
-  {
-    i32 size{TILE_SIZE / 4};
+    : Window("window1")
+  {}
 
-    tl_src = {0 * size, 0 * size, size, size};
-    tm_src = {1 * size, 0 * size, size, size};
-    tr_src = {2 * size, 0 * size, size, size};
-    ll_src = {0 * size, 1 * size, size, size};
-    mm_src = {1 * size, 1 * size, size, size};
-    rr_src = {2 * size, 1 * size, size, size};
-    bl_src = {0 * size, 2 * size, size, size};
-    bm_src = {1 * size, 2 * size, size, size};
-    br_src = {2 * size, 2 * size, size, size};
-  }
+  Window(const std::string& _type)
+    : type{_type}
+    , base{_type}
+  {}
 
-  SDL_Texture* texture;
+  Scalable base;
 
-  SDL_Rect tl_src, tm_src, tr_src;
-  SDL_Rect ll_src, mm_src, rr_src;
-  SDL_Rect bl_src, bm_src, br_src;
+  std::string type;
 
-  SDL_Rect tl_dst, tm_dst, tr_dst;
-  SDL_Rect ll_dst, mm_dst, rr_dst;
-  SDL_Rect bl_dst, bm_dst, br_dst;
 };
 
 #endif
