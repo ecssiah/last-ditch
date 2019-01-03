@@ -132,11 +132,9 @@ void MapGenerator::expand_rooms(i32 floor)
 void MapGenerator::build_rooms(i32 floor)
 {
   for (const auto& room : rooms_[floor]) {
-    for (auto x{room.l()}; x <= room.r(); x++) {
-      for (auto y{room.t()}; y <= room.b(); y++) {
+    for (auto x{room.l()}; x <= room.r(); x++)
+      for (auto y{room.t()}; y <= room.b(); y++)
         set_tile("floor", x, y, floor, room.floor_type);
-      }
-    }
 
     for (auto x{room.l()}; x <= room.r(); x++) {
       set_solid(x, room.t(), floor, true);
@@ -159,9 +157,10 @@ void MapGenerator::build_rooms(i32 floor)
 
 void MapGenerator::integrate_walls(i32 floor)
 {
+  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
+
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
-      const auto& tiles{map_.floors[floor].layers["wall"].tiles};
       const Tile& tile{tiles[x][y]};
 
       if (tile.category == "wall") {
@@ -258,9 +257,8 @@ void MapGenerator::place_doors(i32 floor)
     bool found{false};
 
     while (!found && count++ < 40) {
-      string door_type{rand() % 2 == 0 ? "door1-opn" : "door1-cls"};
+      i32 rot, x, y;
 
-      i32 x, y, rot;
       const auto horz_range{room.w() - 1};
       const auto horz_start{room.l() + 1};
       const auto vert_range{room.h() - 1};
@@ -269,27 +267,33 @@ void MapGenerator::place_doors(i32 floor)
       const Dirs dir{static_cast<Dirs>(rand() % 4)}; 
 
       if (dir == UP) {
-        x = {horz_start + rand() % horz_range};
-        y = {room.t()}; 
-        rot = {0};
+        rot = 0;
+        x = horz_start + rand() % horz_range;
+        y = room.t(); 
       } else if (dir == DOWN) {
-        x = {horz_start + rand() % horz_range};
-        y = {room.b()};
-        rot = {180};
+        rot = 180;
+        x = horz_start + rand() % horz_range;
+        y = room.b();
       } else if (dir == LEFT) {
-        x = {room.l()};
-        y = {vert_start + rand() % vert_range};
-        rot = {270};
+        rot = 270;
+        x = room.l();
+        y = vert_start + rand() % vert_range;
       } else if (dir == RIGHT) {
-        x = {room.r()};
-        y = {vert_start + rand() % vert_range};
-        rot = {90};
+        rot = 90;
+        x = room.r();
+        y = vert_start + rand() % vert_range;
       }
 
       if (has_clearance("door", x, y, floor, dir)) {
         found = true;
-        set_solid(x, y, floor, true);
-        set_tile("wall", x, y, floor, door_type, rot);
+        
+        if (rand() % 2 == 0) {
+          set_solid(x, y, floor, false);
+          set_tile("wall", x, y, floor, "door1-opn", rot);
+        } else {
+          set_solid(x, y, floor, true);
+          set_tile("wall", x, y, floor, "door1-cls", rot);
+        }
       }
     }
   }
@@ -356,7 +360,6 @@ void MapGenerator::set_tile(
     tile.type = type_vector[0];
     tile.subtype = type_vector.size() <= 1 ? "" : type_vector[1];
     tile.category = TileData[type].category;
-
     tile.src.x = TileData[type].uv.x * TILE_SIZE;
     tile.src.y = TileData[type].uv.y * TILE_SIZE;
   } else {
@@ -364,8 +367,8 @@ void MapGenerator::set_tile(
     cerr << type << endl; 
 
     tile.category = "error";
-    tile.src.x = TileData["missing_map"].uv.x * TILE_SIZE;
-    tile.src.y = TileData["missing_map"].uv.y * TILE_SIZE;
+    tile.src.x = 0;
+    tile.src.y = 0;
   }
 
   tile.active = true;

@@ -269,8 +269,8 @@ void UISystem::build_scalable_element(Scalable& el)
   } else {
     std::cerr << "Scalable has invalid type: " << el.type << std::endl;
 
-    el.basex = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData["missing_overlay"].uv.y)};
+    el.basex = 0;
+    el.basey = 0;
   }
 
   el.src["tl"] = {
