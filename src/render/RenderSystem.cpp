@@ -203,9 +203,11 @@ void RenderSystem::render_ui()
     render_button_element("options");
   }
 
-  render_text_element("floor_display");
-  render_text_element("time_display");
-  render_text_element("date_display");
+  if (input_.hud) {
+    render_text_element("floor_display");
+    render_text_element("time_display");
+    render_text_element("date_display");
+  }
 }
 
 

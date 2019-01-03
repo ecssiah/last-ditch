@@ -96,13 +96,20 @@ void InputSystem::on_key_down(SDL_Keycode sym, u16 mod, u16 scancode)
 
 void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
 {
-  switch (sym) {
-    case SDLK_w: input_.up = false; break;
-    case SDLK_a: input_.left = false; break;
-    case SDLK_s: input_.down = false; break;
-    case SDLK_d: input_.right = false; break;
-    case SDLK_TAB: input_.menu = !input_.menu; break;
-    default: break;
+  if (mod == KMOD_NONE) {
+    switch (sym) {
+      case SDLK_w: input_.up = false; break;
+      case SDLK_a: input_.left = false; break;
+      case SDLK_s: input_.down = false; break;
+      case SDLK_d: input_.right = false; break;
+      case SDLK_TAB: input_.menu = !input_.menu; break;
+      default: break;
+    }
+  } else if (mod == KMOD_LSHIFT) {
+    switch (sym) {
+      case SDLK_TAB: input_.hud = !input_.hud; break;
+      default: break;
+    }
   }
 }
 

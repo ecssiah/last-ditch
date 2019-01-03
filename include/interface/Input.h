@@ -10,6 +10,7 @@ struct Input
     , pause{false}
     , debug{false}
     , menu{false}
+    , hud{false}
     , up{false}, down{false}, left{false}, right{false}
     , mag{false}, min{false}
     , ascend{false}, descend{false}
@@ -20,7 +21,7 @@ struct Input
     , sx{0}, sy{0}
   {}
 
-  bool exit, pause, debug, menu;
+  bool exit, pause, debug, menu, hud;
   bool up, down, left, right; 
   bool mag, min;
   bool ascend, descend;

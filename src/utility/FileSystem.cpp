@@ -25,15 +25,15 @@ void FileSystem::init()
 {
   log("FileSystem initializing");
 
-  // create_user("test user");
+//   create_user("test user");
 
-  // save_state("michael1");
-  // load_state("michael1");
-  // delete_state("michael1");
+//   save_state("michael1");
+//   load_state("michael1");
+//   delete_state("michael1");
 
-  // save_map("test_map1");
-  // load_map("test_map1");
-  // delete_map("test_map1");
+//   save_map("test_map1");
+//   load_map("test_map1");
+//   delete_map("test_map1");
 }
 
 
@@ -46,13 +46,11 @@ bool FileSystem::create_user(const string& username)
   } 
 
   if (user_exists) {
-    cerr << "User exists: " << username << endl;
-
+    elog("User already exists: " + username);
     return false;
   } else {
     User user;
     user.username = username;
-
     users_.push_back(user);
 
     log("User created: " + username);
@@ -74,13 +72,13 @@ bool FileSystem::delete_user(const string& username)
     }
   }
 
-  if (user_exists) {
+  if (!user_exists) {
+    elog("User does not exist: " + username);
+    return false;
+  } else {
     users_.erase(users_.begin() + index);
     log("User deleted: " + username);
     return true;
-  } else {
-    elog("User does not exist: " + username);
-    return false;
   }
 }
 
@@ -131,7 +129,7 @@ bool FileSystem::delete_state(const string& filename)
     elog("Delete error: " + string(strerror(errno)));
     return false;
   } else {
-    log("Deleted: " + filename);
+    log("Delete: " + filename);
     return true;
   }
 }
@@ -142,13 +140,13 @@ bool FileSystem::save_map(const string& filename)
   ofstream ofs("maps/" + filename);
 
   if (ofs.fail()) {
-    elog("Save map error: " + string(strerror(errno)));
+    elog("Map save error: " + string(strerror(errno)));
     return false;
   } else {
     boost::archive::binary_oarchive oa(ofs);
     oa << map_;
 
-    log("Map saved: " + filename);
+    log("Map save: " + filename);
 
     return true;
   }
@@ -160,13 +158,13 @@ bool FileSystem::load_map(const string& filename)
   ifstream ifs("maps/" + filename);
 
   if (ifs.fail()) {
-    elog("Load error: " + string(strerror(errno)));
+    elog("Load map error: " + string(strerror(errno)));
     return false;
   } else {
     boost::archive::binary_iarchive ia(ifs);
     ia >> map_;
 
-    log("Map loaded: " + filename);
+    log("Load map: " + filename);
 
     return true;
   }
@@ -177,11 +175,11 @@ bool FileSystem::delete_map(const string& filename)
 {
   string filepath{"maps/" + filename};
 
-  if (remove(filepath.c_str()) == 0) {
+  if (remove(filepath.c_str()) != 0) {
     elog("Delete map error: " + string(strerror(errno)));
     return false;
   } else {
-    log("Map deleted: " + filename);
+    log("Delete map: " + filename);
 
     return true;
   }

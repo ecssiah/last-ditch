@@ -19,13 +19,13 @@ void TimeSystem::init()
 }
 
 
-void TimeSystem::begin_frame()
+void TimeSystem::frame_begin()
 {
   start_ = chrono::steady_clock::now();
 }
 
 
-void TimeSystem::end_frame()
+void TimeSystem::frame_end()
 {
   if (!input_.pause) tick();
 
