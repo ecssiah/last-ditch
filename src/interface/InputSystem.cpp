@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "../../include/utility/Logging.h"
 #include "../../include/interface/InputSystem.h"
 #include "../../include/map/MapConstants.h"
 #include "../../include/render/RenderConstants.h"
@@ -174,7 +175,7 @@ void InputSystem::calculate_selected_tile()
     input_.sy = -1;
   }
 
-  cout << "Tile: " << input_.sx << " " << input_.sy << endl;
+  log("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
 }
 
 

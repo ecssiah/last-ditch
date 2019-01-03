@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
+#include "../../include/utility/Logging.h"
 #include "../../include/utility/ConfigSystem.h"
 #include "../../include/map/MapConstants.h"
 #include "../../include/map/Tile.h"
@@ -14,7 +15,7 @@ ConfigSystem::ConfigSystem()
 
 void ConfigSystem::init()
 {
-  cout << "ConfigSystem initializing" << endl;
+  log("ConfigSystem initializing");
 
   load_tile_info();
 }

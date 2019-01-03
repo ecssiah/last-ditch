@@ -4,17 +4,16 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./include/utility/AssetManager.h
   ./include/map/MapConstants.h
   ./include/render/RenderConstants.h
   ./include/render/CameraConstants.h
-  ./include/render/Camera.h
   ./include/time/TimeConstants.h
+  ./include/utility/AssetManager.h
   ./include/utility/ConfigSystem.h
-  ./include/render/RenderSystem.h
   ./include/map/MapSystem.h
   ./include/map/MapGenerator.h
   ./include/entity/EntitySystem.h
+  ./include/render/RenderSystem.h
   ./include/render/CameraSystem.h
   ./include/time/TimeSystem.h
   ./include/interface/InputSystem.h
@@ -25,17 +24,16 @@ set(
 
 set(
   SOURCES
-  ./src/utility/AssetManager.cpp
   ./src/map/MapConstants.cpp
   ./src/render/RenderConstants.cpp
   ./src/render/CameraConstants.cpp
   ./src/time/TimeConstants.cpp
-  ./src/render/Camera.cpp
+  ./src/utility/AssetManager.cpp
   ./src/utility/ConfigSystem.cpp
-  ./src/render/RenderSystem.cpp
   ./src/map/MapSystem.cpp
   ./src/map/MapGenerator.cpp
   ./src/entity/EntitySystem.cpp
+  ./src/render/RenderSystem.cpp
   ./src/render/CameraSystem.cpp
   ./src/time/TimeSystem.cpp
   ./src/interface/InputSystem.cpp

@@ -1,6 +1,8 @@
+#include "../../include/map/MapSystem.h"
+
 #include <iostream>
 
-#include "../../include/map/MapSystem.h"
+#include "../../include/utility/Logging.h"
 #include "../../include/map/MapConstants.h"
 
 using namespace std;
@@ -15,7 +17,7 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::init()
 {
-  cout << "MapSystem initializing" << endl;
+  log("MapSystem initializing");
 
   map_generator_.generate_map();
 }

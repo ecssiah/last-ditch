@@ -14,6 +14,10 @@ public:
   void update();
 
 private:
+  void move(Dirs dir);
+  void inc_zoom();
+  void dec_zoom();
+
   Input& input_;
   Render& render_;
   Camera& camera_;

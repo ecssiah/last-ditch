@@ -1,5 +1,6 @@
 #include "../../include/entity/EntitySystem.h"
 
+#include "../../include/utility/Logging.h"
 #include "../../include/map/MapConstants.h"
 
 using namespace std;
@@ -12,7 +13,7 @@ EntitySystem::EntitySystem(Map& map)
 
 void EntitySystem::init()
 {
-  cout << "EntitySystem initializing" << endl;
+  log("EntitySystem intializing");
 }
 
 void EntitySystem::update()

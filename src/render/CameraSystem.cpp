@@ -14,17 +14,46 @@ CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera)
 {
 }
 
+
 void CameraSystem::init()
 {
 }
 
+
 void CameraSystem::update()
 {
-  if (input_.mag) camera_.inc_zoom();
-  if (input_.min) camera_.dec_zoom();
+  if (input_.mag) inc_zoom();
+  if (input_.min) dec_zoom();
 
-  if (input_.right) camera_.move(render_.dt, RIGHT);
-  if (input_.up)    camera_.move(render_.dt, UP);
-  if (input_.left)  camera_.move(render_.dt, LEFT);
-  if (input_.down)  camera_.move(render_.dt, DOWN);
+  if (input_.right) move(RIGHT);
+  if (input_.up)    move(UP);
+  if (input_.left)  move(LEFT);
+  if (input_.down)  move(DOWN);
+}
+
+
+void CameraSystem::move(Dirs dir)
+{
+  auto ds{camera_.speed * render_.dt * camera_.inv_zoom};
+
+  switch (dir) {
+  case UP:    camera_.pos -= ds * camera_.ydir; break;
+  case DOWN:  camera_.pos += ds * camera_.ydir; break;
+  case LEFT:  camera_.pos -= ds * camera_.xdir; break;
+  case RIGHT: camera_.pos += ds * camera_.xdir; break;
+  };
+}
+
+
+void CameraSystem::inc_zoom() 
+{ 
+  camera_.zoom = min(MAX_ZOOM, camera_.zoom * 2); 
+  camera_.inv_zoom = 1.0 / camera_.zoom;
+}
+
+
+void CameraSystem::dec_zoom() 
+{ 
+  camera_.zoom = max(MIN_ZOOM, camera_.zoom / 2); 
+  camera_.inv_zoom = 1.0 / camera_.zoom;
 }

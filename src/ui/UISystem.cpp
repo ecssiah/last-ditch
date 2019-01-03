@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 
+#include "../../include/utility/Logging.h"
 #include "../../include/render/RenderConstants.h"
 
 using namespace std;
@@ -20,7 +21,7 @@ UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
 
 void UISystem::init()
 {
-  cout << "UISystem initializing" << endl;
+  log("UISystem initializing");
 
   setup_main_window();
   setup_main_buttons();

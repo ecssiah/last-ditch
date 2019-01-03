@@ -5,17 +5,19 @@
 #include <glm/glm.hpp>
 
 #include "../utility/Types.h"
-#include "../map/MapConstants.h"
 #include "../render/CameraConstants.h"
 
 class Camera
 {
 public:
-  Camera();
-
-  void move(f32 dt, Dirs dir);
-  void inc_zoom();
-  void dec_zoom();
+  Camera()
+    : speed{CAMERA_SPEED}
+    , zoom{1.0f}
+    , inv_zoom{1.0f / zoom}
+    , pos{0, 0}
+    , xdir{1, 0}
+    , ydir{0, 1}
+  {}
 
   f32 speed, zoom, inv_zoom;
   glm::vec2 pos, xdir, ydir;

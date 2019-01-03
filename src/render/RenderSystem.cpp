@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
+#include "../../include/utility/Logging.h"
 #include "../../include/render/RenderSystem.h"
 #include "../../include/render/RenderConstants.h"
 #include "../../include/map/MapConstants.h"
@@ -34,13 +35,13 @@ RenderSystem::~RenderSystem()
   SDL_DestroyWindow(render_.window);
   SDL_Quit();
 
-  cout << "RenderSystem shutdown" << endl;
+  log("RenderSystem shutdown");
 }
 
 
 void RenderSystem::init()
 {
-  cout << "RenderSystem initializing" << endl;
+  log("RenderSystem initializing");
 
   init_SDL();
   init_SDL_image();
@@ -54,7 +55,7 @@ void RenderSystem::init()
 void RenderSystem::init_SDL()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    cout << "SDL_Init Error: " << SDL_GetError() << endl;
+    elog("SDL_Init error: " + string(SDL_GetError()));
     return;
   }
 
@@ -66,8 +67,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.window == nullptr) {
-    cout << "SDL_CreateWindow error: " << SDL_GetError() << endl;
-    SDL_Quit();
+    elog("SDL_CreateWindow error: " + string(SDL_GetError()));
     return;
   }
 
@@ -77,10 +77,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.renderer == nullptr){
-    SDL_DestroyWindow(render_.window);
-    SDL_Quit();
-
-    cout << "SDL_CreateRenderer error: " << SDL_GetError() << endl;
+    elog("SDL_CreateRenderer error: " + string(SDL_GetError()));
     return;
   }
 
@@ -93,7 +90,7 @@ void RenderSystem::init_SDL_image()
   const i32 img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
-    cout << "SDL_image error: " << IMG_GetError() << endl;
+    elog("SDL_image error: " + string(IMG_GetError()));
     return;
   }
 }
@@ -102,7 +99,7 @@ void RenderSystem::init_SDL_image()
 void RenderSystem::init_SDL_ttf()
 {
   if (TTF_Init()) {
-    cout << "TTF_Init: " << TTF_GetError() << endl;  
+    elog("TTF_Init error: " + string(TTF_GetError()));
     return;
   } 
 }
@@ -114,14 +111,14 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
   SDL_Surface* surface{IMG_Load(filename.c_str())};
 
   if (!surface) { 
-    cout << "IMG_Load error: " << IMG_GetError() << endl;
+    elog("IMG_Load error: " + string(IMG_GetError()));
     return nullptr;
   }
 
   SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, surface)};
 
   if (!texture) {
-    cout << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << endl;
+    elog("SDL_CreateTextureFromSurface error: " + string(SDL_GetError()));
     return nullptr;
   }
   
@@ -137,7 +134,7 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
   if (!font) {
-    cout << "TTF_OpenFont error: " << TTF_GetError() << endl;
+    elog("TTF_OpenFont error: " + string(TTF_GetError()));
     return nullptr;
   }
 

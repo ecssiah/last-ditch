@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 
+#include "../../include/utility/Logging.h"
 #include "../../include/map/MapConstants.h"
 #include "../../include/map/Room.h"
 
@@ -151,7 +152,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  cout << " Floor " << floor + 1 << " rooms built" << endl;
+  log("Floor " + to_string(floor + 1) + " rooms built", 1);
 }
 
 
@@ -211,7 +212,7 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  cout << " Floor " << floor + 1 << " rooms integrated" << endl;
+  log("Floor " + to_string(floor + 1) + " rooms integrated", 1);
 }
 
 
@@ -298,7 +299,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  cout << " Floor " << floor + 1 << " doors placed" << endl;
+  log("Floor " + to_string(floor + 1) + " doors placed", 1);
 }
 
 
@@ -363,8 +364,9 @@ void MapGenerator::set_tile(
     tile.src.x = TileData[type].uv.x * TILE_SIZE;
     tile.src.y = TileData[type].uv.y * TILE_SIZE;
   } else {
-    cerr << "  Tile(" << x << "," << y << ") has invalid type: "; 
-    cerr << type << endl; 
+    auto error_string{"Tile(" + to_string(x) + "," + to_string(y) + ") "};
+    error_string += "has invalid type: " + tile.type;
+    elog(error_string, 2);
 
     tile.category = "error";
     tile.src.x = 0;
