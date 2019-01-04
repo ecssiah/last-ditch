@@ -11,6 +11,7 @@
 #include "Window.h"
 #include "Button.h"
 #include "../utility/Types.h"
+#include "../utility/Log.h"
 #include "../interface/Input.h"
 #include "../time/Time.h"
 #include "../render/Render.h"
@@ -19,7 +20,7 @@
 class UISystem
 {
 public:
-  UISystem(Input& input, Render& render, Map& map, Time& time);
+  UISystem(Input& input, Render& render, Map& map, Time& time, Log& log);
 
   void init();
   void update();
@@ -35,7 +36,9 @@ private:
   std::string format_time();
   std::string format_date();
 
+  void update_menu();
   void update_main_text();
+  void update_messages();
 
   void build_window_element(const std::string& id);
   void build_text_element(const std::string& id);
@@ -49,6 +52,7 @@ private:
   Render& render_;
   Map& map_;
   Time& time_;
+  Log& log_;
 
 };
 

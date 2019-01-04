@@ -13,7 +13,7 @@ EntitySystem::EntitySystem(Map& map)
 
 void EntitySystem::init()
 {
-  log("EntitySystem intializing");
+  mlog("EntitySystem intializing");
 }
 
 void EntitySystem::update()

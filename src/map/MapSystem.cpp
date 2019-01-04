@@ -17,7 +17,7 @@ MapSystem::MapSystem(Input& input, Map& map)
 
 void MapSystem::init()
 {
-  log("MapSystem initializing");
+  mlog("MapSystem initializing");
 
   map_generator_.generate_map();
 }

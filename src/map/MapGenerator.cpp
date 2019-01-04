@@ -152,7 +152,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  log("Floor " + to_string(floor + 1) + " rooms built", 1);
+  mlog("Floor " + to_string(floor + 1) + " rooms built", 1);
 }
 
 
@@ -212,7 +212,7 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  log("Floor " + to_string(floor + 1) + " rooms integrated", 1);
+  mlog("Floor " + to_string(floor + 1) + " rooms integrated", 1);
 }
 
 
@@ -299,7 +299,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  log("Floor " + to_string(floor + 1) + " doors placed", 1);
+  mlog("Floor " + to_string(floor + 1) + " doors placed", 1);
 }
 
 

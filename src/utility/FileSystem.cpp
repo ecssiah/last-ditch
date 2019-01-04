@@ -23,7 +23,7 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 
 void FileSystem::init()
 {
-  log("FileSystem initializing");
+  mlog("FileSystem initializing");
 
 //   create_user("test user");
 
@@ -53,7 +53,7 @@ bool FileSystem::create_user(const string& username)
     user.username = username;
     users_.push_back(user);
 
-    log("User created: " + username);
+    mlog("User created: " + username);
 
     return true;
   }
@@ -77,7 +77,7 @@ bool FileSystem::delete_user(const string& username)
     return false;
   } else {
     users_.erase(users_.begin() + index);
-    log("User deleted: " + username);
+    mlog("User deleted: " + username);
     return true;
   }
 }
@@ -95,7 +95,7 @@ bool FileSystem::save_state(const string& filename)
     oa << users_;
     oa << time_;
 
-    log("Save: " + filename);
+    mlog("Save: " + filename);
 
     return true;
   }
@@ -114,7 +114,7 @@ bool FileSystem::load_state(const string& filename)
     ia >> users_;
     ia >> time_;
 
-    log("Load: " + filename);
+    mlog("Load: " + filename);
 
     return true;
   }
@@ -129,7 +129,7 @@ bool FileSystem::delete_state(const string& filename)
     elog("Delete error: " + string(strerror(errno)));
     return false;
   } else {
-    log("Delete: " + filename);
+    mlog("Delete: " + filename);
     return true;
   }
 }
@@ -146,7 +146,7 @@ bool FileSystem::save_map(const string& filename)
     boost::archive::binary_oarchive oa(ofs);
     oa << map_;
 
-    log("Map save: " + filename);
+    mlog("Map save: " + filename);
 
     return true;
   }
@@ -164,7 +164,7 @@ bool FileSystem::load_map(const string& filename)
     boost::archive::binary_iarchive ia(ifs);
     ia >> map_;
 
-    log("Load map: " + filename);
+    mlog("Load map: " + filename);
 
     return true;
   }
@@ -179,7 +179,7 @@ bool FileSystem::delete_map(const string& filename)
     elog("Delete map error: " + string(strerror(errno)));
     return false;
   } else {
-    log("Delete map: " + filename);
+    mlog("Delete map: " + filename);
 
     return true;
   }

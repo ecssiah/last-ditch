@@ -6,7 +6,7 @@
 
 #include "Types.h"
 
-inline void log(const std::string& msg, i32 level = 0)
+inline void mlog(const std::string& msg, i32 level = 0)
 {
   for (auto i{0}; i < level; i++)
     std::cout << " ";

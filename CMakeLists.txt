@@ -10,6 +10,7 @@ set(
   ./include/time/TimeConstants.h
   ./include/utility/AssetManager.h
   ./include/utility/ConfigSystem.h
+  ./include/utility/LogSystem.h
   ./include/map/MapSystem.h
   ./include/map/MapGenerator.h
   ./include/entity/EntitySystem.h
@@ -30,6 +31,7 @@ set(
   ./src/time/TimeConstants.cpp
   ./src/utility/AssetManager.cpp
   ./src/utility/ConfigSystem.cpp
+  ./src/utility/LogSystem.cpp
   ./src/map/MapSystem.cpp
   ./src/map/MapGenerator.cpp
   ./src/entity/EntitySystem.cpp

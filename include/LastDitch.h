@@ -4,6 +4,7 @@
 #include "interface/Input.h"
 #include "interface/InputSystem.h"
 #include "time/TimeSystem.h"
+#include "utility/Log.h"
 #include "utility/FileSystem.h"
 #include "utility/ConfigSystem.h"
 #include "render/Render.h"
@@ -26,6 +27,7 @@ private:
   Camera camera_;
   Map map_;
   Time time_;
+  Log log_;
 
   ConfigSystem config_system_;
   RenderSystem render_system_;

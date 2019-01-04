@@ -15,7 +15,7 @@ ConfigSystem::ConfigSystem()
 
 void ConfigSystem::init()
 {
-  log("ConfigSystem initializing");
+  mlog("ConfigSystem initializing");
 
   load_tile_info();
 }

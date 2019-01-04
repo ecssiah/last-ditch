@@ -10,18 +10,19 @@
 
 using namespace std;
 
-UISystem::UISystem(Input& input, Render& render, Map& map, Time& time)
+UISystem::UISystem(Input& input, Render& render, Map& map, Time& time, Log& log)
   : input_{input}
   , render_{render}
   , map_{map}
   , time_{time}
+  , log_{log}
 {
 }
 
 
 void UISystem::init()
 {
-  log("UISystem initializing");
+  mlog("UISystem initializing");
 
   setup_main_window();
   setup_main_buttons();
@@ -34,8 +35,25 @@ void UISystem::init()
 
 void UISystem::update()
 {
+  update_menu();
   update_main_text();
+  update_messages();
+}
 
+
+bool UISystem::check_intersection(i32 x, i32 y, Element& el)
+{
+  auto lcheck{input_.mx > el.bounds.x};
+  auto rcheck{input_.mx < el.bounds.x + el.bounds.w};
+  auto tcheck{input_.my > el.bounds.y};
+  auto bcheck{input_.my < el.bounds.y + el.bounds.h};
+
+  return lcheck && rcheck && tcheck && bcheck;
+}
+
+
+void UISystem::update_menu()
+{
   if (input_.menu) {
     if (input_.lclick) {
       auto& info_btn{render_.button_elements["info"]};    
@@ -60,17 +78,6 @@ void UISystem::update()
 }
 
 
-bool UISystem::check_intersection(i32 x, i32 y, Element& el)
-{
-  auto lcheck{input_.mx > el.bounds.x};
-  auto rcheck{input_.mx < el.bounds.x + el.bounds.w};
-  auto tcheck{input_.my > el.bounds.y};
-  auto bcheck{input_.my < el.bounds.y + el.bounds.h};
-
-  return lcheck && rcheck && tcheck && bcheck;
-}
-
-
 void UISystem::update_main_text()
 {
   if (map_.floor_changed) {
@@ -86,6 +93,16 @@ void UISystem::update_main_text()
   if (time_.date_changed) {
     render_.text_elements["date_display"].text = format_date();
     build_text_element("date_display");
+  }
+}
+
+
+void UISystem::update_messages()
+{
+  if (log_.changed) {
+    log_.changed = false;
+
+    
   }
 }
 
@@ -147,10 +164,12 @@ void UISystem::setup_floor_display()
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_floor();
 
-  build_text_element("floor_display");
+  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
   el.bounds.x = 4;
   el.bounds.y = 4;
+
+  build_text_element("floor_display");
 }
 
 
@@ -160,10 +179,12 @@ void UISystem::setup_time_display()
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_time();
 
-  build_text_element("time_display");
+  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 4;
+
+  build_text_element("time_display");
 }
 
 
@@ -173,10 +194,12 @@ void UISystem::setup_date_display()
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_date();
 
-  build_text_element("date_display");
+  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 16;
+
+  build_text_element("date_display");
 }
 
 
@@ -236,10 +259,14 @@ void UISystem::build_button_element(const string& id)
   text_el.text = el.text;
   text_el.font = render_.fonts["Fantasque-Medium"];
 
-  build_text_element(id);
+  TTF_SizeText(
+    text_el.font, text_el.text.c_str(), &text_el.bounds.w, &text_el.bounds.h
+  );
 
   text_el.bounds.x = el.bounds.x + el.bounds.w / 2 - text_el.bounds.w / 2;
   text_el.bounds.y = el.bounds.y + el.bounds.h / 2 - text_el.bounds.h / 2;
+
+  build_text_element(id);
 }
 
 
@@ -248,9 +275,6 @@ void UISystem::build_text_element(const string& id)
   auto& el{render_.text_elements[id]};
 
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
-
-  el.bounds.w = sur->w;
-  el.bounds.h = sur->h;
 
   if (sur == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 

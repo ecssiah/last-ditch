@@ -35,13 +35,13 @@ RenderSystem::~RenderSystem()
   SDL_DestroyWindow(render_.window);
   SDL_Quit();
 
-  log("RenderSystem shutdown");
+  mlog("RenderSystem shutdown");
 }
 
 
 void RenderSystem::init()
 {
-  log("RenderSystem initializing");
+  mlog("RenderSystem initializing");
 
   init_SDL();
   init_SDL_image();

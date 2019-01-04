@@ -1,8 +1,8 @@
 #ifndef INPUT_SYSTEM_H
 #define INPUT_SYSTEM_H
 
-#include "../utility/Types.h"
 #include "Input.h"
+#include "../utility/Types.h"
 #include "../render/Camera.h"
 #include "../render/Render.h"
 
@@ -27,6 +27,7 @@ private:
   Input& input_;
   Camera& camera_;
   Render& render_;
+
 }; 
 
 #endif

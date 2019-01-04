@@ -10,7 +10,7 @@ struct Input
     , pause{false}
     , debug{false}
     , menu{false}
-    , hud{false}
+    , hud{true}
     , up{false}, down{false}, left{false}, right{false}
     , mag{false}, min{false}
     , ascend{false}, descend{false}

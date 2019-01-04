@@ -105,7 +105,7 @@ void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
       case SDLK_TAB: input_.menu = !input_.menu; break;
       default: break;
     }
-  } else if (mod == KMOD_LSHIFT) {
+  } else if (mod == KMOD_RSHIFT) {
     switch (sym) {
       case SDLK_TAB: input_.hud = !input_.hud; break;
       default: break;
@@ -182,7 +182,7 @@ void InputSystem::calculate_selected_tile()
     input_.sy = -1;
   }
 
-  log("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
+  mlog("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
 }
 
 

@@ -17,6 +17,7 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 
 ## Implementation 
 
+* Handle Table (GEA pg 939)
 * Messaging system
 * Int and Float platform independent types
 * Real-time turn system
