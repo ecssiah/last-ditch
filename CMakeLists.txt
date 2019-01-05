@@ -18,6 +18,7 @@ set(
   ./include/render/CameraSystem.h
   ./include/time/TimeSystem.h
   ./include/interface/InputSystem.h
+  ./include/ui/UIConstants.h
   ./include/ui/UISystem.h
   ./include/utility/FileSystem.h
   ./include/LastDitch.h
@@ -39,6 +40,7 @@ set(
   ./src/render/CameraSystem.cpp
   ./src/time/TimeSystem.cpp
   ./src/interface/InputSystem.cpp
+  ./src/ui/UIConstants.cpp
   ./src/ui/UISystem.cpp
   ./src/utility/FileSystem.cpp
   ./src/LastDitch.cpp

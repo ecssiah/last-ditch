@@ -37,14 +37,17 @@ private:
 
   void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
 
-  void render_scalable_element(Scalable& el);
+  void render_scalable(Scalable& el);
 
-  void render_window_element(const std::string& id);
-  void render_button_element(const std::string& id);
-  void render_text_element(const std::string& id);
+  void render_window(const std::string& id);
+  void render_button(const std::string& id);
+  void render_text(const std::string& id);
+  void render_scrollable(const std::string& id);
 
   void render_map();
   void render_ui();
+
+  void render_messages();
 
   Render& render_;
   Input& input_;

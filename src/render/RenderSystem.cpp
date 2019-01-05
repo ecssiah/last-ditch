@@ -12,6 +12,7 @@
 #include "../../include/render/RenderSystem.h"
 #include "../../include/render/RenderConstants.h"
 #include "../../include/map/MapConstants.h"
+#include "../../include/ui/UIConstants.h"
 
 using namespace std;
 
@@ -157,6 +158,7 @@ void RenderSystem::load_fonts()
   render_.fonts["Fantasque-Small"] = load_font("FantasqueSansMono-Regular", 14);
   render_.fonts["Fantasque-Medium"] = load_font("FantasqueSansMono-Regular", 18);
   render_.fonts["Fantasque-Large"] = load_font("FantasqueSansMono-Regular", 22);
+  render_.fonts["Inconsolata-Small"] = load_font("Inconsolata-Regular", 14);
 }
 
 
@@ -196,18 +198,26 @@ void RenderSystem::render_map()
 void RenderSystem::render_ui()
 {
   if (input_.menu) {
-    render_window_element("main");
+    render_window("main");
 
-    render_button_element("info");
-    render_button_element("save");
-    render_button_element("options");
+    render_button("info");
+    render_button("save");
+    render_button("options");
   }
 
   if (input_.hud) {
-    render_text_element("floor_display");
-    render_text_element("time_display");
-    render_text_element("date_display");
+    render_text("floor_display");
+    render_text("time_display");
+    render_text("date_display");
+
+    render_messages();
   }
+}
+
+
+void RenderSystem::render_messages()
+{
+  render_scrollable("message_window");
 }
 
 
@@ -232,7 +242,15 @@ void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 }
 
 
-void RenderSystem::render_text_element(const string& id)
+void RenderSystem::render_scrollable(const string& id)
+{
+  const auto& el{render_.scrollable_elements[id]};
+
+  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.bounds);
+}
+
+
+void RenderSystem::render_text(const string& id)
 {
   const auto& el{render_.text_elements[id]};
 
@@ -240,29 +258,29 @@ void RenderSystem::render_text_element(const string& id)
 }
 
 
-void RenderSystem::render_button_element(const string& id)
+void RenderSystem::render_button(const string& id)
 {
   auto& el{render_.button_elements[id]};
 
   if (el.active) {
-    render_scalable_element(el.pressed);
+    render_scalable(el.pressed);
   } else {
-    render_scalable_element(el.base);
+    render_scalable(el.base);
   }
 
-  render_text_element(id);
+  render_text(id);
 }
 
 
-void RenderSystem::render_window_element(const string& id)
+void RenderSystem::render_window(const string& id)
 {
   auto& el{render_.window_elements[id]};
 
-  render_scalable_element(el.base);
+  render_scalable(el.base);
 }
 
 
-void RenderSystem::render_scalable_element(Scalable& el)
+void RenderSystem::render_scalable(Scalable& el)
 {
   SDL_RenderCopy(render_.renderer, el.texture, &el.src["tl"], &el.dst["tl"]);
   SDL_RenderCopy(render_.renderer, el.texture, &el.src["tm"], &el.dst["tm"]);

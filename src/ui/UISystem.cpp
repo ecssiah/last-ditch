@@ -4,8 +4,10 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "../../include/utility/Logging.h"
+#include "../../include/ui/UIConstants.h"
 #include "../../include/render/RenderConstants.h"
 
 using namespace std;
@@ -102,7 +104,45 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
+    i32 char_w, char_h, char_limit;
+    TTF_SizeText(render_.fonts["Inconsolata-Small"], "A", &char_w, nullptr);
+    char_h = {TTF_FontHeight(render_.fonts["Inconsolata-Small"])};
+    char_limit = {MESSAGE_WIN_SIZE_X / char_w};
+
+    vector<string> sorted_msgs;
+
+    for (const auto& msg : log_.msgs) {
+      for (auto i{0}; i < msg.length(); i += char_limit) {
+        sorted_msgs.push_back(msg.substr(i, char_limit));
+      }
+    }
+
+    SDL_Surface* target_sur{SDL_CreateRGBSurfaceWithFormat(
+      0, char_limit * char_w, sorted_msgs.size() * char_h, 32, SDL_PIXELFORMAT_ARGB32
+    )};
+
+    i32 pos{0};
+
+    for (const auto& msg : sorted_msgs) {
+      SDL_Surface* msg_sur{
+        TTF_RenderText_Blended(
+          render_.fonts["Inconsolata-Small"], msg.c_str(), {255, 255, 255}
+        )
+      };
+
+      SDL_Rect dst{0, pos, msg_sur->w, msg_sur->h};
+
+      SDL_BlitSurface(msg_sur, nullptr, target_sur, &dst);
+
+      pos += char_h;
+    }
     
+    auto& el{render_.scrollable_elements["message_window"]};
+    el.bounds = {
+      SCREEN_SIZE_X - target_sur->w - 4, SCREEN_SIZE_Y - target_sur->h - 4,
+      target_sur->w, target_sur->h
+    };
+    el.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
   }
 }
 

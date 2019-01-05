@@ -7,11 +7,13 @@
 struct Log
 {
   Log()
-    : changed{false}
+    : changed{true}
     , msgs{}
   {
-    msgs.push_back("Test message 1");
-    msgs.push_back("Test message 2");
+    msgs.push_back("F");
+    msgs.push_back("I am a long string waiting to broken apart like a good monopoly would.");
+    msgs.push_back("1F");
+    msgs.push_back(".C");
 
   }
 

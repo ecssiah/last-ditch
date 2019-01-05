@@ -12,6 +12,7 @@
 #include "../ui/Scalable.h"
 #include "../ui/Window.h"
 #include "../ui/Button.h"
+#include "../ui/Scrollable.h"
 
 struct Render
 {
@@ -25,6 +26,7 @@ struct Render
     , scalable_elements{}
     , window_elements{}
     , button_elements{}
+    , scrollable_elements{}
   {}
 
   f32 dt;
@@ -39,6 +41,7 @@ struct Render
   std::unordered_map<std::string, Scalable> scalable_elements;
   std::unordered_map<std::string, Window> window_elements;
   std::unordered_map<std::string, Button> button_elements;
+  std::unordered_map<std::string, Scrollable> scrollable_elements;
 
 };
 
