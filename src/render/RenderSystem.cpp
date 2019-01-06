@@ -197,6 +197,14 @@ void RenderSystem::render_map()
 
 void RenderSystem::render_ui()
 {
+  if (input_.hud) {
+    render_scrollable("message_window");
+
+    render_text("floor_display");
+    render_text("time_display");
+    render_text("date_display");
+  }
+
   if (input_.menu) {
     render_window("main");
 
@@ -204,20 +212,11 @@ void RenderSystem::render_ui()
     render_button("save");
     render_button("options");
   }
-
-  if (input_.hud) {
-    render_text("floor_display");
-    render_text("time_display");
-    render_text("date_display");
-
-    render_messages();
-  }
 }
 
 
 void RenderSystem::render_messages()
 {
-  render_scrollable("message_window");
 }
 
 
@@ -244,9 +243,18 @@ void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 
 void RenderSystem::render_scrollable(const string& id)
 {
-  const auto& el{render_.scrollable_elements[id]};
+  auto& el{render_.scrollable_elements[id]};
 
+  render_scalable(el.base);
+
+  SDL_RenderSetClipRect(render_.renderer, &el.mask);
+
+  SDL_SetRenderTarget(render_.renderer, nullptr); 
   SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.bounds);
+
+  SDL_RenderSetClipRect(render_.renderer, nullptr);
+
+  render_scalable(el.scrollbar);
 }
 
 

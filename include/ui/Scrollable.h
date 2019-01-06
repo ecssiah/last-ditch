@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "Element.h"
+#include "Scalable.h"
 #include "../utility/Types.h"
 
 struct Scrollable : public Element
@@ -14,7 +15,10 @@ struct Scrollable : public Element
     : type{}
     , texts{}
     , pos{}
+    , mask{}
     , texture{nullptr}
+    , base{}
+    , scrollbar{}
   {}
 
   std::string type;
@@ -22,7 +26,11 @@ struct Scrollable : public Element
 
   f32 pos;
 
+  SDL_Rect mask;
   SDL_Texture* texture;
+
+  Scalable base;
+  Scalable scrollbar;
 };
 
 #endif

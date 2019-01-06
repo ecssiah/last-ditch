@@ -28,6 +28,7 @@ void UISystem::init()
 
   setup_main_window();
   setup_main_buttons();
+  setup_message_window();
 
   setup_floor_display();
   setup_time_display();
@@ -84,17 +85,17 @@ void UISystem::update_main_text()
 {
   if (map_.floor_changed) {
     render_.text_elements["floor_display"].text = format_floor();
-    build_text_element("floor_display");
+    build_text("floor_display");
   }
 
   if (time_.time_changed) {
     render_.text_elements["time_display"].text = format_time();
-    build_text_element("time_display");
+    build_text("time_display");
   }
 
   if (time_.date_changed) {
     render_.text_elements["date_display"].text = format_date();
-    build_text_element("date_display");
+    build_text("date_display");
   }
 }
 
@@ -104,22 +105,6 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
-    string full_msg;
-    for (const auto& msg : log_.msgs) {
-      full_msg += msg + "\n"; 
-    }
-
-    SDL_Surface* target_sur{TTF_RenderText_Blended_Wrapped(
-      render_.fonts["Fantasque-Small"], 
-      full_msg.c_str(), {255, 255, 255}, MESSAGE_WIN_SIZE_X
-    )};
-
-    auto& el{render_.scrollable_elements["message_window"]};
-    el.bounds = {
-      SCREEN_SIZE_X - target_sur->w - 4, SCREEN_SIZE_Y - target_sur->h - 4,
-      target_sur->w, target_sur->h
-    };
-    el.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
   }
 }
 
@@ -133,7 +118,7 @@ void UISystem::setup_main_window()
   main_win.bounds.w = 0.8 * SCREEN_SIZE_X;  
   main_win.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
-  build_window_element("main");
+  build_window("main");
 }
 
 
@@ -151,7 +136,7 @@ void UISystem::setup_main_buttons()
   info_btn.bounds.w = width;
   info_btn.bounds.h = height;
 
-  build_button_element("info");
+  build_button("info");
 
   auto& save_btn{render_.button_elements["save"]};
   save_btn.type = "button2";
@@ -161,7 +146,7 @@ void UISystem::setup_main_buttons()
   save_btn.bounds.w = width;
   save_btn.bounds.h = height;
 
-  build_button_element("save");
+  build_button("save");
 
   auto& options_btn{render_.button_elements["options"]};
   options_btn.type = "button2";
@@ -171,7 +156,42 @@ void UISystem::setup_main_buttons()
   options_btn.bounds.w = width;
   options_btn.bounds.h = height;
 
-  build_button_element("options");
+  build_button("options");
+}
+
+
+void UISystem::setup_message_window()
+{
+  auto& el{render_.scrollable_elements["message_window"]};
+  el.base.type = "window1";
+  el.scrollbar.type = "scrollbar1";
+
+  string full_msg;
+  for (const auto& msg : log_.msgs) full_msg += msg + "\n"; 
+
+  SDL_Surface* target_sur{TTF_RenderText_Blended_Wrapped(
+    render_.fonts["Fantasque-Small"], 
+    full_msg.c_str(), {255, 255, 255}, 
+    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X
+  )};
+
+  el.base.bounds = {
+    SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
+    MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
+  };
+  el.bounds = {
+    el.base.bounds.x + MESSAGE_PADDING_X, el.base.bounds.y + MESSAGE_PADDING_Y,
+    target_sur->w, target_sur->h
+  };
+
+  el.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
+
+  el.mask = {
+    el.bounds.x, el.bounds.y, 
+    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
+  };
+
+  build_scrollable("message_window");
 }
 
 
@@ -186,7 +206,7 @@ void UISystem::setup_floor_display()
   el.bounds.x = 4;
   el.bounds.y = 4;
 
-  build_text_element("floor_display");
+  build_text("floor_display");
 }
 
 
@@ -201,7 +221,7 @@ void UISystem::setup_time_display()
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 4;
 
-  build_text_element("time_display");
+  build_text("time_display");
 }
 
 
@@ -216,7 +236,7 @@ void UISystem::setup_date_display()
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 16;
 
-  build_text_element("date_display");
+  build_text("date_display");
 }
 
 
@@ -250,17 +270,25 @@ string UISystem::format_date()
 }
 
 
-void UISystem::build_window_element(const string& id)
+void UISystem::build_scrollable(const string& id)
+{
+  auto& el{render_.scrollable_elements[id]};
+
+  build_scalable(el.base);
+}
+
+
+void UISystem::build_window(const string& id)
 {
   auto& el{render_.window_elements[id]};
   el.base.type = el.type;
   el.base.bounds = el.bounds;
 
-  build_scalable_element(el.base);
+  build_scalable(el.base);
 }
 
 
-void UISystem::build_button_element(const string& id)
+void UISystem::build_button(const string& id)
 {
   auto& el{render_.button_elements[id]};
   el.base.type = el.type + "-off";
@@ -268,8 +296,8 @@ void UISystem::build_button_element(const string& id)
   el.pressed.type = el.type + "-on";
   el.pressed.bounds = el.bounds;
 
-  build_scalable_element(el.base);
-  build_scalable_element(el.pressed);
+  build_scalable(el.base);
+  build_scalable(el.pressed);
 
   auto& text_el{render_.text_elements[id]};
 
@@ -283,11 +311,11 @@ void UISystem::build_button_element(const string& id)
   text_el.bounds.x = el.bounds.x + el.bounds.w / 2 - text_el.bounds.w / 2;
   text_el.bounds.y = el.bounds.y + el.bounds.h / 2 - text_el.bounds.h / 2;
 
-  build_text_element(id);
+  build_text(id);
 }
 
 
-void UISystem::build_text_element(const string& id)
+void UISystem::build_text(const string& id)
 {
   auto& el{render_.text_elements[id]};
 
@@ -301,7 +329,7 @@ void UISystem::build_text_element(const string& id)
 }
 
 
-void UISystem::build_scalable_element(Scalable& el) 
+void UISystem::build_scalable(Scalable& el) 
 {
   el.texture = render_.textures["overlay"];
 

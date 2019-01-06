@@ -16,6 +16,8 @@ struct Log
     );
     msgs.push_back("Wrapping and wrapping and warping and warping.");
     msgs.push_back("My name is Michael Chapman. This is a test, but only a test for the ages.");
+    msgs.push_back("Wrapping and wrapping and warping and warping.");
+    msgs.push_back("A test message for the ages...");
 
   }
 

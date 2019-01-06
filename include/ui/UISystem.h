@@ -28,6 +28,8 @@ public:
 private:
   void setup_main_window();
   void setup_main_buttons();
+  void setup_message_window();
+
   void setup_floor_display();
   void setup_time_display();
   void setup_date_display();
@@ -40,11 +42,12 @@ private:
   void update_main_text();
   void update_messages();
 
-  void build_window_element(const std::string& id);
-  void build_text_element(const std::string& id);
-  void build_button_element(const std::string& id);
+  void build_window(const std::string& id);
+  void build_text(const std::string& id);
+  void build_button(const std::string& id);
+  void build_scrollable(const std::string& id);
 
-  void build_scalable_element(Scalable& el);
+  void build_scalable(Scalable& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
 
