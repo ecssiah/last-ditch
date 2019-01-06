@@ -47,7 +47,7 @@ void UISystem::update()
 
   update_menu();
   update_main_text();
-  update_message_window();
+  update_messages();
 }
 
 
@@ -76,10 +76,8 @@ void UISystem::resolve_selections()
     }
 
     if (msg_win.scrollbar.selected) {
-      msg_win.pos += (input_.mdy / msg_win.scroll_range);
+      msg_win.pos += (input_.mdy / (f32)msg_win.scroll_range);
       msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
-
-      mlog(to_string(msg_win.pos));
 
       setup_scrollable("message_window");
     }
@@ -209,6 +207,21 @@ void UISystem::update_message_window()
   auto& el{ui_.scrollable_elements["message_window"]};
   el.texts = log_.msgs;
 
+  el.bounds = {
+    SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
+    MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
+  };
+  el.base.bounds = el.bounds;
+
+  el.mask = {
+    el.bounds.x, el.bounds.y, 
+    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
+  };
+  el.content.bounds = {
+    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y,
+    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X, 0
+  };
+
   setup_scrollable("message_window");
 }
 
@@ -221,8 +234,8 @@ void UISystem::setup_floor_display()
 
   TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
-  el.bounds.x = 4;
-  el.bounds.y = 4;
+  el.bounds.x = UI_PADDING;
+  el.bounds.y = UI_PADDING;
 
   setup_text("floor_display");
 }
@@ -236,8 +249,8 @@ void UISystem::setup_time_display()
 
   TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
-  el.bounds.y = 4;
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.bounds.y = UI_PADDING;
 
   setup_text("time_display");
 }
@@ -251,8 +264,8 @@ void UISystem::setup_date_display()
 
   TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
-  el.bounds.y = 16;
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.bounds.y = 12 + UI_PADDING;
 
   setup_text("date_display");
 }
@@ -292,38 +305,26 @@ void UISystem::setup_scrollable(const string& id)
 {
   auto& el{ui_.scrollable_elements[id]};
 
-  el.bounds = {
-    SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
-    MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
-  };
-  el.base.bounds = el.bounds;
-
   string full_msg;
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
-  SDL_Surface* target_sur{TTF_RenderText_Blended_Wrapped(
+  SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
     render_.fonts["Fantasque-Small"], full_msg.c_str(), {255, 255, 255}, 
-    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X
+    el.content.bounds.w
   )};
 
-  el.mask = {
-    el.bounds.x, el.bounds.y, 
-    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
-  };
-  el.content.bounds = {
-    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y,
-    target_sur->w, target_sur->h
-  };
-  el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
-
+  el.content.bounds.h = sur->h;
+  el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
   el.height = el.content.bounds.h;
+
+  SDL_FreeSurface(sur);
 
   setup_scalable(el.base);
 
-  el.scroll_range = el.bounds.h - 2 * el.base.pad;
+  el.scroll_range = el.bounds.h - 2 * el.base.border;
   el.scrollbar.bounds = {
-    el.base.bounds.x + el.base.bounds.w - TILE_SIZE / 8 - el.base.pad, 
-    el.base.bounds.y + el.base.pad, 
+    el.base.bounds.x + el.base.bounds.w - TILE_SIZE / 8 - el.base.border, 
+    el.base.bounds.y + el.base.border, 
     TILE_SIZE / 8, 32
   };
 
@@ -378,6 +379,8 @@ void UISystem::setup_text(const string& id)
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   } else {
     el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
+
+    SDL_FreeSurface(sur);
   }
 }
 
@@ -389,7 +392,7 @@ void UISystem::setup_scalable(Scalable& el)
   if (TileData.find(el.type) != TileData.end()) {
     el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
     el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-    el.pad = TileData[el.type].pad;
+    el.border = TileData[el.type].border;
   } else {
     std::cerr << "Scalable has invalid type: " << el.type << std::endl;
 

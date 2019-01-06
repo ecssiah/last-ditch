@@ -9,7 +9,7 @@ struct TileInfo
     : subtype{}
     , category{}
     , uv{}
-    , pad{}
+    , border{}
   {}
 
   std::string subtype;
@@ -17,7 +17,7 @@ struct TileInfo
 
   glm::vec2 uv;
   
-  i32 pad;
+  i32 border;
 };
 
 #endif
