@@ -22,11 +22,6 @@ struct Render
     , renderer{nullptr}
     , fonts{}
     , textures{}
-    , text_elements{}
-    , scalable_elements{}
-    , window_elements{}
-    , button_elements{}
-    , scrollable_elements{}
   {}
 
   f32 dt;
@@ -36,12 +31,6 @@ struct Render
 
   std::unordered_map<std::string, TTF_Font*> fonts;
   std::unordered_map<std::string, SDL_Texture*> textures;
-
-  std::unordered_map<std::string, Text> text_elements;
-  std::unordered_map<std::string, Scalable> scalable_elements;
-  std::unordered_map<std::string, Window> window_elements;
-  std::unordered_map<std::string, Button> button_elements;
-  std::unordered_map<std::string, Scrollable> scrollable_elements;
 
 };
 

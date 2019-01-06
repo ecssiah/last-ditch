@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include "../ui/UI.h"
 #include "../utility/Types.h"
 #include "../interface/Input.h"
 #include "../render/Render.h"
@@ -17,7 +18,7 @@ class RenderSystem
 {
 public:
   RenderSystem(
-    Input& input, Render& render, Camera& camera, Map& map
+    Input& input, Render& render, Camera& camera, Map& map, UI& ui
   );
   ~RenderSystem();
 
@@ -35,14 +36,14 @@ private:
   void load_fonts();
   void load_tilesets();
 
-  void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
-
-  void render_scalable(Scalable& el);
-
   void render_window(const std::string& id);
   void render_button(const std::string& id);
   void render_text(const std::string& id);
   void render_scrollable(const std::string& id);
+
+  void render_scalable(Scalable& el);
+
+  void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
 
   void render_map();
   void render_ui();
@@ -53,6 +54,7 @@ private:
   Input& input_;
   Camera& camera_;
   Map& map_;
+  UI& ui_;
 
 };
 

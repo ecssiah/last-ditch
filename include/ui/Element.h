@@ -7,9 +7,16 @@ struct Element
 {
   Element()
     : bounds{}
+    , selected{false}
+    , changed{false}
   {}
 
+  virtual ~Element() = default;
+
   SDL_Rect bounds;
+
+  bool selected;
+  bool changed;
 
 };
 

@@ -13,6 +13,7 @@
 #include "render/CameraSystem.h"
 #include "map/Map.h"
 #include "map/MapSystem.h"
+#include "ui/UI.h"
 #include "ui/UISystem.h"
 #include "entity/EntitySystem.h"
 
@@ -28,6 +29,7 @@ private:
   Map map_;
   Time time_;
   Log log_;
+  UI ui_;
 
   ConfigSystem config_system_;
   RenderSystem render_system_;

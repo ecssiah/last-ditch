@@ -7,17 +7,21 @@
 #include <algorithm>
 
 #include "../../include/utility/Logging.h"
+#include "../../include/ui/UI.h"
 #include "../../include/ui/UIConstants.h"
 #include "../../include/render/RenderConstants.h"
 
 using namespace std;
 
-UISystem::UISystem(Input& input, Render& render, Map& map, Time& time, Log& log)
+UISystem::UISystem(
+  Input& input, Render& render, Map& map, Time& time, Log& log, UI& ui
+)
   : input_{input}
   , render_{render}
   , map_{map}
   , time_{time}
   , log_{log}
+  , ui_{ui}
 {
 }
 
@@ -28,6 +32,7 @@ void UISystem::init()
 
   setup_main_window();
   setup_main_buttons();
+
   setup_message_window();
 
   setup_floor_display();
@@ -38,9 +43,11 @@ void UISystem::init()
 
 void UISystem::update()
 {
+  resolve_selections();
+
   update_menu();
   update_main_text();
-  update_messages();
+  update_message_window();
 }
 
 
@@ -55,13 +62,38 @@ bool UISystem::check_intersection(i32 x, i32 y, Element& el)
 }
 
 
+void UISystem::resolve_selections()
+{
+  if (input_.menu) {
+
+  } else if (input_.hud) {
+    auto& msg_win{ui_.scrollable_elements["message_window"]};
+
+    if (input_.lreleased) {
+      msg_win.scrollbar.selected = false;
+    } else if (input_.lclick && check_intersection(input_.mx, input_.my, msg_win.scrollbar)) {
+      msg_win.scrollbar.selected = true;
+    }
+
+    if (msg_win.scrollbar.selected) {
+      msg_win.pos += (input_.mdy / msg_win.scroll_range);
+      msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
+
+      mlog(to_string(msg_win.pos));
+
+      setup_scrollable("message_window");
+    }
+  }
+}
+
+
 void UISystem::update_menu()
 {
   if (input_.menu) {
     if (input_.lclick) {
-      auto& info_btn{render_.button_elements["info"]};    
-      auto& save_btn{render_.button_elements["save"]};    
-      auto& options_btn{render_.button_elements["options"]};    
+      auto& info_btn{ui_.button_elements["info"]};    
+      auto& save_btn{ui_.button_elements["save"]};    
+      auto& options_btn{ui_.button_elements["options"]};    
 
       if (check_intersection(input_.mx, input_.my, info_btn)) {
         info_btn.active = true;
@@ -84,18 +116,18 @@ void UISystem::update_menu()
 void UISystem::update_main_text()
 {
   if (map_.floor_changed) {
-    render_.text_elements["floor_display"].text = format_floor();
-    build_text("floor_display");
+    ui_.text_elements["floor_display"].text = format_floor();
+    setup_text("floor_display");
   }
 
   if (time_.time_changed) {
-    render_.text_elements["time_display"].text = format_time();
-    build_text("time_display");
+    ui_.text_elements["time_display"].text = format_time();
+    setup_text("time_display");
   }
 
   if (time_.date_changed) {
-    render_.text_elements["date_display"].text = format_date();
-    build_text("date_display");
+    ui_.text_elements["date_display"].text = format_date();
+    setup_text("date_display");
   }
 }
 
@@ -105,20 +137,21 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
+    update_message_window();
   }
 }
 
 
 void UISystem::setup_main_window()
 {
-  auto& main_win{render_.window_elements["main"]};
+  auto& main_win{ui_.window_elements["main"]};
   main_win.type = "window1";
   main_win.bounds.x = 0.1 * SCREEN_SIZE_X;
   main_win.bounds.y = 0.1 * SCREEN_SIZE_Y;
   main_win.bounds.w = 0.8 * SCREEN_SIZE_X;  
   main_win.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
-  build_window("main");
+  setup_window("main");
 }
 
 
@@ -127,7 +160,7 @@ void UISystem::setup_main_buttons()
   auto width{120};
   auto height{32};
 
-  auto& info_btn{render_.button_elements["info"]};
+  auto& info_btn{ui_.button_elements["info"]};
   info_btn.active = true;
   info_btn.type = "button2";
   info_btn.text = "Info";
@@ -136,9 +169,9 @@ void UISystem::setup_main_buttons()
   info_btn.bounds.w = width;
   info_btn.bounds.h = height;
 
-  build_button("info");
+  setup_button("info");
 
-  auto& save_btn{render_.button_elements["save"]};
+  auto& save_btn{ui_.button_elements["save"]};
   save_btn.type = "button2";
   save_btn.text = "Save/Load";
   save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
@@ -146,9 +179,9 @@ void UISystem::setup_main_buttons()
   save_btn.bounds.w = width;
   save_btn.bounds.h = height;
 
-  build_button("save");
+  setup_button("save");
 
-  auto& options_btn{render_.button_elements["options"]};
+  auto& options_btn{ui_.button_elements["options"]};
   options_btn.type = "button2";
   options_btn.text = "Options";
   options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
@@ -156,48 +189,33 @@ void UISystem::setup_main_buttons()
   options_btn.bounds.w = width;
   options_btn.bounds.h = height;
 
-  build_button("options");
+  setup_button("options");
 }
 
 
 void UISystem::setup_message_window()
 {
-  auto& el{render_.scrollable_elements["message_window"]};
-  el.base.type = "window1";
+  auto& el{ui_.scrollable_elements["message_window"]};
+  el.base.type = "window2";
   el.scrollbar.type = "scrollbar1";
+  el.texts = log_.msgs;
 
-  string full_msg;
-  for (const auto& msg : log_.msgs) full_msg += msg + "\n"; 
+  setup_scrollable("message_window");
+}
 
-  SDL_Surface* target_sur{TTF_RenderText_Blended_Wrapped(
-    render_.fonts["Fantasque-Small"], 
-    full_msg.c_str(), {255, 255, 255}, 
-    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X
-  )};
 
-  el.base.bounds = {
-    SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
-    MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
-  };
-  el.bounds = {
-    el.base.bounds.x + MESSAGE_PADDING_X, el.base.bounds.y + MESSAGE_PADDING_Y,
-    target_sur->w, target_sur->h
-  };
+void UISystem::update_message_window()
+{
+  auto& el{ui_.scrollable_elements["message_window"]};
+  el.texts = log_.msgs;
 
-  el.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
-
-  el.mask = {
-    el.bounds.x, el.bounds.y, 
-    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
-  };
-
-  build_scrollable("message_window");
+  setup_scrollable("message_window");
 }
 
 
 void UISystem::setup_floor_display()
 {
-  auto& el{render_.text_elements["floor_display"]};
+  auto& el{ui_.text_elements["floor_display"]};
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_floor();
 
@@ -206,13 +224,13 @@ void UISystem::setup_floor_display()
   el.bounds.x = 4;
   el.bounds.y = 4;
 
-  build_text("floor_display");
+  setup_text("floor_display");
 }
 
 
 void UISystem::setup_time_display()
 {
-  auto& el{render_.text_elements["time_display"]};
+  auto& el{ui_.text_elements["time_display"]};
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_time();
 
@@ -221,13 +239,13 @@ void UISystem::setup_time_display()
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 4;
 
-  build_text("time_display");
+  setup_text("time_display");
 }
 
 
 void UISystem::setup_date_display()
 {
-  auto& el{render_.text_elements["date_display"]};
+  auto& el{ui_.text_elements["date_display"]};
   el.font = render_.fonts["Fantasque-Small"];
   el.text = format_date();
 
@@ -236,7 +254,7 @@ void UISystem::setup_date_display()
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - 4;
   el.bounds.y = 16;
 
-  build_text("date_display");
+  setup_text("date_display");
 }
 
 
@@ -270,36 +288,71 @@ string UISystem::format_date()
 }
 
 
-void UISystem::build_scrollable(const string& id)
+void UISystem::setup_scrollable(const string& id)
 {
-  auto& el{render_.scrollable_elements[id]};
+  auto& el{ui_.scrollable_elements[id]};
 
-  build_scalable(el.base);
+  el.bounds = {
+    SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
+    MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
+  };
+  el.base.bounds = el.bounds;
+
+  string full_msg;
+  for (const auto& msg : el.texts) full_msg += msg + "\n"; 
+
+  SDL_Surface* target_sur{TTF_RenderText_Blended_Wrapped(
+    render_.fonts["Fantasque-Small"], full_msg.c_str(), {255, 255, 255}, 
+    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X
+  )};
+
+  el.mask = {
+    el.bounds.x, el.bounds.y, 
+    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
+  };
+  el.content.bounds = {
+    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y,
+    target_sur->w, target_sur->h
+  };
+  el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, target_sur); 
+
+  el.height = el.content.bounds.h;
+
+  setup_scalable(el.base);
+
+  el.scroll_range = el.bounds.h - 2 * el.base.pad;
+  el.scrollbar.bounds = {
+    el.base.bounds.x + el.base.bounds.w - TILE_SIZE / 8 - el.base.pad, 
+    el.base.bounds.y + el.base.pad, 
+    TILE_SIZE / 8, 32
+  };
+
+  setup_scalable(el.scrollbar);
 }
 
 
-void UISystem::build_window(const string& id)
+void UISystem::setup_window(const string& id)
 {
-  auto& el{render_.window_elements[id]};
+  auto& el{ui_.window_elements[id]};
   el.base.type = el.type;
   el.base.bounds = el.bounds;
 
-  build_scalable(el.base);
+  setup_scalable(el.base);
 }
 
 
-void UISystem::build_button(const string& id)
+void UISystem::setup_button(const string& id)
 {
-  auto& el{render_.button_elements[id]};
+  auto& el{ui_.button_elements[id]};
   el.base.type = el.type + "-off";
   el.base.bounds = el.bounds;
   el.pressed.type = el.type + "-on";
   el.pressed.bounds = el.bounds;
 
-  build_scalable(el.base);
-  build_scalable(el.pressed);
+  setup_scalable(el.base);
+  setup_scalable(el.pressed);
 
-  auto& text_el{render_.text_elements[id]};
+  auto& text_el{ui_.text_elements[id]};
 
   text_el.text = el.text;
   text_el.font = render_.fonts["Fantasque-Medium"];
@@ -311,13 +364,13 @@ void UISystem::build_button(const string& id)
   text_el.bounds.x = el.bounds.x + el.bounds.w / 2 - text_el.bounds.w / 2;
   text_el.bounds.y = el.bounds.y + el.bounds.h / 2 - text_el.bounds.h / 2;
 
-  build_text(id);
+  setup_text(id);
 }
 
 
-void UISystem::build_text(const string& id)
+void UISystem::setup_text(const string& id)
 {
-  auto& el{render_.text_elements[id]};
+  auto& el{ui_.text_elements[id]};
 
   SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
 
@@ -329,13 +382,14 @@ void UISystem::build_text(const string& id)
 }
 
 
-void UISystem::build_scalable(Scalable& el) 
+void UISystem::setup_scalable(Scalable& el) 
 {
   el.texture = render_.textures["overlay"];
 
   if (TileData.find(el.type) != TileData.end()) {
     el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
     el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+    el.pad = TileData[el.type].pad;
   } else {
     std::cerr << "Scalable has invalid type: " << el.type << std::endl;
 

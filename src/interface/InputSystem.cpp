@@ -44,6 +44,9 @@ void InputSystem::clear_inputs()
   input_.lreleased = false;
   input_.mreleased = false;
   input_.rreleased = false;
+
+  input_.mdx = 0;
+  input_.mdy = 0;
 }
 
 
@@ -69,6 +72,10 @@ void InputSystem::call_input_functions()
       }
       case SDL_MOUSEBUTTONUP: {
         on_mouse_up(e.button.x, e.button.y, e.button.button);
+        break;
+      }
+      case SDL_MOUSEMOTION: {
+        on_mouse_motion(e.motion.xrel, e.motion.yrel, e.button.button);
         break;
       }
       default: break;
@@ -163,6 +170,13 @@ void InputSystem::on_mouse_up(i32 x, i32 y, u8 button)
     }
     default: break;
   }
+}
+
+
+void InputSystem::on_mouse_motion(i32 xrel, i32 yrel, u8 button)
+{
+  input_.mdx = xrel;
+  input_.mdy = yrel;
 }
 
 

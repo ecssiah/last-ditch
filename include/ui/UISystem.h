@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "UI.h"
 #include "Text.h"
 #include "Scalable.h"
 #include "Window.h"
@@ -20,7 +21,7 @@
 class UISystem
 {
 public:
-  UISystem(Input& input, Render& render, Map& map, Time& time, Log& log);
+  UISystem(Input& input, Render& render, Map& map, Time& time, Log& log, UI& ui);
 
   void init();
   void update();
@@ -38,16 +39,19 @@ private:
   std::string format_time();
   std::string format_date();
 
+  void resolve_selections();
+
   void update_menu();
   void update_main_text();
   void update_messages();
+  void update_message_window();
 
-  void build_window(const std::string& id);
-  void build_text(const std::string& id);
-  void build_button(const std::string& id);
-  void build_scrollable(const std::string& id);
-
-  void build_scalable(Scalable& el);
+  void setup_texture(const std::string& id);
+  void setup_window(const std::string& id);
+  void setup_text(const std::string& id);
+  void setup_button(const std::string& id);
+  void setup_scrollable(const std::string& id);
+  void setup_scalable(Scalable& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
 
@@ -56,6 +60,7 @@ private:
   Map& map_;
   Time& time_;
   Log& log_;
+  UI& ui_;
 
 };
 

@@ -18,6 +18,7 @@ struct Input
     , lpressed{false}, mpressed{false}, rpressed{false}
     , lreleased{false}, mreleased{false}, rreleased{false}
     , mx{0}, my{0}
+    , mdx{0}, mdy{0}
     , sx{0}, sy{0}
   {}
 
@@ -30,6 +31,7 @@ struct Input
   bool lreleased, mreleased, rreleased;
 
   i32 mx, my;
+  i32 mdx, mdy;
   i32 sx, sy;
 };
 

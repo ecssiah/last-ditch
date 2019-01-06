@@ -9,12 +9,15 @@ struct TileInfo
     : subtype{}
     , category{}
     , uv{}
+    , pad{}
   {}
 
   std::string subtype;
   std::string category;
 
   glm::vec2 uv;
+  
+  i32 pad;
 };
 
 #endif

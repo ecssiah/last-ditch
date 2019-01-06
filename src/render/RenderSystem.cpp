@@ -17,12 +17,13 @@
 using namespace std;
 
 RenderSystem::RenderSystem(
-  Input& input, Render& render, Camera& camera, Map& map
+  Input& input, Render& render, Camera& camera, Map& map, UI& ui
 ) 
   : input_{input}
   , render_{render}
   , camera_{camera}
   , map_{map}
+  , ui_{ui}
 {
 }
 
@@ -243,14 +244,14 @@ void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 
 void RenderSystem::render_scrollable(const string& id)
 {
-  auto& el{render_.scrollable_elements[id]};
+  auto& el{ui_.scrollable_elements[id]};
 
   render_scalable(el.base);
 
   SDL_RenderSetClipRect(render_.renderer, &el.mask);
 
   SDL_SetRenderTarget(render_.renderer, nullptr); 
-  SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.bounds);
+  SDL_RenderCopy(render_.renderer, el.content.texture, nullptr, &el.content.bounds);
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);
 
@@ -260,7 +261,7 @@ void RenderSystem::render_scrollable(const string& id)
 
 void RenderSystem::render_text(const string& id)
 {
-  const auto& el{render_.text_elements[id]};
+  const auto& el{ui_.text_elements[id]};
 
   SDL_RenderCopy(render_.renderer, el.texture, nullptr, &el.bounds); 
 }
@@ -268,7 +269,7 @@ void RenderSystem::render_text(const string& id)
 
 void RenderSystem::render_button(const string& id)
 {
-  auto& el{render_.button_elements[id]};
+  auto& el{ui_.button_elements[id]};
 
   if (el.active) {
     render_scalable(el.pressed);
@@ -282,7 +283,7 @@ void RenderSystem::render_button(const string& id)
 
 void RenderSystem::render_window(const string& id)
 {
-  auto& el{render_.window_elements[id]};
+  auto& el{ui_.window_elements[id]};
 
   render_scalable(el.base);
 }

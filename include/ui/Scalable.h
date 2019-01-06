@@ -14,6 +14,7 @@ struct Scalable : public Element
     , basex{}
     , basey{}
     , size{TILE_SIZE / 4}
+    , pad{}
     , texture{nullptr}
     , src{}
     , dst{}
@@ -24,6 +25,7 @@ struct Scalable : public Element
 
   i32 basex, basey;
   i32 size;
+  i32 pad;
 
   SDL_Texture* texture;
 

@@ -41,6 +41,10 @@ void ConfigSystem::load_tile_info()
         tile_info.uv.x = uv_vec[0];
         tile_info.uv.y = uv_vec[1];
 
+        if (tile_info.category == "windows") {
+          tile_info.pad = tile_node["pad"].as<i32>();
+        }
+
         TileData[tile_data.first.as<string>()] = tile_info;
       }
     } 
