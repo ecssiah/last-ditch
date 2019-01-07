@@ -220,7 +220,7 @@ void UISystem::setup_message_window()
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
 
-  setup_scrollable("message_window");
+  // setup_scrollable("message_window");
 }
 
 
@@ -312,10 +312,10 @@ void UISystem::setup_scrollable(const string& id)
 {
   auto& el{ui_.scrollable_elements[id]};
 
-  string full_msg;
-  // auto size{min(20.0, (f64)full_msg.size())};
-
+  // auto size{max(20.0, (f64)full_msg.size())};
   // for (auto i{0}; i < size; i++) full_msg += log_.msgs[i] + "\n";
+
+  string full_msg;
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
@@ -331,6 +331,7 @@ void UISystem::setup_scrollable(const string& id)
   el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
 
   SDL_FreeSurface(sur);
+
 
   if (scrollbar_h > el.mask.h) {
     el.scrollbar.active = false;
