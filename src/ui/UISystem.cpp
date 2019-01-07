@@ -76,7 +76,7 @@ void UISystem::resolve_selections()
     }
 
     if (msg_win.scrollbar.selected) {
-      msg_win.pos += (input_.mdy / (f32)msg_win.scroll_range);
+      msg_win.pos += (f32)input_.mdy / msg_win.scroll_range;
       msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
 
       setup_scrollable("message_window");
@@ -214,12 +214,9 @@ void UISystem::update_message_window()
   el.base.bounds = el.bounds;
 
   el.mask = {
-    el.bounds.x, el.bounds.y, 
-    el.bounds.w, MESSAGE_WIN_SIZE_Y - 2 * MESSAGE_PADDING_Y
-  };
-  el.content.bounds = {
-    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y,
-    MESSAGE_WIN_SIZE_X - 2 * MESSAGE_PADDING_X, 0
+    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y, 
+    el.bounds.w - 2 * MESSAGE_PADDING_X, 
+    el.bounds.h - 2 * MESSAGE_PADDING_Y - SCROLLBAR_WIDTH
   };
 
   setup_scrollable("message_window");
@@ -265,7 +262,7 @@ void UISystem::setup_date_display()
   TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
 
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
-  el.bounds.y = 12 + UI_PADDING;
+  el.bounds.y = UI_PADDING + 12;
 
   setup_text("date_display");
 }
@@ -309,23 +306,25 @@ void UISystem::setup_scrollable(const string& id)
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
-    render_.fonts["Fantasque-Small"], full_msg.c_str(), {255, 255, 255}, 
-    el.content.bounds.w
+    render_.fonts["Fantasque-Small"], full_msg.c_str(), 
+    {255, 255, 255}, el.mask.w
   )};
 
-  el.content.bounds.h = sur->h;
+  SDL_DestroyTexture(el.content.texture);
+
   el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-  el.height = el.content.bounds.h;
+  el.content.bounds = {el.mask.x, el.mask.y - (i32)(el.pos * sur->h), sur->w, sur->h};
 
   SDL_FreeSurface(sur);
 
   setup_scalable(el.base);
 
-  el.scroll_range = el.bounds.h - 2 * el.base.border;
+  el.scroll_range = el.content.bounds.h - 32;
+
   el.scrollbar.bounds = {
-    el.base.bounds.x + el.base.bounds.w - TILE_SIZE / 8 - el.base.border, 
-    el.base.bounds.y + el.base.border, 
-    TILE_SIZE / 8, 32
+    el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
+    el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
+    SCROLLBAR_WIDTH, 32
   };
 
   setup_scalable(el.scrollbar);
@@ -378,6 +377,8 @@ void UISystem::setup_text(const string& id)
   if (sur == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   } else {
+    SDL_DestroyTexture(el.texture);
+
     el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
 
     SDL_FreeSurface(sur);
