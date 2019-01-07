@@ -37,13 +37,13 @@ RenderSystem::~RenderSystem()
   SDL_DestroyWindow(render_.window);
   SDL_Quit();
 
-  mlog("RenderSystem shutdown");
+  ::mlog("RenderSystem shutdown");
 }
 
 
 void RenderSystem::init()
 {
-  mlog("RenderSystem initializing");
+  ::mlog("RenderSystem initializing");
 
   init_SDL();
   init_SDL_image();
@@ -57,7 +57,7 @@ void RenderSystem::init()
 void RenderSystem::init_SDL()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    elog("SDL_Init error: " + string(SDL_GetError()));
+    ::elog("SDL_Init error: " + string(SDL_GetError()));
     return;
   }
 
@@ -69,7 +69,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.window == nullptr) {
-    elog("SDL_CreateWindow error: " + string(SDL_GetError()));
+    ::elog("SDL_CreateWindow error: " + string(SDL_GetError()));
     return;
   }
 
@@ -79,7 +79,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.renderer == nullptr){
-    elog("SDL_CreateRenderer error: " + string(SDL_GetError()));
+    ::elog("SDL_CreateRenderer error: " + string(SDL_GetError()));
     return;
   }
 
@@ -92,7 +92,7 @@ void RenderSystem::init_SDL_image()
   const i32 img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
-    elog("SDL_image error: " + string(IMG_GetError()));
+    ::elog("SDL_image error: " + string(IMG_GetError()));
     return;
   }
 }
@@ -101,7 +101,7 @@ void RenderSystem::init_SDL_image()
 void RenderSystem::init_SDL_ttf()
 {
   if (TTF_Init()) {
-    elog("TTF_Init error: " + string(TTF_GetError()));
+    ::elog("TTF_Init error: " + string(TTF_GetError()));
     return;
   } 
 }
@@ -113,14 +113,14 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
   SDL_Surface* sur{IMG_Load(filename.c_str())};
 
   if (!sur) { 
-    elog("IMG_Load error: " + string(IMG_GetError()));
+    ::elog("IMG_Load error: " + string(IMG_GetError()));
     return nullptr;
   }
 
   SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, sur)};
 
   if (!texture) {
-    elog("SDL_CreateTextureFromSurface error: " + string(SDL_GetError()));
+    ::elog("SDL_CreateTextureFromSurface error: " + string(SDL_GetError()));
     return nullptr;
   }
   
@@ -136,7 +136,7 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
   if (!font) {
-    elog("TTF_OpenFont error: " + string(TTF_GetError()));
+    ::elog("TTF_OpenFont error: " + string(TTF_GetError()));
     return nullptr;
   }
 

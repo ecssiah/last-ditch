@@ -196,7 +196,7 @@ void InputSystem::calculate_selected_tile()
     input_.sy = -1;
   }
 
-  mlog("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
+  ::mlog("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
 }
 
 

@@ -152,7 +152,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  mlog("Floor " + to_string(floor + 1) + " rooms built", 1);
+  ::mlog("Floor " + to_string(floor + 1) + " rooms built", 1);
 }
 
 
@@ -212,7 +212,7 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  mlog("Floor " + to_string(floor + 1) + " rooms integrated", 1);
+  ::mlog("Floor " + to_string(floor + 1) + " rooms integrated", 1);
 }
 
 
@@ -299,7 +299,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  mlog("Floor " + to_string(floor + 1) + " doors placed", 1);
+  ::mlog("Floor " + to_string(floor + 1) + " doors placed", 1);
 }
 
 
@@ -366,7 +366,7 @@ void MapGenerator::set_tile(
   } else {
     auto error_string{"Tile(" + to_string(x) + "," + to_string(y) + ") "};
     error_string += "has invalid type: " + tile.type;
-    elog(error_string, 2);
+    ::elog(error_string, 2);
 
     tile.category = "error";
     tile.src.x = 0;

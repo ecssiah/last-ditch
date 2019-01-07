@@ -12,12 +12,6 @@ struct Log
   {
     msgs.push_back("A test message for the ages...");
     msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
 
   }
 

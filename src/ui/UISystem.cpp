@@ -28,7 +28,7 @@ UISystem::UISystem(
 
 void UISystem::init()
 {
-  mlog("UISystem initializing");
+  ::mlog("UISystem initializing");
 
   setup_main_window();
   setup_main_buttons();
@@ -44,6 +44,9 @@ void UISystem::init()
 void UISystem::update()
 {
   resolve_selections();
+
+  if (map_.floor_changed)
+    ::ulog(log_, "Floor: " + to_string(map_.cur_floor + 1));
 
   update_menu();
   update_main_text();
@@ -91,16 +94,6 @@ void UISystem::resolve_selections()
 
 void UISystem::update_menu()
 {
-  if (input_.lclick) {
-    log_.changed = true;
-    log_.msgs.insert(log_.msgs.begin(), "A new test arose from the darkness.");
-
-    while (log_.msgs.size() > 100) log_.msgs.erase(log_.msgs.begin());
-
-    auto& el {ui_.scrollable_elements["message_window"]};
-    el.pos = 0.0;
-  }
-
   if (input_.menu) {
     if (input_.lclick) {
       auto& info_btn{ui_.button_elements["info"]};    
@@ -148,6 +141,9 @@ void UISystem::update_messages()
 {
   if (log_.changed) {
     log_.changed = false;
+
+    auto& el {ui_.scrollable_elements["message_window"]};
+    el.pos = 0.0;
 
     update_message_window();
   }
@@ -317,6 +313,9 @@ void UISystem::setup_scrollable(const string& id)
   auto& el{ui_.scrollable_elements[id]};
 
   string full_msg;
+  // auto size{min(20.0, (f64)full_msg.size())};
+
+  // for (auto i{0}; i < size; i++) full_msg += log_.msgs[i] + "\n";
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
@@ -324,23 +323,28 @@ void UISystem::setup_scrollable(const string& id)
     {255, 255, 255}, el.mask.w
   )};
 
-  SDL_DestroyTexture(el.content.texture);
+  setup_scalable(el.base);
 
+  i32 scrollbar_h{(i32)(el.mask.h / (f64)sur->h * el.mask.h)};
+
+  SDL_DestroyTexture(el.content.texture);
   el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-  el.content.bounds = {el.mask.x, el.mask.y - (i32)(el.pos * sur->h), sur->w, sur->h};
 
   SDL_FreeSurface(sur);
 
-  setup_scalable(el.base);
-
-  i32 scrollbar_h{(i32)(el.mask.h / (f64)el.content.bounds.h * el.mask.h)};
-
   if (scrollbar_h > el.mask.h) {
     el.scrollbar.active = false;
+    el.content.bounds = {
+      el.mask.x, el.mask.y, sur->w, sur->h
+    };
   } else {
+    el.content.bounds = {
+      el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
+      sur->w, sur->h
+    };
     el.scrollbar.active = true;
 
-    el.scroll_range = el.mask.h - scrollbar_h;
+    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_h;
 
     el.scrollbar.bounds = {
       el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
