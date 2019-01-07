@@ -9,6 +9,7 @@
 #include "UI.h"
 #include "Text.h"
 #include "Scalable.h"
+#include "Scrollbar.h"
 #include "Window.h"
 #include "Button.h"
 #include "../utility/Types.h"
@@ -51,6 +52,7 @@ private:
   void setup_text(const std::string& id);
   void setup_button(const std::string& id);
   void setup_scrollable(const std::string& id);
+  void setup_scrollbar(Scrollbar& el);
   void setup_scalable(Scalable& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);

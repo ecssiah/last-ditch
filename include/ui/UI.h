@@ -9,6 +9,7 @@
 #include "Element.h"
 #include "Scalable.h"
 #include "Scrollable.h"
+#include "Scrollbar.h"
 #include "Texture.h"
 #include "Text.h"
 #include "Window.h"
@@ -21,9 +22,8 @@ struct UI
     , window_elements{}
     , button_elements{}
     , scrollable_elements{}
+    , scrollbar_elements{}
     , texture_elements{}
-    , menu_elements{}
-    , hud_elements{}
   {}
 
   std::unordered_map<std::string, Text> text_elements;
@@ -31,10 +31,8 @@ struct UI
   std::unordered_map<std::string, Window> window_elements;
   std::unordered_map<std::string, Button> button_elements;
   std::unordered_map<std::string, Scrollable> scrollable_elements;
+  std::unordered_map<std::string, Scrollbar> scrollbar_elements;
   std::unordered_map<std::string, Texture> texture_elements;
-
-  std::vector<Element*> menu_elements;
-  std::vector<Element*> hud_elements;
 
 };
 

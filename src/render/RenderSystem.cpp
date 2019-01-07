@@ -110,21 +110,21 @@ void RenderSystem::init_SDL_ttf()
 SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
   string filename{"assets/textures/" + texturename + ".png"};
-  SDL_Surface* surface{IMG_Load(filename.c_str())};
+  SDL_Surface* sur{IMG_Load(filename.c_str())};
 
-  if (!surface) { 
+  if (!sur) { 
     elog("IMG_Load error: " + string(IMG_GetError()));
     return nullptr;
   }
 
-  SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, surface)};
+  SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, sur)};
 
   if (!texture) {
     elog("SDL_CreateTextureFromSurface error: " + string(SDL_GetError()));
     return nullptr;
   }
   
-  SDL_FreeSurface(surface);
+  SDL_FreeSurface(sur);
 
   return texture;
 }
@@ -255,7 +255,7 @@ void RenderSystem::render_scrollable(const string& id)
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);
 
-  render_scalable(el.scrollbar);
+  render_scrollbar(el.scrollbar);
 }
 
 
@@ -289,15 +289,22 @@ void RenderSystem::render_window(const string& id)
 }
 
 
+void RenderSystem::render_scrollbar(Scrollbar& el)
+{
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["t"], &el.dst["t"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["m"], &el.dst["m"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["b"], &el.dst["b"]);
+}
+
 void RenderSystem::render_scalable(Scalable& el)
 {
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tl"], &el.dst["tl"]);
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tm"], &el.dst["tm"]);
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tr"], &el.dst["tr"]);
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["ll"], &el.dst["ll"]);
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["mm"], &el.dst["mm"]);
-  SDL_RenderCopy(render_.renderer, el.texture, &el.src["rr"], &el.dst["rr"]);
   SDL_RenderCopy(render_.renderer, el.texture, &el.src["bl"], &el.dst["bl"]);
   SDL_RenderCopy(render_.renderer, el.texture, &el.src["bm"], &el.dst["bm"]);
   SDL_RenderCopy(render_.renderer, el.texture, &el.src["br"], &el.dst["br"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["ll"], &el.dst["ll"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["mm"], &el.dst["mm"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["rr"], &el.dst["rr"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tl"], &el.dst["tl"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tm"], &el.dst["tm"]);
+  SDL_RenderCopy(render_.renderer, el.texture, &el.src["tr"], &el.dst["tr"]);
 }

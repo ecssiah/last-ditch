@@ -8,6 +8,7 @@
 #include "Element.h"
 #include "Texture.h"
 #include "Scalable.h"
+#include "Scrollbar.h"
 #include "../utility/Types.h"
 
 struct Scrollable : public Element
@@ -36,7 +37,7 @@ struct Scrollable : public Element
 
   Texture content;
   Scalable base;
-  Scalable scrollbar;
+  Scrollbar scrollbar;
 };
 
 #endif

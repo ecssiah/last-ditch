@@ -195,16 +195,7 @@ void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.base.type = "window2";
-  el.scrollbar.type = "scrollbar1";
-  el.texts = log_.msgs;
-
-  setup_scrollable("message_window");
-}
-
-
-void UISystem::update_message_window()
-{
-  auto& el{ui_.scrollable_elements["message_window"]};
+  el.scrollbar.type = "scrollbar2";
   el.texts = log_.msgs;
 
   el.bounds = {
@@ -215,9 +206,18 @@ void UISystem::update_message_window()
 
   el.mask = {
     el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y, 
-    el.bounds.w - 2 * MESSAGE_PADDING_X, 
-    el.bounds.h - 2 * MESSAGE_PADDING_Y - SCROLLBAR_WIDTH
+    el.bounds.w - 2 * MESSAGE_PADDING_X - SCROLLBAR_WIDTH, 
+    el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
+
+  setup_scrollable("message_window");
+}
+
+
+void UISystem::update_message_window()
+{
+  auto& el{ui_.scrollable_elements["message_window"]};
+  el.texts = log_.msgs;
 
   setup_scrollable("message_window");
 }
@@ -319,15 +319,18 @@ void UISystem::setup_scrollable(const string& id)
 
   setup_scalable(el.base);
 
-  el.scroll_range = el.content.bounds.h - 32;
+  f64 initial{el.mask.h / (f64)el.content.bounds.h * el.mask.h};
+  i32 scrollbar_h{(i32)min(initial, (f64)el.mask.h)};
+
+  el.scroll_range = el.mask.h - scrollbar_h;
 
   el.scrollbar.bounds = {
     el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
     el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
-    SCROLLBAR_WIDTH, 32
+    SCROLLBAR_WIDTH, scrollbar_h
   };
 
-  setup_scalable(el.scrollbar);
+  setup_scrollbar(el.scrollbar);
 }
 
 
@@ -383,6 +386,45 @@ void UISystem::setup_text(const string& id)
 
     SDL_FreeSurface(sur);
   }
+}
+
+
+void UISystem::setup_scrollbar(Scrollbar& el)
+{
+  el.texture = render_.textures["overlay"];
+
+  if (TileData.find(el.type) != TileData.end()) {
+    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+  } else {
+    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
+
+    el.basex = 0;
+    el.basey = 0;
+  }
+
+  el.src["t"] = {
+    el.basex, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["m"] = {
+    el.basex, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["b"] = {
+    el.basex, el.basey + 2 * el.size, el.size, el.size
+  };
+
+  el.dst["t"] = { 
+    el.bounds.x, el.bounds.y + 0 * el.size, 
+    el.size, el.size 
+  };
+  el.dst["m"] = {
+    el.bounds.x, el.bounds.y + 1 * el.size, 
+    el.size, el.bounds.h - 2 * el.size
+  }; 
+  el.dst["b"] = {
+    el.bounds.x, el.bounds.y + el.bounds.h - el.size, 
+    el.size, el.size
+  };
 }
 
 

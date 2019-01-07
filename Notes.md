@@ -17,6 +17,8 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 
 ## Implementation 
 
+* Store elements in vectors based on render order
+* Access individual elements with maps of name to Element*
 * Handle Table (GEA pg 939)
 * Messaging system
 * Int and Float platform independent types

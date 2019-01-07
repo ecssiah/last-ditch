@@ -8,6 +8,8 @@
 #include <SDL2/SDL_image.h>
 
 #include "../ui/UI.h"
+#include "../ui/Scalable.h"
+#include "../ui/Scrollbar.h"
 #include "../utility/Types.h"
 #include "../interface/Input.h"
 #include "../render/Render.h"
@@ -41,6 +43,7 @@ private:
   void render_text(const std::string& id);
   void render_scrollable(const std::string& id);
 
+  void render_scrollbar(Scrollbar& el);
   void render_scalable(Scalable& el);
 
   void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
