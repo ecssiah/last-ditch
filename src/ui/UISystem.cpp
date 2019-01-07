@@ -67,20 +67,22 @@ void UISystem::resolve_selections()
   if (input_.menu) {
 
   } else if (input_.hud) {
-    auto& msg_win{ui_.scrollable_elements["message_window"]};
+    auto& el{ui_.scrollable_elements["message_window"]};
 
-    if (msg_win.scrollbar.active) {
-      if (input_.lreleased) {
-        msg_win.scrollbar.selected = false;
-      } else if (input_.lclick && check_intersection(input_.mx, input_.my, msg_win.scrollbar)) {
-        msg_win.scrollbar.selected = true;
-      }
+    if (input_.lreleased) {
+      el.scrollbar.selected = false;
+    } else {
+      if (el.scrollbar.active) {
+        auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
 
-      if (msg_win.scrollbar.selected) {
-        msg_win.pos += (f32)input_.mdy / msg_win.scroll_range;
-        msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
+        if (input_.lclick && clicked) el.scrollbar.selected = true;
 
-        setup_scrollable("message_window");
+        if (el.scrollbar.selected) {
+          f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
+          el.pos = max(0.0, min(test_pos, 1.0));
+
+          setup_scrollable("message_window");
+        }
       }
     }
   }
@@ -89,6 +91,16 @@ void UISystem::resolve_selections()
 
 void UISystem::update_menu()
 {
+  if (input_.lclick) {
+    log_.changed = true;
+    log_.msgs.insert(log_.msgs.begin(), "A new test arose from the darkness.");
+
+    while (log_.msgs.size() > 100) log_.msgs.erase(log_.msgs.begin());
+
+    auto& el {ui_.scrollable_elements["message_window"]};
+    el.pos = 0.0;
+  }
+
   if (input_.menu) {
     if (input_.lclick) {
       auto& info_btn{ui_.button_elements["info"]};    
