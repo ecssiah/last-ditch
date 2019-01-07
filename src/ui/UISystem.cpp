@@ -69,17 +69,19 @@ void UISystem::resolve_selections()
   } else if (input_.hud) {
     auto& msg_win{ui_.scrollable_elements["message_window"]};
 
-    if (input_.lreleased) {
-      msg_win.scrollbar.selected = false;
-    } else if (input_.lclick && check_intersection(input_.mx, input_.my, msg_win.scrollbar)) {
-      msg_win.scrollbar.selected = true;
-    }
+    if (msg_win.scrollbar.active) {
+      if (input_.lreleased) {
+        msg_win.scrollbar.selected = false;
+      } else if (input_.lclick && check_intersection(input_.mx, input_.my, msg_win.scrollbar)) {
+        msg_win.scrollbar.selected = true;
+      }
 
-    if (msg_win.scrollbar.selected) {
-      msg_win.pos += (f32)input_.mdy / msg_win.scroll_range;
-      msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
+      if (msg_win.scrollbar.selected) {
+        msg_win.pos += (f32)input_.mdy / msg_win.scroll_range;
+        msg_win.pos = max(0.0, min((f64)msg_win.pos, 1.0));
 
-      setup_scrollable("message_window");
+        setup_scrollable("message_window");
+      }
     }
   }
 }
@@ -319,18 +321,23 @@ void UISystem::setup_scrollable(const string& id)
 
   setup_scalable(el.base);
 
-  f64 initial{el.mask.h / (f64)el.content.bounds.h * el.mask.h};
-  i32 scrollbar_h{(i32)min(initial, (f64)el.mask.h)};
+  i32 scrollbar_h{(i32)(el.mask.h / (f64)el.content.bounds.h * el.mask.h)};
 
-  el.scroll_range = el.mask.h - scrollbar_h;
+  if (scrollbar_h > el.mask.h) {
+    el.scrollbar.active = false;
+  } else {
+    el.scrollbar.active = true;
 
-  el.scrollbar.bounds = {
-    el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-    el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
-    SCROLLBAR_WIDTH, scrollbar_h
-  };
+    el.scroll_range = el.mask.h - scrollbar_h;
 
-  setup_scrollbar(el.scrollbar);
+    el.scrollbar.bounds = {
+      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
+      el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
+      SCROLLBAR_WIDTH, scrollbar_h
+    };
+
+    setup_scrollbar(el.scrollbar);
+  }
 }
 
 

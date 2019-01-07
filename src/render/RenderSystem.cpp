@@ -255,7 +255,7 @@ void RenderSystem::render_scrollable(const string& id)
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);
 
-  render_scrollbar(el.scrollbar);
+  if (el.scrollbar.active) render_scrollbar(el.scrollbar);
 }
 
 

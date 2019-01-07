@@ -7,6 +7,7 @@ struct Element
 {
   Element()
     : bounds{}
+    , active{true}
     , selected{false}
     , changed{false}
   {}
@@ -15,6 +16,7 @@ struct Element
 
   SDL_Rect bounds;
 
+  bool active;
   bool selected;
   bool changed;
 
