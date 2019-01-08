@@ -384,3 +384,11 @@ void MapGenerator::set_solid(i32 x, i32 y, i32 floor, bool solid)
   Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
   tile.solid = solid;
 }
+
+
+void MapGenerator::set_active(
+  const std::string& layer, i32 x, i32 y, i32 floor, bool active
+) {
+  Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
+  tile.active = active;
+}

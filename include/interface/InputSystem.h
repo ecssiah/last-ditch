@@ -23,7 +23,6 @@ private:
 
   void clear_inputs();
   void call_input_functions();
-  void calculate_selected_tile();
 
   Input& input_;
   Camera& camera_;

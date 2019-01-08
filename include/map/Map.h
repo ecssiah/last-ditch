@@ -18,12 +18,14 @@ struct Map
     : floor_changed{false} 
     , cur_floor{0}
     , floors{(u32)NUM_FLOORS}
+    , selected{}
   { }
 
   bool floor_changed;
   u16 cur_floor;
 
   std::vector<Floor> floors;
+  std::vector<SDL_Point> selected;
 
 private:
   friend class boost::serialization::access;

@@ -4,12 +4,15 @@
 
 #include "../../include/utility/Logging.h"
 #include "../../include/map/MapConstants.h"
+#include "../../include/render/RenderConstants.h"
 
 using namespace std;
 
-MapSystem::MapSystem(Input& input, Map& map)
+MapSystem::MapSystem(Input& input, Map& map, Camera& camera, Log& log)
   : input_{input}
   , map_{map}
+  , camera_{camera}
+  , log_{log}
   , map_generator_{map}
 {
 }
@@ -25,15 +28,57 @@ void MapSystem::init()
 
 void MapSystem::update()
 {
+  if (input_.lclick) calculate_selected_tile();
+
   if (map_.floor_changed) map_.floor_changed = false;
 
   if (input_.descend && map_.cur_floor > 0) {
     map_.cur_floor--;
     map_.floor_changed = true;
   }
+
   if (input_.ascend && map_.cur_floor < NUM_FLOORS - 1) {
     map_.cur_floor++; 
     map_.floor_changed = true;
   }
+}
+
+
+void MapSystem::calculate_selected_tile()
+{
+  f32 tx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
+  f32 ty{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
+
+  input_.sx = floor(tx + camera_.pos.x);
+  input_.sy = floor(ty + camera_.pos.y);
+
+  auto xcheck{input_.sx < 0 || input_.sx > TILES_PER_LAYER - 1};
+  auto ycheck{input_.sy < 0 || input_.sy > TILES_PER_LAYER - 1}; 
+
+  if (xcheck || ycheck) {
+    input_.sx = -1;
+    input_.sy = -1;
+    ::ulog(log_, "Selection out of bounds");
+  } else {
+    clear_selection();
+    select_tile(input_.sx, input_.sy);
+    ::ulog(
+      log_, "Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy)
+    );
+  }
+}
+
+
+void MapSystem::select_tile(i32 x, i32 y)
+{
+  map_generator_.set_tile("overlay", input_.sx, input_.sy, 0, "selection");
+}
+
+
+void MapSystem::clear_selection()
+{
+  for (auto x{0}; x < TILES_PER_LAYER; x++)
+    for (auto y{0}; y < TILES_PER_LAYER; y++)
+      map_generator_.set_active("overlay", x, y, 0, false);
 }
 

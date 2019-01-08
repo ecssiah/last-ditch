@@ -17,6 +17,7 @@ The user starts in the lowest occupied area of a skyscraper. These levels are ov
 
 ## Implementation 
 
+* Select tile with overlay selection
 * Store elements in vectors based on render order
 * Access individual elements with maps of name to Element*
 * Handle Table (GEA pg 939)

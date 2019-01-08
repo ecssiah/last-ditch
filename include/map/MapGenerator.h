@@ -16,6 +16,15 @@ public:
 
   void generate_map();
 
+  void set_tile(
+    const std::string& layer, i32 x, i32 y, i32 floor, const std::string& type, 
+    f32 rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
+  );
+  void set_active(
+    const std::string& layer, i32 x, i32 y, i32 floor, bool active
+  );
+  void set_solid(i32 x, i32 y, i32 floor, bool solid);
+
 private:
   void layout_main_floor(i32 floor);
   void define_blocked_rooms(i32 floor);
@@ -30,12 +39,6 @@ private:
     const std::string& category, i32 x, i32 y, i32 floor, Dirs dir
   );
   bool room_collision(i32 floor, const Room& test_room); 
-
-  void set_tile(
-    const std::string& layer, i32 x, i32 y, i32 floor, const std::string& type, 
-    f32 rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
-  );
-  void set_solid(i32 x, i32 y, i32 floor, bool solid);
 
   Map& map_;
 

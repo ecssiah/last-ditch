@@ -27,8 +27,6 @@ void InputSystem::update()
 {
   clear_inputs();
   call_input_functions();
-  
-  if (input_.lclick) calculate_selected_tile();
 }
 
 
@@ -178,25 +176,4 @@ void InputSystem::on_mouse_motion(i32 xrel, i32 yrel, u8 button)
   input_.mdx = xrel;
   input_.mdy = yrel;
 }
-
-
-void InputSystem::calculate_selected_tile()
-{
-  f32 tx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
-  f32 ty{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
-
-  input_.sx = floor(tx + camera_.pos.x);
-  input_.sy = floor(ty + camera_.pos.y);
-
-  auto xcheck{input_.sx < 0 || input_.sx > TILES_PER_LAYER - 1};
-  auto ycheck{input_.sy < 0 || input_.sy > TILES_PER_LAYER - 1}; 
-
-  if (xcheck || ycheck) {
-    input_.sx = -1;
-    input_.sy = -1;
-  }
-
-  ::mlog("Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy));
-}
-
 

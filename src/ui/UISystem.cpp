@@ -204,8 +204,8 @@ void UISystem::setup_main_buttons()
 void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
-  el.base.type = "window2";
-  el.scrollbar.type = "scrollbar2";
+  el.base.type = "window1";
+  el.scrollbar.type = "scrollbar1";
   el.texts = log_.msgs;
 
   el.bounds = {
@@ -331,7 +331,6 @@ void UISystem::setup_scrollable(const string& id)
   el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
 
   SDL_FreeSurface(sur);
-
 
   if (scrollbar_h > el.mask.h) {
     el.scrollbar.active = false;
