@@ -41,121 +41,6 @@ void UISystem::init()
 }
 
 
-void UISystem::update()
-{
-  resolve_selections();
-
-  if (map_.floor_changed)
-    ::ulog(log_, "Floor: " + to_string(map_.cur_floor + 1));
-
-  update_menu();
-  update_hud();
-  update_messages();
-}
-
-
-bool UISystem::check_intersection(i32 x, i32 y, Element& el)
-{
-  auto lcheck{input_.mx > el.bounds.x};
-  auto rcheck{input_.mx < el.bounds.x + el.bounds.w};
-  auto tcheck{input_.my > el.bounds.y};
-  auto bcheck{input_.my < el.bounds.y + el.bounds.h};
-
-  return lcheck && rcheck && tcheck && bcheck;
-}
-
-
-void UISystem::resolve_selections()
-{
-  if (input_.menu) {
-    if (input_.lclick) {
-      auto& info_btn{ui_.button_elements["info"]};    
-      auto& save_btn{ui_.button_elements["save"]};    
-      auto& options_btn{ui_.button_elements["options"]};    
-
-      if (check_intersection(input_.mx, input_.my, info_btn)) {
-        info_btn.active = true;
-        save_btn.active = false;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
-        info_btn.active = false;
-        save_btn.active = true;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
-        info_btn.active = false;
-        save_btn.active = false;
-        options_btn.active = true;
-      }
-
-      input_.lclick = false;
-    }
-  } else if (input_.hud) {
-    auto& el{ui_.scrollable_elements["message_window"]};
-
-    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
-
-    if (input_.lreleased) {
-      el.scrollbar.selected = false;
-    } else {
-      if (msg_win_clicked) {
-        if (el.scrollbar.active) {
-          auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
-
-          if (input_.lclick && clicked) el.scrollbar.selected = true;
-
-          if (el.scrollbar.selected) {
-            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
-            el.pos = max(0.0, min(test_pos, 1.0));
-
-            setup_scrollable("message_window");
-          }
-        }
-
-        input_.lclick = false;
-      }
-    }
-  }
-}
-
-
-void UISystem::update_menu()
-{
-}
-
-
-void UISystem::update_hud()
-{
-  if (map_.floor_changed) {
-    ui_.text_elements["floor_display"].text = format_floor();
-    setup_text("floor_display");
-  }
-
-  if (time_.time_changed) {
-    ui_.text_elements["time_display"].text = format_time();
-    setup_text("time_display");
-  }
-
-  if (time_.date_changed) {
-    ui_.text_elements["date_display"].text = format_date();
-    setup_text("date_display");
-  }
-}
-
-
-void UISystem::update_messages()
-{
-  if (log_.changed) {
-    log_.changed = false;
-
-    auto& el {ui_.scrollable_elements["message_window"]};
-    el.pos = 0.0;
-    el.texts = log_.msgs;
-
-    setup_scrollable("message_window");
-  }
-}
-
-
 void UISystem::setup_main_window()
 {
   auto& main_win{ui_.window_elements["main"]};
@@ -275,21 +160,11 @@ void UISystem::setup_date_display()
 }
 
 
-string UISystem::format_floor()
-{
-  return to_string(map_.cur_floor + 1) + "F";
-}
-
-
 void UISystem::setup_scrollable(const string& id)
 {
   auto& el{ui_.scrollable_elements[id]};
 
   string full_msg;
-
-  // auto size{max(20.0, (f64)full_msg.size())};
-  // for (auto i{0}; i < size; i++) full_msg += log_.msgs[i] + "\n";
-
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
@@ -502,6 +377,121 @@ void UISystem::setup_scalable(Scalable& el)
 }
 
 
+void UISystem::update()
+{
+  resolve_selections();
+
+  if (map_.floor_changed)
+    ::ulog(log_, "Floor: " + to_string(map_.cur_floor + 1));
+
+  update_menu();
+  update_hud();
+  update_messages();
+}
+
+
+void UISystem::resolve_selections()
+{
+  if (input_.menu) {
+    if (input_.lclick) {
+      auto& info_btn{ui_.button_elements["info"]};    
+      auto& save_btn{ui_.button_elements["save"]};    
+      auto& options_btn{ui_.button_elements["options"]};    
+
+      if (check_intersection(input_.mx, input_.my, info_btn)) {
+        info_btn.active = true;
+        save_btn.active = false;
+        options_btn.active = false;
+      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
+        info_btn.active = false;
+        save_btn.active = true;
+        options_btn.active = false;
+      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
+        info_btn.active = false;
+        save_btn.active = false;
+        options_btn.active = true;
+      }
+
+      input_.lclick = false;
+    }
+  } else if (input_.hud) {
+    auto& el{ui_.scrollable_elements["message_window"]};
+
+    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+
+    if (input_.lreleased) {
+      el.scrollbar.selected = false;
+    } else {
+      if (msg_win_clicked) {
+        if (el.scrollbar.active) {
+          auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+
+          if (input_.lclick && clicked) el.scrollbar.selected = true;
+
+          if (el.scrollbar.selected) {
+            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
+            el.pos = max(0.0, min(test_pos, 1.0));
+
+            setup_scrollable("message_window");
+          }
+        }
+
+        input_.lclick = false;
+      }
+    }
+  }
+}
+
+
+void UISystem::update_menu()
+{
+}
+
+
+void UISystem::update_hud()
+{
+  if (map_.floor_changed) {
+    ui_.text_elements["floor_display"].text = format_floor();
+    setup_text("floor_display");
+  }
+
+  if (time_.time_changed) {
+    ui_.text_elements["time_display"].text = format_time();
+    setup_text("time_display");
+  }
+
+  if (time_.date_changed) {
+    ui_.text_elements["date_display"].text = format_date();
+    setup_text("date_display");
+  }
+}
+
+
+void UISystem::update_messages()
+{
+  if (log_.changed) {
+    log_.changed = false;
+
+    auto& el {ui_.scrollable_elements["message_window"]};
+    el.pos = 0.0;
+    el.texts = log_.msgs;
+
+    setup_scrollable("message_window");
+  }
+}
+
+
+bool UISystem::check_intersection(i32 x, i32 y, Element& el)
+{
+  auto lcheck{input_.mx > el.bounds.x};
+  auto rcheck{input_.mx < el.bounds.x + el.bounds.w};
+  auto tcheck{input_.my > el.bounds.y};
+  auto bcheck{input_.my < el.bounds.y + el.bounds.h};
+
+  return lcheck && rcheck && tcheck && bcheck;
+}
+
+
 string UISystem::format_time()
 {
   stringstream ss;
@@ -523,5 +513,11 @@ string UISystem::format_date()
   ss << setw(2) << time_.year;
 
   return ss.str();
+}
+
+
+string UISystem::format_floor()
+{
+  return to_string(map_.cur_floor + 1) + "F";
 }
 
