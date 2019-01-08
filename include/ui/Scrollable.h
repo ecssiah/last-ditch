@@ -15,7 +15,7 @@ struct Scrollable : public Element
 {
   Scrollable()
     : type{}
-    , texts{}
+    , items{}
     , pos{0.0}
     , height{}
     , scroll_range{}
@@ -26,10 +26,9 @@ struct Scrollable : public Element
   {}
 
   std::string type;
-  std::vector<std::string> texts;
+  std::vector<std::string> items;
 
   f32 pos;
-
   i32 height;
   i32 scroll_range;
 

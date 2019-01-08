@@ -8,6 +8,7 @@
 #include "../utility/Types.h"
 #include "Map.h"
 #include "Room.h"
+#include "MapConstants.h"
 
 class MapGenerator 
 {
@@ -36,9 +37,11 @@ private:
   void place_doors(i32 floor);
 
   bool has_clearance(
-    const std::string& category, i32 x, i32 y, i32 floor, Dirs dir
+    const std::string& category, i32 x, i32 y, i32 floor, Dir dir
   );
   bool room_collision(i32 floor, const Room& test_room); 
+
+  Section get_section(i32 floor);
 
   Map& map_;
 

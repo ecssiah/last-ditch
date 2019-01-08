@@ -32,12 +32,12 @@ void MapSystem::update()
 
   if (map_.floor_changed) map_.floor_changed = false;
 
-  if (input_.descend && map_.cur_floor > 0) {
+  if (input_.descend && map_.cur_floor > 1) {
     map_.cur_floor--;
     map_.floor_changed = true;
   }
 
-  if (input_.ascend && map_.cur_floor < NUM_FLOORS - 1) {
+  if (input_.ascend && map_.cur_floor < NUM_FLOORS) {
     map_.cur_floor++; 
     map_.floor_changed = true;
   }
@@ -63,7 +63,8 @@ void MapSystem::calculate_selected_tile()
     clear_selection();
     select_tile(input_.sx, input_.sy);
     ::ulog(
-      log_, "Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy)
+      log_, 
+      "Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy)
     );
   }
 }

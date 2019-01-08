@@ -97,7 +97,7 @@ void UISystem::setup_message_window()
   auto& el{ui_.scrollable_elements["message_window"]};
   el.base.type = "window2";
   el.scrollbar.type = "scrollbar3";
-  el.texts = log_.msgs;
+  el.items = log_.msgs;
 
   el.bounds = {
     SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
@@ -165,7 +165,7 @@ void UISystem::setup_scrollable(const string& id)
   auto& el{ui_.scrollable_elements[id]};
 
   string full_msg;
-  for (const auto& msg : el.texts) full_msg += msg + "\n"; 
+  for (const auto& msg : el.items) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
     render_.fonts["Fantasque-Small"], full_msg.c_str(), 
@@ -382,7 +382,7 @@ void UISystem::update()
   resolve_selections();
 
   if (map_.floor_changed)
-    ::ulog(log_, "Floor: " + to_string(map_.cur_floor + 1));
+    ::ulog(log_, "Floor: " + to_string(map_.cur_floor));
 
   update_menu();
   update_hud();
@@ -474,7 +474,7 @@ void UISystem::update_messages()
 
     auto& el {ui_.scrollable_elements["message_window"]};
     el.pos = 0.0;
-    el.texts = log_.msgs;
+    el.items = log_.msgs;
 
     setup_scrollable("message_window");
   }
@@ -518,6 +518,6 @@ string UISystem::format_date()
 
 string UISystem::format_floor()
 {
-  return to_string(map_.cur_floor + 1) + "F";
+  return to_string(map_.cur_floor) + "F";
 }
 

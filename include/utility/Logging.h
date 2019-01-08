@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "Types.h"
 #include "Log.h"
@@ -20,7 +21,8 @@ namespace {
     std::cerr << msg << std::endl;
   }
 
-  inline void ulog(Log& _log, const std::string& msg) {
+  inline void ulog(Log& _log, const std::string& msg) 
+  {
     _log.changed = true;
     _log.msgs.insert(_log.msgs.begin(), msg );
 

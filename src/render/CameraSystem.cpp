@@ -32,7 +32,7 @@ void CameraSystem::update()
 }
 
 
-void CameraSystem::move(Dirs dir)
+void CameraSystem::move(Dir dir)
 {
   auto ds{camera_.speed * render_.dt * camera_.inv_zoom};
 

@@ -26,7 +26,7 @@ MapGenerator::MapGenerator(Map& map)
 
 void MapGenerator::generate_map()
 {
-  for (auto floor{0}; floor < NUM_FLOORS; floor++) {
+  for (auto floor{1}; floor <= NUM_FLOORS; floor++) {
     define_blocked_rooms(floor);
     layout_main_floor(floor);
     seed_rooms(floor);
@@ -41,12 +41,11 @@ void MapGenerator::generate_map()
 void MapGenerator::layout_main_floor(i32 floor)
 {
   string floor_type;
-  if (floor + 1 > 2 * NUM_FLOORS / 3) {
-    floor_type = "bright_dark_concrete";
-  } else if (floor + 1 > NUM_FLOORS / 3) {
-    floor_type = "smooth_dark_concrete"; 
-  } else {
-    floor_type = "dark_concrete";
+
+  switch (get_section(floor)) {
+  case LOWER: floor_type = "dark_concrete"; break;
+  case MID: floor_type = "smooth_dark_concrete"; break;
+  case UPPER: floor_type = "bright_dark_concrete"; break;
   }
 
   for (auto x{0}; x < TILES_PER_LAYER; x++) { 
@@ -65,15 +64,10 @@ void MapGenerator::seed_rooms(i32 floor)
     bool collision{true};
     string wall_type, floor_type;
 
-    if (floor + 1 > 2 * NUM_FLOORS / 3) {
-      wall_type = "wall3";
-      floor_type = "bright_light_concrete";
-    } else if (floor + 1 > 1 * NUM_FLOORS / 3) {
-      wall_type = "wall2";
-      floor_type = "smooth_light_concrete";
-    } else {
-      wall_type = "wall1";
-      floor_type = "light_concrete";
+    switch (get_section(floor)) {
+    case LOWER: wall_type = "wall1"; floor_type = "light_concrete"; break;
+    case MID: wall_type = "wall2"; floor_type = "smooth_light_concrete"; break;
+    case UPPER: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
     }
 
     Room test_room;
@@ -99,12 +93,12 @@ void MapGenerator::expand_rooms(i32 floor)
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<Dirs> dirs; 
+    vector<Dir> dirs; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
     while (!found && dirs.size() < 4) {
-      const Dirs dir{static_cast<Dirs>(rand() % 4)};
+      const Dir dir{static_cast<Dir>(rand() % 4)};
 
       switch (dir) {
       case UP:    room.rect.y--; break;
@@ -152,7 +146,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor + 1) + " rooms built", 1);
+  ::mlog("Floor " + to_string(floor) + " rooms built", 1);
 }
 
 
@@ -212,12 +206,12 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor + 1) + " rooms integrated", 1);
+  ::mlog("Floor " + to_string(floor) + " rooms integrated", 1);
 }
 
 
 bool MapGenerator::has_clearance(
-  const string& category, i32 x, i32 y, i32 floor, Dirs dir
+  const string& category, i32 x, i32 y, i32 floor, Dir dir
 ) {
   i8 dx1, dy1;
   i8 dx2, dy2;
@@ -265,7 +259,7 @@ void MapGenerator::place_doors(i32 floor)
       const auto vert_range{room.h() - 1};
       const auto vert_start{room.t() + 1};
 
-      const Dirs dir{static_cast<Dirs>(rand() % 4)}; 
+      const Dir dir{static_cast<Dir>(rand() % 4)}; 
 
       if (dir == UP) {
         rot = 0;
@@ -299,7 +293,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor + 1) + " doors placed", 1);
+  ::mlog("Floor " + to_string(floor) + " doors placed", 1);
 }
 
 
@@ -391,4 +385,16 @@ void MapGenerator::set_active(
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
   tile.active = active;
+}
+
+
+Section MapGenerator::get_section(i32 floor)
+{
+  if (floor > 2 * NUM_FLOORS / 3) {
+    return UPPER;
+  } else if (floor > 1 * NUM_FLOORS / 3) {
+    return MID;
+  } else {
+    return LOWER;
+  }
 }

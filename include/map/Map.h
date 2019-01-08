@@ -16,8 +16,8 @@ struct Map
 {
   Map() 
     : floor_changed{false} 
-    , cur_floor{0}
-    , floors{(u32)NUM_FLOORS}
+    , cur_floor{1}
+    , floors{(u32)NUM_FLOORS + 1}
     , selected{}
   { }
 

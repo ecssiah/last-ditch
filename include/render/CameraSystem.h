@@ -14,7 +14,7 @@ public:
   void update();
 
 private:
-  void move(Dirs dir);
+  void move(Dir dir);
   void inc_zoom();
   void dec_zoom();
 
