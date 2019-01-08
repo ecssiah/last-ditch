@@ -72,20 +72,26 @@ void UISystem::resolve_selections()
   } else if (input_.hud) {
     auto& el{ui_.scrollable_elements["message_window"]};
 
+    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+
     if (input_.lreleased) {
       el.scrollbar.selected = false;
     } else {
-      if (el.scrollbar.active) {
-        auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+      if (msg_win_clicked) {
+        if (el.scrollbar.active) {
+          auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
 
-        if (input_.lclick && clicked) el.scrollbar.selected = true;
+          if (input_.lclick && clicked) el.scrollbar.selected = true;
 
-        if (el.scrollbar.selected) {
-          f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
-          el.pos = max(0.0, min(test_pos, 1.0));
+          if (el.scrollbar.selected) {
+            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
+            el.pos = max(0.0, min(test_pos, 1.0));
 
-          setup_scrollable("message_window");
+            setup_scrollable("message_window");
+          }
         }
+
+        input_.lclick = false;
       }
     }
   }
@@ -204,8 +210,8 @@ void UISystem::setup_main_buttons()
 void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
-  el.base.type = "window1";
-  el.scrollbar.type = "scrollbar1";
+  el.base.type = "window2";
+  el.scrollbar.type = "scrollbar3";
   el.texts = log_.msgs;
 
   el.bounds = {
@@ -220,7 +226,7 @@ void UISystem::setup_message_window()
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
 
-  // setup_scrollable("message_window");
+  setup_scrollable("message_window");
 }
 
 
@@ -417,7 +423,7 @@ void UISystem::setup_scrollbar(Scrollbar& el)
   el.texture = render_.textures["overlay"];
 
   if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
+    el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
     el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
   } else {
     std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;

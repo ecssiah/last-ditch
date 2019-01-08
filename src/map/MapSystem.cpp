@@ -58,7 +58,7 @@ void MapSystem::calculate_selected_tile()
   if (xcheck || ycheck) {
     input_.sx = -1;
     input_.sy = -1;
-    ::ulog(log_, "Selection out of bounds");
+    ::ulog(log_, "Selected: invalid");
   } else {
     clear_selection();
     select_tile(input_.sx, input_.sy);
