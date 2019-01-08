@@ -119,6 +119,8 @@ void UISystem::update_menu()
         save_btn.active = false;
         options_btn.active = true;
       }
+
+      input_.lclick = false;
     }
   }
 }
@@ -226,6 +228,8 @@ void UISystem::setup_message_window()
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
 
+  mlog("setup message window");
+
   setup_scrollable("message_window");
 }
 
@@ -290,38 +294,15 @@ string UISystem::format_floor()
 }
 
 
-string UISystem::format_time()
-{
-  stringstream ss;
-  ss << setfill('0');
-  ss << setw(2) << time_.hour << ":";
-  ss << setw(2) << time_.minute << ":"; 
-  ss << setw(2) << time_.second; 
-
-  return ss.str();
-}
-
-
-string UISystem::format_date()
-{
-  stringstream ss;
-  ss << setfill('0');
-  ss << setw(2) << time_.day << "/"; 
-  ss << setw(2) << time_.month << "/";
-  ss << setw(2) << time_.year;
-
-  return ss.str();
-}
-
-
 void UISystem::setup_scrollable(const string& id)
 {
   auto& el{ui_.scrollable_elements[id]};
 
+  string full_msg;
+
   // auto size{max(20.0, (f64)full_msg.size())};
   // for (auto i{0}; i < size; i++) full_msg += log_.msgs[i] + "\n";
 
-  string full_msg;
   for (const auto& msg : el.texts) full_msg += msg + "\n"; 
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
@@ -335,7 +316,6 @@ void UISystem::setup_scrollable(const string& id)
 
   SDL_DestroyTexture(el.content.texture);
   el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-
   SDL_FreeSurface(sur);
 
   if (scrollbar_h > el.mask.h) {
@@ -410,9 +390,7 @@ void UISystem::setup_text(const string& id)
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   } else {
     SDL_DestroyTexture(el.texture);
-
     el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-
     SDL_FreeSurface(sur);
   }
 }
@@ -426,10 +404,9 @@ void UISystem::setup_scrollbar(Scrollbar& el)
     el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
     el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
   } else {
-    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
-
     el.basex = 0;
     el.basey = 0;
+    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
   }
 
   el.src["t"] = {
@@ -466,10 +443,9 @@ void UISystem::setup_scalable(Scalable& el)
     el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
     el.border = TileData[el.type].border;
   } else {
-    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
-
     el.basex = 0;
     el.basey = 0;
+    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
   }
 
   el.src["tl"] = {
@@ -536,5 +512,29 @@ void UISystem::setup_scalable(Scalable& el)
     el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.bounds.h - el.size,
     el.size, el.size
   };
+}
+
+
+string UISystem::format_time()
+{
+  stringstream ss;
+  ss << setfill('0');
+  ss << setw(2) << time_.hour << ":";
+  ss << setw(2) << time_.minute << ":"; 
+  ss << setw(2) << time_.second; 
+
+  return ss.str();
+}
+
+
+string UISystem::format_date()
+{
+  stringstream ss;
+  ss << setfill('0');
+  ss << setw(2) << time_.day << "/"; 
+  ss << setw(2) << time_.month << "/";
+  ss << setw(2) << time_.year;
+
+  return ss.str();
 }
 

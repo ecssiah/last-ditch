@@ -36,10 +36,6 @@ private:
   void setup_time_display();
   void setup_date_display();
 
-  std::string format_floor();
-  std::string format_time();
-  std::string format_date();
-
   void resolve_selections();
 
   void update_menu();
@@ -56,6 +52,10 @@ private:
   void setup_scalable(Scalable& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
+
+  std::string format_floor();
+  std::string format_time();
+  std::string format_date();
 
   Input& input_;
   Render& render_;
