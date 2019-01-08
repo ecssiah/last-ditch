@@ -271,11 +271,7 @@ void RenderSystem::render_button(const string& id)
 {
   auto& el{ui_.button_elements[id]};
 
-  if (el.active) {
-    render_scalable(el.pressed);
-  } else {
-    render_scalable(el.base);
-  }
+  el.active ? render_scalable(el.pressed) : render_scalable(el.base);
 
   render_text(id);
 }

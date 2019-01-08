@@ -8,7 +8,7 @@
 #include "TileInfo.h"
 
 enum Dir { RIGHT, UP, LEFT, DOWN };
-enum Section { LOWER, MID, UPPER };
+enum Section { LOW, MID, TOP };
 
 extern const i32 TILE_SIZE;
 extern const i32 TILES_PER_LAYER;

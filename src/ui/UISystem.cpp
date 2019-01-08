@@ -96,7 +96,7 @@ void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.base.type = "window2";
-  el.scrollbar.type = "scrollbar3";
+  el.scrollbar.type = "scrollbar1";
   el.items = log_.msgs;
 
   el.bounds = {
@@ -381,8 +381,6 @@ void UISystem::update()
 {
   resolve_selections();
 
-  if (map_.floor_changed)
-    ::ulog(log_, "Floor: " + to_string(map_.cur_floor));
 
   update_menu();
   update_hud();
@@ -453,6 +451,7 @@ void UISystem::update_hud()
   if (map_.floor_changed) {
     ui_.text_elements["floor_display"].text = format_floor();
     setup_text("floor_display");
+
   }
 
   if (time_.time_changed) {
@@ -518,6 +517,6 @@ string UISystem::format_date()
 
 string UISystem::format_floor()
 {
-  return to_string(map_.cur_floor) + "F";
+  return to_string(map_.cur_floor) + "F " + map_.section;
 }
 

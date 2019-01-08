@@ -5,10 +5,10 @@
 #include <vector>
 #include <SDL2/SDL.h>
 
-#include "../utility/Types.h"
 #include "Map.h"
 #include "Room.h"
 #include "MapConstants.h"
+#include "../utility/Types.h"
 
 class MapGenerator 
 {
@@ -26,6 +26,9 @@ public:
   );
   void set_solid(i32 x, i32 y, i32 floor, bool solid);
 
+  const std::string get_section_name(i32 floor);
+  const Section get_section(i32 floor);
+
 private:
   void layout_main_floor(i32 floor);
   void define_blocked_rooms(i32 floor);
@@ -40,8 +43,6 @@ private:
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir
   );
   bool room_collision(i32 floor, const Room& test_room); 
-
-  Section get_section(i32 floor);
 
   Map& map_;
 

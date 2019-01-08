@@ -43,9 +43,9 @@ void MapGenerator::layout_main_floor(i32 floor)
   string floor_type;
 
   switch (get_section(floor)) {
-  case LOWER: floor_type = "dark_concrete"; break;
+  case LOW: floor_type = "dark_concrete"; break;
   case MID: floor_type = "smooth_dark_concrete"; break;
-  case UPPER: floor_type = "bright_dark_concrete"; break;
+  case TOP: floor_type = "bright_dark_concrete"; break;
   }
 
   for (auto x{0}; x < TILES_PER_LAYER; x++) { 
@@ -65,9 +65,9 @@ void MapGenerator::seed_rooms(i32 floor)
     string wall_type, floor_type;
 
     switch (get_section(floor)) {
-    case LOWER: wall_type = "wall1"; floor_type = "light_concrete"; break;
+    case LOW: wall_type = "wall1"; floor_type = "light_concrete"; break;
     case MID: wall_type = "wall2"; floor_type = "smooth_light_concrete"; break;
-    case UPPER: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
+    case TOP: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
     }
 
     Room test_room;
@@ -388,13 +388,28 @@ void MapGenerator::set_active(
 }
 
 
-Section MapGenerator::get_section(i32 floor)
+const string MapGenerator::get_section_name(i32 floor)
 {
-  if (floor > 2 * NUM_FLOORS / 3) {
-    return UPPER;
+  Section section{get_section(floor)};
+
+  switch (section) {
+    case LOW: return "Low";
+    case MID: return "Mid";
+    case TOP: return "Top";
+    default: return "INVALID";
+  }
+}
+
+
+const Section MapGenerator::get_section(i32 floor)
+{
+  if (floor > 2 * NUM_FLOORS / 3 && floor <= NUM_FLOORS) {
+    return TOP;
   } else if (floor > 1 * NUM_FLOORS / 3) {
     return MID;
+  } else if (floor > 0 * NUM_FLOORS / 3) {
+    return LOW;
   } else {
-    return LOWER;
+    return LOW;
   }
 }

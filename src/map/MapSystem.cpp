@@ -33,13 +33,17 @@ void MapSystem::update()
   if (map_.floor_changed) map_.floor_changed = false;
 
   if (input_.descend && map_.cur_floor > 1) {
-    map_.cur_floor--;
     map_.floor_changed = true;
+
+    map_.cur_floor--;
+    map_.section = map_generator_.get_section_name(map_.cur_floor);
   }
 
   if (input_.ascend && map_.cur_floor < NUM_FLOORS) {
-    map_.cur_floor++; 
     map_.floor_changed = true;
+
+    map_.cur_floor++; 
+    map_.section = map_generator_.get_section_name(map_.cur_floor);
   }
 }
 
@@ -72,7 +76,7 @@ void MapSystem::calculate_selected_tile()
 
 void MapSystem::select_tile(i32 x, i32 y)
 {
-  map_generator_.set_tile("overlay", input_.sx, input_.sy, 0, "selection");
+  map_generator_.set_tile("overlay", input_.sx, input_.sy, 1, "selection");
 }
 
 
@@ -80,6 +84,6 @@ void MapSystem::clear_selection()
 {
   for (auto x{0}; x < TILES_PER_LAYER; x++)
     for (auto y{0}; y < TILES_PER_LAYER; y++)
-      map_generator_.set_active("overlay", x, y, 0, false);
+      map_generator_.set_active("overlay", x, y, 1, false);
 }
 
