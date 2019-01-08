@@ -39,9 +39,8 @@ private:
   void resolve_selections();
 
   void update_menu();
-  void update_main_text();
+  void update_hud();
   void update_messages();
-  void update_message_window();
 
   void setup_texture(const std::string& id);
   void setup_window(const std::string& id);

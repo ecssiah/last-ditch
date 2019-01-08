@@ -49,7 +49,7 @@ void UISystem::update()
     ::ulog(log_, "Floor: " + to_string(map_.cur_floor + 1));
 
   update_menu();
-  update_main_text();
+  update_hud();
   update_messages();
 }
 
@@ -68,7 +68,27 @@ bool UISystem::check_intersection(i32 x, i32 y, Element& el)
 void UISystem::resolve_selections()
 {
   if (input_.menu) {
+    if (input_.lclick) {
+      auto& info_btn{ui_.button_elements["info"]};    
+      auto& save_btn{ui_.button_elements["save"]};    
+      auto& options_btn{ui_.button_elements["options"]};    
 
+      if (check_intersection(input_.mx, input_.my, info_btn)) {
+        info_btn.active = true;
+        save_btn.active = false;
+        options_btn.active = false;
+      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
+        info_btn.active = false;
+        save_btn.active = true;
+        options_btn.active = false;
+      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
+        info_btn.active = false;
+        save_btn.active = false;
+        options_btn.active = true;
+      }
+
+      input_.lclick = false;
+    }
   } else if (input_.hud) {
     auto& el{ui_.scrollable_elements["message_window"]};
 
@@ -100,33 +120,10 @@ void UISystem::resolve_selections()
 
 void UISystem::update_menu()
 {
-  if (input_.menu) {
-    if (input_.lclick) {
-      auto& info_btn{ui_.button_elements["info"]};    
-      auto& save_btn{ui_.button_elements["save"]};    
-      auto& options_btn{ui_.button_elements["options"]};    
-
-      if (check_intersection(input_.mx, input_.my, info_btn)) {
-        info_btn.active = true;
-        save_btn.active = false;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
-        info_btn.active = false;
-        save_btn.active = true;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
-        info_btn.active = false;
-        save_btn.active = false;
-        options_btn.active = true;
-      }
-
-      input_.lclick = false;
-    }
-  }
 }
 
 
-void UISystem::update_main_text()
+void UISystem::update_hud()
 {
   if (map_.floor_changed) {
     ui_.text_elements["floor_display"].text = format_floor();
@@ -152,8 +149,9 @@ void UISystem::update_messages()
 
     auto& el {ui_.scrollable_elements["message_window"]};
     el.pos = 0.0;
+    el.texts = log_.msgs;
 
-    update_message_window();
+    setup_scrollable("message_window");
   }
 }
 
@@ -227,17 +225,6 @@ void UISystem::setup_message_window()
     el.bounds.w - 2 * MESSAGE_PADDING_X - SCROLLBAR_WIDTH, 
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
-
-  mlog("setup message window");
-
-  setup_scrollable("message_window");
-}
-
-
-void UISystem::update_message_window()
-{
-  auto& el{ui_.scrollable_elements["message_window"]};
-  el.texts = log_.msgs;
 
   setup_scrollable("message_window");
 }
