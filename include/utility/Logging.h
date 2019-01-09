@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <SDL2/SDL.h>
 
 #include "Types.h"
 #include "Log.h"
@@ -27,6 +28,12 @@ namespace {
     _log.msgs.insert(_log.msgs.begin(), msg );
 
     while (_log.msgs.size() > 20) _log.msgs.erase(_log.msgs.end() - 1);
+  }
+
+  inline void print(SDL_Rect& rect) {
+    std::cout << "<";
+    std::cout << rect.x << " " << rect.y << " " << rect.w << " " << rect.h; 
+    std::cout << ">" << std::endl;
   }
 }
 

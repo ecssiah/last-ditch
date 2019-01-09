@@ -30,27 +30,29 @@ void UISystem::init()
 {
   ::mlog("UISystem initializing");
 
-  setup_main_window();
-  setup_main_buttons();
-
-  setup_message_window();
-
   setup_floor_display();
   setup_time_display();
   setup_date_display();
+
+  setup_main_window();
+  setup_main_buttons();
+  setup_message_window();
 }
 
 
 void UISystem::setup_main_window()
 {
-  auto& main_win{ui_.window_elements["main"]};
-  main_win.type = "window1";
-  main_win.bounds.x = 0.1 * SCREEN_SIZE_X;
-  main_win.bounds.y = 0.1 * SCREEN_SIZE_Y;
-  main_win.bounds.w = 0.8 * SCREEN_SIZE_X;  
-  main_win.bounds.h = 0.8 * SCREEN_SIZE_Y;  
+  auto& el{ui_.window_elements["main"]};
+  el.changed = true;
+  el.type = "window1";
 
-  setup_window("main");
+  el.bounds.x = 0.1 * SCREEN_SIZE_X;
+  el.bounds.y = 0.1 * SCREEN_SIZE_Y;
+  el.bounds.w = 0.8 * SCREEN_SIZE_X;  
+  el.bounds.h = 0.8 * SCREEN_SIZE_Y;  
+
+  el.base.type = el.type;
+  el.base.bounds = el.bounds;
 }
 
 
@@ -60,42 +62,53 @@ void UISystem::setup_main_buttons()
   auto height{32};
 
   auto& info_btn{ui_.button_elements["info"]};
+  info_btn.changed = true;
   info_btn.active = true;
   info_btn.type = "button2";
-  info_btn.text = "Info";
+  info_btn.label.font = "Fantasque-Small";
+  info_btn.label.texture = "info_button";
+  info_btn.label.content = "Info";
   info_btn.bounds.x = .25 * SCREEN_SIZE_X - width / 2;
   info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   info_btn.bounds.w = width;
   info_btn.bounds.h = height;
 
-  setup_button("info");
+  setup_button(info_btn);
 
   auto& save_btn{ui_.button_elements["save"]};
+  save_btn.changed = true;
   save_btn.type = "button2";
-  save_btn.text = "Save/Load";
+  save_btn.label.font = "Fantasque-Small";
+  info_btn.label.texture = "save_button";
+  save_btn.label.content = "Save/Load";
   save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
   save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   save_btn.bounds.w = width;
   save_btn.bounds.h = height;
 
-  setup_button("save");
+  setup_button(save_btn);
 
   auto& options_btn{ui_.button_elements["options"]};
+  options_btn.changed = true;
   options_btn.type = "button2";
-  options_btn.text = "Options";
+  options_btn.label.font = "Fantasque-Small";
+  options_btn.label.texture = "options_button";
+  options_btn.label.content = "Options";
   options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
   options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   options_btn.bounds.w = width;
   options_btn.bounds.h = height;
 
-  setup_button("options");
+  setup_button(options_btn);
 }
 
 
 void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
-  el.base.type = "window2";
+  el.changed = true;
+  el.body.font = "Fantasque-Small";
+  el.body.texture = "message_window";
   el.scrollbar.type = "scrollbar1";
   el.items = log_.msgs;
 
@@ -103,6 +116,8 @@ void UISystem::setup_message_window()
     SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
     MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
   };
+
+  el.base.type = "window2";
   el.base.bounds = el.bounds;
 
   el.mask = {
@@ -111,276 +126,67 @@ void UISystem::setup_message_window()
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
 
-  setup_scrollable("message_window");
 }
 
 
 void UISystem::setup_floor_display()
 {
   auto& el{ui_.text_elements["floor_display"]};
-  el.font = render_.fonts["Fantasque-Small"];
-  el.text = format_floor();
-
-  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
-
+  el.changed = true;
+  el.font = "Fantasque-Small";
+  el.texture = "floor_display";
+  el.content = format_floor();
+  el.align = LEFT_ALIGN;
   el.bounds.x = UI_PADDING;
   el.bounds.y = UI_PADDING;
-
-  setup_text("floor_display");
 }
 
 
 void UISystem::setup_time_display()
 {
   auto& el{ui_.text_elements["time_display"]};
-  el.font = render_.fonts["Fantasque-Small"];
-  el.text = format_time();
-
-  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
-
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.changed = true;
+  el.font = "Fantasque-Small";
+  el.texture = "time_display";
+  el.content = format_time();
+  el.align = RIGHT_ALIGN;
+  el.bounds.x = UI_PADDING;
   el.bounds.y = UI_PADDING;
-
-  setup_text("time_display");
 }
 
 
 void UISystem::setup_date_display()
 {
   auto& el{ui_.text_elements["date_display"]};
-  el.font = render_.fonts["Fantasque-Small"];
-  el.text = format_date();
-
-  TTF_SizeText(el.font, el.text.c_str(), &el.bounds.w, &el.bounds.h);
-
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.changed = true;
+  el.font = "Fantasque-Small";
+  el.texture = "date_display";
+  el.content = format_date();
+  el.align = RIGHT_ALIGN;
+  el.bounds.x = UI_PADDING;
   el.bounds.y = UI_PADDING + 12;
-
-  setup_text("date_display");
 }
 
 
-void UISystem::setup_scrollable(const string& id)
+void UISystem::setup_button(Button& el)
 {
-  auto& el{ui_.scrollable_elements[id]};
+  el.changed = true;
 
-  string full_msg;
-  for (const auto& msg : el.items) full_msg += msg + "\n"; 
-
-  SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
-    render_.fonts["Fantasque-Small"], full_msg.c_str(), 
-    {255, 255, 255}, el.mask.w
-  )};
-
-  setup_scalable(el.base);
-
-  i32 scrollbar_h{(i32)(el.mask.h / (f64)sur->h * el.mask.h)};
-
-  SDL_DestroyTexture(el.content.texture);
-  el.content.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-  SDL_FreeSurface(sur);
-
-  if (scrollbar_h > el.mask.h) {
-    el.scrollbar.active = false;
-    el.content.bounds = {
-      el.mask.x, el.mask.y, sur->w, sur->h
-    };
-  } else {
-    el.content.bounds = {
-      el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
-      sur->w, sur->h
-    };
-    el.scrollbar.active = true;
-
-    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_h;
-
-    el.scrollbar.bounds = {
-      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-      el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
-      SCROLLBAR_WIDTH, scrollbar_h
-    };
-
-    setup_scrollbar(el.scrollbar);
-  }
-}
-
-
-void UISystem::setup_window(const string& id)
-{
-  auto& el{ui_.window_elements[id]};
-  el.base.type = el.type;
-  el.base.bounds = el.bounds;
-
-  setup_scalable(el.base);
-}
-
-
-void UISystem::setup_button(const string& id)
-{
-  auto& el{ui_.button_elements[id]};
   el.base.type = el.type + "-off";
+  el.base.texture = "overlay";
   el.base.bounds = el.bounds;
+
   el.pressed.type = el.type + "-on";
+  el.pressed.texture = "overlay";
   el.pressed.bounds = el.bounds;
 
-  setup_scalable(el.base);
-  setup_scalable(el.pressed);
-
-  auto& text_el{ui_.text_elements[id]};
-
-  text_el.text = el.text;
-  text_el.font = render_.fonts["Fantasque-Medium"];
-
-  TTF_SizeText(
-    text_el.font, text_el.text.c_str(), &text_el.bounds.w, &text_el.bounds.h
-  );
-
-  text_el.bounds.x = el.bounds.x + el.bounds.w / 2 - text_el.bounds.w / 2;
-  text_el.bounds.y = el.bounds.y + el.bounds.h / 2 - text_el.bounds.h / 2;
-
-  setup_text(id);
-}
-
-
-void UISystem::setup_text(const string& id)
-{
-  auto& el{ui_.text_elements[id]};
-
-  SDL_Surface* sur{TTF_RenderUTF8_Blended(el.font, el.text.c_str(), el.color)}; 
-
-  if (sur == nullptr) {
-    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
-  } else {
-    SDL_DestroyTexture(el.texture);
-    el.texture = SDL_CreateTextureFromSurface(render_.renderer, sur); 
-    SDL_FreeSurface(sur);
-  }
-}
-
-
-void UISystem::setup_scrollbar(Scrollbar& el)
-{
-  el.texture = render_.textures["overlay"];
-
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-  } else {
-    el.basex = 0;
-    el.basey = 0;
-    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
-  }
-
-  el.src["t"] = {
-    el.basex, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["m"] = {
-    el.basex, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["b"] = {
-    el.basex, el.basey + 2 * el.size, el.size, el.size
-  };
-
-  el.dst["t"] = { 
-    el.bounds.x, el.bounds.y + 0 * el.size, 
-    el.size, el.size 
-  };
-  el.dst["m"] = {
-    el.bounds.x, el.bounds.y + 1 * el.size, 
-    el.size, el.bounds.h - 2 * el.size
-  }; 
-  el.dst["b"] = {
-    el.bounds.x, el.bounds.y + el.bounds.h - el.size, 
-    el.size, el.size
-  };
-}
-
-
-void UISystem::setup_scalable(Scalable& el) 
-{
-  el.texture = render_.textures["overlay"];
-
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-    el.border = TileData[el.type].border;
-  } else {
-    el.basex = 0;
-    el.basey = 0;
-    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
-  }
-
-  el.src["tl"] = {
-    el.basex + 0 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["tm"] = {
-    el.basex + 1 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["tr"] = {
-    el.basex + 2 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["ll"] = {
-    el.basex + 0 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["mm"] = {
-    el.basex + 1 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["rr"] = {
-    el.basex + 2 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["bl"] = {
-    el.basex + 0 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-  el.src["bm"] = {
-    el.basex + 1 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-  el.src["br"] = {
-    el.basex + 2 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-
-  el.dst["tl"] = { 
-    el.bounds.x, el.bounds.y, 
-    el.size, el.size 
-  };
-  el.dst["tm"] = {
-    el.bounds.x + el.size, el.bounds.y, 
-    el.bounds.w - 2 * el.size, el.size
-  }; 
-  el.dst["tr"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y, 
-    el.size, el.size
-  };
-  el.dst["ll"] = {
-    el.bounds.x, el.bounds.y + el.size, 
-    el.size, el.bounds.h - 2 * el.size
-  };
-  el.dst["mm"] = {
-    el.bounds.x + el.size, el.bounds.y + el.size, 
-    el.bounds.w - 2 * el.size, el.bounds.h - 2 * el.size
-  };
-  el.dst["rr"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.size,
-    el.size, el.bounds.h - 2 * el.size 
-  };
-  el.dst["bl"] = {
-    el.bounds.x, el.bounds.y + el.bounds.h - el.size,
-    el.size, el.size
-  }; 
-  el.dst["bm"] = {
-    el.bounds.x + el.size, el.bounds.y + el.bounds.h - el.size,
-    el.bounds.w - 2 * el.size, el.size
-  };
-  el.dst["br"] = {
-    el.bounds.x + el.bounds.w - el.size, el.bounds.y + el.bounds.h - el.size,
-    el.size, el.size
-  };
+  el.label.font = "Fantasque-Medium";
 }
 
 
 void UISystem::update()
 {
   resolve_selections();
-
 
   update_menu();
   update_hud();
@@ -415,22 +221,21 @@ void UISystem::resolve_selections()
   } else if (input_.hud) {
     auto& el{ui_.scrollable_elements["message_window"]};
 
-    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
-
     if (input_.lreleased) {
       el.scrollbar.selected = false;
     } else {
+      bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+
       if (msg_win_clicked) {
         if (el.scrollbar.active) {
-          auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+          bool clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
 
           if (input_.lclick && clicked) el.scrollbar.selected = true;
 
           if (el.scrollbar.selected) {
             f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
+            el.changed = true;
             el.pos = max(0.0, min(test_pos, 1.0));
-
-            setup_scrollable("message_window");
           }
         }
 
@@ -449,19 +254,21 @@ void UISystem::update_menu()
 void UISystem::update_hud()
 {
   if (map_.floor_changed) {
-    ui_.text_elements["floor_display"].text = format_floor();
-    setup_text("floor_display");
-
+    auto& el{ui_.text_elements["floor_display"]};
+    el.changed = true;
+    el.content = format_floor();
   }
 
   if (time_.time_changed) {
-    ui_.text_elements["time_display"].text = format_time();
-    setup_text("time_display");
+    auto& el{ui_.text_elements["time_display"]};
+    el.changed = true;
+    el.content = format_time();
   }
 
   if (time_.date_changed) {
-    ui_.text_elements["date_display"].text = format_date();
-    setup_text("date_display");
+    auto& el{ui_.text_elements["date_display"]};
+    el.changed = true;
+    el.content = format_date();
   }
 }
 
@@ -471,11 +278,10 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
-    auto& el {ui_.scrollable_elements["message_window"]};
+    auto& el{ui_.scrollable_elements["message_window"]};
+    el.changed = true;
     el.pos = 0.0;
     el.items = log_.msgs;
-
-    setup_scrollable("message_window");
   }
 }
 

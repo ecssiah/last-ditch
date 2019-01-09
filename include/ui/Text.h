@@ -6,25 +6,29 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "Element.h"
+#include "UIConstants.h"
 #include "../utility/Types.h"
 
 struct Text : public Element
 {
   Text()
     : size{14}
-    , text{}
+    , content{}
+    , font{}
+    , texture{}
+    , align{LEFT_ALIGN}
     , color{255, 255, 255}
-    , font{nullptr}
-    , texture{nullptr}
   {}
 
   i32 size;
 
-  std::string text;
+  std::string content;
+  std::string font;
+  std::string texture;
+
+  Align align;
 
   SDL_Color color;
-  TTF_Font* font;
-  SDL_Texture* texture;
 
 };
 

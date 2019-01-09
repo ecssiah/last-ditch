@@ -38,13 +38,21 @@ private:
   void load_fonts();
   void load_tilesets();
 
-  void render_window(const std::string& id);
-  void render_button(const std::string& id);
-  void render_text(const std::string& id);
-  void render_scrollable(const std::string& id);
+  void build_elements();
 
+  void build_window(Window& el);
+  void build_button(Button& el);
+  void build_text(Text& el);
+  void build_scrollable(Scrollable& el);
+  void build_scrollbar(Scrollbar& el);
+  void build_scalable(Scalable& el);
+
+  void render_window(Window& el);
+  void render_button(Button& el);
+  void render_scrollable(Scrollable& el);
   void render_scrollbar(Scrollbar& el);
   void render_scalable(Scalable& el);
+  void render_text(Text& el);
 
   void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
 

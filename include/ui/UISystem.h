@@ -39,11 +39,10 @@ private:
   void setup_texture(const std::string& id);
   void setup_window(const std::string& id);
   void setup_text(const std::string& id);
-  void setup_button(const std::string& id);
   void setup_scrollable(const std::string& id);
+  void setup_button(Button& el);
   void setup_scrollbar(Scrollbar& el);
   void setup_scalable(Scalable& el);
-
 
   void update_menu();
   void update_hud();

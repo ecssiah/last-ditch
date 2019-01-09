@@ -6,7 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "Element.h"
-#include "Texture.h"
+#include "List.h"
 #include "Scalable.h"
 #include "Scrollbar.h"
 #include "../utility/Types.h"
@@ -20,7 +20,7 @@ struct Scrollable : public Element
     , height{}
     , scroll_range{}
     , mask{}
-    , content{}
+    , body{}
     , base{}
     , scrollbar{}
   {}
@@ -34,7 +34,7 @@ struct Scrollable : public Element
 
   SDL_Rect mask;
 
-  Texture content;
+  List body;
   Scalable base;
   Scrollbar scrollbar;
 };
