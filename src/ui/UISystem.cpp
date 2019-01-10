@@ -154,7 +154,7 @@ void UISystem::setup_time_display()
   el.content = format_time();
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
   el.bounds.y = UI_PADDING;
 }
 
@@ -168,7 +168,7 @@ void UISystem::setup_date_display()
   el.content = format_date();
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
-  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
   el.bounds.y = UI_PADDING + FONT_HEIGHT_SMALL;
 }
 
@@ -206,51 +206,63 @@ void UISystem::update()
 void UISystem::resolve_selections()
 {
   if (input_.menu) {
-    if (input_.lclick) {
-      auto& info_btn{ui_.button_elements["info"]};    
-      auto& save_btn{ui_.button_elements["save"]};    
-      auto& options_btn{ui_.button_elements["options"]};    
+    update_main_buttons();
+  } else if (input_.hud) {
+    update_message_window();
+  }
+}
 
-      if (check_intersection(input_.mx, input_.my, info_btn)) {
-        info_btn.active = true;
-        save_btn.active = false;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, save_btn)) {
-        info_btn.active = false;
-        save_btn.active = true;
-        options_btn.active = false;
-      } else if (check_intersection(input_.mx, input_.my, options_btn)) {
-        info_btn.active = false;
-        save_btn.active = false;
-        options_btn.active = true;
+
+void UISystem::update_main_buttons()
+{
+  if (input_.lclick) {
+    auto& info_btn{ui_.button_elements["info"]};    
+    auto& save_btn{ui_.button_elements["save"]};    
+    auto& options_btn{ui_.button_elements["options"]};    
+
+    if (check_intersection(input_.mx, input_.my, info_btn)) {
+      info_btn.active = true;
+      save_btn.active = false;
+      options_btn.active = false;
+    } else if (check_intersection(input_.mx, input_.my, save_btn)) {
+      info_btn.active = false;
+      save_btn.active = true;
+      options_btn.active = false;
+    } else if (check_intersection(input_.mx, input_.my, options_btn)) {
+      info_btn.active = false;
+      save_btn.active = false;
+      options_btn.active = true;
+    }
+
+    input_.lclick = false;
+  }
+}
+
+
+void UISystem::update_message_window()
+{
+  auto& el{ui_.scrollable_elements["message_window"]};
+
+  if (input_.lreleased) {
+    el.scrollbar.selected = false;
+  } else {
+    bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+
+    if (msg_win_clicked) {
+      if (el.scrollbar.active) {
+        bool clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+
+        if (input_.lclick && clicked) el.scrollbar.selected = true;
+
+        if (el.scrollbar.selected) {
+          el.changed = true;
+
+          f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
+          el.pos = max(0.0, min(test_pos, 1.0));
+        }
       }
 
       input_.lclick = false;
-    }
-  } else if (input_.hud) {
-    auto& el{ui_.scrollable_elements["message_window"]};
-
-    if (input_.lreleased) {
-      el.scrollbar.selected = false;
-    } else {
-      bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
-
-      if (msg_win_clicked) {
-        if (el.scrollbar.active) {
-          bool clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
-
-          if (input_.lclick && clicked) el.scrollbar.selected = true;
-
-          if (el.scrollbar.selected) {
-            el.changed = true;
-
-            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
-            el.pos = max(0.0, min(test_pos, 1.0));
-          }
-        }
-
-        input_.lclick = false;
-      }
     }
   }
 }
@@ -291,7 +303,6 @@ void UISystem::update_messages()
     auto& el{ui_.scrollable_elements["message_window"]};
     el.changed = true;
     el.pos = 0.0;
-
     el.list.items = log_.msgs;
   }
 }

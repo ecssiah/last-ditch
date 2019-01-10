@@ -46,6 +46,9 @@ private:
 
   void resolve_selections();
 
+  void update_main_buttons(); 
+  void update_message_window();
+
   bool check_intersection(i32 x, i32 y, Element& el);
 
   std::string format_floor();

@@ -23,7 +23,6 @@ struct UI
     , button_elements{}
     , scrollable_elements{}
     , scrollbar_elements{}
-    , list_elements{}
   {}
 
   std::unordered_map<std::string, Text> text_elements;
@@ -32,7 +31,6 @@ struct UI
   std::unordered_map<std::string, Button> button_elements;
   std::unordered_map<std::string, Scrollable> scrollable_elements;
   std::unordered_map<std::string, Scrollbar> scrollbar_elements;
-  std::unordered_map<std::string, List> list_elements;
 
 };
 
