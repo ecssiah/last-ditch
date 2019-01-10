@@ -14,7 +14,6 @@ LastDitch::LastDitch()
   , file_system_{input_, time_, map_}
 {
   config_system_.init();
-  time_system_.init();
   camera_system_.init();
   render_system_.init();
   ui_system_.init();

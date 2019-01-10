@@ -14,11 +14,6 @@ TimeSystem::TimeSystem(Input& input, Render& render, Time& time)
 }
 
 
-void TimeSystem::init()
-{
-}
-
-
 void TimeSystem::frame_begin()
 {
   start_ = chrono::steady_clock::now();
@@ -30,10 +25,9 @@ void TimeSystem::frame_end()
   if (!input_.pause) tick();
 
   end_ = chrono::steady_clock::now();
+  auto elapsed{chrono::duration_cast<chrono::duration<float>>(end_ - start_)};
 
-  auto ms{chrono::duration_cast<chrono::microseconds>(end_ - start_).count()};
-
-  render_.dt = 1e-6 * ms;
+  render_.dt = elapsed.count();
 }
 
 
