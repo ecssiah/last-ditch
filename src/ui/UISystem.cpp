@@ -13,9 +13,7 @@
 
 using namespace std;
 
-UISystem::UISystem(
-  Input& input, Map& map, Time& time, Log& log, UI& ui
-)
+UISystem::UISystem(Input& input, Map& map, Time& time, Log& log, UI& ui)
   : input_{input}
   , map_{map}
   , time_{time}
@@ -108,7 +106,6 @@ void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.changed = true;
-  el.items = log_.msgs;
 
   el.bounds = {
     SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
@@ -119,8 +116,9 @@ void UISystem::setup_message_window()
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
 
-  el.body.font = "Small";
-  el.body.texture = "message_window";
+  el.list.font = "Small";
+  el.list.texture = "message_window";
+  el.list.items = log_.msgs;
 
   el.scrollbar.type = "scrollbar1";
   el.scrollbar.texture = "overlay";
@@ -293,7 +291,8 @@ void UISystem::update_messages()
     auto& el{ui_.scrollable_elements["message_window"]};
     el.changed = true;
     el.pos = 0.0;
-    el.items = log_.msgs;
+
+    el.list.items = log_.msgs;
   }
 }
 

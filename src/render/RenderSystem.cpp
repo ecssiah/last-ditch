@@ -233,22 +233,22 @@ void RenderSystem::build_scrollable(Scrollable& el)
   el.changed = false;
 
   string full_msg;
-  i32 msg_limit{min(MESSAGE_DISPLAY_LIMIT, (i32)el.items.size())};
+  i32 msg_limit{min(MESSAGE_DISPLAY_LIMIT, (i32)el.list.items.size())};
 
   for (auto i{0}; i < msg_limit; i++) {
-    full_msg += el.items[i];
+    full_msg += el.list.items[i];
     if (i < msg_limit - 1) full_msg += "\n";
   }
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
-    render_.fonts[el.body.font], full_msg.c_str(), 
+    render_.fonts[el.list.font], full_msg.c_str(), 
     {255, 255, 255}, el.mask.w
   )};
 
   build_scalable(el.base);
 
-  SDL_DestroyTexture(render_.textures[el.body.texture]);
-  render_.textures[el.body.texture] = SDL_CreateTextureFromSurface(
+  SDL_DestroyTexture(render_.textures[el.list.texture]);
+  render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
     render_.renderer, sur
   ); 
 
@@ -256,12 +256,12 @@ void RenderSystem::build_scrollable(Scrollable& el)
 
   if (scrollbar_height > el.mask.h) {
     el.scrollbar.active = false;
-    el.body.bounds = {el.mask.x, el.mask.y, sur->w, sur->h};
+    el.list.bounds = {el.mask.x, el.mask.y, sur->w, sur->h};
   } else {
     el.scrollbar.active = true;
 
-    el.body.bounds = {
-      el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
+    el.list.bounds = {
+      el.mask.x, el.mask.y - (i32)(el.pos * sur->h), 
       sur->w, sur->h
     };
 
@@ -465,8 +465,10 @@ void RenderSystem::render_scrollable(Scrollable& el)
 
   SDL_RenderSetClipRect(render_.renderer, &el.mask);
 
-  SDL_SetRenderTarget(render_.renderer, nullptr); 
-  SDL_RenderCopy(render_.renderer, render_.textures[el.body.texture], nullptr, &el.body.bounds);
+  SDL_RenderCopy(
+    render_.renderer, render_.textures[el.list.texture], 
+    nullptr, &el.list.bounds
+  );
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);
 

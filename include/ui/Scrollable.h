@@ -15,26 +15,22 @@ struct Scrollable : public Element
 {
   Scrollable()
     : type{}
-    , items{}
     , pos{0.0}
-    , height{}
     , scroll_range{}
     , mask{}
-    , body{}
+    , list{}
     , base{}
     , scrollbar{}
   {}
 
   std::string type;
-  std::vector<std::string> items;
 
   f32 pos;
-  i32 height;
   i32 scroll_range;
 
   SDL_Rect mask;
 
-  List body;
+  List list;
   Scalable base;
   Scrollbar scrollbar;
 
