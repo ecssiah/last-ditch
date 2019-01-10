@@ -172,9 +172,6 @@ void RenderSystem::load_fonts()
   render_.fonts["Small"] = load_font("FantasqueSansMono-Regular", 14);
   render_.fonts["Medium"] = load_font("FantasqueSansMono-Regular", 18);
   render_.fonts["Large"] = load_font("FantasqueSansMono-Regular", 22);
-  // render_.fonts["Small"] = load_font("CamingoCode-Regular", 14);
-  // render_.fonts["Medium"] = load_font("CamingoCode-Regular", 18);
-  // render_.fonts["Large"] = load_font("CamingoCode-Regular", 22);
 }
 
 
@@ -206,6 +203,7 @@ void RenderSystem::build_button(Button& el)
   el.changed = false;
 
   build_scalable(el.base);
+  build_scalable(el.pressed);
   build_text(el.label);
 }
 
