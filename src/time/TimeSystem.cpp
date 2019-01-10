@@ -33,7 +33,7 @@ void TimeSystem::frame_end()
 
   auto ms{chrono::duration_cast<chrono::microseconds>(end_ - start_).count()};
 
-  render_.dt = min((f64)FRAME_TIME, 1e-6 * ms);
+  render_.dt = 1e-6 * ms;
 }
 
 

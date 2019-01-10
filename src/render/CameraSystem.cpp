@@ -25,10 +25,10 @@ void CameraSystem::update()
   if (input_.mag) inc_zoom();
   if (input_.min) dec_zoom();
 
-  if (input_.right) move(RIGHT);
   if (input_.up)    move(UP);
-  if (input_.left)  move(LEFT);
   if (input_.down)  move(DOWN);
+  if (input_.left)  move(LEFT);
+  if (input_.right) move(RIGHT);
 }
 
 
