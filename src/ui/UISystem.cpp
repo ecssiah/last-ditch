@@ -66,39 +66,42 @@ void UISystem::setup_main_buttons()
   info_btn.changed = true;
   info_btn.active = true;
   info_btn.type = "button2";
-  info_btn.label.font = "Fantasque-Small";
-  info_btn.label.texture = "info_button";
-  info_btn.label.content = "Info";
   info_btn.bounds.x = .25 * SCREEN_SIZE_X - width / 2;
   info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   info_btn.bounds.w = width;
   info_btn.bounds.h = height;
+
+  info_btn.label.font = "Small";
+  info_btn.label.texture = "info_button";
+  info_btn.label.content = "Info";
 
   setup_button(info_btn);
 
   auto& save_btn{ui_.button_elements["save"]};
   save_btn.changed = true;
   save_btn.type = "button2";
-  save_btn.label.font = "Fantasque-Small";
-  info_btn.label.texture = "save_button";
-  save_btn.label.content = "Save/Load";
   save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
   save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   save_btn.bounds.w = width;
   save_btn.bounds.h = height;
+
+  save_btn.label.font = "Small";
+  info_btn.label.texture = "save_button";
+  save_btn.label.content = "Save/Load";
 
   setup_button(save_btn);
 
   auto& options_btn{ui_.button_elements["options"]};
   options_btn.changed = true;
   options_btn.type = "button2";
-  options_btn.label.font = "Fantasque-Small";
-  options_btn.label.texture = "options_button";
-  options_btn.label.content = "Options";
   options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
   options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   options_btn.bounds.w = width;
   options_btn.bounds.h = height;
+
+  options_btn.label.font = "Small";
+  options_btn.label.texture = "options_button";
+  options_btn.label.content = "Options";
 
   setup_button(options_btn);
 }
@@ -119,7 +122,7 @@ void UISystem::setup_message_window()
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
 
-  el.body.font = "Fantasque-Small";
+  el.body.font = "Small";
   el.body.texture = "message_window";
 
   el.scrollbar.type = "scrollbar1";
@@ -130,7 +133,6 @@ void UISystem::setup_message_window()
     el.bounds.w - 2 * MESSAGE_PADDING_X - SCROLLBAR_WIDTH, 
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
-
 }
 
 
@@ -138,10 +140,9 @@ void UISystem::setup_floor_display()
 {
   auto& el{ui_.text_elements["floor_display"]};
   el.changed = true;
-  el.font = "Fantasque-Small";
+  el.font = "Small";
   el.texture = "floor_display";
   el.content = format_floor();
-
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = UI_PADDING;
@@ -153,10 +154,9 @@ void UISystem::setup_time_display()
 {
   auto& el{ui_.text_elements["time_display"]};
   el.changed = true;
-  el.font = "Fantasque-Small";
+  el.font = "Small";
   el.texture = "time_display";
   el.content = format_time();
-
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
@@ -168,10 +168,9 @@ void UISystem::setup_date_display()
 {
   auto& el{ui_.text_elements["date_display"]};
   el.changed = true;
-  el.font = "Fantasque-Small";
+  el.font = "Large";
   el.texture = "date_display";
   el.content = format_date();
-
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
@@ -191,7 +190,11 @@ void UISystem::setup_button(Button& el)
   el.pressed.texture = "overlay";
   el.pressed.bounds = el.bounds;
 
-  el.label.font = "Fantasque-Medium";
+  el.label.font = "Medium";
+  el.label.bounds.w = FONT_WIDTH_MEDIUM * el.label.content.size();
+  el.label.bounds.h = FONT_HEIGHT_MEDIUM;
+  el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
+  el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
 }
 
 

@@ -169,9 +169,12 @@ void RenderSystem::load_tilesets()
 
 void RenderSystem::load_fonts()
 {
-  render_.fonts["Fantasque-Small"] = load_font("FantasqueSansMono-Regular", 14);
-  render_.fonts["Fantasque-Medium"] = load_font("FantasqueSansMono-Regular", 18);
-  render_.fonts["Fantasque-Large"] = load_font("FantasqueSansMono-Regular", 22);
+  render_.fonts["Small"] = load_font("FantasqueSansMono-Regular", 14);
+  render_.fonts["Medium"] = load_font("FantasqueSansMono-Regular", 18);
+  render_.fonts["Large"] = load_font("FantasqueSansMono-Regular", 22);
+  // render_.fonts["Small"] = load_font("CamingoCode-Regular", 14);
+  // render_.fonts["Medium"] = load_font("CamingoCode-Regular", 18);
+  // render_.fonts["Large"] = load_font("CamingoCode-Regular", 22);
 }
 
 
@@ -204,9 +207,6 @@ void RenderSystem::build_button(Button& el)
 
   build_scalable(el.base);
   build_text(el.label);
-
-  el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
-  el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
 }
 
 
@@ -217,9 +217,6 @@ void RenderSystem::build_text(Text& el)
   SDL_Surface* sur{
     TTF_RenderUTF8_Blended(render_.fonts[el.font], el.content.c_str(), el.color)
   }; 
-
-  el.bounds.w = sur->w;
-  el.bounds.h = sur->h;
 
   if (sur == nullptr) {
     cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
@@ -238,7 +235,7 @@ void RenderSystem::build_scrollable(Scrollable& el)
   el.changed = false;
 
   string full_msg;
-  i32 size{(i32)min(20.0, (f64)el.items.size())};
+  i32 size{min(20, (i32)el.items.size())};
 
   for (auto i{0}; i < size; i++) {
     full_msg += el.items[i];
