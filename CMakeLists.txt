@@ -20,6 +20,7 @@ set(
   ./include/ui/UIConstants.h
   ./include/ui/UISystem.h
   ./include/utility/FileSystem.h
+  ./include/events/EventSystem.h
   ./include/LastDitch.h
 )
 
@@ -41,6 +42,7 @@ set(
   ./src/ui/UIConstants.cpp
   ./src/ui/UISystem.cpp
   ./src/utility/FileSystem.cpp
+  ./src/events/EventSystem.cpp
   ./src/LastDitch.cpp
 )
 

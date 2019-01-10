@@ -12,17 +12,17 @@ struct Entity
 {
   Entity()
     : type{}
-    , rotation{0}
-    , src{0, 0, TILE_SIZE, TILE_SIZE}
+    , rot{0}
+    , dst{0, 0, TILE_SIZE, TILE_SIZE}
     , flip{SDL_FLIP_NONE}
   {
   }
 
   std::string type;
 
-  f64 rotation; 
+  f32 rot; 
 
-  SDL_Rect src;
+  SDL_Rect dst;
   SDL_RendererFlip flip;
 
 private:
@@ -32,12 +32,12 @@ private:
   void serialize(Archive& ar, const u32 version)
   {
     ar & flip;
-    ar & rotation;
+    ar & rot;
 
-    ar & src.x;
-    ar & src.y;
-    ar & src.w;
-    ar & src.h;
+    ar & dst.x;
+    ar & dst.y;
+    ar & dst.w;
+    ar & dst.h;
   }
 };
 

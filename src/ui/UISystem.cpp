@@ -69,8 +69,8 @@ void UISystem::setup_main_buttons()
   info_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   info_btn.label.font = "Small";
-  info_btn.label.texture = "info_button";
   info_btn.label.content = "Info";
+  info_btn.label.texture = "info_button";
 
   setup_button(info_btn);
 
@@ -82,8 +82,8 @@ void UISystem::setup_main_buttons()
   save_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   save_btn.label.font = "Small";
-  info_btn.label.texture = "save_button";
   save_btn.label.content = "Save/Load";
+  info_btn.label.texture = "save_button";
 
   setup_button(save_btn);
 
@@ -95,8 +95,8 @@ void UISystem::setup_main_buttons()
   options_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   options_btn.label.font = "Small";
-  options_btn.label.texture = "options_button";
   options_btn.label.content = "Options";
+  options_btn.label.texture = "options_button";
 
   setup_button(options_btn);
 }
