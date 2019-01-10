@@ -20,7 +20,7 @@ MapSystem::MapSystem(Input& input, Map& map, Camera& camera, Log& log)
 
 void MapSystem::init()
 {
-  ::mlog("MapSystem initializing");
+  cout << "MapSystem initializing" << endl;
 
   map_generator_.generate_map();
 }
@@ -62,11 +62,11 @@ void MapSystem::calculate_selected_tile()
   if (xcheck || ycheck) {
     input_.sx = -1;
     input_.sy = -1;
-    ::ulog(log_, "Selected: invalid");
+    ::msg(log_, "Selected: invalid");
   } else {
     clear_selection();
     select_tile(input_.sx, input_.sy);
-    ::ulog(
+    ::msg(
       log_, 
       "Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy)
     );

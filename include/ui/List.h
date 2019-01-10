@@ -14,7 +14,6 @@ struct List : public Element
 
   std::string font;
   std::string texture;
-  // SDL_Texture* texture;
 
 };
 

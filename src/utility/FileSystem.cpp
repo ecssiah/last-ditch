@@ -23,7 +23,7 @@ FileSystem::FileSystem(Input& input, Map& map, Time& time)
 
 void FileSystem::init()
 {
-  ::mlog("FileSystem initializing");
+  cout << "FileSystem initializing" << endl;
 
 //   create_user("test user");
 
@@ -46,14 +46,14 @@ bool FileSystem::create_user(const string& username)
   } 
 
   if (user_exists) {
-    ::elog("User already exists: " + username);
+    cerr << "User already exists: " << username << endl;
     return false;
   } else {
     User user;
     user.username = username;
     users_.push_back(user);
 
-    ::mlog("User created: " + username);
+    cout << "User created: " << username << endl;
 
     return true;
   }
@@ -73,11 +73,11 @@ bool FileSystem::delete_user(const string& username)
   }
 
   if (!user_exists) {
-    ::elog("User does not exist: " + username);
+    cerr << "User does not exist: " << username << endl;
     return false;
   } else {
     users_.erase(users_.begin() + index);
-    ::mlog("User deleted: " + username);
+    cout << "User deleted: " << username << endl;
     return true;
   }
 }
@@ -88,14 +88,14 @@ bool FileSystem::save_state(const string& filename)
   ofstream ofs("saves/" + filename);
 
   if (ofs.fail()) {
-    ::elog("Save error: " + string(strerror(errno)));
+    cerr << "Save error: " << strerror(errno) << endl;
     return false;
   } else {
     boost::archive::binary_oarchive oa(ofs);
     oa << users_;
     oa << time_;
 
-    ::mlog("Save: " + filename);
+    cout << "Save: " << filename << endl;
 
     return true;
   }
@@ -107,14 +107,14 @@ bool FileSystem::load_state(const string& filename)
   ifstream ifs("saves/" + filename);
 
   if (ifs.fail()) {
-    ::elog("Load error: " + string(strerror(errno)));
+    cerr << "Load error: " << strerror(errno) << endl;
     return false;
   } else {
     boost::archive::binary_iarchive ia(ifs);
     ia >> users_;
     ia >> time_;
 
-    ::mlog("Load: " + filename);
+    cout << "Load: " << filename << endl;
 
     return true;
   }
@@ -126,10 +126,10 @@ bool FileSystem::delete_state(const string& filename)
   string filepath{"saves/" + filename};
 
   if (remove(filepath.c_str()) != 0) {
-    ::elog("Delete error: " + string(strerror(errno)));
+    cerr << "Delete error: " << strerror(errno) << endl;
     return false;
   } else {
-    ::mlog("Delete: " + filename);
+    cout << "Delete: " << filename << endl;
     return true;
   }
 }
@@ -140,13 +140,13 @@ bool FileSystem::save_map(const string& filename)
   ofstream ofs("maps/" + filename);
 
   if (ofs.fail()) {
-    ::elog("Map save error: " + string(strerror(errno)));
+    cerr << "Map save error: " << strerror(errno) << endl;
     return false;
   } else {
     boost::archive::binary_oarchive oa(ofs);
     oa << map_;
 
-    ::mlog("Map save: " + filename);
+    cout << "Map save: " << filename << endl;
 
     return true;
   }
@@ -158,13 +158,13 @@ bool FileSystem::load_map(const string& filename)
   ifstream ifs("maps/" + filename);
 
   if (ifs.fail()) {
-    ::elog("Load map error: " + string(strerror(errno)));
+    cerr << "Load map error: " << strerror(errno) << endl;
     return false;
   } else {
     boost::archive::binary_iarchive ia(ifs);
     ia >> map_;
 
-    ::mlog("Load map: " + filename);
+    cout << "Load map: " << filename << endl;
 
     return true;
   }
@@ -176,10 +176,10 @@ bool FileSystem::delete_map(const string& filename)
   string filepath{"maps/" + filename};
 
   if (remove(filepath.c_str()) != 0) {
-    ::elog("Delete map error: " + string(strerror(errno)));
+    cerr << "Delete map error: " << strerror(errno) << endl;
     return false;
   } else {
-    ::mlog("Delete map: " + filename);
+    cout << "Delete map: " << filename << endl;
 
     return true;
   }

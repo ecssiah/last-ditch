@@ -15,7 +15,7 @@ ConfigSystem::ConfigSystem()
 
 void ConfigSystem::init()
 {
-  ::mlog("ConfigSystem initializing");
+  cout << "ConfigSystem initializing" << endl;
 
   load_tile_info();
 }

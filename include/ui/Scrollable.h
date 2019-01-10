@@ -37,6 +37,7 @@ struct Scrollable : public Element
   List body;
   Scalable base;
   Scrollbar scrollbar;
+
 };
 
 #endif

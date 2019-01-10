@@ -146,7 +146,7 @@ void MapGenerator::build_rooms(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor) + " rooms built", 1);
+  cout << " Floor " << floor << " rooms built" << endl;
 }
 
 
@@ -206,7 +206,7 @@ void MapGenerator::integrate_walls(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor) + " rooms integrated", 1);
+  cout << " Floor " << floor << " rooms integrated" << endl;
 }
 
 
@@ -293,7 +293,7 @@ void MapGenerator::place_doors(i32 floor)
     }
   }
 
-  ::mlog("Floor " + to_string(floor) + " doors placed", 1);
+  cout << " Floor " << floor << " doors placed" << endl;
 }
 
 
@@ -358,9 +358,8 @@ void MapGenerator::set_tile(
     tile.src.x = TileData[type].uv.x * TILE_SIZE;
     tile.src.y = TileData[type].uv.y * TILE_SIZE;
   } else {
-    auto error_string{"Tile(" + to_string(x) + "," + to_string(y) + ") "};
-    error_string += "has invalid type: " + tile.type;
-    ::elog(error_string, 2);
+    cerr << "Tile(" << x << "," << y << ") has invalid type: ";
+    cerr << tile.type << endl;
 
     tile.category = "error";
     tile.src.x = 0;

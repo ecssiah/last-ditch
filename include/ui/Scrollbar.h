@@ -27,8 +27,6 @@ struct Scrollbar : public Element
   i32 basex, basey;
   i32 size;
 
-  // SDL_Texture* texture;
-
   std::unordered_map<std::string, SDL_Rect> src;
   std::unordered_map<std::string, SDL_Rect> dst;
 

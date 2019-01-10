@@ -37,13 +37,13 @@ RenderSystem::~RenderSystem()
   SDL_DestroyWindow(render_.window);
   SDL_Quit();
 
-  ::mlog("RenderSystem shutdown");
+  cout << "RenderSystem shutdown" << endl;
 }
 
 
 void RenderSystem::init()
 {
-  ::mlog("RenderSystem initializing");
+  cout << "RenderSystem initializing" << endl;
 
   init_SDL();
   init_SDL_image();
@@ -70,7 +70,7 @@ void RenderSystem::update()
 void RenderSystem::init_SDL()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    ::elog("SDL_Init error: " + string(SDL_GetError()));
+    cerr << SDL_GetError() << endl;
     return;
   }
 
@@ -82,7 +82,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.window == nullptr) {
-    ::elog("SDL_CreateWindow error: " + string(SDL_GetError()));
+    cerr << SDL_GetError() << endl;
     return;
   }
 
@@ -92,7 +92,7 @@ void RenderSystem::init_SDL()
   );
 
   if (render_.renderer == nullptr){
-    ::elog("SDL_CreateRenderer error: " + string(SDL_GetError()));
+    cerr << SDL_GetError() << endl;
     return;
   }
 
@@ -105,7 +105,7 @@ void RenderSystem::init_SDL_image()
   const i32 img_flags{IMG_INIT_PNG};
   
   if (!(IMG_Init(img_flags) & img_flags)) {
-    ::elog("SDL_image error: " + string(IMG_GetError()));
+    cerr << IMG_GetError() << endl;
     return;
   }
 }
@@ -114,7 +114,7 @@ void RenderSystem::init_SDL_image()
 void RenderSystem::init_SDL_ttf()
 {
   if (TTF_Init()) {
-    ::elog("TTF_Init error: " + string(TTF_GetError()));
+    cerr << TTF_GetError() << endl;
     return;
   } 
 }
@@ -126,14 +126,14 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
   SDL_Surface* sur{IMG_Load(filename.c_str())};
 
   if (!sur) { 
-    ::elog("IMG_Load error: " + string(IMG_GetError()));
+    cerr << IMG_GetError() << endl;
     return nullptr;
   }
 
   SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, sur)};
 
   if (!texture) {
-    ::elog("SDL_CreateTextureFromSurface error: " + string(SDL_GetError()));
+    cerr << SDL_GetError() << endl;
     return nullptr;
   }
   
@@ -149,7 +149,7 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
   if (!font) {
-    ::elog("TTF_OpenFont error: " + string(TTF_GetError()));
+    cerr << TTF_GetError() << endl;
     return nullptr;
   }
 
@@ -172,7 +172,6 @@ void RenderSystem::load_fonts()
   render_.fonts["Fantasque-Small"] = load_font("FantasqueSansMono-Regular", 14);
   render_.fonts["Fantasque-Medium"] = load_font("FantasqueSansMono-Regular", 18);
   render_.fonts["Fantasque-Large"] = load_font("FantasqueSansMono-Regular", 22);
-  render_.fonts["Inconsolata-Small"] = load_font("Inconsolata-Regular", 14);
 }
 
 
@@ -203,16 +202,11 @@ void RenderSystem::build_button(Button& el)
 {
   el.changed = false;
 
-  TTF_SizeText(
-    render_.fonts[el.label.font], el.label.content.c_str(), 
-    &el.label.bounds.w, &el.label.bounds.h
-  );
+  build_scalable(el.base);
+  build_text(el.label);
 
   el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
   el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
-
-  build_scalable(el.base);
-  build_text(el.label);
 }
 
 
@@ -223,15 +217,6 @@ void RenderSystem::build_text(Text& el)
   SDL_Surface* sur{
     TTF_RenderUTF8_Blended(render_.fonts[el.font], el.content.c_str(), el.color)
   }; 
-
-  // SHOULD ONLY HAPPEN FIRST TIME
-  if (el.align == RIGHT_ALIGN) {
-    el.bounds.x = SCREEN_SIZE_X - el.bounds.x - sur->w;
-  }
-
-  if (el.texture == "time_display") {
-    ::print(el.bounds);
-  }
 
   el.bounds.w = sur->w;
   el.bounds.h = sur->h;
@@ -277,12 +262,9 @@ void RenderSystem::build_scrollable(Scrollable& el)
 
   if (scrollbar_h > el.mask.h) {
     el.scrollbar.active = false;
+
     el.body.bounds = {el.mask.x, el.mask.y, sur->w, sur->h};
   } else {
-    el.body.bounds = {
-      el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
-      sur->w, sur->h
-    };
     el.scrollbar.active = true;
 
     el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_h;
@@ -291,6 +273,11 @@ void RenderSystem::build_scrollable(Scrollable& el)
       el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
       el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
       SCROLLBAR_WIDTH, scrollbar_h
+    };
+
+    el.body.bounds = {
+      el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
+      sur->w, sur->h
     };
 
     build_scrollbar(el.scrollbar);
@@ -456,11 +443,6 @@ void RenderSystem::render_ui()
 }
 
 
-void RenderSystem::render_messages()
-{
-}
-
-
 void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 {
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
@@ -506,6 +488,7 @@ void RenderSystem::render_text(Text& el)
 void RenderSystem::render_button(Button& el)
 {
   el.active ? render_scalable(el.pressed) : render_scalable(el.base);
+
   render_text(el.label);
 }
 

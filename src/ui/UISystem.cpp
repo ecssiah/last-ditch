@@ -28,7 +28,7 @@ UISystem::UISystem(
 
 void UISystem::init()
 {
-  ::mlog("UISystem initializing");
+  cout << "UISystem initializing" << endl;
 
   setup_floor_display();
   setup_time_display();
@@ -52,6 +52,7 @@ void UISystem::setup_main_window()
   el.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
   el.base.type = el.type;
+  el.base.texture = "overlay";
   el.base.bounds = el.bounds;
 }
 
@@ -107,9 +108,6 @@ void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.changed = true;
-  el.body.font = "Fantasque-Small";
-  el.body.texture = "message_window";
-  el.scrollbar.type = "scrollbar1";
   el.items = log_.msgs;
 
   el.bounds = {
@@ -118,7 +116,14 @@ void UISystem::setup_message_window()
   };
 
   el.base.type = "window2";
+  el.base.texture = "overlay";
   el.base.bounds = el.bounds;
+
+  el.body.font = "Fantasque-Small";
+  el.body.texture = "message_window";
+
+  el.scrollbar.type = "scrollbar1";
+  el.scrollbar.texture = "overlay";
 
   el.mask = {
     el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y, 
@@ -136,7 +141,9 @@ void UISystem::setup_floor_display()
   el.font = "Fantasque-Small";
   el.texture = "floor_display";
   el.content = format_floor();
-  el.align = LEFT_ALIGN;
+
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = UI_PADDING;
   el.bounds.y = UI_PADDING;
 }
@@ -149,8 +156,10 @@ void UISystem::setup_time_display()
   el.font = "Fantasque-Small";
   el.texture = "time_display";
   el.content = format_time();
-  el.align = RIGHT_ALIGN;
-  el.bounds.x = UI_PADDING;
+
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
   el.bounds.y = UI_PADDING;
 }
 
@@ -162,9 +171,11 @@ void UISystem::setup_date_display()
   el.font = "Fantasque-Small";
   el.texture = "date_display";
   el.content = format_date();
-  el.align = RIGHT_ALIGN;
-  el.bounds.x = UI_PADDING;
-  el.bounds.y = UI_PADDING + 12;
+
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
+  el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
+  el.bounds.y = UI_PADDING + el.bounds.h;
 }
 
 

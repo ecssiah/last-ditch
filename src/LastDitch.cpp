@@ -16,8 +16,8 @@ LastDitch::LastDitch()
   config_system_.init();
   time_system_.init();
   camera_system_.init();
-  ui_system_.init();
   render_system_.init();
+  ui_system_.init();
   map_system_.init();
   entity_system_.init();
   input_system_.init();

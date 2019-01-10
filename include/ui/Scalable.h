@@ -29,8 +29,6 @@ struct Scalable : public Element
   i32 size;
   i32 border, pad;
 
-  // SDL_Texture* texture;
-
   std::unordered_map<std::string, SDL_Rect> src;
   std::unordered_map<std::string, SDL_Rect> dst;
 

@@ -59,8 +59,6 @@ private:
   void render_map();
   void render_ui();
 
-  void render_messages();
-
   Render& render_;
   Input& input_;
   Camera& camera_;

@@ -6,7 +6,6 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "Element.h"
-#include "UIConstants.h"
 #include "../utility/Types.h"
 
 struct Text : public Element
@@ -16,7 +15,6 @@ struct Text : public Element
     , content{}
     , font{}
     , texture{}
-    , align{LEFT_ALIGN}
     , color{255, 255, 255}
   {}
 
@@ -25,8 +23,6 @@ struct Text : public Element
   std::string content;
   std::string font;
   std::string texture;
-
-  Align align;
 
   SDL_Color color;
 
