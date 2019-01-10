@@ -4,14 +4,14 @@
 
 LastDitch::LastDitch()
   : config_system_{}
-  , input_system_{input_, camera_, render_}
+  , input_system_{input_, render_, camera_}
   , time_system_{input_, render_, time_}
   , render_system_{input_, render_, camera_, map_, ui_}
   , camera_system_{input_, render_, camera_}
-  , map_system_{input_, map_, camera_, log_}
+  , map_system_{input_, camera_, map_, log_}
   , entity_system_{map_}
   , ui_system_{input_, map_, time_, log_, ui_} 
-  , file_system_{input_, map_, time_}
+  , file_system_{input_, time_, map_}
 {
   config_system_.init();
   time_system_.init();

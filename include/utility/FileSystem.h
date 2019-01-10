@@ -10,7 +10,7 @@
 class FileSystem
 {
 public:
-  FileSystem(Input& input, Map& map, Time& time);
+  FileSystem(Input& input, Time& time, Map& map);
 
   void init();
 
@@ -27,8 +27,8 @@ public:
 
 private:
   Input& input_;
-  Map& map_;
   Time& time_;
+  Map& map_;
 
   std::vector<User> users_;
 

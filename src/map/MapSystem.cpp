@@ -8,10 +8,10 @@
 
 using namespace std;
 
-MapSystem::MapSystem(Input& input, Map& map, Camera& camera, Log& log)
+MapSystem::MapSystem(Input& input, Camera& camera, Map& map, Log& log)
   : input_{input}
-  , map_{map}
   , camera_{camera}
+  , map_{map}
   , log_{log}
   , map_generator_{map}
 {

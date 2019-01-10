@@ -10,7 +10,7 @@
 class MapSystem
 {
 public:
-  MapSystem(Input& input, Map& map, Camera& camera, Log& log);
+  MapSystem(Input& input, Camera& camera, Map& map, Log& log);
 
   void init();
   void update();
@@ -22,8 +22,8 @@ private:
   void select_tile(i32 x, i32 y);
 
   Input& input_;
-  Map& map_;
   Camera& camera_;
+  Map& map_;
   Log& log_;
 
   MapGenerator map_generator_;

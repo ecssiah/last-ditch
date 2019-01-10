@@ -12,10 +12,10 @@
 
 using namespace std;
 
-FileSystem::FileSystem(Input& input, Map& map, Time& time)
+FileSystem::FileSystem(Input& input, Time& time, Map& map)
   : input_{input}
-  , map_{map}
   , time_{time}
+  , map_{map}
   , users_{}
 {
 }

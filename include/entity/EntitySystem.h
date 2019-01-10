@@ -9,15 +9,16 @@
 
 class EntitySystem
 {
-  Map& map_;
-
-  std::vector<Entity> entities_;
-
 public:
   EntitySystem(Map& map);
 
   void init();
   void update();
+
+private:
+  Map& map_;
+
+  std::vector<Entity> entities_;
 
 };
 

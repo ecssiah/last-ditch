@@ -23,14 +23,6 @@ public:
   LastDitch();
 
 private:
-  Render render_;
-  Input input_;
-  Camera camera_;
-  Map map_;
-  Time time_;
-  Log log_;
-  UI ui_;
-
   ConfigSystem config_system_;
   RenderSystem render_system_;
   MapSystem map_system_;
@@ -40,6 +32,15 @@ private:
   TimeSystem time_system_;
   InputSystem input_system_;
   FileSystem file_system_;
+
+  Render render_;
+  Camera camera_;
+  Input input_;
+  Time time_;
+  Map map_;
+  Log log_;
+  UI ui_;
+
 };
 
 #endif

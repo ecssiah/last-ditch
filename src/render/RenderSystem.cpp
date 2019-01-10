@@ -233,11 +233,11 @@ void RenderSystem::build_scrollable(Scrollable& el)
   el.changed = false;
 
   string full_msg;
-  i32 size{min(20, (i32)el.items.size())};
+  i32 msg_limit{min(MESSAGE_DISPLAY_LIMIT, (i32)el.items.size())};
 
-  for (auto i{0}; i < size; i++) {
+  for (auto i{0}; i < msg_limit; i++) {
     full_msg += el.items[i];
-    if (i < size - 1) full_msg += "\n";
+    if (i < msg_limit - 1) full_msg += "\n";
   }
 
   SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
@@ -247,36 +247,36 @@ void RenderSystem::build_scrollable(Scrollable& el)
 
   build_scalable(el.base);
 
-  i32 scrollbar_h{(i32)(el.mask.h / (f64)sur->h * el.mask.h)};
-
   SDL_DestroyTexture(render_.textures[el.body.texture]);
   render_.textures[el.body.texture] = SDL_CreateTextureFromSurface(
     render_.renderer, sur
   ); 
-  SDL_FreeSurface(sur);
 
-  if (scrollbar_h > el.mask.h) {
+  i32 scrollbar_height{(i32)(el.mask.h / (f32)sur->h * el.mask.h)};
+
+  if (scrollbar_height > el.mask.h) {
     el.scrollbar.active = false;
-
     el.body.bounds = {el.mask.x, el.mask.y, sur->w, sur->h};
   } else {
     el.scrollbar.active = true;
-
-    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_h;
-
-    el.scrollbar.bounds = {
-      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-      el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
-      SCROLLBAR_WIDTH, scrollbar_h
-    };
 
     el.body.bounds = {
       el.mask.x, el.mask.y - (i32)(el.pos * (sur->h - el.mask.h)), 
       sur->w, sur->h
     };
 
+    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
+
+    el.scrollbar.bounds = {
+      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
+      el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
+      SCROLLBAR_WIDTH, scrollbar_height
+    };
+
     build_scrollbar(el.scrollbar);
   }
+
+  SDL_FreeSurface(sur);
 }
 
 

@@ -10,10 +10,10 @@
 
 using namespace std;
 
-InputSystem::InputSystem(Input& input, Camera& camera, Render& render) 
+InputSystem::InputSystem(Input& input, Render& render, Camera& camera) 
   : input_{input}
-  , camera_{camera}
   , render_{render}
+  , camera_{camera}
 {
 }
 

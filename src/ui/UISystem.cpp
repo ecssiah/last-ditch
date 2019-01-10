@@ -43,14 +43,13 @@ void UISystem::setup_main_window()
 {
   auto& el{ui_.window_elements["main"]};
   el.changed = true;
-  el.type = "window1";
 
   el.bounds.x = 0.1 * SCREEN_SIZE_X;
   el.bounds.y = 0.1 * SCREEN_SIZE_Y;
   el.bounds.w = 0.8 * SCREEN_SIZE_X;  
   el.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
-  el.base.type = el.type;
+  el.base.type = "window1";
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
 }
@@ -58,17 +57,18 @@ void UISystem::setup_main_window()
 
 void UISystem::setup_main_buttons()
 {
-  auto width{120};
-  auto height{32};
-
   auto& info_btn{ui_.button_elements["info"]};
-  info_btn.changed = true;
+  auto& save_btn{ui_.button_elements["save"]};
+  auto& options_btn{ui_.button_elements["options"]};
+
   info_btn.active = true;
+
+  info_btn.changed = true;
   info_btn.type = "button2";
-  info_btn.bounds.x = .25 * SCREEN_SIZE_X - width / 2;
+  info_btn.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  info_btn.bounds.w = width;
-  info_btn.bounds.h = height;
+  info_btn.bounds.w = MAIN_BUTTON_WIDTH;
+  info_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   info_btn.label.font = "Small";
   info_btn.label.texture = "info_button";
@@ -76,13 +76,12 @@ void UISystem::setup_main_buttons()
 
   setup_button(info_btn);
 
-  auto& save_btn{ui_.button_elements["save"]};
   save_btn.changed = true;
   save_btn.type = "button2";
-  save_btn.bounds.x = .50 * SCREEN_SIZE_X - width / 2;
+  save_btn.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  save_btn.bounds.w = width;
-  save_btn.bounds.h = height;
+  save_btn.bounds.w = MAIN_BUTTON_WIDTH;
+  save_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   save_btn.label.font = "Small";
   info_btn.label.texture = "save_button";
@@ -90,13 +89,12 @@ void UISystem::setup_main_buttons()
 
   setup_button(save_btn);
 
-  auto& options_btn{ui_.button_elements["options"]};
   options_btn.changed = true;
   options_btn.type = "button2";
-  options_btn.bounds.x = .75 * SCREEN_SIZE_X - width / 2;
+  options_btn.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  options_btn.bounds.w = width;
-  options_btn.bounds.h = height;
+  options_btn.bounds.w = MAIN_BUTTON_WIDTH;
+  options_btn.bounds.h = MAIN_BUTTON_HEGIHT;
 
   options_btn.label.font = "Small";
   options_btn.label.texture = "options_button";
@@ -173,7 +171,7 @@ void UISystem::setup_date_display()
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = SCREEN_SIZE_X - el.bounds.w - UI_PADDING;
-  el.bounds.y = UI_PADDING + el.bounds.h;
+  el.bounds.y = UI_PADDING + FONT_HEIGHT_SMALL;
 }
 
 
@@ -246,8 +244,9 @@ void UISystem::resolve_selections()
           if (input_.lclick && clicked) el.scrollbar.selected = true;
 
           if (el.scrollbar.selected) {
-            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
             el.changed = true;
+
+            f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
             el.pos = max(0.0, min(test_pos, 1.0));
           }
         }
@@ -336,6 +335,6 @@ string UISystem::format_date()
 
 string UISystem::format_floor()
 {
-  return to_string(map_.cur_floor) + "F " + map_.section;
+  return to_string(map_.cur_floor) + "F";
 }
 

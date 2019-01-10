@@ -4,7 +4,7 @@
 
 After massive urban growth on a remote planet, the existing governments collapsed into chaos. Most people escaped the planet to more stable locations. The largely abandoned planet is now home to people trying to survive in the ruins of the towering skyscrapers. The most capable have taken over the highest floors, leaving the others below to fend for themselves. 
 
-The user starts in the lowest occupied area of a skyscraper. These levels are overrun with waste and junk that is mined to produce the basic necessities of life. The floors above these are home to the weakest and most disorganized factions where the user can first establish themselves. The higher floors have stronger and more well-established factions. They attempt to control access to these floors. 
+The outcast starts in the lowest occupied area of a skyscraper. These levels are overrun with waste and junk that is mined to produce the basic necessities of life. The floors above these are home to the weakest and most disorganized factions where the user can first establish themselves. The higher floors have stronger and more well-established factions. They attempt to control access to these floors. 
 
 ## Features
 

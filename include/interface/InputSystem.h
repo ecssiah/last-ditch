@@ -9,7 +9,7 @@
 class InputSystem
 {
 public:
-  InputSystem(Input& input, Camera& camera, Render& render);
+  InputSystem(Input& input, Render& render, Camera& camera);
 
   void init();
   void update();
@@ -25,8 +25,8 @@ private:
   void call_input_functions();
 
   Input& input_;
-  Camera& camera_;
   Render& render_;
+  Camera& camera_;
 
 }; 
 

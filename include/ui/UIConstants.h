@@ -5,10 +5,14 @@
 
 extern const i32 UI_PADDING;
 
+extern const i32 MAIN_BUTTON_WIDTH;
+extern const i32 MAIN_BUTTON_HEGIHT;
+
 extern const i32 MESSAGE_PADDING_X;
 extern const i32 MESSAGE_PADDING_Y;
 extern const i32 MESSAGE_WIN_SIZE_X;
 extern const i32 MESSAGE_WIN_SIZE_Y;
+extern const i32 MESSAGE_DISPLAY_LIMIT;
 
 extern const i32 SCROLLBAR_WIDTH;
 
