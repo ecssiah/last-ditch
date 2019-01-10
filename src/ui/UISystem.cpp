@@ -14,10 +14,9 @@
 using namespace std;
 
 UISystem::UISystem(
-  Input& input, Render& render, Map& map, Time& time, Log& log, UI& ui
+  Input& input, Map& map, Time& time, Log& log, UI& ui
 )
   : input_{input}
-  , render_{render}
   , map_{map}
   , time_{time}
   , log_{log}

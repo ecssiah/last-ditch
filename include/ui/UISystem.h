@@ -22,7 +22,7 @@
 class UISystem
 {
 public:
-  UISystem(Input& input, Render& render, Map& map, Time& time, Log& log, UI& ui);
+  UISystem(Input& input, Map& map, Time& time, Log& log, UI& ui);
 
   void init();
   void update();
@@ -57,7 +57,6 @@ private:
   std::string format_date();
 
   Input& input_;
-  Render& render_;
   Map& map_;
   Time& time_;
   Log& log_;

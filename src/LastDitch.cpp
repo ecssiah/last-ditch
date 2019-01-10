@@ -10,7 +10,7 @@ LastDitch::LastDitch()
   , camera_system_{input_, render_, camera_}
   , map_system_{input_, map_, camera_, log_}
   , entity_system_{map_}
-  , ui_system_{input_, render_, map_, time_, log_, ui_} 
+  , ui_system_{input_, map_, time_, log_, ui_} 
   , file_system_{input_, map_, time_}
 {
   config_system_.init();
