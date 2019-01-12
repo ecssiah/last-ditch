@@ -19,6 +19,8 @@ struct Input
     , lreleased{false}, mreleased{false}, rreleased{false}
     , touch_points{0}
     , mx{0}, my{0}
+    , mpx{0}, mpy{0}
+    , mrx{0}, mry{0}
     , mdx{0}, mdy{0}
     , tx{0}, ty{0}
     , tdx{0}, tdy{0}
@@ -36,6 +38,8 @@ struct Input
   i32 touch_points;
 
   i32 mx, my;
+  i32 mpx, mpy;
+  i32 mrx, mry;
   i32 mdx, mdy;
 
   f32 tx, ty;

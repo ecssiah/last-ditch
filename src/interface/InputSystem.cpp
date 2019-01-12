@@ -43,11 +43,15 @@ void InputSystem::clear_inputs()
   input_.mreleased = false;
   input_.rreleased = false;
 
+  input_.mpx = -1;
+  input_.mpy = -1;
+  input_.mrx = -1;
+  input_.mry = -1;
   input_.mdx = 0;
   input_.mdy = 0;
 
-  input_.tx = 0;
-  input_.ty = 0;
+  input_.tx = -1;
+  input_.ty = -1;
   input_.tdx = 0;
   input_.tdy = 0;
 
@@ -147,8 +151,8 @@ void InputSystem::on_key_up(SDL_KeyboardEvent key)
 
 void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
 {
-  input_.mx = mouse.x;
-  input_.my = mouse.y;
+  input_.mpx = mouse.x;
+  input_.mpy = mouse.y;
 
   switch (mouse.button) {
     case SDL_BUTTON_LMASK: {
@@ -173,8 +177,8 @@ void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
 
 void InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
 {
-  input_.mx = mouse.x;
-  input_.my = mouse.y;
+  input_.mrx = mouse.x;
+  input_.mry = mouse.y;
 
   switch (mouse.button) {
     case SDL_BUTTON_LMASK: {
