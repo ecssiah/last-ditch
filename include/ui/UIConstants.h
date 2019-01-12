@@ -14,6 +14,8 @@ extern const i32 MESSAGE_WIN_SIZE_X;
 extern const i32 MESSAGE_WIN_SIZE_Y;
 extern const i32 MESSAGE_DISPLAY_LIMIT;
 
+extern const i32 SCROLL_SPEED;
+
 extern const i32 SCROLLBAR_WIDTH;
 
 extern const i32 FONT_HEIGHT_SMALL;

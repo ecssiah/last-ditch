@@ -45,6 +45,13 @@ void InputSystem::clear_inputs()
 
   input_.mdx = 0;
   input_.mdy = 0;
+
+  input_.tx = 0;
+  input_.ty = 0;
+  input_.tdx = 0;
+  input_.tdy = 0;
+
+  input_.touch_points = 0;
 }
 
 
@@ -73,12 +80,55 @@ void InputSystem::call_input_functions()
         break;
       }
       case SDL_MOUSEMOTION: {
-        on_mouse_motion(e.motion.xrel, e.motion.yrel, e.button.button);
+        on_mouse_motion(e.motion, e.button);
+        break;
+      }
+      case SDL_FINGERDOWN: {
+        on_finger_down(e.tfinger);
+        break;
+      }
+      case SDL_FINGERUP: {
+        on_finger_up(e.tfinger);
+        break;
+      }
+      case SDL_FINGERMOTION: {
+        on_finger_motion(e.tfinger);
+        break;
+      }
+      case SDL_MULTIGESTURE: {
+        on_multigesture(e.mgesture);
         break;
       }
       default: break;
     }     
   }
+}
+
+
+void InputSystem::on_multigesture(SDL_MultiGestureEvent e)
+{
+  input_.touch_points = e.numFingers;
+}
+
+
+void InputSystem::on_finger_down(SDL_TouchFingerEvent e)
+{
+
+}
+
+
+void InputSystem::on_finger_up(SDL_TouchFingerEvent e)
+{
+
+}
+
+
+void InputSystem::on_finger_motion(SDL_TouchFingerEvent e)
+{
+  input_.tx = e.x;
+  input_.ty = e.y;
+  input_.tdx = e.dx;
+  input_.tdy = e.dy;
 }
 
 
@@ -171,9 +221,12 @@ void InputSystem::on_mouse_up(i32 x, i32 y, u8 button)
 }
 
 
-void InputSystem::on_mouse_motion(i32 xrel, i32 yrel, u8 button)
-{
-  input_.mdx = xrel;
-  input_.mdy = yrel;
+void InputSystem::on_mouse_motion(
+  SDL_MouseMotionEvent motion, SDL_MouseButtonEvent button
+) {
+  input_.mx = motion.x;
+  input_.my = motion.y;
+  input_.mdx = motion.xrel;
+  input_.mdy = motion.yrel;
 }
 

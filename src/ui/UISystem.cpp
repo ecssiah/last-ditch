@@ -10,6 +10,7 @@
 #include "../../include/ui/UI.h"
 #include "../../include/ui/UIConstants.h"
 #include "../../include/render/RenderConstants.h"
+#include "../../include/map/MapConstants.h"
 
 using namespace std;
 
@@ -50,6 +51,8 @@ void UISystem::setup_main_window()
   el.base.type = "window1";
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
+
+  setup_scalable(el.base);
 }
 
 
@@ -128,6 +131,74 @@ void UISystem::setup_message_window()
     el.bounds.w - 2 * MESSAGE_PADDING_X - SCROLLBAR_WIDTH, 
     el.bounds.h - 2 * MESSAGE_PADDING_Y
   };
+
+  setup_scalable(el.base);
+  setup_scrollbar(el.scrollbar);
+}
+
+
+void UISystem::setup_scrollbar(Scrollbar& el)
+{
+  if (TileData.find(el.type) != TileData.end()) {
+    el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+  } else {
+    el.basex = 0;
+    el.basey = 0;
+    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
+  }
+
+  el.src["t"] = {
+    el.basex, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["m"] = {
+    el.basex, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["b"] = {
+    el.basex, el.basey + 2 * el.size, el.size, el.size
+  };
+}
+
+
+void UISystem::setup_scalable(Scalable& el)
+{
+  if (TileData.find(el.type) != TileData.end()) {
+    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+    el.border = TileData[el.type].border;
+  } else {
+    el.basex = 0;
+    el.basey = 0;
+    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
+  }
+
+  el.src["tl"] = {
+    el.basex + 0 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["tm"] = {
+    el.basex + 1 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["tr"] = {
+    el.basex + 2 * el.size, el.basey + 0 * el.size, el.size, el.size
+  };
+  el.src["ll"] = {
+    el.basex + 0 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["mm"] = {
+    el.basex + 1 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["rr"] = {
+    el.basex + 2 * el.size, el.basey + 1 * el.size, el.size, el.size
+  };
+  el.src["bl"] = {
+    el.basex + 0 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
+  el.src["bm"] = {
+    el.basex + 1 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
+  el.src["br"] = {
+    el.basex + 2 * el.size, el.basey + 2 * el.size, el.size, el.size
+  };
 }
 
 
@@ -190,6 +261,9 @@ void UISystem::setup_button(Button& el)
   el.label.bounds.h = FONT_HEIGHT_MEDIUM;
   el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
   el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
+
+  setup_scalable(el.base);
+  setup_scalable(el.pressed);
 }
 
 
@@ -245,6 +319,15 @@ void UISystem::update_message_window()
 
   if (input_.lreleased) {
     el.scrollbar.selected = false;
+  } else if (input_.touch_points == 2) {
+    bool msg_win_contained{check_intersection(input_.mx, input_.mx, el)};
+
+    if (el.scrollbar.active && msg_win_contained) {
+      el.changed = true;
+
+      f64 test_pos{el.pos + SCROLL_SPEED * input_.tdy};
+      el.pos = max(0.0, min(test_pos, 1.0));
+    }
   } else {
     bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
 
@@ -316,6 +399,16 @@ bool UISystem::check_intersection(i32 x, i32 y, Element& el)
   auto bcheck{input_.my < el.bounds.y + el.bounds.h};
 
   return lcheck && rcheck && tcheck && bcheck;
+}
+
+
+bool UISystem::check_intersection(f32 x, f32 y, Element& el)
+{
+  auto check{
+    check_intersection((i32)(SCREEN_SIZE_X * x), (i32)(SCREEN_SIZE_Y * y), el)
+  };   
+
+  return check;
 }
 
 

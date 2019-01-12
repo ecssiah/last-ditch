@@ -185,8 +185,6 @@ void RenderSystem::build_elements()
     if (kv.second.changed) build_window(kv.second);
   for (auto& kv : ui_.text_elements) 
     if (kv.second.changed) build_text(kv.second);
-  for (auto& kv : ui_.scalable_elements) 
-    if (kv.second.changed) build_scalable(kv.second);
 } 
 
 
@@ -245,8 +243,6 @@ void RenderSystem::build_scrollable(Scrollable& el)
     {255, 255, 255}, el.mask.w
   )};
 
-  build_scalable(el.base);
-
   SDL_DestroyTexture(render_.textures[el.list.texture]);
   render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
     render_.renderer, sur
@@ -276,31 +272,12 @@ void RenderSystem::build_scrollable(Scrollable& el)
     build_scrollbar(el.scrollbar);
   }
 
-  SDL_FreeSurface(sur);
+  build_scalable(el.base);
 }
 
 
 void RenderSystem::build_scrollbar(Scrollbar& el)
 {
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-  } else {
-    el.basex = 0;
-    el.basey = 0;
-    std::cerr << "Scrollbar has invalid type: " << el.type << std::endl;
-  }
-
-  el.src["t"] = {
-    el.basex, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["m"] = {
-    el.basex, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["b"] = {
-    el.basex, el.basey + 2 * el.size, el.size, el.size
-  };
-
   el.dst["t"] = { 
     el.bounds.x, el.bounds.y + 0 * el.size, 
     el.size, el.size 
@@ -313,50 +290,11 @@ void RenderSystem::build_scrollbar(Scrollbar& el)
     el.bounds.x, el.bounds.y + el.bounds.h - el.size, 
     el.size, el.size
   };
-
 }
 
 
 void RenderSystem::build_scalable(Scalable& el)
 {
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-    el.border = TileData[el.type].border;
-  } else {
-    el.basex = 0;
-    el.basey = 0;
-    std::cerr << "Scalable has invalid type: " << el.type << std::endl;
-  }
-
-  el.src["tl"] = {
-    el.basex + 0 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["tm"] = {
-    el.basex + 1 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["tr"] = {
-    el.basex + 2 * el.size, el.basey + 0 * el.size, el.size, el.size
-  };
-  el.src["ll"] = {
-    el.basex + 0 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["mm"] = {
-    el.basex + 1 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["rr"] = {
-    el.basex + 2 * el.size, el.basey + 1 * el.size, el.size, el.size
-  };
-  el.src["bl"] = {
-    el.basex + 0 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-  el.src["bm"] = {
-    el.basex + 1 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-  el.src["br"] = {
-    el.basex + 2 * el.size, el.basey + 2 * el.size, el.size, el.size
-  };
-
   el.dst["tl"] = { 
     el.bounds.x, el.bounds.y, 
     el.size, el.size 
@@ -498,20 +436,24 @@ void RenderSystem::render_window(Window& el)
 
 void RenderSystem::render_scrollbar(Scrollbar& el)
 {
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["t"], &el.dst["t"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["m"], &el.dst["m"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["b"], &el.dst["b"]);
+  SDL_Texture*& texture{render_.textures[el.texture]};
+
+  SDL_RenderCopy(render_.renderer, texture, &el.src["t"], &el.dst["t"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["m"], &el.dst["m"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["b"], &el.dst["b"]);
 }
 
 void RenderSystem::render_scalable(Scalable& el)
 {
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["bl"], &el.dst["bl"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["bm"], &el.dst["bm"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["br"], &el.dst["br"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["ll"], &el.dst["ll"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["mm"], &el.dst["mm"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["rr"], &el.dst["rr"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["tl"], &el.dst["tl"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["tm"], &el.dst["tm"]);
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], &el.src["tr"], &el.dst["tr"]);
+  SDL_Texture*& texture{render_.textures[el.texture]};
+
+  SDL_RenderCopy(render_.renderer, texture, &el.src["bl"], &el.dst["bl"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["bm"], &el.dst["bm"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["br"], &el.dst["br"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["ll"], &el.dst["ll"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["mm"], &el.dst["mm"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["rr"], &el.dst["rr"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["tl"], &el.dst["tl"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["tm"], &el.dst["tm"]);
+  SDL_RenderCopy(render_.renderer, texture, &el.src["tr"], &el.dst["tr"]);
 }

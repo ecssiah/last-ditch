@@ -50,6 +50,7 @@ private:
   void update_message_window();
 
   bool check_intersection(i32 x, i32 y, Element& el);
+  bool check_intersection(f32 x, f32 y, Element& el);
 
   std::string format_floor();
   std::string format_time();
