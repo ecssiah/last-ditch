@@ -320,34 +320,35 @@ void UISystem::update_message_window()
   if (input_.lreleased) {
     el.scrollbar.selected = false;
   } else if (input_.touch_points == 2) {
-    bool msg_win_contained{check_intersection(input_.mx, input_.mx, el)};
+    auto msg_win_contained{check_intersection(input_.mx, input_.mx, el)};
 
-    if (el.scrollbar.active && msg_win_contained) {
-      el.changed = true;
-
-      f64 test_pos{el.pos + SCROLL_SPEED * input_.tdy};
-      el.pos = max(0.0, min(test_pos, 1.0));
-    }
+    if (msg_win_contained)
+      update_scrollable(el, -SCROLL_SPEED * input_.tdy);
   } else {
-    bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
 
     if (msg_win_clicked) {
       if (el.scrollbar.active) {
-        bool clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+        auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
 
         if (input_.lclick && clicked) el.scrollbar.selected = true;
 
-        if (el.scrollbar.selected) {
-          el.changed = true;
-
-          f64 test_pos{el.pos + input_.mdy / (f64)el.scroll_range};
-          el.pos = max(0.0, min(test_pos, 1.0));
-        }
+        if (el.scrollbar.selected)
+          update_scrollable(el, input_.mdy / (f32)el.scroll_range);
       }
 
       input_.lclick = false;
     }
   }
+}
+
+
+void UISystem::update_scrollable(Scrollable& el, f32 ds)
+{
+  el.changed = true;
+
+  f32 test_pos{el.pos + ds};
+  el.pos = max(0.0f, min(test_pos, 1.0f));
 }
 
 

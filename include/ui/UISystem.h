@@ -44,6 +44,8 @@ private:
   void update_hud();
   void update_messages();
 
+  void update_scrollable(Scrollable& el, f32 pos);
+
   void resolve_selections();
 
   void update_main_buttons(); 
