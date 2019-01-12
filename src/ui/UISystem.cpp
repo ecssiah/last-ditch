@@ -42,12 +42,19 @@ void UISystem::setup_main_window()
 {
   auto& el{ui_.window_elements["main"]};
   el.changed = true;
+  el.type = "window1";
 
   el.bounds.x = 0.1 * SCREEN_SIZE_X;
   el.bounds.y = 0.1 * SCREEN_SIZE_Y;
   el.bounds.w = 0.8 * SCREEN_SIZE_X;  
   el.bounds.h = 0.8 * SCREEN_SIZE_Y;  
 
+  setup_window(el);
+}
+
+
+void UISystem::setup_window(Window& el)
+{
   el.base.type = "window1";
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
@@ -109,27 +116,37 @@ void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.changed = true;
-
+  el.id = "message_window";
+  el.base_type = "window2";
+  el.scrollbar_type = "scrollbar1";
+  el.list_font = "Small";
+  el.list_items = log_.msgs;
+  el.pad = {MESSAGE_PADDING_X, MESSAGE_PADDING_Y};
   el.bounds = {
     SCREEN_SIZE_X - MESSAGE_WIN_SIZE_X, SCREEN_SIZE_Y - MESSAGE_WIN_SIZE_Y,
     MESSAGE_WIN_SIZE_X, MESSAGE_WIN_SIZE_Y
   };
 
-  el.base.type = "window2";
+  setup_scrollable(el);
+}
+
+
+void UISystem::setup_scrollable(Scrollable& el)
+{
+  el.base.type = el.base_type;
   el.base.texture = "overlay";
   el.base.bounds = el.bounds;
 
-  el.list.font = "Small";
-  el.list.texture = "message_window";
-  el.list.items = log_.msgs;
+  el.list.font = el.list_font;
+  el.list.texture = el.id;
+  el.list.items = el.list_items;
 
-  el.scrollbar.type = "scrollbar1";
+  el.scrollbar.type = el.scrollbar_type;
   el.scrollbar.texture = "overlay";
 
   el.mask = {
-    el.bounds.x + MESSAGE_PADDING_X, el.bounds.y + MESSAGE_PADDING_Y, 
-    el.bounds.w - 2 * MESSAGE_PADDING_X - SCROLLBAR_WIDTH, 
-    el.bounds.h - 2 * MESSAGE_PADDING_Y
+    el.bounds.x + el.pad.x, el.bounds.y + el.pad.y, 
+    el.bounds.w - 2 * el.pad.x - SCROLLBAR_WIDTH, el.bounds.h - 2 * el.pad.y
   };
 
   setup_scalable(el.base);
@@ -386,11 +403,17 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
-    auto& el{ui_.scrollable_elements["message_window"]};
-    el.changed = true;
-    el.pos = 0.0;
-    el.list.items = log_.msgs;
+    update_scrollable_items("message_window", log_.msgs);
   }
+}
+
+
+void UISystem::update_scrollable_items(const string& id, vector<string> items)
+{
+  auto &el{ui_.scrollable_elements[id]};
+  el.changed = true;
+  el.pos = 0.0;
+  el.list_items = el.list.items = items;
 }
 
 

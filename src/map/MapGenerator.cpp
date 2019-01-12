@@ -13,7 +13,7 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , show_grid_{false}
+  , show_grid_{true}
   , randomize_rooms_{false}
   , num_rooms_{60}
   , expansion_iterations_{20000}
@@ -43,16 +43,16 @@ void MapGenerator::layout_main_floor(i32 floor)
   string floor_type;
 
   switch (get_section(floor)) {
-  case LOW: floor_type = "dark_concrete"; break;
-  case MID: floor_type = "smooth_dark_concrete"; break;
-  case TOP: floor_type = "bright_dark_concrete"; break;
+  case 1: floor_type = "dark_concrete"; break;
+  case 2: floor_type = "smooth_dark_concrete"; break;
+  case 3: floor_type = "bright_dark_concrete"; break;
   }
 
   for (auto x{0}; x < TILES_PER_LAYER; x++) { 
     for (auto y{0}; y < TILES_PER_LAYER; y++) {
       set_tile("floor", x, y, floor, floor_type);
 
-      if (show_grid_) set_tile("overlay", x, y, floor, "selection");
+      if (show_grid_) set_tile("overlay", x, y, 1, "highlight");
     }
   }
 }
@@ -65,9 +65,9 @@ void MapGenerator::seed_rooms(i32 floor)
     string wall_type, floor_type;
 
     switch (get_section(floor)) {
-    case LOW: wall_type = "wall1"; floor_type = "light_concrete"; break;
-    case MID: wall_type = "wall2"; floor_type = "smooth_light_concrete"; break;
-    case TOP: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
+    case 1: wall_type = "wall1"; floor_type = "light_concrete"; break;
+    case 2: wall_type = "wall2"; floor_type = "smooth_light_concrete"; break;
+    case 3: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
     }
 
     Room test_room;
@@ -387,28 +387,16 @@ void MapGenerator::set_active(
 }
 
 
-const string MapGenerator::get_section_name(i32 floor)
-{
-  Section section{get_section(floor)};
-
-  switch (section) {
-    case LOW: return "Low";
-    case MID: return "Mid";
-    case TOP: return "Top";
-    default: return "INVALID";
-  }
-}
-
-
-const Section MapGenerator::get_section(i32 floor)
+const i32 MapGenerator::get_section(i32 floor)
 {
   if (floor > 2 * NUM_FLOORS / 3 && floor <= NUM_FLOORS) {
-    return TOP;
+    return 3;
   } else if (floor > 1 * NUM_FLOORS / 3) {
-    return MID;
+    return 2;
   } else if (floor > 0 * NUM_FLOORS / 3) {
-    return LOW;
+    return 1;
   } else {
-    return LOW;
+    return -1;
   }
 }
+

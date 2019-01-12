@@ -18,7 +18,6 @@ struct Map
   Map() 
     : floor_changed{false} 
     , cur_floor{1}
-    , section{"Low"}
     , floors{(u32)NUM_FLOORS + 1}
     , selected{}
     , tile_data{}
@@ -26,8 +25,6 @@ struct Map
 
   bool floor_changed;
   u16 cur_floor;
-
-  std::string section;
 
   std::vector<Floor> floors;
   std::vector<SDL_Point> selected;

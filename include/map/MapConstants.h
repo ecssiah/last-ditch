@@ -8,7 +8,6 @@
 #include "TileInfo.h"
 
 enum Dir { RIGHT, UP, LEFT, DOWN };
-enum Section { LOW, MID, TOP };
 
 constexpr i32 TILE_SIZE{64};
 constexpr i32 TILES_PER_LAYER{64}; 

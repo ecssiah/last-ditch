@@ -26,8 +26,7 @@ public:
   );
   void set_solid(i32 x, i32 y, i32 floor, bool solid);
 
-  const std::string get_section_name(i32 floor);
-  const Section get_section(i32 floor);
+  inline bool has_overlay() { return show_grid_; }
 
 private:
   void layout_main_floor(i32 floor);
@@ -43,6 +42,8 @@ private:
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir
   );
   bool room_collision(i32 floor, const Room& test_room); 
+
+  const i32 get_section(i32 floor);
 
   Map& map_;
 

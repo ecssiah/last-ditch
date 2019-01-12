@@ -36,6 +36,8 @@ private:
   void setup_time_display();
   void setup_date_display();
 
+  void setup_window(Window& el);
+  void setup_scrollable(Scrollable& el);
   void setup_button(Button& el);
   void setup_scrollbar(Scrollbar& el);
   void setup_scalable(Scalable& el);
@@ -45,6 +47,7 @@ private:
   void update_messages();
 
   void update_scrollable(Scrollable& el, f32 pos);
+  void update_scrollable_items(const std::string& id, std::vector<std::string> items);
 
   void resolve_selections();
 
