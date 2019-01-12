@@ -3,11 +3,11 @@
 
 #include "../utility/Types.h"
 
-extern const i32 TICKS_PER_SECOND;
-extern const i32 SECONDS_PER_MINUTE;
-extern const i32 MINUTES_PER_HOUR;
-extern const i32 HOURS_PER_DAY;
-extern const i32 DAYS_PER_MONTH;
-extern const i32 MONTHS_PER_YEAR;
+constexpr i32 TICKS_PER_SECOND{460};
+constexpr i32 SECONDS_PER_MINUTE{60};
+constexpr i32 MINUTES_PER_HOUR{60};
+constexpr i32 HOURS_PER_DAY{24};
+constexpr i32 DAYS_PER_MONTH{30};
+constexpr i32 MONTHS_PER_YEAR{12};
 
 #endif

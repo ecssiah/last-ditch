@@ -4,10 +4,6 @@ project(LastDitch)
 
 set(
   HEADERS
-  ./include/map/MapConstants.h
-  ./include/render/RenderConstants.h
-  ./include/render/CameraConstants.h
-  ./include/time/TimeConstants.h
   ./include/utility/AssetManager.h
   ./include/utility/ConfigSystem.h
   ./include/map/MapSystem.h
@@ -26,10 +22,6 @@ set(
 
 set(
   SOURCES
-  ./src/map/MapConstants.cpp
-  ./src/render/RenderConstants.cpp
-  ./src/render/CameraConstants.cpp
-  ./src/time/TimeConstants.cpp
   ./src/utility/AssetManager.cpp
   ./src/utility/ConfigSystem.cpp
   ./src/map/MapSystem.cpp
@@ -39,7 +31,6 @@ set(
   ./src/render/CameraSystem.cpp
   ./src/time/TimeSystem.cpp
   ./src/interface/InputSystem.cpp
-  ./src/ui/UIConstants.cpp
   ./src/ui/UISystem.cpp
   ./src/utility/FileSystem.cpp
   ./src/events/EventSystem.cpp

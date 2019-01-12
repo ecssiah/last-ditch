@@ -69,7 +69,7 @@ void UISystem::setup_main_buttons()
   info_btn.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   info_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  info_btn.bounds.h = MAIN_BUTTON_HEGIHT;
+  info_btn.bounds.h = MAIN_BUTTON_HEIGHT;
 
   info_btn.label.font = "Small";
   info_btn.label.content = "Info";
@@ -82,7 +82,7 @@ void UISystem::setup_main_buttons()
   save_btn.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   save_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  save_btn.bounds.h = MAIN_BUTTON_HEGIHT;
+  save_btn.bounds.h = MAIN_BUTTON_HEIGHT;
 
   save_btn.label.font = "Small";
   save_btn.label.content = "Save/Load";
@@ -95,7 +95,7 @@ void UISystem::setup_main_buttons()
   options_btn.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
   options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
   options_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  options_btn.bounds.h = MAIN_BUTTON_HEGIHT;
+  options_btn.bounds.h = MAIN_BUTTON_HEIGHT;
 
   options_btn.label.font = "Small";
   options_btn.label.content = "Options";

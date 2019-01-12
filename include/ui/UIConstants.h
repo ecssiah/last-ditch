@@ -2,28 +2,29 @@
 #define UI_CONSTANTS_H
 
 #include "../utility/Types.h"
+#include "../map/MapConstants.h"
 
-extern const i32 UI_PADDING;
+constexpr i32 UI_PADDING{4};
 
-extern const i32 MAIN_BUTTON_WIDTH;
-extern const i32 MAIN_BUTTON_HEGIHT;
+constexpr i32 MAIN_BUTTON_WIDTH{120};
+constexpr i32 MAIN_BUTTON_HEIGHT{32};
 
-extern const i32 MESSAGE_PADDING_X;
-extern const i32 MESSAGE_PADDING_Y;
-extern const i32 MESSAGE_WIN_SIZE_X;
-extern const i32 MESSAGE_WIN_SIZE_Y;
-extern const i32 MESSAGE_DISPLAY_LIMIT;
+constexpr i32 MESSAGE_PADDING_X{8};
+constexpr i32 MESSAGE_PADDING_Y{6};
+constexpr i32 MESSAGE_WIN_SIZE_X{328};
+constexpr i32 MESSAGE_WIN_SIZE_Y{120};
+constexpr i32 MESSAGE_DISPLAY_LIMIT{40};
 
-extern const i32 SCROLL_SPEED;
+constexpr i32 SCROLL_SPEED{6};
 
-extern const i32 SCROLLBAR_WIDTH;
+constexpr i32 SCROLLBAR_WIDTH{TILE_SIZE / 8};
 
-extern const i32 FONT_HEIGHT_SMALL;
-extern const i32 FONT_HEIGHT_MEDIUM;
-extern const i32 FONT_HEIGHT_LARGE;
+constexpr i32 FONT_HEIGHT_SMALL{15};
+constexpr i32 FONT_HEIGHT_MEDIUM{19};
+constexpr i32 FONT_HEIGHT_LARGE{24};
 
-extern const i32 FONT_WIDTH_SMALL;
-extern const i32 FONT_WIDTH_MEDIUM;
-extern const i32 FONT_WIDTH_LARGE;
+constexpr i32 FONT_WIDTH_SMALL{7};
+constexpr i32 FONT_WIDTH_MEDIUM{9};
+constexpr i32 FONT_WIDTH_LARGE{11};
 
 #endif
