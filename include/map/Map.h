@@ -9,6 +9,7 @@
 #include <boost/serialization/unordered_map.hpp>
 
 #include "Floor.h"
+#include "TileInfo.h"
 #include "MapConstants.h"
 #include "../utility/Types.h"
 
@@ -20,6 +21,7 @@ struct Map
     , section{"Low"}
     , floors{(u32)NUM_FLOORS + 1}
     , selected{}
+    , tile_data{}
   { }
 
   bool floor_changed;
@@ -29,6 +31,8 @@ struct Map
 
   std::vector<Floor> floors;
   std::vector<SDL_Point> selected;
+
+  std::unordered_map<std::string, TileInfo> tile_data;
 
 private:
   friend class boost::serialization::access;

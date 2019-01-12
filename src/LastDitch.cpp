@@ -3,7 +3,7 @@
 #include "../include/LastDitch.h"
 
 LastDitch::LastDitch()
-  : config_system_{}
+  : config_system_{map_}
   , input_system_{input_, render_, camera_}
   , time_system_{input_, render_, time_}
   , render_system_{input_, render_, camera_, map_, ui_}

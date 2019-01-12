@@ -348,15 +348,15 @@ void MapGenerator::set_tile(
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
-  if (TileData.find(type) != TileData.end()) {
+  if (map_.tile_data.find(type) != map_.tile_data.end()) {
     vector<string> type_vector; 
     boost::split(type_vector, type, boost::is_any_of("-"));
 
     tile.type = type_vector[0];
     tile.subtype = type_vector.size() <= 1 ? "" : type_vector[1];
-    tile.category = TileData[type].category;
-    tile.src.x = TileData[type].uv.x * TILE_SIZE;
-    tile.src.y = TileData[type].uv.y * TILE_SIZE;
+    tile.category = map_.tile_data[type].category;
+    tile.src.x = map_.tile_data[type].uv.x * TILE_SIZE;
+    tile.src.y = map_.tile_data[type].uv.y * TILE_SIZE;
   } else {
     cerr << "Tile(" << x << "," << y << ") has invalid type: ";
     cerr << tile.type << endl;

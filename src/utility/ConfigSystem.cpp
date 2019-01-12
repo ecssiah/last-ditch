@@ -8,7 +8,8 @@
 
 using namespace std;
 
-ConfigSystem::ConfigSystem()
+ConfigSystem::ConfigSystem(Map& map)
+  : map_{map}
 {
 
 }
@@ -45,7 +46,7 @@ void ConfigSystem::load_tile_info()
           tile_info.border = tile_node["border"].as<i32>();
         }
 
-        TileData[tile_data.first.as<string>()] = tile_info;
+        map_.tile_data[tile_data.first.as<string>()] = tile_info;
       }
     } 
   }

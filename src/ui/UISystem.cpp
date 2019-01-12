@@ -139,9 +139,9 @@ void UISystem::setup_message_window()
 
 void UISystem::setup_scrollbar(Scrollbar& el)
 {
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(SCROLLBAR_WIDTH * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
+  if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
+    el.basex = {(i32)(SCROLLBAR_WIDTH * map_.tile_data[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.y)};
   } else {
     el.basex = 0;
     el.basey = 0;
@@ -162,10 +162,10 @@ void UISystem::setup_scrollbar(Scrollbar& el)
 
 void UISystem::setup_scalable(Scalable& el)
 {
-  if (TileData.find(el.type) != TileData.end()) {
-    el.basex = {(i32)(TILE_SIZE * TileData[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * TileData[el.type].uv.y)};
-    el.border = TileData[el.type].border;
+  if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
+    el.basex = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.x)};
+    el.basey = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.y)};
+    el.border = map_.tile_data[el.type].border;
   } else {
     el.basex = 0;
     el.basey = 0;
