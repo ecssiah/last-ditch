@@ -320,7 +320,7 @@ void UISystem::update_message_window()
   if (input_.lreleased) {
     el.scrollbar.selected = false;
   } else if (input_.touch_points == 2) {
-    auto msg_win_contained{check_intersection(input_.mx, input_.mx, el)};
+    auto msg_win_contained{check_intersection(input_.mx, input_.my, el)};
 
     if (msg_win_contained)
       update_scrollable(el, -SCROLL_SPEED * input_.tdy);
@@ -329,9 +329,11 @@ void UISystem::update_message_window()
 
     if (msg_win_clicked) {
       if (el.scrollbar.active) {
-        auto clicked{check_intersection(input_.mx, input_.my, el.scrollbar)};
+        auto scrollbar_clicked{
+          check_intersection(input_.mx, input_.my, el.scrollbar)
+        };
 
-        if (input_.lclick && clicked) el.scrollbar.selected = true;
+        if (input_.lclick && scrollbar_clicked) el.scrollbar.selected = true;
 
         if (el.scrollbar.selected)
           update_scrollable(el, input_.mdy / (f32)el.scroll_range);

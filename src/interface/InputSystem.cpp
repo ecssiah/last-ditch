@@ -59,49 +59,25 @@ void InputSystem::call_input_functions()
 {
   for(SDL_Event e; SDL_PollEvent(&e); ) {
     switch(e.type) {
-      case SDL_QUIT: {
-        input_.exit = true;
-        break;
-      }
-      case SDL_KEYDOWN: {
-        on_key_down(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
-        break;
-      }
-      case SDL_KEYUP: {
-        on_key_up(e.key.keysym.sym, e.key.keysym.mod, e.key.keysym.scancode);
-        break;
-      }
-      case SDL_MOUSEBUTTONDOWN: {
-        on_mouse_down(e.button.x, e.button.y, e.button.button);
-        break;
-      }
-      case SDL_MOUSEBUTTONUP: {
-        on_mouse_up(e.button.x, e.button.y, e.button.button);
-        break;
-      }
-      case SDL_MOUSEMOTION: {
-        on_mouse_motion(e.motion, e.button);
-        break;
-      }
-      case SDL_FINGERDOWN: {
-        on_finger_down(e.tfinger);
-        break;
-      }
-      case SDL_FINGERUP: {
-        on_finger_up(e.tfinger);
-        break;
-      }
-      case SDL_FINGERMOTION: {
-        on_finger_motion(e.tfinger);
-        break;
-      }
-      case SDL_MULTIGESTURE: {
-        on_multigesture(e.mgesture);
-        break;
-      }
+      case SDL_KEYDOWN:         on_key_down(e.key); break;
+      case SDL_KEYUP:           on_key_up(e.key); break;
+      case SDL_MOUSEBUTTONDOWN: on_mouse_down(e.button); break;
+      case SDL_MOUSEBUTTONUP:   on_mouse_up(e.button); break;
+      case SDL_MOUSEMOTION:     on_mouse_motion(e.motion); break;
+      case SDL_FINGERDOWN:      on_finger_down(e.tfinger); break;
+      case SDL_FINGERUP:        on_finger_up(e.tfinger); break;
+      case SDL_FINGERMOTION:    on_finger_motion(e.tfinger); break;
+      case SDL_MULTIGESTURE:    on_multigesture(e.mgesture); break;
+      case SDL_QUIT:            on_quit(); break;
       default: break;
-    }     
+    }
   }
+}
+
+
+void InputSystem::on_quit()
+{
+  input_.exit = true;
 }
 
 
@@ -132,9 +108,9 @@ void InputSystem::on_finger_motion(SDL_TouchFingerEvent e)
 }
 
 
-void InputSystem::on_key_down(SDL_Keycode sym, u16 mod, u16 scancode)
+void InputSystem::on_key_down(SDL_KeyboardEvent key)
 {
-  switch (sym) {
+  switch (key.keysym.sym) {
     case SDLK_w: input_.up = true; break;
     case SDLK_a: input_.left = true; break;
     case SDLK_s: input_.down = true; break;
@@ -149,10 +125,10 @@ void InputSystem::on_key_down(SDL_Keycode sym, u16 mod, u16 scancode)
 }
 
 
-void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
+void InputSystem::on_key_up(SDL_KeyboardEvent key)
 {
-  if (mod == KMOD_NONE) {
-    switch (sym) {
+  if (key.keysym.mod == KMOD_NONE) {
+    switch (key.keysym.sym) {
       case SDLK_w: input_.up = false; break;
       case SDLK_a: input_.left = false; break;
       case SDLK_s: input_.down = false; break;
@@ -160,8 +136,8 @@ void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
       case SDLK_TAB: input_.menu = !input_.menu; break;
       default: break;
     }
-  } else if (mod == KMOD_RSHIFT) {
-    switch (sym) {
+  } else if (key.keysym.mod == KMOD_RSHIFT) {
+    switch (key.keysym.sym) {
       case SDLK_TAB: input_.hud = !input_.hud; break;
       default: break;
     }
@@ -169,12 +145,12 @@ void InputSystem::on_key_up(SDL_Keycode sym, u16 mod, u16 scancode)
 }
 
 
-void InputSystem::on_mouse_down(i32 x, i32 y, u8 button)
+void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
 {
-  input_.mx = x;
-  input_.my = y;
+  input_.mx = mouse.x;
+  input_.my = mouse.y;
 
-  switch (button) {
+  switch (mouse.button) {
     case SDL_BUTTON_LMASK: {
       input_.lclick = true;
       input_.lpressed = true; 
@@ -195,12 +171,12 @@ void InputSystem::on_mouse_down(i32 x, i32 y, u8 button)
 }
 
 
-void InputSystem::on_mouse_up(i32 x, i32 y, u8 button)
+void InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
 {
-  input_.mx = x;
-  input_.my = y;
+  input_.mx = mouse.x;
+  input_.my = mouse.y;
 
-  switch (button) {
+  switch (mouse.button) {
     case SDL_BUTTON_LMASK: {
       input_.lreleased = true;
       input_.lpressed = false; 
@@ -221,11 +197,11 @@ void InputSystem::on_mouse_up(i32 x, i32 y, u8 button)
 }
 
 
-void InputSystem::on_mouse_motion(
-  SDL_MouseMotionEvent motion, SDL_MouseButtonEvent button
-) {
+void InputSystem::on_mouse_motion(SDL_MouseMotionEvent motion) 
+{
   input_.mx = motion.x;
   input_.my = motion.y;
+
   input_.mdx = motion.xrel;
   input_.mdy = motion.yrel;
 }

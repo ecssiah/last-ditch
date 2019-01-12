@@ -21,12 +21,14 @@ private:
   void on_finger_down(SDL_TouchFingerEvent e);
   void on_finger_motion(SDL_TouchFingerEvent e);
 
-  void on_key_down(SDL_Keycode sym, u16 mod, u16 scancode);
-  void on_key_up(SDL_Keycode sym, u16 mod, u16 scancode);
+  void on_key_down(SDL_KeyboardEvent key);
+  void on_key_up(SDL_KeyboardEvent key);
 
-  void on_mouse_down(i32 x, i32 y, u8 button);
-  void on_mouse_up(i32 x, i32 y, u8 button);
-  void on_mouse_motion(SDL_MouseMotionEvent motion, SDL_MouseButtonEvent button);
+  void on_mouse_down(SDL_MouseButtonEvent button);
+  void on_mouse_up(SDL_MouseButtonEvent button);
+  void on_mouse_motion(SDL_MouseMotionEvent motion);
+
+  void on_quit();
 
   void clear_inputs();
   void call_input_functions();
