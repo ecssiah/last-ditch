@@ -13,7 +13,7 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , show_grid_{false}
+  , show_grid_{true}
   , randomize_rooms_{false}
   , num_rooms_{60}
   , expansion_iterations_{20000}
@@ -92,8 +92,9 @@ void MapGenerator::expand_rooms(i32 floor)
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
     vector<Dir> dirs{UP, DOWN, LEFT, RIGHT}; 
+    u64 random_room_index{rand() % rooms_[floor].size()};
 
-    Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
+    Room& room{rooms_[floor][random_room_index]}; 
 
     while (!found && !dirs.empty()) {
       const Dir dir{static_cast<Dir>(rand() % 4)};
@@ -129,15 +130,15 @@ void MapGenerator::build_rooms(i32 floor)
         set_tile("floor", x, y, floor, room.floor_type);
 
     for (auto x{room.l()}; x <= room.r(); x++) {
-      set_solid(x, room.t(), floor, true);
-      set_solid(x, room.b(), floor, true);
+      set_solid(x, room.t(), floor);
+      set_solid(x, room.b(), floor);
       set_tile("wall", x, room.t(), floor, room.wall_type + "-str"); 
       set_tile("wall", x, room.b(), floor, room.wall_type + "-str");
     }
 
     for (auto y{room.t() + 1}; y <= room.b(); y++) {
-      set_solid(room.l(), y, floor, true);
-      set_solid(room.r(), y, floor, true);
+      set_solid(room.l(), y, floor);
+      set_solid(room.r(), y, floor);
       set_tile("wall", room.l(), y, floor, room.wall_type + "-str", 90); 
       set_tile("wall", room.r(), y, floor, room.wall_type + "-str", 90);
     }
@@ -245,11 +246,11 @@ void MapGenerator::place_doors(i32 floor)
         found = true;
         
         if (rand() % 2 == 0) {
+          set_solid(x, y, floor);
+          set_tile("wall", x, y, floor, "door1-cls", rot);
+        } else {
           set_solid(x, y, floor, false);
           set_tile("wall", x, y, floor, "door1-opn", rot);
-        } else {
-          set_solid(x, y, floor, true);
-          set_tile("wall", x, y, floor, "door1-cls", rot);
         }
       }
     }
@@ -343,7 +344,7 @@ void MapGenerator::set_overlay()
 {
   for (auto x{0}; x < TILES_PER_LAYER; x++) 
     for (auto y{0}; y < TILES_PER_LAYER; y++)
-      set_tile("overlay", x, y, 1, "highlight");
+      set_tile("overlay", x, y, 1, "grid");
 }
 
 void MapGenerator::set_tile(

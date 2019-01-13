@@ -22,11 +22,13 @@ public:
     f32 rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
   void set_active(
-    const std::string& layer, i32 x, i32 y, i32 floor, bool active
+    const std::string& layer, i32 x, i32 y, i32 floor, 
+    bool active = true
   );
-  void set_solid(i32 x, i32 y, i32 floor, bool solid);
+  void set_solid(i32 x, i32 y, i32 floor, 
+    bool solid = true
+  );
 
-  void set_overlay();
   inline bool has_overlay() { return show_grid_; }
 
 private:
@@ -38,6 +40,7 @@ private:
   void build_rooms(i32 floor);
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
+  void set_overlay();
 
   bool has_clearance(
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir

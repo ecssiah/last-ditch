@@ -60,12 +60,12 @@ void MapSystem::calculate_selected_tile()
     input_.sy = -1;
     ::msg(log_, "Selected: out of bounds");
   } else {
+    clear_selection();
+    select_tile(input_.sx, input_.sy);
+
     string msg{
       "Selected: " + to_string(input_.sx) + ", " + to_string(input_.sy)
     }; 
-
-    clear_selection();
-    select_tile(input_.sx, input_.sy);
     ::msg(log_, msg);
   }
 }
@@ -73,7 +73,7 @@ void MapSystem::calculate_selected_tile()
 
 void MapSystem::select_tile(i32 x, i32 y)
 {
-  map_generator_.set_tile("overlay", x, y, 1, "selection");
+  map_generator_.set_tile("overlay", x, y, 1, "select");
 }
 
 
@@ -81,9 +81,9 @@ void MapSystem::clear_selection()
 {
   for (auto x{0}; x < TILES_PER_LAYER; x++) {
     for (auto y{0}; y < TILES_PER_LAYER; y++) {
-      if (map_.floors[1].layers["overlay"].tiles[x][y].type == "selection") {
+      if (map_.floors[1].layers["overlay"].tiles[x][y].type == "select") {
         if (map_generator_.has_overlay()) {
-          map_generator_.set_tile("overlay", x, y, 1, "highlight");
+          map_generator_.set_tile("overlay", x, y, 1, "grid");
         } else {
           map_generator_.set_active("overlay", x, y, 1, false);
         }
