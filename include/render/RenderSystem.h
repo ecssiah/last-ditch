@@ -42,6 +42,7 @@ private:
 
   void build_window(Window& el);
   void build_button(Button& el);
+  void build_button_set(ButtonSet& el);
   void build_text(Text& el);
   void build_scrollable(Scrollable& el);
   void build_scrollbar(Scrollbar& el);
@@ -49,6 +50,7 @@ private:
 
   void render_window(Window& el);
   void render_button(Button& el);
+  void render_button_set(ButtonSet& el);
   void render_scrollable(Scrollable& el);
   void render_scrollbar(Scrollbar& el);
   void render_scalable(Scalable& el);

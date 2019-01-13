@@ -12,6 +12,7 @@
 #include "Scrollbar.h"
 #include "Window.h"
 #include "Button.h"
+#include "ButtonSet.h"
 #include "../utility/Types.h"
 #include "../utility/Log.h"
 #include "../interface/Input.h"
@@ -39,6 +40,7 @@ private:
   void setup_window(Window& el);
   void setup_scrollable(Scrollable& el);
   void setup_button(Button& el);
+  void setup_button_set(ButtonSet& el);
   void setup_scrollbar(Scrollbar& el);
   void setup_scalable(Scalable& el);
 
@@ -46,13 +48,14 @@ private:
   void update_hud();
   void update_messages();
 
-  void update_scrollable(Scrollable& el, f32 pos);
-  void update_scrollable_items(const std::string& id, std::vector<std::string> items);
-
   void resolve_selections();
 
   void update_main_buttons(); 
   void update_message_window();
+
+  void update_scrollable(Scrollable& el, f32 pos);
+  void update_scrollable_items(const std::string& id, std::vector<std::string> items);
+  void update_button_set(ButtonSet& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
   bool check_intersection(f32 x, f32 y, Element& el);

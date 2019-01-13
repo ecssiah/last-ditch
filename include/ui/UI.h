@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "Button.h"
+#include "ButtonSet.h"
 #include "Element.h"
 #include "Scalable.h"
 #include "Scrollable.h"
@@ -21,6 +22,7 @@ struct UI
     , scalable_elements{}
     , window_elements{}
     , button_elements{}
+    , button_set_elements{}
     , scrollable_elements{}
     , scrollbar_elements{}
   {}
@@ -29,6 +31,7 @@ struct UI
   std::unordered_map<std::string, Scalable> scalable_elements;
   std::unordered_map<std::string, Window> window_elements;
   std::unordered_map<std::string, Button> button_elements;
+  std::unordered_map<std::string, ButtonSet> button_set_elements;
   std::unordered_map<std::string, Scrollable> scrollable_elements;
   std::unordered_map<std::string, Scrollbar> scrollbar_elements;
 

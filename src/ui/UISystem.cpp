@@ -65,50 +65,51 @@ void UISystem::setup_window(Window& el)
 
 void UISystem::setup_main_buttons()
 {
-  auto& info_btn{ui_.button_elements["info"]};
-  auto& save_btn{ui_.button_elements["save"]};
-  auto& options_btn{ui_.button_elements["options"]};
+  auto& main_button_set{ui_.button_set_elements["main_buttons"]};
+  auto& info{main_button_set.buttons["info"]};
+  auto& save{main_button_set.buttons["save"]};
+  auto& options{main_button_set.buttons["options"]};
 
-  info_btn.active = true;
+  main_button_set.changed = true;
 
-  info_btn.changed = true;
-  info_btn.type = "button2";
-  info_btn.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  info_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  info_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  info_btn.bounds.h = MAIN_BUTTON_HEIGHT;
+  info.active = true;
+  info.type = "button2";
+  info.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  info.bounds.y = .11 * SCREEN_SIZE_Y;
+  info.bounds.w = MAIN_BUTTON_WIDTH;
+  info.bounds.h = MAIN_BUTTON_HEIGHT;
 
-  info_btn.label.font = "Small";
-  info_btn.label.content = "Info";
-  info_btn.label.texture = "info_button";
+  info.label.font = "Small";
+  info.label.content = "Info";
+  info.label.texture = "info_button";
 
-  setup_button(info_btn);
+  save.type = "button2";
+  save.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  save.bounds.y = .11 * SCREEN_SIZE_Y;
+  save.bounds.w = MAIN_BUTTON_WIDTH;
+  save.bounds.h = MAIN_BUTTON_HEIGHT;
 
-  save_btn.changed = true;
-  save_btn.type = "button2";
-  save_btn.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  save_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  save_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  save_btn.bounds.h = MAIN_BUTTON_HEIGHT;
+  save.label.font = "Small";
+  save.label.content = "Save/Load";
+  save.label.texture = "save_button";
 
-  save_btn.label.font = "Small";
-  save_btn.label.content = "Save/Load";
-  info_btn.label.texture = "save_button";
+  options.type = "button2";
+  options.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  options.bounds.y = .11 * SCREEN_SIZE_Y;
+  options.bounds.w = MAIN_BUTTON_WIDTH;
+  options.bounds.h = MAIN_BUTTON_HEIGHT;
 
-  setup_button(save_btn);
+  options.label.font = "Small";
+  options.label.content = "Options";
+  options.label.texture = "options_button";
 
-  options_btn.changed = true;
-  options_btn.type = "button2";
-  options_btn.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  options_btn.bounds.y = .11 * SCREEN_SIZE_Y;
-  options_btn.bounds.w = MAIN_BUTTON_WIDTH;
-  options_btn.bounds.h = MAIN_BUTTON_HEIGHT;
+  setup_button_set(main_button_set);
+}
 
-  options_btn.label.font = "Small";
-  options_btn.label.content = "Options";
-  options_btn.label.texture = "options_button";
 
-  setup_button(options_btn);
+void UISystem::setup_button_set(ButtonSet& el)
+{
+  for (auto& kv : el.buttons) setup_button(kv.second);
 }
 
 
@@ -310,25 +311,24 @@ void UISystem::resolve_selections()
 void UISystem::update_main_buttons()
 {
   if (input_.lclick) {
-    auto& info_btn{ui_.button_elements["info"]};    
-    auto& save_btn{ui_.button_elements["save"]};    
-    auto& options_btn{ui_.button_elements["options"]};    
-
-    if (check_intersection(input_.mx, input_.my, info_btn)) {
-      info_btn.active = true;
-      save_btn.active = false;
-      options_btn.active = false;
-    } else if (check_intersection(input_.mx, input_.my, save_btn)) {
-      info_btn.active = false;
-      save_btn.active = true;
-      options_btn.active = false;
-    } else if (check_intersection(input_.mx, input_.my, options_btn)) {
-      info_btn.active = false;
-      save_btn.active = false;
-      options_btn.active = true;
-    }
-
     input_.lclick = false;
+    update_button_set(ui_.button_set_elements["main_buttons"]);
+  }
+}
+
+
+void UISystem::update_button_set(ButtonSet& el)
+{
+  el.changed = true;
+
+  string choice;
+
+  for (auto& kv : el.buttons)
+    if (check_intersection(input_.mx, input_.my, kv.second)) choice = kv.first;
+
+  if (!choice.empty()) {
+    for (auto& kv : el.buttons)
+      kv.second.active = kv.first == choice ? true : false; 
   }
 }
 

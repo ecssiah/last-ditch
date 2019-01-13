@@ -181,6 +181,8 @@ void RenderSystem::build_elements()
     if (kv.second.changed) build_scrollable(kv.second);
   for (auto& kv : ui_.button_elements) 
     if (kv.second.changed) build_button(kv.second);
+  for (auto& kv : ui_.button_set_elements)
+    if (kv.second.changed) build_button_set(kv.second);
   for (auto& kv : ui_.window_elements) 
     if (kv.second.changed) build_window(kv.second);
   for (auto& kv : ui_.text_elements) 
@@ -203,6 +205,14 @@ void RenderSystem::build_button(Button& el)
   build_scalable(el.base);
   build_scalable(el.pressed);
   build_text(el.label);
+}
+
+
+void RenderSystem::build_button_set(ButtonSet& el)
+{
+  el.changed = false;
+
+  for (auto& kv : el.buttons) build_button(kv.second);
 }
 
 
@@ -369,10 +379,14 @@ void RenderSystem::render_ui()
   if (input_.menu) {
     render_window(ui_.window_elements["main"]);
 
-    render_button(ui_.button_elements["info"]);
-    render_button(ui_.button_elements["save"]);
-    render_button(ui_.button_elements["options"]);
+    render_button_set(ui_.button_set_elements["main_buttons"]);
   }
+}
+
+
+void RenderSystem::render_button_set(ButtonSet& el)
+{
+  for (auto& kv : el.buttons) render_button(kv.second);
 }
 
 
