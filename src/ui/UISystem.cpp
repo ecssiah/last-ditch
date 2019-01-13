@@ -322,7 +322,6 @@ void UISystem::update_button_set(ButtonSet& el)
   el.changed = true;
 
   string choice;
-
   for (auto& kv : el.buttons)
     if (check_intersection(input_.mx, input_.my, kv.second)) choice = kv.first;
 
@@ -428,16 +427,6 @@ bool UISystem::check_intersection(i32 x, i32 y, Element& el)
   auto bcheck{input_.my < el.bounds.y + el.bounds.h};
 
   return lcheck && rcheck && tcheck && bcheck;
-}
-
-
-bool UISystem::check_intersection(f32 x, f32 y, Element& el)
-{
-  auto check{
-    check_intersection((i32)(SCREEN_SIZE_X * x), (i32)(SCREEN_SIZE_Y * y), el)
-  };   
-
-  return check;
 }
 
 
