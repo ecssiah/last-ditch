@@ -26,6 +26,7 @@ public:
   );
   void set_solid(i32 x, i32 y, i32 floor, bool solid);
 
+  void set_overlay();
   inline bool has_overlay() { return show_grid_; }
 
 private:

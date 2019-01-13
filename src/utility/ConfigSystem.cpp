@@ -23,22 +23,22 @@ void ConfigSystem::init()
 
 void ConfigSystem::load_tile_info()
 {
-  YAML::Node tileset_map{YAML::LoadFile("assets/scripts/tiles.yml")};
+  const YAML::Node& tileset_map{YAML::LoadFile("assets/scripts/tiles.yml")};
 
   for (const auto& tileset_data : tileset_map) {
     const YAML::Node& category_map{tileset_data.second};   
 
     for (const auto& category_data : category_map) {
-      auto category{category_data.first.as<string>()};
       const YAML::Node& tile_map{category_data.second};
+      const auto category{category_data.first.as<string>()};
 
       for (const auto& tile_data : tile_map) {
-        YAML::Node tile_node{tile_data.second};
+        const YAML::Node& tile_node{tile_data.second};
 
         TileInfo tile_info;
         tile_info.category = category;
 
-        auto uv_vec{tile_node["uv"].as<vector<i32> >()};
+        const auto uv_vec{tile_node["uv"].as<vector<i32> >()};
         tile_info.uv.x = uv_vec[0];
         tile_info.uv.y = uv_vec[1];
 

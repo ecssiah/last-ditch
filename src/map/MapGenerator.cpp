@@ -13,7 +13,7 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , show_grid_{true}
+  , show_grid_{false}
   , randomize_rooms_{false}
   , num_rooms_{60}
   , expansion_iterations_{20000}
@@ -35,6 +35,8 @@ void MapGenerator::generate_map()
     place_doors(floor);
     integrate_walls(floor);
   }
+
+  if (show_grid_) set_overlay();
 }
 
 
@@ -48,13 +50,9 @@ void MapGenerator::layout_main_floor(i32 floor)
   case 3: floor_type = "bright_dark_concrete"; break;
   }
 
-  for (auto x{0}; x < TILES_PER_LAYER; x++) { 
-    for (auto y{0}; y < TILES_PER_LAYER; y++) {
+  for (auto x{0}; x < TILES_PER_LAYER; x++)
+    for (auto y{0}; y < TILES_PER_LAYER; y++)
       set_tile("floor", x, y, floor, floor_type);
-
-      if (show_grid_) set_tile("overlay", x, y, 1, "highlight");
-    }
-  }
 }
 
 
@@ -93,12 +91,13 @@ void MapGenerator::expand_rooms(i32 floor)
 
   for (auto i{0}; i < expansion_iterations_; i++) {
     bool found{false};
-    vector<Dir> dirs; 
+    vector<Dir> dirs{UP, DOWN, LEFT, RIGHT}; 
 
     Room& room{rooms_[floor][rand() % rooms_[floor].size()]}; 
 
-    while (!found && dirs.size() < 4) {
+    while (!found && !dirs.empty()) {
       const Dir dir{static_cast<Dir>(rand() % 4)};
+      dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
 
       switch (dir) {
       case UP:    room.rect.y--; break;
@@ -108,8 +107,6 @@ void MapGenerator::expand_rooms(i32 floor)
       }
 
       if (room_collision(floor, room)) {
-        dirs.push_back(dir);
-
         switch (dir) {
         case UP:    room.rect.y++; break;
         case DOWN:  room.rect.h--; break;
@@ -210,6 +207,103 @@ void MapGenerator::integrate_walls(i32 floor)
 }
 
 
+void MapGenerator::place_doors(i32 floor)
+{
+  for (auto& room : rooms_[floor]) {
+    u8 count{0};
+    bool found{false};
+
+    while (!found && count++ < 40) {
+      i32 rot, x, y;
+
+      const auto horz_range{room.w() - 1};
+      const auto horz_start{room.l() + 1};
+      const auto vert_range{room.h() - 1};
+      const auto vert_start{room.t() + 1};
+
+      const Dir dir{static_cast<Dir>(rand() % 4)}; 
+
+      if (dir == UP) {
+        rot = 0;
+        x = horz_start + rand() % horz_range;
+        y = room.t(); 
+      } else if (dir == RIGHT) {
+        rot = 90;
+        x = room.r();
+        y = vert_start + rand() % vert_range;
+      } else if (dir == DOWN) {
+        rot = 180;
+        x = horz_start + rand() % horz_range;
+        y = room.b();
+      } else if (dir == LEFT) {
+        rot = 270;
+        x = room.l();
+        y = vert_start + rand() % vert_range;
+      }
+
+      if (has_clearance("door", x, y, floor, dir)) {
+        found = true;
+        
+        if (rand() % 2 == 0) {
+          set_solid(x, y, floor, false);
+          set_tile("wall", x, y, floor, "door1-opn", rot);
+        } else {
+          set_solid(x, y, floor, true);
+          set_tile("wall", x, y, floor, "door1-cls", rot);
+        }
+      }
+    }
+  }
+
+  cout << " Floor " << floor << " doors placed" << endl;
+}
+
+
+void MapGenerator::define_blocked_rooms(i32 floor)
+{
+  // left edge
+  blocked_rooms_[floor].push_back({
+    0, 0, OUTER_PATH, TILES_PER_LAYER - 1
+  });
+  // right edge
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
+  });  
+  // top edge 
+  blocked_rooms_[floor].push_back({
+    0, 0, TILES_PER_LAYER - 1, OUTER_PATH
+  });
+  // bottom edge
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
+  });
+  // middle horizontal
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
+    TILES_PER_LAYER - 1, CENTRAL_PATH + 1
+  });
+  // middle vertical
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
+    CENTRAL_PATH + 1, TILES_PER_LAYER - 1
+  });
+}
+
+
+bool MapGenerator::room_collision(i32 floor, const Room& test_room) 
+{
+  for (const auto& room : blocked_rooms_[floor]) 
+    if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
+
+  for (const auto& room : rooms_[floor]) {
+    const auto intersection{SDL_HasIntersection(&room.rect, &test_room.rect)};
+    if (&room.rect != &test_room.rect && intersection) return true;
+  }
+
+  return false;
+}
+
+
 bool MapGenerator::has_clearance(
   const string& category, i32 x, i32 y, i32 floor, Dir dir
 ) {
@@ -245,102 +339,12 @@ bool MapGenerator::has_clearance(
 }
 
 
-void MapGenerator::place_doors(i32 floor)
+void MapGenerator::set_overlay()
 {
-  for (auto& room : rooms_[floor]) {
-    u8 count{0};
-    bool found{false};
-
-    while (!found && count++ < 40) {
-      i32 rot, x, y;
-
-      const auto horz_range{room.w() - 1};
-      const auto horz_start{room.l() + 1};
-      const auto vert_range{room.h() - 1};
-      const auto vert_start{room.t() + 1};
-
-      const Dir dir{static_cast<Dir>(rand() % 4)}; 
-
-      if (dir == UP) {
-        rot = 0;
-        x = horz_start + rand() % horz_range;
-        y = room.t(); 
-      } else if (dir == DOWN) {
-        rot = 180;
-        x = horz_start + rand() % horz_range;
-        y = room.b();
-      } else if (dir == LEFT) {
-        rot = 270;
-        x = room.l();
-        y = vert_start + rand() % vert_range;
-      } else if (dir == RIGHT) {
-        rot = 90;
-        x = room.r();
-        y = vert_start + rand() % vert_range;
-      }
-
-      if (has_clearance("door", x, y, floor, dir)) {
-        found = true;
-        
-        if (rand() % 2 == 0) {
-          set_solid(x, y, floor, false);
-          set_tile("wall", x, y, floor, "door1-opn", rot);
-        } else {
-          set_solid(x, y, floor, true);
-          set_tile("wall", x, y, floor, "door1-cls", rot);
-        }
-      }
-    }
-  }
-
-  cout << " Floor " << floor << " doors placed" << endl;
+  for (auto x{0}; x < TILES_PER_LAYER; x++) 
+    for (auto y{0}; y < TILES_PER_LAYER; y++)
+      set_tile("overlay", x, y, 1, "highlight");
 }
-
-
-bool MapGenerator::room_collision(i32 floor, const Room& test_room) 
-{
-  for (const auto& room : blocked_rooms_[floor]) 
-    if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
-
-  for (const auto& room : rooms_[floor]) {
-    const auto intersection{SDL_HasIntersection(&room.rect, &test_room.rect)};
-    if (&room.rect != &test_room.rect && intersection) return true;
-  }
-
-  return false;
-}
-
-
-void MapGenerator::define_blocked_rooms(i32 floor)
-{
-  // left edge
-  blocked_rooms_[floor].push_back({
-    0, 0, OUTER_PATH, TILES_PER_LAYER - 1
-  });
-  // right edge
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
-  });  
-  // top edge 
-  blocked_rooms_[floor].push_back({
-    0, 0, TILES_PER_LAYER - 1, OUTER_PATH
-  });
-  // bottom edge
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
-  });
-  // middle horizontal
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
-    TILES_PER_LAYER - 1, CENTRAL_PATH + 1
-  });
-  // middle vertical
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
-    CENTRAL_PATH + 1, TILES_PER_LAYER - 1
-  });
-}
-
 
 void MapGenerator::set_tile(
   const string& layer, i32 x, i32 y, i32 floor, const string& type, 

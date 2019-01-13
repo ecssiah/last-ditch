@@ -366,8 +366,7 @@ void UISystem::update_message_window()
   } else if (input_.touch_points == 2) {
     auto msg_win_contained{check_intersection(input_.mx, input_.my, el)};
 
-    if (msg_win_contained)
-      update_scrollable(el, -SCROLL_SPEED * input_.tdy);
+    if (msg_win_contained) update_scrollable(el, -SCROLL_SPEED * input_.tdy);
   } else {
     auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
 
@@ -395,12 +394,12 @@ void UISystem::update_button_set(ButtonSet& el)
 
   string choice;
   for (auto& kv : el.buttons)
-    if (check_intersection(input_.mx, input_.my, kv.second)) choice = kv.first;
+    if (check_intersection(input_.mx, input_.my, kv.second))
+      choice = kv.first;
 
-  if (!choice.empty()) {
+  if (!choice.empty())
     for (auto& kv : el.buttons)
-      kv.second.active = kv.first == choice ? true : false; 
-  }
+      kv.second.active = (kv.first == choice) ? true : false; 
 }
 
 
