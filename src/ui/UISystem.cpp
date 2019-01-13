@@ -340,7 +340,9 @@ void UISystem::update_messages()
   if (log_.changed) {
     log_.changed = false;
 
-    update_scrollable_items("message_window", log_.msgs);
+    update_scrollable_items(
+      ui_.scrollable_elements["message_window"], log_.msgs
+    );
   }
 }
 
@@ -349,6 +351,7 @@ void UISystem::update_main_buttons()
 {
   if (input_.lclick) {
     input_.lclick = false;
+
     update_button_set(ui_.button_set_elements["main_buttons"]);
   }
 }
@@ -410,10 +413,10 @@ void UISystem::update_scrollable(Scrollable& el, f32 ds)
 }
 
 
-void UISystem::update_scrollable_items(const string& id, vector<string> items)
+void UISystem::update_scrollable_items(Scrollable& el, vector<string> items)
 {
-  auto &el{ui_.scrollable_elements[id]};
   el.changed = true;
+
   el.pos = 0.0;
   el.list_items = el.list.items = items;
 }

@@ -54,7 +54,7 @@ private:
   void update_message_window();
 
   void update_scrollable(Scrollable& el, f32 pos);
-  void update_scrollable_items(const std::string& id, std::vector<std::string> items);
+  void update_scrollable_items(Scrollable& el, std::vector<std::string> items);
   void update_button_set(ButtonSet& el);
 
   bool check_intersection(i32 x, i32 y, Element& el);
