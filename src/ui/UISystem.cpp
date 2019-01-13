@@ -158,8 +158,9 @@ void UISystem::setup_floor_display()
 {
   auto& el{ui_.text_elements["floor_display"]};
   el.changed = true;
+  el.id = "floor_display";
   el.font = "Small";
-  el.texture = "floor_display";
+  el.texture = el.id;
   el.content = format_floor();
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
@@ -172,8 +173,9 @@ void UISystem::setup_time_display()
 {
   auto& el{ui_.text_elements["time_display"]};
   el.changed = true;
+  el.id = "time_display";
   el.font = "Small";
-  el.texture = "time_display";
+  el.texture = el.id;
   el.content = format_time();
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
@@ -186,8 +188,9 @@ void UISystem::setup_date_display()
 {
   auto& el{ui_.text_elements["date_display"]};
   el.changed = true;
+  el.id = "date_display";
   el.font = "Large";
-  el.texture = "date_display";
+  el.texture = el.id;
   el.content = format_date();
   el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
   el.bounds.h = FONT_HEIGHT_SMALL;
