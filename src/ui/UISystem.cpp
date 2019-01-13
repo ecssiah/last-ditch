@@ -53,16 +53,6 @@ void UISystem::setup_main_window()
 }
 
 
-void UISystem::setup_window(Window& el)
-{
-  el.base.type = "window1";
-  el.base.texture = "overlay";
-  el.base.bounds = el.bounds;
-
-  setup_scalable(el.base);
-}
-
-
 void UISystem::setup_main_buttons()
 {
   auto& main_button_set{ui_.button_set_elements["main_buttons"]};
@@ -107,12 +97,6 @@ void UISystem::setup_main_buttons()
 }
 
 
-void UISystem::setup_button_set(ButtonSet& el)
-{
-  for (auto& kv : el.buttons) setup_button(kv.second);
-}
-
-
 void UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
@@ -129,29 +113,6 @@ void UISystem::setup_message_window()
   };
 
   setup_scrollable(el);
-}
-
-
-void UISystem::setup_scrollable(Scrollable& el)
-{
-  el.base.type = el.base_type;
-  el.base.texture = "overlay";
-  el.base.bounds = el.bounds;
-
-  el.list.font = el.list_font;
-  el.list.texture = el.id;
-  el.list.items = el.list_items;
-
-  el.scrollbar.type = el.scrollbar_type;
-  el.scrollbar.texture = "overlay";
-
-  el.mask = {
-    el.bounds.x + el.pad.x, el.bounds.y + el.pad.y, 
-    el.bounds.w - 2 * el.pad.x - SCROLLBAR_WIDTH, el.bounds.h - 2 * el.pad.y
-  };
-
-  setup_scalable(el.base);
-  setup_scrollbar(el.scrollbar);
 }
 
 
@@ -197,6 +158,68 @@ void UISystem::setup_date_display()
   el.bounds.h = FONT_HEIGHT_SMALL;
   el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
   el.bounds.y = UI_PADDING + FONT_HEIGHT_SMALL;
+}
+
+
+void UISystem::setup_window(Window& el)
+{
+  el.base.type = "window1";
+  el.base.texture = "overlay";
+  el.base.bounds = el.bounds;
+
+  setup_scalable(el.base);
+}
+
+
+void UISystem::setup_button(Button& el)
+{
+  el.changed = true;
+
+  el.base.type = el.type + "-off";
+  el.base.texture = "overlay";
+  el.base.bounds = el.bounds;
+
+  el.pressed.type = el.type + "-on";
+  el.pressed.texture = "overlay";
+  el.pressed.bounds = el.bounds;
+
+  el.label.font = "Medium";
+  el.label.bounds.w = FONT_WIDTH_MEDIUM * el.label.content.size();
+  el.label.bounds.h = FONT_HEIGHT_MEDIUM;
+  el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
+  el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
+
+  setup_scalable(el.base);
+  setup_scalable(el.pressed);
+}
+
+
+void UISystem::setup_button_set(ButtonSet& el)
+{
+  for (auto& kv : el.buttons) setup_button(kv.second);
+}
+
+
+void UISystem::setup_scrollable(Scrollable& el)
+{
+  el.base.type = el.base_type;
+  el.base.texture = "overlay";
+  el.base.bounds = el.bounds;
+
+  el.list.font = el.list_font;
+  el.list.texture = el.id;
+  el.list.items = el.list_items;
+
+  el.scrollbar.type = el.scrollbar_type;
+  el.scrollbar.texture = "overlay";
+
+  el.mask = {
+    el.bounds.x + el.pad.x, el.bounds.y + el.pad.y, 
+    el.bounds.w - 2 * el.pad.x - SCROLLBAR_WIDTH, el.bounds.h - 2 * el.pad.y
+  };
+
+  setup_scalable(el.base);
+  setup_scrollbar(el.scrollbar);
 }
 
 
@@ -265,29 +288,6 @@ void UISystem::setup_scalable(Scalable& el)
 }
 
 
-void UISystem::setup_button(Button& el)
-{
-  el.changed = true;
-
-  el.base.type = el.type + "-off";
-  el.base.texture = "overlay";
-  el.base.bounds = el.bounds;
-
-  el.pressed.type = el.type + "-on";
-  el.pressed.texture = "overlay";
-  el.pressed.bounds = el.bounds;
-
-  el.label.font = "Medium";
-  el.label.bounds.w = FONT_WIDTH_MEDIUM * el.label.content.size();
-  el.label.bounds.h = FONT_HEIGHT_MEDIUM;
-  el.label.bounds.x = el.bounds.x + el.bounds.w / 2 - el.label.bounds.w / 2;
-  el.label.bounds.y = el.bounds.y + el.bounds.h / 2 - el.label.bounds.h / 2;
-
-  setup_scalable(el.base);
-  setup_scalable(el.pressed);
-}
-
-
 void UISystem::update()
 {
   resolve_selections();
@@ -305,71 +305,6 @@ void UISystem::resolve_selections()
   } else if (input_.hud) {
     update_message_window();
   }
-}
-
-
-void UISystem::update_main_buttons()
-{
-  if (input_.lclick) {
-    input_.lclick = false;
-    update_button_set(ui_.button_set_elements["main_buttons"]);
-  }
-}
-
-
-void UISystem::update_button_set(ButtonSet& el)
-{
-  el.changed = true;
-
-  string choice;
-  for (auto& kv : el.buttons)
-    if (check_intersection(input_.mx, input_.my, kv.second)) choice = kv.first;
-
-  if (!choice.empty()) {
-    for (auto& kv : el.buttons)
-      kv.second.active = kv.first == choice ? true : false; 
-  }
-}
-
-
-void UISystem::update_message_window()
-{
-  auto& el{ui_.scrollable_elements["message_window"]};
-
-  if (input_.lreleased) {
-    el.scrollbar.selected = false;
-  } else if (input_.touch_points == 2) {
-    auto msg_win_contained{check_intersection(input_.mx, input_.my, el)};
-
-    if (msg_win_contained)
-      update_scrollable(el, -SCROLL_SPEED * input_.tdy);
-  } else {
-    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
-
-    if (msg_win_clicked) {
-      if (el.scrollbar.active) {
-        auto scrollbar_clicked{
-          check_intersection(input_.mx, input_.my, el.scrollbar)
-        };
-
-        if (input_.lclick && scrollbar_clicked) el.scrollbar.selected = true;
-
-        if (el.scrollbar.selected)
-          update_scrollable(el, input_.mdy / (f32)el.scroll_range);
-      }
-
-      input_.lclick = false;
-    }
-  }
-}
-
-
-void UISystem::update_scrollable(Scrollable& el, f32 ds)
-{
-  el.changed = true;
-
-  f32 test_pos{el.pos + ds};
-  el.pos = max(0.0f, min(test_pos, 1.0f));
 }
 
 
@@ -407,6 +342,71 @@ void UISystem::update_messages()
 
     update_scrollable_items("message_window", log_.msgs);
   }
+}
+
+
+void UISystem::update_main_buttons()
+{
+  if (input_.lclick) {
+    input_.lclick = false;
+    update_button_set(ui_.button_set_elements["main_buttons"]);
+  }
+}
+
+
+void UISystem::update_message_window()
+{
+  auto& el{ui_.scrollable_elements["message_window"]};
+
+  if (input_.lreleased) {
+    el.scrollbar.selected = false;
+  } else if (input_.touch_points == 2) {
+    auto msg_win_contained{check_intersection(input_.mx, input_.my, el)};
+
+    if (msg_win_contained)
+      update_scrollable(el, -SCROLL_SPEED * input_.tdy);
+  } else {
+    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+
+    if (msg_win_clicked) {
+      if (el.scrollbar.active) {
+        auto scrollbar_clicked{
+          check_intersection(input_.mx, input_.my, el.scrollbar)
+        };
+
+        if (input_.lclick && scrollbar_clicked) el.scrollbar.selected = true;
+
+        if (el.scrollbar.selected)
+          update_scrollable(el, input_.mdy / (f32)el.scroll_range);
+      }
+
+      input_.lclick = false;
+    }
+  }
+}
+
+
+void UISystem::update_button_set(ButtonSet& el)
+{
+  el.changed = true;
+
+  string choice;
+  for (auto& kv : el.buttons)
+    if (check_intersection(input_.mx, input_.my, kv.second)) choice = kv.first;
+
+  if (!choice.empty()) {
+    for (auto& kv : el.buttons)
+      kv.second.active = kv.first == choice ? true : false; 
+  }
+}
+
+
+void UISystem::update_scrollable(Scrollable& el, f32 ds)
+{
+  el.changed = true;
+
+  f32 test_pos{el.pos + ds};
+  el.pos = max(0.0f, min(test_pos, 1.0f));
 }
 
 

@@ -38,17 +38,17 @@ private:
   void setup_date_display();
 
   void setup_window(Window& el);
-  void setup_scrollable(Scrollable& el);
   void setup_button(Button& el);
   void setup_button_set(ButtonSet& el);
+  void setup_scrollable(Scrollable& el);
   void setup_scrollbar(Scrollbar& el);
   void setup_scalable(Scalable& el);
+
+  void resolve_selections();
 
   void update_menu();
   void update_hud();
   void update_messages();
-
-  void resolve_selections();
 
   void update_main_buttons(); 
   void update_message_window();
