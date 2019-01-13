@@ -416,7 +416,9 @@ void RenderSystem::render_scrollable(Scrollable& el)
 
 void RenderSystem::render_text(Text& el)
 {
-  SDL_RenderCopy(render_.renderer, render_.textures[el.texture], nullptr, &el.bounds); 
+  SDL_Texture*& texture{render_.textures[el.texture]};
+
+  SDL_RenderCopy(render_.renderer, texture, nullptr, &el.bounds); 
 }
 
 

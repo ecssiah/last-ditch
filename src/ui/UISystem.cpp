@@ -154,6 +154,48 @@ void UISystem::setup_scrollable(Scrollable& el)
 }
 
 
+void UISystem::setup_floor_display()
+{
+  auto& el{ui_.text_elements["floor_display"]};
+  el.changed = true;
+  el.font = "Small";
+  el.texture = "floor_display";
+  el.content = format_floor();
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
+  el.bounds.x = UI_PADDING;
+  el.bounds.y = UI_PADDING;
+}
+
+
+void UISystem::setup_time_display()
+{
+  auto& el{ui_.text_elements["time_display"]};
+  el.changed = true;
+  el.font = "Small";
+  el.texture = "time_display";
+  el.content = format_time();
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
+  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
+  el.bounds.y = UI_PADDING;
+}
+
+
+void UISystem::setup_date_display()
+{
+  auto& el{ui_.text_elements["date_display"]};
+  el.changed = true;
+  el.font = "Large";
+  el.texture = "date_display";
+  el.content = format_date();
+  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
+  el.bounds.h = FONT_HEIGHT_SMALL;
+  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
+  el.bounds.y = UI_PADDING + FONT_HEIGHT_SMALL;
+}
+
+
 void UISystem::setup_scrollbar(Scrollbar& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
@@ -216,48 +258,6 @@ void UISystem::setup_scalable(Scalable& el)
   el.src["br"] = {
     el.basex + 2 * el.size, el.basey + 2 * el.size, el.size, el.size
   };
-}
-
-
-void UISystem::setup_floor_display()
-{
-  auto& el{ui_.text_elements["floor_display"]};
-  el.changed = true;
-  el.font = "Small";
-  el.texture = "floor_display";
-  el.content = format_floor();
-  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
-  el.bounds.h = FONT_HEIGHT_SMALL;
-  el.bounds.x = UI_PADDING;
-  el.bounds.y = UI_PADDING;
-}
-
-
-void UISystem::setup_time_display()
-{
-  auto& el{ui_.text_elements["time_display"]};
-  el.changed = true;
-  el.font = "Small";
-  el.texture = "time_display";
-  el.content = format_time();
-  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
-  el.bounds.h = FONT_HEIGHT_SMALL;
-  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
-  el.bounds.y = UI_PADDING;
-}
-
-
-void UISystem::setup_date_display()
-{
-  auto& el{ui_.text_elements["date_display"]};
-  el.changed = true;
-  el.font = "Large";
-  el.texture = "date_display";
-  el.content = format_date();
-  el.bounds.w = FONT_WIDTH_SMALL * el.content.size();
-  el.bounds.h = FONT_HEIGHT_SMALL;
-  el.bounds.x = SCREEN_SIZE_X - UI_PADDING - el.bounds.w;
-  el.bounds.y = UI_PADDING + FONT_HEIGHT_SMALL;
 }
 
 
