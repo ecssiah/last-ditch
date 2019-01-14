@@ -7,7 +7,7 @@
 #   SDL2_TTF_LIBRARIES, the name of the library to link against
 #   SDL2_TTF_INCLUDE_DIRS, where to find the headers
 #   SDL2_TTF_FOUND, if false, do not try to link against
-#   SDL2_TTF_VERSION_STRING - human-readable string containing the version of SDL_ttf
+#   SDL2_TTF_VERSION_STRING - human-readable string with SDL_ttf version
 #
 #
 #
@@ -53,11 +53,11 @@ find_path(
   PATHS ${SDL2_TTF_PATH}
 )
 
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(VC_LIB_PATH_SUFFIX lib/x64)
-else ()
+else()
   set(VC_LIB_PATH_SUFFIX lib/x86)
-endif ()
+endif()
 
 find_library(
   SDL2_TTF_LIBRARY
@@ -69,7 +69,7 @@ find_library(
   PATHS ${SDL2_TTF_PATH}
 )
 
-if (SDL2_TTF_INCLUDE_DIR AND EXISTS "${SDL2_TTF_INCLUDE_DIR}/SDL_ttf.h")
+if(SDL2_TTF_INCLUDE_DIR AND EXISTS "${SDL2_TTF_INCLUDE_DIR}/SDL_ttf.h")
   file(
     STRINGS "${SDL2_TTF_INCLUDE_DIR}/SDL_ttf.h" SDL2_TTF_VERSION_MAJOR_LINE 
     REGEX "^#define[ \t]+SDL_TTF_MAJOR_VERSION[ \t]+[0-9]+$"
@@ -96,7 +96,9 @@ if (SDL2_TTF_INCLUDE_DIR AND EXISTS "${SDL2_TTF_INCLUDE_DIR}/SDL_ttf.h")
   )
   set(
     SDL2_TTF_VERSION_STRING 
-    ${SDL2_TTF_VERSION_MAJOR}.${SDL2_TTF_VERSION_MINOR}.${SDL2_TTF_VERSION_PATCH}
+    "${SDL2_TTF_VERSION_MAJOR}."
+    "${SDL2_TTF_VERSION_MINOR}."
+    "${SDL2_TTF_VERSION_PATCH}"
   )
   unset(SDL2_TTF_VERSION_MAJOR_LINE)
   unset(SDL2_TTF_VERSION_MINOR_LINE)
@@ -104,14 +106,14 @@ if (SDL2_TTF_INCLUDE_DIR AND EXISTS "${SDL2_TTF_INCLUDE_DIR}/SDL_ttf.h")
   unset(SDL2_TTF_VERSION_MAJOR)
   unset(SDL2_TTF_VERSION_MINOR)
   unset(SDL2_TTF_VERSION_PATCH)
-endif ()
+endif()
 
 set(SDL2_TTF_LIBRARIES ${SDL2_TTF_LIBRARY})
 set(SDL2_TTF_INCLUDE_DIRS ${SDL2_TTF_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)
 
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(
+find_package_handle_standard_args(
   SDL2_ttf
   REQUIRED_VARS SDL2_TTF_LIBRARIES SDL2_TTF_INCLUDE_DIRS
   VERSION_VAR SDL2_TTF_VERSION_STRING

@@ -7,7 +7,7 @@
 #   SDL2_IMAGE_LIBRARIES, the name of the library to link against
 #   SDL2_IMAGE_INCLUDE_DIRS, where to find the headers
 #   SDL2_IMAGE_FOUND, if false, do not try to link against
-#   SDL2_IMAGE_VERSION_STRING - human-readable string containing the version of SDL_image
+#   SDL2_IMAGE_VERSION_STRING - human-readable string with SDL_image version
 #
 #
 #
@@ -99,7 +99,9 @@ if(SDL2_IMAGE_INCLUDE_DIR AND EXISTS "${SDL2_IMAGE_INCLUDE_DIR}/SDL_image.h")
   )
   set(
     SDL2_IMAGE_VERSION_STRING 
-    ${SDL2_IMAGE_VERSION_MAJOR}.${SDL2_IMAGE_VERSION_MINOR}.${SDL2_IMAGE_VERSION_PATCH}
+    "${SDL2_IMAGE_VERSION_MAJOR}."
+    "${SDL2_IMAGE_VERSION_MINOR}."
+    "${SDL2_IMAGE_VERSION_PATCH}"
   )
   unset(SDL2_IMAGE_VERSION_MAJOR_LINE)
   unset(SDL2_IMAGE_VERSION_MINOR_LINE)
@@ -114,7 +116,7 @@ set(SDL2_IMAGE_INCLUDE_DIRS ${SDL2_IMAGE_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)
 
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(
+find_package_handle_standard_args(
   SDL2_image
   REQUIRED_VARS SDL2_IMAGE_LIBRARIES SDL2_IMAGE_INCLUDE_DIRS
   VERSION_VAR SDL2_IMAGE_VERSION_STRING

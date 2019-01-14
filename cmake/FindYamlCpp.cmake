@@ -1,8 +1,11 @@
-# - Try to find YamlCpp
-# Once done this will define
+# Locate YamlCpp library
+#
+# This module defines:
+#
 #  YamlCpp_FOUND - System has YamlCpp
 #  YamlCpp_INCLUDE_DIRS - The YamlCpp include directories
 #  YamlCpp_LIBRARIES - The libraries needed to use YamlCpp
+#
 
 find_package(PkgConfig)
 pkg_check_modules(PC_YAMLCPP yaml-cpp)
