@@ -122,7 +122,7 @@ void RenderSystem::init_SDL_ttf()
 
 SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
-  string filename{"assets/textures/" + texturename + ".png"};
+  string filename{"data/tilesets/" + texturename + ".png"};
   SDL_Surface* sur{IMG_Load(filename.c_str())};
 
   if (!sur) { 
@@ -145,7 +145,7 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
 
 TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
 {
-  string fontpath{"assets/fonts/" + fontname + ".ttf"};
+  string fontpath{"data/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
   if (!font) {

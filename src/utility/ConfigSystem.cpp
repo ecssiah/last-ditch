@@ -23,7 +23,7 @@ void ConfigSystem::init()
 
 void ConfigSystem::load_tile_info()
 {
-  const YAML::Node& tileset_map{YAML::LoadFile("assets/scripts/tiles.yml")};
+  const YAML::Node& tileset_map{YAML::LoadFile("data/scripts/tiles.yml")};
 
   for (const auto& tileset_data : tileset_map) {
     const YAML::Node& category_map{tileset_data.second};   

@@ -17,19 +17,19 @@ public:
 
   void generate_map();
 
+  inline bool has_overlay() { return show_grid_; }
+
   void set_tile(
-    const std::string& layer, i32 x, i32 y, i32 floor, const std::string& type, 
+    const std::string& layer, i32 x, i32 y, i32 floor, 
+    const std::string& type, 
     f32 rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
   void set_active(
-    const std::string& layer, i32 x, i32 y, i32 floor, 
-    bool active = true
+    const std::string& layer, i32 x, i32 y, i32 floor, bool active = true
   );
-  void set_solid(i32 x, i32 y, i32 floor, 
-    bool solid = true
+  void set_solid(
+    i32 x, i32 y, i32 floor, bool solid = true
   );
-
-  inline bool has_overlay() { return show_grid_; }
 
 private:
   void layout_main_floor(i32 floor);
@@ -40,6 +40,7 @@ private:
   void build_rooms(i32 floor);
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
+
   void set_overlay();
 
   bool has_clearance(

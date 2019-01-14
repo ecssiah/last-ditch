@@ -37,13 +37,7 @@ set(
   ./src/LastDitch.cpp
 )
 
-set(
-  CMAKE_MODULE_PATH
-  "${CMAKE_MODULE_PATH}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/build/cmake/Modules"
-)
-
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/build")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(
   Boost 1.66.0 REQUIRED 
@@ -79,10 +73,20 @@ include_directories(
 )
 
 target_link_libraries(
-  LastDitch 
+  LastDitch
   ${Boost_LIBRARIES}
   ${SDL2_LIBRARY}
   ${SDL2_IMAGE_LIBRARY}
   ${SDL2_TTF_LIBRARIES}
   ${YAMLCPP_LIBRARY}
+)
+
+set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/build")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/build")
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data)
+
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/data
+  DESTINATION . 
 )
