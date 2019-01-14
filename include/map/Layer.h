@@ -6,7 +6,7 @@
 
 #include "Tile.h"
 #include "../utility/Types.h"
-#include "MapConstants.h"
+#include "../constants/MapConstants.h"
 
 struct Layer
 {

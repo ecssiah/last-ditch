@@ -1,8 +1,8 @@
 #ifndef UI_CONSTANTS_H
 #define UI_CONSTANTS_H
 
+#include "MapConstants.h"
 #include "../utility/Types.h"
-#include "../map/MapConstants.h"
 
 constexpr i32 UI_PADDING{4};
 

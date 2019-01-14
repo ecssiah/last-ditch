@@ -1,9 +1,9 @@
 #include <iostream>
 #include <glm/glm.hpp>
 
-#include "../../include/render/CameraConstants.h"
+#include "../../include/constants/CameraConstants.h"
+#include "../../include/constants/MapConstants.h"
 #include "../../include/render/CameraSystem.h"
-#include "../../include/map/MapConstants.h"
 
 using namespace std;
 

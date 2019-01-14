@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "../../include/utility/Logging.h"
-#include "../../include/map/MapConstants.h"
-#include "../../include/render/RenderConstants.h"
+#include "../../include/constants/MapConstants.h"
+#include "../../include/constants/RenderConstants.h"
 
 using namespace std;
 

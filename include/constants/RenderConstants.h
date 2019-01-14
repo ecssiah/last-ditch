@@ -1,8 +1,8 @@
 #ifndef RENDER_CONSTANTS_H
 #define RENDER_CONSTANTS_H
 
+#include "MapConstants.h"
 #include "../utility/Types.h"
-#include "../map/MapConstants.h"
 
 constexpr i32 FPS{30};
 constexpr f32 FRAME_TIME{1.0 / FPS};

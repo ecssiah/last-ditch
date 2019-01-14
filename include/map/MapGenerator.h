@@ -7,8 +7,8 @@
 
 #include "Map.h"
 #include "Room.h"
-#include "MapConstants.h"
 #include "../utility/Types.h"
+#include "../constants/MapConstants.h"
 
 class MapGenerator 
 {

@@ -7,7 +7,7 @@
 #include <boost/serialization/access.hpp>
 
 #include "../utility/Types.h"
-#include "MapConstants.h"
+#include "../constants/MapConstants.h"
 
 struct Tile
 {

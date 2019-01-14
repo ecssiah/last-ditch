@@ -6,7 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "Element.h"
-#include "../map/MapConstants.h"
+#include "../constants/MapConstants.h"
 
 struct Scrollbar : public Element
 {

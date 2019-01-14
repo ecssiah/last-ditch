@@ -6,11 +6,11 @@
 #include <sstream>
 #include <algorithm>
 
+#include "../../include/constants/UIConstants.h"
+#include "../../include/constants/RenderConstants.h"
+#include "../../include/constants/MapConstants.h"
 #include "../../include/utility/Logging.h"
 #include "../../include/ui/UI.h"
-#include "../../include/ui/UIConstants.h"
-#include "../../include/render/RenderConstants.h"
-#include "../../include/map/MapConstants.h"
 
 using namespace std;
 

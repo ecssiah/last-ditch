@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "../utility/Types.h"
-#include "../render/CameraConstants.h"
+#include "../constants/CameraConstants.h"
 
 class Camera
 {

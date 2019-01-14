@@ -6,7 +6,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "../../include/utility/Logging.h"
-#include "../../include/map/MapConstants.h"
+#include "../../include/constants/MapConstants.h"
 #include "../../include/map/Room.h"
 
 using namespace std;

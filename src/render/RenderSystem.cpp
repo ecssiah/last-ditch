@@ -9,10 +9,10 @@
 #include <glm/glm.hpp>
 
 #include "../../include/utility/Logging.h"
+#include "../../include/constants/RenderConstants.h"
+#include "../../include/constants/MapConstants.h"
+#include "../../include/constants/UIConstants.h"
 #include "../../include/render/RenderSystem.h"
-#include "../../include/render/RenderConstants.h"
-#include "../../include/map/MapConstants.h"
-#include "../../include/ui/UIConstants.h"
 
 using namespace std;
 

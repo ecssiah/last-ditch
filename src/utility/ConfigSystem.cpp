@@ -3,7 +3,7 @@
 
 #include "../../include/utility/Logging.h"
 #include "../../include/utility/ConfigSystem.h"
-#include "../../include/map/MapConstants.h"
+#include "../../include/constants/MapConstants.h"
 #include "../../include/map/Tile.h"
 
 using namespace std;

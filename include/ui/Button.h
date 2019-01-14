@@ -7,7 +7,7 @@
 #include "Scalable.h"
 #include "Text.h"
 #include "../utility/Types.h"
-#include "../map/MapConstants.h"
+#include "../constants/MapConstants.h"
 
 struct Button : public Element
 {

@@ -1,7 +1,7 @@
 #include "../../include/entity/EntitySystem.h"
 
 #include "../../include/utility/Logging.h"
-#include "../../include/map/MapConstants.h"
+#include "../../include/constants/MapConstants.h"
 
 using namespace std;
 

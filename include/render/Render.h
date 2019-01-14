@@ -7,7 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "../utility/Types.h"
-#include "../render/RenderConstants.h"
+#include "../constants/RenderConstants.h"
 #include "../ui/Text.h"
 #include "../ui/Scalable.h"
 #include "../ui/Window.h"

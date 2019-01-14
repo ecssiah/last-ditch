@@ -1,11 +1,11 @@
 #ifndef MAP_SYSTEM_H
 #define MAP_SYSTEM_H
 
-#include "../interface/Input.h"
 #include "Map.h"
+#include "MapGenerator.h"
 #include "../render/Camera.h"
 #include "../utility/Log.h"
-#include "MapGenerator.h"
+#include "../interface/Input.h"
 
 class MapSystem
 {
