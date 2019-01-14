@@ -2,6 +2,8 @@
 
 #include "../include/LastDitch.h"
 
+using namespace std;
+
 LastDitch::LastDitch()
   : config_system_{map_}
   , input_system_{input_, render_, camera_}
@@ -22,25 +24,15 @@ LastDitch::LastDitch()
   input_system_.init();
   file_system_.init();
 
-  f32 accumulator;
-
   while (!input_.exit) {
-    accumulator += render_.dt;
-
-    while (accumulator >= FRAME_TIME) {
-      time_system_.frame_begin();
-
-      input_system_.update();
-      camera_system_.update();
-      entity_system_.update();
-      ui_system_.update();
-      map_system_.update();
-      render_system_.update();
-
-      time_system_.frame_end();
-
-      accumulator -= FRAME_TIME; 
-    }
+    time_system_.frame_begin();
+    input_system_.update();
+    camera_system_.update();
+    entity_system_.update();
+    ui_system_.update();
+    map_system_.update();
+    render_system_.update();
+    time_system_.frame_end();
   }
 }
 
