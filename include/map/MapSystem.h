@@ -19,7 +19,7 @@ private:
   void calculate_selected_tile();
 
   void clear_selection();
-  void select_tile(i32 x, i32 y, i32 floor);
+  void select_tile(i32 x, i32 y);
 
   Input& input_;
   Camera& camera_;

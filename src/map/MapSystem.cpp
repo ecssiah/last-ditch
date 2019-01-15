@@ -52,35 +52,32 @@ void MapSystem::calculate_selected_tile()
   i32 targetx = floor(screenx + camera_.pos.x);
   i32 targety = floor(screeny + camera_.pos.y);
 
-  auto xcheck{targetx < 0 || targety > TILES_PER_LAYER - 1};
-  auto ycheck{targety < 0 || targety > TILES_PER_LAYER - 1}; 
+  auto x_in_bounds{targetx >= 0 && targetx <= TILES_PER_LAYER - 1};
+  auto y_in_bounds{targety >= 0 && targety <= TILES_PER_LAYER - 1}; 
 
-  if (xcheck || ycheck) {
-    input_.selectx = -1;
-    input_.selecty = -1;
-    input_.selectfloor = -1;
-
-    ::msg(log_, "Selected: out of bounds");
-  } else {
+  if (x_in_bounds && y_in_bounds) {
     clear_selection();
 
     input_.selectx = targetx;
     input_.selecty = targety;
     input_.selectfloor = map_.cur_floor;
 
-    select_tile(input_.selectx, input_.selecty, input_.selectfloor);
+    select_tile(input_.selectx, input_.selecty);
 
-    string msg{
-      "Selected: " + to_string(input_.selectx) + ", " + to_string(input_.selecty)
-    }; 
+    string msg{"Selected: ["};
+    msg += to_string(input_.selectx) + "," + to_string(input_.selecty) + ",";
+    msg += to_string(input_.selectfloor) + "]"; 
+
     ::msg(log_, msg);
+  } else {
+    ::msg(log_, "Selected: [invalid]");
   }
 }
 
 
-void MapSystem::select_tile(i32 x, i32 y, i32 floor)
+void MapSystem::select_tile(i32 x, i32 y)
 {
-  map_generator_.set_tile("overlay", x, y, floor, "select");
+  map_generator_.set_tile("overlay", x, y, map_.cur_floor, "select");
 }
 
 
