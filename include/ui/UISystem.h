@@ -57,11 +57,11 @@ private:
   void update_scrollable_items(Scrollable& el, std::vector<std::string> items);
   void update_button_set(ButtonSet& el);
 
-  bool check_intersection(i32 x, i32 y, Element& el);
+  const bool check_intersection(i32 x, i32 y, Element& el) const;
 
-  std::string format_floor();
-  std::string format_time();
-  std::string format_date();
+  const std::string format_floor() const;
+  const std::string format_time() const;
+  const std::string format_date() const;
 
   Input& input_;
   Map& map_;

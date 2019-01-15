@@ -344,7 +344,7 @@ void RenderSystem::build_scalable(Scalable& el)
 }
 
 
-void RenderSystem::render_map()
+void RenderSystem::render_map() const
 {
   const f32 lower{0};
   const f32 upper{(f32)TILES_PER_LAYER - 1};
@@ -366,7 +366,7 @@ void RenderSystem::render_map()
 }
 
 
-void RenderSystem::render_ui()
+void RenderSystem::render_ui() const
 {
   if (input_.hud) {
     render_scrollable(ui_.scrollable_elements["message_window"]);
@@ -384,14 +384,15 @@ void RenderSystem::render_ui()
 }
 
 
-void RenderSystem::render_button_set(ButtonSet& el)
+void RenderSystem::render_button_set(ButtonSet& el) const
 {
   for (auto& kv : el.buttons) render_button(kv.second);
 }
 
 
-void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
-{
+void RenderSystem::render_tile(
+  const string& layer, i32 x, i32 y, i32 floor
+) const {
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
@@ -411,7 +412,7 @@ void RenderSystem::render_tile(const string& layer, i32 x, i32 y, i32 floor)
 }
 
 
-void RenderSystem::render_scrollable(Scrollable& el)
+void RenderSystem::render_scrollable(Scrollable& el) const
 {
   render_scalable(el.base);
 
@@ -428,7 +429,7 @@ void RenderSystem::render_scrollable(Scrollable& el)
 }
 
 
-void RenderSystem::render_text(Text& el)
+void RenderSystem::render_text(Text& el) const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 
@@ -436,7 +437,7 @@ void RenderSystem::render_text(Text& el)
 }
 
 
-void RenderSystem::render_button(Button& el)
+void RenderSystem::render_button(Button& el) const
 {
   el.active ? render_scalable(el.pressed) : render_scalable(el.base);
 
@@ -444,13 +445,13 @@ void RenderSystem::render_button(Button& el)
 }
 
 
-void RenderSystem::render_window(Window& el)
+void RenderSystem::render_window(Window& el) const
 {
   render_scalable(el.base);
 }
 
 
-void RenderSystem::render_scrollbar(Scrollbar& el)
+void RenderSystem::render_scrollbar(Scrollbar& el) const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 
@@ -459,7 +460,7 @@ void RenderSystem::render_scrollbar(Scrollbar& el)
   SDL_RenderCopy(render_.renderer, texture, &el.src["b"], &el.dst["b"]);
 }
 
-void RenderSystem::render_scalable(Scalable& el)
+void RenderSystem::render_scalable(Scalable& el) const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 

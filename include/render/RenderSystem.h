@@ -48,18 +48,18 @@ private:
   void build_scrollbar(Scrollbar& el);
   void build_scalable(Scalable& el);
 
-  void render_window(Window& el);
-  void render_button(Button& el);
-  void render_button_set(ButtonSet& el);
-  void render_scrollable(Scrollable& el);
-  void render_scrollbar(Scrollbar& el);
-  void render_scalable(Scalable& el);
-  void render_text(Text& el);
+  void render_window(Window& el) const;
+  void render_button(Button& el) const;
+  void render_button_set(ButtonSet& el) const;
+  void render_scrollable(Scrollable& el) const;
+  void render_scrollbar(Scrollbar& el) const;
+  void render_scalable(Scalable& el) const;
+  void render_text(Text& el) const;
 
-  void render_tile(const std::string& layer, i32 x, i32 y, i32 floor);
+  void render_tile(const std::string& layer, i32 x, i32 y, i32 floor) const;
 
-  void render_map();
-  void render_ui();
+  void render_map() const;
+  void render_ui() const;
 
   Render& render_;
   Input& input_;

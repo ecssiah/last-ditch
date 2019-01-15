@@ -364,15 +364,15 @@ void UISystem::update_message_window()
   if (input_.lreleased) {
     el.scrollbar.selected = false;
   } else if (input_.touch_points == 2) {
-    auto msg_win_contained{check_intersection(input_.mx, input_.my, el)};
+    const bool msg_win_contained{check_intersection(input_.mx, input_.my, el)};
 
     if (msg_win_contained) update_scrollable(el, -SCROLL_SPEED * input_.tdy);
   } else {
-    auto msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
+    const bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
 
     if (msg_win_clicked) {
       if (el.scrollbar.active) {
-        auto scrollbar_clicked{
+        const bool scrollbar_clicked{
           check_intersection(input_.mx, input_.my, el.scrollbar)
         };
 
@@ -421,18 +421,18 @@ void UISystem::update_scrollable_items(Scrollable& el, vector<string> items)
 }
 
 
-bool UISystem::check_intersection(i32 x, i32 y, Element& el)
+const bool UISystem::check_intersection(i32 x, i32 y, Element& el) const
 {
-  auto lcheck{input_.mx > el.bounds.x};
-  auto rcheck{input_.mx < el.bounds.x + el.bounds.w};
-  auto tcheck{input_.my > el.bounds.y};
-  auto bcheck{input_.my < el.bounds.y + el.bounds.h};
+  const bool lcheck{input_.mx > el.bounds.x};
+  const bool rcheck{input_.mx < el.bounds.x + el.bounds.w};
+  const bool tcheck{input_.my > el.bounds.y};
+  const bool bcheck{input_.my < el.bounds.y + el.bounds.h};
 
   return lcheck && rcheck && tcheck && bcheck;
 }
 
 
-string UISystem::format_time()
+const string UISystem::format_time() const
 {
   stringstream ss;
   ss << setfill('0');
@@ -444,7 +444,7 @@ string UISystem::format_time()
 }
 
 
-string UISystem::format_date()
+const string UISystem::format_date() const
 {
   stringstream ss;
   ss << setfill('0');
@@ -456,7 +456,7 @@ string UISystem::format_date()
 }
 
 
-string UISystem::format_floor()
+const string UISystem::format_floor() const
 {
   return to_string(map_.cur_floor) + "F";
 }

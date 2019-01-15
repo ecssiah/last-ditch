@@ -295,7 +295,7 @@ void MapGenerator::define_blocked_rooms(i32 floor)
 }
 
 
-bool MapGenerator::room_collision(i32 floor, const Room& test_room) 
+const bool MapGenerator::room_collision(i32 floor, const Room& test_room) const 
 {
   for (const auto& room : blocked_rooms_[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
@@ -309,9 +309,9 @@ bool MapGenerator::room_collision(i32 floor, const Room& test_room)
 }
 
 
-bool MapGenerator::has_clearance(
+const bool MapGenerator::has_clearance(
   const string& category, i32 x, i32 y, i32 floor, Dir dir
-) {
+) const {
   i8 dx1, dy1;
   i8 dx2, dy2;
   i8 dx3, dy3;
@@ -357,6 +357,10 @@ void MapGenerator::set_tile(
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
+  tile.active = true;
+  tile.rotation = rotation;
+  tile.flip = flip;
+
   if (map_.tile_data.find(type) != map_.tile_data.end()) {
     vector<string> type_vector; 
     boost::split(type_vector, type, boost::is_any_of("-"));
@@ -367,17 +371,13 @@ void MapGenerator::set_tile(
     tile.src.x = map_.tile_data[type].uv.x * TILE_SIZE;
     tile.src.y = map_.tile_data[type].uv.y * TILE_SIZE;
   } else {
-    cerr << "Tile(" << x << "," << y << ") has invalid type: ";
-    cerr << tile.type << endl;
-
     tile.category = "error";
     tile.src.x = 0;
     tile.src.y = 0;
-  }
 
-  tile.active = true;
-  tile.rotation = rotation;
-  tile.flip = flip;
+    cerr << "Tile(" << x << "," << y << ") has invalid type: ";
+    cerr << tile.type << endl;
+  }
 }
 
 
@@ -396,7 +396,7 @@ void MapGenerator::set_active(
 }
 
 
-const i32 MapGenerator::get_section(i32 floor)
+const i32 MapGenerator::get_section(i32 floor) const
 {
   if (floor > 2 * NUM_FLOORS / 3 && floor <= NUM_FLOORS) {
     return 3;

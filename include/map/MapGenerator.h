@@ -17,7 +17,7 @@ public:
 
   void generate_map();
 
-  inline bool has_overlay() { return show_grid_; }
+  inline const bool has_overlay() const { return show_grid_; }
 
   void set_tile(
     const std::string& layer, i32 x, i32 y, i32 floor, 
@@ -41,16 +41,16 @@ private:
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
 
-  inline const Dir rand_dir() { return static_cast<Dir>(rand() % 4); }
-
   void set_overlay();
 
-  bool has_clearance(
+  const bool has_clearance(
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir
-  );
-  bool room_collision(i32 floor, const Room& test_room); 
+  ) const;
+  const bool room_collision(i32 floor, const Room& test_room) const; 
 
-  const i32 get_section(i32 floor);
+  inline const Dir rand_dir() const { return static_cast<Dir>(rand() % 4); }
+
+  const i32 get_section(i32 floor) const;
 
   Map& map_;
 

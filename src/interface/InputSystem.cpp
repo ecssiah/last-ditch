@@ -155,21 +155,18 @@ void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
   input_.mpy = mouse.y;
 
   switch (mouse.button) {
-    case SDL_BUTTON_LMASK: {
+    case SDL_BUTTON_LMASK:
       input_.lclick = true;
       input_.lpressed = true; 
       break;
-    }
-    case SDL_BUTTON_MMASK: {
+    case SDL_BUTTON_MMASK:
       input_.mclick = true;
       input_.mpressed = true; 
       break;
-    }
-    case SDL_BUTTON_RMASK: {
+    case SDL_BUTTON_RMASK:
       input_.rclick = true;
       input_.rpressed = true; 
       break;
-    }
     default: break;
   }
 }
@@ -181,21 +178,18 @@ void InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
   input_.mry = mouse.y;
 
   switch (mouse.button) {
-    case SDL_BUTTON_LMASK: {
+    case SDL_BUTTON_LMASK:
       input_.lreleased = true;
       input_.lpressed = false; 
       break;
-    }
-    case SDL_BUTTON_MMASK: {
+    case SDL_BUTTON_MMASK:
       input_.mreleased = true;
       input_.mpressed = false; 
       break;
-    }
-    case SDL_BUTTON_RMASK: {
+    case SDL_BUTTON_RMASK:
       input_.rreleased = true;
       input_.rpressed = false; 
       break;
-    }
     default: break;
   }
 }

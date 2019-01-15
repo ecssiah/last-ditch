@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.7)
 
 project(LastDitch)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
 set(
   HEADERS
   ./include/utility/AssetManager.h
@@ -13,7 +16,6 @@ set(
   ./include/render/CameraSystem.h
   ./include/time/TimeSystem.h
   ./include/interface/InputSystem.h
-  ./include/ui/UIConstants.h
   ./include/ui/UISystem.h
   ./include/utility/FileSystem.h
   ./include/events/EventSystem.h
