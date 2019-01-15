@@ -13,7 +13,7 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , show_grid_{false}
+  , grid_active_{false}
   , randomize_rooms_{true}
   , num_rooms_{60}
   , expansion_iterations_{20000}
@@ -36,7 +36,7 @@ void MapGenerator::generate_map()
     integrate_walls(floor);
   }
 
-  if (show_grid_) set_overlay();
+  if (grid_active_) set_overlay();
 }
 
 

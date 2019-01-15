@@ -360,7 +360,7 @@ void RenderSystem::render_map() const
       render_tile("wall", x, y, map_.cur_floor);
       render_tile("object", x, y, map_.cur_floor);
       render_tile("entity", x, y, map_.cur_floor);
-      render_tile("overlay", x, y, 1);
+      render_tile("overlay", x, y, map_.cur_floor);
     }
   }
 }

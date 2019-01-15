@@ -17,7 +17,7 @@ public:
 
   void generate_map();
 
-  inline const bool has_overlay() const { return show_grid_; }
+  inline const bool grid_active() const { return grid_active_; }
 
   void set_tile(
     const std::string& layer, i32 x, i32 y, i32 floor, 
@@ -54,7 +54,7 @@ private:
 
   Map& map_;
 
-  bool show_grid_;
+  bool grid_active_;
   bool randomize_rooms_;
 
   u16 num_rooms_;

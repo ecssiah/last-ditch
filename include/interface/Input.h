@@ -24,7 +24,7 @@ struct Input
     , mdx{0}, mdy{0}
     , tx{0}, ty{0}
     , tdx{0}, tdy{0}
-    , sx{0}, sy{0}
+    , selectx{-1}, selecty{-1}, selectfloor{-1}
   {}
 
   bool exit, pause, debug, menu, hud;
@@ -45,7 +45,7 @@ struct Input
   f32 tx, ty;
   f32 tdx, tdy;
 
-  i32 sx, sy;
+  i32 selectx, selecty, selectfloor;
 };
 
 #endif
