@@ -102,7 +102,7 @@ void MapGenerator::expand_rooms(i32 floor)
     Room& room{rooms_[floor][random_room_index]}; 
 
     while (!found && !dirs.empty()) {
-      const Dir dir{(Dir)(rand() % 4)};
+      const Dir dir{rand_dir()};
       dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
 
       switch (dir) {
@@ -226,29 +226,24 @@ void MapGenerator::place_doors(i32 floor)
       const auto vert_start{room.t() + 1};
 
       i32 rot, x, y;
-      const Dir dir{(Dir)(rand() % 4)}; 
+      const Dir dir{rand_dir()}; 
 
-      switch (dir) {
-      case UP:
+      if (dir == UP) {
         rot = 0;
         x = horz_start + rand() % horz_range;
         y = room.t(); 
-        break;
-      case DOWN:
+      } else if (dir == DOWN) {
         rot = 90;
         x = room.r();
         y = vert_start + rand() % vert_range;
-        break;
-      case RIGHT:
+      } else if (dir == RIGHT) {
         rot = 180;
         x = horz_start + rand() % horz_range;
         y = room.b();
-        break;
-      case LEFT:
+      } else if (dir == LEFT) {
         rot = 270;
         x = room.l();
         y = vert_start + rand() % vert_range;
-        break;
       }
 
       if (has_clearance("door", x, y, floor, dir)) {

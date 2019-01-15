@@ -41,6 +41,8 @@ private:
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
 
+  inline const Dir rand_dir() { return static_cast<Dir>(rand() % 4); }
+
   void set_overlay();
 
   bool has_clearance(
