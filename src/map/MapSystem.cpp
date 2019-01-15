@@ -46,11 +46,11 @@ void MapSystem::update()
 
 void MapSystem::calculate_selected_tile()
 {
-  f32 tx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
-  f32 ty{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
+  f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
+  f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
 
-  input_.sx = floor(tx + camera_.pos.x);
-  input_.sy = floor(ty + camera_.pos.y);
+  input_.sx = floor(screenx + camera_.pos.x);
+  input_.sy = floor(screeny + camera_.pos.y);
 
   auto xcheck{input_.sx < 0 || input_.sx > TILES_PER_LAYER - 1};
   auto ycheck{input_.sy < 0 || input_.sy > TILES_PER_LAYER - 1}; 

@@ -59,18 +59,23 @@ void MapGenerator::layout_main_floor(i32 floor)
 void MapGenerator::seed_rooms(i32 floor)
 {
   for (auto i{0}; i < num_rooms_; i++) {
+    Room test_room;
     bool collision{true};
-    string wall_type, floor_type;
 
     switch (get_section(floor)) {
-    case 1: wall_type = "wall1"; floor_type = "light_concrete"; break;
-    case 2: wall_type = "wall2"; floor_type = "smooth_light_concrete"; break;
-    case 3: wall_type = "wall3"; floor_type = "bright_light_concrete"; break;
+    case 1:
+      test_room.wall_type = "wall1"; 
+      test_room.floor_type = "light_concrete"; 
+      break;
+    case 2:
+      test_room.wall_type = "wall2"; 
+      test_room.floor_type = "smooth_light_concrete"; 
+      break;
+    case 3:
+      test_room.wall_type = "wall3"; 
+      test_room.floor_type = "bright_light_concrete"; 
+      break;
     }
-
-    Room test_room;
-    test_room.wall_type = wall_type;
-    test_room.floor_type = floor_type;
 
     do {
       test_room.rect.x = rand() % (TILES_PER_LAYER - 1);
@@ -97,7 +102,7 @@ void MapGenerator::expand_rooms(i32 floor)
     Room& room{rooms_[floor][random_room_index]}; 
 
     while (!found && !dirs.empty()) {
-      const Dir dir{static_cast<Dir>(rand() % 4)};
+      const Dir dir{(Dir)(rand() % 4)};
       dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
 
       switch (dir) {
@@ -162,10 +167,10 @@ void MapGenerator::integrate_walls(i32 floor)
         const Tile& ltile{tiles[x - 1][y + 0]};
         const Tile& rtile{tiles[x + 1][y + 0]};
 
-        bool umatch{tile.type == utile.type};
-        bool rmatch{tile.type == rtile.type};
-        bool dmatch{tile.type == dtile.type};
-        bool lmatch{tile.type == ltile.type};
+        const bool umatch{tile.type == utile.type};
+        const bool rmatch{tile.type == rtile.type};
+        const bool dmatch{tile.type == dtile.type};
+        const bool lmatch{tile.type == ltile.type};
 
         if (umatch && lmatch && dmatch && rmatch) {
           set_tile("wall", x, y, floor, tile.type + "-int");
@@ -215,31 +220,35 @@ void MapGenerator::place_doors(i32 floor)
     bool found{false};
 
     while (!found && count++ < 40) {
-      i32 rot, x, y;
-
       const auto horz_range{room.w() - 1};
       const auto horz_start{room.l() + 1};
       const auto vert_range{room.h() - 1};
       const auto vert_start{room.t() + 1};
 
-      const Dir dir{static_cast<Dir>(rand() % 4)}; 
+      i32 rot, x, y;
+      const Dir dir{(Dir)(rand() % 4)}; 
 
-      if (dir == UP) {
+      switch (dir) {
+      case UP:
         rot = 0;
         x = horz_start + rand() % horz_range;
         y = room.t(); 
-      } else if (dir == RIGHT) {
+        break;
+      case DOWN:
         rot = 90;
         x = room.r();
         y = vert_start + rand() % vert_range;
-      } else if (dir == DOWN) {
+        break;
+      case RIGHT:
         rot = 180;
         x = horz_start + rand() % horz_range;
         y = room.b();
-      } else if (dir == LEFT) {
+        break;
+      case LEFT:
         rot = 270;
         x = room.l();
         y = vert_start + rand() % vert_range;
+        break;
       }
 
       if (has_clearance("door", x, y, floor, dir)) {
