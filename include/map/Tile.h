@@ -17,7 +17,7 @@ struct Tile
     , category{}
     , active{false}
     , solid{false}
-    , rotation{0}
+    , rot{0}
     , color{255, 255, 255}
     , src{0, 0, TILE_SIZE, TILE_SIZE}
     , flip{SDL_FLIP_NONE}
@@ -29,7 +29,7 @@ struct Tile
 
   bool active;
   bool solid;
-  f64 rotation; 
+  f32 rot; 
 
   glm::vec3 color;
 
@@ -48,7 +48,7 @@ private:
 
     ar & active;
     ar & solid;
-    ar & rotation;
+    ar & rot;
 
     ar & color.x;
     ar & color.y;

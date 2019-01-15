@@ -346,13 +346,13 @@ void RenderSystem::build_scalable(Scalable& el)
 
 void RenderSystem::render_map() const
 {
-  const f32 lower{0};
-  const f32 upper{(f32)TILES_PER_LAYER - 1};
+  const i32 lower{0};
+  const i32 upper{TILES_PER_LAYER - 1};
 
-  i32 x_min(max(lower, camera_.pos.x - VIEW_X * camera_.inv_zoom)); 
-  i32 y_min(max(lower, camera_.pos.y - VIEW_Y * camera_.inv_zoom));
-  i32 x_max(min(upper, camera_.pos.x + VIEW_X * camera_.inv_zoom));
-  i32 y_max(min(upper, camera_.pos.y + VIEW_Y * camera_.inv_zoom)); 
+  i32 x_min(max(lower, (i32)(camera_.pos.x - VIEW_X * camera_.inv_zoom))); 
+  i32 y_min(max(lower, (i32)(camera_.pos.y - VIEW_Y * camera_.inv_zoom)));
+  i32 x_max(min(upper, (i32)(camera_.pos.x + VIEW_X * camera_.inv_zoom)));
+  i32 y_max(min(upper, (i32)(camera_.pos.y + VIEW_Y * camera_.inv_zoom))); 
 
   for (auto x{x_min}; x <= x_max; ++x) { 
     for (auto y{y_min}; y <= y_max; ++y) {
@@ -369,16 +369,14 @@ void RenderSystem::render_map() const
 void RenderSystem::render_ui() const
 {
   if (input_.hud) {
-    render_scrollable(ui_.scrollable_elements["message_window"]);
-
     render_text(ui_.text_elements["floor_display"]);
     render_text(ui_.text_elements["time_display"]);
     render_text(ui_.text_elements["date_display"]);
+    render_scrollable(ui_.scrollable_elements["message_window"]);
   }
 
   if (input_.menu) {
     render_window(ui_.window_elements["main"]);
-
     render_button_set(ui_.button_set_elements["main_buttons"]);
   }
 }
@@ -392,7 +390,8 @@ void RenderSystem::render_button_set(ButtonSet& el) const
 
 void RenderSystem::render_tile(
   const string& layer, i32 x, i32 y, i32 floor
-) const {
+) const 
+{
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
@@ -406,7 +405,7 @@ void RenderSystem::render_tile(
 
     SDL_RenderCopyEx(
       render_.renderer, render_.textures[layer], 
-      &tile.src, &dst, tile.rotation, nullptr, tile.flip
+      &tile.src, &dst, tile.rot, nullptr, tile.flip
     ); 
   }
 }
@@ -419,8 +418,8 @@ void RenderSystem::render_scrollable(Scrollable& el) const
   SDL_RenderSetClipRect(render_.renderer, &el.mask);
 
   SDL_RenderCopy(
-    render_.renderer, render_.textures[el.list.texture], 
-    nullptr, &el.list.bounds
+    render_.renderer, render_.textures[el.list.texture], nullptr, 
+    &el.list.bounds
   );
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);

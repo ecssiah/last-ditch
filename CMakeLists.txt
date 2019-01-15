@@ -5,6 +5,30 @@ project(LastDitch)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+find_package(
+  Boost 1.66.0 REQUIRED 
+  COMPONENTS 
+  filesystem iostreams serialization 
+)
+find_package(YamlCpp REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+find_package(SDL2_ttf REQUIRED)
+
+set(SDL2_COMPILE_FLAGS "-I/usr/local/include/SDL2 -D_THREAD_SAFE")
+set(SDL2_LINK_FLAGS "-L/usr/local/lib -lSDL2")
+
+set(
+  CMAKE_CXX_FLAGS 
+  "${CMAKE_CXX_FLAGS} ${SDL2_COMPILE_FLAGS}"
+)
+set(
+  CMAKE_EXE_LINKER_FLAGS 
+  "${CMAKE_EXE_LINKER_FLAGS} ${SDL2_LINK_FLAGS}"
+)
+
 set(
   HEADERS
   ./include/utility/AssetManager.h
@@ -37,30 +61,6 @@ set(
   ./src/utility/FileSystem.cpp
   ./src/events/EventSystem.cpp
   ./src/LastDitch.cpp
-)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-find_package(
-  Boost 1.66.0 REQUIRED 
-  COMPONENTS 
-  filesystem iostreams serialization 
-)
-find_package(YamlCpp REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-
-set(SDL2_COMPILE_FLAGS "-I/usr/local/include/SDL2 -D_THREAD_SAFE")
-set(SDL2_LINK_FLAGS "-L/usr/local/lib -lSDL2")
-
-set(
-  CMAKE_CXX_FLAGS 
-  "${CMAKE_CXX_FLAGS} ${SDL2_COMPILE_FLAGS}"
-)
-set(
-  CMAKE_EXE_LINKER_FLAGS 
-  "${CMAKE_EXE_LINKER_FLAGS} ${SDL2_LINK_FLAGS}"
 )
 
 add_executable(LastDitch ${HEADERS} ${SOURCES})

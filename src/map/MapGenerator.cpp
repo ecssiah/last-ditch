@@ -17,8 +17,8 @@ MapGenerator::MapGenerator(Map& map)
   , randomize_rooms_{false}
   , num_rooms_{60}
   , expansion_iterations_{20000}
-  , rooms_{(u16)NUM_FLOORS, vector<Room>()}
-  , blocked_rooms_{(u16)NUM_FLOORS, vector<Room>()}
+  , rooms_{(u16)NUM_FLOORS + 1, vector<Room>()}
+  , blocked_rooms_{(u16)NUM_FLOORS + 1, vector<Room>()}
 {
   srand(MAP_SEED);
 }
@@ -353,12 +353,12 @@ void MapGenerator::set_overlay()
 
 void MapGenerator::set_tile(
   const string& layer, i32 x, i32 y, i32 floor, const string& type, 
-  f32 rotation, SDL_RendererFlip flip
+  f32 rot, SDL_RendererFlip flip
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   tile.active = true;
-  tile.rotation = rotation;
+  tile.rot = rot;
   tile.flip = flip;
 
   if (map_.tile_data.find(type) != map_.tile_data.end()) {
