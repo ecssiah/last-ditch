@@ -14,7 +14,7 @@ using namespace std;
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
   , show_grid_{false}
-  , randomize_rooms_{false}
+  , randomize_rooms_{true}
   , num_rooms_{60}
   , expansion_iterations_{20000}
   , rooms_{(u16)NUM_FLOORS + 1, vector<Room>()}
