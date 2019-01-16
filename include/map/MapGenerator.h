@@ -17,8 +17,6 @@ public:
 
   void generate_map();
 
-  inline const bool grid_active() const { return grid_active_; }
-
   void set_tile(
     const std::string& layer, i32 x, i32 y, i32 floor, 
     const std::string& type, 
@@ -40,8 +38,6 @@ private:
   void build_rooms(i32 floor);
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
-
-  void set_overlay();
 
   const bool has_clearance(
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir

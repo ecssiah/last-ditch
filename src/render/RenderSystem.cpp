@@ -49,6 +49,8 @@ void RenderSystem::init()
   init_SDL_image();
   init_SDL_ttf();
 
+  init_grid();
+
   load_fonts();
   load_tilesets();
 }
@@ -117,6 +119,15 @@ void RenderSystem::init_SDL_ttf()
     cerr << TTF_GetError() << endl;
     return;
   } 
+}
+
+
+void RenderSystem::init_grid()
+{
+  render_.scale = camera_.zoom * TILE_SIZE; 
+
+  render_.grid_src = {2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+  render_.grid_dst = {0, 0, (i32)render_.scale, (i32)render_.scale};
 }
 
 
@@ -361,6 +372,8 @@ void RenderSystem::render_map() const
       render_tile("object", x, y, map_.cur_floor);
       render_tile("entity", x, y, map_.cur_floor);
       render_tile("overlay", x, y, map_.cur_floor);
+
+      if (render_.grid) render_grid(x, y);
     }
   }
 }
@@ -395,19 +408,29 @@ void RenderSystem::render_tile(
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
   if (tile.active) {
-    const f32 scale_factor{camera_.zoom * TILE_SIZE};
-
     SDL_Rect dst;
-    dst.x = scale_factor * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X; 
-    dst.y = scale_factor * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
-    dst.w = scale_factor;
-    dst.h = scale_factor;
+    dst.x = render_.scale * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X; 
+    dst.y = render_.scale * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
+    dst.w = render_.scale;
+    dst.h = render_.scale;
 
     SDL_RenderCopyEx(
       render_.renderer, render_.textures[layer], 
       &tile.src, &dst, tile.rot, nullptr, tile.flip
     ); 
   }
+}
+
+
+void RenderSystem::render_grid(i32 x, i32 y) const
+{
+  render_.grid_dst.x = render_.scale * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X;
+  render_.grid_dst.y = render_.scale * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
+
+  SDL_RenderCopy(
+    render_.renderer, render_.textures["overlay"], 
+    &render_.grid_src, &render_.grid_dst
+  );
 }
 
 

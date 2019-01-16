@@ -13,7 +13,7 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , grid_active_{false}
+  , grid_active_{true}
   , randomize_rooms_{true}
   , num_rooms_{60}
   , expansion_iterations_{20000}
@@ -35,8 +35,6 @@ void MapGenerator::generate_map()
     place_doors(floor);
     integrate_walls(floor);
   }
-
-  if (grid_active_) set_overlay();
 }
 
 
@@ -343,13 +341,6 @@ const bool MapGenerator::has_clearance(
   return front_clear && left_clear && right_clear;
 }
 
-
-void MapGenerator::set_overlay()
-{
-  for (auto x{0}; x < TILES_PER_LAYER; x++) 
-    for (auto y{0}; y < TILES_PER_LAYER; y++)
-      set_tile("overlay", x, y, 1, "grid");
-}
 
 void MapGenerator::set_tile(
   const string& layer, i32 x, i32 y, i32 floor, const string& type, 

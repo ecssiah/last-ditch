@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "../utility/Types.h"
+#include "../constants/MapConstants.h"
 #include "../constants/RenderConstants.h"
 #include "../ui/Text.h"
 #include "../ui/Scalable.h"
@@ -22,6 +23,10 @@ struct Render
     , renderer{nullptr}
     , fonts{}
     , textures{}
+    , scale{}
+    , grid{true}
+    , grid_src{2, 2, TILE_SIZE, TILE_SIZE}
+    , grid_dst{0, 0, TILE_SIZE, TILE_SIZE}
   {}
 
   f32 dt;
@@ -31,6 +36,13 @@ struct Render
 
   std::unordered_map<std::string, TTF_Font*> fonts;
   std::unordered_map<std::string, SDL_Texture*> textures;
+
+  f32 scale;
+
+  bool grid;
+
+  SDL_Rect grid_src;
+  SDL_Rect grid_dst;
 
 };
 

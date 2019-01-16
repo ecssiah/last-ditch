@@ -41,9 +41,8 @@ bool FileSystem::create_user(const string& username)
 {
   bool user_exists{false};
 
-  for (const auto& user : users_) {
+  for (const auto& user : users_)
     if (user.username == username) user_exists = true;
-  } 
 
   if (user_exists) {
     cerr << "User already exists: " << username << endl;

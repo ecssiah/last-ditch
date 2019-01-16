@@ -32,6 +32,8 @@ private:
   void init_SDL_image();
   void init_SDL_ttf();
 
+  void init_grid();
+
   SDL_Texture* load_texture(const std::string& texturename);
   TTF_Font* load_font(const std::string& fontname, u32 size);
 
@@ -57,6 +59,8 @@ private:
   void render_text(Text& el) const;
 
   void render_tile(const std::string& layer, i32 x, i32 y, i32 floor) const;
+
+  void render_grid(i32 x, i32 y) const;
 
   void render_map() const;
   void render_ui() const;
