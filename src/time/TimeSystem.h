@@ -15,8 +15,8 @@ public:
 
   void init();
 
-  void frame_begin();
-  void frame_end();
+  void begin_frame();
+  void end_frame();
 
 private:
   void tick();

@@ -49,7 +49,7 @@ void MapSystem::update()
 void MapSystem::generate_map()
 {
   for (auto floor{1}; floor <= NUM_FLOORS; floor++) {
-    define_blocked_rooms(floor);
+    define_blocks(floor);
     layout_main_floor(floor);
     seed_rooms(floor);
     expand_rooms(floor);
@@ -60,7 +60,7 @@ void MapSystem::generate_map()
 }
 
 
-void MapSystem::define_blocked_rooms(i32 floor)
+void MapSystem::define_blocks(i32 floor)
 {
   // left edge
   map_.blocks[floor].push_back({
@@ -357,7 +357,7 @@ const bool MapSystem::select_tile(i32 x, i32 y)
 
 
 void MapSystem::clear_selection() {
-  if (input_.selectx == -1 || input_.selecty == -1) return;
+  if (input_.selectx == -1 && input_.selecty == -1) return;
 
   set_active(
     "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
@@ -381,7 +381,8 @@ const bool MapSystem::room_collision(i32 floor, const Room& test_room) const
 
 const bool MapSystem::has_clearance(
   const string& category, i32 x, i32 y, i32 floor, Dir dir
-) const {
+) const 
+{
   i8 dx1, dy1;
   i8 dx2, dy2;
   i8 dx3, dy3;
@@ -434,7 +435,6 @@ void MapSystem::set_tile(
     tile.src.x = map_.tile_data[type].uv.x * TILE_SIZE;
     tile.src.y = map_.tile_data[type].uv.y * TILE_SIZE;
   } else {
-    tile.category = "error";
     tile.src.x = 0;
     tile.src.y = 0;
 

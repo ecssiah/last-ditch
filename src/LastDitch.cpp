@@ -26,7 +26,7 @@ LastDitch::LastDitch()
   file_system_.init();
 
   while (!input_.exit) {
-    time_system_.frame_begin();
+    time_system_.begin_frame();
 
     input_system_.update();
     camera_system_.update();
@@ -35,7 +35,7 @@ LastDitch::LastDitch()
     entity_system_.update();
     render_system_.update();
 
-    time_system_.frame_end();
+    time_system_.end_frame();
   }
 }
 

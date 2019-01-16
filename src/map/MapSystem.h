@@ -19,7 +19,7 @@ private:
   void generate_map();
 
   void layout_main_floor(i32 floor);
-  void define_blocked_rooms(i32 floor);
+  void define_blocks(i32 floor);
   void seed_rooms(i32 floor);
   void expand_rooms(i32 floor);
   void build_rooms(i32 floor);
