@@ -126,7 +126,6 @@ void RenderSystem::init_grid()
 {
   render_.scale = camera_.zoom * TILE_SIZE; 
 
-  render_.grid_src = {2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE};
   render_.grid_dst = {0, 0, (i32)render_.scale, (i32)render_.scale};
 }
 

@@ -19,7 +19,7 @@ public:
     , ydir{0, 1}
   {}
 
-  f32 speed, zoom, inv_zoom, scale_factor;
+  f32 speed, zoom, inv_zoom;
   glm::vec2 pos, xdir, ydir;
 
 };

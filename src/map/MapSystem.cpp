@@ -49,8 +49,8 @@ void MapSystem::calculate_selected_tile()
   f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
   f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
 
-  i32 targetx = floor(screenx + camera_.pos.x);
-  i32 targety = floor(screeny + camera_.pos.y);
+  i32 targetx{(i32)floor(screenx + camera_.pos.x)};
+  i32 targety{(i32)floor(screeny + camera_.pos.y)};
 
   if (select_tile(targetx, targety)) {
     string msg{"Selected: ["};
@@ -66,8 +66,8 @@ void MapSystem::calculate_selected_tile()
 
 bool MapSystem::select_tile(i32 x, i32 y)
 {
-  auto x_in_bounds{x >= 0 && x <= TILES_PER_LAYER - 1};
-  auto y_in_bounds{y >= 0 && y <= TILES_PER_LAYER - 1}; 
+  const auto x_in_bounds{x >= 0 && x <= TILES_PER_LAYER - 1};
+  const auto y_in_bounds{y >= 0 && y <= TILES_PER_LAYER - 1}; 
 
   if (x_in_bounds && y_in_bounds) {
     clear_selection();
@@ -80,20 +80,16 @@ bool MapSystem::select_tile(i32 x, i32 y)
 
     return true;
   } else {
-    input_.selectx = -1;
-    input_.selecty = -1;
-    input_.selectfloor = -1;
-
     return false;
   }
 }
 
 
 void MapSystem::clear_selection() {
-  if (input_.selectx != -1) {
-    map_generator_.set_active(
-      "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
-    );
-  }
+  if (input_.selectx == -1 || input_.selecty == -1) return;
+
+  map_generator_.set_active(
+    "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
+  );
 }
 

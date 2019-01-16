@@ -50,7 +50,6 @@ private:
 
   Map& map_;
 
-  bool grid_active_;
   bool randomize_rooms_;
 
   u16 num_rooms_;

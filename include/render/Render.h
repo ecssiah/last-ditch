@@ -25,9 +25,10 @@ struct Render
     , textures{}
     , scale{}
     , grid{true}
-    , grid_src{2, 2, TILE_SIZE, TILE_SIZE}
-    , grid_dst{0, 0, TILE_SIZE, TILE_SIZE}
-  {}
+    , grid_src{2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE}
+    , grid_dst{0 * TILE_SIZE, 0 * TILE_SIZE, TILE_SIZE, TILE_SIZE}
+  {
+  }
 
   f32 dt;
 

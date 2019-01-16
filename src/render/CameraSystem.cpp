@@ -51,9 +51,7 @@ void CameraSystem::inc_zoom()
   camera_.zoom = min(MAX_ZOOM, camera_.zoom * 2); 
   camera_.inv_zoom = 1.0 / camera_.zoom;
 
-  render_.scale = camera_.zoom * TILE_SIZE;
-  render_.grid_dst.w = render_.scale;
-  render_.grid_dst.h = render_.scale;
+  update_scale();
 }
 
 
@@ -62,6 +60,12 @@ void CameraSystem::dec_zoom()
   camera_.zoom = max(MIN_ZOOM, camera_.zoom / 2); 
   camera_.inv_zoom = 1.0 / camera_.zoom;
 
+  update_scale();
+}
+
+
+void CameraSystem::update_scale()
+{
   render_.scale = camera_.zoom * TILE_SIZE;
   render_.grid_dst.w = render_.scale;
   render_.grid_dst.h = render_.scale;

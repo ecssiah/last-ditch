@@ -13,7 +13,6 @@ using namespace std;
 
 MapGenerator::MapGenerator(Map& map)
   : map_{map}
-  , grid_active_{true}
   , randomize_rooms_{true}
   , num_rooms_{60}
   , expansion_iterations_{20000}
