@@ -126,7 +126,9 @@ void RenderSystem::init_grid()
 {
   render_.scale = camera_.zoom * TILE_SIZE; 
 
-  render_.grid_dst = {0, 0, (i32)render_.scale, (i32)render_.scale};
+  render_.grid_dst = {
+    0, 0, static_cast<i32>(render_.scale), static_cast<i32>(render_.scale)
+  };
 }
 
 
@@ -253,7 +255,9 @@ void RenderSystem::build_scrollable(Scrollable& el)
   build_scalable(el.base);
 
   string full_msg;
-  i32 msg_limit{min(MESSAGE_DISPLAY_LIMIT, (i32)el.list.items.size())};
+  i32 msg_limit{
+    min(MESSAGE_DISPLAY_LIMIT, static_cast<i32>(el.list.items.size()))
+  };
 
   for (auto i{0}; i < msg_limit; i++) {
     full_msg += el.list.items[i];
@@ -273,7 +277,9 @@ void RenderSystem::build_scrollable(Scrollable& el)
       render_.renderer, surface
     ); 
 
-    i32 scrollbar_height{(i32)(el.mask.h / (f32)surface->h * el.mask.h)};
+    i32 scrollbar_height{
+      static_cast<i32>(el.mask.h / static_cast<f32>(surface->h) * el.mask.h)
+    };
 
     if (scrollbar_height > el.mask.h) {
       el.scrollbar.active = false;
@@ -281,15 +287,17 @@ void RenderSystem::build_scrollable(Scrollable& el)
     } else {
       el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
 
+      i32 scrollbar_offset{static_cast<i32>(el.pos * el.scroll_range)};
+
       el.scrollbar.active = true;
       el.scrollbar.bounds = {
         el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-        el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
+        el.base.bounds.y + el.base.border + scrollbar_offset,
         SCROLLBAR_WIDTH, scrollbar_height
       };
 
       el.list.bounds = {
-        el.mask.x, el.mask.y - (i32)(el.pos * surface->h), 
+        el.mask.x, el.mask.y - static_cast<i32>(el.pos * surface->h), 
         surface->w, surface->h
       };
 
@@ -362,10 +370,18 @@ void RenderSystem::render_map() const
   const i32 lower{0};
   const i32 upper{TILES_PER_LAYER - 1};
 
-  i32 x_min(max(lower, (i32)(camera_.pos.x - VIEW_X * camera_.inv_zoom))); 
-  i32 y_min(max(lower, (i32)(camera_.pos.y - VIEW_Y * camera_.inv_zoom)));
-  i32 x_max(min(upper, (i32)(camera_.pos.x + VIEW_X * camera_.inv_zoom)));
-  i32 y_max(min(upper, (i32)(camera_.pos.y + VIEW_Y * camera_.inv_zoom))); 
+  i32 x_min{
+    max(lower, static_cast<i32>(camera_.pos.x - VIEW_X * camera_.inv_zoom))
+  }; 
+  i32 y_min{
+    max(lower, static_cast<i32>(camera_.pos.y - VIEW_Y * camera_.inv_zoom))
+  };
+  i32 x_max{
+    min(upper, static_cast<i32>(camera_.pos.x + VIEW_X * camera_.inv_zoom))
+  };
+  i32 y_max{
+    min(upper, static_cast<i32>(camera_.pos.y + VIEW_Y * camera_.inv_zoom))
+  }; 
 
   for (auto x{x_min}; x <= x_max; ++x) { 
     for (auto y{y_min}; y <= y_max; ++y) {

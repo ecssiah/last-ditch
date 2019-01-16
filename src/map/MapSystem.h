@@ -17,6 +17,7 @@ public:
 
 private:
   void generate_map();
+  void update_floor();
 
   void layout_main_floor(i32 floor);
   void define_blocks(i32 floor);
@@ -27,8 +28,7 @@ private:
   void place_doors(i32 floor);
 
   void set_tile(
-    const std::string& layer, i32 x, i32 y, i32 floor, 
-    const std::string& type, 
+    const std::string& layer, i32 x, i32 y, i32 floor, const std::string& type, 
     f32 rotation = 0, SDL_RendererFlip flip = SDL_FLIP_NONE
   );
   void set_active(

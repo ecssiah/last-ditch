@@ -226,8 +226,8 @@ void UISystem::setup_scrollable(Scrollable& el)
 void UISystem::setup_scrollbar(Scrollbar& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
-    el.basex = {(i32)(SCROLLBAR_WIDTH * map_.tile_data[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.y)};
+    el.basex = static_cast<i32>(SCROLLBAR_WIDTH * map_.tile_data[el.type].uv.x);
+    el.basey = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.y);
   } else {
     el.basex = 0;
     el.basey = 0;
@@ -249,8 +249,8 @@ void UISystem::setup_scrollbar(Scrollbar& el)
 void UISystem::setup_scalable(Scalable& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
-    el.basex = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.x)};
-    el.basey = {(i32)(TILE_SIZE * map_.tile_data[el.type].uv.y)};
+    el.basex = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.x);
+    el.basey = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.y);
     el.border = map_.tile_data[el.type].border;
   } else {
     el.basex = 0;

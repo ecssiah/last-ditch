@@ -30,19 +30,11 @@ void MapSystem::init()
 
 void MapSystem::update()
 {
-  if (input_.lclick) calculate_selected_tile();
-
   if (map_.floor_changed) map_.floor_changed = false;
 
-  if (input_.descend && map_.cur_floor > 1) {
-    map_.floor_changed = true;
-    map_.cur_floor--;
-  }
+  if (input_.lclick) calculate_selected_tile();
 
-  if (input_.ascend && map_.cur_floor < NUM_FLOORS) {
-    map_.floor_changed = true;
-    map_.cur_floor++; 
-  }
+  update_floor();
 }
 
 
@@ -56,6 +48,20 @@ void MapSystem::generate_map()
     build_rooms(floor);
     place_doors(floor);
     integrate_walls(floor);
+  }
+}
+
+
+void MapSystem::update_floor()
+{
+  if (input_.descend && map_.cur_floor > 1) {
+    map_.floor_changed = true;
+    map_.cur_floor--;
+  }
+
+  if (input_.ascend && map_.cur_floor < NUM_FLOORS) {
+    map_.floor_changed = true;
+    map_.cur_floor++; 
   }
 }
 
@@ -320,8 +326,8 @@ void MapSystem::calculate_selected_tile()
   f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
   f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
 
-  i32 targetx{(i32)floor(screenx + camera_.pos.x)};
-  i32 targety{(i32)floor(screeny + camera_.pos.y)};
+  i32 targetx{static_cast<i32>(floor(screenx + camera_.pos.x))};
+  i32 targety{static_cast<i32>(floor(screeny + camera_.pos.y))};
 
   if (select_tile(targetx, targety)) {
     string msg{"Selected: ["};
