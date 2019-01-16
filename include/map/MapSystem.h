@@ -26,8 +26,6 @@ private:
   void integrate_walls(i32 floor);
   void place_doors(i32 floor);
 
-  const i32 get_section(i32 floor) const;
-
   void set_tile(
     const std::string& layer, i32 x, i32 y, i32 floor, 
     const std::string& type, 
@@ -40,7 +38,8 @@ private:
     i32 x, i32 y, i32 floor, bool solid = true
   );
 
-  bool select_tile(i32 x, i32 y);
+  const i32 get_section(i32 floor) const;
+  const bool select_tile(i32 x, i32 y);
   void calculate_selected_tile();
   void clear_selection();
 

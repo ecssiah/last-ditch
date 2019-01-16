@@ -24,7 +24,7 @@ struct Render
     , fonts{}
     , textures{}
     , scale{}
-    , grid{true}
+    , grid{false}
     , grid_src{2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE}
     , grid_dst{0 * TILE_SIZE, 0 * TILE_SIZE, TILE_SIZE, TILE_SIZE}
   {

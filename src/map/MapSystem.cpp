@@ -33,20 +33,6 @@ void MapSystem::init()
 }
 
 
-void MapSystem::generate_map()
-{
-  for (auto floor{1}; floor <= NUM_FLOORS; floor++) {
-    define_blocked_rooms(floor);
-    layout_main_floor(floor);
-    seed_rooms(floor);
-    expand_rooms(floor);
-    build_rooms(floor);
-    place_doors(floor);
-    integrate_walls(floor);
-  }
-}
-
-
 void MapSystem::update()
 {
   if (input_.lclick) calculate_selected_tile();
@@ -65,53 +51,48 @@ void MapSystem::update()
 }
 
 
-void MapSystem::calculate_selected_tile()
+void MapSystem::generate_map()
 {
-  f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
-  f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
-
-  i32 targetx{(i32)floor(screenx + camera_.pos.x)};
-  i32 targety{(i32)floor(screeny + camera_.pos.y)};
-
-  if (select_tile(targetx, targety)) {
-    string msg{"Selected: ["};
-    msg += to_string(input_.selectx) + "," + to_string(input_.selecty) + ",";
-    msg += to_string(input_.selectfloor) + "]"; 
-
-    ::msg(log_, msg);
-  } else {
-    ::msg(log_, "Selected: [invalid]");
+  for (auto floor{1}; floor <= NUM_FLOORS; floor++) {
+    define_blocked_rooms(floor);
+    layout_main_floor(floor);
+    seed_rooms(floor);
+    expand_rooms(floor);
+    build_rooms(floor);
+    place_doors(floor);
+    integrate_walls(floor);
   }
 }
 
 
-bool MapSystem::select_tile(i32 x, i32 y)
+void MapSystem::define_blocked_rooms(i32 floor)
 {
-  const auto x_in_bounds{x >= 0 && x <= TILES_PER_LAYER - 1};
-  const auto y_in_bounds{y >= 0 && y <= TILES_PER_LAYER - 1}; 
-
-  if (x_in_bounds && y_in_bounds) {
-    clear_selection();
-
-    input_.selectx = x;
-    input_.selecty = y;
-    input_.selectfloor = map_.cur_floor;
-
-    set_tile("overlay", x, y, map_.cur_floor, "select");
-
-    return true;
-  } else {
-    return false;
-  }
-}
-
-
-void MapSystem::clear_selection() {
-  if (input_.selectx == -1 || input_.selecty == -1) return;
-
-  set_active(
-    "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
-  );
+  // left edge
+  blocked_rooms_[floor].push_back({
+    0, 0, OUTER_PATH, TILES_PER_LAYER - 1
+  });
+  // right edge
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
+  });  
+  // top edge 
+  blocked_rooms_[floor].push_back({
+    0, 0, TILES_PER_LAYER - 1, OUTER_PATH
+  });
+  // bottom edge
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
+  });
+  // middle horizontal
+  blocked_rooms_[floor].push_back({
+    0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
+    TILES_PER_LAYER - 1, CENTRAL_PATH + 1
+  });
+  // middle vertical
+  blocked_rooms_[floor].push_back({
+    TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
+    CENTRAL_PATH + 1, TILES_PER_LAYER - 1
+  });
 }
 
 
@@ -339,34 +320,53 @@ void MapSystem::place_doors(i32 floor)
 }
 
 
-void MapSystem::define_blocked_rooms(i32 floor)
+void MapSystem::calculate_selected_tile()
 {
-  // left edge
-  blocked_rooms_[floor].push_back({
-    0, 0, OUTER_PATH, TILES_PER_LAYER - 1
-  });
-  // right edge
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
-  });  
-  // top edge 
-  blocked_rooms_[floor].push_back({
-    0, 0, TILES_PER_LAYER - 1, OUTER_PATH
-  });
-  // bottom edge
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
-  });
-  // middle horizontal
-  blocked_rooms_[floor].push_back({
-    0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
-    TILES_PER_LAYER - 1, CENTRAL_PATH + 1
-  });
-  // middle vertical
-  blocked_rooms_[floor].push_back({
-    TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
-    CENTRAL_PATH + 1, TILES_PER_LAYER - 1
-  });
+  f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
+  f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
+
+  i32 targetx{(i32)floor(screenx + camera_.pos.x)};
+  i32 targety{(i32)floor(screeny + camera_.pos.y)};
+
+  if (select_tile(targetx, targety)) {
+    string msg{"Selected: ["};
+    msg += to_string(input_.selectx) + "," + to_string(input_.selecty) + ",";
+    msg += to_string(input_.selectfloor) + "]"; 
+
+    ::msg(log_, msg);
+  } else {
+    ::msg(log_, "Selected: [invalid]");
+  }
+}
+
+
+const bool MapSystem::select_tile(i32 x, i32 y)
+{
+  const auto x_in_bounds{x >= 0 && x <= TILES_PER_LAYER - 1};
+  const auto y_in_bounds{y >= 0 && y <= TILES_PER_LAYER - 1}; 
+
+  if (x_in_bounds && y_in_bounds) {
+    clear_selection();
+
+    input_.selectx = x;
+    input_.selecty = y;
+    input_.selectfloor = map_.cur_floor;
+
+    set_tile("overlay", x, y, map_.cur_floor, "select");
+
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+void MapSystem::clear_selection() {
+  if (input_.selectx == -1 || input_.selecty == -1) return;
+
+  set_active(
+    "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
+  );
 }
 
 

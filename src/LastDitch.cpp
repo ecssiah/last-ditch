@@ -16,21 +16,21 @@ LastDitch::LastDitch()
   , file_system_{input_, time_, map_}
 {
   config_system_.init();
+  input_system_.init();
   camera_system_.init();
-  render_system_.init();
   ui_system_.init();
   map_system_.init();
   entity_system_.init();
-  input_system_.init();
+  render_system_.init();
   file_system_.init();
 
   while (!input_.exit) {
     time_system_.frame_begin();
     input_system_.update();
     camera_system_.update();
-    entity_system_.update();
     ui_system_.update();
     map_system_.update();
+    entity_system_.update();
     render_system_.update();
     time_system_.frame_end();
   }
