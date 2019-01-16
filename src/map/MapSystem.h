@@ -56,14 +56,6 @@ private:
   Map& map_;
   Log& log_;
 
-  bool randomize_rooms_;
-
-  u16 num_rooms_;
-  u16 expansion_iterations_;
-
-  std::vector<std::vector<Room>> rooms_;
-  std::vector<std::vector<Room>> blocked_rooms_; 
-
 }; 
 
 #endif

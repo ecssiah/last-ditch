@@ -10,6 +10,7 @@
 
 #include "Floor.h"
 #include "Layer.h"
+#include "Room.h"
 #include "TileInfo.h"
 #include "../utility/Types.h"
 #include "../constants/MapConstants.h"
@@ -21,6 +22,8 @@ struct Map
     , cur_floor{1}
     , floors{(u32)NUM_FLOORS + 1}
     , tile_data{}
+    , rooms{(u16)NUM_FLOORS + 1, std::vector<Room>()}
+    , blocks{(u16)NUM_FLOORS + 1, std::vector<Room>()}
   { }
 
   bool floor_changed;
@@ -28,7 +31,11 @@ struct Map
 
   std::vector<Floor> floors;
 
+  std::vector<std::vector<Room>> rooms;
+  std::vector<std::vector<Room>> blocks; 
+
   std::unordered_map<std::string, TileInfo> tile_data;
+
 
 private:
   friend class boost::serialization::access;

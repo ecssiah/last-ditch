@@ -316,7 +316,7 @@ void RenderSystem::build_scrollbar(Scrollbar& el)
 }
 
 
-void RenderSystem::build_scalable(Scalable& el)
+void RenderSystem::build_scalable(Scalable& el) 
 {
   el.dst["tl"] = { 
     el.bounds.x, el.bounds.y, 

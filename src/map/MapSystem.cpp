@@ -14,11 +14,6 @@ MapSystem::MapSystem(Input& input, Camera& camera, Map& map, Log& log)
   , camera_{camera}
   , map_{map}
   , log_{log}
-  , randomize_rooms_{true}
-  , num_rooms_{60}
-  , expansion_iterations_{20000}
-  , rooms_{(u16)NUM_FLOORS + 1, vector<Room>()}
-  , blocked_rooms_{(u16)NUM_FLOORS + 1, vector<Room>()}
 {
 }
 
@@ -68,28 +63,28 @@ void MapSystem::generate_map()
 void MapSystem::define_blocked_rooms(i32 floor)
 {
   // left edge
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     0, 0, OUTER_PATH, TILES_PER_LAYER - 1
   });
   // right edge
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     TILES_PER_LAYER - OUTER_PATH - 1, 0, OUTER_PATH, TILES_PER_LAYER - 1
   });  
   // top edge 
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     0, 0, TILES_PER_LAYER - 1, OUTER_PATH
   });
   // bottom edge
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     0, TILES_PER_LAYER - OUTER_PATH - 1, TILES_PER_LAYER - 1, OUTER_PATH
   });
   // middle horizontal
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     0, TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 
     TILES_PER_LAYER - 1, CENTRAL_PATH + 1
   });
   // middle vertical
-  blocked_rooms_[floor].push_back({
+  map_.blocks[floor].push_back({
     TILES_PER_LAYER / 2 - CENTRAL_PATH / 2 - 1, 0, 
     CENTRAL_PATH + 1, TILES_PER_LAYER - 1
   });
@@ -114,7 +109,7 @@ void MapSystem::layout_main_floor(i32 floor)
 
 void MapSystem::seed_rooms(i32 floor)
 {
-  for (auto i{0}; i < num_rooms_; i++) {
+  for (auto i{0}; i < NUM_ROOMS; i++) {
     Room test_room;
     bool collision{true};
 
@@ -141,21 +136,21 @@ void MapSystem::seed_rooms(i32 floor)
     } 
     while (room_collision(floor, test_room));
 
-    rooms_[floor].push_back(test_room);
+    map_.rooms[floor].push_back(test_room);
   }
 }
 
 
 void MapSystem::expand_rooms(i32 floor)
 {
-  if (randomize_rooms_) srand(time(nullptr));
+  if (RANDOM_ROOMS) srand(time(nullptr));
 
-  for (auto i{0}; i < expansion_iterations_; i++) {
+  for (auto i{0}; i < EXPANSION_ITERATIONS; i++) {
     bool found{false};
     vector<Dir> dirs{UP, DOWN, LEFT, RIGHT}; 
-    u64 random_room_index{rand() % rooms_[floor].size()};
+    u64 random_room_index{rand() % map_.rooms[floor].size()};
 
-    Room& room{rooms_[floor][random_room_index]}; 
+    Room& room{map_.rooms[floor][random_room_index]}; 
 
     while (!found && !dirs.empty()) {
       const Dir dir{rand_dir()};
@@ -185,7 +180,7 @@ void MapSystem::expand_rooms(i32 floor)
 
 void MapSystem::build_rooms(i32 floor)
 {
-  for (const auto& room : rooms_[floor]) {
+  for (const auto& room : map_.rooms[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++)
       for (auto y{room.t()}; y <= room.b(); y++)
         set_tile("floor", x, y, floor, room.floor_type);
@@ -271,7 +266,7 @@ void MapSystem::integrate_walls(i32 floor)
 
 void MapSystem::place_doors(i32 floor)
 {
-  for (auto& room : rooms_[floor]) {
+  for (auto& room : map_.rooms[floor]) {
     u8 count{0};
     bool found{false};
 
@@ -372,10 +367,10 @@ void MapSystem::clear_selection() {
 
 const bool MapSystem::room_collision(i32 floor, const Room& test_room) const 
 {
-  for (const auto& room : blocked_rooms_[floor]) 
+  for (const auto& room : map_.blocks[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
 
-  for (const auto& room : rooms_[floor]) {
+  for (const auto& room : map_.rooms[floor]) {
     const auto intersection{SDL_HasIntersection(&room.rect, &test_room.rect)};
     if (&room.rect != &test_room.rect && intersection) return true;
   }

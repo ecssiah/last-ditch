@@ -18,4 +18,9 @@ constexpr i32 OUTER_PATH{3};
 constexpr i32 CENTRAL_PATH{6};
 constexpr i32 MAP_SEED{123456};
 
+constexpr bool RANDOM_ROOMS{true};
+
+constexpr u16 NUM_ROOMS{60};
+constexpr u16 EXPANSION_ITERATIONS{20000};
+
 #endif
