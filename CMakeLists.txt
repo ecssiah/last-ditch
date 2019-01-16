@@ -34,7 +34,6 @@ set(
   ./include/utility/AssetManager.h
   ./include/utility/ConfigSystem.h
   ./include/map/MapSystem.h
-  ./include/map/MapGenerator.h
   ./include/entity/EntitySystem.h
   ./include/render/RenderSystem.h
   ./include/render/CameraSystem.h
@@ -51,7 +50,6 @@ set(
   ./src/utility/AssetManager.cpp
   ./src/utility/ConfigSystem.cpp
   ./src/map/MapSystem.cpp
-  ./src/map/MapGenerator.cpp
   ./src/entity/EntitySystem.cpp
   ./src/render/RenderSystem.cpp
   ./src/render/CameraSystem.cpp
