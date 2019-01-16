@@ -1,4 +1,4 @@
-#include "../../include/ui/UISystem.h"
+#include "UISystem.h"
 
 #include <iostream>
 #include <iomanip>
@@ -6,11 +6,11 @@
 #include <sstream>
 #include <algorithm>
 
-#include "../../include/constants/UIConstants.h"
-#include "../../include/constants/RenderConstants.h"
-#include "../../include/constants/MapConstants.h"
-#include "../../include/utility/Logging.h"
-#include "../../include/ui/UI.h"
+#include "../constants/UIConstants.h"
+#include "../constants/RenderConstants.h"
+#include "../constants/MapConstants.h"
+#include "../utility/Logging.h"
+#include "../ui/UI.h"
 
 using namespace std;
 

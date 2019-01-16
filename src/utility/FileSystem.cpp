@@ -1,4 +1,4 @@
-#include "../../include/utility/FileSystem.h"
+#include "FileSystem.h"
 
 #include <iostream>
 #include <fstream>
@@ -8,7 +8,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 
-#include "../../include/utility/Logging.h"
+#include "../utility/Logging.h"
 
 using namespace std;
 

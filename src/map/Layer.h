@@ -14,7 +14,7 @@ struct Layer
     : tiles{(u32)TILES_PER_LAYER, std::vector<Tile>((u32)TILES_PER_LAYER)} 
   {}
 
-  std::vector<std::vector<Tile> > tiles;
+  std::vector<std::vector<Tile>> tiles;
 
 private:
   friend class boost::serialization::access;

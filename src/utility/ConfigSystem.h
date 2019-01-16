@@ -4,7 +4,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Types.h"
-#include "../../include/map/Map.h"
+#include "../map/Map.h"
 
 class ConfigSystem
 {

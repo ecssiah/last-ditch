@@ -1,11 +1,11 @@
-#include "../../include/map/MapSystem.h"
+#include "MapSystem.h"
 
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-#include "../../include/utility/Logging.h"
-#include "../../include/constants/MapConstants.h"
-#include "../../include/constants/RenderConstants.h"
+#include "../utility/Logging.h"
+#include "../constants/MapConstants.h"
+#include "../constants/RenderConstants.h"
 
 using namespace std;
 

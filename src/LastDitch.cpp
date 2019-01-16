@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../include/LastDitch.h"
+#include "LastDitch.h"
 
 using namespace std;
 
@@ -17,6 +17,7 @@ LastDitch::LastDitch()
 {
   config_system_.init();
   input_system_.init();
+  time_system_.init();
   camera_system_.init();
   ui_system_.init();
   map_system_.init();
@@ -26,12 +27,14 @@ LastDitch::LastDitch()
 
   while (!input_.exit) {
     time_system_.frame_begin();
+
     input_system_.update();
     camera_system_.update();
     ui_system_.update();
     map_system_.update();
     entity_system_.update();
     render_system_.update();
+
     time_system_.frame_end();
   }
 }

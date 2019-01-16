@@ -1,10 +1,11 @@
+#include "ConfigSystem.h"
+
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-#include "../../include/utility/Logging.h"
-#include "../../include/utility/ConfigSystem.h"
-#include "../../include/constants/MapConstants.h"
-#include "../../include/map/Tile.h"
+#include "../map/Tile.h"
+#include "../utility/Logging.h"
+#include "../constants/MapConstants.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ void ConfigSystem::load_tile_info()
         TileInfo tile_info;
         tile_info.category = category;
 
-        const auto uv_vec{tile_node["uv"].as<vector<i32> >()};
+        const auto uv_vec{tile_node["uv"].as<vector<i32>>()};
         tile_info.uv.x = uv_vec[0];
         tile_info.uv.y = uv_vec[1];
 

@@ -8,11 +8,11 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
-#include "../../include/utility/Logging.h"
-#include "../../include/constants/RenderConstants.h"
-#include "../../include/constants/MapConstants.h"
-#include "../../include/constants/UIConstants.h"
-#include "../../include/render/RenderSystem.h"
+#include "../utility/Logging.h"
+#include "../constants/RenderConstants.h"
+#include "../constants/MapConstants.h"
+#include "../constants/UIConstants.h"
+#include "../render/RenderSystem.h"
 
 using namespace std;
 
@@ -187,15 +187,15 @@ void RenderSystem::load_fonts()
 
 void RenderSystem::build_elements()
 {
-  for (auto& kv : ui_.scrollable_elements) 
+  for (auto& kv : ui_.scrollable_elements)
     if (kv.second.changed) build_scrollable(kv.second);
-  for (auto& kv : ui_.button_elements) 
+  for (auto& kv : ui_.button_elements)
     if (kv.second.changed) build_button(kv.second);
   for (auto& kv : ui_.button_set_elements)
     if (kv.second.changed) build_button_set(kv.second);
-  for (auto& kv : ui_.window_elements) 
+  for (auto& kv : ui_.window_elements)
     if (kv.second.changed) build_window(kv.second);
-  for (auto& kv : ui_.text_elements) 
+  for (auto& kv : ui_.text_elements)
     if (kv.second.changed) build_text(kv.second);
 } 
 
@@ -230,25 +230,27 @@ void RenderSystem::build_text(Text& el)
 {
   el.changed = false;
 
-  SDL_Surface* sur{
+  SDL_Surface* surface{
     TTF_RenderUTF8_Blended(render_.fonts[el.font], el.content.c_str(), el.color)
   }; 
 
-  if (sur == nullptr) {
-    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
-  } else {
+  if (surface) {
     SDL_DestroyTexture(render_.textures[el.texture]);
+
     render_.textures[el.texture] = SDL_CreateTextureFromSurface(
-      render_.renderer, sur
+      render_.renderer, surface
     ); 
-    SDL_FreeSurface(sur);
+
+    SDL_FreeSurface(surface);
+  } else {
+    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
   }
 }
 
 
 void RenderSystem::build_scrollable(Scrollable& el)
 {
-  el.changed = false;
+  build_scalable(el.base);
 
   string full_msg;
   i32 msg_limit{min(MESSAGE_DISPLAY_LIMIT, (i32)el.list.items.size())};
@@ -258,41 +260,42 @@ void RenderSystem::build_scrollable(Scrollable& el)
     if (i < msg_limit - 1) full_msg += "\n";
   }
 
-  SDL_Surface* sur{TTF_RenderText_Blended_Wrapped(
-    render_.fonts[el.list.font], full_msg.c_str(), 
-    {255, 255, 255}, el.mask.w
+  SDL_Surface* surface{TTF_RenderText_Blended_Wrapped(
+    render_.fonts[el.list.font], full_msg.c_str(), {255, 255, 255}, el.mask.w
   )};
 
-  SDL_DestroyTexture(render_.textures[el.list.texture]);
-  render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
-    render_.renderer, sur
-  ); 
+  if (surface) {
+    el.changed = false;
 
-  i32 scrollbar_height{(i32)(el.mask.h / (f32)sur->h * el.mask.h)};
+    SDL_DestroyTexture(render_.textures[el.list.texture]);
 
-  if (scrollbar_height > el.mask.h) {
-    el.scrollbar.active = false;
-    el.list.bounds = {el.mask.x, el.mask.y, sur->w, sur->h};
-  } else {
-    el.scrollbar.active = true;
+    render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
+      render_.renderer, surface
+    ); 
 
-    el.list.bounds = {
-      el.mask.x, el.mask.y - (i32)(el.pos * sur->h), 
-      sur->w, sur->h
-    };
+    i32 scrollbar_height{(i32)(el.mask.h / (f32)surface->h * el.mask.h)};
 
-    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
+    if (scrollbar_height > el.mask.h) {
+      el.scrollbar.active = false;
+      el.list.bounds = {el.mask.x, el.mask.y, surface->w, surface->h};
+    } else {
+      el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
 
-    el.scrollbar.bounds = {
-      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-      el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
-      SCROLLBAR_WIDTH, scrollbar_height
-    };
+      el.scrollbar.active = true;
+      el.scrollbar.bounds = {
+        el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
+        el.base.bounds.y + el.base.border + (i32)(el.pos * el.scroll_range), 
+        SCROLLBAR_WIDTH, scrollbar_height
+      };
 
-    build_scrollbar(el.scrollbar);
+      el.list.bounds = {
+        el.mask.x, el.mask.y - (i32)(el.pos * surface->h), 
+        surface->w, surface->h
+      };
+
+      build_scrollbar(el.scrollbar);
+    }
   }
-
-  build_scalable(el.base);
 }
 
 

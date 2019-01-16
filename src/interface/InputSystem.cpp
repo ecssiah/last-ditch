@@ -1,12 +1,11 @@
 #include <cmath>
 #include <iostream>
-
 #include <SDL2/SDL.h>
 
-#include "../../include/utility/Logging.h"
-#include "../../include/interface/InputSystem.h"
-#include "../../include/constants/MapConstants.h"
-#include "../../include/constants/RenderConstants.h"
+#include "../utility/Logging.h"
+#include "../interface/InputSystem.h"
+#include "../constants/MapConstants.h"
+#include "../constants/RenderConstants.h"
 
 using namespace std;
 

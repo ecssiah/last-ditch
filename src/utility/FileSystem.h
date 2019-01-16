@@ -3,9 +3,9 @@
 
 #include "Types.h"
 #include "User.h"
+#include "../map/Map.h"
 #include "../time/Time.h"
 #include "../interface/Input.h"
-#include "../map/Map.h"
 
 class FileSystem
 {

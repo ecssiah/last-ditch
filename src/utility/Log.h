@@ -9,11 +9,7 @@ struct Log
   Log()
     : changed{true}
     , msgs{}
-  {
-    msgs.push_back("A test message for the ages...");
-    msgs.push_back("A test message for the ages...");
-
-  }
+  {}
 
   bool changed;
 

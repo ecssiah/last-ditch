@@ -13,6 +13,8 @@ class TimeSystem
 public:
   TimeSystem(Input& input, Render& render, Time& time);
 
+  void init();
+
   void frame_begin();
   void frame_end();
 

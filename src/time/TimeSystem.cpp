@@ -1,7 +1,8 @@
+#include "TimeSystem.h"
+
 #include <algorithm>
 
-#include "../../include/constants/TimeConstants.h"
-#include "../../include/time/TimeSystem.h"
+#include "../constants/TimeConstants.h"
 
 using namespace std;
 
@@ -11,6 +12,12 @@ TimeSystem::TimeSystem(Input& input, Render& render, Time& time)
   , time_{time}
   , ticks_{0}
 {
+}
+
+
+void TimeSystem::init()
+{
+
 }
 
 
