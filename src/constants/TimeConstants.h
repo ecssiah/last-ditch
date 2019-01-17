@@ -3,7 +3,7 @@
 
 #include "../utility/Types.h"
 
-constexpr i32 TICKS_PER_SECOND{300};
+constexpr i32 TICKS_PER_SECOND{200};
 constexpr i32 SECONDS_PER_MINUTE{60};
 constexpr i32 MINUTES_PER_HOUR{60};
 constexpr i32 HOURS_PER_DAY{24};

@@ -89,8 +89,7 @@ void RenderSystem::init_SDL()
   }
 
   render_.renderer = SDL_CreateRenderer(
-    render_.window, -1, 
-    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    render_.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
   );
 
   if (render_.renderer == nullptr){
@@ -105,8 +104,9 @@ void RenderSystem::init_SDL()
 void RenderSystem::init_SDL_image()
 {
   const i32 img_flags{IMG_INIT_PNG};
+  const i32 initialized{IMG_Init(img_flags)};
   
-  if (!(IMG_Init(img_flags) & img_flags)) {
+  if ((initialized & img_flags) != img_flags) {
     cerr << IMG_GetError() << endl;
     return;
   }
@@ -115,7 +115,7 @@ void RenderSystem::init_SDL_image()
 
 void RenderSystem::init_SDL_ttf()
 {
-  if (TTF_Init()) {
+  if (TTF_Init() != 0) {
     cerr << TTF_GetError() << endl;
     return;
   } 
@@ -135,21 +135,21 @@ void RenderSystem::init_grid()
 SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
   string filename{"data/tilesets/" + texturename + ".png"};
-  SDL_Surface* sur{IMG_Load(filename.c_str())};
+  SDL_Surface* surface{IMG_Load(filename.c_str())};
 
-  if (!sur) { 
+  if (surface == nullptr) { 
     cerr << IMG_GetError() << endl;
     return nullptr;
   }
 
-  SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, sur)};
+  SDL_Texture* texture{SDL_CreateTextureFromSurface(render_.renderer, surface)};
 
-  if (!texture) {
+  if (texture == nullptr) {
     cerr << SDL_GetError() << endl;
     return nullptr;
   }
   
-  SDL_FreeSurface(sur);
+  SDL_FreeSurface(surface);
 
   return texture;
 }
@@ -160,7 +160,7 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
   string fontpath{"data/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
 
-  if (!font) {
+  if (font == nullptr) {
     cerr << TTF_GetError() << endl;
     return nullptr;
   }
