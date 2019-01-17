@@ -134,8 +134,8 @@ void RenderSystem::init_grid()
 
 SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
-  string filename{"data/tilesets/" + texturename + ".png"};
-  SDL_Surface* surface{IMG_Load(filename.c_str())};
+  string filepath{"data/tilesets/" + texturename + ".png"};
+  SDL_Surface* surface{IMG_Load(filepath.c_str())};
 
   if (surface == nullptr) { 
     cerr << IMG_GetError() << endl;
@@ -230,29 +230,32 @@ void RenderSystem::build_button_set(ButtonSet& el)
 
 void RenderSystem::build_text(Text& el)
 {
-  el.changed = false;
-
   SDL_Surface* surface{
     TTF_RenderUTF8_Blended(render_.fonts[el.font], el.content.c_str(), el.color)
   }; 
 
-  if (surface) {
-    SDL_DestroyTexture(render_.textures[el.texture]);
-
-    render_.textures[el.texture] = SDL_CreateTextureFromSurface(
-      render_.renderer, surface
-    ); 
-
-    SDL_FreeSurface(surface);
-  } else {
-    cerr << "TTF_RenderUTF8_Blended error: " << TTF_GetError() << endl; 
+  if (surface == nullptr) {
+    cerr << TTF_GetError() << endl; 
+    return;
   }
+
+  el.changed = false;
+
+  SDL_DestroyTexture(render_.textures[el.texture]);
+
+  render_.textures[el.texture] = SDL_CreateTextureFromSurface(
+    render_.renderer, surface
+  ); 
+
+  SDL_FreeSurface(surface);
 }
 
 
 void RenderSystem::build_scrollable(Scrollable& el)
 {
   build_scalable(el.base);
+
+  if (el.list.items.size() < 1) return;
 
   string full_msg;
   i32 msg_limit{
@@ -268,41 +271,44 @@ void RenderSystem::build_scrollable(Scrollable& el)
     render_.fonts[el.list.font], full_msg.c_str(), {255, 255, 255}, el.mask.w
   )};
 
-  if (surface) {
-    el.changed = false;
+  if (surface == nullptr) {
+    cerr << TTF_GetError() << endl; 
+    return;
+  }
 
-    SDL_DestroyTexture(render_.textures[el.list.texture]);
+  el.changed = false;
 
-    render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
-      render_.renderer, surface
-    ); 
+  SDL_DestroyTexture(render_.textures[el.list.texture]);
 
-    i32 scrollbar_height{
-      static_cast<i32>(el.mask.h / static_cast<f32>(surface->h) * el.mask.h)
+  render_.textures[el.list.texture] = SDL_CreateTextureFromSurface(
+    render_.renderer, surface
+  ); 
+
+  auto mask_content_ratio{el.mask.h / static_cast<f32>(surface->h)};
+
+  i32 scrollbar_height{static_cast<i32>(round(mask_content_ratio * el.mask.h))};
+
+  if (scrollbar_height > el.mask.h) {
+    el.scrollbar.active = false;
+    el.list.bounds = {el.mask.x, el.mask.y, surface->w, surface->h};
+  } else {
+    el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
+
+    i32 scrollbar_offset{static_cast<i32>(el.pos * el.scroll_range)};
+
+    el.scrollbar.active = true;
+    el.scrollbar.bounds = {
+      el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
+      el.base.bounds.y + el.base.border + scrollbar_offset,
+      SCROLLBAR_WIDTH, scrollbar_height
     };
 
-    if (scrollbar_height > el.mask.h) {
-      el.scrollbar.active = false;
-      el.list.bounds = {el.mask.x, el.mask.y, surface->w, surface->h};
-    } else {
-      el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
+    el.list.bounds = {
+      el.mask.x, el.mask.y - static_cast<i32>(el.pos * surface->h), 
+      surface->w, surface->h
+    };
 
-      i32 scrollbar_offset{static_cast<i32>(el.pos * el.scroll_range)};
-
-      el.scrollbar.active = true;
-      el.scrollbar.bounds = {
-        el.base.bounds.x + el.base.bounds.w - el.base.border - SCROLLBAR_WIDTH, 
-        el.base.bounds.y + el.base.border + scrollbar_offset,
-        SCROLLBAR_WIDTH, scrollbar_height
-      };
-
-      el.list.bounds = {
-        el.mask.x, el.mask.y - static_cast<i32>(el.pos * surface->h), 
-        surface->w, surface->h
-      };
-
-      build_scrollbar(el.scrollbar);
-    }
+    build_scrollbar(el.scrollbar);
   }
 }
 
