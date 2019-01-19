@@ -109,7 +109,7 @@ void MapSystem::layout_main_floor(i32 floor)
 
   for (auto x{0}; x < TILES_PER_LAYER; x++)
     for (auto y{0}; y < TILES_PER_LAYER; y++)
-      set_tile("floor", x, y, floor, floor_type);
+      set_tile("flr", x, y, floor, floor_type);
 }
 
 
@@ -189,20 +189,20 @@ void MapSystem::build_rooms(i32 floor)
   for (const auto& room : map_.rooms[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++)
       for (auto y{room.t()}; y <= room.b(); y++)
-        set_tile("floor", x, y, floor, room.floor_type);
+        set_tile("flr", x, y, floor, room.floor_type);
 
     for (auto x{room.l()}; x <= room.r(); x++) {
       set_solid(x, room.t(), floor);
       set_solid(x, room.b(), floor);
-      set_tile("wall", x, room.t(), floor, room.wall_type + "-str"); 
-      set_tile("wall", x, room.b(), floor, room.wall_type + "-str");
+      set_tile("wal", x, room.t(), floor, room.wall_type + "-str"); 
+      set_tile("wal", x, room.b(), floor, room.wall_type + "-str");
     }
 
     for (auto y{room.t() + 1}; y <= room.b(); y++) {
       set_solid(room.l(), y, floor);
       set_solid(room.r(), y, floor);
-      set_tile("wall", room.l(), y, floor, room.wall_type + "-str", 90); 
-      set_tile("wall", room.r(), y, floor, room.wall_type + "-str", 90);
+      set_tile("wal", room.l(), y, floor, room.wall_type + "-str", 90); 
+      set_tile("wal", room.r(), y, floor, room.wall_type + "-str", 90);
     }
   }
 
@@ -212,13 +212,13 @@ void MapSystem::build_rooms(i32 floor)
 
 void MapSystem::integrate_walls(i32 floor)
 {
-  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
+  const auto& tiles{map_.floors[floor].layers["wal"].tiles};
 
   for (auto x{OUTER_PATH}; x < TILES_PER_LAYER - OUTER_PATH; x++) {
     for (auto y{OUTER_PATH}; y < TILES_PER_LAYER - OUTER_PATH; y++) {
       const Tile& tile{tiles[x][y]};
 
-      if (tile.category == "wall") {
+      if (tile.category == "walls") {
         const Tile& utile{tiles[x + 0][y - 1]};
         const Tile& dtile{tiles[x + 0][y + 1]};
         const Tile& ltile{tiles[x - 1][y + 0]};
@@ -230,37 +230,37 @@ void MapSystem::integrate_walls(i32 floor)
         const bool lmatch{tile.type == ltile.type};
 
         if (umatch && lmatch && dmatch && rmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-int");
+          set_tile("wal", x, y, floor, tile.type + "-int");
         } else if (umatch && rmatch && dmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-tee");
+          set_tile("wal", x, y, floor, tile.type + "-tee");
         } else if (rmatch && dmatch && lmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-tee", 90);
+          set_tile("wal", x, y, floor, tile.type + "-tee", 90);
         } else if (dmatch && lmatch && umatch) {
-          set_tile("wall", x, y, floor, tile.type + "-tee", 180);
+          set_tile("wal", x, y, floor, tile.type + "-tee", 180);
         } else if (lmatch && umatch && rmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-tee", 270);
+          set_tile("wal", x, y, floor, tile.type + "-tee", 270);
         } else if (umatch && rmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-cor");
+          set_tile("wal", x, y, floor, tile.type + "-cor");
         } else if (rmatch && dmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-cor", 90);
+          set_tile("wal", x, y, floor, tile.type + "-cor", 90);
         } else if (dmatch && lmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-cor", 180);
+          set_tile("wal", x, y, floor, tile.type + "-cor", 180);
         } else if (lmatch && umatch) {
-          set_tile("wall", x, y, floor, tile.type + "-cor", 270);
+          set_tile("wal", x, y, floor, tile.type + "-cor", 270);
         } else if (lmatch && rmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-str");
+          set_tile("wal", x, y, floor, tile.type + "-str");
         } else if (umatch && dmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-str", 90);
+          set_tile("wal", x, y, floor, tile.type + "-str", 90);
         } else if (umatch) {
-          set_tile("wall", x, y, floor, tile.type + "-end");
+          set_tile("wal", x, y, floor, tile.type + "-end");
         } else if (rmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-end", 90);
+          set_tile("wal", x, y, floor, tile.type + "-end", 90);
         } else if (dmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-end", 180);
+          set_tile("wal", x, y, floor, tile.type + "-end", 180);
         } else if (lmatch) {
-          set_tile("wall", x, y, floor, tile.type + "-end", 270);
+          set_tile("wal", x, y, floor, tile.type + "-end", 270);
         } else {
-          set_tile("wall", x, y, floor, tile.type + "-one");
+          set_tile("wal", x, y, floor, tile.type + "-one");
         }
       }
     }
@@ -308,10 +308,10 @@ void MapSystem::place_doors(i32 floor)
         
         if (rand() % 2 == 0) {
           set_solid(x, y, floor);
-          set_tile("wall", x, y, floor, "door1-cls", rot);
+          set_tile("wal", x, y, floor, "door1-cls", rot);
         } else {
           set_solid(x, y, floor, false);
-          set_tile("wall", x, y, floor, "door1-opn", rot);
+          set_tile("wal", x, y, floor, "door1-opn", rot);
         }
       }
     }
@@ -353,7 +353,7 @@ const bool MapSystem::select_tile(i32 x, i32 y)
     input_.selecty = y;
     input_.selectfloor = map_.cur_floor;
 
-    set_tile("overlay", x, y, map_.cur_floor, "select");
+    set_tile("ovr", x, y, map_.cur_floor, "select");
 
     return true;
   } else {
@@ -366,7 +366,7 @@ void MapSystem::clear_selection() {
   if (input_.selectx == -1 && input_.selecty == -1) return;
 
   set_active(
-    "overlay", input_.selectx, input_.selecty, input_.selectfloor, false
+    "ovr", input_.selectx, input_.selecty, input_.selectfloor, false
   );
 }
 
@@ -411,7 +411,7 @@ const bool MapSystem::has_clearance(
     dx3 =  0; dy3 = -1;
   }
 
-  const auto& tiles{map_.floors[floor].layers["wall"].tiles};
+  const auto& tiles{map_.floors[floor].layers["wal"].tiles};
 
   const auto front_clear{tiles[x + dx1][y + dy1].type == ""};
   const auto left_clear{tiles[x + dx2][y + dy2].category != "door"};
@@ -452,7 +452,7 @@ void MapSystem::set_tile(
 
 void MapSystem::set_solid(i32 x, i32 y, i32 floor, bool solid)
 {
-  Tile& tile{map_.floors[floor].layers["wall"].tiles[x][y]};
+  Tile& tile{map_.floors[floor].layers["wal"].tiles[x][y]};
   tile.solid = solid;
 }
 

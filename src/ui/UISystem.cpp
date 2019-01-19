@@ -164,7 +164,7 @@ void UISystem::setup_date_display()
 void UISystem::setup_window(Window& el)
 {
   el.base.type = "window1";
-  el.base.texture = "overlay";
+  el.base.texture = "ovr";
   el.base.bounds = el.bounds;
 
   setup_scalable(el.base);
@@ -176,11 +176,11 @@ void UISystem::setup_button(Button& el)
   el.changed = true;
 
   el.base.type = el.type + "-off";
-  el.base.texture = "overlay";
+  el.base.texture = "ovr";
   el.base.bounds = el.bounds;
 
   el.pressed.type = el.type + "-on";
-  el.pressed.texture = "overlay";
+  el.pressed.texture = "ovr";
   el.pressed.bounds = el.bounds;
 
   el.label.font = "Medium";
@@ -203,7 +203,7 @@ void UISystem::setup_button_set(ButtonSet& el)
 void UISystem::setup_scrollable(Scrollable& el)
 {
   el.base.type = el.base_type;
-  el.base.texture = "overlay";
+  el.base.texture = "ovr";
   el.base.bounds = el.bounds;
 
   el.list.font = el.list_font;
@@ -211,7 +211,7 @@ void UISystem::setup_scrollable(Scrollable& el)
   el.list.items = el.list_items;
 
   el.scrollbar.type = el.scrollbar_type;
-  el.scrollbar.texture = "overlay";
+  el.scrollbar.texture = "ovr";
 
   el.mask = {
     el.bounds.x + el.pad.x, el.bounds.y + el.pad.y, 

@@ -6,7 +6,6 @@
 #include <functional>
 
 #include <SDL2/SDL.h>
-#include <glm/glm.hpp>
 
 #include "../utility/Logging.h"
 #include "../constants/RenderConstants.h"
@@ -135,6 +134,7 @@ void RenderSystem::init_grid()
 SDL_Texture* RenderSystem::load_texture(const string& texturename)
 {
   string filepath{"data/tilesets/" + texturename + ".png"};
+
   SDL_Surface* surface{IMG_Load(filepath.c_str())};
 
   if (surface == nullptr) { 
@@ -171,11 +171,11 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
 
 void RenderSystem::load_tilesets()
 {
-  render_.textures["floor"] = load_texture("map_tileset"); 
-  render_.textures["wall"] = render_.textures["floor"];
-  render_.textures["object"] = load_texture("object_tileset"); 
-  render_.textures["entity"] = load_texture("entity_tileset"); 
-  render_.textures["overlay"] = load_texture("overlay_tileset");
+  render_.textures["flr"] = load_texture("map_tileset"); 
+  render_.textures["wal"] = render_.textures["flr"];
+  render_.textures["obj"] = load_texture("object_tileset"); 
+  render_.textures["ent"] = load_texture("entity_tileset"); 
+  render_.textures["ovr"] = load_texture("overlay_tileset");
 }
 
 
@@ -284,9 +284,10 @@ void RenderSystem::build_scrollable(Scrollable& el)
     render_.renderer, surface
   ); 
 
-  auto mask_content_ratio{el.mask.h / static_cast<f32>(surface->h)};
-
-  i32 scrollbar_height{static_cast<i32>(round(mask_content_ratio * el.mask.h))};
+  const f32 mask_content_ratio{el.mask.h / static_cast<f32>(surface->h)};
+  const i32 scrollbar_height{
+    static_cast<i32>(round(mask_content_ratio * el.mask.h))
+  };
 
   if (scrollbar_height > el.mask.h) {
     el.scrollbar.active = false;
@@ -294,7 +295,7 @@ void RenderSystem::build_scrollable(Scrollable& el)
   } else {
     el.scroll_range = el.base.bounds.h - 2 * el.base.border - scrollbar_height;
 
-    i32 scrollbar_offset{static_cast<i32>(el.pos * el.scroll_range)};
+    const i32 scrollbar_offset{static_cast<i32>(el.pos * el.scroll_range)};
 
     el.scrollbar.active = true;
     el.scrollbar.bounds = {
@@ -376,26 +377,18 @@ void RenderSystem::render_map() const
   const i32 lower{0};
   const i32 upper{TILES_PER_LAYER - 1};
 
-  i32 x_min{
-    max(lower, static_cast<i32>(camera_.pos.x - VIEW_X * camera_.inv_zoom))
-  }; 
-  i32 y_min{
-    max(lower, static_cast<i32>(camera_.pos.y - VIEW_Y * camera_.inv_zoom))
-  };
-  i32 x_max{
-    min(upper, static_cast<i32>(camera_.pos.x + VIEW_X * camera_.inv_zoom))
-  };
-  i32 y_max{
-    min(upper, static_cast<i32>(camera_.pos.y + VIEW_Y * camera_.inv_zoom))
-  }; 
+  const i32 x_min{static_cast<i32>(camera_.pos.x - VIEW_X * camera_.inv_zoom)};
+  const i32 x_max{static_cast<i32>(camera_.pos.x + VIEW_X * camera_.inv_zoom)};
+  const i32 y_min{static_cast<i32>(camera_.pos.y - VIEW_Y * camera_.inv_zoom)};
+  const i32 y_max{static_cast<i32>(camera_.pos.y + VIEW_Y * camera_.inv_zoom)};
 
-  for (auto x{x_min}; x <= x_max; ++x) { 
-    for (auto y{y_min}; y <= y_max; ++y) {
-      render_tile("floor", x, y, map_.cur_floor);
-      render_tile("wall", x, y, map_.cur_floor);
-      render_tile("object", x, y, map_.cur_floor);
-      render_tile("entity", x, y, map_.cur_floor);
-      render_tile("overlay", x, y, map_.cur_floor);
+  for (auto x{max(lower, x_min)}; x <= min(upper, x_max); x++) { 
+    for (auto y{max(lower, y_min)}; y <= min(upper, y_max); y++) {
+      render_tile("flr", x, y, map_.cur_floor);
+      render_tile("wal", x, y, map_.cur_floor);
+      render_tile("obj", x, y, map_.cur_floor);
+      render_tile("ent", x, y, map_.cur_floor);
+      render_tile("ovr", x, y, map_.cur_floor);
 
       if (render_.grid) render_grid(x, y);
     }
@@ -426,7 +419,7 @@ void RenderSystem::render_button_set(ButtonSet& el) const
 
 
 void RenderSystem::render_tile(
-  const string& layer, i32 x, i32 y, i32 floor
+  const std::string& layer, i32 x, i32 y, i32 floor
 ) const 
 {
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
@@ -452,7 +445,7 @@ void RenderSystem::render_grid(i32 x, i32 y) const
   render_.grid_dst.y = render_.scale * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
 
   SDL_RenderCopy(
-    render_.renderer, render_.textures["overlay"], 
+    render_.renderer, render_.textures["ovr"], 
     &render_.grid_src, &render_.grid_dst
   );
 }
@@ -465,8 +458,8 @@ void RenderSystem::render_scrollable(Scrollable& el) const
   SDL_RenderSetClipRect(render_.renderer, &el.mask);
 
   SDL_RenderCopy(
-    render_.renderer, render_.textures[el.list.texture], nullptr, 
-    &el.list.bounds
+    render_.renderer, render_.textures[el.list.texture], 
+    nullptr, &el.list.bounds
   );
 
   SDL_RenderSetClipRect(render_.renderer, nullptr);

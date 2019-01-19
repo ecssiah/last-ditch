@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.7)
 
+set(LAST_DITCH_MAJOR_VERSION 0)
+set(LAST_DITCH_MINOR_VERSION 1)
+set(LAST_DITCH_PATCH_VERSION 0)
+string(
+  CONCAT LAST_DITCH_VERSION 
+  "${LAST_DITCH_MAJOR_VERSION}."
+  "${LAST_DITCH_MINOR_VERSION}."
+  "${LAST_DITCH_PATCH_VERSION}"
+)
+
 project(LastDitch)
+
+message(STATUS "Last Ditch version: ${LAST_DITCH_VERSION}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
@@ -31,18 +43,18 @@ set(
 
 set(
   HEADERS
-  ./include/utility/AssetManager.h
-  ./include/utility/ConfigSystem.h
-  ./include/map/MapSystem.h
-  ./include/entity/EntitySystem.h
-  ./include/render/RenderSystem.h
-  ./include/render/CameraSystem.h
-  ./include/time/TimeSystem.h
-  ./include/interface/InputSystem.h
-  ./include/ui/UISystem.h
-  ./include/utility/FileSystem.h
-  ./include/events/EventSystem.h
-  ./include/LastDitch.h
+  ./src/utility/AssetManager.h
+  ./src/utility/ConfigSystem.h
+  ./src/map/MapSystem.h
+  ./src/entity/EntitySystem.h
+  ./src/render/RenderSystem.h
+  ./src/render/CameraSystem.h
+  ./src/time/TimeSystem.h
+  ./src/interface/InputSystem.h
+  ./src/ui/UISystem.h
+  ./src/utility/FileSystem.h
+  ./src/events/EventSystem.h
+  ./src/LastDitch.h
 )
 
 set(
