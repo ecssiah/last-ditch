@@ -15,14 +15,16 @@ ConfigSystem::ConfigSystem(Map& map)
 
 }
 
-void ConfigSystem::init()
+void 
+ConfigSystem::init()
 {
   cout << "ConfigSystem initializing" << endl;
 
   load_tile_info();
 }
 
-void ConfigSystem::load_tile_info()
+void 
+ConfigSystem::load_tile_info()
 {
   const YAML::Node& tileset_map{YAML::LoadFile("data/scripts/tiles.yml")};
 

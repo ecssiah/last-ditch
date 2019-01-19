@@ -15,13 +15,15 @@ CameraSystem::CameraSystem(Input& input, Render& render, Camera& camera)
 }
 
 
-void CameraSystem::init()
+void 
+CameraSystem::init()
 {
   render_.scale = camera_.zoom * TILE_SIZE;
 }
 
 
-void CameraSystem::update()
+void 
+CameraSystem::update()
 {
   if (input_.mag) inc_zoom();
   if (input_.min) dec_zoom();
@@ -33,7 +35,8 @@ void CameraSystem::update()
 }
 
 
-void CameraSystem::move(Dir dir)
+void 
+CameraSystem::move(Dir dir)
 {
   auto ds{camera_.speed * render_.dt * camera_.inv_zoom};
 
@@ -46,7 +49,8 @@ void CameraSystem::move(Dir dir)
 }
 
 
-void CameraSystem::inc_zoom() 
+void 
+CameraSystem::inc_zoom() 
 { 
   camera_.zoom = min(MAX_ZOOM, camera_.zoom * 2); 
   camera_.inv_zoom = 1.0 / camera_.zoom;
@@ -55,7 +59,8 @@ void CameraSystem::inc_zoom()
 }
 
 
-void CameraSystem::dec_zoom() 
+void 
+CameraSystem::dec_zoom() 
 { 
   camera_.zoom = max(MIN_ZOOM, camera_.zoom / 2); 
   camera_.inv_zoom = 1.0 / camera_.zoom;
@@ -64,7 +69,8 @@ void CameraSystem::dec_zoom()
 }
 
 
-void CameraSystem::update_scale()
+void 
+CameraSystem::update_scale()
 {
   render_.scale = camera_.zoom * TILE_SIZE;
   render_.grid_dst.w = render_.scale;

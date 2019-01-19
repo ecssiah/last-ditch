@@ -21,7 +21,8 @@ FileSystem::FileSystem(Input& input, Time& time, Map& map)
 }
 
 
-void FileSystem::init()
+void 
+FileSystem::init()
 {
   cout << "FileSystem initializing" << endl;
 
@@ -37,7 +38,8 @@ void FileSystem::init()
 }
 
 
-bool FileSystem::create_user(const string& username)
+bool 
+FileSystem::create_user(const string& username)
 {
   bool user_exists{false};
 
@@ -59,7 +61,8 @@ bool FileSystem::create_user(const string& username)
 }
 
 
-bool FileSystem::delete_user(const string& username)
+bool 
+FileSystem::delete_user(const string& username)
 {
   i32 index{0};
   bool user_exists{false};
@@ -82,7 +85,8 @@ bool FileSystem::delete_user(const string& username)
 }
 
 
-bool FileSystem::save_state(const string& filename)
+bool 
+FileSystem::save_state(const string& filename)
 {
   ofstream ofs("saves/" + filename);
 
@@ -101,7 +105,8 @@ bool FileSystem::save_state(const string& filename)
 }
 
 
-bool FileSystem::load_state(const string& filename)
+bool 
+FileSystem::load_state(const string& filename)
 {
   ifstream ifs("saves/" + filename);
 
@@ -120,7 +125,8 @@ bool FileSystem::load_state(const string& filename)
 }
 
 
-bool FileSystem::delete_state(const string& filename)
+bool 
+FileSystem::delete_state(const string& filename)
 {
   string filepath{"saves/" + filename};
 
@@ -134,7 +140,8 @@ bool FileSystem::delete_state(const string& filename)
 }
 
 
-bool FileSystem::save_map(const string& filename)
+bool 
+FileSystem::save_map(const string& filename)
 {
   ofstream ofs("maps/" + filename);
 
@@ -152,7 +159,8 @@ bool FileSystem::save_map(const string& filename)
 }
 
 
-bool FileSystem::load_map(const string& filename)
+bool 
+FileSystem::load_map(const string& filename)
 {
   ifstream ifs("maps/" + filename);
 
@@ -170,7 +178,8 @@ bool FileSystem::load_map(const string& filename)
 }
 
 
-bool FileSystem::delete_map(const string& filename)
+bool 
+FileSystem::delete_map(const string& filename)
 {
   string filepath{"maps/" + filename};
 

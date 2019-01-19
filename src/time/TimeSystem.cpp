@@ -15,19 +15,22 @@ TimeSystem::TimeSystem(Input& input, Render& render, Time& time)
 }
 
 
-void TimeSystem::init()
+void 
+TimeSystem::init()
 {
 
 }
 
 
-void TimeSystem::begin_frame()
+void 
+TimeSystem::begin_frame()
 {
   start_ = chrono::steady_clock::now();
 }
 
 
-void TimeSystem::end_frame()
+void 
+TimeSystem::end_frame()
 {
   if (!input_.pause) tick();
 
@@ -38,7 +41,8 @@ void TimeSystem::end_frame()
 }
 
 
-void TimeSystem::tick()
+void 
+TimeSystem::tick()
 {
   ticks_ += 1;
   time_.time_changed = false;

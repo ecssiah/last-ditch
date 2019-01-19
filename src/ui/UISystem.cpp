@@ -24,7 +24,8 @@ UISystem::UISystem(Input& input, Map& map, Time& time, Log& log, UI& ui)
 }
 
 
-void UISystem::init()
+void 
+UISystem::init()
 {
   cout << "UISystem initializing" << endl;
 
@@ -38,7 +39,8 @@ void UISystem::init()
 }
 
 
-void UISystem::setup_main_window()
+void 
+UISystem::setup_main_window()
 {
   auto& el{ui_.window_elements["main"]};
   el.changed = true;
@@ -53,7 +55,8 @@ void UISystem::setup_main_window()
 }
 
 
-void UISystem::setup_main_buttons()
+void 
+UISystem::setup_main_buttons()
 {
   auto& main_button_set{ui_.button_set_elements["main_buttons"]};
   auto& info{main_button_set.buttons["info"]};
@@ -97,7 +100,8 @@ void UISystem::setup_main_buttons()
 }
 
 
-void UISystem::setup_message_window()
+void 
+UISystem::setup_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
   el.changed = true;
@@ -116,7 +120,8 @@ void UISystem::setup_message_window()
 }
 
 
-void UISystem::setup_floor_display()
+void 
+UISystem::setup_floor_display()
 {
   auto& el{ui_.text_elements["floor_display"]};
   el.changed = true;
@@ -131,7 +136,8 @@ void UISystem::setup_floor_display()
 }
 
 
-void UISystem::setup_time_display()
+void 
+UISystem::setup_time_display()
 {
   auto& el{ui_.text_elements["time_display"]};
   el.changed = true;
@@ -146,7 +152,8 @@ void UISystem::setup_time_display()
 }
 
 
-void UISystem::setup_date_display()
+void 
+UISystem::setup_date_display()
 {
   auto& el{ui_.text_elements["date_display"]};
   el.changed = true;
@@ -161,7 +168,8 @@ void UISystem::setup_date_display()
 }
 
 
-void UISystem::setup_window(Window& el)
+void 
+UISystem::setup_window(Window& el)
 {
   el.base.type = "window1";
   el.base.texture = "ovr";
@@ -171,7 +179,8 @@ void UISystem::setup_window(Window& el)
 }
 
 
-void UISystem::setup_button(Button& el)
+void 
+UISystem::setup_button(Button& el)
 {
   el.changed = true;
 
@@ -194,13 +203,15 @@ void UISystem::setup_button(Button& el)
 }
 
 
-void UISystem::setup_button_set(ButtonSet& el)
+void 
+UISystem::setup_button_set(ButtonSet& el)
 {
   for (auto& kv : el.buttons) setup_button(kv.second);
 }
 
 
-void UISystem::setup_scrollable(Scrollable& el)
+void 
+UISystem::setup_scrollable(Scrollable& el)
 {
   el.base.type = el.base_type;
   el.base.texture = "ovr";
@@ -223,7 +234,8 @@ void UISystem::setup_scrollable(Scrollable& el)
 }
 
 
-void UISystem::setup_scrollbar(Scrollbar& el)
+void 
+UISystem::setup_scrollbar(Scrollbar& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
     el.basex = static_cast<i32>(SCROLLBAR_WIDTH * map_.tile_data[el.type].uv.x);
@@ -246,7 +258,8 @@ void UISystem::setup_scrollbar(Scrollbar& el)
 }
 
 
-void UISystem::setup_scalable(Scalable& el)
+void 
+UISystem::setup_scalable(Scalable& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
     el.basex = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.x);
@@ -288,7 +301,8 @@ void UISystem::setup_scalable(Scalable& el)
 }
 
 
-void UISystem::update()
+void 
+UISystem::update()
 {
   resolve_selections();
 
@@ -298,7 +312,8 @@ void UISystem::update()
 }
 
 
-void UISystem::resolve_selections()
+void 
+UISystem::resolve_selections()
 {
   if (input_.menu) {
     update_main_buttons();
@@ -308,12 +323,14 @@ void UISystem::resolve_selections()
 }
 
 
-void UISystem::update_menu()
+void 
+UISystem::update_menu()
 {
 }
 
 
-void UISystem::update_hud()
+void 
+UISystem::update_hud()
 {
   if (map_.floor_changed) {
     auto& el{ui_.text_elements["floor_display"]};
@@ -335,7 +352,8 @@ void UISystem::update_hud()
 }
 
 
-void UISystem::update_messages()
+void 
+UISystem::update_messages()
 {
   if (log_.changed) {
     log_.changed = false;
@@ -347,7 +365,8 @@ void UISystem::update_messages()
 }
 
 
-void UISystem::update_main_buttons()
+void 
+UISystem::update_main_buttons()
 {
   if (input_.lclick) {
     input_.lclick = false;
@@ -357,7 +376,8 @@ void UISystem::update_main_buttons()
 }
 
 
-void UISystem::update_message_window()
+void 
+UISystem::update_message_window()
 {
   auto& el{ui_.scrollable_elements["message_window"]};
 
@@ -388,7 +408,8 @@ void UISystem::update_message_window()
 }
 
 
-void UISystem::update_button_set(ButtonSet& el)
+void 
+UISystem::update_button_set(ButtonSet& el)
 {
   el.changed = true;
 
@@ -403,7 +424,8 @@ void UISystem::update_button_set(ButtonSet& el)
 }
 
 
-void UISystem::update_scrollable(Scrollable& el, f32 ds)
+void 
+UISystem::update_scrollable(Scrollable& el, f32 ds)
 {
   el.changed = true;
 
@@ -412,7 +434,8 @@ void UISystem::update_scrollable(Scrollable& el, f32 ds)
 }
 
 
-void UISystem::update_scrollable_items(Scrollable& el, vector<string> items)
+void 
+UISystem::update_scrollable_items(Scrollable& el, vector<string> items)
 {
   el.changed = true;
 
@@ -421,7 +444,9 @@ void UISystem::update_scrollable_items(Scrollable& el, vector<string> items)
 }
 
 
-const bool UISystem::check_intersection(i32 x, i32 y, Element& el) const
+const bool 
+UISystem::check_intersection(i32 x, i32 y, Element& el) 
+const
 {
   const bool lcheck{input_.mx > el.bounds.x};
   const bool rcheck{input_.mx < el.bounds.x + el.bounds.w};
@@ -432,7 +457,9 @@ const bool UISystem::check_intersection(i32 x, i32 y, Element& el) const
 }
 
 
-const string UISystem::format_time() const
+const string 
+UISystem::format_time() 
+const
 {
   stringstream ss;
   ss << setfill('0');
@@ -444,7 +471,9 @@ const string UISystem::format_time() const
 }
 
 
-const string UISystem::format_date() const
+const string 
+UISystem::format_date() 
+const
 {
   stringstream ss;
   ss << setfill('0');
@@ -456,7 +485,9 @@ const string UISystem::format_date() const
 }
 
 
-const string UISystem::format_floor() const
+const string 
+UISystem::format_floor() 
+const
 {
   return to_string(map_.cur_floor) + "F";
 }

@@ -18,7 +18,8 @@ MapSystem::MapSystem(Input& input, Camera& camera, Map& map, Log& log)
 }
 
 
-void MapSystem::init()
+void 
+MapSystem::init()
 {
   cout << "MapSystem initializing" << endl;
 
@@ -28,7 +29,8 @@ void MapSystem::init()
 }
 
 
-void MapSystem::update()
+void 
+MapSystem::update()
 {
   if (map_.floor_changed) map_.floor_changed = false;
 
@@ -38,7 +40,8 @@ void MapSystem::update()
 }
 
 
-void MapSystem::generate_map()
+void 
+MapSystem::generate_map()
 {
   for (auto floor{1}; floor <= NUM_FLOORS; floor++) {
     define_blocks(floor);
@@ -52,7 +55,8 @@ void MapSystem::generate_map()
 }
 
 
-void MapSystem::update_floor()
+void 
+MapSystem::update_floor()
 {
   if (input_.descend && map_.cur_floor > 1) {
     map_.floor_changed = true;
@@ -66,7 +70,8 @@ void MapSystem::update_floor()
 }
 
 
-void MapSystem::define_blocks(i32 floor)
+void 
+MapSystem::define_blocks(i32 floor)
 {
   // left edge
   map_.blocks[floor].push_back({
@@ -97,7 +102,8 @@ void MapSystem::define_blocks(i32 floor)
 }
 
 
-void MapSystem::layout_main_floor(i32 floor)
+void 
+MapSystem::layout_main_floor(i32 floor)
 {
   string floor_type;
 
@@ -113,7 +119,8 @@ void MapSystem::layout_main_floor(i32 floor)
 }
 
 
-void MapSystem::seed_rooms(i32 floor)
+void 
+MapSystem::seed_rooms(i32 floor)
 {
   for (auto i{0}; i < NUM_ROOMS; i++) {
     Room test_room;
@@ -147,7 +154,8 @@ void MapSystem::seed_rooms(i32 floor)
 }
 
 
-void MapSystem::expand_rooms(i32 floor)
+void 
+MapSystem::expand_rooms(i32 floor)
 {
   if (RANDOM_ROOMS) srand(time(nullptr));
 
@@ -184,7 +192,8 @@ void MapSystem::expand_rooms(i32 floor)
 }
 
 
-void MapSystem::build_rooms(i32 floor)
+void 
+MapSystem::build_rooms(i32 floor)
 {
   for (const auto& room : map_.rooms[floor]) {
     for (auto x{room.l()}; x <= room.r(); x++)
@@ -210,7 +219,8 @@ void MapSystem::build_rooms(i32 floor)
 }
 
 
-void MapSystem::integrate_walls(i32 floor)
+void 
+MapSystem::integrate_walls(i32 floor)
 {
   const auto& tiles{map_.floors[floor].layers["wal"].tiles};
 
@@ -270,7 +280,8 @@ void MapSystem::integrate_walls(i32 floor)
 }
 
 
-void MapSystem::place_doors(i32 floor)
+void 
+MapSystem::place_doors(i32 floor)
 {
   for (auto& room : map_.rooms[floor]) {
     u8 count{0};
@@ -321,7 +332,8 @@ void MapSystem::place_doors(i32 floor)
 }
 
 
-void MapSystem::calculate_selected_tile()
+void 
+MapSystem::calculate_selected_tile()
 {
   f32 screenx{(input_.mx - HALF_SCREEN_SIZE_X) / (f32)TILE_SIZE / camera_.zoom};
   f32 screeny{(input_.my - HALF_SCREEN_SIZE_Y) / (f32)TILE_SIZE / camera_.zoom};
@@ -341,7 +353,8 @@ void MapSystem::calculate_selected_tile()
 }
 
 
-const bool MapSystem::select_tile(i32 x, i32 y)
+const bool 
+MapSystem::select_tile(i32 x, i32 y)
 {
   const auto x_in_bounds{x >= 0 && x <= TILES_PER_LAYER - 1};
   const auto y_in_bounds{y >= 0 && y <= TILES_PER_LAYER - 1}; 
@@ -362,7 +375,9 @@ const bool MapSystem::select_tile(i32 x, i32 y)
 }
 
 
-void MapSystem::clear_selection() {
+void 
+MapSystem::clear_selection() 
+{
   if (input_.selectx == -1 && input_.selecty == -1) return;
 
   set_active(
@@ -371,7 +386,9 @@ void MapSystem::clear_selection() {
 }
 
 
-const bool MapSystem::room_collision(i32 floor, const Room& test_room) const 
+const bool 
+MapSystem::room_collision(i32 floor, const Room& test_room) 
+const 
 {
   for (const auto& room : map_.blocks[floor]) 
     if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
@@ -385,9 +402,11 @@ const bool MapSystem::room_collision(i32 floor, const Room& test_room) const
 }
 
 
-const bool MapSystem::has_clearance(
+const bool 
+MapSystem::has_clearance(
   const string& category, i32 x, i32 y, i32 floor, Dir dir
-) const 
+) 
+const 
 {
   i8 dx1, dy1;
   i8 dx2, dy2;
@@ -421,7 +440,8 @@ const bool MapSystem::has_clearance(
 }
 
 
-void MapSystem::set_tile(
+void 
+MapSystem::set_tile(
   const string& layer, i32 x, i32 y, i32 floor, const string& type, 
   f32 rot, SDL_RendererFlip flip
 ) {
@@ -450,14 +470,16 @@ void MapSystem::set_tile(
 }
 
 
-void MapSystem::set_solid(i32 x, i32 y, i32 floor, bool solid)
+void 
+MapSystem::set_solid(i32 x, i32 y, i32 floor, bool solid)
 {
   Tile& tile{map_.floors[floor].layers["wal"].tiles[x][y]};
   tile.solid = solid;
 }
 
 
-void MapSystem::set_active(
+void 
+MapSystem::set_active(
   const std::string& layer, i32 x, i32 y, i32 floor, bool active
 ) {
   Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
@@ -465,7 +487,9 @@ void MapSystem::set_active(
 }
 
 
-const i32 MapSystem::get_section(i32 floor) const
+const i32 
+MapSystem::get_section(i32 floor) 
+const
 {
   if (floor > 2 * NUM_FLOORS / 3 && floor <= NUM_FLOORS) {
     return 3;

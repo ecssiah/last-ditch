@@ -17,19 +17,22 @@ InputSystem::InputSystem(Input& input, Render& render, Camera& camera)
 }
 
 
-void InputSystem::init()
+void 
+InputSystem::init()
 {
 }
 
 
-void InputSystem::update()
+void 
+InputSystem::update()
 {
   clear_inputs();
   call_input_functions();
 }
 
 
-void InputSystem::clear_inputs()
+void 
+InputSystem::clear_inputs()
 {
   input_.ascend = false;
   input_.descend = false;
@@ -58,7 +61,8 @@ void InputSystem::clear_inputs()
 }
 
 
-void InputSystem::call_input_functions()
+void 
+InputSystem::call_input_functions()
 {
   for(SDL_Event e; SDL_PollEvent(&e); ) {
     switch(e.type) {
@@ -78,31 +82,36 @@ void InputSystem::call_input_functions()
 }
 
 
-void InputSystem::on_quit()
+void 
+InputSystem::on_quit()
 {
   input_.exit = true;
 }
 
 
-void InputSystem::on_multigesture(SDL_MultiGestureEvent e)
+void 
+InputSystem::on_multigesture(SDL_MultiGestureEvent e)
 {
   input_.touch_points = e.numFingers;
 }
 
 
-void InputSystem::on_finger_down(SDL_TouchFingerEvent e)
+void 
+InputSystem::on_finger_down(SDL_TouchFingerEvent e)
 {
 
 }
 
 
-void InputSystem::on_finger_up(SDL_TouchFingerEvent e)
+void 
+InputSystem::on_finger_up(SDL_TouchFingerEvent e)
 {
 
 }
 
 
-void InputSystem::on_finger_motion(SDL_TouchFingerEvent e)
+void 
+InputSystem::on_finger_motion(SDL_TouchFingerEvent e)
 {
   input_.tx = e.x;
   input_.ty = e.y;
@@ -111,7 +120,8 @@ void InputSystem::on_finger_motion(SDL_TouchFingerEvent e)
 }
 
 
-void InputSystem::on_key_down(SDL_KeyboardEvent key)
+void 
+InputSystem::on_key_down(SDL_KeyboardEvent key)
 {
   switch (key.keysym.sym) {
     case SDLK_w: input_.up = true; break;
@@ -128,7 +138,8 @@ void InputSystem::on_key_down(SDL_KeyboardEvent key)
 }
 
 
-void InputSystem::on_key_up(SDL_KeyboardEvent key)
+void 
+InputSystem::on_key_up(SDL_KeyboardEvent key)
 {
   if (key.keysym.mod == KMOD_NONE) {
     switch (key.keysym.sym) {
@@ -148,7 +159,8 @@ void InputSystem::on_key_up(SDL_KeyboardEvent key)
 }
 
 
-void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
+void 
+InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
 {
   input_.mpx = mouse.x;
   input_.mpy = mouse.y;
@@ -171,7 +183,8 @@ void InputSystem::on_mouse_down(SDL_MouseButtonEvent mouse)
 }
 
 
-void InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
+void 
+InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
 {
   input_.mrx = mouse.x;
   input_.mry = mouse.y;
@@ -194,7 +207,8 @@ void InputSystem::on_mouse_up(SDL_MouseButtonEvent mouse)
 }
 
 
-void InputSystem::on_mouse_motion(SDL_MouseMotionEvent motion) 
+void 
+InputSystem::on_mouse_motion(SDL_MouseMotionEvent motion) 
 {
   input_.mx = motion.x;
   input_.my = motion.y;

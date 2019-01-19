@@ -6,6 +6,10 @@ class EventSystem
 public:
   EventSystem();
 
+  void init();
+  void update();
+
+
 private:
 
 };

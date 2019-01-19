@@ -40,7 +40,8 @@ RenderSystem::~RenderSystem()
 }
 
 
-void RenderSystem::init()
+void 
+RenderSystem::init()
 {
   cout << "RenderSystem initializing" << endl;
 
@@ -55,7 +56,8 @@ void RenderSystem::init()
 }
 
 
-void RenderSystem::update()
+void 
+RenderSystem::update()
 {
   SDL_RenderClear(render_.renderer);
 
@@ -68,7 +70,8 @@ void RenderSystem::update()
 }
 
 
-void RenderSystem::init_SDL()
+void 
+RenderSystem::init_SDL()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     cerr << SDL_GetError() << endl;
@@ -100,7 +103,8 @@ void RenderSystem::init_SDL()
 }
 
 
-void RenderSystem::init_SDL_image()
+void 
+RenderSystem::init_SDL_image()
 {
   const i32 img_flags{IMG_INIT_PNG};
   const i32 initialized{IMG_Init(img_flags)};
@@ -112,7 +116,8 @@ void RenderSystem::init_SDL_image()
 }
 
 
-void RenderSystem::init_SDL_ttf()
+void 
+RenderSystem::init_SDL_ttf()
 {
   if (TTF_Init() != 0) {
     cerr << TTF_GetError() << endl;
@@ -121,7 +126,8 @@ void RenderSystem::init_SDL_ttf()
 }
 
 
-void RenderSystem::init_grid()
+void 
+RenderSystem::init_grid()
 {
   render_.scale = camera_.zoom * TILE_SIZE; 
 
@@ -131,7 +137,8 @@ void RenderSystem::init_grid()
 }
 
 
-SDL_Texture* RenderSystem::load_texture(const string& texturename)
+SDL_Texture* 
+RenderSystem::load_texture(const string& texturename)
 {
   string filepath{"data/tilesets/" + texturename + ".png"};
 
@@ -155,7 +162,8 @@ SDL_Texture* RenderSystem::load_texture(const string& texturename)
 }
 
 
-TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
+TTF_Font* 
+RenderSystem::load_font(const string& fontname, u32 size)
 {
   string fontpath{"data/fonts/" + fontname + ".ttf"};
   TTF_Font* font{TTF_OpenFont(fontpath.c_str(), size)};
@@ -169,7 +177,8 @@ TTF_Font* RenderSystem::load_font(const string& fontname, u32 size)
 }
 
 
-void RenderSystem::load_tilesets()
+void 
+RenderSystem::load_tilesets()
 {
   render_.textures["flr"] = load_texture("map_tileset"); 
   render_.textures["wal"] = render_.textures["flr"];
@@ -179,7 +188,8 @@ void RenderSystem::load_tilesets()
 }
 
 
-void RenderSystem::load_fonts()
+void 
+RenderSystem::load_fonts()
 {
   render_.fonts["Small"] = load_font("FantasqueSansMono-Regular", 14);
   render_.fonts["Medium"] = load_font("FantasqueSansMono-Regular", 18);
@@ -187,7 +197,8 @@ void RenderSystem::load_fonts()
 }
 
 
-void RenderSystem::build_elements()
+void 
+RenderSystem::build_elements()
 {
   for (auto& kv : ui_.scrollable_elements)
     if (kv.second.changed) build_scrollable(kv.second);
@@ -202,7 +213,8 @@ void RenderSystem::build_elements()
 } 
 
 
-void RenderSystem::build_window(Window& el)
+void 
+RenderSystem::build_window(Window& el)
 {
   el.changed = false;
 
@@ -210,7 +222,8 @@ void RenderSystem::build_window(Window& el)
 }
 
 
-void RenderSystem::build_button(Button& el)
+void 
+RenderSystem::build_button(Button& el)
 {
   el.changed = false;
 
@@ -220,7 +233,8 @@ void RenderSystem::build_button(Button& el)
 }
 
 
-void RenderSystem::build_button_set(ButtonSet& el)
+void 
+RenderSystem::build_button_set(ButtonSet& el)
 {
   el.changed = false;
 
@@ -228,7 +242,8 @@ void RenderSystem::build_button_set(ButtonSet& el)
 }
 
 
-void RenderSystem::build_text(Text& el)
+void 
+RenderSystem::build_text(Text& el)
 {
   SDL_Surface* surface{
     TTF_RenderUTF8_Blended(render_.fonts[el.font], el.content.c_str(), el.color)
@@ -251,7 +266,8 @@ void RenderSystem::build_text(Text& el)
 }
 
 
-void RenderSystem::build_scrollable(Scrollable& el)
+void 
+RenderSystem::build_scrollable(Scrollable& el)
 {
   build_scalable(el.base);
 
@@ -314,7 +330,8 @@ void RenderSystem::build_scrollable(Scrollable& el)
 }
 
 
-void RenderSystem::build_scrollbar(Scrollbar& el)
+void 
+RenderSystem::build_scrollbar(Scrollbar& el)
 {
   el.dst["t"] = { 
     el.bounds.x, el.bounds.y + 0 * el.size, 
@@ -331,7 +348,8 @@ void RenderSystem::build_scrollbar(Scrollbar& el)
 }
 
 
-void RenderSystem::build_scalable(Scalable& el) 
+void 
+RenderSystem::build_scalable(Scalable& el) 
 {
   el.dst["tl"] = { 
     el.bounds.x, el.bounds.y, 
@@ -372,7 +390,9 @@ void RenderSystem::build_scalable(Scalable& el)
 }
 
 
-void RenderSystem::render_map() const
+void 
+RenderSystem::render_map() 
+const
 {
   const i32 lower{0};
   const i32 upper{TILES_PER_LAYER - 1};
@@ -396,7 +416,9 @@ void RenderSystem::render_map() const
 }
 
 
-void RenderSystem::render_ui() const
+void 
+RenderSystem::render_ui() 
+const
 {
   if (input_.hud) {
     render_text(ui_.text_elements["floor_display"]);
@@ -412,15 +434,17 @@ void RenderSystem::render_ui() const
 }
 
 
-void RenderSystem::render_button_set(ButtonSet& el) const
+void 
+RenderSystem::render_button_set(ButtonSet& el) 
+const
 {
   for (auto& kv : el.buttons) render_button(kv.second);
 }
 
 
-void RenderSystem::render_tile(
-  const std::string& layer, i32 x, i32 y, i32 floor
-) const 
+void 
+RenderSystem::render_tile(const std::string& layer, i32 x, i32 y, i32 floor) 
+const 
 {
   const Tile& tile{map_.floors[floor].layers[layer].tiles[x][y]};
 
@@ -439,7 +463,9 @@ void RenderSystem::render_tile(
 }
 
 
-void RenderSystem::render_grid(i32 x, i32 y) const
+void 
+RenderSystem::render_grid(i32 x, i32 y) 
+const
 {
   render_.grid_dst.x = render_.scale * (x - camera_.pos.x) + HALF_SCREEN_SIZE_X;
   render_.grid_dst.y = render_.scale * (y - camera_.pos.y) + HALF_SCREEN_SIZE_Y;
@@ -451,7 +477,9 @@ void RenderSystem::render_grid(i32 x, i32 y) const
 }
 
 
-void RenderSystem::render_scrollable(Scrollable& el) const
+void 
+RenderSystem::render_scrollable(Scrollable& el) 
+const
 {
   render_scalable(el.base);
 
@@ -468,7 +496,9 @@ void RenderSystem::render_scrollable(Scrollable& el) const
 }
 
 
-void RenderSystem::render_text(Text& el) const
+void 
+RenderSystem::render_text(Text& el) 
+const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 
@@ -476,7 +506,9 @@ void RenderSystem::render_text(Text& el) const
 }
 
 
-void RenderSystem::render_button(Button& el) const
+void 
+RenderSystem::render_button(Button& el) 
+const
 {
   el.active ? render_scalable(el.pressed) : render_scalable(el.base);
 
@@ -484,13 +516,17 @@ void RenderSystem::render_button(Button& el) const
 }
 
 
-void RenderSystem::render_window(Window& el) const
+void 
+RenderSystem::render_window(Window& el) 
+const
 {
   render_scalable(el.base);
 }
 
 
-void RenderSystem::render_scrollbar(Scrollbar& el) const
+void 
+RenderSystem::render_scrollbar(Scrollbar& el) 
+const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 
@@ -499,7 +535,9 @@ void RenderSystem::render_scrollbar(Scrollbar& el) const
   SDL_RenderCopy(render_.renderer, texture, &el.src["b"], &el.dst["b"]);
 }
 
-void RenderSystem::render_scalable(Scalable& el) const
+void 
+RenderSystem::render_scalable(Scalable& el) 
+const
 {
   SDL_Texture*& texture{render_.textures[el.texture]};
 

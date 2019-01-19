@@ -11,13 +11,15 @@
 
 namespace 
 {
-  inline void msg(Log& _log, const std::string& msg) 
+  inline void 
+  msg(Log& _log, const std::string& msg) 
   {
     _log.changed = true;
     _log.msgs.insert(_log.msgs.begin(), msg );
   }
 
-  inline void print(SDL_Rect& rect) {
+  inline void 
+  print(SDL_Rect& rect) {
     std::cout << "<";
     std::cout << rect.x << " " << rect.y << " " << rect.w << " " << rect.h; 
     std::cout << ">" << std::endl;

@@ -16,6 +16,7 @@
 #include "ui/UI.h"
 #include "ui/UISystem.h"
 #include "entity/EntitySystem.h"
+#include "events/EventSystem.h"
 
 class LastDitch 
 {
@@ -32,6 +33,7 @@ private:
   TimeSystem time_system_;
   InputSystem input_system_;
   FileSystem file_system_;
+  EventSystem event_system_;
 
   Render render_;
   Camera camera_;

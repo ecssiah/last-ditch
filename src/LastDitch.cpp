@@ -13,10 +13,12 @@ LastDitch::LastDitch()
   , map_system_{input_, camera_, map_, log_}
   , entity_system_{map_}
   , ui_system_{input_, map_, time_, log_, ui_} 
+  , event_system_{}
   , file_system_{input_, time_, map_}
 {
   config_system_.init();
   input_system_.init();
+  event_system_.init();
   time_system_.init();
   camera_system_.init();
   ui_system_.init();
@@ -29,6 +31,7 @@ LastDitch::LastDitch()
     time_system_.begin_frame();
 
     input_system_.update();
+    event_system_.update();
     camera_system_.update();
     ui_system_.update();
     map_system_.update();
@@ -40,7 +43,8 @@ LastDitch::LastDitch()
 }
 
 
-int main(int argc, char *argv[])
+int 
+main(int argc, char *argv[])
 {
   LastDitch last_ditch;
 
