@@ -336,18 +336,24 @@ void
 UISystem::update_hud()
 {
   if (map_.floor_changed) {
+    map_.floor_changed = false;
+
     auto& el{ui_.text_elements["floor_display"]};
     el.changed = true;
     el.content = format_floor();
   }
 
   if (time_.time_changed) {
+    time_.time_changed = false;
+
     auto& el{ui_.text_elements["time_display"]};
     el.changed = true;
     el.content = format_time();
   }
 
   if (time_.date_changed) {
+    time_.date_changed = false;
+
     auto& el{ui_.text_elements["date_display"]};
     el.changed = true;
     el.content = format_date();

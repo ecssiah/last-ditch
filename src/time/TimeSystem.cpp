@@ -45,8 +45,6 @@ void
 TimeSystem::tick()
 {
   ticks_ += 1;
-  time_.time_changed = false;
-  time_.date_changed = false;
 
   if (ticks_ >= TICKS_PER_SECOND) {
     ticks_ = 0;
