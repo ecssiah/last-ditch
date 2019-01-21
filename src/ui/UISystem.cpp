@@ -59,42 +59,43 @@ void
 UISystem::setup_main_buttons()
 {
   auto& main_button_set{ui_.button_set_elements["main_buttons"]};
-  auto& info{main_button_set.buttons["info"]};
-  auto& save{main_button_set.buttons["save"]};
-  auto& options{main_button_set.buttons["options"]};
 
   main_button_set.changed = true;
 
-  info.active = true;
-  info.type = "button2";
-  info.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  info.bounds.y = .11 * SCREEN_SIZE_Y;
-  info.bounds.w = MAIN_BUTTON_WIDTH;
-  info.bounds.h = MAIN_BUTTON_HEIGHT;
+  auto& info_button{main_button_set.buttons["info"]};
+  auto& save_button{main_button_set.buttons["save"]};
+  auto& options_button{main_button_set.buttons["options"]};
 
-  info.label.font = "Small";
-  info.label.content = "Info";
-  info.label.texture = "info_button";
+  info_button.active = true;
+  info_button.type = "button2";
+  info_button.bounds.x = .25 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  info_button.bounds.y = .11 * SCREEN_SIZE_Y;
+  info_button.bounds.w = MAIN_BUTTON_WIDTH;
+  info_button.bounds.h = MAIN_BUTTON_HEIGHT;
 
-  save.type = "button2";
-  save.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  save.bounds.y = .11 * SCREEN_SIZE_Y;
-  save.bounds.w = MAIN_BUTTON_WIDTH;
-  save.bounds.h = MAIN_BUTTON_HEIGHT;
+  info_button.label.font = "Small";
+  info_button.label.content = "Info";
+  info_button.label.texture = "info_button";
 
-  save.label.font = "Small";
-  save.label.content = "Save/Load";
-  save.label.texture = "save_button";
+  save_button.type = "button2";
+  save_button.bounds.x = .50 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  save_button.bounds.y = .11 * SCREEN_SIZE_Y;
+  save_button.bounds.w = MAIN_BUTTON_WIDTH;
+  save_button.bounds.h = MAIN_BUTTON_HEIGHT;
 
-  options.type = "button2";
-  options.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
-  options.bounds.y = .11 * SCREEN_SIZE_Y;
-  options.bounds.w = MAIN_BUTTON_WIDTH;
-  options.bounds.h = MAIN_BUTTON_HEIGHT;
+  save_button.label.font = "Small";
+  save_button.label.content = "Save/Load";
+  save_button.label.texture = "save_button";
 
-  options.label.font = "Small";
-  options.label.content = "Options";
-  options.label.texture = "options_button";
+  options_button.type = "button2";
+  options_button.bounds.x = .75 * SCREEN_SIZE_X - MAIN_BUTTON_WIDTH / 2;
+  options_button.bounds.y = .11 * SCREEN_SIZE_Y;
+  options_button.bounds.w = MAIN_BUTTON_WIDTH;
+  options_button.bounds.h = MAIN_BUTTON_HEIGHT;
+
+  options_button.label.font = "Small";
+  options_button.label.content = "Options";
+  options_button.label.texture = "options_button";
 
   setup_button_set(main_button_set);
 }
@@ -206,7 +207,9 @@ UISystem::setup_button(Button& el)
 void 
 UISystem::setup_button_set(ButtonSet& el)
 {
-  for (auto& kv : el.buttons) setup_button(kv.second);
+  for (auto& kv : el.buttons) {
+    setup_button(kv.second);
+  }
 }
 
 
@@ -225,7 +228,7 @@ UISystem::setup_scrollable(Scrollable& el)
   el.scrollbar.texture = "ovr";
 
   el.mask = {
-    el.bounds.x + el.pad.x, el.bounds.y + el.pad.y, 
+    el.bounds.x + el.pad.x, el.bounds.y + el.pad.y,
     el.bounds.w - 2 * el.pad.x - SCROLLBAR_WIDTH, el.bounds.h - 2 * el.pad.y
   };
 
@@ -238,8 +241,8 @@ void
 UISystem::setup_scrollbar(Scrollbar& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
-    el.basex = static_cast<i32>(SCROLLBAR_WIDTH * map_.tile_data[el.type].uv.x);
-    el.basey = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.y);
+    el.basex = static_cast<i32>(map_.tile_data[el.type].uv.x * SCROLLBAR_WIDTH);
+    el.basey = static_cast<i32>(map_.tile_data[el.type].uv.y * TILE_SIZE);
   } else {
     el.basex = 0;
     el.basey = 0;
@@ -262,8 +265,8 @@ void
 UISystem::setup_scalable(Scalable& el)
 {
   if (map_.tile_data.find(el.type) != map_.tile_data.end()) {
-    el.basex = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.x);
-    el.basey = static_cast<i32>(TILE_SIZE * map_.tile_data[el.type].uv.y);
+    el.basex = static_cast<i32>(map_.tile_data[el.type].uv.x * TILE_SIZE);
+    el.basey = static_cast<i32>(map_.tile_data[el.type].uv.y * TILE_SIZE);
     el.border = map_.tile_data[el.type].border;
   } else {
     el.basex = 0;
@@ -386,7 +389,9 @@ UISystem::update_message_window()
   } else if (input_.touch_points == 2) {
     const bool msg_win_contained{check_intersection(input_.mx, input_.my, el)};
 
-    if (msg_win_contained) update_scrollable(el, -SCROLL_SPEED * input_.tdy);
+    if (msg_win_contained) {
+      update_scrollable(el, -SCROLL_SPEED * input_.tdy);
+    }
   } else {
     const bool msg_win_clicked{check_intersection(input_.mx, input_.my, el)};
 
@@ -396,10 +401,13 @@ UISystem::update_message_window()
           check_intersection(input_.mx, input_.my, el.scrollbar)
         };
 
-        if (input_.lclick && scrollbar_clicked) el.scrollbar.selected = true;
+        if (input_.lclick && scrollbar_clicked) {
+          el.scrollbar.selected = true;
+        }
 
-        if (el.scrollbar.selected)
+        if (el.scrollbar.selected) {
           update_scrollable(el, input_.mdy / (f32)el.scroll_range);
+        }
       }
 
       input_.lclick = false;
@@ -414,13 +422,17 @@ UISystem::update_button_set(ButtonSet& el)
   el.changed = true;
 
   string choice;
-  for (auto& kv : el.buttons)
-    if (check_intersection(input_.mx, input_.my, kv.second))
+  for (auto& kv : el.buttons) {
+    if (check_intersection(input_.mx, input_.my, kv.second)) {
       choice = kv.first;
+    }
+  }
 
-  if (!choice.empty())
-    for (auto& kv : el.buttons)
+  if (!choice.empty()) {
+    for (auto& kv : el.buttons) {
       kv.second.active = (kv.first == choice) ? true : false; 
+    }
+  }
 }
 
 

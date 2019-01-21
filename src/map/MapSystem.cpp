@@ -32,9 +32,14 @@ MapSystem::init()
 void 
 MapSystem::update()
 {
-  if (map_.floor_changed) map_.floor_changed = false;
+  if (map_.floor_changed) {
+    map_.floor_changed = false;
+  }
 
-  if (input_.lclick) calculate_selected_tile();
+  if (input_.lclick) {
+    input_.lclick = false;
+    calculate_selected_tile();
+  }
 
   update_floor();
 }
@@ -58,15 +63,23 @@ MapSystem::generate_map()
 void 
 MapSystem::update_floor()
 {
-  if (input_.descend && map_.cur_floor > 1) {
-    map_.floor_changed = true;
-    map_.cur_floor--;
+  if (input_.descend) {
+    input_.descend = false;
+
+    if (map_.cur_floor > 1) {
+      map_.floor_changed = true;
+      map_.cur_floor--;
+    }
   }
 
-  if (input_.ascend && map_.cur_floor < NUM_FLOORS) {
-    map_.floor_changed = true;
-    map_.cur_floor++; 
-  }
+  if (input_.ascend) {
+    input_.ascend = false;
+
+    if (map_.cur_floor < NUM_FLOORS) {
+      map_.floor_changed = true;
+      map_.cur_floor++; 
+    }
+  } 
 }
 
 
@@ -113,9 +126,11 @@ MapSystem::layout_main_floor(i32 floor)
   case 3: floor_type = "bright_dark_concrete"; break;
   }
 
-  for (auto x{0}; x < TILES_PER_LAYER; x++)
-    for (auto y{0}; y < TILES_PER_LAYER; y++)
+  for (auto x{0}; x < TILES_PER_LAYER; x++) {
+    for (auto y{0}; y < TILES_PER_LAYER; y++) {
       set_tile("flr", x, y, floor, floor_type);
+    }
+  }
 }
 
 
@@ -161,7 +176,8 @@ MapSystem::expand_rooms(i32 floor)
 
   for (auto i{0}; i < EXPANSION_ITERATIONS; i++) {
     bool found{false};
-    vector<Dir> dirs{UP, DOWN, LEFT, RIGHT}; 
+    vector<Dir> dirs{Dir::UP, Dir::DOWN, Dir::LEFT, Dir::RIGHT}; 
+
     u64 random_room_index{rand() % map_.rooms[floor].size()};
 
     Room& room{map_.rooms[floor][random_room_index]}; 
@@ -171,18 +187,18 @@ MapSystem::expand_rooms(i32 floor)
       dirs.erase(remove(dirs.begin(), dirs.end(), dir), dirs.end());
 
       switch (dir) {
-      case UP:    room.rect.y--; break;
-      case DOWN:  room.rect.h++; break;
-      case LEFT:  room.rect.x--; break;
-      case RIGHT: room.rect.w++; break;
+      case Dir::UP:    room.rect.y--; break;
+      case Dir::DOWN:  room.rect.h++; break;
+      case Dir::LEFT:  room.rect.x--; break;
+      case Dir::RIGHT: room.rect.w++; break;
       }
 
       if (room_collision(floor, room)) {
         switch (dir) {
-        case UP:    room.rect.y++; break;
-        case DOWN:  room.rect.h--; break;
-        case LEFT:  room.rect.x++; break;
-        case RIGHT: room.rect.w--; break;
+        case Dir::UP:    room.rect.y++; break;
+        case Dir::DOWN:  room.rect.h--; break;
+        case Dir::LEFT:  room.rect.x++; break;
+        case Dir::RIGHT: room.rect.w--; break;
         }
       } else {
         found = true;
@@ -196,9 +212,11 @@ void
 MapSystem::build_rooms(i32 floor)
 {
   for (const auto& room : map_.rooms[floor]) {
-    for (auto x{room.l()}; x <= room.r(); x++)
-      for (auto y{room.t()}; y <= room.b(); y++)
+    for (auto x{room.l()}; x <= room.r(); x++) {
+      for (auto y{room.t()}; y <= room.b(); y++) {
         set_tile("flr", x, y, floor, room.floor_type);
+      }
+    }
 
     for (auto x{room.l()}; x <= room.r(); x++) {
       set_solid(x, room.t(), floor);
@@ -296,19 +314,19 @@ MapSystem::place_doors(i32 floor)
       i32 rot, x, y;
       const Dir dir{rand_dir()}; 
 
-      if (dir == UP) {
+      if (dir == Dir::UP) {
         rot = 0;
         x = horz_start + rand() % horz_range;
         y = room.t(); 
-      } else if (dir == DOWN) {
+      } else if (dir == Dir::DOWN) {
         rot = 90;
         x = room.r();
         y = vert_start + rand() % vert_range;
-      } else if (dir == RIGHT) {
+      } else if (dir == Dir::RIGHT) {
         rot = 180;
         x = horz_start + rand() % horz_range;
         y = room.b();
-      } else if (dir == LEFT) {
+      } else if (dir == Dir::LEFT) {
         rot = 270;
         x = room.l();
         y = vert_start + rand() % vert_range;
@@ -378,7 +396,9 @@ MapSystem::select_tile(i32 x, i32 y)
 void 
 MapSystem::clear_selection() 
 {
-  if (input_.selectx == -1 && input_.selecty == -1) return;
+  if (input_.selectx == -1 && input_.selecty == -1) {
+    return;
+  }
 
   set_active(
     "ovr", input_.selectx, input_.selecty, input_.selectfloor, false
@@ -390,12 +410,18 @@ const bool
 MapSystem::room_collision(i32 floor, const Room& test_room) 
 const 
 {
-  for (const auto& room : map_.blocks[floor]) 
-    if (SDL_HasIntersection(&room.rect, &test_room.rect)) return true;
+  for (const auto& room : map_.blocks[floor]) {
+    if (SDL_HasIntersection(&room.rect, &test_room.rect)) {
+      return true;
+    }
+  }
 
   for (const auto& room : map_.rooms[floor]) {
     const auto intersection{SDL_HasIntersection(&room.rect, &test_room.rect)};
-    if (&room.rect != &test_room.rect && intersection) return true;
+
+    if (&room.rect != &test_room.rect && intersection) {
+      return true;
+    }
   }
 
   return false;
@@ -412,19 +438,19 @@ const
   i8 dx2, dy2;
   i8 dx3, dy3;
 
-  if (dir == UP) {
+  if (dir == Dir::UP) {
     dx1 =  0; dy1 = -1;
     dx2 = -1; dy2 =  0;
     dx3 =  1; dy3 =  0;
-  } else if (dir == RIGHT) {
+  } else if (dir == Dir::RIGHT) {
     dx1 =  1; dy1 =  0;
     dx2 =  0; dy2 = -1;
     dx3 =  0; dy3 =  1;
-  } else if (dir == DOWN) {
+  } else if (dir == Dir::DOWN) {
     dx1 =  0; dy1 =  1;
     dx2 =  1; dy2 =  0;
     dx3 = -1; dy3 =  0;
-  } else if (dir == LEFT) {
+  } else if (dir == Dir::LEFT) {
     dx1 = -1; dy1 =  0;
     dx2 =  0; dy2 =  1;
     dx3 =  0; dy3 = -1;

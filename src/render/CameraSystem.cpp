@@ -28,10 +28,10 @@ CameraSystem::update()
   if (input_.mag) inc_zoom();
   if (input_.min) dec_zoom();
 
-  if (input_.up)    move(UP);
-  if (input_.down)  move(DOWN);
-  if (input_.left)  move(LEFT);
-  if (input_.right) move(RIGHT);
+  if (input_.up)    move(Dir::UP);
+  if (input_.down)  move(Dir::DOWN);
+  if (input_.left)  move(Dir::LEFT);
+  if (input_.right) move(Dir::RIGHT);
 }
 
 
@@ -41,10 +41,10 @@ CameraSystem::move(Dir dir)
   auto ds{camera_.speed * render_.dt * camera_.inv_zoom};
 
   switch (dir) {
-  case UP:    camera_.pos -= ds * camera_.ydir; break;
-  case DOWN:  camera_.pos += ds * camera_.ydir; break;
-  case LEFT:  camera_.pos -= ds * camera_.xdir; break;
-  case RIGHT: camera_.pos += ds * camera_.xdir; break;
+  case Dir::UP:    camera_.pos -= ds * camera_.ydir; break;
+  case Dir::DOWN:  camera_.pos += ds * camera_.ydir; break;
+  case Dir::LEFT:  camera_.pos -= ds * camera_.xdir; break;
+  case Dir::RIGHT: camera_.pos += ds * camera_.xdir; break;
   };
 }
 
@@ -62,6 +62,7 @@ CameraSystem::inc_zoom()
 void 
 CameraSystem::dec_zoom() 
 { 
+  input_.min = false;
   camera_.zoom = max(MIN_ZOOM, camera_.zoom / 2); 
   camera_.inv_zoom = 1.0 / camera_.zoom;
 
@@ -72,6 +73,7 @@ CameraSystem::dec_zoom()
 void 
 CameraSystem::update_scale()
 {
+  input_.mag = false;
   render_.scale = camera_.zoom * TILE_SIZE;
   render_.grid_dst.w = render_.scale;
   render_.grid_dst.h = render_.scale;

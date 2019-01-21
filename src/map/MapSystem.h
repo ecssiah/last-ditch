@@ -38,10 +38,12 @@ private:
     i32 x, i32 y, i32 floor, bool solid = true
   );
 
-  const i32 get_section(i32 floor) const;
-  const bool select_tile(i32 x, i32 y);
-  void calculate_selected_tile();
   void clear_selection();
+  void calculate_selected_tile();
+
+  const bool select_tile(i32 x, i32 y);
+
+  const i32 get_section(i32 floor) const;
 
   const bool has_clearance(
     const std::string& category, i32 x, i32 y, i32 floor, Dir dir

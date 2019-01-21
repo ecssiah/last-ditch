@@ -34,7 +34,7 @@ EventSystem::init()
 
   Tester tester;
   sig.connect(Simple::slot(tester, &Tester::test_func));
-  sig.emit(2, "test");
+  cout << sig.emit(2, "test") << endl;
 
 }
 
