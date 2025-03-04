@@ -1,3 +1,5 @@
+use last_ditch::run;
+
 fn main() {
-    println!("Hello, world!");
+    run();
 }
