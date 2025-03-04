@@ -1,3 +1,3 @@
 # Last Ditch
 
-The Civilizational Garden
+A Civilizational Garden
