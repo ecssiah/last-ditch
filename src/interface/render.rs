@@ -1,12 +1,8 @@
 use std::sync::Arc;
 
 use winit::{
-    dpi::PhysicalPosition,
-    event::{
-        DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
-    },
-    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{Window, WindowId},
+    event::WindowEvent,
+    window::Window,
 };
 
 pub struct Render {
@@ -116,17 +112,14 @@ impl Render {
         surface_texture.present();
     }
 
-    pub fn handle_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+    pub fn handle_event(&mut self, event: &WindowEvent) {
         match event {
-            WindowEvent::CloseRequested => {
-                event_loop.exit();
-            }
             WindowEvent::RedrawRequested => {
                 self.render();
                 self.get_window().request_redraw();
             }
             WindowEvent::Resized(size) => {
-                self.resize(size);
+                self.resize(*size);
             }
             _ => (),
         }
