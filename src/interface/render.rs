@@ -1,12 +1,11 @@
 use std::sync::Arc;
+use winit::{event::WindowEvent, window::Window};
 
-use winit::{
-    event::WindowEvent,
-    window::Window,
-};
+use crate::simulation::state::SharedState;
 
 pub struct Render {
     window: Arc<Window>,
+    state: SharedState,
     device: wgpu::Device,
     queue: wgpu::Queue,
     size: winit::dpi::PhysicalSize<u32>,
@@ -15,7 +14,7 @@ pub struct Render {
 }
 
 impl Render {
-    pub async fn new(window: Arc<Window>) -> Render {
+    pub async fn new(window: Arc<Window>, state: SharedState) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
         let adapter = instance
@@ -36,6 +35,7 @@ impl Render {
 
         let render = Render {
             window,
+            state,
             device,
             queue,
             size,
@@ -46,10 +46,6 @@ impl Render {
         render.configure_surface();
 
         render
-    }
-
-    pub fn get_window(&self) -> &Window {
-        &self.window
     }
 
     pub fn configure_surface(&self) {
@@ -103,6 +99,10 @@ impl Render {
             occlusion_query_set: None,
         });
 
+        let shared_state = self.state.read().unwrap();
+
+        println!("Simulation Time: {}", shared_state.time);
+
         // Drawing Commands
 
         drop(renderpass);
@@ -116,7 +116,7 @@ impl Render {
         match event {
             WindowEvent::RedrawRequested => {
                 self.render();
-                self.get_window().request_redraw();
+                self.window.request_redraw();
             }
             WindowEvent::Resized(size) => {
                 self.resize(*size);

@@ -10,8 +10,11 @@ use winit::{
     window::{Window, WindowId},
 };
 
+use crate::simulation::state::SharedState;
+
 pub struct Interface {
     _window: Arc<Window>,
+    state: SharedState,
     camera: Camera,
     input: Input,
     render: Render,
@@ -22,13 +25,14 @@ pub mod input;
 pub mod render;
 
 impl Interface {
-    pub async fn new(window: Arc<Window>) -> Interface {
-        let camera = pollster::block_on(Camera::new());
-        let input = pollster::block_on(Input::new());
-        let render = pollster::block_on(Render::new(window.clone()));
+    pub async fn new(window: Arc<Window>, state: SharedState) -> Interface {
+        let camera = Camera::new();
+        let input = Input::new();
+        let render = pollster::block_on(Render::new(window.clone(), state.clone()));
 
         Interface {
             _window: window,
+            state,
             camera,
             input,
             render,
@@ -39,9 +43,9 @@ impl Interface {
         &mut self,
         event_loop: &ActiveEventLoop,
         _id: WindowId,
-        event: WindowEvent,
+        event: &WindowEvent,
     ) {
-        if event == WindowEvent::CloseRequested {
+        if *event == WindowEvent::CloseRequested {
             event_loop.exit();
         } else {
             self.input.handle_event(&event);

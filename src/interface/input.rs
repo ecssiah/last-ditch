@@ -5,12 +5,11 @@ use winit::{
     },
 };
 
-pub struct Input {
-}
+pub struct Input {}
 
 impl Input {
-    pub async fn new() -> Input {
-        Input { }
+    pub fn new() -> Input {
+        Input {}
     }
 
     pub fn handle_event(&mut self, event: &WindowEvent) {

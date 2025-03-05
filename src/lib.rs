@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, thread};
 
 use winit::{
     application::ApplicationHandler,
@@ -16,39 +16,34 @@ use crate::simulation::Simulation;
 #[derive(Default)]
 struct App {
     interface: Option<Interface>,
-    simulation: Option<Simulation>,
+    simulation_thread: Option<thread::JoinHandle<()>>,
 }
 
-impl App {
-    fn resume_simulation(&mut self) {
-        let simulation = pollster::block_on(Simulation::new());
-        self.simulation = Some(simulation);
-    }
+impl ApplicationHandler for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        let mut simulation = Simulation::new();
+        let state = simulation.get_shared_state();
 
-    fn resume_interface(&mut self, event_loop: &ActiveEventLoop) {
         let window = Arc::new(
             event_loop
                 .create_window(Window::default_attributes())
                 .unwrap(),
         );
 
-        let interface = pollster::block_on(Interface::new(window.clone()));
+        let interface = pollster::block_on(Interface::new(window.clone(), state));
+
+        let simulation_thread = thread::spawn(move || simulation.run());
+
+        self.simulation_thread = Some(simulation_thread);
         self.interface = Some(interface);
 
         window.request_redraw();
-    }
-}
-
-impl ApplicationHandler for App {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        self.resume_simulation();
-        self.resume_interface(event_loop);
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let interface = self.interface.as_mut().unwrap();
 
-        interface.handle_event(event_loop, _id, event);
+        interface.handle_event(event_loop, _id, &event);
     }
 }
 
