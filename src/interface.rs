@@ -1,16 +1,17 @@
-use std::sync::Arc;
+pub mod camera;
+pub mod input;
+pub mod render;
 
+use crate::simulation::state::SharedState;
 use camera::Camera;
 use input::Input;
 use render::Render;
-
+use std::sync::Arc;
 use winit::{
     event::WindowEvent,
     event_loop::ActiveEventLoop,
     window::{Window, WindowId},
 };
-
-use crate::simulation::state::SharedState;
 
 pub struct Interface {
     _window: Arc<Window>,
@@ -19,10 +20,6 @@ pub struct Interface {
     input: Input,
     render: Render,
 }
-
-pub mod camera;
-pub mod input;
-pub mod render;
 
 impl Interface {
     pub async fn new(window: Arc<Window>, state: SharedState) -> Interface {

@@ -1,17 +1,15 @@
-use std::{sync::Arc, thread};
+mod interface;
+mod simulation;
 
+use crate::interface::Interface;
+use crate::simulation::Simulation;
+use std::{sync::Arc, thread};
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     window::{Window, WindowId},
 };
-
-mod interface;
-mod simulation;
-
-use crate::interface::Interface;
-use crate::simulation::Simulation;
 
 #[derive(Default)]
 struct App {

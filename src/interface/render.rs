@@ -1,7 +1,6 @@
+use crate::simulation::state::SharedState;
 use std::sync::Arc;
 use winit::{event::WindowEvent, window::Window};
-
-use crate::simulation::state::SharedState;
 
 pub struct Render {
     window: Arc<Window>,
