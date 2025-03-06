@@ -6,6 +6,14 @@ pub const FOV: f32 = 45.0;
 pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 100.0;
 
-pub const CHUNK_DIM: usize = 16;
-pub const CHUNK_SIZE: usize = CHUNK_DIM * CHUNK_DIM * CHUNK_DIM;
-pub const CHUNK_HALF: isize = (CHUNK_DIM / 2) as isize;
+pub const SIMULATION_SLEEP: u64 = 16;
+
+pub const WORLD_SIZE: u64 = 4;
+pub const WORLD_RADIUS: u64 = WORLD_SIZE / 2;
+pub const WORLD_AREA: u64 = WORLD_SIZE * WORLD_SIZE;
+pub const WORLD_VOLUME: u64 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
+
+pub const CHUNK_SIZE: u64 = 4;
+pub const CHUNK_RADIUS: u64 = CHUNK_SIZE / 2;
+pub const CHUNK_AREA: u64 = CHUNK_SIZE * CHUNK_SIZE;
+pub const CHUNK_VOLUME: u64 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;

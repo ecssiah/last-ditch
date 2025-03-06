@@ -1,5 +1,5 @@
-use super::block::Block;
-use crate::consts::CHUNK_SIZE;
+use super::chunk::Chunk;
+use crate::consts::WORLD_VOLUME;
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
@@ -22,5 +22,5 @@ pub struct World {
     pub active: bool,
     pub seed: u64,
     pub time: f64,
-    pub blocks: [Block; CHUNK_SIZE],
+    pub chunks: [Chunk; WORLD_VOLUME as usize],
 }

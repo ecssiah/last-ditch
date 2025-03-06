@@ -1,19 +1,25 @@
 pub mod action;
 pub mod block;
+pub mod chunk;
 pub mod state;
 
+use crate::{
+    consts::{
+        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME
+    },
+    ActionReceiver,
+};
 use action::{Action, WorldAction};
 use block::Block;
-use rand::Rng;
-use state::{State, Leader, Entities, World};
+use cgmath::{Vector3, Vector4};
+use chunk::Chunk;
+use rand::{thread_rng, Rng};
+use state::{Entities, Leader, State, World};
 use std::{
     sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
-use crate::{consts::{CHUNK_DIM, CHUNK_HALF, CHUNK_SIZE}, ActionReceiver};
-
-const SIMULATION_SLEEP: u64 = 16;
 
 pub struct Simulation {
     state: Arc<State>,
@@ -31,7 +37,7 @@ impl Simulation {
                 active: true,
                 seed: 1234546789,
                 time: 0.0,
-                blocks: generate_blocks(),
+                chunks: generate_chunks(),
             })),
         });
 
@@ -78,33 +84,63 @@ impl Simulation {
     }
 }
 
-fn generate_blocks() -> [Block; CHUNK_SIZE] {
-    core::array::from_fn(move |index| {
-        let (x, y, z) = index_to_position(index);
+fn generate_chunks() -> [Chunk; WORLD_VOLUME as usize] {
+    println!("here?");
 
-        Block {
-            position: [x as i32, y as i32, z as i32],
-            color: [0.1, 0.3, 0.6, 1.0],
+    core::array::from_fn(|chunk_index| {
+        let mut rng = thread_rng();
+
+        let chunk_id = chunk_index as u64;
+        let chunk_position = index_to_chunk_position(chunk_id);
+
+        Chunk {
+            id: chunk_id,
+            position: chunk_position,
+            modified: true,
+            blocks: core::array::from_fn(move |block_index| {
+                let id = block_index as u64;
+                let position = index_to_block_position(id);
+                let color = Vector4::new(rng.gen(), rng.gen(), rng.gen(), rng.gen());
+
+                Block {
+                    id,
+                    chunk_id,
+                    position,
+                    color,
+                }
+            }),
         }
     })
 }
 
-fn index_to_position(index: usize) -> (isize, isize, isize) {
-    let x = (index % CHUNK_DIM) as isize - CHUNK_HALF;
-    let y = ((index / CHUNK_DIM) % CHUNK_DIM) as isize - CHUNK_HALF;
-    let z = (index / (CHUNK_DIM * CHUNK_DIM)) as isize - CHUNK_HALF;
+fn index_to_chunk_position(index: u64) -> Vector3<i64> {
+    let x = (index % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
+    let y = ((index / WORLD_SIZE) % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
+    let z = (index / WORLD_AREA) as i64 - WORLD_RADIUS as i64;
 
-    (x, y, z)
+    Vector3 { x, y, z }
 }
 
-fn position_to_index(x: isize, y: isize, z: isize) -> Option<usize> {
-    let x = (x + CHUNK_HALF) as usize;
-    let y = (y + CHUNK_HALF) as usize;
-    let z = (z + CHUNK_HALF) as usize;
+fn index_to_block_position(index: u64) -> Vector3<i64> {
+    let x = (index % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
+    let y = ((index / CHUNK_SIZE) % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
+    let z = (index / CHUNK_AREA) as i64 - CHUNK_RADIUS as i64;
 
-    if x < CHUNK_DIM && y < CHUNK_DIM && z < CHUNK_DIM {
-        Some(x + y * CHUNK_DIM + z * CHUNK_DIM * CHUNK_DIM)
-    } else {
-        None
-    }
+    Vector3 { x, y, z }
+}
+
+fn get_chunk_index(x: i64, y: i64, z: i64) -> u64 {
+    let x = (x + WORLD_RADIUS as i64) as u64;
+    let y = (y + WORLD_RADIUS as i64) as u64;
+    let z = (z + WORLD_RADIUS as i64) as u64;
+
+    x + y * WORLD_SIZE as u64 + z * WORLD_AREA as u64
+}
+
+fn get_block_index(x: i64, y: i64, z: i64) -> u64 {
+    let x = (x + CHUNK_RADIUS as i64) as u64;
+    let y = (y + CHUNK_RADIUS as i64) as u64;
+    let z = (z + CHUNK_RADIUS as i64) as u64;
+
+    x + y * CHUNK_SIZE as u64 + z * CHUNK_AREA as u64
 }
