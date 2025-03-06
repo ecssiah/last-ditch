@@ -3,6 +3,7 @@ var<uniform> view_proj: mat4x4<f32>;
 
 struct VertexOutput {
     @builtin(position) Position: vec4<f32>,
+    @location(0) instance_position: vec3f
 };
 
 const CUBE_VERTICES: array<vec3<f32>, 8> = array(
@@ -35,11 +36,23 @@ fn vs_main(
 
     let cube_vertex = CUBE_VERTICES[CUBE_INDICES[vertex_index]];
     output.Position = view_proj * vec4(instance_position + cube_vertex, 1.0);
+    output.instance_position = instance_position;
 
     return output;
 }
 
 @fragment
-fn fs_main() -> @location(0) vec4<f32> {
-    return vec4(0.8, 0.3, 0.3, 1.0);
+fn fs_main(@location(0) instance_position: vec3f) -> @location(0) vec4<f32> {
+    let max_range = 10.0;
+
+    return vec4(
+        instance_position.x / max_range, 
+        instance_position.y / max_range, 
+        instance_position.z / max_range, 
+        1.0,
+    );
+}
+
+fn random(seed: f32) -> f32 {
+    return fract(sin(seed) * 43758.5453123);
 }

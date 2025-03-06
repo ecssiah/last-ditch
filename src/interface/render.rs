@@ -279,22 +279,19 @@ fn create_pipeline(
 }
 
 fn create_view_projection_matrix(size: winit::dpi::PhysicalSize<u32>) -> [[f32; 4]; 4] {
-    let aspect_ratio = size.width as f32 / size.height as f32; // Adjust based on window size
-    let fov = Deg(45.0); // Field of view
+    let aspect_ratio = size.width as f32 / size.height as f32;
+    let fov = Deg(45.0);
     let near = 0.1;
     let far = 100.0;
 
-    // Perspective projection matrix
     let proj = perspective(fov, aspect_ratio, near, far);
 
-    // Camera view matrix: position at (5,5,5) looking at (0,0,0)
-    let eye = Point3::new(50.0, 20.0, 50.0); // Camera position
-    let target = Point3::new(0.0, 0.0, 0.0); // Look at the origin
-    let up = Vector3::new(0.0, 1.0, 0.0); // Up direction
+    let eye = Point3::new(20.0, 20.0, 20.0);
+    let target = Point3::new(0.0, 0.0, 0.0);
+    let up = Vector3::new(0.0, 1.0, 0.0);
 
     let view = Matrix4::look_at_rh(eye, target, up);
 
-    // Combine the view and projection matrices
     let view_proj = proj * view;
 
     view_proj.into()
