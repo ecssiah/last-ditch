@@ -2,17 +2,12 @@ pub mod camera;
 pub mod input;
 pub mod render;
 
+use crate::{simulation::state::State, ActionSender};
 use camera::Camera;
 use input::Input;
 use render::Render;
 use std::sync::Arc;
-use winit::{
-    event::WindowEvent,
-    event_loop::ActiveEventLoop,
-    window::Window,
-};
-
-use crate::{simulation::state::State, ActionSender};
+use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
 pub struct Interface {
     _window: Arc<Window>,
@@ -47,10 +42,7 @@ impl Interface {
         }
     }
 
-    pub fn handle_window_event(
-        &mut self,
-        event: &WindowEvent,
-    ) {
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
         self.input.handle_window_event(&event);
         self.camera.handle_window_event(&event);
         self.render.handle_window_event(&event);

@@ -63,7 +63,6 @@ impl Render {
         let surface = instance.create_surface(window.clone()).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
         let surface_format = surface_capabilities.formats[0];
-
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -85,6 +84,7 @@ impl Render {
         });
 
         let view_projection_matrix = create_view_projection_matrix();
+
         queue.write_buffer(
             &view_projection_buffer,
             0,

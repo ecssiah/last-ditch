@@ -5,7 +5,8 @@ pub mod state;
 
 use crate::{
     consts::{
-        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME
+        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA,
+        WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME,
     },
     ActionReceiver,
 };
@@ -13,7 +14,8 @@ use action::{Action, WorldAction};
 use block::Block;
 use cgmath::{Vector3, Vector4};
 use chunk::Chunk;
-use rand::{thread_rng, Rng};
+use rand::{Rng, SeedableRng};
+use rand_pcg::Pcg64;
 use state::{Entities, Leader, State, World};
 use std::{
     sync::{Arc, RwLock},
@@ -35,7 +37,7 @@ impl Simulation {
             entities: Arc::new(RwLock::new(Entities {})),
             world: Arc::new(RwLock::new(World {
                 active: true,
-                seed: 1234546789,
+                seed: DEFAULT_SEED,
                 time: 0.0,
                 chunks: generate_chunks(),
             })),
@@ -84,36 +86,46 @@ impl Simulation {
     }
 }
 
-fn generate_chunks() -> [Chunk; WORLD_VOLUME as usize] {
-    println!("here?");
+fn generate_chunks() -> Vec<Chunk> {
+    let mut rng = Pcg64::seed_from_u64(DEFAULT_SEED);
 
-    core::array::from_fn(|chunk_index| {
-        let mut rng = thread_rng();
+    let mut chunks = Vec::new();
 
-        let chunk_id = chunk_index as u64;
-        let chunk_position = index_to_chunk_position(chunk_id);
+    for chunk_id in 0..WORLD_VOLUME {
+        let chunk_position = id_to_chunk_position(chunk_id);
 
-        Chunk {
+        let chunk = Chunk {
             id: chunk_id,
             position: chunk_position,
             modified: true,
-            blocks: core::array::from_fn(move |block_index| {
-                let id = block_index as u64;
-                let position = index_to_block_position(id);
-                let color = Vector4::new(rng.gen(), rng.gen(), rng.gen(), rng.gen());
+            blocks: Box::new(
+                core::array::from_fn(|block_index| {
+                    let id = block_index as u64;
+                    let position = id_to_block_position(id);
+                    let color = Vector4::new(
+                        rng.gen::<f32>(),
+                        rng.gen::<f32>(),
+                        rng.gen::<f32>(),
+                        rng.gen::<f32>(),
+                    );
 
-                Block {
-                    id,
-                    chunk_id,
-                    position,
-                    color,
-                }
-            }),
-        }
-    })
+                    Block {
+                        id,
+                        chunk_id,
+                        position,
+                        color,
+                    }
+                })
+            ),
+        };
+
+        chunks.push(chunk);
+    }
+
+    return chunks;
 }
 
-fn index_to_chunk_position(index: u64) -> Vector3<i64> {
+fn id_to_chunk_position(index: u64) -> Vector3<i64> {
     let x = (index % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
     let y = ((index / WORLD_SIZE) % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
     let z = (index / WORLD_AREA) as i64 - WORLD_RADIUS as i64;
@@ -121,7 +133,7 @@ fn index_to_chunk_position(index: u64) -> Vector3<i64> {
     Vector3 { x, y, z }
 }
 
-fn index_to_block_position(index: u64) -> Vector3<i64> {
+fn id_to_block_position(index: u64) -> Vector3<i64> {
     let x = (index % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
     let y = ((index / CHUNK_SIZE) % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
     let z = (index / CHUNK_AREA) as i64 - CHUNK_RADIUS as i64;
@@ -129,7 +141,7 @@ fn index_to_block_position(index: u64) -> Vector3<i64> {
     Vector3 { x, y, z }
 }
 
-fn get_chunk_index(x: i64, y: i64, z: i64) -> u64 {
+fn get_chunk_id(x: i64, y: i64, z: i64) -> u64 {
     let x = (x + WORLD_RADIUS as i64) as u64;
     let y = (y + WORLD_RADIUS as i64) as u64;
     let z = (z + WORLD_RADIUS as i64) as u64;
@@ -137,7 +149,7 @@ fn get_chunk_index(x: i64, y: i64, z: i64) -> u64 {
     x + y * WORLD_SIZE as u64 + z * WORLD_AREA as u64
 }
 
-fn get_block_index(x: i64, y: i64, z: i64) -> u64 {
+fn get_block_id(x: i64, y: i64, z: i64) -> u64 {
     let x = (x + CHUNK_RADIUS as i64) as u64;
     let y = (y + CHUNK_RADIUS as i64) as u64;
     let z = (z + CHUNK_RADIUS as i64) as u64;

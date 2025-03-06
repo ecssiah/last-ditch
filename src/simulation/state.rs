@@ -22,5 +22,5 @@ pub struct World {
     pub active: bool,
     pub seed: u64,
     pub time: f64,
-    pub chunks: [Chunk; WORLD_VOLUME as usize],
+    pub chunks: Vec<Chunk>,
 }
