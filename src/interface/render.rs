@@ -1,7 +1,10 @@
 use crate::{
     consts::{ASPECT_RATIO, CHUNK_SIZE, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
-    simulation::{block::BlockType, state::{Judge, World}},
+    simulation::{
+        block::BlockType,
+        state::{Judge, World},
+    },
 };
 use bytemuck::{Pod, Zeroable};
 use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
@@ -57,7 +60,11 @@ pub struct Render {
 }
 
 impl Render {
-    pub async fn new(window: Arc<Window>, judge: Arc<RwLock<Judge>>, world: Arc<RwLock<World>>) -> Render {
+    pub async fn new(
+        window: Arc<Window>,
+        judge: Arc<RwLock<Judge>>,
+        world: Arc<RwLock<World>>,
+    ) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
         let adapter = instance
@@ -270,10 +277,10 @@ fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
                             block.color.w as f32,
                         ],
                     };
-        
+
                     instances.push(instance);
                 }
-                BlockType::Empty => ()
+                BlockType::Empty => (),
             }
         }
     }
@@ -289,7 +296,10 @@ fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) ->
     })
 }
 
-fn create_depth_texture(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
+fn create_depth_texture(
+    device: &wgpu::Device,
+    config: &wgpu::SurfaceConfiguration,
+) -> wgpu::TextureView {
     let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("Depth Texture"),
         size: wgpu::Extent3d {
@@ -377,8 +387,16 @@ fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
 
     let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-    let eye = Point3::new(judge.position.x as f32, judge.position.y as f32, judge.position.z as f32);
-    let target = Point3::new(0.0, 0.0, 0.0);
+    let eye = Point3::new(
+        judge.position.x as f32,
+        judge.position.y as f32,
+        judge.position.z as f32,
+    );
+    let target = Point3::new(
+        judge.direction.x as f32,
+        judge.direction.y as f32,
+        judge.direction.z as f32,
+    );
     let up = Vector3::new(0.0, 1.0, 0.0);
 
     let view = Matrix4::look_at_rh(eye, target, up);

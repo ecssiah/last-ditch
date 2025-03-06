@@ -34,7 +34,7 @@ impl Simulation {
             judge: Arc::new(RwLock::new(Judge {
                 name: "Melchizedek".to_string(),
                 position: Vector3 { x: 32.0, y: 32.0, z: 32.0 },
-                direction: Vector3 { x: 0.0, y: 0.0, z: 0.0 },
+                direction: Vector3 { x: 1.0, y: 0.0, z: 1.0 },
             })),
             entities: Arc::new(RwLock::new(Entities {})),
             world: Arc::new(RwLock::new(World {
