@@ -1,5 +1,4 @@
 use super::chunk::Chunk;
-use crate::consts::WORLD_VOLUME;
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]

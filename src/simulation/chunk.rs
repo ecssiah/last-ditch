@@ -1,7 +1,6 @@
-use cgmath::Vector3;
-
 use super::block::Block;
 use crate::consts::CHUNK_VOLUME;
+use cgmath::Vector3;
 
 #[derive(Debug, Clone)]
 pub struct Chunk {

@@ -1,14 +1,13 @@
+use crate::{
+    simulation::action::{Action, WorldAction},
+    ActionSender,
+};
 use winit::{
     dpi::PhysicalPosition,
     event::{
         DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
     },
     keyboard::{KeyCode, PhysicalKey},
-};
-
-use crate::{
-    simulation::action::{Action, WorldAction},
-    ActionSender,
 };
 
 pub struct Input {
@@ -24,8 +23,8 @@ impl Input {
         match event {
             WindowEvent::CloseRequested => {
                 self.action_tx
-                .send(Action::World(WorldAction::Quit))
-                .unwrap();
+                    .send(Action::World(WorldAction::Quit))
+                    .unwrap();
             }
             WindowEvent::KeyboardInput {
                 device_id,
@@ -70,7 +69,7 @@ impl Input {
                     .send(Action::World(WorldAction::Quit))
                     .unwrap();
             }
-            _ => ()
+            _ => (),
         }
     }
 

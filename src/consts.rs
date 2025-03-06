@@ -6,7 +6,7 @@ pub const FOV: f32 = 45.0;
 pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 100.0;
 
-pub const DEFAULT_SEED: u64 = 0;
+pub const DEFAULT_SEED: u64 = 101;
 pub const SIMULATION_SLEEP: u64 = 16;
 
 pub const WORLD_RADIUS: u64 = 4;

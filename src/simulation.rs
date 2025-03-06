@@ -5,8 +5,8 @@ pub mod state;
 
 use crate::{
     consts::{
-        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA,
-        WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME,
+        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_SEED, SIMULATION_SLEEP,
+        WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME,
     },
     ActionReceiver,
 };
@@ -94,35 +94,35 @@ fn generate_chunks() -> Vec<Chunk> {
     for chunk_id in 0..WORLD_VOLUME {
         let chunk_position = id_to_chunk_position(chunk_id);
 
+        let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_index| {
+            let id = block_index as u64;
+            let position = id_to_block_position(id);
+            let color = Vector4::new(
+                rng.gen::<f32>(),
+                rng.gen::<f32>(),
+                rng.gen::<f32>(),
+                rng.gen::<f32>(),
+            );
+
+            Block {
+                id,
+                chunk_id,
+                position,
+                color,
+            }
+        });
+
         let chunk = Chunk {
             id: chunk_id,
             position: chunk_position,
             modified: true,
-            blocks: Box::new(
-                core::array::from_fn(|block_index| {
-                    let id = block_index as u64;
-                    let position = id_to_block_position(id);
-                    let color = Vector4::new(
-                        rng.gen::<f32>(),
-                        rng.gen::<f32>(),
-                        rng.gen::<f32>(),
-                        rng.gen::<f32>(),
-                    );
-
-                    Block {
-                        id,
-                        chunk_id,
-                        position,
-                        color,
-                    }
-                })
-            ),
+            blocks: Box::new(blocks),
         };
 
         chunks.push(chunk);
     }
 
-    return chunks;
+    chunks
 }
 
 fn id_to_chunk_position(index: u64) -> Vector3<i64> {

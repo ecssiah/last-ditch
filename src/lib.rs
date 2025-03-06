@@ -8,14 +8,14 @@
 //! The Simulation handles the evolution of the world.
 
 pub mod consts;
-pub mod macros;
 pub mod interface;
+pub mod macros;
 pub mod simulation;
 
 use crate::interface::Interface;
 use crate::simulation::Simulation;
-use std::{sync::Arc, thread};
 use simulation::action::Action;
+use std::{sync::Arc, thread};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use winit::{
     application::ApplicationHandler,
