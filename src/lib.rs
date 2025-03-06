@@ -7,6 +7,7 @@
 //!
 //! The Simulation handles the evolution of the world.
 
+pub mod macros;
 pub mod interface;
 pub mod simulation;
 
@@ -63,10 +64,10 @@ impl ApplicationHandler for App {
         interface.update(event_loop);
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let interface = self.interface.as_mut().unwrap();
 
-        interface.handle_window_event(event_loop, _id, &event);
+        interface.handle_window_event(&event);
     }
 }
 

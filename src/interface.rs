@@ -9,7 +9,7 @@ use std::sync::Arc;
 use winit::{
     event::WindowEvent,
     event_loop::ActiveEventLoop,
-    window::{Window, WindowId},
+    window::Window,
 };
 
 use crate::{simulation::state::State, ActionSender};
@@ -49,8 +49,6 @@ impl Interface {
 
     pub fn handle_window_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
-        _id: WindowId,
         event: &WindowEvent,
     ) {
         self.input.handle_window_event(&event);
