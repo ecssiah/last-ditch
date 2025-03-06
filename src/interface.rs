@@ -22,7 +22,11 @@ impl Interface {
     pub async fn new(window: Arc<Window>, state: Arc<State>, action_tx: ActionSender) -> Interface {
         let camera = Camera::new();
         let input = Input::new(action_tx.clone());
-        let render = pollster::block_on(Render::new(window.clone(), state.world.clone()));
+        let render = pollster::block_on(Render::new(
+            window.clone(),
+            state.judge.clone(),
+            state.world.clone(),
+        ));
 
         Interface {
             _window: window,

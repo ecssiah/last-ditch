@@ -16,7 +16,7 @@ use cgmath::{Vector3, Vector4};
 use chunk::Chunk;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
-use state::{Entities, Leader, State, World};
+use state::{Entities, Judge, State, World};
 use std::{
     sync::{Arc, RwLock},
     thread,
@@ -31,8 +31,10 @@ pub struct Simulation {
 impl Simulation {
     pub fn new(action_rx: ActionReceiver) -> Simulation {
         let state = Arc::new(State {
-            leader: Arc::new(RwLock::new(Leader {
-                name: "Michael".to_string(),
+            judge: Arc::new(RwLock::new(Judge {
+                name: "Melchizedek".to_string(),
+                position: Vector3 { x: 32.0, y: 32.0, z: 32.0 },
+                direction: Vector3 { x: 0.0, y: 0.0, z: 0.0 },
             })),
             entities: Arc::new(RwLock::new(Entities {})),
             world: Arc::new(RwLock::new(World {
@@ -100,16 +102,19 @@ fn generate_chunks() -> Vec<Chunk> {
             let roll = rng.gen::<f32>();
             let mut block_type = block::BlockType::Empty;
 
-            if roll < 0.01 {
+            if roll < 0.050 {
                 block_type = block::BlockType::Solid;
             }
 
             let position = id_to_block_position(id);
+
+            println!("{:?}", chunk_position + position);
+
             let color = Vector4::new(
                 rng.gen::<f32>(),
                 rng.gen::<f32>(),
                 rng.gen::<f32>(),
-                1.0,
+                rng.gen_range(0.0..=1.0),
             );
 
             Block {

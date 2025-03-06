@@ -1,7 +1,7 @@
 use crate::{
-    consts::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
+    consts::{ASPECT_RATIO, CHUNK_SIZE, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
-    simulation::{block::BlockType, state::World},
+    simulation::{block::BlockType, state::{Judge, World}},
 };
 use bytemuck::{Pod, Zeroable};
 use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
@@ -44,6 +44,7 @@ pub struct VoxelInstance {
 
 pub struct Render {
     window: Arc<Window>,
+    judge: Arc<RwLock<Judge>>,
     world: Arc<RwLock<World>>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -56,7 +57,7 @@ pub struct Render {
 }
 
 impl Render {
-    pub async fn new(window: Arc<Window>, world: Arc<RwLock<World>>) -> Render {
+    pub async fn new(window: Arc<Window>, judge: Arc<RwLock<Judge>>, world: Arc<RwLock<World>>) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
         let adapter = instance
@@ -94,7 +95,7 @@ impl Render {
             mapped_at_creation: false,
         });
 
-        let view_projection_matrix = create_view_projection_matrix();
+        let view_projection_matrix = create_view_projection_matrix(judge.clone());
 
         queue.write_buffer(
             &view_projection_buffer,
@@ -131,7 +132,8 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let voxel_instances = read_world(world.clone());
+        let mut voxel_instances = read_world(world.clone());
+        sort_voxels_by_depth(judge.read().unwrap().position, &mut voxel_instances);
         let voxel_instances_count = voxel_instances.len() as u32;
         let voxel_instance_buffer = create_instance_buffer(&device, voxel_instances.as_slice());
 
@@ -160,6 +162,7 @@ impl Render {
 
         let render = Render {
             window,
+            judge,
             world,
             device,
             queue,
@@ -256,9 +259,9 @@ fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
                 BlockType::Solid => {
                     let instance = VoxelInstance {
                         position: [
-                            (chunk.position.x + block.position.x) as f32,
-                            (chunk.position.y + block.position.y) as f32,
-                            (chunk.position.z + block.position.z) as f32,
+                            (chunk.position.x * CHUNK_SIZE as i64 + block.position.x) as f32,
+                            (chunk.position.y * CHUNK_SIZE as i64 + block.position.y) as f32,
+                            (chunk.position.z * CHUNK_SIZE as i64 + block.position.z) as f32,
                         ],
                         color: [
                             block.color.x as f32,
@@ -305,6 +308,15 @@ fn create_depth_texture(device: &wgpu::Device, config: &wgpu::SurfaceConfigurati
     depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
 }
 
+fn sort_voxels_by_depth(camera_position: Vector3<f64>, voxels: &mut Vec<VoxelInstance>) {
+    voxels.sort_by(|a, b| {
+        let dist_a = (a.position[2] - camera_position.z as f32).abs();
+        let dist_b = (b.position[2] - camera_position.z as f32).abs();
+
+        dist_b.partial_cmp(&dist_a).unwrap()
+    });
+}
+
 fn create_pipeline(
     device: &wgpu::Device,
     config: &wgpu::SurfaceConfiguration,
@@ -326,7 +338,10 @@ fn create_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: config.format,
-                blend: Some(wgpu::BlendState::REPLACE),
+                blend: Some(wgpu::BlendState {
+                    color: wgpu::BlendComponent::OVER,
+                    alpha: wgpu::BlendComponent::OVER,
+                }),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: wgpu::PipelineCompilationOptions::default(),
@@ -357,10 +372,12 @@ fn create_pipeline(
     })
 }
 
-fn create_view_projection_matrix() -> [[f32; 4]; 4] {
+fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
+    let judge = judge.read().unwrap();
+
     let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-    let eye = Point3::new(24.0, 24.0, 24.0);
+    let eye = Point3::new(judge.position.x as f32, judge.position.y as f32, judge.position.z as f32);
     let target = Point3::new(0.0, 0.0, 0.0);
     let up = Vector3::new(0.0, 1.0, 0.0);
 

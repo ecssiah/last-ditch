@@ -9,12 +9,12 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const DEFAULT_SEED: u64 = 101;
 pub const SIMULATION_SLEEP: u64 = 16;
 
-pub const WORLD_RADIUS: u64 = 4;
+pub const WORLD_RADIUS: u64 = 2;
 pub const WORLD_SIZE: u64 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u64 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u64 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const CHUNK_RADIUS: u64 = 4;
+pub const CHUNK_RADIUS: u64 = 2;
 pub const CHUNK_SIZE: u64 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u64 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u64 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
