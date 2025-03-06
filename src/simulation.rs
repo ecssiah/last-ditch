@@ -1,15 +1,17 @@
 pub mod action;
+pub mod block;
 pub mod state;
 
 use action::{Action, WorldAction};
-use state::{State, User, World};
+use block::Block;
+use rand::Rng;
+use state::{State, Leader, Entities, World};
 use std::{
     sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
-
-use crate::ActionReceiver;
+use crate::{consts::{CHUNK_DIM, CHUNK_HALF, CHUNK_SIZE}, ActionReceiver};
 
 const SIMULATION_SLEEP: u64 = 16;
 
@@ -21,12 +23,16 @@ pub struct Simulation {
 impl Simulation {
     pub fn new(action_rx: ActionReceiver) -> Simulation {
         let state = Arc::new(State {
+            leader: Arc::new(RwLock::new(Leader {
+                name: "Michael".to_string(),
+            })),
+            entities: Arc::new(RwLock::new(Entities {})),
             world: Arc::new(RwLock::new(World {
                 active: true,
                 seed: 1234546789,
                 time: 0.0,
+                blocks: generate_blocks(),
             })),
-            user: Arc::new(RwLock::new(User {})),
         });
 
         Simulation { state, action_rx }
@@ -53,7 +59,7 @@ impl Simulation {
                     WorldAction::Quit => {
                         world.active = false;
                     }
-                }
+                },
             }
         }
     }
@@ -69,5 +75,36 @@ impl Simulation {
             self.update(dt);
             thread::sleep(Duration::from_millis(SIMULATION_SLEEP));
         }
+    }
+}
+
+fn generate_blocks() -> [Block; CHUNK_SIZE] {
+    core::array::from_fn(move |index| {
+        let (x, y, z) = index_to_position(index);
+
+        Block {
+            position: [x as i32, y as i32, z as i32],
+            color: [0.1, 0.3, 0.6, 1.0],
+        }
+    })
+}
+
+fn index_to_position(index: usize) -> (isize, isize, isize) {
+    let x = (index % CHUNK_DIM) as isize - CHUNK_HALF;
+    let y = ((index / CHUNK_DIM) % CHUNK_DIM) as isize - CHUNK_HALF;
+    let z = (index / (CHUNK_DIM * CHUNK_DIM)) as isize - CHUNK_HALF;
+
+    (x, y, z)
+}
+
+fn position_to_index(x: isize, y: isize, z: isize) -> Option<usize> {
+    let x = (x + CHUNK_HALF) as usize;
+    let y = (y + CHUNK_HALF) as usize;
+    let z = (z + CHUNK_HALF) as usize;
+
+    if x < CHUNK_DIM && y < CHUNK_DIM && z < CHUNK_DIM {
+        Some(x + y * CHUNK_DIM + z * CHUNK_DIM * CHUNK_DIM)
+    } else {
+        None
     }
 }

@@ -1,10 +1,28 @@
+use crate::{
+    consts::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
+    include_shader_src,
+    simulation::state::World,
+};
 use bytemuck::{Pod, Zeroable};
-use cgmath::{perspective, BaseFloat, Deg, Matrix4, Point3, Vector3};
+use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
+use rand::Rng;
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
 
-use crate::{include_shader_src, simulation::state::World};
+const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
+    array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
+    step_mode: wgpu::VertexStepMode::Instance,
+    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32],
+};
+
+pub struct Voxel {
+    shader: wgpu::ShaderModule,
+    instances: Vec<VoxelInstance>,
+    instances_count: u32,
+    instance_buffer: wgpu::Buffer,
+    pipeline: wgpu::RenderPipeline,
+}
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -12,12 +30,6 @@ pub struct VoxelInstance {
     position: [f32; 3],
     _padding: f32,
 }
-
-const INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
-    array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
-    step_mode: wgpu::VertexStepMode::Instance,
-    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32],
-};
 
 pub struct Render {
     window: Arc<Window>,
@@ -29,11 +41,7 @@ pub struct Render {
     surface_format: wgpu::TextureFormat,
     surface_config: wgpu::SurfaceConfiguration,
     view_projection_bind_group: wgpu::BindGroup,
-    voxel_shader: wgpu::ShaderModule,
-    voxel_instances: Vec<VoxelInstance>,
-    voxel_instances_count: u32,
-    voxel_instance_buffer: wgpu::Buffer,
-    voxel_pipeline: wgpu::RenderPipeline,
+    voxel: Voxel,
 }
 
 impl Render {
@@ -69,36 +77,41 @@ impl Render {
 
         surface.configure(&device, &surface_config);
 
-        let view_proj_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        let view_projection_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("View Projection Buffer"),
             size: std::mem::size_of::<[[f32; 4]; 4]>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        
-        let view_projection_matrix = create_view_projection_matrix(size);
-        queue.write_buffer(&view_proj_buffer, 0, bytemuck::cast_slice(&view_projection_matrix));
 
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Uniform Bind Group Layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
+        let view_projection_matrix = create_view_projection_matrix();
+        queue.write_buffer(
+            &view_projection_buffer,
+            0,
+            bytemuck::cast_slice(&view_projection_matrix),
+        );
+
+        let uniform_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Uniform Bind Group Layout"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+            });
 
         let view_projection_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("View Projection Bind Group"),
-            layout: &bind_group_layout,
+            layout: &uniform_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: view_proj_buffer.as_entire_binding(),
+                resource: view_projection_buffer.as_entire_binding(),
             }],
         });
 
@@ -110,13 +123,29 @@ impl Render {
         let voxel_instances = generate_world();
         let voxel_instances_count = voxel_instances.len() as u32;
         let voxel_instance_buffer = create_instance_buffer(&device, voxel_instances.as_slice());
+
+        let voxel_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Voxel Pipeline Layout"),
+                bind_group_layouts: &[&uniform_bind_group_layout],
+                push_constant_ranges: &[],
+            });
+
         let voxel_pipeline = create_pipeline(
             &device,
             &surface_config,
             &voxel_shader,
-            bind_group_layout,
-            INSTANCE_LAYOUT,
+            voxel_pipeline_layout,
+            VOXEL_INSTANCE_LAYOUT,
         );
+
+        let voxel = Voxel {
+            shader: voxel_shader,
+            instances: voxel_instances,
+            instances_count: voxel_instances_count,
+            instance_buffer: voxel_instance_buffer,
+            pipeline: voxel_pipeline,
+        };
 
         let render = Render {
             window,
@@ -128,11 +157,7 @@ impl Render {
             surface_format,
             surface_config,
             view_projection_bind_group,
-            voxel_shader,
-            voxel_instances,
-            voxel_instances_count,
-            voxel_instance_buffer,
-            voxel_pipeline,
+            voxel,
         };
 
         render
@@ -174,10 +199,10 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        renderpass.set_pipeline(&self.voxel_pipeline);
+        renderpass.set_pipeline(&self.voxel.pipeline);
         renderpass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-        renderpass.set_vertex_buffer(0, self.voxel_instance_buffer.slice(..));
-        renderpass.draw(0..36, 0..self.voxel_instances_count);
+        renderpass.set_vertex_buffer(0, self.voxel.instance_buffer.slice(..));
+        renderpass.draw(0..36, 0..self.voxel.instances_count);
 
         drop(renderpass);
 
@@ -204,13 +229,19 @@ fn generate_world() -> Vec<VoxelInstance> {
     let mut instances = Vec::new();
     let size = 10;
 
+    let mut rng = rand::thread_rng();
+
     for x in 0..size {
         for y in 0..size {
             for z in 0..size {
-                instances.push(VoxelInstance {
-                    position: [x as f32, y as f32, z as f32],
-                    _padding: 0.0,
-                });
+                let roll: f32 = rng.gen();
+
+                if roll < 0.25 {
+                    instances.push(VoxelInstance {
+                        position: [x as f32, y as f32, z as f32],
+                        _padding: 0.0,
+                    });
+                }
             }
         }
     }
@@ -230,15 +261,9 @@ fn create_pipeline(
     device: &wgpu::Device,
     config: &wgpu::SurfaceConfiguration,
     shader: &wgpu::ShaderModule,
-    bind_group_layout: wgpu::BindGroupLayout,
+    pipeline_layout: wgpu::PipelineLayout,
     instance_layout: wgpu::VertexBufferLayout<'_>,
 ) -> wgpu::RenderPipeline {
-    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("Voxel Pipeline Layout"),
-        bind_group_layouts: &[&bind_group_layout],
-        push_constant_ranges: &[],
-    });
-
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Voxel Render Pipeline"),
         layout: Some(&pipeline_layout),
@@ -262,7 +287,7 @@ fn create_pipeline(
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: Some(wgpu::Face::Back), // Back-face culling
+            cull_mode: Some(wgpu::Face::Back),
             unclipped_depth: false,
             polygon_mode: wgpu::PolygonMode::Fill,
             conservative: false,
@@ -278,13 +303,8 @@ fn create_pipeline(
     })
 }
 
-fn create_view_projection_matrix(size: winit::dpi::PhysicalSize<u32>) -> [[f32; 4]; 4] {
-    let aspect_ratio = size.width as f32 / size.height as f32;
-    let fov = Deg(45.0);
-    let near = 0.1;
-    let far = 100.0;
-
-    let proj = perspective(fov, aspect_ratio, near, far);
+fn create_view_projection_matrix() -> [[f32; 4]; 4] {
+    let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
     let eye = Point3::new(20.0, 20.0, 20.0);
     let target = Point3::new(0.0, 0.0, 0.0);

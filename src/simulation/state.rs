@@ -1,19 +1,26 @@
+use super::block::Block;
+use crate::consts::CHUNK_SIZE;
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub user: Arc<RwLock<User>>,
+    pub leader: Arc<RwLock<Leader>>,
+    pub entities: Arc<RwLock<Entities>>,
     pub world: Arc<RwLock<World>>,
 }
 
 #[derive(Debug, Clone)]
-pub struct User {
-    
+pub struct Leader {
+    pub name: String,
 }
+
+#[derive(Debug, Clone)]
+pub struct Entities {}
 
 #[derive(Debug, Clone)]
 pub struct World {
     pub active: bool,
     pub seed: u64,
     pub time: f64,
+    pub blocks: [Block; CHUNK_SIZE],
 }
