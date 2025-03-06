@@ -53,13 +53,8 @@ impl Interface {
         _id: WindowId,
         event: &WindowEvent,
     ) {
-        match event {
-            WindowEvent::CloseRequested => event_loop.exit(),
-            _ => {
-                self.input.handle_window_event(&event);
-                self.camera.handle_window_event(&event);
-                self.render.handle_window_event(&event);
-            }
-        }
+        self.input.handle_window_event(&event);
+        self.camera.handle_window_event(&event);
+        self.render.handle_window_event(&event);
     }
 }

@@ -22,6 +22,11 @@ impl Input {
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
+            WindowEvent::CloseRequested => {
+                self.action_tx
+                .send(Action::World(WorldAction::Quit))
+                .unwrap();
+            }
             WindowEvent::KeyboardInput {
                 device_id,
                 event,
@@ -60,15 +65,12 @@ impl Input {
         _is_synthetic: &bool,
     ) {
         match key_event.physical_key {
-            PhysicalKey::Code(key_code) => match key_code {
-                KeyCode::Escape => {
-                    self.action_tx
-                        .send(Action::World(WorldAction::Quit))
-                        .unwrap();
-                }
-                _ => {}
-            },
-            _ => {}
+            PhysicalKey::Code(KeyCode::Escape) => {
+                self.action_tx
+                    .send(Action::World(WorldAction::Quit))
+                    .unwrap();
+            }
+            _ => ()
         }
     }
 
