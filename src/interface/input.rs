@@ -2,17 +2,23 @@ use winit::{
     dpi::PhysicalPosition,
     event::{
         DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
-    },
+    }, keyboard::{KeyCode, PhysicalKey},
 };
 
-pub struct Input {}
+use crate::{simulation::action::{Action, WorldAction}, ActionSender};
+
+pub struct Input {
+    action_tx: ActionSender,
+}
 
 impl Input {
-    pub fn new() -> Input {
-        Input {}
+    pub fn new(action_tx: ActionSender) -> Input {
+        Input {
+            action_tx
+        }
     }
 
-    pub fn handle_event(&mut self, event: &WindowEvent) {
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::KeyboardInput {
                 device_id,
@@ -51,7 +57,15 @@ impl Input {
         key_event: &KeyEvent,
         _is_synthetic: &bool,
     ) {
-        println!("{:?} {:?}", key_event.physical_key, key_event.state);
+        match key_event.physical_key {
+            PhysicalKey::Code(key_code) => match key_code {
+                KeyCode::Escape => {
+                    self.action_tx.send(Action::World(WorldAction::Quit));
+                }
+                _ => {}
+            },
+            _ => {} 
+        }
     }
 
     pub fn handle_mouse_input(

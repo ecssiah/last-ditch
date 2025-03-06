@@ -1,5 +1,6 @@
 use last_ditch::run;
 
-fn main() {
-    run();
+#[tokio::main]
+async fn main() {
+    run().await;
 }

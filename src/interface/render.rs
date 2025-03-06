@@ -1,10 +1,11 @@
-use crate::simulation::state::SharedState;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use winit::{event::WindowEvent, window::Window};
+
+use crate::simulation::state::World;
 
 pub struct Render {
     window: Arc<Window>,
-    state: SharedState,
+    world: Arc<RwLock<World>>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     size: winit::dpi::PhysicalSize<u32>,
@@ -13,7 +14,7 @@ pub struct Render {
 }
 
 impl Render {
-    pub async fn new(window: Arc<Window>, state: SharedState) -> Render {
+    pub async fn new(window: Arc<Window>, world: Arc<RwLock<World>>) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
         let adapter = instance
@@ -34,7 +35,7 @@ impl Render {
 
         let render = Render {
             window,
-            state,
+            world,
             device,
             queue,
             size,
@@ -98,9 +99,11 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        let shared_state = self.state.read().unwrap();
-
-        println!("Simulation Time: {}", shared_state.time);
+        {
+            let world = self.world.read().unwrap();
+    
+            println!("Simulation Time: {}", world.time);
+        }
 
         // Drawing Commands
 
@@ -111,7 +114,7 @@ impl Render {
         surface_texture.present();
     }
 
-    pub fn handle_event(&mut self, event: &WindowEvent) {
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::RedrawRequested => {
                 self.render();

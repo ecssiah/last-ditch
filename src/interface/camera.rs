@@ -7,5 +7,5 @@ impl Camera {
         Camera {}
     }
 
-    pub fn handle_event(&mut self, _event: &WindowEvent) {}
+    pub fn handle_window_event(&mut self, _event: &WindowEvent) {}
 }

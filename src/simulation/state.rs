@@ -2,7 +2,18 @@ use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub time: f64,
+    pub user: Arc<RwLock<User>>,
+    pub world: Arc<RwLock<World>>,
 }
 
-pub type SharedState = Arc<RwLock<State>>;
+#[derive(Debug, Clone)]
+pub struct User {
+    
+}
+
+#[derive(Debug, Clone)]
+pub struct World {
+    pub active: bool,
+    pub seed: u64,
+    pub time: f64,
+}

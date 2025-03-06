@@ -1,11 +1,16 @@
 [package]
 name = "last_ditch"
 version = "0.1.0"
+authors = ["Michael Chapman <ecssiah@gmail.com>"]
 edition = "2021"
+description = "A Civilizational Garden"
+repository = "https://github.com/ecssiah/last-ditch"
+readme = "README.md"
 
 [dependencies]
 env_logger = "0.11.6"
 pollster = "0.4"
+rayon = "1.10.0"
+tokio = { version = "1.0", features = ["full"] }
 wgpu = "24.0.0"
 winit = "0.30.8"
-tokio = "1.43.0"

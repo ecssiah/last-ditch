@@ -1,9 +1,20 @@
-mod interface;
-mod simulation;
+//! # Last Ditch
+//!
+//! A Civilizational Garden
+//!
+//! ## Systems
+//! The Interface handles interactions between the User and the Simulation.
+//!
+//! The Simulation handles the evolution of the world.
+
+pub mod interface;
+pub mod simulation;
 
 use crate::interface::Interface;
 use crate::simulation::Simulation;
 use std::{sync::Arc, thread};
+use simulation::action::Action;
+use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -11,24 +22,32 @@ use winit::{
     window::{Window, WindowId},
 };
 
+pub type ActionSender = UnboundedSender<Action>;
+pub type ActionReceiver = UnboundedReceiver<Action>;
+
 #[derive(Default)]
 struct App {
+    window: Option<Arc<Window>>,
     interface: Option<Interface>,
     simulation_thread: Option<thread::JoinHandle<()>>,
 }
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let mut simulation = Simulation::new();
-        let state = simulation.get_shared_state();
-
-        let window = Arc::new(
+        self.window = Some(Arc::new(
             event_loop
                 .create_window(Window::default_attributes())
                 .unwrap(),
-        );
+        ));
 
-        let interface = pollster::block_on(Interface::new(window.clone(), state));
+        let window = self.window.as_ref().unwrap();
+
+        let (action_tx, action_rx) = unbounded_channel();
+
+        let mut simulation = Simulation::new(action_rx);
+        let state = simulation.get_state();
+
+        let interface = pollster::block_on(Interface::new(window.clone(), state, action_tx));
 
         let simulation_thread = thread::spawn(move || simulation.run());
 
@@ -38,14 +57,21 @@ impl ApplicationHandler for App {
         window.request_redraw();
     }
 
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        let interface = self.interface.as_mut().unwrap();
+
+        interface.update(event_loop);
+    }
+
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let interface = self.interface.as_mut().unwrap();
 
-        interface.handle_event(event_loop, _id, &event);
+        interface.handle_window_event(event_loop, _id, &event);
     }
 }
 
-pub fn run() {
+/// The entrypoint for Last Ditch application
+pub async fn run() {
     env_logger::init();
 
     let event_loop = EventLoop::new().unwrap();
