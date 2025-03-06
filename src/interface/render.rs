@@ -99,12 +99,6 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        {
-            let world = self.world.read().unwrap();
-    
-            println!("Simulation Time: {}", world.time);
-        }
-
         // Drawing Commands
 
         drop(renderpass);

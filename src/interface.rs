@@ -42,8 +42,6 @@ impl Interface {
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
         let world = self.state.world.read().unwrap();
 
-        println!("{:?}", world.active);
-
         if world.active == false {
             event_loop.exit();
         }

@@ -70,7 +70,7 @@ impl ApplicationHandler for App {
     }
 }
 
-/// The entrypoint for Last Ditch application
+/// The entrypoint for Last Ditch
 pub async fn run() {
     env_logger::init();
 
