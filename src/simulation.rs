@@ -96,17 +96,26 @@ fn generate_chunks() -> Vec<Chunk> {
 
         let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_index| {
             let id = block_index as u64;
+
+            let roll = rng.gen::<f32>();
+            let mut block_type = block::BlockType::Empty;
+
+            if roll < 0.01 {
+                block_type = block::BlockType::Solid;
+            }
+
             let position = id_to_block_position(id);
             let color = Vector4::new(
                 rng.gen::<f32>(),
                 rng.gen::<f32>(),
                 rng.gen::<f32>(),
-                rng.gen::<f32>(),
+                1.0,
             );
 
             Block {
                 id,
                 chunk_id,
+                block_type,
                 position,
                 color,
             }

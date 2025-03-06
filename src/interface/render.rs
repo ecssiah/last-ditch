@@ -1,7 +1,7 @@
 use crate::{
     consts::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
-    simulation::state::World,
+    simulation::{block::BlockType, state::World},
 };
 use bytemuck::{Pod, Zeroable};
 use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
@@ -13,7 +13,18 @@ use winit::{event::WindowEvent, window::Window};
 const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
     step_mode: wgpu::VertexStepMode::Instance,
-    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32],
+    attributes: &[
+        wgpu::VertexAttribute {
+            format: wgpu::VertexFormat::Float32x3,
+            offset: 0,
+            shader_location: 0,
+        },
+        wgpu::VertexAttribute {
+            format: wgpu::VertexFormat::Float32x4,
+            offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+            shader_location: 1,
+        },
+    ],
 };
 
 pub struct Voxel {
@@ -28,7 +39,7 @@ pub struct Voxel {
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub struct VoxelInstance {
     position: [f32; 3],
-    _padding: f32,
+    color: [f32; 4],
 }
 
 pub struct Render {
@@ -120,7 +131,7 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let voxel_instances = generate_world();
+        let voxel_instances = read_world(world.clone());
         let voxel_instances_count = voxel_instances.len() as u32;
         let voxel_instance_buffer = create_instance_buffer(&device, voxel_instances.as_slice());
 
@@ -184,6 +195,8 @@ impl Render {
 
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
+        let depth_texture_view = create_depth_texture(&self.device, &self.surface_config);
+
         let mut renderpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("World Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -194,7 +207,14 @@ impl Render {
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &depth_texture_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -225,23 +245,32 @@ impl Render {
     }
 }
 
-fn generate_world() -> Vec<VoxelInstance> {
-    let mut instances = Vec::new();
-    let size = 10;
+fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
+    let world = world.read().unwrap();
 
-    let mut rng = rand::thread_rng();
+    let mut instances: Vec<VoxelInstance> = Vec::new();
 
-    for x in 0..size {
-        for y in 0..size {
-            for z in 0..size {
-                let roll: f32 = rng.gen();
-
-                if roll < 0.25 {
-                    instances.push(VoxelInstance {
-                        position: [x as f32, y as f32, z as f32],
-                        _padding: 0.0,
-                    });
+    for chunk in world.chunks.iter() {
+        for block in chunk.blocks.iter() {
+            match block.block_type {
+                BlockType::Solid => {
+                    let instance = VoxelInstance {
+                        position: [
+                            (chunk.position.x + block.position.x) as f32,
+                            (chunk.position.y + block.position.y) as f32,
+                            (chunk.position.z + block.position.z) as f32,
+                        ],
+                        color: [
+                            block.color.x as f32,
+                            block.color.y as f32,
+                            block.color.z as f32,
+                            block.color.w as f32,
+                        ],
+                    };
+        
+                    instances.push(instance);
                 }
+                BlockType::Empty => ()
             }
         }
     }
@@ -255,6 +284,25 @@ fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) ->
         contents: bytemuck::cast_slice(instances),
         usage: wgpu::BufferUsages::VERTEX,
     })
+}
+
+fn create_depth_texture(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
+    let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("Depth Texture"),
+        size: wgpu::Extent3d {
+            width: config.width,
+            height: config.height,
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Depth24Plus,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+
+    depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
 }
 
 fn create_pipeline(
@@ -292,7 +340,13 @@ fn create_pipeline(
             polygon_mode: wgpu::PolygonMode::Fill,
             conservative: false,
         },
-        depth_stencil: None,
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth24Plus,
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less, // Closer fragments replace further ones
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
         multisample: wgpu::MultisampleState {
             count: 1,
             mask: !0,
@@ -306,7 +360,7 @@ fn create_pipeline(
 fn create_view_projection_matrix() -> [[f32; 4]; 4] {
     let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-    let eye = Point3::new(20.0, 20.0, 20.0);
+    let eye = Point3::new(24.0, 24.0, 24.0);
     let target = Point3::new(0.0, 0.0, 0.0);
     let up = Vector3::new(0.0, 1.0, 0.0);
 
