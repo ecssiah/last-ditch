@@ -13,12 +13,12 @@ pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 pub const DEFAULT_SEED: u64 = 101;
 pub const SIMULATION_SLEEP: u64 = 16;
 
-pub const WORLD_RADIUS: u32 = 1;
+pub const WORLD_RADIUS: u32 = 3;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 1;
+pub const CHUNK_RADIUS: u32 = 3;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;

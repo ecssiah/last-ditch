@@ -100,7 +100,7 @@ impl Input {
                 let mut speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    speed = DEFAULT_LINEAR_SPEED;
+                    speed = -DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
                     speed = 0.0;
                 }
@@ -113,7 +113,7 @@ impl Input {
                 let mut strafe_speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    strafe_speed = DEFAULT_STRAFE_SPEED;
+                    strafe_speed = -DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
                     strafe_speed = 0.0;
                 }
@@ -126,7 +126,7 @@ impl Input {
                 let mut speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    speed = -DEFAULT_LINEAR_SPEED;
+                    speed = DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
                     speed = 0.0;
                 }
@@ -139,7 +139,7 @@ impl Input {
                 let mut strafe_speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    strafe_speed = -DEFAULT_STRAFE_SPEED;
+                    strafe_speed = DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
                     strafe_speed = 0.0;
                 }

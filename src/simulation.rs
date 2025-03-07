@@ -3,20 +3,13 @@ pub mod block;
 pub mod chunk;
 pub mod state;
 
-use crate::{
-    consts::{
-        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_ANGULAR_SPEED,
-        DEFAULT_LINEAR_SPEED, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE,
-        WORLD_VOLUME,
-    },
-    ActionReceiver,
-};
+use crate::{consts::*, ActionReceiver};
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
 use chunk::Chunk;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
-use rapier3d::na::{Point3, Rotation3, Vector3};
+use rapier3d::na::{Point3, Rotation3, Unit, Vector3};
 use state::{Entities, Judge, State, World};
 use std::{
     sync::{Arc, RwLock},
@@ -100,17 +93,21 @@ impl Simulation {
         let mut judge = self.state.judge.write().unwrap();
 
         if judge.angular_speed.abs() > 1e-6 {
-            let up = Vector3::y();
-            let rotation = Rotation3::new(up * (dt * judge.angular_speed));
+            let up = Unit::new_unchecked(Vector3::y());
+            let rotation = Rotation3::from_axis_angle(&up, dt * judge.angular_speed);
+
+            judge.rotation = rotation * judge.rotation;
 
             judge.direction = rotation * judge.direction;
-            judge.strafe_direction = -judge.direction.cross(&up);
+            judge.strafe_direction = rotation * judge.strafe_direction;
         }
 
-        let judge_velocity =
-            judge.speed * judge.direction + judge.strafe_speed * judge.strafe_direction;
+        let forward = judge.rotation * Vector3::z();
+        let right = judge.rotation * Vector3::x();
 
-        judge.position = judge.position + dt * judge_velocity;
+        let judge_velocity = judge.speed * forward + judge.strafe_speed * right;
+
+        judge.position += dt * judge_velocity;
     }
 
     pub fn run(&mut self) {
@@ -122,6 +119,7 @@ impl Simulation {
             previous_instant = now;
 
             self.update(dt);
+
             thread::sleep(Duration::from_millis(SIMULATION_SLEEP));
         }
     }
@@ -132,22 +130,19 @@ impl Simulation {
         (0..WORLD_VOLUME)
             .map(|chunk_id| {
                 let chunk_local_position = Simulation::chunk_id_to_position(chunk_id);
-                let chunk_world_position: Vector3<f32> =
-                    (CHUNK_SIZE as i32 * chunk_local_position).cast().coords;
+                let chunk_world_position = (CHUNK_SIZE as i32 * chunk_local_position).cast::<f32>();
 
                 let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_id| {
                     let block_id = block_id as u32;
-
+                    let block_type: BlockType;
                     let block_local_position = Simulation::block_id_to_position(block_id);
-                    let block_world_position: Vector3<f32> =
+                    let block_world_position =
                         chunk_world_position + block_local_position.cast::<f32>().coords;
+                    let block_color: Color;
 
                     let roll = rng.gen::<f32>();
 
-                    let block_type: BlockType;
-                    let block_color: Color;
-
-                    if roll < 0.50 {
+                    if roll < 0.10 {
                         block_type = BlockType::Solid;
                         block_color = Color {
                             r: rng.gen::<f64>(),
@@ -155,9 +150,14 @@ impl Simulation {
                             b: rng.gen::<f64>(),
                             a: 1.0,
                         };
-                    } else if roll < 0.75 {
-                        block_type = BlockType::Translucent;
-                        block_color = Color { r: 0.0, g: 0.2, b: 0.4, a: 0.2 };
+                    // } else if roll < 0.75 {
+                    //     block_type = BlockType::Translucent;
+                    //     block_color = Color {
+                    //         r: 0.2,
+                    //         g: 0.4,
+                    //         b: 0.5,
+                    //         a: 0.1,
+                    //     };
                     } else {
                         block_type = BlockType::None;
                         block_color = Color::WHITE;
@@ -168,7 +168,7 @@ impl Simulation {
                         chunk_id,
                         block_type,
                         local_position: block_local_position,
-                        world_position: block_world_position.into(),
+                        world_position: block_world_position,
                         color: block_color,
                     }
                 });
@@ -176,7 +176,7 @@ impl Simulation {
                 Chunk {
                     id: chunk_id,
                     local_position: chunk_local_position,
-                    world_position: chunk_world_position.into(),
+                    world_position: chunk_world_position,
                     modified: true,
                     blocks: Box::new(blocks),
                 }
