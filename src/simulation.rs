@@ -80,28 +80,7 @@ impl Simulation {
 
     fn update(&mut self, dt: f32) {
         self.process_actions();
-
-        let mut state = self.state.world.write().unwrap();
-        state.time += dt;
-
-        let mut judge = self.state.judge.write().unwrap();
-
-        if judge.angular_speed.abs() > 1e-6 {
-            let up = Vector3 {
-                x: 0.0,
-                y: 1.0,
-                z: 0.0,
-            };
-
-            let rotation = Quaternion::from_axis_angle(up, Deg(judge.angular_speed));
-
-            judge.direction = rotation.rotate_vector(judge.direction);
-            judge.strafe_direction = -judge.direction.cross(up);
-        }
-
-        judge.position = judge.position
-            + judge.linear_speed * judge.direction
-            + judge.strafe_speed * judge.strafe_direction;
+        self.evolve(dt);
     }
 
     fn process_actions(&mut self) {
@@ -125,6 +104,31 @@ impl Simulation {
                 }
             }
         }
+    }
+
+    fn evolve(&mut self, dt: f32) {
+        let mut state = self.state.world.write().unwrap();
+        state.time += dt;
+
+        let mut judge = self.state.judge.write().unwrap();
+
+        if judge.angular_speed.abs() > 1e-6 {
+            let up = Vector3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            };
+
+            let rotation = Quaternion::from_axis_angle(up, Deg(dt * judge.angular_speed));
+
+            judge.direction = rotation.rotate_vector(judge.direction);
+            judge.strafe_direction = -judge.direction.cross(up);
+        }
+
+        let velocity =
+            judge.linear_speed * judge.direction + judge.strafe_speed * judge.strafe_direction;
+
+        judge.position = judge.position + dt * velocity;
     }
 
     pub fn run(&mut self) {
