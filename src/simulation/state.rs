@@ -13,8 +13,8 @@ pub struct State {
 #[derive(Debug, Clone)]
 pub struct Judge {
     pub name: String,
-    pub position: Vector3<f64>,
-    pub direction: Vector3<f64>,
+    pub position: Vector3<f32>,
+    pub direction: Vector3<f32>,
 }
 
 #[derive(Debug, Clone)]
@@ -24,6 +24,6 @@ pub struct Entities {}
 pub struct World {
     pub active: bool,
     pub seed: u64,
-    pub time: f64,
+    pub time: f32,
     pub chunks: Vec<Chunk>,
 }

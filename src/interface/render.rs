@@ -2,7 +2,8 @@ use crate::{
     consts::{ASPECT_RATIO, CHUNK_SIZE, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
     simulation::{
-        block::BlockType,
+        block::{Block, BlockType},
+        chunk::Chunk,
         state::{Judge, World},
     },
 };
@@ -138,10 +139,24 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let mut voxel_instances = Render::read_world(world.clone());
-        Render::sort_voxels_by_depth(judge.read().unwrap().position, &mut voxel_instances);
+        let (mut voxel_transparent_instances, voxel_solid_instances) =
+            Render::read_world(world.clone());
+
+        Render::sort_voxels_by_depth(
+            judge.read().unwrap().position,
+            &mut voxel_transparent_instances,
+        );
+
+        let voxel_instances: Vec<VoxelInstance> = voxel_solid_instances
+            .iter()
+            .chain(voxel_transparent_instances.iter())
+            .copied()
+            .collect();
+        
         let voxel_instances_count = voxel_instances.len() as u32;
-        let voxel_instance_buffer = Render::create_instance_buffer(&device, voxel_instances.as_slice());
+
+        let voxel_instance_buffer =
+            Render::create_instance_buffer(&device, voxel_instances.as_slice());
 
         let voxel_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -253,37 +268,31 @@ impl Render {
         }
     }
 
-    fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
+    fn read_world(world: Arc<RwLock<World>>) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
         let world = world.read().unwrap();
 
-        let mut instances: Vec<VoxelInstance> = Vec::new();
+        let mut transparent_intances: Vec<VoxelInstance> = Vec::new();
+        let mut solid_instances: Vec<VoxelInstance> = Vec::new();
 
         for chunk in world.chunks.iter() {
             for block in chunk.blocks.iter() {
                 match block.block_type {
-                    BlockType::Solid => {
-                        let instance = VoxelInstance {
-                            position: [
-                                (chunk.position.x * CHUNK_SIZE as i64 + block.position.x) as f32,
-                                (chunk.position.y * CHUNK_SIZE as i64 + block.position.y) as f32,
-                                (chunk.position.z * CHUNK_SIZE as i64 + block.position.z) as f32,
-                            ],
-                            color: [
-                                block.color.x as f32,
-                                block.color.y as f32,
-                                block.color.z as f32,
-                                block.color.w as f32,
-                            ],
-                        };
+                    BlockType::None => (),
+                    BlockType::Translucent => {
+                        let instance = Render::create_instance(chunk, block);
 
-                        instances.push(instance);
+                        transparent_intances.push(instance);
                     }
-                    BlockType::Empty => (),
+                    BlockType::Solid => {
+                        let instance = Render::create_instance(chunk, block);
+
+                        solid_instances.push(instance);
+                    }
                 }
             }
         }
 
-        instances
+        (transparent_intances, solid_instances)
     }
 
     fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
@@ -292,6 +301,22 @@ impl Render {
             contents: bytemuck::cast_slice(instances),
             usage: wgpu::BufferUsages::VERTEX,
         })
+    }
+
+    fn create_instance(chunk: &Chunk, block: &Block) -> VoxelInstance {
+        VoxelInstance {
+            position: [
+                (chunk.position.x * CHUNK_SIZE as i32 + block.position.x) as f32,
+                (chunk.position.y * CHUNK_SIZE as i32 + block.position.y) as f32,
+                (chunk.position.z * CHUNK_SIZE as i32 + block.position.z) as f32,
+            ],
+            color: [
+                block.color.x as f32,
+                block.color.y as f32,
+                block.color.z as f32,
+                block.color.w as f32,
+            ],
+        }
     }
 
     fn create_depth_texture(
@@ -308,7 +333,7 @@ impl Render {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth24Plus,
+            format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             view_formats: &[],
         });
@@ -316,7 +341,7 @@ impl Render {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn sort_voxels_by_depth(camera_position: Vector3<f64>, voxels: &mut Vec<VoxelInstance>) {
+    fn sort_voxels_by_depth(camera_position: Vector3<f32>, voxels: &mut Vec<VoxelInstance>) {
         voxels.sort_by(|a, b| {
             let dist_a = (a.position[2] - camera_position.z as f32).abs();
             let dist_b = (b.position[2] - camera_position.z as f32).abs();
@@ -347,8 +372,16 @@ impl Render {
                 targets: &[Some(wgpu::ColorTargetState {
                     format: config.format,
                     blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent::OVER,
-                        alpha: wgpu::BlendComponent::OVER,
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::One,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
                     }),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
@@ -364,9 +397,9 @@ impl Render {
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
-                format: wgpu::TextureFormat::Depth24Plus,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less, // Closer fragments replace further ones
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: false,
+                depth_compare: wgpu::CompareFunction::LessEqual,
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
             }),
@@ -404,4 +437,3 @@ impl Render {
         view_proj.into()
     }
 }
-
