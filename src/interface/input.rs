@@ -87,6 +87,28 @@ impl Input {
                     .send(Action::World(WorldAction::Quit))
                     .unwrap();
             }
+            PhysicalKey::Code(KeyCode::KeyQ) => {
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.rotation.y = 1.0;
+                } else if key_event.state == ElementState::Released {
+                    self.rotation.y = 0.0;
+                }
+
+                self.action_tx
+                    .send(Action::Entity(EntityAction::Rotate(self.rotation)))
+                    .unwrap();
+            }
+            PhysicalKey::Code(KeyCode::KeyE) => {
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.rotation.y = -1.0;
+                } else if key_event.state == ElementState::Released {
+                    self.rotation.y = 0.0;
+                }
+
+                self.action_tx
+                    .send(Action::Entity(EntityAction::Rotate(self.rotation)))
+                    .unwrap();
+            }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
                     self.movement.z = -1.0;

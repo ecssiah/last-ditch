@@ -5,13 +5,13 @@ pub mod state;
 
 use crate::{
     consts::{
-        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_LINEAR_SPEED, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME
+        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_ANGULAR_SPEED, DEFAULT_LINEAR_SPEED, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME
     },
     ActionReceiver,
 };
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
-use cgmath::{EuclideanSpace, Point3, Vector3, Vector4, Zero};
+use cgmath::{Deg, EuclideanSpace, InnerSpace, Point3, Quaternion, Rotation, Rotation3, Vector3, Vector4, Zero};
 use chunk::Chunk;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
@@ -90,8 +90,16 @@ impl Simulation {
                     judge.direction = movement;
                 }
                 Action::Entity(EntityAction::Rotate(rotation)) => {
-                    let mut judge = self.state.judge.write().unwrap();
-                    judge.facing = rotation;
+                    if rotation != Vector3::zero() {
+                        let mut judge = self.state.judge.write().unwrap();
+                        
+                        let axis = rotation.normalize();
+                        let rotation = Quaternion::from_axis_angle(axis, Deg(DEFAULT_ANGULAR_SPEED));
+    
+                        judge.facing = rotation.rotate_vector(judge.facing);
+                        
+                        println!("{:?}", judge.facing);
+                    }
                 }
             }
         }
