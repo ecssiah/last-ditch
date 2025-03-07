@@ -8,7 +8,6 @@ use crate::{
 };
 use bytemuck::{Pod, Zeroable};
 use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
-use rand::Rng;
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -102,7 +101,7 @@ impl Render {
             mapped_at_creation: false,
         });
 
-        let view_projection_matrix = create_view_projection_matrix(judge.clone());
+        let view_projection_matrix = Render::create_view_projection_matrix(judge.clone());
 
         queue.write_buffer(
             &view_projection_buffer,
@@ -139,10 +138,10 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let mut voxel_instances = read_world(world.clone());
-        sort_voxels_by_depth(judge.read().unwrap().position, &mut voxel_instances);
+        let mut voxel_instances = Render::read_world(world.clone());
+        Render::sort_voxels_by_depth(judge.read().unwrap().position, &mut voxel_instances);
         let voxel_instances_count = voxel_instances.len() as u32;
-        let voxel_instance_buffer = create_instance_buffer(&device, voxel_instances.as_slice());
+        let voxel_instance_buffer = Render::create_instance_buffer(&device, voxel_instances.as_slice());
 
         let voxel_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -151,7 +150,7 @@ impl Render {
                 push_constant_ranges: &[],
             });
 
-        let voxel_pipeline = create_pipeline(
+        let voxel_pipeline = Render::create_pipeline(
             &device,
             &surface_config,
             &voxel_shader,
@@ -205,7 +204,7 @@ impl Render {
 
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
-        let depth_texture_view = create_depth_texture(&self.device, &self.surface_config);
+        let depth_texture_view = Render::create_depth_texture(&self.device, &self.surface_config);
 
         let mut renderpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("World Render Pass"),
@@ -253,155 +252,156 @@ impl Render {
             _ => (),
         }
     }
-}
 
-fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
-    let world = world.read().unwrap();
+    fn read_world(world: Arc<RwLock<World>>) -> Vec<VoxelInstance> {
+        let world = world.read().unwrap();
 
-    let mut instances: Vec<VoxelInstance> = Vec::new();
+        let mut instances: Vec<VoxelInstance> = Vec::new();
 
-    for chunk in world.chunks.iter() {
-        for block in chunk.blocks.iter() {
-            match block.block_type {
-                BlockType::Solid => {
-                    let instance = VoxelInstance {
-                        position: [
-                            (chunk.position.x * CHUNK_SIZE as i64 + block.position.x) as f32,
-                            (chunk.position.y * CHUNK_SIZE as i64 + block.position.y) as f32,
-                            (chunk.position.z * CHUNK_SIZE as i64 + block.position.z) as f32,
-                        ],
-                        color: [
-                            block.color.x as f32,
-                            block.color.y as f32,
-                            block.color.z as f32,
-                            block.color.w as f32,
-                        ],
-                    };
+        for chunk in world.chunks.iter() {
+            for block in chunk.blocks.iter() {
+                match block.block_type {
+                    BlockType::Solid => {
+                        let instance = VoxelInstance {
+                            position: [
+                                (chunk.position.x * CHUNK_SIZE as i64 + block.position.x) as f32,
+                                (chunk.position.y * CHUNK_SIZE as i64 + block.position.y) as f32,
+                                (chunk.position.z * CHUNK_SIZE as i64 + block.position.z) as f32,
+                            ],
+                            color: [
+                                block.color.x as f32,
+                                block.color.y as f32,
+                                block.color.z as f32,
+                                block.color.w as f32,
+                            ],
+                        };
 
-                    instances.push(instance);
+                        instances.push(instance);
+                    }
+                    BlockType::Empty => (),
                 }
-                BlockType::Empty => (),
             }
         }
+
+        instances
     }
 
-    instances
-}
+    fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
+        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Voxel Instance Buffer"),
+            contents: bytemuck::cast_slice(instances),
+            usage: wgpu::BufferUsages::VERTEX,
+        })
+    }
 
-fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
-    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Voxel Instance Buffer"),
-        contents: bytemuck::cast_slice(instances),
-        usage: wgpu::BufferUsages::VERTEX,
-    })
-}
-
-fn create_depth_texture(
-    device: &wgpu::Device,
-    config: &wgpu::SurfaceConfiguration,
-) -> wgpu::TextureView {
-    let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-        label: Some("Depth Texture"),
-        size: wgpu::Extent3d {
-            width: config.width,
-            height: config.height,
-            depth_or_array_layers: 1,
-        },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Depth24Plus,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        view_formats: &[],
-    });
-
-    depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
-}
-
-fn sort_voxels_by_depth(camera_position: Vector3<f64>, voxels: &mut Vec<VoxelInstance>) {
-    voxels.sort_by(|a, b| {
-        let dist_a = (a.position[2] - camera_position.z as f32).abs();
-        let dist_b = (b.position[2] - camera_position.z as f32).abs();
-
-        dist_b.partial_cmp(&dist_a).unwrap()
-    });
-}
-
-fn create_pipeline(
-    device: &wgpu::Device,
-    config: &wgpu::SurfaceConfiguration,
-    shader: &wgpu::ShaderModule,
-    pipeline_layout: wgpu::PipelineLayout,
-    instance_layout: wgpu::VertexBufferLayout<'_>,
-) -> wgpu::RenderPipeline {
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("Voxel Render Pipeline"),
-        layout: Some(&pipeline_layout),
-        vertex: wgpu::VertexState {
-            module: shader,
-            entry_point: Some("vs_main"),
-            buffers: &[instance_layout],
-            compilation_options: wgpu::PipelineCompilationOptions::default(),
-        },
-        fragment: Some(wgpu::FragmentState {
-            module: shader,
-            entry_point: Some("fs_main"),
-            targets: &[Some(wgpu::ColorTargetState {
-                format: config.format,
-                blend: Some(wgpu::BlendState {
-                    color: wgpu::BlendComponent::OVER,
-                    alpha: wgpu::BlendComponent::OVER,
-                }),
-                write_mask: wgpu::ColorWrites::ALL,
-            })],
-            compilation_options: wgpu::PipelineCompilationOptions::default(),
-        }),
-        primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
-            strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: Some(wgpu::Face::Back),
-            unclipped_depth: false,
-            polygon_mode: wgpu::PolygonMode::Fill,
-            conservative: false,
-        },
-        depth_stencil: Some(wgpu::DepthStencilState {
+    fn create_depth_texture(
+        device: &wgpu::Device,
+        config: &wgpu::SurfaceConfiguration,
+    ) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Depth Texture"),
+            size: wgpu::Extent3d {
+                width: config.width,
+                height: config.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::Less, // Closer fragments replace further ones
-            stencil: wgpu::StencilState::default(),
-            bias: wgpu::DepthBiasState::default(),
-        }),
-        multisample: wgpu::MultisampleState {
-            count: 1,
-            mask: !0,
-            alpha_to_coverage_enabled: false,
-        },
-        multiview: None,
-        cache: None,
-    })
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+
+        depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
+    }
+
+    fn sort_voxels_by_depth(camera_position: Vector3<f64>, voxels: &mut Vec<VoxelInstance>) {
+        voxels.sort_by(|a, b| {
+            let dist_a = (a.position[2] - camera_position.z as f32).abs();
+            let dist_b = (b.position[2] - camera_position.z as f32).abs();
+
+            dist_b.partial_cmp(&dist_a).unwrap()
+        });
+    }
+
+    fn create_pipeline(
+        device: &wgpu::Device,
+        config: &wgpu::SurfaceConfiguration,
+        shader: &wgpu::ShaderModule,
+        pipeline_layout: wgpu::PipelineLayout,
+        instance_layout: wgpu::VertexBufferLayout<'_>,
+    ) -> wgpu::RenderPipeline {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Voxel Render Pipeline"),
+            layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: shader,
+                entry_point: Some("vs_main"),
+                buffers: &[instance_layout],
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: shader,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: config.format,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent::OVER,
+                        alpha: wgpu::BlendComponent::OVER,
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                unclipped_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less, // Closer fragments replace further ones
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            cache: None,
+        })
+    }
+
+    fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
+        let judge = judge.read().unwrap();
+
+        let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+
+        let eye = Point3::new(
+            judge.position.x as f32,
+            judge.position.y as f32,
+            judge.position.z as f32,
+        );
+        let target = Point3::new(
+            judge.direction.x as f32,
+            judge.direction.y as f32,
+            judge.direction.z as f32,
+        );
+        let up = Vector3::new(0.0, 1.0, 0.0);
+
+        let view = Matrix4::look_at_rh(eye, target, up);
+
+        let view_proj = proj * view;
+
+        view_proj.into()
+    }
 }
 
-fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
-    let judge = judge.read().unwrap();
-
-    let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
-
-    let eye = Point3::new(
-        judge.position.x as f32,
-        judge.position.y as f32,
-        judge.position.z as f32,
-    );
-    let target = Point3::new(
-        judge.direction.x as f32,
-        judge.direction.y as f32,
-        judge.direction.z as f32,
-    );
-    let up = Vector3::new(0.0, 1.0, 0.0);
-
-    let view = Matrix4::look_at_rh(eye, target, up);
-
-    let view_proj = proj * view;
-
-    view_proj.into()
-}

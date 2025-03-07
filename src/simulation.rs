@@ -41,7 +41,7 @@ impl Simulation {
                 active: true,
                 seed: DEFAULT_SEED,
                 time: 0.0,
-                chunks: generate_chunks(),
+                chunks: Simulation::generate_chunks(),
             })),
         });
 
@@ -86,87 +86,87 @@ impl Simulation {
             thread::sleep(Duration::from_millis(SIMULATION_SLEEP));
         }
     }
-}
 
-fn generate_chunks() -> Vec<Chunk> {
-    let mut rng = Pcg64::seed_from_u64(DEFAULT_SEED);
-
-    let mut chunks = Vec::new();
-
-    for chunk_id in 0..WORLD_VOLUME {
-        let chunk_position = id_to_chunk_position(chunk_id);
-
-        let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_index| {
-            let id = block_index as u64;
-
-            let roll = rng.gen::<f32>();
-            let mut block_type = block::BlockType::Empty;
-
-            if roll < 0.050 {
-                block_type = block::BlockType::Solid;
-            }
-
-            let position = id_to_block_position(id);
-
-            println!("{:?}", chunk_position + position);
-
-            let color = Vector4::new(
-                rng.gen::<f32>(),
-                rng.gen::<f32>(),
-                rng.gen::<f32>(),
-                rng.gen_range(0.0..=1.0),
-            );
-
-            Block {
-                id,
-                chunk_id,
-                block_type,
-                position,
-                color,
-            }
-        });
-
-        let chunk = Chunk {
-            id: chunk_id,
-            position: chunk_position,
-            modified: true,
-            blocks: Box::new(blocks),
-        };
-
-        chunks.push(chunk);
+    fn generate_chunks() -> Vec<Chunk> {
+        let mut rng = Pcg64::seed_from_u64(DEFAULT_SEED);
+    
+        let mut chunks = Vec::new();
+    
+        for chunk_id in 0..WORLD_VOLUME {
+            let chunk_position = Simulation::chunk_id_to_position(chunk_id);
+    
+            let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_index| {
+                let id = block_index as u64;
+    
+                let roll = rng.gen::<f32>();
+                let mut block_type = block::BlockType::Empty;
+    
+                if roll < 0.050 {
+                    block_type = block::BlockType::Solid;
+                }
+    
+                let position = Simulation::block_id_to_position(id);
+    
+                println!("{:?}", chunk_position + position);
+    
+                let color = Vector4::new(
+                    rng.gen::<f32>(),
+                    rng.gen::<f32>(),
+                    rng.gen::<f32>(),
+                    rng.gen_range(0.0..=1.0),
+                );
+    
+                Block {
+                    id,
+                    chunk_id,
+                    block_type,
+                    position,
+                    color,
+                }
+            });
+    
+            let chunk = Chunk {
+                id: chunk_id,
+                position: chunk_position,
+                modified: true,
+                blocks: Box::new(blocks),
+            };
+    
+            chunks.push(chunk);
+        }
+    
+        chunks
     }
 
-    chunks
-}
+    fn chunk_id_to_position(index: u64) -> Vector3<i64> {
+        let x = (index % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
+        let y = ((index / WORLD_SIZE) % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
+        let z = (index / WORLD_AREA) as i64 - WORLD_RADIUS as i64;
 
-fn id_to_chunk_position(index: u64) -> Vector3<i64> {
-    let x = (index % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
-    let y = ((index / WORLD_SIZE) % WORLD_SIZE) as i64 - WORLD_RADIUS as i64;
-    let z = (index / WORLD_AREA) as i64 - WORLD_RADIUS as i64;
+        Vector3 { x, y, z }
+    }
 
-    Vector3 { x, y, z }
-}
+    fn block_id_to_position(index: u64) -> Vector3<i64> {
+        let x = (index % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
+        let y = ((index / CHUNK_SIZE) % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
+        let z = (index / CHUNK_AREA) as i64 - CHUNK_RADIUS as i64;
 
-fn id_to_block_position(index: u64) -> Vector3<i64> {
-    let x = (index % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
-    let y = ((index / CHUNK_SIZE) % CHUNK_SIZE) as i64 - CHUNK_RADIUS as i64;
-    let z = (index / CHUNK_AREA) as i64 - CHUNK_RADIUS as i64;
+        Vector3 { x, y, z }
+    }
 
-    Vector3 { x, y, z }
-}
+    fn chunk_position_to_id(x: i64, y: i64, z: i64) -> u64 {
+        let x = (x + WORLD_RADIUS as i64) as u64;
+        let y = (y + WORLD_RADIUS as i64) as u64;
+        let z = (z + WORLD_RADIUS as i64) as u64;
 
-fn get_chunk_id(x: i64, y: i64, z: i64) -> u64 {
-    let x = (x + WORLD_RADIUS as i64) as u64;
-    let y = (y + WORLD_RADIUS as i64) as u64;
-    let z = (z + WORLD_RADIUS as i64) as u64;
+        x + y * WORLD_SIZE as u64 + z * WORLD_AREA as u64
+    }
 
-    x + y * WORLD_SIZE as u64 + z * WORLD_AREA as u64
-}
+    fn block_position_to_id(x: i64, y: i64, z: i64) -> u64 {
+        let x = (x + CHUNK_RADIUS as i64) as u64;
+        let y = (y + CHUNK_RADIUS as i64) as u64;
+        let z = (z + CHUNK_RADIUS as i64) as u64;
 
-fn get_block_id(x: i64, y: i64, z: i64) -> u64 {
-    let x = (x + CHUNK_RADIUS as i64) as u64;
-    let y = (y + CHUNK_RADIUS as i64) as u64;
-    let z = (z + CHUNK_RADIUS as i64) as u64;
-
-    x + y * CHUNK_SIZE as u64 + z * CHUNK_AREA as u64
+        x + y * CHUNK_SIZE as u64 + z * CHUNK_AREA as u64
+    }
 }
