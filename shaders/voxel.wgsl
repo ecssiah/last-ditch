@@ -19,17 +19,32 @@ const CUBE_VERTICES: array<vec3<f32>, 8> = array(
 
 const CUBE_INDICES: array<u32, 36> = array(
     // Front
-    0, 1, 2, 2, 3, 0,
+    0, 2, 1, 0, 3, 2,
     // Right
-    1, 5, 6, 6, 2, 1,
+    1, 6, 5, 1, 2, 6,
     // Back
-    5, 4, 7, 7, 6, 5,
+    5, 7, 4, 5, 6, 7, 
     // Left
-    4, 0, 3, 3, 7, 4, 
+    4, 3, 0, 4, 7, 3, 
     // Top
-    3, 2, 6, 6, 7, 3,
-    // Bottom 
-    4, 5, 1, 1, 0, 4  
+    6, 3, 7, 6, 2, 3,
+    // Bottom
+    6, 3, 7, 6, 2, 3,  
+);
+
+const CUBE_NORMALS: array<vec3<f32>, 6> = array(
+    // Front (+Z)
+    vec3<f32>( 0.0,  0.0,  1.0),
+    // Right (+X)
+    vec3<f32>( 1.0,  0.0,  0.0), 
+    // Back (-Z)
+    vec3<f32>( 0.0,  0.0, -1.0), 
+    // Left (-X)
+    vec3<f32>(-1.0,  0.0,  0.0), 
+    // Top (+Y)
+    vec3<f32>( 0.0,  1.0,  0.0),
+    // Bottom (-Y)
+    vec3<f32>( 0.0, -1.0,  0.0),
 );
 
 @vertex
@@ -42,6 +57,7 @@ fn vs_main(
 
     let cube_vertex = CUBE_VERTICES[CUBE_INDICES[vertex_index]];
     output.Position = view_proj * vec4(instance_position + cube_vertex, 1.0);
+    
     output.instance_color = instance_color;
 
     return output;
@@ -50,8 +66,4 @@ fn vs_main(
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     return input.instance_color;
-}
-
-fn random(seed: f32) -> f32 {
-    return fract(sin(seed) * 43758.5453123);
 }

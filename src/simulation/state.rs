@@ -1,4 +1,4 @@
-use cgmath::Vector3;
+use cgmath::{Point3, Vector3};
 
 use super::chunk::Chunk;
 use std::sync::{Arc, RwLock};
@@ -13,8 +13,11 @@ pub struct State {
 #[derive(Debug, Clone)]
 pub struct Judge {
     pub name: String,
-    pub position: Vector3<f32>,
+    pub position: Point3<f32>,
+    pub linear_speed: Vector3<f32>,
+    pub angular_speed: Vector3<f32>,
     pub direction: Vector3<f32>,
+    pub facing: Vector3<f32>,
 }
 
 #[derive(Debug, Clone)]

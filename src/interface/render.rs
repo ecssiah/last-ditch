@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use bytemuck::{Pod, Zeroable};
-use cgmath::{perspective, Deg, Matrix4, Point3, Vector3};
+use cgmath::{perspective, Deg, EuclideanSpace, InnerSpace, Matrix4, Point3, Vector3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -29,6 +29,14 @@ const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout
         },
     ],
 };
+
+#[rustfmt::skip]
+const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.5, 0.5,
+    0.0, 0.0, 0.0, 1.0,
+);
 
 pub struct Voxel {
     shader: wgpu::ShaderModule,
@@ -55,6 +63,8 @@ pub struct Render {
     surface: wgpu::Surface<'static>,
     surface_format: wgpu::TextureFormat,
     surface_config: wgpu::SurfaceConfiguration,
+    uniform_bind_group_layout: wgpu::BindGroupLayout,
+    view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     voxel: Voxel,
 }
@@ -142,7 +152,7 @@ impl Render {
         let (mut voxel_transparent_instances, voxel_solid_instances) =
             Render::read_world(world.clone());
 
-        Render::sort_voxels_by_depth(
+        Render::sort_instances_by_depth(
             judge.read().unwrap().position,
             &mut voxel_transparent_instances,
         );
@@ -152,7 +162,7 @@ impl Render {
             .chain(voxel_transparent_instances.iter())
             .copied()
             .collect();
-        
+
         let voxel_instances_count = voxel_instances.len() as u32;
 
         let voxel_instance_buffer =
@@ -191,6 +201,8 @@ impl Render {
             surface,
             surface_format,
             surface_config,
+            uniform_bind_group_layout,
+            view_projection_buffer,
             view_projection_bind_group,
             voxel,
         };
@@ -205,6 +217,23 @@ impl Render {
     }
 
     pub fn render(&mut self) {
+        let view_projection_matrix = Render::create_view_projection_matrix(self.judge.clone());
+
+        self.view_projection_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("View Projection Bind Group"),
+            layout: &self.uniform_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: self.view_projection_buffer.as_entire_binding(),
+            }],
+        });
+
+        self.queue.write_buffer(
+            &self.view_projection_buffer,
+            0,
+            bytemuck::cast_slice(&view_projection_matrix),
+        );
+
         let surface_texture = self
             .surface
             .get_current_texture()
@@ -271,7 +300,7 @@ impl Render {
     fn read_world(world: Arc<RwLock<World>>) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
         let world = world.read().unwrap();
 
-        let mut transparent_intances: Vec<VoxelInstance> = Vec::new();
+        let mut transparent_instances: Vec<VoxelInstance> = Vec::new();
         let mut solid_instances: Vec<VoxelInstance> = Vec::new();
 
         for chunk in world.chunks.iter() {
@@ -279,12 +308,12 @@ impl Render {
                 match block.block_type {
                     BlockType::None => (),
                     BlockType::Translucent => {
-                        let instance = Render::create_instance(chunk, block);
+                        let instance = Render::create_instance(block);
 
-                        transparent_intances.push(instance);
+                        transparent_instances.push(instance);
                     }
                     BlockType::Solid => {
-                        let instance = Render::create_instance(chunk, block);
+                        let instance = Render::create_instance(block);
 
                         solid_instances.push(instance);
                     }
@@ -292,7 +321,7 @@ impl Render {
             }
         }
 
-        (transparent_intances, solid_instances)
+        (transparent_instances, solid_instances)
     }
 
     fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
@@ -303,12 +332,12 @@ impl Render {
         })
     }
 
-    fn create_instance(chunk: &Chunk, block: &Block) -> VoxelInstance {
+    fn create_instance(block: &Block) -> VoxelInstance {
         VoxelInstance {
             position: [
-                (chunk.position.x * CHUNK_SIZE as i32 + block.position.x) as f32,
-                (chunk.position.y * CHUNK_SIZE as i32 + block.position.y) as f32,
-                (chunk.position.z * CHUNK_SIZE as i32 + block.position.z) as f32,
+                block.world_position.x,
+                block.world_position.y,
+                block.world_position.z,
             ],
             color: [
                 block.color.x as f32,
@@ -341,10 +370,17 @@ impl Render {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn sort_voxels_by_depth(camera_position: Vector3<f32>, voxels: &mut Vec<VoxelInstance>) {
-        voxels.sort_by(|a, b| {
-            let dist_a = (a.position[2] - camera_position.z as f32).abs();
-            let dist_b = (b.position[2] - camera_position.z as f32).abs();
+    fn sort_instances_by_depth(camera_position: Point3<f32>, instances: &mut Vec<VoxelInstance>) {
+        instances.sort_by(|a, b| {
+            let dist_a = ((a.position[0] - camera_position.x as f32).powi(2)
+                + (a.position[1] - camera_position.y as f32).powi(2)
+                + (a.position[2] - camera_position.z as f32).powi(2))
+            .sqrt();
+
+            let dist_b = ((b.position[0] - camera_position.x as f32).powi(2)
+                + (b.position[1] - camera_position.y as f32).powi(2)
+                + (b.position[2] - camera_position.z as f32).powi(2))
+            .sqrt();
 
             dist_b.partial_cmp(&dist_a).unwrap()
         });
@@ -391,7 +427,7 @@ impl Render {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: None,
                 unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
@@ -416,24 +452,16 @@ impl Render {
     fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
         let judge = judge.read().unwrap();
 
-        let proj = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+        let projection = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+        let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
-        let eye = Point3::new(
-            judge.position.x as f32,
-            judge.position.y as f32,
-            judge.position.z as f32,
-        );
-        let target = Point3::new(
-            judge.direction.x as f32,
-            judge.direction.y as f32,
-            judge.direction.z as f32,
-        );
+        let eye = judge.position;
+        let target = judge.position + judge.facing.normalize();
         let up = Vector3::new(0.0, 1.0, 0.0);
 
         let view = Matrix4::look_at_rh(eye, target, up);
+        let view_projection = wgpu_projection * view;
 
-        let view_proj = proj * view;
-
-        view_proj.into()
+        view_projection.into()
     }
 }
