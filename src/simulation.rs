@@ -31,8 +31,6 @@ impl Simulation {
             speed: 0.0,
             strafe_speed: 0.0,
             angular_speed: 0.0,
-            direction: -Vector3::z(),
-            strafe_direction: -Vector3::x(),
             rotation: Rotation3::identity(),
         };
 
@@ -97,9 +95,6 @@ impl Simulation {
             let rotation = Rotation3::from_axis_angle(&up, dt * judge.angular_speed);
 
             judge.rotation = rotation * judge.rotation;
-
-            judge.direction = rotation * judge.direction;
-            judge.strafe_direction = rotation * judge.strafe_direction;
         }
 
         let forward = judge.rotation * Vector3::z();

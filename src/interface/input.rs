@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use crate::{
-    consts::{DEFAULT_ANGULAR_SPEED, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED},
+    consts::*,
     simulation::action::{Action, EntityAction, WorldAction},
     ActionSender,
 };
@@ -11,13 +13,41 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
 };
 
+pub struct InputTypes {
+    forward: bool,
+    back: bool,
+    left: bool,
+    right: bool,
+    turn_left: bool,
+    turn_right: bool,
+}
+
 pub struct Input {
     action_tx: ActionSender,
+    input_types: InputTypes,
+    speed: f32,
+    strafe_speed: f32,
+    angular_speed: f32,
 }
 
 impl Input {
     pub fn new(action_tx: ActionSender) -> Input {
-        Input { action_tx }
+        let input_types = InputTypes {
+            forward: false,
+            back: false,
+            left: false,
+            right: false,
+            turn_left: false,
+            turn_right: false,
+        };
+
+        Input {
+            action_tx,
+            input_types,
+            speed: 0.0,
+            strafe_speed: 0.0,
+            angular_speed: 0.0,
+        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -71,32 +101,41 @@ impl Input {
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyQ) => {
-                let mut angular_speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    angular_speed = DEFAULT_ANGULAR_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.angular_speed += DEFAULT_ANGULAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    angular_speed = 0.0;
+                    self.angular_speed = 0.0;
                 }
 
                 self.action_tx
-                    .send(Action::Entity(EntityAction::SetAngularSpeed(angular_speed)))
+                    .send(Action::Entity(EntityAction::SetAngularSpeed(self.angular_speed)))
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyE) => {
-                let mut angular_speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    angular_speed = -DEFAULT_ANGULAR_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.angular_speed -= DEFAULT_ANGULAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    angular_speed = 0.0;
+                    self.angular_speed = 0.0;
                 }
 
                 self.action_tx
-                    .send(Action::Entity(EntityAction::SetAngularSpeed(angular_speed)))
+                    .send(Action::Entity(EntityAction::SetAngularSpeed(self.angular_speed)))
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
+                let mut speed = 0.0;
+
+                if key_event.state == ElementState::Pressed {
+                    speed = DEFAULT_LINEAR_SPEED;
+                } else if key_event.state == ElementState::Released {
+                    speed = 0.0;
+                }
+
+                self.action_tx
+                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
+                    .unwrap();
+            }
+            PhysicalKey::Code(KeyCode::KeyS) => {
                 let mut speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
@@ -113,7 +152,7 @@ impl Input {
                 let mut strafe_speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    strafe_speed = -DEFAULT_STRAFE_SPEED;
+                    strafe_speed = DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
                     strafe_speed = 0.0;
                 }
@@ -122,24 +161,11 @@ impl Input {
                     .send(Action::Entity(EntityAction::SetStrafeSpeed(strafe_speed)))
                     .unwrap();
             }
-            PhysicalKey::Code(KeyCode::KeyS) => {
-                let mut speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    speed = DEFAULT_LINEAR_SPEED;
-                } else if key_event.state == ElementState::Released {
-                    speed = 0.0;
-                }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
-                    .unwrap();
-            }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 let mut strafe_speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    strafe_speed = DEFAULT_STRAFE_SPEED;
+                    strafe_speed = -DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
                     strafe_speed = 0.0;
                 }

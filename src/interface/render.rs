@@ -151,17 +151,17 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let (mut voxel_transparent_instances, voxel_solid_instances) =
+        let (mut voxel_translucent_instances, voxel_solid_instances) =
             Render::read_world(world.clone());
 
         Render::sort_instances_by_depth(
             judge.read().unwrap().position,
-            &mut voxel_transparent_instances,
+            &mut voxel_translucent_instances,
         );
 
         let voxel_instances: Vec<VoxelInstance> = voxel_solid_instances
             .iter()
-            .chain(voxel_transparent_instances.iter())
+            .chain(voxel_translucent_instances.iter())
             .copied()
             .collect();
 
@@ -303,7 +303,7 @@ impl Render {
     fn read_world(world: Arc<RwLock<World>>) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
         let world = world.read().unwrap();
 
-        let mut transparent_instances: Vec<VoxelInstance> = Vec::new();
+        let mut translucent_instances: Vec<VoxelInstance> = Vec::new();
         let mut solid_instances: Vec<VoxelInstance> = Vec::new();
 
         for chunk in world.chunks.iter() {
@@ -313,7 +313,7 @@ impl Render {
                     BlockType::Translucent => {
                         let instance = Render::create_instance(block);
 
-                        transparent_instances.push(instance);
+                        translucent_instances.push(instance);
                     }
                     BlockType::Solid => {
                         let instance = Render::create_instance(block);
@@ -324,7 +324,7 @@ impl Render {
             }
         }
 
-        (transparent_instances, solid_instances)
+        (translucent_instances, solid_instances)
     }
 
     fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
@@ -460,9 +460,11 @@ impl Render {
 
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
+        let forward = judge.rotation * Vector3::z();
+        let up = judge.rotation * Vector3::y();
+
         let eye = judge.position;
-        let target = judge.position + judge.direction.normalize();
-        let up = Vector3::y();
+        let target = eye + forward;
 
         let view_iso = Isometry3::look_at_rh(&eye, &target, &up);
         let view = view_iso.to_homogeneous();
