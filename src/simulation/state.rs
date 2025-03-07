@@ -14,10 +14,11 @@ pub struct State {
 pub struct Judge {
     pub name: String,
     pub position: Point3<f32>,
-    pub linear_speed: Vector3<f32>,
-    pub angular_speed: Vector3<f32>,
+    pub linear_speed: f32,
+    pub strafe_speed: f32,
+    pub angular_speed: f32,
     pub direction: Vector3<f32>,
-    pub facing: Vector3<f32>,
+    pub strafe_direction: Vector3<f32>,
 }
 
 #[derive(Debug, Clone)]

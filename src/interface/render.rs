@@ -456,7 +456,7 @@ impl Render {
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
         let eye = judge.position;
-        let target = judge.position + judge.facing.normalize();
+        let target = judge.position + judge.direction.normalize();
         let up = Vector3::new(0.0, 1.0, 0.0);
 
         let view = Matrix4::look_at_rh(eye, target, up);

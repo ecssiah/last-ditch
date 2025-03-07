@@ -13,6 +13,7 @@ pub enum WorldAction {
 
 #[derive(Debug)]
 pub enum EntityAction {
-    Move(Vector3<f32>),
-    Rotate(Vector3<f32>),
+    SetLinearSpeed(f32),
+    SetStrafeSpeed(f32),
+    SetAngularSpeed(f32),
 }

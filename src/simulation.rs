@@ -5,13 +5,18 @@ pub mod state;
 
 use crate::{
     consts::{
-        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_ANGULAR_SPEED, DEFAULT_LINEAR_SPEED, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE, WORLD_VOLUME
+        CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, DEFAULT_ANGULAR_SPEED,
+        DEFAULT_LINEAR_SPEED, DEFAULT_SEED, SIMULATION_SLEEP, WORLD_AREA, WORLD_RADIUS, WORLD_SIZE,
+        WORLD_VOLUME,
     },
     ActionReceiver,
 };
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
-use cgmath::{Deg, EuclideanSpace, InnerSpace, Point3, Quaternion, Rotation, Rotation3, Vector3, Vector4, Zero};
+use cgmath::{
+    Deg, EuclideanSpace, InnerSpace, Point3, Quaternion, Rotation, Rotation3, Vector3, Vector4,
+    Zero,
+};
 use chunk::Chunk;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
@@ -33,16 +38,21 @@ impl Simulation {
             name: "Melchizedek".to_string(),
             position: Point3 {
                 x: 0.0,
-                y: 6.0,
+                y: 0.0,
                 z: 16.0,
             },
-            linear_speed: Vector3::zero(),
-            angular_speed: Vector3::zero(),
-            direction: Vector3::zero(),
-            facing: Vector3 {
+            linear_speed: 0.0,
+            strafe_speed: 0.0,
+            angular_speed: 0.0,
+            direction: Vector3 {
                 x: 0.0,
-                y: -0.3,
+                y: 0.0,
                 z: -1.0,
+            },
+            strafe_direction: Vector3 {
+                x: -1.0,
+                y: 0.0,
+                z: 0.0,
             },
         };
 
@@ -75,7 +85,23 @@ impl Simulation {
         state.time += dt;
 
         let mut judge = self.state.judge.write().unwrap();
-        judge.position = judge.position + DEFAULT_LINEAR_SPEED * judge.direction;
+
+        if judge.angular_speed.abs() > 1e-6 {
+            let up = Vector3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            };
+
+            let rotation = Quaternion::from_axis_angle(up, Deg(judge.angular_speed));
+
+            judge.direction = rotation.rotate_vector(judge.direction);
+            judge.strafe_direction = -judge.direction.cross(up);
+        }
+
+        judge.position = judge.position
+            + judge.linear_speed * judge.direction
+            + judge.strafe_speed * judge.strafe_direction;
     }
 
     fn process_actions(&mut self) {
@@ -85,21 +111,17 @@ impl Simulation {
                     let mut world = self.state.world.write().unwrap();
                     world.active = false;
                 }
-                Action::Entity(EntityAction::Move(movement)) => {
+                Action::Entity(EntityAction::SetLinearSpeed(linear_speed)) => {
                     let mut judge = self.state.judge.write().unwrap();
-                    judge.direction = movement;
+                    judge.linear_speed = linear_speed;
                 }
-                Action::Entity(EntityAction::Rotate(rotation)) => {
-                    if rotation != Vector3::zero() {
-                        let mut judge = self.state.judge.write().unwrap();
-                        
-                        let axis = rotation.normalize();
-                        let rotation = Quaternion::from_axis_angle(axis, Deg(DEFAULT_ANGULAR_SPEED));
-    
-                        judge.facing = rotation.rotate_vector(judge.facing);
-                        
-                        println!("{:?}", judge.facing);
-                    }
+                Action::Entity(EntityAction::SetAngularSpeed(angular_speed)) => {
+                    let mut judge = self.state.judge.write().unwrap();
+                    judge.angular_speed = angular_speed;
+                }
+                Action::Entity(EntityAction::SetStrafeSpeed(strafe_speed)) => {
+                    let mut judge = self.state.judge.write().unwrap();
+                    judge.strafe_speed = strafe_speed;
                 }
             }
         }
