@@ -1,14 +1,16 @@
 use crate::{
-    consts::{ASPECT_RATIO, CHUNK_SIZE, FAR_PLANE, FOV, NEAR_PLANE},
+    consts::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
     simulation::{
         block::{Block, BlockType},
-        chunk::Chunk,
         state::{Judge, World},
     },
 };
 use bytemuck::{Pod, Zeroable};
-use cgmath::{perspective, Deg, EuclideanSpace, InnerSpace, Matrix4, Point3, Vector3};
+use rapier3d::{
+    na::{Isometry3, Matrix4, Perspective3, Point3, Vector3},
+    prelude::*,
+};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -31,7 +33,7 @@ const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout
 };
 
 #[rustfmt::skip]
-const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+const OPENGL_TO_WGPU_MATRIX: Matrix4<f32> = Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.5,
@@ -219,14 +221,15 @@ impl Render {
     pub fn render(&mut self) {
         let view_projection_matrix = Render::create_view_projection_matrix(self.judge.clone());
 
-        self.view_projection_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("View Projection Bind Group"),
-            layout: &self.uniform_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: self.view_projection_buffer.as_entire_binding(),
-            }],
-        });
+        self.view_projection_bind_group =
+            self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("View Projection Bind Group"),
+                layout: &self.uniform_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: self.view_projection_buffer.as_entire_binding(),
+                }],
+            });
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -340,10 +343,10 @@ impl Render {
                 block.world_position.z,
             ],
             color: [
-                block.color.x as f32,
-                block.color.y as f32,
-                block.color.z as f32,
-                block.color.w as f32,
+                block.color.r as f32,
+                block.color.g as f32,
+                block.color.b as f32,
+                block.color.a as f32,
             ],
         }
     }
@@ -452,14 +455,18 @@ impl Render {
     fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
         let judge = judge.read().unwrap();
 
-        let projection = perspective(Deg(FOV), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+        let projection = Perspective3::new(ASPECT_RATIO, FOV.to_radians(), NEAR_PLANE, FAR_PLANE)
+            .to_homogeneous();
+
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
         let eye = judge.position;
         let target = judge.position + judge.direction.normalize();
-        let up = Vector3::new(0.0, 1.0, 0.0);
+        let up = Vector3::y();
 
-        let view = Matrix4::look_at_rh(eye, target, up);
+        let view_iso = Isometry3::look_at_rh(&eye, &target, &up);
+        let view = view_iso.to_homogeneous();
+
         let view_projection = wgpu_projection * view;
 
         view_projection.into()

@@ -1,6 +1,6 @@
 use super::block::Block;
 use crate::consts::CHUNK_VOLUME;
-use cgmath::Point3;
+use rapier3d::na::Point3;
 
 #[derive(Debug, Clone)]
 pub struct Chunk {

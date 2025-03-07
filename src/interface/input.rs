@@ -1,7 +1,8 @@
 use crate::{
-    consts::{DEFAULT_ANGULAR_SPEED, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED}, simulation::action::{Action, EntityAction, WorldAction}, ActionSender
+    consts::{DEFAULT_ANGULAR_SPEED, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED},
+    simulation::action::{Action, EntityAction, WorldAction},
+    ActionSender,
 };
-use cgmath::{Vector2, Vector3, Vector4, Zero};
 use winit::{
     dpi::PhysicalPosition,
     event::{
@@ -12,28 +13,11 @@ use winit::{
 
 pub struct Input {
     action_tx: ActionSender,
-    movement: Vector3<f32>,
-    rotation: Vector3<f32>,
 }
 
 impl Input {
     pub fn new(action_tx: ActionSender) -> Input {
-        let movement = Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        };
-        let rotation = Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        };
-
-        Input {
-            action_tx,
-            movement,
-            rotation,
-        }
+        Input { action_tx }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -113,16 +97,16 @@ impl Input {
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
-                let mut linear_speed = 0.0;
+                let mut speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    linear_speed = DEFAULT_LINEAR_SPEED;
+                    speed = DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    linear_speed = 0.0;
+                    speed = 0.0;
                 }
 
                 self.action_tx
-                    .send(Action::Entity(EntityAction::SetLinearSpeed(linear_speed)))
+                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
@@ -139,16 +123,16 @@ impl Input {
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
-                let mut linear_speed = 0.0;
+                let mut speed = 0.0;
 
                 if key_event.state == ElementState::Pressed {
-                    linear_speed = -DEFAULT_LINEAR_SPEED;
+                    speed = -DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    linear_speed = 0.0;
+                    speed = 0.0;
                 }
 
                 self.action_tx
-                    .send(Action::Entity(EntityAction::SetLinearSpeed(linear_speed)))
+                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
                     .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyD) => {

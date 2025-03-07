@@ -1,5 +1,3 @@
-use cgmath::Vector3;
-
 #[derive(Debug)]
 pub enum Action {
     World(WorldAction),

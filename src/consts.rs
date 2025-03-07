@@ -8,7 +8,7 @@ pub const FAR_PLANE: f32 = 100.0;
 
 pub const DEFAULT_LINEAR_SPEED: f32 = 10.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 10.0;
-pub const DEFAULT_ANGULAR_SPEED: f32 = 98.0;
+pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
 pub const DEFAULT_SEED: u64 = 101;
 pub const SIMULATION_SLEEP: u64 = 16;

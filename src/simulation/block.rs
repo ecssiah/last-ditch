@@ -1,4 +1,5 @@
-use cgmath::{Point3, Vector4};
+use rapier3d::na::Point3;
+use wgpu::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub enum BlockType {
@@ -14,5 +15,5 @@ pub struct Block {
     pub block_type: BlockType,
     pub local_position: Point3<i32>,
     pub world_position: Point3<f32>,
-    pub color: Vector4<f32>,
+    pub color: Color,
 }
