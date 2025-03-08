@@ -88,8 +88,9 @@ impl Simulation {
 
                     let yaw_quat = Quat::from_rotation_y(entity.look_yaw);
                     let pitch_quat = Quat::from_rotation_x(entity.look_pitch);
+                    let target_rotation = yaw_quat * pitch_quat;
 
-                    entity.look_rotation = yaw_quat * pitch_quat;
+                    entity.look_rotation = entity.look_rotation.slerp(target_rotation, 0.2);
 
                     entity.move_yaw = entity.look_yaw;
                 }

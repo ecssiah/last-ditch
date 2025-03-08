@@ -11,8 +11,8 @@ pub const DEFAULT_LINEAR_SPEED: f32 = 10.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 10.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
-pub const MOUSE_YAW_SENSITIVITY: f32 = 0.01;
-pub const MOUSE_PITCH_SENSITIVITY: f32 = 0.01;
+pub const MOUSE_YAW_SENSITIVITY: f32 = 0.009;
+pub const MOUSE_PITCH_SENSITIVITY: f32 = 0.006;
 
 // Simulation Constants
 pub const DEFAULT_SEED: u64 = 101;
