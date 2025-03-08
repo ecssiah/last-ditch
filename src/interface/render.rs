@@ -37,19 +37,19 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     0.0, 0.0, 0.0, 1.0,
 ]);
 
-pub struct Voxels {
-    shader: wgpu::ShaderModule,
-    instances: Vec<VoxelInstance>,
-    instances_count: u32,
-    instance_buffer: wgpu::Buffer,
-    pipeline: wgpu::RenderPipeline,
-}
-
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub struct VoxelInstance {
     position: [f32; 3],
     color: [f32; 4],
+}
+
+pub struct VoxelRender {
+    shader: wgpu::ShaderModule,
+    instances: Vec<VoxelInstance>,
+    instance_count: u32,
+    instance_buffer: wgpu::Buffer,
+    pipeline: wgpu::RenderPipeline,
 }
 
 pub struct Render {
@@ -65,7 +65,7 @@ pub struct Render {
     uniform_bind_group_layout: wgpu::BindGroupLayout,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    voxels: Voxels,
+    voxel_render: VoxelRender,
 }
 
 impl Render {
@@ -94,8 +94,8 @@ impl Render {
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
-            view_formats: vec![surface_format.add_srgb_suffix()],
-            alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            view_formats: vec![surface_format],
+            alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
             width: size.width,
             height: size.height,
             desired_maximum_frame_latency: 2,
@@ -162,7 +162,7 @@ impl Render {
             .copied()
             .collect();
 
-        let voxel_instances_count = voxel_instances.len() as u32;
+        let voxel_instance_count = voxel_instances.len() as u32;
 
         let voxel_instance_buffer =
             Render::create_instance_buffer(&device, voxel_instances.as_slice());
@@ -182,10 +182,10 @@ impl Render {
             VOXEL_INSTANCE_LAYOUT,
         );
 
-        let voxels = Voxels {
+        let voxel_render = VoxelRender {
             shader: voxel_shader,
             instances: voxel_instances,
-            instances_count: voxel_instances_count,
+            instance_count: voxel_instance_count,
             instance_buffer: voxel_instance_buffer,
             pipeline: voxel_pipeline,
         };
@@ -203,7 +203,7 @@ impl Render {
             uniform_bind_group_layout,
             view_projection_buffer,
             view_projection_bind_group,
-            voxels,
+            voxel_render,
         };
 
         render
@@ -272,10 +272,10 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.voxels.pipeline);
+        render_pass.set_pipeline(&self.voxel_render.pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-        render_pass.set_vertex_buffer(0, self.voxels.instance_buffer.slice(..));
-        render_pass.draw(0..36, 0..self.voxels.instances_count);
+        render_pass.set_vertex_buffer(0, self.voxel_render.instance_buffer.slice(..));
+        render_pass.draw(0..36, 0..self.voxel_render.instance_count);
 
         drop(render_pass);
 

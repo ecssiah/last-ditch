@@ -7,7 +7,7 @@ use crate::{consts::*, ActionReceiver};
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
 use chunk::Chunk;
-use glam::{IVec3, Quat, Vec3};
+use glam::{IVec3, Vec3, Quat};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 use state::{Entities, Judge, State, World};
