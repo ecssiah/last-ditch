@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use bytemuck::{Pod, Zeroable};
-use rapier3d::na::{Isometry3, Matrix4, Perspective3, Point3, Vector3};
+use glam::{Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -30,12 +30,12 @@ const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout
 };
 
 #[rustfmt::skip]
-const OPENGL_TO_WGPU_MATRIX: Matrix4<f32> = Matrix4::new(
+const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.5,
     0.0, 0.0, 0.0, 1.0,
-);
+]);
 
 pub struct Voxels {
     shader: wgpu::ShaderModule,
@@ -371,7 +371,7 @@ impl Render {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn sort_instances_by_depth(camera_position: Point3<f32>, instances: &mut Vec<VoxelInstance>) {
+    fn sort_instances_by_depth(camera_position: Vec3, instances: &mut Vec<VoxelInstance>) {
         instances.sort_by(|a, b| {
             let dist_a = ((a.position[0] - camera_position.x as f32).powi(2)
                 + (a.position[1] - camera_position.y as f32).powi(2)
@@ -453,22 +453,20 @@ impl Render {
     fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
         let judge = judge.read().unwrap();
 
-        let projection = Perspective3::new(ASPECT_RATIO, FOV.to_radians(), NEAR_PLANE, FAR_PLANE)
-            .to_homogeneous();
-
+        let projection =
+            Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
-        let forward = judge.rotation * Vector3::z();
-        let up = judge.rotation * Vector3::y();
+        let forward = judge.rotation * Vec3::Z;
+        let up = judge.rotation * Vec3::Y;
 
         let eye = judge.position;
         let target = eye + forward;
 
-        let view_iso = Isometry3::look_at_rh(&eye, &target, &up);
-        let view = view_iso.to_homogeneous();
+        let view = Mat4::look_at_rh(eye, target, up);
 
         let view_projection = wgpu_projection * view;
 
-        view_projection.into()
+        view_projection.to_cols_array_2d()
     }
 }

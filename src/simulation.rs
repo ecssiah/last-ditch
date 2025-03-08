@@ -3,13 +3,13 @@ pub mod block;
 pub mod chunk;
 pub mod state;
 
-use crate::{consts::*, interface::input, ActionReceiver};
+use crate::{consts::*, ActionReceiver};
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
 use chunk::Chunk;
+use glam::{IVec3, Quat, Vec3};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
-use rapier3d::na::{Point3, Rotation3, Unit, Vector3};
 use state::{Entities, Judge, State, World};
 use std::{
     sync::{Arc, RwLock},
@@ -27,11 +27,11 @@ impl Simulation {
     pub fn new(action_rx: ActionReceiver) -> Simulation {
         let judge = Judge {
             name: "Melchizedek".to_string(),
-            position: Point3::new(0.0, 0.0, 16.0),
+            position: Vec3::new(0.0, 0.0, 16.0),
             speed: 0.0,
             strafe_speed: 0.0,
             angular_speed: 0.0,
-            rotation: Rotation3::identity(),
+            rotation: Quat::IDENTITY,
         };
 
         let entities = Entities {};
@@ -85,14 +85,14 @@ impl Simulation {
         let mut judge = self.state.judge.write().unwrap();
 
         if judge.angular_speed.abs() > 1e-6 {
-            let up = Unit::new_unchecked(Vector3::y());
-            let rotation = Rotation3::from_axis_angle(&up, dt * judge.angular_speed);
+            let up = Vec3::Y;
+            let rotation = Quat::from_axis_angle(up, dt * judge.angular_speed);
 
             judge.rotation = rotation * judge.rotation;
         }
 
-        let forward = judge.rotation * Vector3::z();
-        let right = judge.rotation * Vector3::x();
+        let forward = judge.rotation * Vec3::Z;
+        let right = judge.rotation * Vec3::X;
 
         let judge_velocity = judge.speed * forward + judge.strafe_speed * right;
 
@@ -119,14 +119,14 @@ impl Simulation {
         (0..WORLD_VOLUME)
             .map(|chunk_id| {
                 let chunk_local_position = Simulation::chunk_id_to_position(chunk_id);
-                let chunk_world_position = (CHUNK_SIZE as i32 * chunk_local_position).cast::<f32>();
+                let chunk_world_position = (CHUNK_SIZE as i32 * chunk_local_position).as_vec3();
 
                 let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_id| {
                     let block_id = block_id as u32;
                     let block_type: BlockType;
                     let block_local_position = Simulation::block_id_to_position(block_id);
                     let block_world_position =
-                        chunk_world_position + block_local_position.cast::<f32>().coords;
+                        chunk_world_position + block_local_position.as_vec3();
                     let block_color: Color;
 
                     let roll = rng.gen::<f32>();
@@ -173,23 +173,23 @@ impl Simulation {
             .collect()
     }
 
-    fn chunk_id_to_position(id: u32) -> Point3<i32> {
+    fn chunk_id_to_position(id: u32) -> IVec3 {
         let x = (id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
         let y = (id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
         let z = (id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
 
-        Point3::new(x, y, z)
+        IVec3::new(x, y, z)
     }
 
-    fn block_id_to_position(id: u32) -> Point3<i32> {
+    fn block_id_to_position(id: u32) -> IVec3 {
         let x = (id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
         let y = (id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
         let z = (id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
 
-        Point3::new(x, y, z)
+        IVec3::new(x, y, z)
     }
 
-    fn chunk_position_to_id(position: &Point3<i32>) -> u32 {
+    fn chunk_position_to_id(position: &IVec3) -> u32 {
         let x = (position.x + WORLD_RADIUS as i32) as u32;
         let y = (position.y + WORLD_RADIUS as i32) as u32;
         let z = (position.z + WORLD_RADIUS as i32) as u32;
@@ -197,7 +197,7 @@ impl Simulation {
         x + y * WORLD_SIZE + z * WORLD_AREA
     }
 
-    fn block_position_to_id(position: &Vector3<i32>) -> u32 {
+    fn block_position_to_id(position: &IVec3) -> u32 {
         let x = (position.x + CHUNK_RADIUS as i32) as u32;
         let y = (position.y + CHUNK_RADIUS as i32) as u32;
         let z = (position.z + CHUNK_RADIUS as i32) as u32;

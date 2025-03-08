@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use crate::{
     consts::*,
-    simulation::action::{Action, EntityAction, InputActions, WorldAction},
+    simulation::action::{Action, InputActions, WorldAction},
     ActionSender,
 };
 use winit::{
