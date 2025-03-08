@@ -3,7 +3,7 @@ pub mod block;
 pub mod chunk;
 pub mod state;
 
-use crate::{consts::*, ActionReceiver};
+use crate::{consts::*, interface::input, ActionReceiver};
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
 use chunk::Chunk;
@@ -68,17 +68,11 @@ impl Simulation {
                     let mut world = self.state.world.write().unwrap();
                     world.active = false;
                 }
-                Action::Entity(EntityAction::SetLinearSpeed(speed)) => {
+                Action::Entity(EntityAction::Input(input_actions)) => {
                     let mut judge = self.state.judge.write().unwrap();
-                    judge.speed = speed;
-                }
-                Action::Entity(EntityAction::SetAngularSpeed(angular_speed)) => {
-                    let mut judge = self.state.judge.write().unwrap();
-                    judge.angular_speed = angular_speed;
-                }
-                Action::Entity(EntityAction::SetStrafeSpeed(strafe_speed)) => {
-                    let mut judge = self.state.judge.write().unwrap();
-                    judge.strafe_speed = strafe_speed;
+                    judge.speed = input_actions.forward + input_actions.back;
+                    judge.strafe_speed = input_actions.left + input_actions.right;
+                    judge.angular_speed = input_actions.turn_left + input_actions.turn_right;
                 }
             }
         }

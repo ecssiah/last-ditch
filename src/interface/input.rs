@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     consts::*,
-    simulation::action::{Action, EntityAction, WorldAction},
+    simulation::action::{Action, EntityAction, InputActions, WorldAction},
     ActionSender,
 };
 use winit::{
@@ -13,40 +13,25 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
 };
 
-pub struct InputTypes {
-    forward: bool,
-    back: bool,
-    left: bool,
-    right: bool,
-    turn_left: bool,
-    turn_right: bool,
-}
-
 pub struct Input {
     action_tx: ActionSender,
-    input_types: InputTypes,
-    speed: f32,
-    strafe_speed: f32,
-    angular_speed: f32,
+    input_actions: InputActions,
 }
 
 impl Input {
     pub fn new(action_tx: ActionSender) -> Input {
-        let input_types = InputTypes {
-            forward: false,
-            back: false,
-            left: false,
-            right: false,
-            turn_left: false,
-            turn_right: false,
+        let input_actions = InputActions {
+            forward: 0.0,
+            back: 0.0,
+            left: 0.0,
+            right: 0.0,
+            turn_left: 0.0,
+            turn_right: 0.0,
         };
 
         Input {
             action_tx,
-            input_types,
-            speed: 0.0,
-            strafe_speed: 0.0,
-            angular_speed: 0.0,
+            input_actions,
         }
     }
 
@@ -88,6 +73,21 @@ impl Input {
         }
     }
 
+    pub fn reset_input_actions(&mut self) {
+        self.input_actions = InputActions {
+            forward: 0.0,
+            back: 0.0,
+            left: 0.0,
+            right: 0.0,
+            turn_left: 0.0,
+            turn_right: 0.0,
+        };
+    }
+
+    pub fn get_input_actions(&self) -> InputActions {
+        self.input_actions
+    }
+
     pub fn handle_keyboard_input(
         &mut self,
         _device_id: &DeviceId,
@@ -102,77 +102,45 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::KeyQ) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.angular_speed += DEFAULT_ANGULAR_SPEED;
+                    self.input_actions.turn_left += DEFAULT_ANGULAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    self.angular_speed = 0.0;
+                    self.input_actions.turn_left -= DEFAULT_ANGULAR_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetAngularSpeed(self.angular_speed)))
-                    .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyE) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.angular_speed -= DEFAULT_ANGULAR_SPEED;
+                    self.input_actions.turn_right -= DEFAULT_ANGULAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    self.angular_speed = 0.0;
+                    self.input_actions.turn_right += DEFAULT_ANGULAR_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetAngularSpeed(self.angular_speed)))
-                    .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
-                let mut speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    speed = DEFAULT_LINEAR_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.input_actions.forward += DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    speed = 0.0;
+                    self.input_actions.forward -= DEFAULT_LINEAR_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
-                    .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
-                let mut speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    speed = -DEFAULT_LINEAR_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.input_actions.forward -= DEFAULT_LINEAR_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    speed = 0.0;
+                    self.input_actions.forward += DEFAULT_LINEAR_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetLinearSpeed(speed)))
-                    .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
-                let mut strafe_speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    strafe_speed = DEFAULT_STRAFE_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.input_actions.left += DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    strafe_speed = 0.0;
+                    self.input_actions.left -= DEFAULT_STRAFE_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetStrafeSpeed(strafe_speed)))
-                    .unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
-                let mut strafe_speed = 0.0;
-
-                if key_event.state == ElementState::Pressed {
-                    strafe_speed = -DEFAULT_STRAFE_SPEED;
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.input_actions.right -= DEFAULT_STRAFE_SPEED;
                 } else if key_event.state == ElementState::Released {
-                    strafe_speed = 0.0;
+                    self.input_actions.right += DEFAULT_STRAFE_SPEED;
                 }
-
-                self.action_tx
-                    .send(Action::Entity(EntityAction::SetStrafeSpeed(strafe_speed)))
-                    .unwrap();
             }
             _ => (),
         }

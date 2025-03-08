@@ -2,7 +2,7 @@ pub mod camera;
 pub mod input;
 pub mod render;
 
-use crate::{simulation::state::State, ActionSender};
+use crate::{simulation::{action::{Action, EntityAction, InputActions}, state::State}, ActionSender};
 use camera::Camera;
 use input::Input;
 use render::Render;
@@ -39,11 +39,23 @@ impl Interface {
     }
 
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
+        self.check_active(event_loop);
+
+        self.send_input_actions();
+    }
+
+    fn check_active(&mut self, event_loop: &ActiveEventLoop) {
         let world = self.state.world.read().unwrap();
 
         if world.active == false {
             event_loop.exit();
         }
+    }
+
+    fn send_input_actions(&mut self) {
+        self.action_tx
+            .send(Action::Entity(EntityAction::Input(self.input.get_input_actions())))
+            .unwrap();
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {

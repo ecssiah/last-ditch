@@ -7,10 +7,7 @@ use crate::{
     },
 };
 use bytemuck::{Pod, Zeroable};
-use rapier3d::{
-    na::{Isometry3, Matrix4, Perspective3, Point3, Vector3},
-    prelude::*,
-};
+use rapier3d::na::{Isometry3, Matrix4, Perspective3, Point3, Vector3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -40,7 +37,7 @@ const OPENGL_TO_WGPU_MATRIX: Matrix4<f32> = Matrix4::new(
     0.0, 0.0, 0.0, 1.0,
 );
 
-pub struct Voxel {
+pub struct Voxels {
     shader: wgpu::ShaderModule,
     instances: Vec<VoxelInstance>,
     instances_count: u32,
@@ -68,7 +65,7 @@ pub struct Render {
     uniform_bind_group_layout: wgpu::BindGroupLayout,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    voxel: Voxel,
+    voxels: Voxels,
 }
 
 impl Render {
@@ -185,7 +182,7 @@ impl Render {
             VOXEL_INSTANCE_LAYOUT,
         );
 
-        let voxel = Voxel {
+        let voxels = Voxels {
             shader: voxel_shader,
             instances: voxel_instances,
             instances_count: voxel_instances_count,
@@ -206,7 +203,7 @@ impl Render {
             uniform_bind_group_layout,
             view_projection_buffer,
             view_projection_bind_group,
-            voxel,
+            voxels,
         };
 
         render
@@ -253,7 +250,7 @@ impl Render {
 
         let depth_texture_view = Render::create_depth_texture(&self.device, &self.surface_config);
 
-        let mut renderpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("World Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &texture_view,
@@ -275,15 +272,16 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        renderpass.set_pipeline(&self.voxel.pipeline);
-        renderpass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-        renderpass.set_vertex_buffer(0, self.voxel.instance_buffer.slice(..));
-        renderpass.draw(0..36, 0..self.voxel.instances_count);
+        render_pass.set_pipeline(&self.voxels.pipeline);
+        render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
+        render_pass.set_vertex_buffer(0, self.voxels.instance_buffer.slice(..));
+        render_pass.draw(0..36, 0..self.voxels.instances_count);
 
-        drop(renderpass);
+        drop(render_pass);
 
         self.queue.submit([encoder.finish()]);
         self.window.pre_present_notify();
+
         surface_texture.present();
     }
 
