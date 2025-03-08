@@ -25,12 +25,12 @@ pub const DEFAULT_LINEAR_SPEED: f32 = 10.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 10.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
-pub const WORLD_RADIUS: u32 = 3;
+pub const WORLD_RADIUS: u32 = 6;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 3;
+pub const CHUNK_RADIUS: u32 = 6;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
@@ -45,7 +45,7 @@ impl Simulation {
         let entity = Entity {
             id: 0,
             name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 0.0, 16.0),
+            position: Vec3::new(0.0, 0.0, -64.0),
             speed: 0.0,
             strafe_speed: 0.0,
             angular_speed: 0.0,
@@ -163,7 +163,7 @@ impl Simulation {
 
                     let roll = rng.gen::<f32>();
 
-                    if roll < 0.10 {
+                    if roll < 0.01 {
                         block_type = BlockType::Solid;
                         block_color = Color {
                             r: rng.gen::<f64>(),
