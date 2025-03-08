@@ -9,6 +9,17 @@ use render::Render;
 use std::sync::Arc;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
+pub const WINDOW_WIDTH: u32 = 800;
+pub const WINDOW_HEIGHT: u32 = 600;
+pub const ASPECT_RATIO: f32 = WINDOW_WIDTH as f32 / WINDOW_HEIGHT as f32;
+
+pub const FOV: f32 = 45.0;
+pub const NEAR_PLANE: f32 = 0.1;
+pub const FAR_PLANE: f32 = 100.0;
+
+pub const MOUSE_YAW_SENSITIVITY: f32 = 0.009;
+pub const MOUSE_PITCH_SENSITIVITY: f32 = 0.006;
+
 pub struct Interface {
     _window: Arc<Window>,
     state: Arc<State>,

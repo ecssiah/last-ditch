@@ -1,5 +1,4 @@
 use crate::{
-    consts::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
     include_shader_src,
     simulation::{
         block::{Block, BlockType},
@@ -11,6 +10,8 @@ use glam::{Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
+
+use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 
 const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,

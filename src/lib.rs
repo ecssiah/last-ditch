@@ -7,7 +7,6 @@
 //!
 //! The Simulation handles the evolution of the world.
 
-pub mod consts;
 pub mod interface;
 pub mod macros;
 pub mod simulation;

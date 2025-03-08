@@ -1,5 +1,4 @@
-use super::block::Block;
-use crate::consts::CHUNK_VOLUME;
+use super::{block::Block, CHUNK_VOLUME};
 use glam::{IVec3, Vec3};
 
 #[derive(Debug, Clone)]

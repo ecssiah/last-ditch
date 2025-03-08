@@ -1,6 +1,5 @@
 use crate::{
-    consts::*,
-    simulation::action::{Action, MoveActions, RotateActions, WorldAction},
+    simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED},
     ActionSender,
 };
 use glam::Vec2;
@@ -11,6 +10,8 @@ use winit::{
     },
     keyboard::{KeyCode, PhysicalKey},
 };
+
+use super::{MOUSE_PITCH_SENSITIVITY, MOUSE_YAW_SENSITIVITY};
 
 pub struct MouseState {
     last_position: Option<Vec2>,
