@@ -3,7 +3,7 @@ use crate::{
     include_shader_src,
     simulation::{
         block::{Block, BlockType},
-        state::{Judge, World},
+        state::{Entity, World},
     },
 };
 use bytemuck::{Pod, Zeroable};
@@ -54,7 +54,7 @@ pub struct VoxelRender {
 
 pub struct Render {
     window: Arc<Window>,
-    judge: Arc<RwLock<Judge>>,
+    entity: Arc<RwLock<Entity>>,
     world: Arc<RwLock<World>>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -71,7 +71,7 @@ pub struct Render {
 impl Render {
     pub async fn new(
         window: Arc<Window>,
-        judge: Arc<RwLock<Judge>>,
+        entity: Arc<RwLock<Entity>>,
         world: Arc<RwLock<World>>,
     ) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -141,7 +141,7 @@ impl Render {
         });
 
         let (voxel_translucent_instances, voxel_solid_instances) =
-            Render::read_world(judge.clone(), world.clone());
+            Render::read_world(entity.clone(), world.clone());
 
         let voxel_instances: Vec<VoxelInstance> = voxel_solid_instances
             .iter()
@@ -182,7 +182,7 @@ impl Render {
 
         let render = Render {
             window,
-            judge,
+            entity,
             world,
             device,
             queue,
@@ -273,7 +273,7 @@ impl Render {
     }
 
     fn read_world(
-        judge: Arc<RwLock<Judge>>,
+        entity: Arc<RwLock<Entity>>,
         world: Arc<RwLock<World>>,
     ) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
         let world = world.read().unwrap();
@@ -299,13 +299,13 @@ impl Render {
             }
         }
 
-        Render::sort_instances_by_depth(judge.read().unwrap().position, &mut translucent_instances);
+        Render::sort_instances_by_depth(entity.read().unwrap().position, &mut translucent_instances);
 
         (translucent_instances, solid_instances)
     }
 
     fn update_view_projection(&mut self) {
-        let view_projection_matrix = Render::create_view_projection_matrix(self.judge.clone());
+        let view_projection_matrix = Render::create_view_projection_matrix(self.entity.clone());
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -427,17 +427,17 @@ impl Render {
         })
     }
 
-    fn create_view_projection_matrix(judge: Arc<RwLock<Judge>>) -> [[f32; 4]; 4] {
-        let judge = judge.read().unwrap();
+    fn create_view_projection_matrix(entity: Arc<RwLock<Entity>>) -> [[f32; 4]; 4] {
+        let entity = entity.read().unwrap();
 
         let projection =
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
-        let forward = judge.rotation * Vec3::Z;
-        let up = judge.rotation * Vec3::Y;
+        let forward = entity.look_rotation * Vec3::Z;
+        let up = entity.look_rotation * Vec3::Y;
 
-        let eye = judge.position;
+        let eye = entity.position;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

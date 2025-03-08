@@ -7,10 +7,10 @@ use crate::{consts::*, ActionReceiver};
 use action::{Action, EntityAction, WorldAction};
 use block::{Block, BlockType};
 use chunk::Chunk;
-use glam::{IVec3, Vec3, Quat};
+use glam::{EulerRot, IVec3, Quat, Vec3};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
-use state::{Entities, Judge, State, World};
+use state::{Entity, State, World};
 use std::{
     sync::{Arc, RwLock},
     thread,
@@ -25,16 +25,18 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: ActionReceiver) -> Simulation {
-        let judge = Judge {
+        let entity = Entity {
+            id: 0,
             name: "Melchizedek".to_string(),
             position: Vec3::new(0.0, 0.0, 16.0),
             speed: 0.0,
             strafe_speed: 0.0,
             angular_speed: 0.0,
-            rotation: Quat::IDENTITY,
+            move_yaw: 0.0,
+            look_pitch: 0.0,
+            look_yaw: 0.0,
+            look_rotation: Quat::IDENTITY,
         };
-
-        let entities = Entities {};
 
         let world = World {
             active: true,
@@ -44,8 +46,7 @@ impl Simulation {
         };
 
         let state = Arc::new(State {
-            judge: Arc::new(RwLock::new(judge)),
-            entities: Arc::new(RwLock::new(entities)),
+            entity: Arc::new(RwLock::new(entity)),
             world: Arc::new(RwLock::new(world)),
         });
 
@@ -66,13 +67,31 @@ impl Simulation {
             match action {
                 Action::World(WorldAction::Quit) => {
                     let mut world = self.state.world.write().unwrap();
+
                     world.active = false;
                 }
-                Action::Entity(EntityAction::Input(input_actions)) => {
-                    let mut judge = self.state.judge.write().unwrap();
-                    judge.speed = input_actions.forward + input_actions.back;
-                    judge.strafe_speed = input_actions.left + input_actions.right;
-                    judge.angular_speed = input_actions.turn_left + input_actions.turn_right;
+                Action::Entity(EntityAction::Move(move_actions)) => {
+                    let mut entity = self.state.entity.write().unwrap();
+
+                    entity.speed = move_actions.forward + move_actions.backward;
+                    entity.strafe_speed = move_actions.left + move_actions.right;
+                }
+                Action::Entity(EntityAction::Rotate(rotate_actions)) => {
+                    let mut entity = self.state.entity.write().unwrap();
+
+                    entity.look_yaw += rotate_actions.yaw;
+                    entity.look_pitch -= rotate_actions.pitch;
+
+                    entity.look_pitch = entity
+                        .look_pitch
+                        .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
+
+                    let yaw_quat = Quat::from_rotation_y(entity.look_yaw);
+                    let pitch_quat = Quat::from_rotation_x(entity.look_pitch);
+
+                    entity.look_rotation = yaw_quat * pitch_quat;
+
+                    entity.move_yaw = entity.look_yaw;
                 }
             }
         }
@@ -82,21 +101,16 @@ impl Simulation {
         let mut state = self.state.world.write().unwrap();
         state.time += dt;
 
-        let mut judge = self.state.judge.write().unwrap();
+        let mut entity = self.state.entity.write().unwrap();
 
-        if judge.angular_speed.abs() > 1e-6 {
-            let up = Vec3::Y;
-            let rotation = Quat::from_axis_angle(up, dt * judge.angular_speed);
+        let yaw_quat = Quat::from_rotation_y(entity.move_yaw);
 
-            judge.rotation = rotation * judge.rotation;
-        }
+        let forward = yaw_quat * Vec3::Z;
+        let right = yaw_quat * Vec3::X;
 
-        let forward = judge.rotation * Vec3::Z;
-        let right = judge.rotation * Vec3::X;
+        let movement = forward * entity.speed + right * entity.strafe_speed;
 
-        let judge_velocity = judge.speed * forward + judge.strafe_speed * right;
-
-        judge.position += dt * judge_velocity;
+        entity.position += dt * movement;
     }
 
     pub fn run(&mut self) {

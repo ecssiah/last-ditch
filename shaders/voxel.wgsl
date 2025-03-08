@@ -32,21 +32,6 @@ const CUBE_INDICES: array<u32, 36> = array(
     1, 4, 0, 1, 5, 4,  
 );
 
-const CUBE_NORMALS: array<vec3<f32>, 6> = array(
-    // Front (+Z)
-    vec3<f32>( 0.0,  0.0,  1.0),
-    // Right (+X)
-    vec3<f32>( 1.0,  0.0,  0.0), 
-    // Back (-Z)
-    vec3<f32>( 0.0,  0.0, -1.0), 
-    // Left (-X)
-    vec3<f32>(-1.0,  0.0,  0.0), 
-    // Top (+Y)
-    vec3<f32>( 0.0,  1.0,  0.0),
-    // Bottom (-Y)
-    vec3<f32>( 0.0, -1.0,  0.0),
-);
-
 @vertex
 fn vs_main(    
     @builtin(vertex_index) vertex_index: u32,

@@ -4,23 +4,23 @@ use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub judge: Arc<RwLock<Judge>>,
-    pub entities: Arc<RwLock<Entities>>,
+    pub entity: Arc<RwLock<Entity>>,
     pub world: Arc<RwLock<World>>,
 }
 
 #[derive(Debug, Clone)]
-pub struct Judge {
+pub struct Entity {
+    pub id: u32,
     pub name: String,
     pub position: Vec3,
     pub speed: f32,
     pub strafe_speed: f32,
     pub angular_speed: f32,
-    pub rotation: Quat,
+    pub move_yaw: f32,
+    pub look_pitch: f32,
+    pub look_yaw: f32,
+    pub look_rotation: Quat,
 }
-
-#[derive(Debug, Clone)]
-pub struct Entities {}
 
 #[derive(Debug, Clone)]
 pub struct World {

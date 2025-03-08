@@ -2,7 +2,7 @@ pub mod camera;
 pub mod input;
 pub mod render;
 
-use crate::{simulation::{action::{Action, EntityAction, InputActions}, state::State}, ActionSender};
+use crate::{simulation::{action::{Action, EntityAction}, state::State}, ActionSender};
 use camera::Camera;
 use input::Input;
 use render::Render;
@@ -24,9 +24,11 @@ impl Interface {
         let input = Input::new(action_tx.clone());
         let render = pollster::block_on(Render::new(
             window.clone(),
-            state.judge.clone(),
+            state.entity.clone(),
             state.world.clone(),
         ));
+
+        window.set_cursor_visible(false);
 
         Interface {
             _window: window,
@@ -41,7 +43,8 @@ impl Interface {
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
         self.check_active(event_loop);
 
-        self.send_input_actions();
+        self.send_move_actions();
+        self.send_rotate_actions();
     }
 
     fn check_active(&mut self, event_loop: &ActiveEventLoop) {
@@ -52,10 +55,20 @@ impl Interface {
         }
     }
 
-    fn send_input_actions(&mut self) {
+    fn send_move_actions(&mut self) {
         self.action_tx
-            .send(Action::Entity(EntityAction::Input(self.input.get_input_actions())))
+            .send(Action::Entity(EntityAction::Move(self.input.get_move_actions())))
             .unwrap();
+    }
+
+    fn send_rotate_actions(&mut self) {
+        let rotate_actions = self.input.get_rotate_actions();
+
+        if rotate_actions.yaw.abs() > 1e-6 || rotate_actions.pitch.abs() > 1e-6 {
+            self.action_tx
+                .send(Action::Entity(EntityAction::Rotate(rotate_actions)))
+                .unwrap();
+        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
