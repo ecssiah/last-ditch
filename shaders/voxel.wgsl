@@ -29,7 +29,7 @@ const CUBE_INDICES: array<u32, 36> = array(
     // Top
     6, 3, 7, 6, 2, 3,
     // Bottom
-    6, 3, 7, 6, 2, 3,  
+    1, 4, 0, 1, 5, 4,  
 );
 
 const CUBE_NORMALS: array<vec3<f32>, 6> = array(

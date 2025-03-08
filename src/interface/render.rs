@@ -104,21 +104,6 @@ impl Render {
 
         surface.configure(&device, &surface_config);
 
-        let view_projection_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("View Projection Buffer"),
-            size: std::mem::size_of::<[[f32; 4]; 4]>() as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
-        let view_projection_matrix = Render::create_view_projection_matrix(judge.clone());
-
-        queue.write_buffer(
-            &view_projection_buffer,
-            0,
-            bytemuck::cast_slice(&view_projection_matrix),
-        );
-
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("Uniform Bind Group Layout"),
@@ -134,6 +119,13 @@ impl Render {
                 }],
             });
 
+        let view_projection_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("View Projection Buffer"),
+            size: std::mem::size_of::<[[f32; 4]; 4]>() as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
         let view_projection_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("View Projection Bind Group"),
             layout: &uniform_bind_group_layout,
@@ -148,13 +140,8 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let (mut voxel_translucent_instances, voxel_solid_instances) =
-            Render::read_world(world.clone());
-
-        Render::sort_instances_by_depth(
-            judge.read().unwrap().position,
-            &mut voxel_translucent_instances,
-        );
+        let (voxel_translucent_instances, voxel_solid_instances) =
+            Render::read_world(judge.clone(), world.clone());
 
         let voxel_instances: Vec<VoxelInstance> = voxel_solid_instances
             .iter()
@@ -164,8 +151,11 @@ impl Render {
 
         let voxel_instance_count = voxel_instances.len() as u32;
 
-        let voxel_instance_buffer =
-            Render::create_instance_buffer(&device, voxel_instances.as_slice());
+        let voxel_instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Voxel Instance Buffer"),
+            contents: bytemuck::cast_slice(voxel_instances.as_slice()),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
 
         let voxel_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -216,23 +206,7 @@ impl Render {
     }
 
     pub fn render(&mut self) {
-        let view_projection_matrix = Render::create_view_projection_matrix(self.judge.clone());
-
-        self.view_projection_bind_group =
-            self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("View Projection Bind Group"),
-                layout: &self.uniform_bind_group_layout,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: self.view_projection_buffer.as_entire_binding(),
-                }],
-            });
-
-        self.queue.write_buffer(
-            &self.view_projection_buffer,
-            0,
-            bytemuck::cast_slice(&view_projection_matrix),
-        );
+        self.update_view_projection();
 
         let surface_texture = self
             .surface
@@ -246,9 +220,9 @@ impl Render {
                 ..Default::default()
             });
 
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-
         let depth_texture_view = Render::create_depth_texture(&self.device, &self.surface_config);
+
+        let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("World Render Pass"),
@@ -298,7 +272,10 @@ impl Render {
         }
     }
 
-    fn read_world(world: Arc<RwLock<World>>) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
+    fn read_world(
+        judge: Arc<RwLock<Judge>>,
+        world: Arc<RwLock<World>>,
+    ) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
         let world = world.read().unwrap();
 
         let mut translucent_instances: Vec<VoxelInstance> = Vec::new();
@@ -322,15 +299,19 @@ impl Render {
             }
         }
 
+        Render::sort_instances_by_depth(judge.read().unwrap().position, &mut translucent_instances);
+
         (translucent_instances, solid_instances)
     }
 
-    fn create_instance_buffer(device: &wgpu::Device, instances: &[VoxelInstance]) -> wgpu::Buffer {
-        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Voxel Instance Buffer"),
-            contents: bytemuck::cast_slice(instances),
-            usage: wgpu::BufferUsages::VERTEX,
-        })
+    fn update_view_projection(&mut self) {
+        let view_projection_matrix = Render::create_view_projection_matrix(self.judge.clone());
+
+        self.queue.write_buffer(
+            &self.view_projection_buffer,
+            0,
+            bytemuck::cast_slice(&view_projection_matrix),
+        );
     }
 
     fn create_instance(block: &Block) -> VoxelInstance {
@@ -428,23 +409,19 @@ impl Render {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
+                cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: false,
-                depth_compare: wgpu::CompareFunction::LessEqual,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
             }),
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
+            multisample: wgpu::MultisampleState::default(),
             multiview: None,
             cache: None,
         })
