@@ -41,8 +41,8 @@ pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BLOCK_LIMIT: u32 = CHUNK_RADIUS + WORLD_RADIUS * (2 * CHUNK_RADIUS);
 
-pub const TERRAIN_SCALE: f64 = 0.05;
-pub const TERRAIN_HEIGHT: i32 = 10;
+pub const TERRAIN_SCALE: f64 = 0.03;
+pub const TERRAIN_HEIGHT: i32 = 16;
 
 pub struct Simulation {
     state: Arc<State>,
@@ -54,7 +54,7 @@ impl Simulation {
         let entity = Entity {
             id: 0,
             name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 22.0, -128.0),
+            position: Vec3::new(0.0, 36.0, -148.0),
             speed: 0.0,
             strafe_speed: 0.0,
             angular_speed: 0.0,
@@ -88,18 +88,18 @@ impl Simulation {
     }
 
     fn update(&mut self, dt: f32) {
-        {
-            let entity = self.state.entity.read().unwrap();
+        // {
+        //     let entity = self.state.entity.read().unwrap();
 
-            let entity_grid_position = Simulation::get_grid_position(&entity.position);
+        //     let entity_grid_position = Simulation::get_grid_position(&entity.position);
 
-            if let Some(chunk_id) = Simulation::get_chunk_id(&entity_grid_position) {
-                let chunk_position = Simulation::chunk_id_to_position(chunk_id);
-                println!("Chunk: {:?}", chunk_position);
-            } else {
-                println!("Chunk: None");
-            }
-        }
+        //     if let Some(chunk_id) = Simulation::get_chunk_id(&entity_grid_position) {
+        //         let chunk_position = Simulation::chunk_id_to_position(chunk_id);
+        //         println!("Chunk: {:?}", chunk_position);
+        //     } else {
+        //         println!("Chunk: None");
+        //     }
+        // }
 
         self.process_actions();
         self.evolve(dt);
@@ -187,15 +187,20 @@ impl Simulation {
                         chunk_world_position + block_local_position.as_vec3();
                     let block_color: Color;
 
-                    if block_world_position.y > -4.0 {
+                    if block_world_position.y > -5.0 {
                         block_color =  Color {
                             r: rng.gen_range(0.0 / 255.0..=0.0 / 255.0),
-                            g: rng.gen_range(20.0 / 255.0..=60.0 / 255.0),
+                            g: rng.gen_range(25.0 / 255.0..=70.0 / 255.0),
                             b: rng.gen_range(16.0 / 255.0..=36.0 / 255.0),
                             a: 1.0,
                         };
                     } else {
-                        block_color =  Color {r: 0.0, g: 0.1, b: 0.7, a: 1.0 };
+                        block_color =  Color {
+                            r: rng.gen_range(0.0 / 255.0..=0.0 / 255.0),
+                            g: rng.gen_range(10.0 / 255.0..=14.0 / 255.0),
+                            b: rng.gen_range(127.0 / 255.0..=167.0 / 255.0),
+                            a: 1.0,
+                        }
                     }
 
                     Block {
