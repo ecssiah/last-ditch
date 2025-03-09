@@ -3,7 +3,7 @@ use wgpu::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub enum BlockType {
-    None,
+    Air,
     Translucent,
     Solid,
 }

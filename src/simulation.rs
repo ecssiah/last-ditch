@@ -25,12 +25,12 @@ pub const DEFAULT_LINEAR_SPEED: f32 = 10.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 10.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
-pub const WORLD_RADIUS: u32 = 6;
+pub const WORLD_RADIUS: u32 = 5;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 6;
+pub const CHUNK_RADIUS: u32 = 5;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
@@ -163,7 +163,7 @@ impl Simulation {
 
                     let roll = rng.gen::<f32>();
 
-                    if roll < 0.01 {
+                    if roll < 0.001 {
                         block_type = BlockType::Solid;
                         block_color = Color {
                             r: rng.gen::<f64>(),
@@ -180,7 +180,7 @@ impl Simulation {
                     //         a: 0.1,
                     //     };
                     } else {
-                        block_type = BlockType::None;
+                        block_type = BlockType::Air;
                         block_color = Color::WHITE;
                     }
 

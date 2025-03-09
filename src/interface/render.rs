@@ -285,7 +285,7 @@ impl Render {
         for chunk in world.chunks.iter() {
             for block in chunk.blocks.iter() {
                 match block.block_type {
-                    BlockType::None => (),
+                    BlockType::Air => (),
                     BlockType::Translucent => {
                         let instance = Render::create_instance(block);
 
