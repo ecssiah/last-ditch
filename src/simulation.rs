@@ -19,21 +19,24 @@ use std::{
 use wgpu::Color;
 
 pub const DEFAULT_SEED: u64 = 101;
-pub const SIMULATION_SLEEP: u64 = 16;
+pub const SIMULATION_WAIT: u64 = 16;
 
 pub const DEFAULT_LINEAR_SPEED: f32 = 10.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 10.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
-pub const WORLD_RADIUS: u32 = 5;
-pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
-pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
-pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
+pub const BLOCK_RADIUS: f32 = 0.5;
+pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 
-pub const CHUNK_RADIUS: u32 = 5;
+pub const CHUNK_RADIUS: u32 = 8;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+
+pub const WORLD_RADIUS: u32 = 2;
+pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
+pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
+pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub struct Simulation {
     state: Arc<State>,
@@ -75,6 +78,19 @@ impl Simulation {
     }
 
     fn update(&mut self, dt: f32) {
+        {
+            let entity = self.state.entity.read().unwrap();
+
+            let entity_grid_position = Simulation::get_grid_position(&entity.position);
+
+            if let Some(chunk_id) = Simulation::get_chunk_id(&entity_grid_position) {
+                let chunk_position = Simulation::chunk_id_to_position(chunk_id);
+                println!("Chunk: {:?}", chunk_position);
+            } else {
+                println!("Chunk: None");
+            }
+        }
+
         self.process_actions();
         self.evolve(dt);
     }
@@ -141,7 +157,7 @@ impl Simulation {
 
             self.update(dt);
 
-            thread::sleep(Duration::from_millis(SIMULATION_SLEEP));
+            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
         }
     }
 
@@ -163,22 +179,18 @@ impl Simulation {
 
                     let roll = rng.gen::<f32>();
 
-                    if roll < 0.001 {
+                    if roll < 1.0 {
                         block_type = BlockType::Solid;
-                        block_color = Color {
-                            r: rng.gen::<f64>(),
-                            g: rng.gen::<f64>(),
-                            b: rng.gen::<f64>(),
-                            a: 1.0,
-                        };
-                    // } else if roll < 0.75 {
-                    //     block_type = BlockType::Translucent;
-                    //     block_color = Color {
-                    //         r: 0.2,
-                    //         g: 0.4,
-                    //         b: 0.5,
-                    //         a: 0.1,
-                    //     };
+
+                        if chunk_id % 3 == 0 {
+                            block_color = Color::RED;
+                        } else if chunk_id % 3 == 1 {
+                            block_color = Color::GREEN;
+                        } else if chunk_id % 3 == 2 {
+                            block_color = Color::BLUE;
+                        } else {
+                            block_color = Color::WHITE;
+                        }
                     } else {
                         block_type = BlockType::Air;
                         block_color = Color::WHITE;
@@ -207,16 +219,16 @@ impl Simulation {
 
     fn chunk_id_to_position(id: u32) -> IVec3 {
         let x = (id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let y = (id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let z = (id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
+        let y = (id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
+        let z = (id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
 
         IVec3::new(x, y, z)
     }
 
     fn block_id_to_position(id: u32) -> IVec3 {
         let x = (id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let y = (id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let z = (id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+        let y = (id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+        let z = (id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
 
         IVec3::new(x, y, z)
     }
@@ -235,5 +247,39 @@ impl Simulation {
         let z = (position.z + CHUNK_RADIUS as i32) as u32;
 
         x + y * CHUNK_SIZE + z * CHUNK_AREA
+    }
+
+    fn get_chunk_id(grid_position: &IVec3) -> Option<u32> {
+        if Simulation::is_on_map(grid_position) {
+            let grid_position_normalized = grid_position + IVec3::splat(CHUNK_RADIUS as i32);
+
+            let chunk_position =
+                (grid_position_normalized).div_euclid(IVec3::splat(CHUNK_SIZE as i32));
+
+            Some(
+                ((chunk_position.x + WORLD_RADIUS as i32) as u32
+                    + (chunk_position.z + WORLD_RADIUS as i32) as u32 * WORLD_SIZE
+                    + (chunk_position.y + WORLD_RADIUS as i32) as u32 * WORLD_AREA)
+                    as u32,
+            )
+        } else {
+            None
+        }
+    }
+
+    fn get_grid_position(world_position: &Vec3) -> IVec3 {
+        (world_position + Vec3::splat(BLOCK_RADIUS))
+            .floor()
+            .as_ivec3()
+    }
+
+    fn is_on_map(grid_position: &IVec3) -> bool {
+        let world_limit = CHUNK_RADIUS as i32 + WORLD_RADIUS as i32 * (2 * CHUNK_RADIUS as i32);
+
+        let in_x_range = grid_position.x >= -world_limit && grid_position.x <= world_limit;
+        let in_y_range = grid_position.y >= -world_limit && grid_position.y <= world_limit;
+        let in_z_range = grid_position.z >= -world_limit && grid_position.z <= world_limit;
+
+        in_x_range && in_y_range && in_z_range
     }
 }

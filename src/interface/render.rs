@@ -300,7 +300,9 @@ impl Render {
             }
         }
 
-        Render::sort_instances_by_depth(entity.read().unwrap().position, &mut translucent_instances);
+        let entity = entity.read().unwrap();
+
+        Render::sort_instances_by_depth(entity.position, &mut translucent_instances);
 
         (translucent_instances, solid_instances)
     }
