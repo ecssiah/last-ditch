@@ -39,10 +39,10 @@ pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const WORLD_BLOCK_LIMIT: u32 = CHUNK_RADIUS + WORLD_RADIUS * (2 * CHUNK_RADIUS);
+pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * (2 * CHUNK_RADIUS);
 
 pub const TERRAIN_SCALE: f64 = 0.03;
-pub const TERRAIN_HEIGHT: i32 = 16;
+pub const TERRAIN_HEIGHT: i32 = 26;
 
 pub struct Simulation {
     state: Arc<State>,
@@ -88,19 +88,6 @@ impl Simulation {
     }
 
     fn update(&mut self, dt: f32) {
-        // {
-        //     let entity = self.state.entity.read().unwrap();
-
-        //     let entity_grid_position = Simulation::get_grid_position(&entity.position);
-
-        //     if let Some(chunk_id) = Simulation::get_chunk_id(&entity_grid_position) {
-        //         let chunk_position = Simulation::chunk_id_to_position(chunk_id);
-        //         println!("Chunk: {:?}", chunk_position);
-        //     } else {
-        //         println!("Chunk: None");
-        //     }
-        // }
-
         self.process_actions();
         self.evolve(dt);
     }
@@ -227,7 +214,7 @@ impl Simulation {
     fn generate_terrain(chunks: &mut Vec<Chunk>) {
         let perlin = Perlin::new(DEFAULT_SEED as u32);
 
-        let world_block_limit = WORLD_BLOCK_LIMIT as i32;
+        let world_block_limit = WORLD_BOUNDARY as i32;
 
         for x in -world_block_limit..world_block_limit {
             for z in -world_block_limit..world_block_limit {
@@ -374,12 +361,12 @@ impl Simulation {
     }
 
     fn is_on_map(grid_position: &IVec3) -> bool {
-        let in_x_range = grid_position.x >= -(WORLD_BLOCK_LIMIT as i32)
-            && grid_position.x <= WORLD_BLOCK_LIMIT as i32;
-        let in_y_range = grid_position.y >= -(WORLD_BLOCK_LIMIT as i32)
-            && grid_position.y <= WORLD_BLOCK_LIMIT as i32;
-        let in_z_range = grid_position.z >= -(WORLD_BLOCK_LIMIT as i32)
-            && grid_position.z <= WORLD_BLOCK_LIMIT as i32;
+        let in_x_range = grid_position.x >= -(WORLD_BOUNDARY as i32)
+            && grid_position.x <= WORLD_BOUNDARY as i32;
+        let in_y_range = grid_position.y >= -(WORLD_BOUNDARY as i32)
+            && grid_position.y <= WORLD_BOUNDARY as i32;
+        let in_z_range = grid_position.z >= -(WORLD_BOUNDARY as i32)
+            && grid_position.z <= WORLD_BOUNDARY as i32;
 
         in_x_range && in_y_range && in_z_range
     }
