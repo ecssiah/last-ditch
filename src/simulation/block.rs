@@ -1,19 +1,15 @@
-use glam::{IVec3, Vec3};
 use wgpu::Color;
 
-#[derive(Debug, Copy, Clone)]
-pub enum BlockType {
+#[derive(Debug, PartialEq)]
+pub enum Kind {
     Air,
-    Translucent,
-    Solid,
+    Metal,
+    Concrete,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Block {
-    pub id: u32,
-    pub chunk_id: u32,
-    pub block_type: BlockType,
-    pub local_position: IVec3,
-    pub world_position: Vec3,
+    pub kind: Kind,
+    pub opacity: f32,
     pub color: Color,
 }

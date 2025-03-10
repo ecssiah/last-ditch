@@ -1,26 +1,31 @@
 pub mod action;
+pub mod agent;
 pub mod block;
 pub mod chunk;
 pub mod state;
+pub mod world;
 
-use crate::ActionReceiver;
-use action::{Action, EntityAction, WorldAction};
-use block::{Block, BlockType};
+use action::{Action, AgentAction, WorldAction};
+use agent::Agent;
+use block::{Block, Kind};
 use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use noise::{NoiseFn, Perlin};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
-use state::{Entity, State, World};
+use state::State;
 use std::{
-    sync::{Arc, RwLock},
+    sync::{Arc, RwLock, WaitTimeoutResult},
     thread,
     time::{Duration, Instant},
 };
+use tokio::sync::mpsc::UnboundedReceiver;
 use wgpu::Color;
+use world::World;
 
-pub const DEFAULT_SEED: u64 = 101;
+pub const SEED: u64 = 101;
 pub const SIMULATION_WAIT: u64 = 16;
+pub const UPDATE_WINDOW: u32 = 2;
 
 pub const DEFAULT_LINEAR_SPEED: f32 = 22.0;
 pub const DEFAULT_STRAFE_SPEED: f32 = 22.0;
@@ -29,67 +34,69 @@ pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 
-pub const CHUNK_RADIUS: u32 = 8;
+pub const CHUNK_RADIUS: u32 = 1;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 8;
+pub const WORLD_RADIUS: u32 = 1;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * (2 * CHUNK_RADIUS);
 
-pub const TERRAIN_SCALE: f64 = 0.03;
-pub const TERRAIN_HEIGHT: i32 = 26;
-
 pub struct Simulation {
+    action_rx: UnboundedReceiver<Action>,
     state: Arc<State>,
-    action_rx: ActionReceiver,
 }
 
 impl Simulation {
-    pub fn new(action_rx: ActionReceiver) -> Simulation {
-        let entity = Entity {
-            id: 0,
-            name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 36.0, -148.0),
-            speed: 0.0,
-            strafe_speed: 0.0,
-            angular_speed: 0.0,
-            move_yaw: 0.0,
-            look_pitch: 0.0,
-            look_yaw: 0.0,
-            look_rotation: Quat::IDENTITY,
-        };
-
-        let mut chunks = Simulation::generate_air_chunks();
-
-        Simulation::generate_terrain(&mut chunks);
-
-        let world = World {
-            active: true,
-            seed: DEFAULT_SEED,
-            time: 0.0,
-            chunks,
-        };
-
+    pub fn new(action_rx: UnboundedReceiver<Action>) -> Simulation {
         let state = Arc::new(State {
-            entity: Arc::new(RwLock::new(entity)),
-            world: Arc::new(RwLock::new(world)),
+            agent: Simulation::setup_agent(),
+            world: Simulation::setup_world(),
+            blocks: Simulation::setup_blocks(),
+            chunks: Simulation::setup_chunks(),
         });
 
-        Simulation { state, action_rx }
+        let simulation = Simulation { action_rx, state };
+
+        simulation
     }
 
-    pub fn get_state(&self) -> Arc<State> {
-        return self.state.clone();
+    pub fn generate(&mut self) {
+        self.set_kind(IVec3::new(0, 0, 0), Kind::Metal);
+
+        self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
+
+        println!("{:?}", self.state.chunks[13].read().unwrap().blocks);
     }
 
     fn update(&mut self, dt: f32) {
         self.process_actions();
         self.evolve(dt);
+        self.track_modifications();
+    }
+
+    pub fn get_state(&self) -> Arc<State> {
+        self.state.clone()
+    }
+
+    fn track_modifications(&mut self) {
+        let mut world = self.state.world.write().unwrap();
+
+        if world.update_window > 0 {
+            world.update_window -= 1;
+        } else {
+            for chunk in self.state.chunks.iter() {
+                let mut chunk = chunk.write().unwrap();
+    
+                chunk.modified = false;
+            }
+        }
+
+        println!("Update Window: {:?}", world.update_window);
     }
 
     fn process_actions(&mut self) {
@@ -100,29 +107,29 @@ impl Simulation {
 
                     world.active = false;
                 }
-                Action::Entity(EntityAction::Move(move_actions)) => {
-                    let mut entity = self.state.entity.write().unwrap();
+                Action::Agent(AgentAction::Move(move_actions)) => {
+                    let mut agent = self.state.agent.write().unwrap();
 
-                    entity.speed = move_actions.forward + move_actions.backward;
-                    entity.strafe_speed = move_actions.left + move_actions.right;
+                    agent.speed = move_actions.forward + move_actions.backward;
+                    agent.strafe_speed = move_actions.left + move_actions.right;
                 }
-                Action::Entity(EntityAction::Rotate(rotate_actions)) => {
-                    let mut entity = self.state.entity.write().unwrap();
+                Action::Agent(AgentAction::Rotate(rotate_actions)) => {
+                    let mut agent = self.state.agent.write().unwrap();
 
-                    entity.look_yaw += rotate_actions.yaw;
-                    entity.look_pitch -= rotate_actions.pitch;
+                    agent.look_yaw += rotate_actions.yaw;
+                    agent.look_pitch -= rotate_actions.pitch;
 
-                    entity.look_pitch = entity
+                    agent.look_pitch = agent
                         .look_pitch
                         .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
 
-                    let yaw_quat = Quat::from_rotation_y(entity.look_yaw);
-                    let pitch_quat = Quat::from_rotation_x(entity.look_pitch);
+                    let yaw_quat = Quat::from_rotation_y(agent.look_yaw);
+                    let pitch_quat = Quat::from_rotation_x(agent.look_pitch);
                     let target_rotation = yaw_quat * pitch_quat;
 
-                    entity.look_rotation = entity.look_rotation.slerp(target_rotation, 0.3);
+                    agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
 
-                    entity.move_yaw = entity.look_yaw;
+                    agent.move_yaw = agent.look_yaw;
                 }
             }
         }
@@ -132,16 +139,16 @@ impl Simulation {
         let mut state = self.state.world.write().unwrap();
         state.time += dt;
 
-        let mut entity = self.state.entity.write().unwrap();
+        let mut agent = self.state.agent.write().unwrap();
 
-        let yaw_quat = Quat::from_rotation_y(entity.move_yaw);
+        let yaw_quat = Quat::from_rotation_y(agent.move_yaw);
 
         let forward = yaw_quat * Vec3::Z;
         let right = yaw_quat * Vec3::X;
 
-        let movement = forward * entity.speed + right * entity.strafe_speed;
+        let movement = forward * agent.speed + right * agent.strafe_speed;
 
-        entity.position += dt * movement;
+        agent.position += dt * movement;
     }
 
     pub fn run(&mut self) {
@@ -149,6 +156,7 @@ impl Simulation {
 
         loop {
             let now = Instant::now();
+
             let dt = now.duration_since(previous_instant).as_secs_f32();
             previous_instant = now;
 
@@ -158,136 +166,119 @@ impl Simulation {
         }
     }
 
-    fn generate_air_chunks() -> Vec<Chunk> {
-        let mut rng = Pcg64::seed_from_u64(DEFAULT_SEED);
-
-        (0..WORLD_VOLUME)
-            .map(|chunk_id| {
-                let chunk_local_position = Simulation::chunk_id_to_position(chunk_id);
-                let chunk_world_position = (CHUNK_SIZE as i32 * chunk_local_position).as_vec3();
-
-                let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_id| {
-                    let block_id = block_id as u32;
-                    let block_type = BlockType::Air;
-                    let block_local_position = Simulation::block_id_to_position(block_id);
-                    let block_world_position =
-                        chunk_world_position + block_local_position.as_vec3();
-                    let block_color: Color;
-
-                    if block_world_position.y > -5.0 {
-                        block_color =  Color {
-                            r: rng.gen_range(0.0 / 255.0..=0.0 / 255.0),
-                            g: rng.gen_range(25.0 / 255.0..=70.0 / 255.0),
-                            b: rng.gen_range(16.0 / 255.0..=36.0 / 255.0),
-                            a: 1.0,
-                        };
-                    } else {
-                        block_color =  Color {
-                            r: rng.gen_range(0.0 / 255.0..=0.0 / 255.0),
-                            g: rng.gen_range(10.0 / 255.0..=14.0 / 255.0),
-                            b: rng.gen_range(127.0 / 255.0..=167.0 / 255.0),
-                            a: 1.0,
-                        }
-                    }
-
-                    Block {
-                        id: block_id,
-                        chunk_id,
-                        block_type,
-                        local_position: block_local_position,
-                        world_position: block_world_position,
-                        color: block_color,
-                    }
-                });
-
-                Chunk {
-                    id: chunk_id,
-                    local_position: chunk_local_position,
-                    world_position: chunk_world_position,
-                    modified: true,
-                    blocks: Box::new(blocks),
-                }
-            })
-            .collect()
+    fn setup_agent() -> Arc<RwLock<Agent>> {
+        Arc::from(RwLock::from(Agent {
+            id: 0,
+            name: "Melchizedek".to_string(),
+            position: Vec3::new(0.0, 16.0, -16.0),
+            speed: 0.0,
+            strafe_speed: 0.0,
+            angular_speed: 0.0,
+            move_yaw: 0.0,
+            look_pitch: 0.0,
+            look_yaw: 0.0,
+            look_rotation: Quat::IDENTITY,
+        }))
     }
 
-    fn generate_terrain(chunks: &mut Vec<Chunk>) {
-        let perlin = Perlin::new(DEFAULT_SEED as u32);
+    fn setup_world() -> Arc<RwLock<World>> {
+        Arc::from(RwLock::from(World {
+            active: true,
+            update_window: 0,
+            seed: SEED,
+            time: 0.0,
+        }))
+    }
 
-        let world_block_limit = WORLD_BOUNDARY as i32;
+    fn setup_blocks() -> Arc<[Block]> {
+        Arc::from([
+            Block {
+                kind: block::Kind::Air,
+                opacity: 1.0,
+                color: Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                    a: 0.0,
+                },
+            },
+            Block {
+                kind: block::Kind::Metal,
+                opacity: 1.0,
+                color: Color {
+                    r: 0.0,
+                    g: 1.0,
+                    b: 1.0,
+                    a: 1.0,
+                },
+            },
+            Block {
+                kind: block::Kind::Concrete,
+                opacity: 1.0,
+                color: Color {
+                    r: 1.0,
+                    g: 0.0,
+                    b: 1.0,
+                    a: 1.0,
+                },
+            },
+        ])
+    }
 
-        for x in -world_block_limit..world_block_limit {
-            for z in -world_block_limit..world_block_limit {
-                let height = Simulation::get_height(x, z, &perlin);
+    fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
+        let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME as usize] =
+            core::array::from_fn(|chunk_id| {
+                Arc::from(RwLock::from(Chunk {
+                    modified: false,
+                    local_position: Simulation::chunk_id_to_position(chunk_id as u32),
+                    world_position: (CHUNK_SIZE as i32
+                        * Simulation::chunk_id_to_position(chunk_id as u32))
+                    .as_vec3(),
+                    palette: Vec::from([Kind::Air]),
+                    blocks: Box::new([0; CHUNK_VOLUME as usize]),
+                }))
+            });
 
-                for y in -world_block_limit..world_block_limit {
-                    if y == -5 {
-                        Simulation::set_block_type(chunks,&IVec3::new(x, y, z), BlockType::Solid);
-                    } else if y <= height && y > -5 {
-                        Simulation::set_block_type(chunks, &IVec3::new(x, y, z), BlockType::Solid);
+        Arc::from(chunks)
+    }
+
+    fn set_kind(&mut self, grid_position: IVec3, kind: Kind) {
+        if let Some(chunk_id) = Simulation::get_chunk_id(&grid_position) {
+            let chunk = &self.state.chunks[chunk_id as usize];
+
+            {
+                let chunk = chunk.read().unwrap();
+
+                if let Some(block_id) = Simulation::get_block_id(&grid_position) {
+                    let current_index = chunk.blocks[block_id as usize];
+
+                    if chunk.palette.get(current_index as usize) == Some(&kind) {
+                        return;
                     }
                 }
+            }
+
+            let mut chunk = chunk.write().unwrap();
+
+            if let Some(block_id) = Simulation::get_block_id(&grid_position) {
+                let kind_index = match chunk
+                    .palette
+                    .iter()
+                    .position(|target_kind| *target_kind == kind)
+                {
+                    Some(i) => i as u32,
+                    None => {
+                        chunk.palette.push(kind);
+                        (chunk.palette.len() - 1) as u32
+                    }
+                };
+
+                chunk.blocks[block_id as usize] = kind_index;
             }
         }
     }
 
-    fn generate_test_chunks() -> Vec<Chunk> {
-        let mut rng = Pcg64::seed_from_u64(DEFAULT_SEED);
-
-        (0..WORLD_VOLUME)
-            .map(|chunk_id| {
-                let chunk_local_position = Simulation::chunk_id_to_position(chunk_id);
-                let chunk_world_position = (CHUNK_SIZE as i32 * chunk_local_position).as_vec3();
-
-                let blocks: [Block; CHUNK_VOLUME as usize] = core::array::from_fn(|block_id| {
-                    let block_id = block_id as u32;
-                    let block_type: BlockType;
-                    let block_local_position = Simulation::block_id_to_position(block_id);
-                    let block_world_position =
-                        chunk_world_position + block_local_position.as_vec3();
-                    let block_color: Color;
-
-                    let roll = rng.gen::<f32>();
-
-                    if roll < 1.0 {
-                        block_type = BlockType::Solid;
-
-                        if chunk_id % 3 == 0 {
-                            block_color = Color::RED;
-                        } else if chunk_id % 3 == 1 {
-                            block_color = Color::GREEN;
-                        } else if chunk_id % 3 == 2 {
-                            block_color = Color::BLUE;
-                        } else {
-                            block_color = Color::WHITE;
-                        }
-                    } else {
-                        block_type = BlockType::Air;
-                        block_color = Color::WHITE;
-                    }
-
-                    Block {
-                        id: block_id,
-                        chunk_id,
-                        block_type,
-                        local_position: block_local_position,
-                        world_position: block_world_position,
-                        color: block_color,
-                    }
-                });
-
-                Chunk {
-                    id: chunk_id,
-                    local_position: chunk_local_position,
-                    world_position: chunk_world_position,
-                    modified: true,
-                    blocks: Box::new(blocks),
-                }
-            })
-            .collect()
-    }
-
-    fn chunk_id_to_position(id: u32) -> IVec3 {
+    pub fn chunk_id_to_position(id: u32) -> IVec3 {
         let x = (id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
         let y = (id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
         let z = (id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
@@ -295,7 +286,7 @@ impl Simulation {
         IVec3::new(x, y, z)
     }
 
-    fn block_id_to_position(id: u32) -> IVec3 {
+    pub fn block_id_to_position(id: u32) -> IVec3 {
         let x = (id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
         let y = (id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
         let z = (id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
@@ -340,10 +331,10 @@ impl Simulation {
     fn get_block_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
             let grid_position_normalized = grid_position + IVec3::splat(CHUNK_RADIUS as i32);
-    
+
             let local_block_position =
                 grid_position_normalized.rem_euclid(IVec3::splat(CHUNK_SIZE as i32));
-    
+
             Some(
                 (local_block_position.x as u32
                     + local_block_position.z as u32 * CHUNK_SIZE
@@ -361,35 +352,13 @@ impl Simulation {
     }
 
     fn is_on_map(grid_position: &IVec3) -> bool {
-        let in_x_range = grid_position.x >= -(WORLD_BOUNDARY as i32)
-            && grid_position.x <= WORLD_BOUNDARY as i32;
-        let in_y_range = grid_position.y >= -(WORLD_BOUNDARY as i32)
-            && grid_position.y <= WORLD_BOUNDARY as i32;
-        let in_z_range = grid_position.z >= -(WORLD_BOUNDARY as i32)
-            && grid_position.z <= WORLD_BOUNDARY as i32;
+        let in_x_range =
+            grid_position.x >= -(WORLD_BOUNDARY as i32) && grid_position.x <= WORLD_BOUNDARY as i32;
+        let in_y_range =
+            grid_position.y >= -(WORLD_BOUNDARY as i32) && grid_position.y <= WORLD_BOUNDARY as i32;
+        let in_z_range =
+            grid_position.z >= -(WORLD_BOUNDARY as i32) && grid_position.z <= WORLD_BOUNDARY as i32;
 
         in_x_range && in_y_range && in_z_range
-    }
-
-    fn get_height(x: i32, z: i32, perlin: &Perlin) -> i32 {
-        let noise_value = perlin.get([x as f64 * TERRAIN_SCALE, z as f64 * TERRAIN_SCALE]);
-        let height = (noise_value * TERRAIN_HEIGHT as f64) as i32;
-
-        height
-    }
-
-    fn set_block_type(chunks: &mut Vec<Chunk>, grid_position: &IVec3, block_type: BlockType) {
-        if Simulation::is_on_map(grid_position) {
-            if let Some(chunk_id) = Simulation::get_chunk_id(grid_position) {
-                if let Some(chunk) = chunks.get_mut(chunk_id as usize) {
-                    if let Some(block_id) = Simulation::get_block_id(grid_position) {
-                        if let Some(block) = chunk.blocks.get_mut(block_id as usize) {
-                            chunk.modified = true;
-                            block.block_type = block_type;
-                        }
-                    }
-                }
-            }
-        }
     }
 }

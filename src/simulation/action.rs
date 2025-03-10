@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum Action {
     World(WorldAction),
-    Entity(EntityAction),
+    Agent(AgentAction),
 }
 
 #[derive(Debug)]
@@ -24,7 +24,7 @@ pub struct RotateActions {
 }
 
 #[derive(Debug)]
-pub enum EntityAction {
+pub enum AgentAction {
     Move(MoveActions),
     Rotate(RotateActions),
 }

@@ -23,9 +23,6 @@ use winit::{
     window::{Window, WindowId},
 };
 
-pub type ActionSender = UnboundedSender<Action>;
-pub type ActionReceiver = UnboundedReceiver<Action>;
-
 #[derive(Default)]
 struct App {
     window: Option<Arc<Window>>,
@@ -46,9 +43,12 @@ impl ApplicationHandler for App {
         let (action_tx, action_rx) = unbounded_channel();
 
         let mut simulation = Simulation::new(action_rx);
+        simulation.generate();
+        
         let state = simulation.get_state();
 
-        let interface = pollster::block_on(Interface::new(window.clone(), state, action_tx));
+        let interface_future = Interface::new(action_tx, window.clone(), state);
+        let interface = pollster::block_on(interface_future);
 
         let simulation_thread = thread::spawn(move || simulation.run());
 
@@ -71,7 +71,7 @@ impl ApplicationHandler for App {
     }
 }
 
-/// The entrypoint for Last Ditch
+/// Application entrypoint
 pub async fn run() {
     env_logger::init();
 

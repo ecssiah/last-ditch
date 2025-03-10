@@ -2,10 +2,11 @@ pub mod camera;
 pub mod input;
 pub mod render;
 
-use crate::{simulation::{action::{Action, EntityAction}, state::State}, ActionSender};
+use crate::simulation::{action::{Action, AgentAction}, state::State};
 use camera::Camera;
 use input::Input;
 use render::Render;
+use tokio::sync::mpsc::UnboundedSender;
 use std::sync::Arc;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
@@ -23,20 +24,22 @@ pub const MOUSE_PITCH_SENSITIVITY: f32 = 0.006;
 pub struct Interface {
     _window: Arc<Window>,
     state: Arc<State>,
-    action_tx: ActionSender,
+    action_tx: UnboundedSender<Action>,
     camera: Camera,
     input: Input,
     render: Render,
 }
 
 impl Interface {
-    pub async fn new(window: Arc<Window>, state: Arc<State>, action_tx: ActionSender) -> Interface {
+    pub async fn new(action_tx: UnboundedSender<Action>, window: Arc<Window>, state: Arc<State>) -> Interface {
         let camera = Camera::new();
         let input = Input::new(action_tx.clone());
         let render = pollster::block_on(Render::new(
             window.clone(),
-            state.entity.clone(),
+            state.agent.clone(),
             state.world.clone(),
+            state.blocks.clone(),
+            state.chunks.clone(),
         ));
 
         window.set_cursor_visible(false);
@@ -68,7 +71,7 @@ impl Interface {
 
     fn send_move_actions(&mut self) {
         self.action_tx
-            .send(Action::Entity(EntityAction::Move(self.input.get_move_actions())))
+            .send(Action::Agent(AgentAction::Move(self.input.get_move_actions())))
             .unwrap();
     }
 
@@ -77,7 +80,7 @@ impl Interface {
 
         if rotate_actions.yaw.abs() > 1e-6 || rotate_actions.pitch.abs() > 1e-6 {
             self.action_tx
-                .send(Action::Entity(EntityAction::Rotate(rotate_actions)))
+                .send(Action::Agent(AgentAction::Rotate(rotate_actions)))
                 .unwrap();
         }
     }

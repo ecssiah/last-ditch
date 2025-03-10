@@ -1,17 +1,13 @@
+use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
-    simulation::{
-        block::{Block, BlockType},
-        state::{Entity, World},
-    },
+    simulation::{agent::Agent, block::Block, chunk::Chunk, world::World, Simulation, CHUNK_SIZE, CHUNK_VOLUME},
 };
 use bytemuck::{Pod, Zeroable};
-use glam::{Mat4, Vec3};
+use glam::{IVec3, Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
-
-use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 
 const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
@@ -55,8 +51,10 @@ pub struct VoxelRender {
 
 pub struct Render {
     window: Arc<Window>,
-    entity: Arc<RwLock<Entity>>,
+    agent: Arc<RwLock<Agent>>,
     world: Arc<RwLock<World>>,
+    blocks: Arc<[Block]>,
+    chunks: Arc<[Arc<RwLock<Chunk>>]>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     size: winit::dpi::PhysicalSize<u32>,
@@ -72,8 +70,10 @@ pub struct Render {
 impl Render {
     pub async fn new(
         window: Arc<Window>,
-        entity: Arc<RwLock<Entity>>,
+        agent: Arc<RwLock<Agent>>,
         world: Arc<RwLock<World>>,
+        blocks: Arc<[Block]>,
+        chunks: Arc<[Arc<RwLock<Chunk>>]>,
     ) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
@@ -141,22 +141,15 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let (voxel_translucent_instances, voxel_solid_instances) =
-            Render::read_world(entity.clone(), world.clone());
-
-        let voxel_instances: Vec<VoxelInstance> = voxel_solid_instances
-            .iter()
-            .chain(voxel_translucent_instances.iter())
-            .copied()
-            .collect();
-
-        let voxel_instance_count = voxel_instances.len() as u32;
-
-        let voxel_instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Voxel Instance Buffer"),
-            contents: bytemuck::cast_slice(voxel_instances.as_slice()),
+        let voxel_instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Empty Buffer"),
+            size: 4,
             usage: wgpu::BufferUsages::VERTEX,
+            mapped_at_creation: false,
         });
+
+        let voxel_instances = Vec::new();
+        let voxel_instance_count = voxel_instances.len() as u32;
 
         let voxel_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -183,8 +176,10 @@ impl Render {
 
         let render = Render {
             window,
-            entity,
+            agent,
             world,
+            blocks,
+            chunks,
             device,
             queue,
             size,
@@ -208,6 +203,24 @@ impl Render {
 
     pub fn render(&mut self) {
         self.update_view_projection();
+
+        if self.world.read().unwrap().update_window > 0 {
+            let voxel_instances = self.read_chunks();
+            let voxel_instance_count = voxel_instances.len() as u32;
+
+            if voxel_instance_count > 0 {
+                let voxel_instance_buffer =
+                    self.device
+                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                            label: Some("Voxel Instance Buffer"),
+                            contents: bytemuck::cast_slice(voxel_instances.as_slice()),
+                            usage: wgpu::BufferUsages::VERTEX,
+                        });
+
+                self.voxel_render.instance_buffer = voxel_instance_buffer;
+                self.voxel_render.instance_count = voxel_instance_count;
+            }
+        }
 
         let surface_texture = self
             .surface
@@ -273,42 +286,31 @@ impl Render {
         }
     }
 
-    fn read_world(
-        entity: Arc<RwLock<Entity>>,
-        world: Arc<RwLock<World>>,
-    ) -> (Vec<VoxelInstance>, Vec<VoxelInstance>) {
-        let world = world.read().unwrap();
+    fn read_chunks(&self) -> Vec<VoxelInstance> {
+        let mut voxel_instances: Vec<VoxelInstance> = Vec::new();
 
-        let mut translucent_instances: Vec<VoxelInstance> = Vec::new();
-        let mut solid_instances: Vec<VoxelInstance> = Vec::new();
+        for chunk in self.chunks.iter() {
+            let chunk = chunk.read().unwrap();
 
-        for chunk in world.chunks.iter() {
-            for block in chunk.blocks.iter() {
-                match block.block_type {
-                    BlockType::Air => (),
-                    BlockType::Translucent => {
-                        let instance = Render::create_instance(block);
+            for block_id in 0..CHUNK_VOLUME {
+                let grid_position = Simulation::block_id_to_position(block_id);
+                let kind_id = chunk.blocks[block_id as usize];
 
-                        translucent_instances.push(instance);
-                    }
-                    BlockType::Solid => {
-                        let instance = Render::create_instance(block);
-
-                        solid_instances.push(instance);
-                    }
+                if kind_id > 0 {
+                    let voxel_instance = self.create_instance(grid_position, kind_id);
+                    
+                    voxel_instances.push(voxel_instance);
                 }
             }
         }
 
-        let entity = entity.read().unwrap();
+        println!("Finished Reading");
 
-        Render::sort_instances_by_depth(entity.position, &mut translucent_instances);
-
-        (translucent_instances, solid_instances)
+        voxel_instances
     }
 
     fn update_view_projection(&mut self) {
-        let view_projection_matrix = Render::create_view_projection_matrix(self.entity.clone());
+        let view_projection_matrix = Render::create_view_projection_matrix(self.agent.clone());
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -317,18 +319,14 @@ impl Render {
         );
     }
 
-    fn create_instance(block: &Block) -> VoxelInstance {
+    fn create_instance(&self, grid_position: IVec3, kind_id: u32) -> VoxelInstance {
         VoxelInstance {
-            position: [
-                block.world_position.x,
-                block.world_position.y,
-                block.world_position.z,
-            ],
+            position: grid_position.as_vec3().into(),
             color: [
-                block.color.r as f32,
-                block.color.g as f32,
-                block.color.b as f32,
-                block.color.a as f32,
+                self.blocks[kind_id as usize].color.r as f32,
+                self.blocks[kind_id as usize].color.g as f32,
+                self.blocks[kind_id as usize].color.b as f32,
+                self.blocks[kind_id as usize].color.a as f32,
             ],
         }
     }
@@ -430,17 +428,17 @@ impl Render {
         })
     }
 
-    fn create_view_projection_matrix(entity: Arc<RwLock<Entity>>) -> [[f32; 4]; 4] {
-        let entity = entity.read().unwrap();
+    fn create_view_projection_matrix(agent: Arc<RwLock<Agent>>) -> [[f32; 4]; 4] {
+        let agent = agent.read().unwrap();
 
         let projection =
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let wgpu_projection = OPENGL_TO_WGPU_MATRIX * projection;
 
-        let forward = entity.look_rotation * Vec3::Z;
-        let up = entity.look_rotation * Vec3::Y;
+        let forward = agent.look_rotation * Vec3::Z;
+        let up = agent.look_rotation * Vec3::Y;
 
-        let eye = entity.position;
+        let eye = agent.position;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

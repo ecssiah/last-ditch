@@ -1,8 +1,6 @@
-use crate::{
-    simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED},
-    ActionSender,
-};
+use crate::simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED};
 use glam::Vec2;
+use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalPosition,
     event::{
@@ -19,14 +17,14 @@ pub struct MouseState {
 }
 
 pub struct Input {
-    action_tx: ActionSender,
+    action_tx: UnboundedSender<Action>,
     move_actions: MoveActions,
     rotate_actions: RotateActions,
     mouse_state: MouseState,
 }
 
 impl Input {
-    pub fn new(action_tx: ActionSender) -> Input {
+    pub fn new(action_tx: UnboundedSender<Action>) -> Input {
         let move_actions = MoveActions {
             forward: 0.0,
             backward: 0.0,
