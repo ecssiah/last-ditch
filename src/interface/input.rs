@@ -1,5 +1,5 @@
 use super::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY};
-use crate::simulation::action::{Action, MoveActions, RotateActions, WorldAction};
+use crate::simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_X_SPEED, DEFAULT_Z_SPEED};
 use glam::Vec2;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
@@ -89,8 +89,8 @@ impl Input {
 
     pub fn get_move_actions(&mut self) -> MoveActions {
         let move_actions = MoveActions {
-            x_axis: self.key_state.a + self.key_state.d,
-            z_axis: self.key_state.w + self.key_state.s,
+            x_axis: DEFAULT_X_SPEED * (self.key_state.a + self.key_state.d),
+            z_axis: DEFAULT_Z_SPEED * (self.key_state.w + self.key_state.s),
         };
 
         move_actions

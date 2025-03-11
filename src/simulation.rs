@@ -91,6 +91,21 @@ impl Simulation {
         self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
     }
 
+    pub fn run(&mut self) {
+        let mut previous_instant = Instant::now();
+
+        loop {
+            let now = Instant::now();
+
+            let dt = now.duration_since(previous_instant).as_secs_f32();
+            previous_instant = now;
+
+            self.update(dt);
+
+            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
+        }
+    }
+
     fn update(&mut self, dt: f32) {
         self.process_actions();
         self.evolve(dt);
@@ -140,10 +155,8 @@ impl Simulation {
     fn process_move_actions(&mut self, move_actions: &MoveActions) {
         let mut agent = self.state.agent.write().unwrap();
 
-        println!("{:?}", move_actions);
-
-        agent.z_speed = DEFAULT_Z_SPEED * move_actions.z_axis;
-        agent.x_speed = DEFAULT_X_SPEED * move_actions.x_axis;
+        agent.z_speed = move_actions.z_axis;
+        agent.x_speed = move_actions.x_axis;
     }
 
     fn process_rotate_actions(&mut self, rotate_actions: &RotateActions) {
@@ -158,6 +171,7 @@ impl Simulation {
 
         let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
         let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
+
         let target_rotation = y_axis_quat * x_axis_quat;
 
         agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
@@ -166,34 +180,26 @@ impl Simulation {
     }
 
     fn evolve(&mut self, dt: f32) {
+        self.evolve_world(dt);
+        self.evolve_agents(dt);
+    }
+
+    fn evolve_world(&mut self, dt: f32) {
         let mut state = self.state.world.write().unwrap();
         state.time += dt;
+    }
 
+    fn evolve_agents(&mut self, dt: f32) {
         let mut agent = self.state.agent.write().unwrap();
 
         let y_axis_quat = Quat::from_rotation_y(agent.move_y_axis);
 
-        let forward = y_axis_quat * Vec3::Z;
-        let right = y_axis_quat * Vec3::X;
+        let agent_z_axis = y_axis_quat * Vec3::Z;
+        let agent_x_axis = y_axis_quat * Vec3::X;
 
-        let movement = forward * agent.z_speed + right * agent.x_speed;
+        let movement = agent.z_speed * agent_z_axis + agent.x_speed * agent_x_axis * agent.x_speed;
 
         agent.position += dt * movement;
-    }
-
-    pub fn run(&mut self) {
-        let mut previous_instant = Instant::now();
-
-        loop {
-            let now = Instant::now();
-
-            let dt = now.duration_since(previous_instant).as_secs_f32();
-            previous_instant = now;
-
-            self.update(dt);
-
-            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
-        }
     }
 
     fn setup_agent() -> Arc<RwLock<Agent>> {
