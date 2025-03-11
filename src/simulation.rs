@@ -291,22 +291,18 @@ impl Simulation {
 
     pub fn chunk_id_to_position(chunk_id: u32) -> IVec3 {
         let x = (chunk_id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let y = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
-        let z = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-
-        let chunk_position = IVec3::new(x, y, z);
-
-        chunk_position
+        let y = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let z = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
+    
+        IVec3::new(x, y, z)
     }
 
     pub fn block_id_to_position(block_id: u32) -> IVec3 {
         let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let y = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
-        let z = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-
-        let block_position = IVec3::new(x, y, z);
-
-        block_position
+        let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+        let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+    
+        IVec3::new(x, y, z)
     }
 
     fn chunk_position_to_id(chunk_position: &IVec3) -> u32 {
@@ -334,8 +330,8 @@ impl Simulation {
             });
 
             let chunk_id = chunk_position_normalized.x
-                + chunk_position_normalized.z * WORLD_SIZE as i32
-                + chunk_position_normalized.y * WORLD_AREA as i32;
+                + chunk_position_normalized.y * WORLD_SIZE as i32
+                + chunk_position_normalized.z * WORLD_AREA as i32;
 
             Some(chunk_id as u32)
         } else {
@@ -352,8 +348,8 @@ impl Simulation {
             });
 
             let block_id = grid_position_normalized.x
-                + grid_position_normalized.z * CHUNK_SIZE as i32
-                + grid_position_normalized.y * CHUNK_AREA as i32;
+                + grid_position_normalized.y * CHUNK_SIZE as i32
+                + grid_position_normalized.z * CHUNK_AREA as i32;
 
             Some(block_id as u32)
         } else {

@@ -307,8 +307,6 @@ impl Render {
                     let grid_position = Simulation::get_grid_position(chunk_id, block_id);
                     let block = &self.blocks[kind as usize];
 
-                    // println!("Chunk: {:?} Block: {:?} Grid: {:?}", chunk_id, block_id, grid_position);
-
                     let voxel_instance = self.create_instance(grid_position, block);
                     voxel_instances.push(voxel_instance);
                 }
