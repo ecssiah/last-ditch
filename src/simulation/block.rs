@@ -1,15 +1,16 @@
-use wgpu::Color;
+use serde::Deserialize;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Copy, Clone, PartialEq)]
 pub enum Kind {
     Air,
     Metal,
     Concrete,
+    Wood,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Block {
     pub kind: Kind,
     pub opacity: f32,
-    pub color: Color,
+    pub color: (f32, f32, f32, f32),
 }

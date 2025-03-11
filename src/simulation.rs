@@ -17,8 +17,9 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
-use wgpu::Color;
 use world::World;
+use ron::de::from_reader;
+use std::fs::File;
 
 pub const SEED: u64 = 101;
 pub const SIMULATION_WAIT: u64 = 16;
@@ -205,39 +206,11 @@ impl Simulation {
         }))
     }
 
-    fn setup_blocks() -> Arc<[Block]> {
-        Arc::from([
-            Block {
-                kind: block::Kind::Air,
-                opacity: 1.0,
-                color: Color {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.0,
-                    a: 0.0,
-                },
-            },
-            Block {
-                kind: block::Kind::Metal,
-                opacity: 1.0,
-                color: Color {
-                    r: 0.0,
-                    g: 1.0,
-                    b: 1.0,
-                    a: 1.0,
-                },
-            },
-            Block {
-                kind: block::Kind::Concrete,
-                opacity: 1.0,
-                color: Color {
-                    r: 1.0,
-                    g: 0.0,
-                    b: 1.0,
-                    a: 1.0,
-                },
-            },
-        ])
+    fn setup_blocks() -> Arc<Vec<Block>> {
+        let file = File::open("config/blocks.ron").unwrap();
+        let block_list: Vec<Block> = from_reader(file).unwrap();
+
+        Arc::from(block_list)
     }
 
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
@@ -259,14 +232,14 @@ impl Simulation {
             if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                let kind_id = self.get_kind_id(kind, &mut chunk);
+                let kind_id = self.get_kind_id(&mut chunk, kind);
 
                 chunk.blocks[block_id as usize] = kind_id;
             }
         }
     }
 
-    fn get_kind_id(&self, kind: Kind, chunk: &mut Chunk) -> u32 {
+    fn get_kind_id(&self, chunk: &mut Chunk, kind: Kind) -> u32 {
         match chunk
             .palette
             .iter()
@@ -276,8 +249,8 @@ impl Simulation {
             None => {
                 chunk.palette.push(kind.clone());
 
-                let id = (chunk.palette.len() - 1) as u32;
-                id
+                let id = chunk.palette.len() - 1;
+                id as u32
             }
         }
     }

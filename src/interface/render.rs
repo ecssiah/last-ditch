@@ -57,7 +57,7 @@ pub struct Render {
     window: Arc<Window>,
     agent: Arc<RwLock<Agent>>,
     world: Arc<RwLock<World>>,
-    blocks: Arc<[Block]>,
+    blocks: Arc<Vec<Block>>,
     chunks: Arc<[Arc<RwLock<Chunk>>]>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -75,7 +75,7 @@ impl Render {
         window: Arc<Window>,
         agent: Arc<RwLock<Agent>>,
         world: Arc<RwLock<World>>,
-        blocks: Arc<[Block]>,
+        blocks: Arc<Vec<Block>>,
         chunks: Arc<[Arc<RwLock<Chunk>>]>,
     ) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -326,10 +326,10 @@ impl Render {
         VoxelInstance {
             position: grid_position.as_vec3().into(),
             color: [
-                block.color.r as f32,
-                block.color.g as f32,
-                block.color.b as f32,
-                block.color.a as f32,
+                block.color.0 as f32,
+                block.color.1 as f32,
+                block.color.2 as f32,
+                block.color.3 as f32,
             ],
         }
     }
