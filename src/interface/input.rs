@@ -11,10 +11,10 @@ use winit::{
 };
 
 pub struct KeyState {
-    w: f32,
-    a: f32,
-    s: f32,
-    d: f32,
+    key_w: f32,
+    key_a: f32,
+    key_s: f32,
+    key_d: f32,
 }
 
 pub struct MouseState {
@@ -31,10 +31,10 @@ pub struct Input {
 impl Input {
     pub fn new(action_tx: UnboundedSender<Action>) -> Input {
         let key_state = KeyState {
-            w: 0.0,
-            a: 0.0,
-            s: 0.0,
-            d: 0.0,
+            key_w: 0.0,
+            key_a: 0.0,
+            key_s: 0.0,
+            key_d: 0.0,
         };
 
         let mouse_state = MouseState {
@@ -89,8 +89,8 @@ impl Input {
 
     pub fn get_move_actions(&mut self) -> MoveActions {
         let move_actions = MoveActions {
-            x_axis: DEFAULT_X_SPEED * (self.key_state.a + self.key_state.d),
-            z_axis: DEFAULT_Z_SPEED * (self.key_state.w + self.key_state.s),
+            x_axis: DEFAULT_X_SPEED * (self.key_state.key_a + self.key_state.key_d),
+            z_axis: DEFAULT_Z_SPEED * (self.key_state.key_w + self.key_state.key_s),
         };
 
         move_actions
@@ -125,30 +125,30 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.w += 1.0;
+                    self.key_state.key_w += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.w -= 1.0;
+                    self.key_state.key_w -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.s -= 1.0;
+                    self.key_state.key_s -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.s += 1.0;
+                    self.key_state.key_s += 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.a += 1.0;
+                    self.key_state.key_a += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.a -= 1.0;
+                    self.key_state.key_a -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.d -= 1.0;
+                    self.key_state.key_d -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.d += 1.0;
+                    self.key_state.key_d += 1.0;
                 }
             }
             _ => (),

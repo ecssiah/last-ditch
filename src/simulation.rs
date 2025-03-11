@@ -197,7 +197,7 @@ impl Simulation {
         let agent_z_axis = y_axis_quat * Vec3::Z;
         let agent_x_axis = y_axis_quat * Vec3::X;
 
-        let movement = agent.z_speed * agent_z_axis + agent.x_speed * agent_x_axis * agent.x_speed;
+        let movement = agent.z_speed * agent_z_axis + agent.x_speed * agent_x_axis;
 
         agent.position += dt * movement;
     }
