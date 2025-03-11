@@ -1,7 +1,5 @@
-use crate::simulation::{
-    action::{Action, MoveActions, RotateActions, WorldAction},
-    DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED,
-};
+use super::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY};
+use crate::simulation::action::{Action, MoveActions, RotateActions, WorldAction};
 use glam::Vec2;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
@@ -12,7 +10,12 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
 };
 
-use super::{MOUSE_PITCH_SENSITIVITY, MOUSE_YAW_SENSITIVITY};
+pub struct KeyState {
+    w: f32,
+    a: f32,
+    s: f32,
+    d: f32,
+}
 
 pub struct MouseState {
     last_position: Option<Vec2>,
@@ -21,17 +24,17 @@ pub struct MouseState {
 
 pub struct Input {
     action_tx: UnboundedSender<Action>,
-    move_actions: MoveActions,
+    key_state: KeyState,
     mouse_state: MouseState,
 }
 
 impl Input {
     pub fn new(action_tx: UnboundedSender<Action>) -> Input {
-        let move_actions = MoveActions {
-            forward: 0.0,
-            backward: 0.0,
-            left: 0.0,
-            right: 0.0,
+        let key_state = KeyState {
+            w: 0.0,
+            a: 0.0,
+            s: 0.0,
+            d: 0.0,
         };
 
         let mouse_state = MouseState {
@@ -41,7 +44,7 @@ impl Input {
 
         Input {
             action_tx,
-            move_actions,
+            key_state,
             mouse_state,
         }
     }
@@ -84,14 +87,19 @@ impl Input {
         }
     }
 
-    pub fn get_move_actions(&self) -> MoveActions {
-        self.move_actions
+    pub fn get_move_actions(&mut self) -> MoveActions {
+        let move_actions = MoveActions {
+            x_axis: self.key_state.a + self.key_state.d,
+            z_axis: self.key_state.w + self.key_state.s,
+        };
+
+        move_actions
     }
 
     pub fn get_rotate_actions(&mut self) -> RotateActions {
         let rotate_actions = RotateActions {
-            yaw: -MOUSE_YAW_SENSITIVITY * self.mouse_state.delta.x,
-            pitch: -MOUSE_PITCH_SENSITIVITY * self.mouse_state.delta.y,
+            x_axis: -MOUSE_X_SENSITIVITY * self.mouse_state.delta.y,
+            y_axis: -MOUSE_Y_SENSITIVITY * self.mouse_state.delta.x,
         };
 
         self.reset_mouse_state();
@@ -117,30 +125,30 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.move_actions.forward += DEFAULT_LINEAR_SPEED;
+                    self.key_state.w += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.move_actions.forward -= DEFAULT_LINEAR_SPEED;
+                    self.key_state.w -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.move_actions.forward -= DEFAULT_LINEAR_SPEED;
+                    self.key_state.s -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.move_actions.forward += DEFAULT_LINEAR_SPEED;
+                    self.key_state.s += 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.move_actions.left += DEFAULT_STRAFE_SPEED;
+                    self.key_state.a += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.move_actions.left -= DEFAULT_STRAFE_SPEED;
+                    self.key_state.a -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.move_actions.right -= DEFAULT_STRAFE_SPEED;
+                    self.key_state.d -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.move_actions.right += DEFAULT_STRAFE_SPEED;
+                    self.key_state.d += 1.0;
                 }
             }
             _ => (),

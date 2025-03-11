@@ -21,8 +21,8 @@ pub const FOV: f32 = 45.0;
 pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 100.0;
 
-pub const MOUSE_YAW_SENSITIVITY: f32 = 0.009;
-pub const MOUSE_PITCH_SENSITIVITY: f32 = 0.006;
+pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
+pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
 pub struct Interface {
     _window: Arc<Window>,
@@ -77,17 +77,17 @@ impl Interface {
     }
 
     fn send_move_actions(&mut self) {
+        let move_actions = self.input.get_move_actions();
+
         self.action_tx
-            .send(Action::Agent(AgentAction::Move(
-                self.input.get_move_actions(),
-            )))
+            .send(Action::Agent(AgentAction::Move(move_actions)))
             .unwrap();
     }
 
     fn send_rotate_actions(&mut self) {
         let rotate_actions = self.input.get_rotate_actions();
 
-        if rotate_actions.yaw.abs() > 1e-6 || rotate_actions.pitch.abs() > 1e-6 {
+        if rotate_actions.y_axis.abs() > 1e-6 || rotate_actions.x_axis.abs() > 1e-6 {
             self.action_tx
                 .send(Action::Agent(AgentAction::Rotate(rotate_actions)))
                 .unwrap();

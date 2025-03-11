@@ -5,12 +5,14 @@ pub mod chunk;
 pub mod state;
 pub mod world;
 
-use action::{Action, AgentAction, WorldAction};
+use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 use block::{Block, Kind};
 use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
+use ron::de::from_reader;
 use state::State;
+use std::fs::File;
 use std::{
     sync::{Arc, RwLock},
     thread,
@@ -18,15 +20,13 @@ use std::{
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
-use ron::de::from_reader;
-use std::fs::File;
 
 pub const SEED: u64 = 101;
 pub const SIMULATION_WAIT: u64 = 16;
 pub const UPDATE_WINDOW: u32 = 2;
 
-pub const DEFAULT_LINEAR_SPEED: f32 = 22.0;
-pub const DEFAULT_STRAFE_SPEED: f32 = 22.0;
+pub const DEFAULT_Z_SPEED: f32 = 22.0;
+pub const DEFAULT_X_SPEED: f32 = 22.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
@@ -119,36 +119,50 @@ impl Simulation {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
                 Action::World(WorldAction::Quit) => {
-                    let mut world = self.state.world.write().unwrap();
-
-                    world.active = false;
+                    self.process_quit_action();
                 }
                 Action::Agent(AgentAction::Move(move_actions)) => {
-                    let mut agent = self.state.agent.write().unwrap();
-
-                    agent.speed = move_actions.forward + move_actions.backward;
-                    agent.strafe_speed = move_actions.left + move_actions.right;
+                    self.process_move_actions(&move_actions);
                 }
                 Action::Agent(AgentAction::Rotate(rotate_actions)) => {
-                    let mut agent = self.state.agent.write().unwrap();
-
-                    agent.look_yaw += rotate_actions.yaw;
-                    agent.look_pitch -= rotate_actions.pitch;
-
-                    agent.look_pitch = agent
-                        .look_pitch
-                        .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
-
-                    let yaw_quat = Quat::from_rotation_y(agent.look_yaw);
-                    let pitch_quat = Quat::from_rotation_x(agent.look_pitch);
-                    let target_rotation = yaw_quat * pitch_quat;
-
-                    agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
-
-                    agent.move_yaw = agent.look_yaw;
+                    self.process_rotate_actions(&rotate_actions);
                 }
             }
         }
+    }
+
+    fn process_quit_action(&mut self) {
+        let mut world = self.state.world.write().unwrap();
+
+        world.active = false;
+    }
+
+    fn process_move_actions(&mut self, move_actions: &MoveActions) {
+        let mut agent = self.state.agent.write().unwrap();
+
+        println!("{:?}", move_actions);
+
+        agent.z_speed = DEFAULT_Z_SPEED * move_actions.z_axis;
+        agent.x_speed = DEFAULT_X_SPEED * move_actions.x_axis;
+    }
+
+    fn process_rotate_actions(&mut self, rotate_actions: &RotateActions) {
+        let mut agent = self.state.agent.write().unwrap();
+
+        agent.look_y_axis += rotate_actions.y_axis;
+        agent.look_x_axis -= rotate_actions.x_axis;
+
+        agent.look_x_axis = agent
+            .look_x_axis
+            .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
+
+        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
+        let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
+        let target_rotation = y_axis_quat * x_axis_quat;
+
+        agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
+
+        agent.move_y_axis = agent.look_y_axis;
     }
 
     fn evolve(&mut self, dt: f32) {
@@ -157,12 +171,12 @@ impl Simulation {
 
         let mut agent = self.state.agent.write().unwrap();
 
-        let yaw_quat = Quat::from_rotation_y(agent.move_yaw);
+        let y_axis_quat = Quat::from_rotation_y(agent.move_y_axis);
 
-        let forward = yaw_quat * Vec3::Z;
-        let right = yaw_quat * Vec3::X;
+        let forward = y_axis_quat * Vec3::Z;
+        let right = y_axis_quat * Vec3::X;
 
-        let movement = forward * agent.speed + right * agent.strafe_speed;
+        let movement = forward * agent.z_speed + right * agent.x_speed;
 
         agent.position += dt * movement;
     }
@@ -187,12 +201,11 @@ impl Simulation {
             id: 0,
             name: "Melchizedek".to_string(),
             position: Vec3::new(0.0, 16.0, -16.0),
-            speed: 0.0,
-            strafe_speed: 0.0,
-            angular_speed: 0.0,
-            move_yaw: 0.0,
-            look_pitch: 0.0,
-            look_yaw: 0.0,
+            z_speed: 0.0,
+            x_speed: 0.0,
+            move_y_axis: 0.0,
+            look_x_axis: 0.0,
+            look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
         }))
     }

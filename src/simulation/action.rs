@@ -11,16 +11,14 @@ pub enum WorldAction {
 
 #[derive(Debug, Copy, Clone)]
 pub struct MoveActions {
-    pub forward: f32,
-    pub backward: f32,
-    pub left: f32,
-    pub right: f32,
+    pub x_axis: f32,
+    pub z_axis: f32,
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct RotateActions {
-    pub yaw: f32,
-    pub pitch: f32,
+    pub x_axis: f32,
+    pub y_axis: f32,
 }
 
 #[derive(Debug)]
