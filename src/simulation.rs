@@ -10,13 +10,9 @@ use agent::Agent;
 use block::{Block, Kind};
 use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
-use noise::{NoiseFn, Perlin};
-use pollster::block_on;
-use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg64;
 use state::State;
 use std::{
-    sync::{Arc, RwLock, WaitTimeoutResult},
+    sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
@@ -310,21 +306,21 @@ impl Simulation {
         block_position
     }
 
-    fn chunk_position_to_id(chunk_position: &IVec3) -> u32 {
-        let x = (chunk_position.x + WORLD_RADIUS as i32) as u32;
-        let y = (chunk_position.y + WORLD_RADIUS as i32) as u32;
-        let z = (chunk_position.z + WORLD_RADIUS as i32) as u32;
+    // fn chunk_position_to_id(chunk_position: &IVec3) -> u32 {
+    //     let x = (chunk_position.x + WORLD_RADIUS as i32) as u32;
+    //     let y = (chunk_position.y + WORLD_RADIUS as i32) as u32;
+    //     let z = (chunk_position.z + WORLD_RADIUS as i32) as u32;
 
-        x + y * WORLD_SIZE + z * WORLD_AREA
-    }
+    //     x + y * WORLD_SIZE + z * WORLD_AREA
+    // }
 
-    fn block_position_to_id(block_position: &IVec3) -> u32 {
-        let x = (block_position.x + CHUNK_RADIUS as i32) as u32;
-        let y = (block_position.y + CHUNK_RADIUS as i32) as u32;
-        let z = (block_position.z + CHUNK_RADIUS as i32) as u32;
+    // fn block_position_to_id(block_position: &IVec3) -> u32 {
+    //     let x = (block_position.x + CHUNK_RADIUS as i32) as u32;
+    //     let y = (block_position.y + CHUNK_RADIUS as i32) as u32;
+    //     let z = (block_position.z + CHUNK_RADIUS as i32) as u32;
 
-        x + y * CHUNK_SIZE + z * CHUNK_AREA
-    }
+    //     x + y * CHUNK_SIZE + z * CHUNK_AREA
+    // }
 
     pub fn grid_position_to_chunk_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
@@ -371,13 +367,13 @@ impl Simulation {
         grid_position
     }
 
-    fn grid_to_world(grid_position: &IVec3) -> Vec3 {
-        grid_position.as_vec3()
-    }
+    // fn grid_to_world(grid_position: &IVec3) -> Vec3 {
+    //     grid_position.as_vec3()
+    // }
 
-    fn world_to_grid(world_position: &Vec3) -> IVec3 {
-        world_position.as_ivec3()
-    }
+    // fn world_to_grid(world_position: &Vec3) -> IVec3 {
+    //     world_position.as_ivec3()
+    // }
 
     fn is_on_map(grid_position: &IVec3) -> bool {
         let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;

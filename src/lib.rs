@@ -13,9 +13,8 @@ pub mod simulation;
 
 use crate::interface::Interface;
 use crate::simulation::Simulation;
-use simulation::action::Action;
 use std::{sync::Arc, thread};
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
+use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,

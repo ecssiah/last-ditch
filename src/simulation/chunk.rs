@@ -1,5 +1,5 @@
 use super::block::Kind;
-use glam::{IVec3, Vec3};
+use glam::IVec3;
 
 #[derive(Debug)]
 pub struct Chunk {

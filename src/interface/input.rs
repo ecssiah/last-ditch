@@ -22,7 +22,6 @@ pub struct MouseState {
 pub struct Input {
     action_tx: UnboundedSender<Action>,
     move_actions: MoveActions,
-    rotate_actions: RotateActions,
     mouse_state: MouseState,
 }
 
@@ -35,11 +34,6 @@ impl Input {
             right: 0.0,
         };
 
-        let rotate_actions = RotateActions {
-            yaw: 0.0,
-            pitch: 0.0,
-        };
-
         let mouse_state = MouseState {
             last_position: None,
             delta: Vec2::ZERO,
@@ -48,7 +42,6 @@ impl Input {
         Input {
             action_tx,
             move_actions,
-            rotate_actions,
             mouse_state,
         }
     }
