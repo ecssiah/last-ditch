@@ -2,8 +2,11 @@ use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
     simulation::{
-        agent::Agent, block::Block, chunk::Chunk, world::World, Simulation, CHUNK_SIZE,
-        CHUNK_VOLUME,
+        agent::Agent,
+        block::{Block, Kind},
+        chunk::Chunk,
+        world::World,
+        Simulation, CHUNK_SIZE, CHUNK_VOLUME,
     },
 };
 use bytemuck::{Pod, Zeroable};
@@ -293,15 +296,20 @@ impl Render {
         let mut voxel_instances: Vec<VoxelInstance> = Vec::new();
 
         for (chunk_id, chunk) in self.chunks.iter().enumerate() {
+            let chunk_id = chunk_id as u32;
             let chunk = chunk.read().unwrap();
 
             for block_id in 0..CHUNK_VOLUME {
-                let grid_position = Simulation::get_grid_position(chunk_id as u32, block_id);
                 let kind_id = chunk.blocks[block_id as usize];
+                let kind = chunk.palette[kind_id as usize];
 
-                if kind_id > 0 {
-                    let voxel_instance = self.create_instance(grid_position, kind_id);
+                if kind != Kind::Air {
+                    let grid_position = Simulation::get_grid_position(chunk_id, block_id);
+                    let block = &self.blocks[kind as usize];
 
+                    // println!("Chunk: {:?} Block: {:?} Grid: {:?}", chunk_id, block_id, grid_position);
+
+                    let voxel_instance = self.create_instance(grid_position, block);
                     voxel_instances.push(voxel_instance);
                 }
             }
@@ -320,14 +328,14 @@ impl Render {
         );
     }
 
-    fn create_instance(&self, grid_position: IVec3, kind_id: u32) -> VoxelInstance {
+    fn create_instance(&self, grid_position: IVec3, block: &Block) -> VoxelInstance {
         VoxelInstance {
             position: grid_position.as_vec3().into(),
             color: [
-                self.blocks[kind_id as usize].color.r as f32,
-                self.blocks[kind_id as usize].color.g as f32,
-                self.blocks[kind_id as usize].color.b as f32,
-                self.blocks[kind_id as usize].color.a as f32,
+                block.color.r as f32,
+                block.color.g as f32,
+                block.color.b as f32,
+                block.color.a as f32,
             ],
         }
     }

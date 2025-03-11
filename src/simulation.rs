@@ -260,9 +260,12 @@ impl Simulation {
 
     fn set_kind(&mut self, grid_position: IVec3, kind: Kind) {
         if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
-            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-
             if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
+                println!("Chunk: {:?} Block {:?}", chunk_id, block_id);
+                println!();
+
+                let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+
                 let kind_id = self.get_kind_id(kind, &mut chunk);
 
                 chunk.blocks[block_id as usize] = kind_id;
@@ -324,11 +327,15 @@ impl Simulation {
 
     pub fn grid_position_to_chunk_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
-            let cx = (grid_position.x / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
-            let cy = (grid_position.y / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
-            let cz = (grid_position.z / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
+            let chunk_position_normalized = grid_position.map(|coordinate| {
+                let coordinate_normalized = coordinate + WORLD_BOUNDARY as i32;
 
-            let chunk_id = cx + cz * WORLD_SIZE as i32 + cy * WORLD_AREA as i32;
+                coordinate_normalized.div_euclid(WORLD_SIZE as i32)
+            });
+
+            let chunk_id = chunk_position_normalized.x
+                + chunk_position_normalized.z * WORLD_SIZE as i32
+                + chunk_position_normalized.y * WORLD_AREA as i32;
 
             Some(chunk_id as u32)
         } else {
@@ -338,13 +345,17 @@ impl Simulation {
 
     pub fn grid_position_to_block_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
-            let bx = (grid_position.x + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
-            let by = (grid_position.y + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
-            let bz = (grid_position.z + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
+            let grid_position_normalized = grid_position.map(|coordinate| {
+                let coordinate_normalized = coordinate + WORLD_BOUNDARY as i32;
 
-            let block_id = bx + bz * CHUNK_SIZE + by * CHUNK_AREA;
+                coordinate_normalized.rem_euclid(CHUNK_SIZE as i32)
+            });
 
-            Some(block_id)
+            let block_id = grid_position_normalized.x
+                + grid_position_normalized.z * CHUNK_SIZE as i32
+                + grid_position_normalized.y * CHUNK_AREA as i32;
+
+            Some(block_id as u32)
         } else {
             None
         }
