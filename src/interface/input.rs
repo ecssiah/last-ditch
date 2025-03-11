@@ -1,4 +1,7 @@
-use crate::simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED};
+use crate::simulation::{
+    action::{Action, MoveActions, RotateActions, WorldAction},
+    DEFAULT_LINEAR_SPEED, DEFAULT_STRAFE_SPEED,
+};
 use glam::Vec2;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{

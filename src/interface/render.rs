@@ -1,7 +1,10 @@
 use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
-    simulation::{agent::Agent, block::Block, chunk::Chunk, world::World, Simulation, CHUNK_SIZE, CHUNK_VOLUME},
+    simulation::{
+        agent::Agent, block::Block, chunk::Chunk, world::World, Simulation, CHUNK_SIZE,
+        CHUNK_VOLUME,
+    },
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
@@ -298,7 +301,7 @@ impl Render {
 
                 if kind_id > 0 {
                     let voxel_instance = self.create_instance(grid_position, kind_id);
-                    
+
                     voxel_instances.push(voxel_instance);
                 }
             }

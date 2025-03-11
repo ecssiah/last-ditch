@@ -44,7 +44,7 @@ impl ApplicationHandler for App {
 
         let mut simulation = Simulation::new(action_rx);
         simulation.generate();
-        
+
         let state = simulation.get_state();
 
         let interface_future = Interface::new(action_tx, window.clone(), state);

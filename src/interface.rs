@@ -2,12 +2,15 @@ pub mod camera;
 pub mod input;
 pub mod render;
 
-use crate::simulation::{action::{Action, AgentAction}, state::State};
+use crate::simulation::{
+    action::{Action, AgentAction},
+    state::State,
+};
 use camera::Camera;
 use input::Input;
 use render::Render;
-use tokio::sync::mpsc::UnboundedSender;
 use std::sync::Arc;
+use tokio::sync::mpsc::UnboundedSender;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
 pub const WINDOW_WIDTH: u32 = 800;
@@ -31,7 +34,11 @@ pub struct Interface {
 }
 
 impl Interface {
-    pub async fn new(action_tx: UnboundedSender<Action>, window: Arc<Window>, state: Arc<State>) -> Interface {
+    pub async fn new(
+        action_tx: UnboundedSender<Action>,
+        window: Arc<Window>,
+        state: Arc<State>,
+    ) -> Interface {
         let camera = Camera::new();
         let input = Input::new(action_tx.clone());
         let render = pollster::block_on(Render::new(
@@ -71,7 +78,9 @@ impl Interface {
 
     fn send_move_actions(&mut self) {
         self.action_tx
-            .send(Action::Agent(AgentAction::Move(self.input.get_move_actions())))
+            .send(Action::Agent(AgentAction::Move(
+                self.input.get_move_actions(),
+            )))
             .unwrap();
     }
 
