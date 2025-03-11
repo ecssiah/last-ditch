@@ -11,6 +11,7 @@ use block::{Block, Kind};
 use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use noise::{NoiseFn, Perlin};
+use pollster::block_on;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 use state::State;
@@ -33,6 +34,8 @@ pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
+pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
+pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
 pub const CHUNK_RADIUS: u32 = 1;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
@@ -44,7 +47,7 @@ pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
-pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * (2 * CHUNK_RADIUS);
+pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
@@ -66,11 +69,29 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.set_kind(IVec3::new(0, 0, 0), Kind::Metal);
+        // self.set_kind(IVec3::new(-1, 0, 0), Kind::Metal);
+        // self.set_kind(IVec3::new(-2, 0, 0), Kind::Metal);
+        // self.set_kind(IVec3::new(-2, 0, -1), Kind::Metal);
+        // self.set_kind(IVec3::new(-2, 0, -2), Kind::Metal);
 
-        self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
+        // self.set_kind(IVec3::new(2, 0, -2), Kind::Metal);
+        // self.set_kind(IVec3::new(1, 0, -2), Kind::Metal);
+        // self.set_kind(IVec3::new(0, 0, -2), Kind::Metal);
+        // self.set_kind(IVec3::new(0, 0, -1), Kind::Metal);
 
-        println!("{:?}", self.state.chunks[13].read().unwrap().blocks);
+        // self.set_kind(IVec3::new(0, 0, 0), Kind::Concrete);
+
+        // self.set_kind(IVec3::new(0, 0, 1), Kind::Metal);
+        // self.set_kind(IVec3::new(0, 0, 2), Kind::Metal);
+        // self.set_kind(IVec3::new(-1, 0, 2), Kind::Metal);
+        // self.set_kind(IVec3::new(-2, 0, 2), Kind::Metal);
+
+        // self.set_kind(IVec3::new(1, 0, 0), Kind::Metal);
+        // self.set_kind(IVec3::new(2, 0, 0), Kind::Metal);
+        // self.set_kind(IVec3::new(2, 0, 1), Kind::Metal);
+        // self.set_kind(IVec3::new(2, 0, 2), Kind::Metal);
+
+        // self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
     }
 
     fn update(&mut self, dt: f32) {
@@ -91,12 +112,10 @@ impl Simulation {
         } else {
             for chunk in self.state.chunks.iter() {
                 let mut chunk = chunk.write().unwrap();
-    
+
                 chunk.modified = false;
             }
         }
-
-        println!("Update Window: {:?}", world.update_window);
     }
 
     fn process_actions(&mut self) {
@@ -243,121 +262,122 @@ impl Simulation {
     }
 
     fn set_kind(&mut self, grid_position: IVec3, kind: Kind) {
-        if let Some(chunk_id) = Simulation::get_chunk_id(&grid_position) {
-            let chunk = &self.state.chunks[chunk_id as usize];
+        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
+            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-            {
-                let chunk = chunk.read().unwrap();
+            if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
+                let kind_id = self.get_kind_id(kind, &mut chunk);
 
-                if let Some(block_id) = Simulation::get_block_id(&grid_position) {
-                    let current_index = chunk.blocks[block_id as usize];
-
-                    if chunk.palette.get(current_index as usize) == Some(&kind) {
-                        return;
-                    }
-                }
-            }
-
-            let mut chunk = chunk.write().unwrap();
-
-            if let Some(block_id) = Simulation::get_block_id(&grid_position) {
-                let kind_index = match chunk
-                    .palette
-                    .iter()
-                    .position(|target_kind| *target_kind == kind)
-                {
-                    Some(i) => i as u32,
-                    None => {
-                        chunk.palette.push(kind);
-                        (chunk.palette.len() - 1) as u32
-                    }
-                };
-
-                chunk.blocks[block_id as usize] = kind_index;
+                chunk.blocks[block_id as usize] = kind_id;
             }
         }
     }
 
-    pub fn chunk_id_to_position(id: u32) -> IVec3 {
-        let x = (id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let y = (id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
-        let z = (id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+    fn get_kind_id(&self, kind: Kind, chunk: &mut Chunk) -> u32 {
+        match chunk
+            .palette
+            .iter()
+            .position(|palette_kind| kind == *palette_kind)
+        {
+            Some(id) => id as u32,
+            None => {
+                chunk.palette.push(kind.clone());
 
-        IVec3::new(x, y, z)
+                let id = (chunk.palette.len() - 1) as u32;
+                id
+            }
+        }
     }
 
-    pub fn block_id_to_position(id: u32) -> IVec3 {
-        let x = (id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let y = (id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
-        let z = (id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+    pub fn chunk_id_to_position(chunk_id: u32) -> IVec3 {
+        let x = (chunk_id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let y = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let z = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
 
-        IVec3::new(x, y, z)
+        let chunk_position = IVec3::new(x, y, z);
+
+        chunk_position
     }
 
-    fn chunk_position_to_id(position: &IVec3) -> u32 {
-        let x = (position.x + WORLD_RADIUS as i32) as u32;
-        let y = (position.y + WORLD_RADIUS as i32) as u32;
-        let z = (position.z + WORLD_RADIUS as i32) as u32;
+    pub fn block_id_to_position(block_id: u32) -> IVec3 {
+        let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+        let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+        let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+
+        let block_position = IVec3::new(x, y, z);
+
+        block_position
+    }
+
+    fn chunk_position_to_id(chunk_position: &IVec3) -> u32 {
+        let x = (chunk_position.x + WORLD_RADIUS as i32) as u32;
+        let y = (chunk_position.y + WORLD_RADIUS as i32) as u32;
+        let z = (chunk_position.z + WORLD_RADIUS as i32) as u32;
 
         x + y * WORLD_SIZE + z * WORLD_AREA
     }
 
-    fn block_position_to_id(position: &IVec3) -> u32 {
-        let x = (position.x + CHUNK_RADIUS as i32) as u32;
-        let y = (position.y + CHUNK_RADIUS as i32) as u32;
-        let z = (position.z + CHUNK_RADIUS as i32) as u32;
+    fn block_position_to_id(block_position: &IVec3) -> u32 {
+        let x = (block_position.x + CHUNK_RADIUS as i32) as u32;
+        let y = (block_position.y + CHUNK_RADIUS as i32) as u32;
+        let z = (block_position.z + CHUNK_RADIUS as i32) as u32;
 
         x + y * CHUNK_SIZE + z * CHUNK_AREA
     }
 
-    fn get_chunk_id(grid_position: &IVec3) -> Option<u32> {
+    pub fn grid_position_to_chunk_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
-            let grid_position_normalized = grid_position + IVec3::splat(CHUNK_RADIUS as i32);
+            let cx = (grid_position.x / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
+            let cy = (grid_position.y / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
+            let cz = (grid_position.z / CHUNK_SIZE as i32) + WORLD_RADIUS as i32;
+    
+            let chunk_id = cx + cz * WORLD_SIZE as i32 + cy * WORLD_AREA as i32;
+            
+            Some(chunk_id as u32)
+        } else {
+            None
+        }
+    }
+    
+    pub fn grid_position_to_block_id(grid_position: &IVec3) -> Option<u32> {
+        if Simulation::is_on_map(grid_position) {
+            let bx = (grid_position.x + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
+            let by = (grid_position.y + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
+            let bz = (grid_position.z + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32) as u32;
+    
+            let block_id = bx + bz * CHUNK_SIZE + by * CHUNK_AREA;
 
-            let chunk_position =
-                (grid_position_normalized).div_euclid(IVec3::splat(CHUNK_SIZE as i32));
-
-            Some(
-                ((chunk_position.x + WORLD_RADIUS as i32) as u32
-                    + (chunk_position.z + WORLD_RADIUS as i32) as u32 * WORLD_SIZE
-                    + (chunk_position.y + WORLD_RADIUS as i32) as u32 * WORLD_AREA)
-                    as u32,
-            )
+            Some(block_id)
         } else {
             None
         }
     }
 
-    fn get_block_id(grid_position: &IVec3) -> Option<u32> {
-        if Simulation::is_on_map(grid_position) {
-            let grid_position_normalized = grid_position + IVec3::splat(CHUNK_RADIUS as i32);
+    pub fn get_grid_position(chunk_id: u32, block_id: u32) -> IVec3 {
+        let chunk_position = Simulation::chunk_id_to_position(chunk_id);
+        let block_position = Simulation::block_id_to_position(block_id);
 
-            let local_block_position =
-                grid_position_normalized.rem_euclid(IVec3::splat(CHUNK_SIZE as i32));
+        println!("Chunk ID: {:?} Block ID: {:?}", chunk_id, block_id);
+        println!("{:?}", chunk_position);
+        println!("{:?}", block_position);
 
-            Some(
-                (local_block_position.x as u32
-                    + local_block_position.z as u32 * CHUNK_SIZE
-                    + local_block_position.y as u32 * CHUNK_AREA) as u32,
-            )
-        } else {
-            None
-        }
+        let grid_position = chunk_position * IVec3::splat(CHUNK_SIZE as i32) + block_position;
+
+        grid_position
     }
 
-    fn get_grid_position(world_position: &Vec3) -> IVec3 {
-        (world_position + Vec3::splat(BLOCK_RADIUS))
-            .floor()
-            .as_ivec3()
+    fn grid_to_world(grid_position: &IVec3) -> Vec3 {
+        grid_position.as_vec3()
+    }
+
+    fn world_to_grid(world_position: &Vec3) -> IVec3 {
+        world_position.as_ivec3()
     }
 
     fn is_on_map(grid_position: &IVec3) -> bool {
-        let in_x_range =
-            grid_position.x >= -(WORLD_BOUNDARY as i32) && grid_position.x <= WORLD_BOUNDARY as i32;
-        let in_y_range =
-            grid_position.y >= -(WORLD_BOUNDARY as i32) && grid_position.y <= WORLD_BOUNDARY as i32;
-        let in_z_range =
-            grid_position.z >= -(WORLD_BOUNDARY as i32) && grid_position.z <= WORLD_BOUNDARY as i32;
+        let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;
+        let in_y_range = grid_position.y.abs() <= WORLD_BOUNDARY as i32;
+        let in_z_range = grid_position.z.abs() <= WORLD_BOUNDARY as i32;
 
         in_x_range && in_y_range && in_z_range
     }

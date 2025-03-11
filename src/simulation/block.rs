@@ -1,6 +1,6 @@
 use wgpu::Color;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Kind {
     Air,
     Metal,

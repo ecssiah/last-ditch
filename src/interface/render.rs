@@ -289,11 +289,11 @@ impl Render {
     fn read_chunks(&self) -> Vec<VoxelInstance> {
         let mut voxel_instances: Vec<VoxelInstance> = Vec::new();
 
-        for chunk in self.chunks.iter() {
+        for (chunk_id, chunk) in self.chunks.iter().enumerate() {
             let chunk = chunk.read().unwrap();
 
             for block_id in 0..CHUNK_VOLUME {
-                let grid_position = Simulation::block_id_to_position(block_id);
+                let grid_position = Simulation::get_grid_position(chunk_id as u32, block_id);
                 let kind_id = chunk.blocks[block_id as usize];
 
                 if kind_id > 0 {
@@ -303,8 +303,6 @@ impl Render {
                 }
             }
         }
-
-        println!("Finished Reading");
 
         voxel_instances
     }
