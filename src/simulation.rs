@@ -162,15 +162,15 @@ impl Simulation {
     fn process_rotate_actions(&mut self, rotate_actions: &RotateActions) {
         let mut agent = self.state.agent.write().unwrap();
 
-        agent.look_y_axis += rotate_actions.y_axis;
         agent.look_x_axis -= rotate_actions.x_axis;
+        agent.look_y_axis += rotate_actions.y_axis;
 
         agent.look_x_axis = agent
             .look_x_axis
             .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
 
-        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
         let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
+        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
 
         let target_rotation = y_axis_quat * x_axis_quat;
 
@@ -192,10 +192,10 @@ impl Simulation {
 
         let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
 
-        let agent_z_axis = y_axis_quat * Vec3::Z;
         let agent_x_axis = y_axis_quat * Vec3::X;
+        let agent_z_axis = y_axis_quat * Vec3::Z;
 
-        let movement = agent.z_speed * agent_z_axis + agent.x_speed * agent_x_axis;
+        let movement = agent.x_speed * agent_x_axis + agent.z_speed * agent_z_axis;
 
         agent.position += dt * movement;
     }
@@ -205,8 +205,8 @@ impl Simulation {
             id: 0,
             name: "Melchizedek".to_string(),
             position: Vec3::new(0.0, 16.0, -16.0),
-            z_speed: 0.0,
             x_speed: 0.0,
+            z_speed: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
