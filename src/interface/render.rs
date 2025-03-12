@@ -2,11 +2,7 @@ use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
     simulation::{
-        agent::Agent,
-        block::{Block, Kind},
-        chunk::Chunk,
-        world::World,
-        Simulation, CHUNK_VOLUME,
+        agent::Agent, block::{Block, Kind}, chunk::Chunk, world::World, Simulation, BLOCKS, CHUNK_VOLUME
     },
 };
 use bytemuck::{Pod, Zeroable};
@@ -57,7 +53,6 @@ pub struct Render {
     window: Arc<Window>,
     agent: Arc<RwLock<Agent>>,
     world: Arc<RwLock<World>>,
-    blocks: Arc<Vec<Block>>,
     chunks: Arc<[Arc<RwLock<Chunk>>]>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -75,7 +70,6 @@ impl Render {
         window: Arc<Window>,
         agent: Arc<RwLock<Agent>>,
         world: Arc<RwLock<World>>,
-        blocks: Arc<Vec<Block>>,
         chunks: Arc<[Arc<RwLock<Chunk>>]>,
     ) -> Render {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -176,7 +170,6 @@ impl Render {
             window,
             agent,
             world,
-            blocks,
             chunks,
             device,
             queue,
@@ -296,12 +289,14 @@ impl Render {
             let chunk = chunk.read().unwrap();
 
             for block_id in 0..CHUNK_VOLUME {
-                let kind_id = chunk.blocks[block_id as usize];
-                let kind = chunk.palette[kind_id as usize];
+                let palette_id = chunk.blocks[block_id as usize];
+                let kind = chunk.palette[palette_id as usize];
 
                 if kind != Kind::Air {
                     let grid_position = Simulation::get_grid_position(chunk_id, block_id);
-                    let block = &self.blocks[kind as usize];
+                    let block = &BLOCKS[kind as usize];
+
+                    println!("{:?} {:?}", kind, block);
 
                     let voxel_instance = self.create_voxel_instance(grid_position, block);
                     voxel_instances.push(voxel_instance);

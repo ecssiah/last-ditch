@@ -3,21 +3,25 @@ pub mod agent;
 pub mod block;
 pub mod chunk;
 pub mod state;
+pub mod structure;
 pub mod world;
 
+use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
-use block::{Block, Kind};
+use block::Block;
 use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
-use ron::de::from_reader;
+use once_cell::sync::Lazy;
+use ron::from_str;
 use state::State;
-use std::fs::File;
+use std::collections::HashMap;
 use std::{
     sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
+use structure::Structure;
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
 
@@ -34,17 +38,26 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 1;
+pub const CHUNK_RADIUS: u32 = 3;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 1;
+pub const WORLD_RADIUS: u32 = 3;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
+
+pub const BLOCK_CONFIG: &str = include_config!("blocks.ron");
+pub const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
+
+pub static BLOCKS: Lazy<Vec<Block>> =
+    Lazy::new(|| from_str(BLOCK_CONFIG).expect("Failed to parse Block data"));
+
+pub static STRUCTURES: Lazy<HashMap<String, Structure>> =
+    Lazy::new(|| from_str(STRUCTURE_CONFIG).expect("Failed to parse Structure data"));
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
@@ -56,7 +69,6 @@ impl Simulation {
         let state = Arc::new(State {
             agent: Simulation::setup_agent(),
             world: Simulation::setup_world(),
-            blocks: Simulation::setup_blocks(),
             chunks: Simulation::setup_chunks(),
         });
 
@@ -66,29 +78,26 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.set_kind(IVec3::new(-1, 0, 0), Kind::Metal);
-        self.set_kind(IVec3::new(-2, 0, 0), Kind::Metal);
-        self.set_kind(IVec3::new(-2, 0, -1), Kind::Metal);
-        self.set_kind(IVec3::new(-2, 0, -2), Kind::Metal);
-
-        self.set_kind(IVec3::new(2, 0, -2), Kind::Metal);
-        self.set_kind(IVec3::new(1, 0, -2), Kind::Metal);
-        self.set_kind(IVec3::new(0, 0, -2), Kind::Metal);
-        self.set_kind(IVec3::new(0, 0, -1), Kind::Metal);
-
-        self.set_kind(IVec3::new(0, 0, 0), Kind::Concrete);
-
-        self.set_kind(IVec3::new(0, 0, 1), Kind::Metal);
-        self.set_kind(IVec3::new(0, 0, 2), Kind::Metal);
-        self.set_kind(IVec3::new(-1, 0, 2), Kind::Metal);
-        self.set_kind(IVec3::new(-2, 0, 2), Kind::Metal);
-
-        self.set_kind(IVec3::new(1, 0, 0), Kind::Metal);
-        self.set_kind(IVec3::new(2, 0, 0), Kind::Metal);
-        self.set_kind(IVec3::new(2, 0, 1), Kind::Metal);
-        self.set_kind(IVec3::new(2, 0, 2), Kind::Metal);
-
+        self.generate_structure(IVec3::new(0, 0, 0), "swastika");
+        self.generate_structure(IVec3::new(10, 0, 10), "swastika");
+        self.generate_structure(IVec3::new(-10, 0, 10), "swastika");
+        self.generate_structure(IVec3::new(10, 0, -10), "swastika");
+        self.generate_structure(IVec3::new(-10, 0, -10), "swastika");
+        
         self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
+    }
+
+    fn generate_structure(&mut self, world_position: IVec3, structure_name: &str) {
+        if STRUCTURES.contains_key(structure_name) {
+            let structure = &STRUCTURES["swastika"];
+
+            for block_data in &structure.blocks[..] {
+                let position_array: [i32; 3] = block_data.position.as_slice().try_into().unwrap();
+                let grid_position: IVec3 = world_position + IVec3::from(position_array);
+    
+                self.set_kind(grid_position, block_data.kind);
+            }
+        }
     }
 
     pub fn run(&mut self) {
@@ -169,8 +178,8 @@ impl Simulation {
             .look_x_axis
             .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
 
-        let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
         let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
+        let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
 
         let target_rotation = y_axis_quat * x_axis_quat;
 
@@ -204,7 +213,7 @@ impl Simulation {
         Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 16.0, -16.0),
+            position: Vec3::new(0.0, 8.0, -16.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -222,20 +231,13 @@ impl Simulation {
         }))
     }
 
-    fn setup_blocks() -> Arc<Vec<Block>> {
-        let file = File::open("config/blocks.ron").unwrap();
-        let block_list: Vec<Block> = from_reader(file).unwrap();
-
-        Arc::from(block_list)
-    }
-
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
         let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME as usize] =
             core::array::from_fn(|chunk_id| {
                 Arc::from(RwLock::from(Chunk {
                     modified: false,
                     position: Simulation::chunk_id_to_position(chunk_id as u32),
-                    palette: Vec::from([Kind::Air]),
+                    palette: Vec::from([block::Kind::Air]),
                     blocks: Box::new([0; CHUNK_VOLUME as usize]),
                 }))
             });
@@ -243,19 +245,19 @@ impl Simulation {
         Arc::from(chunks)
     }
 
-    fn set_kind(&mut self, grid_position: IVec3, kind: Kind) {
+    fn set_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
         if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
             if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                let kind_id = self.get_kind_id(&mut chunk, kind);
+                let kind_id = self.get_palette_id(&mut chunk, kind);
 
                 chunk.blocks[block_id as usize] = kind_id;
             }
         }
     }
 
-    fn get_kind_id(&self, chunk: &mut Chunk, kind: Kind) -> u32 {
+    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::Kind) -> u32 {
         match chunk
             .palette
             .iter()

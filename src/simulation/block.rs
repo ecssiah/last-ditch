@@ -1,11 +1,11 @@
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 pub enum Kind {
     Air,
+    Wood,
     Metal,
     Concrete,
-    Wood,
 }
 
 #[derive(Debug, Deserialize)]

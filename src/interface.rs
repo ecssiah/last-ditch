@@ -45,7 +45,6 @@ impl Interface {
             window.clone(),
             state.agent.clone(),
             state.world.clone(),
-            state.blocks.clone(),
             state.chunks.clone(),
         ));
 

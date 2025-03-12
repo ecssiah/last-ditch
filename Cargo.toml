@@ -7,11 +7,14 @@ description = "A Civilizational Garden"
 repository = "https://github.com/ecssiah/last-ditch"
 readme = "README.md"
 
+[build-dependencies]
+
 [dependencies]
 bytemuck = { version = "1.14", features = ["derive"] }
 env_logger = "0.11.6"
 glam = "0.30.0"
 noise = "0.8"
+once_cell = "1.21.0"
 pollster = "0.4"
 rand = "0.8"
 rand_pcg = "0.3"

@@ -102,13 +102,9 @@ impl Input {
             y_axis: -MOUSE_Y_SENSITIVITY * self.mouse_state.delta.x,
         };
 
-        self.reset_mouse_state();
+        self.mouse_state.delta = Vec2::ZERO;
 
         rotate_actions
-    }
-
-    pub fn reset_mouse_state(&mut self) {
-        self.mouse_state.delta = Vec2::ZERO;
     }
 
     pub fn handle_keyboard_input(
@@ -177,7 +173,9 @@ impl Input {
         let current_position = Vec2::new(position.x as f32, position.y as f32);
 
         if let Some(last_position) = self.mouse_state.last_position {
-            self.mouse_state.delta += current_position - last_position;
+            let current_delta = current_position - last_position;
+
+            self.mouse_state.delta += current_delta;
         }
 
         self.mouse_state.last_position = Some(current_position);
