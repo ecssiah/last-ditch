@@ -3,7 +3,7 @@ use glam::{Quat, Vec3};
 #[derive(Debug)]
 pub struct Agent {
     pub id: u32,
-    pub name: String,
+    pub name: &'static str,
     pub position: Vec3,
     pub z_speed: f32,
     pub x_speed: f32,

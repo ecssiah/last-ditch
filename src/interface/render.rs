@@ -72,6 +72,8 @@ impl Render {
         world: Arc<RwLock<World>>,
         chunks: Arc<[Arc<RwLock<Chunk>>]>,
     ) -> Render {
+        window.set_cursor_visible(false);
+
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
         let adapter = instance

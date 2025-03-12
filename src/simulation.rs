@@ -84,6 +84,12 @@ impl Simulation {
         self.generate_structure(IVec3::new(10, 0, -10), StructureKind::Swastika);
         self.generate_structure(IVec3::new(-10, 0, -10), StructureKind::Swastika);
         
+        self.generate_structure(IVec3::new(0, 24, 0), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(10, 24, 10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(-10, 24, 10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(10, 24, -10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(-10, 24, -10), StructureKind::Swastika);
+     
         self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
     }
 
@@ -212,8 +218,8 @@ impl Simulation {
     fn setup_agent() -> Arc<RwLock<Agent>> {
         Arc::from(RwLock::from(Agent {
             id: 0,
-            name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 12.0, -16.0),
+            name: "Melchizedek",
+            position: Vec3::new(0.0, 12.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
