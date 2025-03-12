@@ -11,23 +11,6 @@ use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
 
-const VOXEL_INSTANCE_LAYOUT: wgpu::VertexBufferLayout = wgpu::VertexBufferLayout {
-    array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
-    step_mode: wgpu::VertexStepMode::Instance,
-    attributes: &[
-        wgpu::VertexAttribute {
-            format: wgpu::VertexFormat::Float32x3,
-            offset: 0,
-            shader_location: 0,
-        },
-        wgpu::VertexAttribute {
-            format: wgpu::VertexFormat::Float32x4,
-            offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-            shader_location: 1,
-        },
-    ],
-};
-
 #[rustfmt::skip]
 const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     1.0, 0.0, 0.0, 0.0,
@@ -154,12 +137,29 @@ impl Render {
                 push_constant_ranges: &[],
             });
 
+        let voxel_instance_layout = wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Instance,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x3,
+                    offset: 0,
+                    shader_location: 0,
+                },
+                wgpu::VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x4,
+                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                },
+            ],
+        };
+
         let voxel_pipeline = Render::create_pipeline(
             &device,
             &surface_config,
             &voxel_shader,
             voxel_pipeline_layout,
-            VOXEL_INSTANCE_LAYOUT,
+            voxel_instance_layout,
         );
 
         let voxel_render = VoxelRender {
