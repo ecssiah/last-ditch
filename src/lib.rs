@@ -8,7 +8,7 @@
 //! The Simulation handles the evolution of the world.
 
 pub mod interface;
-pub mod macros;
+mod macros;
 pub mod simulation;
 
 use crate::interface::Interface;

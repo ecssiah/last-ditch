@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod action;
 pub mod agent;
 pub mod block;
@@ -50,8 +53,8 @@ pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
-pub const BLOCK_CONFIG: &str = include_config!("blocks.ron");
-pub const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
+const BLOCK_CONFIG: &str = include_config!("blocks.ron");
+const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
 
 pub static BLOCKS: Lazy<Vec<Block>> =
     Lazy::new(|| from_str(BLOCK_CONFIG).expect("Failed to parse Block data"));
@@ -75,6 +78,42 @@ impl Simulation {
         let simulation = Simulation { action_rx, state };
 
         simulation
+    }
+
+    fn setup_agent() -> Arc<RwLock<Agent>> {
+        Arc::from(RwLock::from(Agent {
+            id: 0,
+            name: "Melchizedek",
+            position: Vec3::new(0.0, 12.0, 0.0),
+            x_speed: 0.0,
+            z_speed: 0.0,
+            look_x_axis: 0.0,
+            look_y_axis: 0.0,
+            look_rotation: Quat::IDENTITY,
+        }))
+    }
+
+    fn setup_world() -> Arc<RwLock<World>> {
+        Arc::from(RwLock::from(World {
+            active: true,
+            update_window: 0,
+            seed: SEED,
+            time: 0.0,
+        }))
+    }
+
+    fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
+        let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME as usize] =
+            core::array::from_fn(|chunk_id| {
+                Arc::from(RwLock::from(Chunk {
+                    modified: false,
+                    position: Simulation::chunk_id_to_position(chunk_id as u32),
+                    palette: Vec::from([block::BlockKind::Air]),
+                    blocks: Box::new([0; CHUNK_VOLUME as usize]),
+                }))
+            });
+
+        Arc::from(chunks)
     }
 
     pub fn generate(&mut self) {
@@ -102,6 +141,35 @@ impl Simulation {
                 let grid_position: IVec3 = world_position + IVec3::from(position_array);
     
                 self.set_kind(grid_position, block_data.kind);
+            }
+        }
+    }
+
+
+    fn set_kind(&mut self, grid_position: IVec3, kind: block::BlockKind) {
+        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
+            if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
+                let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+
+                let kind_id = self.get_palette_id(&mut chunk, kind);
+
+                chunk.blocks[block_id as usize] = kind_id;
+            }
+        }
+    }
+
+    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::BlockKind) -> u32 {
+        match chunk
+            .palette
+            .iter()
+            .position(|palette_kind| kind == *palette_kind)
+        {
+            Some(id) => id as u32,
+            None => {
+                chunk.palette.push(kind.clone());
+
+                let id = chunk.palette.len() - 1;
+                id as u32
             }
         }
     }
@@ -215,71 +283,7 @@ impl Simulation {
         agent.position += dt * movement;
     }
 
-    fn setup_agent() -> Arc<RwLock<Agent>> {
-        Arc::from(RwLock::from(Agent {
-            id: 0,
-            name: "Melchizedek",
-            position: Vec3::new(0.0, 12.0, 0.0),
-            x_speed: 0.0,
-            z_speed: 0.0,
-            look_x_axis: 0.0,
-            look_y_axis: 0.0,
-            look_rotation: Quat::IDENTITY,
-        }))
-    }
-
-    fn setup_world() -> Arc<RwLock<World>> {
-        Arc::from(RwLock::from(World {
-            active: true,
-            update_window: 0,
-            seed: SEED,
-            time: 0.0,
-        }))
-    }
-
-    fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
-        let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME as usize] =
-            core::array::from_fn(|chunk_id| {
-                Arc::from(RwLock::from(Chunk {
-                    modified: false,
-                    position: Simulation::chunk_id_to_position(chunk_id as u32),
-                    palette: Vec::from([block::BlockKind::Air]),
-                    blocks: Box::new([0; CHUNK_VOLUME as usize]),
-                }))
-            });
-
-        Arc::from(chunks)
-    }
-
-    fn set_kind(&mut self, grid_position: IVec3, kind: block::BlockKind) {
-        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
-            if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
-                let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-
-                let kind_id = self.get_palette_id(&mut chunk, kind);
-
-                chunk.blocks[block_id as usize] = kind_id;
-            }
-        }
-    }
-
-    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::BlockKind) -> u32 {
-        match chunk
-            .palette
-            .iter()
-            .position(|palette_kind| kind == *palette_kind)
-        {
-            Some(id) => id as u32,
-            None => {
-                chunk.palette.push(kind.clone());
-
-                let id = chunk.palette.len() - 1;
-                id as u32
-            }
-        }
-    }
-
-    pub fn chunk_id_to_position(chunk_id: u32) -> IVec3 {
+    fn chunk_id_to_position(chunk_id: u32) -> IVec3 {
         let chunk_position_shifted = IVec3::new(
             (chunk_id % WORLD_SIZE) as i32,
             (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32,
@@ -291,7 +295,7 @@ impl Simulation {
         chunk_position
     }
 
-    pub fn block_id_to_position(block_id: u32) -> IVec3 {
+    fn block_id_to_position(block_id: u32) -> IVec3 {
         let block_position_shifted = IVec3::new(
             (block_id % CHUNK_SIZE) as i32,
             (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32,
@@ -302,22 +306,6 @@ impl Simulation {
 
         block_position
     }
-
-    // fn chunk_position_to_id(chunk_position: &IVec3) -> u32 {
-    //     let x = (chunk_position.x + WORLD_RADIUS as i32) as u32;
-    //     let y = (chunk_position.y + WORLD_RADIUS as i32) as u32;
-    //     let z = (chunk_position.z + WORLD_RADIUS as i32) as u32;
-
-    //     x + y * WORLD_SIZE + z * WORLD_AREA
-    // }
-
-    // fn block_position_to_id(block_position: &IVec3) -> u32 {
-    //     let x = (block_position.x + CHUNK_RADIUS as i32) as u32;
-    //     let y = (block_position.y + CHUNK_RADIUS as i32) as u32;
-    //     let z = (block_position.z + CHUNK_RADIUS as i32) as u32;
-
-    //     x + y * CHUNK_SIZE + z * CHUNK_AREA
-    // }
 
     pub fn grid_position_to_chunk_id(grid_position: &IVec3) -> Option<u32> {
         if Simulation::is_on_map(grid_position) {
@@ -363,14 +351,6 @@ impl Simulation {
 
         grid_position
     }
-
-    // fn grid_to_world(grid_position: &IVec3) -> Vec3 {
-    //     grid_position.as_vec3()
-    // }
-
-    // fn world_to_grid(world_position: &Vec3) -> IVec3 {
-    //     world_position.as_ivec3()
-    // }
 
     fn is_on_map(grid_position: &IVec3) -> bool {
         let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;

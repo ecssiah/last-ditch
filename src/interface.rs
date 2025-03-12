@@ -1,3 +1,6 @@
+//! The Interface module manages user interaction with the Simulation. This includes
+//! both presentation and input management.
+
 pub mod camera;
 pub mod input;
 pub mod render;
