@@ -1,4 +1,4 @@
-use super::{agent::Agent, block::Block, chunk::Chunk, structure::Structure, world::World};
+use super::{agent::Agent, chunk::Chunk, world::World};
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug)]

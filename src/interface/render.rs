@@ -2,7 +2,7 @@ use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
     simulation::{
-        agent::Agent, block::{Block, Kind}, chunk::Chunk, world::World, Simulation, BLOCKS, CHUNK_VOLUME
+        agent::Agent, block::{Block, BlockKind}, chunk::Chunk, world::World, Simulation, BLOCKS, CHUNK_VOLUME
     },
 };
 use bytemuck::{Pod, Zeroable};
@@ -292,11 +292,9 @@ impl Render {
                 let palette_id = chunk.blocks[block_id as usize];
                 let kind = chunk.palette[palette_id as usize];
 
-                if kind != Kind::Air {
+                if kind != BlockKind::Air {
                     let grid_position = Simulation::get_grid_position(chunk_id, block_id);
                     let block = &BLOCKS[kind as usize];
-
-                    println!("{:?} {:?}", kind, block);
 
                     let voxel_instance = self.create_voxel_instance(grid_position, block);
                     voxel_instances.push(voxel_instance);

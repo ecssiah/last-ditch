@@ -21,7 +21,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use structure::Structure;
+use structure::{Structure, StructureKind};
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
 
@@ -56,7 +56,7 @@ pub const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
 pub static BLOCKS: Lazy<Vec<Block>> =
     Lazy::new(|| from_str(BLOCK_CONFIG).expect("Failed to parse Block data"));
 
-pub static STRUCTURES: Lazy<HashMap<String, Structure>> =
+pub static STRUCTURES: Lazy<HashMap<StructureKind, Structure>> =
     Lazy::new(|| from_str(STRUCTURE_CONFIG).expect("Failed to parse Structure data"));
 
 pub struct Simulation {
@@ -78,18 +78,18 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(IVec3::new(0, 0, 0), "swastika");
-        self.generate_structure(IVec3::new(10, 0, 10), "swastika");
-        self.generate_structure(IVec3::new(-10, 0, 10), "swastika");
-        self.generate_structure(IVec3::new(10, 0, -10), "swastika");
-        self.generate_structure(IVec3::new(-10, 0, -10), "swastika");
+        self.generate_structure(IVec3::new(0, 0, 0), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(10, 0, 10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(-10, 0, 10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(10, 0, -10), StructureKind::Swastika);
+        self.generate_structure(IVec3::new(-10, 0, -10), StructureKind::Swastika);
         
         self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
     }
 
-    fn generate_structure(&mut self, world_position: IVec3, structure_name: &str) {
-        if STRUCTURES.contains_key(structure_name) {
-            let structure = &STRUCTURES["swastika"];
+    fn generate_structure(&mut self, world_position: IVec3, structure_kind: StructureKind) {
+        if STRUCTURES.contains_key(&structure_kind) {
+            let structure = &STRUCTURES[&structure_kind];
 
             for block_data in &structure.blocks[..] {
                 let position_array: [i32; 3] = block_data.position.as_slice().try_into().unwrap();
@@ -213,7 +213,7 @@ impl Simulation {
         Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek".to_string(),
-            position: Vec3::new(0.0, 8.0, -16.0),
+            position: Vec3::new(0.0, 12.0, -16.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -237,7 +237,7 @@ impl Simulation {
                 Arc::from(RwLock::from(Chunk {
                     modified: false,
                     position: Simulation::chunk_id_to_position(chunk_id as u32),
-                    palette: Vec::from([block::Kind::Air]),
+                    palette: Vec::from([block::BlockKind::Air]),
                     blocks: Box::new([0; CHUNK_VOLUME as usize]),
                 }))
             });
@@ -245,7 +245,7 @@ impl Simulation {
         Arc::from(chunks)
     }
 
-    fn set_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
+    fn set_kind(&mut self, grid_position: IVec3, kind: block::BlockKind) {
         if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
             if let Some(block_id) = Simulation::grid_position_to_block_id(&grid_position) {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
@@ -257,7 +257,7 @@ impl Simulation {
         }
     }
 
-    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::Kind) -> u32 {
+    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::BlockKind) -> u32 {
         match chunk
             .palette
             .iter()
