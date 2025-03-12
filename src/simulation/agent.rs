@@ -7,7 +7,6 @@ pub struct Agent {
     pub position: Vec3,
     pub z_speed: f32,
     pub x_speed: f32,
-    pub move_y_axis: f32,
     pub look_x_axis: f32,
     pub look_y_axis: f32,
     pub look_rotation: Quat,

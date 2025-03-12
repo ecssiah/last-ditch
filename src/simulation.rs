@@ -175,8 +175,6 @@ impl Simulation {
         let target_rotation = y_axis_quat * x_axis_quat;
 
         agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
-
-        agent.move_y_axis = agent.look_y_axis;
     }
 
     fn evolve(&mut self, dt: f32) {
@@ -192,7 +190,7 @@ impl Simulation {
     fn evolve_agents(&mut self, dt: f32) {
         let mut agent = self.state.agent.write().unwrap();
 
-        let y_axis_quat = Quat::from_rotation_y(agent.move_y_axis);
+        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
 
         let agent_z_axis = y_axis_quat * Vec3::Z;
         let agent_x_axis = y_axis_quat * Vec3::X;
@@ -209,7 +207,6 @@ impl Simulation {
             position: Vec3::new(0.0, 16.0, -16.0),
             z_speed: 0.0,
             x_speed: 0.0,
-            move_y_axis: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
