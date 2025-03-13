@@ -20,7 +20,7 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 ]);
 
 #[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct VoxelInstance {
     position: [f32; 3],
     color: [f32; 4],
@@ -222,7 +222,7 @@ impl Render {
                 view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                    load: wgpu::LoadOp::Clear(wgpu::Color {r: 0.2, g: 1.0, b: 1.0, a: 1.0 }),
                     store: wgpu::StoreOp::Store,
                 },
             })],

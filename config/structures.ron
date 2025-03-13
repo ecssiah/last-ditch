@@ -45,4 +45,627 @@
             BlockData(kind: Wood, position: [4, -1, 4]),
         ],
     ),
+    Mario: Structure (
+        size: [16, 32, 16],
+        blocks: [
+            // -10
+            BlockData(kind: Red, position: [-1, -10, 0]),
+            BlockData(kind: Red, position: [-1, -10, 1]),
+            BlockData(kind: White, position: [-1, -10, 2]),
+            BlockData(kind: Red, position: [-2, -10, 0]),
+            BlockData(kind: Red, position: [-2, -10, 1]),
+            BlockData(kind: White, position: [-2, -10, 2]),
+            BlockData(kind: Red, position: [1, -10, 0]),
+            BlockData(kind: Red, position: [1, -10, 1]),
+            BlockData(kind: White, position: [1, -10, 2]),
+            BlockData(kind: Red, position: [2, -10, 0]),
+            BlockData(kind: Red, position: [2, -10, 1]),
+            BlockData(kind: White, position: [2, -10, 2]),
+
+            // -9
+            BlockData(kind: Blue, position: [-1, -9, 0]),
+            BlockData(kind: Blue, position: [-1, -9, 1]),
+            BlockData(kind: Blue, position: [-2, -9, 0]),
+            BlockData(kind: Blue, position: [-2, -9, 1]),
+            BlockData(kind: Blue, position: [1, -9, 0]),
+            BlockData(kind: Blue, position: [1, -9, 1]),
+            BlockData(kind: Blue, position: [2, -9, 0]),
+            BlockData(kind: Blue, position: [2, -9, 1]),
+
+            // -8 
+            BlockData(kind: Blue, position: [-1, -8, 0]),
+            BlockData(kind: Blue, position: [-1, -8, 1]),
+            BlockData(kind: Blue, position: [-2, -8, 0]),
+            BlockData(kind: Blue, position: [-2, -8, 1]),
+            BlockData(kind: Blue, position: [1, -8, 0]),
+            BlockData(kind: Blue, position: [1, -8, 1]),
+            BlockData(kind: Blue, position: [2, -8, 0]),
+            BlockData(kind: Blue, position: [2, -8, 1]),
+
+            // -7
+            BlockData(kind: Blue, position: [1, -7, 0]),
+            BlockData(kind: Blue, position: [1, -7, 1]),
+            BlockData(kind: Blue, position: [2, -7, 0]),
+            BlockData(kind: Blue, position: [2, -7, 1]),
+            BlockData(kind: Blue, position: [0, -7, 0]),
+            BlockData(kind: Blue, position: [0, -7, 1]),
+            BlockData(kind: Blue, position: [-1, -7, 0]),
+            BlockData(kind: Blue, position: [-1, -7, 1]),
+            BlockData(kind: Blue, position: [-2, -7, 0]),
+            BlockData(kind: Blue, position: [-2, -7, 1]),
+
+            // -6 
+            BlockData(kind: Blue, position: [-1, -6, 0]),
+            BlockData(kind: Blue, position: [-1, -6, 1]),
+            BlockData(kind: Blue, position: [0, -6, 0]),
+            BlockData(kind: Blue, position: [0, -6, 2]),
+            BlockData(kind: Blue, position: [1, -6, 0]),
+            BlockData(kind: Blue, position: [1, -6, 1]),
+            BlockData(kind: White, position: [3, -6, 1]),
+            BlockData(kind: White, position: [3, -6, 2]),
+            BlockData(kind: White, position: [4, -6, 1]),
+            BlockData(kind: White, position: [4, -6, 2]),
+
+            // -5
+            BlockData(kind: Blue, position: [-1, -5, 2]),
+            BlockData(kind: Blue, position: [0, -5, 2]),
+            BlockData(kind: Blue, position: [1, -5, 2]),
+
+            BlockData(kind: Skin, position: [-2, -5, 1]),
+            BlockData(kind: Skin, position: [-3, -5, 1]),
+
+            BlockData(kind: Skin, position: [2, -5, 1]),
+
+            BlockData(kind: White, position: [3, -5, 1]),
+            BlockData(kind: White, position: [4, -5, 1]),
+            BlockData(kind: White, position: [3, -5, 2]),
+            BlockData(kind: White, position: [4, -5, 2]),
+
+            BlockData(kind: White, position: [-3, -5, 2]),
+            BlockData(kind: White, position: [-4, -5, 2]),
+            BlockData(kind: White, position: [-3, -5, 3]),
+            BlockData(kind: White, position: [-4, -5, 3]),
+            BlockData(kind: White, position: [-4, -5, 4]),
+            BlockData(kind: White, position: [-5, -5, 3]),
+
+            // -5 Back
+            BlockData(kind: Blue, position: [-1, -5, 0]),
+            BlockData(kind: Blue, position: [0, -5, 0]),
+            BlockData(kind: Skin, position: [1, -5, 0]),
+
+            // -4 Front
+            BlockData(kind: Gold, position: [-1, -4, 2]),
+            BlockData(kind: Skin, position: [-2, -4, 1]),
+            BlockData(kind: Skin, position: [-3, -4, 1]),
+            BlockData(kind: Skin, position: [-3, -4, 2]),
+            BlockData(kind: Skin, position: [0, -4, 2]),
+            BlockData(kind: Skin, position: [1, -4, 2]),
+            BlockData(kind: Skin, position: [2, -4, 1]),
+            BlockData(kind: Skin, position: [3, -4, 1]),
+
+            BlockData(kind: Red, position: [-4, -4, 3]),
+            BlockData(kind: Red, position: [-4, -4, 4]),
+            BlockData(kind: Red, position: [-5, -4, 3]),
+            BlockData(kind: Red, position: [-5, -4, 4]),
+
+            // -4 Back
+            BlockData(kind: Blue, position: [-1, -4, 0]),
+            BlockData(kind: Blue, position: [0, -4, 0]),
+            BlockData(kind: Blue, position: [1, -4, 0]),
+
+            // -3 Front
+            BlockData(kind: Blue, position: [-1, -3, 2]),
+            BlockData(kind: Skin, position: [0, -3, 2]),
+            BlockData(kind: Skin, position: [1, -3, 2]),
+
+            BlockData(kind: Skin, position: [-2, -3, 1]),
+            BlockData(kind: Skin, position: [2, -3, 1]),
+
+            BlockData(kind: White, position: [-4, -3, 3]),
+            BlockData(kind: Red, position: [-4, -3, 4]),
+            BlockData(kind: Red, position: [-5, -3, 3]),
+            BlockData(kind: White, position: [-5, -3, 4]),
+
+            // -2 Front
+            BlockData(kind: Red, position: [0, -2, 2]),
+            BlockData(kind: Gold, position: [-1, -2, 1]),
+            BlockData(kind: Gold, position: [1, -2, 1]),
+
+            // -1 Front
+            BlockData(kind: Skin, position: [-1, -1, 3]),
+            BlockData(kind: Skin, position: [-1, -1, 2]),
+            BlockData(kind: Skin, position: [-2, -1, 2]),
+            BlockData(kind: Skin, position: [0, -1, 3]),
+            BlockData(kind: Skin, position: [1, -1, 3]),
+            BlockData(kind: Skin, position: [1, -1, 2]),
+            BlockData(kind: Skin, position: [2, -1, 2]),
+
+            // 0 Front
+            BlockData(kind: Skin, position: [-1, 0, 3]),
+            BlockData(kind: Skin, position: [-2, 0, 3]),
+            BlockData(kind: Skin, position: [-3, 0, 2]),
+            BlockData(kind: Red, position: [0, 0, 3]),
+            BlockData(kind: Skin, position: [1, 0, 3]),
+            BlockData(kind: Skin, position: [2, 0, 3]),
+            BlockData(kind: Skin, position: [3, 0, 2]),
+
+            // 1 Front
+            BlockData(kind: Black, position: [-1, 1, 4]),
+            BlockData(kind: Black, position: [-2, 1, 4]),
+            BlockData(kind: Skin, position: [-3, 1, 3]),
+            BlockData(kind: Skin, position: [-4, 1, 2]),
+            BlockData(kind: Black, position: [0, 1, 4]),
+            BlockData(kind: Black, position: [1, 1, 4]),
+            BlockData(kind: Black, position: [2, 1, 4]),
+            BlockData(kind: Skin, position: [3, 1, 3]),
+            BlockData(kind: Skin, position: [4, 1, 2]),
+
+            // 2 Front
+            BlockData(kind: Skin, position: [0, 2, 4]),
+            BlockData(kind: Skin, position: [0, 2, 5]),
+            BlockData(kind: Skin, position: [-1, 2, 3]),
+            BlockData(kind: Black, position: [-2, 2, 3]),
+            BlockData(kind: Black, position: [-3, 2, 3]),
+            BlockData(kind: Skin, position: [-4, 2, 2]),
+            BlockData(kind: Skin, position: [1, 2, 3]),
+            BlockData(kind: Black, position: [2, 2, 3]),
+            BlockData(kind: Black, position: [3, 2, 3]),
+            BlockData(kind: Skin, position: [4, 2, 2]),
+
+            // 3 Front
+            BlockData(kind: Black, position: [-1, 3, 3]),
+            BlockData(kind: White, position: [-2, 3, 3]),
+            BlockData(kind: Skin, position: [-3, 3, 3]),
+            BlockData(kind: Skin, position: [-4, 3, 2]),
+            BlockData(kind: Skin, position: [-5, 3, 1]),
+
+            BlockData(kind: Skin, position: [0, 3, 4]),
+
+            BlockData(kind: Black, position: [1, 3, 3]),
+            BlockData(kind: White, position: [2, 3, 3]),
+            BlockData(kind: Skin, position: [3, 3, 3]),
+            BlockData(kind: Skin, position: [4, 3, 2]),
+            BlockData(kind: Skin, position: [5, 3, 1]),
+
+            // 4 Front
+            BlockData(kind: Black, position: [-1, 4, 3]),
+            BlockData(kind: White, position: [-2, 4, 3]),
+            BlockData(kind: Skin, position: [-3, 4, 3]),
+            BlockData(kind: Skin, position: [-3, 4, 2]),
+            BlockData(kind: Skin, position: [-4, 4, 1]),
+            BlockData(kind: Skin, position: [-5, 4, 1]),
+
+            BlockData(kind: Skin, position: [0, 4, 3]),
+
+            BlockData(kind: Black, position: [1, 4, 3]),
+            BlockData(kind: White, position: [2, 4, 3]),
+            BlockData(kind: Skin, position: [3, 4, 3]),
+            BlockData(kind: Skin, position: [3, 4, 2]),
+            BlockData(kind: Skin, position: [4, 4, 1]),
+            BlockData(kind: Skin, position: [5, 4, 1]),
+
+            // 5 Front
+            BlockData(kind: Skin, position: [-1, 5, 3]),
+            BlockData(kind: Skin, position: [-2, 5, 3]),
+            BlockData(kind: Skin, position: [-3, 5, 3]),
+            BlockData(kind: Skin, position: [-3, 5, 2]),
+            BlockData(kind: Black, position: [-4, 5, 1]),
+
+            BlockData(kind: Skin, position: [0, 5, 3]),
+
+            BlockData(kind: Skin, position: [1, 5, 3]),
+            BlockData(kind: Skin, position: [2, 5, 3]),
+            BlockData(kind: Skin, position: [3, 5, 3]),
+            BlockData(kind: Skin, position: [3, 5, 2]),
+            BlockData(kind: Black, position: [4, 5, 1]),
+
+            // 6 Front
+            BlockData(kind: Black, position: [-1, 6, 3]),
+            BlockData(kind: Black, position: [-2, 6, 3]),
+            BlockData(kind: Skin, position: [-3, 6, 2]),
+            BlockData(kind: Black, position: [-4, 6, 1]),
+            BlockData(kind: Red, position: [-5, 6, 1]),
+
+            BlockData(kind: Skin, position: [0, 6, 3]),
+
+            BlockData(kind: Black, position: [1, 6, 3]),
+            BlockData(kind: Black, position: [2, 6, 3]),
+            BlockData(kind: Skin, position: [3, 6, 2]),
+            BlockData(kind: Black, position: [4, 6, 1]),
+            BlockData(kind: Red, position: [5, 6, 1]),
+
+            // 7 Front
+            BlockData(kind: Red, position: [-1, 7, 4]),
+            BlockData(kind: Red, position: [-1, 7, 5]),
+            BlockData(kind: Red, position: [-2, 7, 4]),
+            BlockData(kind: Red, position: [-2, 7, 5]),
+            BlockData(kind: Red, position: [-3, 7, 3]),
+            BlockData(kind: Red, position: [-3, 7, 4]),
+            BlockData(kind: Red, position: [-4, 7, 2]),
+            BlockData(kind: Red, position: [-4, 7, 3]),
+            BlockData(kind: Red, position: [-5, 7, 1]),
+            BlockData(kind: Red, position: [-5, 7, 2]),
+
+            BlockData(kind: Red, position: [0, 7, 4]),
+            BlockData(kind: Red, position: [0, 7, 5]),
+
+            BlockData(kind: Red, position: [1, 7, 4]),
+            BlockData(kind: Red, position: [1, 7, 5]),
+            BlockData(kind: Red, position: [2, 7, 4]),
+            BlockData(kind: Red, position: [2, 7, 5]),
+            BlockData(kind: Red, position: [3, 7, 3]),
+            BlockData(kind: Red, position: [3, 7, 4]),
+            BlockData(kind: Red, position: [4, 7, 2]),
+            BlockData(kind: Red, position: [4, 7, 3]),
+            BlockData(kind: Red, position: [5, 7, 1]),
+            BlockData(kind: Red, position: [5, 7, 2]),
+
+            // 8 Front
+            BlockData(kind: Red, position: [-1, 8, 4]),
+            BlockData(kind: White, position: [-2, 8, 4]),
+            BlockData(kind: Red, position: [-3, 8, 3]),
+            BlockData(kind: Red, position: [-4, 8, 2]),
+
+            BlockData(kind: White, position: [0, 8, 4]),
+
+            BlockData(kind: Red, position: [1, 8, 4]),
+            BlockData(kind: White, position: [2, 8, 4]),
+            BlockData(kind: Red, position: [3, 8, 3]),
+            BlockData(kind: Red, position: [4, 8, 2]),
+
+            // 9 Front
+            BlockData(kind: Red, position: [-1, 9, 4]),
+            BlockData(kind: White, position: [-2, 9, 4]),
+            BlockData(kind: Red, position: [-3, 9, 3]),
+            BlockData(kind: Red, position: [-4, 9, 2]),
+
+            BlockData(kind: White, position: [0, 9, 4]),
+
+            BlockData(kind: Red, position: [1, 9, 4]),
+            BlockData(kind: White, position: [2, 9, 4]),
+            BlockData(kind: Red, position: [3, 9, 3]),
+            BlockData(kind: Red, position: [4, 9, 2]),
+
+            // 10 Front
+            BlockData(kind: White, position: [-1, 10, 4]),
+            BlockData(kind: Red, position: [-2, 10, 3]),
+            BlockData(kind: Red, position: [-3, 10, 2]),
+            
+            BlockData(kind: Red, position: [0, 10, 4]),
+            
+            BlockData(kind: White, position: [1, 10, 4]),
+            BlockData(kind: Red, position: [2, 10, 3]),
+            BlockData(kind: Red, position: [3, 10, 2]),
+
+            // 11 Front
+            BlockData(kind: Red, position: [-1, 11, 3]),
+            BlockData(kind: Red, position: [-2, 11, 2]),
+
+            BlockData(kind: Red, position: [0, 11, 3]),
+
+            BlockData(kind: Red, position: [1, 11, 3]),
+            BlockData(kind: Red, position: [2, 11, 2]),
+
+            // 12 Front
+            BlockData(kind: Red, position: [-1, 12, 2]),
+
+            BlockData(kind: Red, position: [0, 12, 2]),
+
+            BlockData(kind: Red, position: [1, 12, 2]),
+
+
+        ],
+        
+    ),
+    Luigi: Structure (
+        size: [16, 32, 16],
+        blocks: [
+            // -10
+            BlockData(kind: Green, position: [-1, -10, 0]),
+            BlockData(kind: Green, position: [-1, -10, 1]),
+            BlockData(kind: White, position: [-1, -10, 2]),
+            BlockData(kind: Green, position: [-2, -10, 0]),
+            BlockData(kind: Green, position: [-2, -10, 1]),
+            BlockData(kind: White, position: [-2, -10, 2]),
+            BlockData(kind: Green, position: [1, -10, 0]),
+            BlockData(kind: Green, position: [1, -10, 1]),
+            BlockData(kind: White, position: [1, -10, 2]),
+            BlockData(kind: Green, position: [2, -10, 0]),
+            BlockData(kind: Green, position: [2, -10, 1]),
+            BlockData(kind: White, position: [2, -10, 2]),
+
+            // -9
+            BlockData(kind: Blue, position: [-1, -9, 0]),
+            BlockData(kind: Blue, position: [-1, -9, 1]),
+            BlockData(kind: Blue, position: [-2, -9, 0]),
+            BlockData(kind: Blue, position: [-2, -9, 1]),
+            BlockData(kind: Blue, position: [1, -9, 0]),
+            BlockData(kind: Blue, position: [1, -9, 1]),
+            BlockData(kind: Blue, position: [2, -9, 0]),
+            BlockData(kind: Blue, position: [2, -9, 1]),
+
+            // -8 
+            BlockData(kind: Blue, position: [-1, -8, 0]),
+            BlockData(kind: Blue, position: [-1, -8, 1]),
+            BlockData(kind: Blue, position: [-2, -8, 0]),
+            BlockData(kind: Blue, position: [-2, -8, 1]),
+            BlockData(kind: Blue, position: [1, -8, 0]),
+            BlockData(kind: Blue, position: [1, -8, 1]),
+            BlockData(kind: Blue, position: [2, -8, 0]),
+            BlockData(kind: Blue, position: [2, -8, 1]),
+
+            // -7
+            BlockData(kind: Blue, position: [1, -7, 0]),
+            BlockData(kind: Blue, position: [1, -7, 1]),
+            BlockData(kind: Blue, position: [2, -7, 0]),
+            BlockData(kind: Blue, position: [2, -7, 1]),
+            BlockData(kind: Blue, position: [0, -7, 0]),
+            BlockData(kind: Blue, position: [0, -7, 1]),
+            BlockData(kind: Blue, position: [-1, -7, 0]),
+            BlockData(kind: Blue, position: [-1, -7, 1]),
+            BlockData(kind: Blue, position: [-2, -7, 0]),
+            BlockData(kind: Blue, position: [-2, -7, 1]),
+
+            // -6 
+            BlockData(kind: Blue, position: [-1, -6, 0]),
+            BlockData(kind: Blue, position: [-1, -6, 1]),
+            BlockData(kind: Blue, position: [0, -6, 0]),
+            BlockData(kind: Blue, position: [0, -6, 2]),
+            BlockData(kind: Blue, position: [1, -6, 0]),
+            BlockData(kind: Blue, position: [1, -6, 1]),
+            BlockData(kind: White, position: [3, -6, 1]),
+            BlockData(kind: White, position: [3, -6, 2]),
+            BlockData(kind: White, position: [4, -6, 1]),
+            BlockData(kind: White, position: [4, -6, 2]),
+
+            // -5
+            BlockData(kind: Blue, position: [-1, -5, 2]),
+            BlockData(kind: Blue, position: [0, -5, 2]),
+            BlockData(kind: Blue, position: [1, -5, 2]),
+
+            BlockData(kind: Skin, position: [-2, -5, 1]),
+            BlockData(kind: Skin, position: [-3, -5, 1]),
+
+            BlockData(kind: Skin, position: [2, -5, 1]),
+
+            BlockData(kind: White, position: [3, -5, 1]),
+            BlockData(kind: White, position: [4, -5, 1]),
+            BlockData(kind: White, position: [3, -5, 2]),
+            BlockData(kind: White, position: [4, -5, 2]),
+
+            BlockData(kind: White, position: [-3, -5, 2]),
+            BlockData(kind: White, position: [-4, -5, 2]),
+            BlockData(kind: White, position: [-3, -5, 3]),
+            BlockData(kind: White, position: [-4, -5, 3]),
+            BlockData(kind: White, position: [-4, -5, 4]),
+            BlockData(kind: White, position: [-5, -5, 3]),
+
+            // -5 Back
+            BlockData(kind: Blue, position: [-1, -5, 0]),
+            BlockData(kind: Blue, position: [0, -5, 0]),
+            BlockData(kind: Skin, position: [1, -5, 0]),
+
+            // -4 Front
+            BlockData(kind: Gold, position: [-1, -4, 2]),
+            BlockData(kind: Skin, position: [-2, -4, 1]),
+            BlockData(kind: Skin, position: [-3, -4, 1]),
+            BlockData(kind: Skin, position: [-3, -4, 2]),
+            BlockData(kind: Skin, position: [0, -4, 2]),
+            BlockData(kind: Skin, position: [1, -4, 2]),
+            BlockData(kind: Skin, position: [2, -4, 1]),
+            BlockData(kind: Skin, position: [3, -4, 1]),
+
+            BlockData(kind: Red, position: [-4, -4, 3]),
+            BlockData(kind: Red, position: [-4, -4, 4]),
+            BlockData(kind: Red, position: [-5, -4, 3]),
+            BlockData(kind: Red, position: [-5, -4, 4]),
+
+            // -4 Back
+            BlockData(kind: Blue, position: [-1, -4, 0]),
+            BlockData(kind: Blue, position: [0, -4, 0]),
+            BlockData(kind: Blue, position: [1, -4, 0]),
+
+            // -3 Front
+            BlockData(kind: Blue, position: [-1, -3, 2]),
+            BlockData(kind: Skin, position: [0, -3, 2]),
+            BlockData(kind: Skin, position: [1, -3, 2]),
+
+            BlockData(kind: Skin, position: [-2, -3, 1]),
+            BlockData(kind: Skin, position: [2, -3, 1]),
+
+            BlockData(kind: White, position: [-4, -3, 3]),
+            BlockData(kind: Red, position: [-4, -3, 4]),
+            BlockData(kind: Red, position: [-5, -3, 3]),
+            BlockData(kind: White, position: [-5, -3, 4]),
+
+            // -2 Front
+            BlockData(kind: Green, position: [0, -2, 2]),
+            BlockData(kind: Gold, position: [-1, -2, 1]),
+            BlockData(kind: Gold, position: [1, -2, 1]),
+
+            // -1 Front
+            BlockData(kind: Skin, position: [-1, -1, 3]),
+            BlockData(kind: Skin, position: [-1, -1, 2]),
+            BlockData(kind: Skin, position: [-2, -1, 2]),
+            BlockData(kind: Skin, position: [0, -1, 3]),
+            BlockData(kind: Skin, position: [1, -1, 3]),
+            BlockData(kind: Skin, position: [1, -1, 2]),
+            BlockData(kind: Skin, position: [2, -1, 2]),
+
+            // 0 Front
+            BlockData(kind: Skin, position: [-1, 0, 3]),
+            BlockData(kind: Skin, position: [-2, 0, 3]),
+            BlockData(kind: Skin, position: [-3, 0, 2]),
+            BlockData(kind: Red, position: [0, 0, 3]),
+            BlockData(kind: Skin, position: [1, 0, 3]),
+            BlockData(kind: Skin, position: [2, 0, 3]),
+            BlockData(kind: Skin, position: [3, 0, 2]),
+
+            // 1 Front
+            BlockData(kind: Black, position: [-1, 1, 4]),
+            BlockData(kind: Black, position: [-2, 1, 4]),
+            BlockData(kind: Skin, position: [-3, 1, 3]),
+            BlockData(kind: Skin, position: [-4, 1, 2]),
+            BlockData(kind: Black, position: [0, 1, 4]),
+            BlockData(kind: Black, position: [1, 1, 4]),
+            BlockData(kind: Black, position: [2, 1, 4]),
+            BlockData(kind: Skin, position: [3, 1, 3]),
+            BlockData(kind: Skin, position: [4, 1, 2]),
+
+            // 2 Front
+            BlockData(kind: Skin, position: [0, 2, 4]),
+            BlockData(kind: Skin, position: [0, 2, 5]),
+            BlockData(kind: Skin, position: [-1, 2, 3]),
+            BlockData(kind: Black, position: [-2, 2, 3]),
+            BlockData(kind: Black, position: [-3, 2, 3]),
+            BlockData(kind: Skin, position: [-4, 2, 2]),
+            BlockData(kind: Skin, position: [1, 2, 3]),
+            BlockData(kind: Black, position: [2, 2, 3]),
+            BlockData(kind: Black, position: [3, 2, 3]),
+            BlockData(kind: Skin, position: [4, 2, 2]),
+
+            // 3 Front
+            BlockData(kind: Black, position: [-1, 3, 3]),
+            BlockData(kind: White, position: [-2, 3, 3]),
+            BlockData(kind: Skin, position: [-3, 3, 3]),
+            BlockData(kind: Skin, position: [-4, 3, 2]),
+            BlockData(kind: Skin, position: [-5, 3, 1]),
+
+            BlockData(kind: Skin, position: [0, 3, 4]),
+
+            BlockData(kind: Black, position: [1, 3, 3]),
+            BlockData(kind: White, position: [2, 3, 3]),
+            BlockData(kind: Skin, position: [3, 3, 3]),
+            BlockData(kind: Skin, position: [4, 3, 2]),
+            BlockData(kind: Skin, position: [5, 3, 1]),
+
+            // 4 Front
+            BlockData(kind: Black, position: [-1, 4, 3]),
+            BlockData(kind: White, position: [-2, 4, 3]),
+            BlockData(kind: Skin, position: [-3, 4, 3]),
+            BlockData(kind: Skin, position: [-3, 4, 2]),
+            BlockData(kind: Skin, position: [-4, 4, 1]),
+            BlockData(kind: Skin, position: [-5, 4, 1]),
+
+            BlockData(kind: Skin, position: [0, 4, 3]),
+
+            BlockData(kind: Black, position: [1, 4, 3]),
+            BlockData(kind: White, position: [2, 4, 3]),
+            BlockData(kind: Skin, position: [3, 4, 3]),
+            BlockData(kind: Skin, position: [3, 4, 2]),
+            BlockData(kind: Skin, position: [4, 4, 1]),
+            BlockData(kind: Skin, position: [5, 4, 1]),
+
+            // 5 Front
+            BlockData(kind: Skin, position: [-1, 5, 3]),
+            BlockData(kind: Skin, position: [-2, 5, 3]),
+            BlockData(kind: Skin, position: [-3, 5, 3]),
+            BlockData(kind: Skin, position: [-3, 5, 2]),
+            BlockData(kind: Black, position: [-4, 5, 1]),
+
+            BlockData(kind: Skin, position: [0, 5, 3]),
+
+            BlockData(kind: Skin, position: [1, 5, 3]),
+            BlockData(kind: Skin, position: [2, 5, 3]),
+            BlockData(kind: Skin, position: [3, 5, 3]),
+            BlockData(kind: Skin, position: [3, 5, 2]),
+            BlockData(kind: Black, position: [4, 5, 1]),
+
+            // 6 Front
+            BlockData(kind: Black, position: [-1, 6, 3]),
+            BlockData(kind: Black, position: [-2, 6, 3]),
+            BlockData(kind: Skin, position: [-3, 6, 2]),
+            BlockData(kind: Black, position: [-4, 6, 1]),
+            BlockData(kind: Green, position: [-5, 6, 1]),
+
+            BlockData(kind: Skin, position: [0, 6, 3]),
+
+            BlockData(kind: Black, position: [1, 6, 3]),
+            BlockData(kind: Black, position: [2, 6, 3]),
+            BlockData(kind: Skin, position: [3, 6, 2]),
+            BlockData(kind: Black, position: [4, 6, 1]),
+            BlockData(kind: Green, position: [5, 6, 1]),
+
+            // 7 Front
+            BlockData(kind: Green, position: [-1, 7, 4]),
+            BlockData(kind: Green, position: [-1, 7, 5]),
+            BlockData(kind: Green, position: [-2, 7, 4]),
+            BlockData(kind: Green, position: [-2, 7, 5]),
+            BlockData(kind: Green, position: [-3, 7, 3]),
+            BlockData(kind: Green, position: [-3, 7, 4]),
+            BlockData(kind: Green, position: [-4, 7, 2]),
+            BlockData(kind: Green, position: [-4, 7, 3]),
+            BlockData(kind: Green, position: [-5, 7, 1]),
+            BlockData(kind: Green, position: [-5, 7, 2]),
+
+            BlockData(kind: Green, position: [0, 7, 4]),
+            BlockData(kind: Green, position: [0, 7, 5]),
+
+            BlockData(kind: Green, position: [1, 7, 4]),
+            BlockData(kind: Green, position: [1, 7, 5]),
+            BlockData(kind: Green, position: [2, 7, 4]),
+            BlockData(kind: Green, position: [2, 7, 5]),
+            BlockData(kind: Green, position: [3, 7, 3]),
+            BlockData(kind: Green, position: [3, 7, 4]),
+            BlockData(kind: Green, position: [4, 7, 2]),
+            BlockData(kind: Green, position: [4, 7, 3]),
+            BlockData(kind: Green, position: [5, 7, 1]),
+            BlockData(kind: Green, position: [5, 7, 2]),
+
+            // 8 Front
+            BlockData(kind: White, position: [-1, 8, 4]),
+            BlockData(kind: Green, position: [-2, 8, 4]),
+            BlockData(kind: Green, position: [-3, 8, 3]),
+            BlockData(kind: Green, position: [-4, 8, 2]),
+
+            BlockData(kind: White, position: [0, 8, 4]),
+
+            BlockData(kind: White, position: [1, 8, 4]),
+            BlockData(kind: Green, position: [2, 8, 4]),
+            BlockData(kind: Green, position: [3, 8, 3]),
+            BlockData(kind: Green, position: [4, 8, 2]),
+
+            // 9 Front
+            BlockData(kind: White, position: [-1, 9, 4]),
+            BlockData(kind: Green, position: [-2, 9, 4]),
+            BlockData(kind: Green, position: [-3, 9, 3]),
+            BlockData(kind: Green, position: [-4, 9, 2]),
+
+            BlockData(kind: Green, position: [0, 9, 4]),
+
+            BlockData(kind: Green, position: [1, 9, 4]),
+            BlockData(kind: Green, position: [2, 9, 4]),
+            BlockData(kind: Green, position: [3, 9, 3]),
+            BlockData(kind: Green, position: [4, 9, 2]),
+
+            // 10 Front
+            BlockData(kind: White, position: [-1, 10, 4]),
+            BlockData(kind: Green, position: [-2, 10, 3]),
+            BlockData(kind: Green, position: [-3, 10, 2]),
+            
+            BlockData(kind: Green, position: [0, 10, 4]),
+            
+            BlockData(kind: Green, position: [1, 10, 4]),
+            BlockData(kind: Green, position: [2, 10, 3]),
+            BlockData(kind: Green, position: [3, 10, 2]),
+
+            // 11 Front
+            BlockData(kind: Green, position: [-1, 11, 3]),
+            BlockData(kind: Green, position: [-2, 11, 2]),
+
+            BlockData(kind: Green, position: [0, 11, 3]),
+
+            BlockData(kind: Green, position: [1, 11, 3]),
+            BlockData(kind: Green, position: [2, 11, 2]),
+
+            // 12 Front
+            BlockData(kind: Green, position: [-1, 12, 2]),
+
+            BlockData(kind: Green, position: [0, 12, 2]),
+
+            BlockData(kind: Green, position: [1, 12, 2]),
+
+
+        ],
+    ),
 }

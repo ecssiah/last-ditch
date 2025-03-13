@@ -1,5 +1,10 @@
 [
     Block(
+        kind: Metal,
+        opacity: 1.0,
+        color: (0.1, 0.2, 0.4, 1.0),
+    ),
+    Block(
         kind: Air,
         opacity: 0.0,
         color: (1.0, 1.0, 1.0, 1.0),
@@ -9,14 +14,45 @@
         opacity: 1.0,
         color: (0.2, 0.11, 0.13, 1.0),
     ),
-    Block(
-        kind: Metal,
-        opacity: 1.0,
-        color: (0.1, 0.2, 0.4, 1.0),
-    ),
+
     Block(
         kind: Concrete,
         opacity: 1.0,
         color: (0.8, 0.6, 0.7, 1.0),
+    ),
+    Block(
+        kind: Black,
+        opacity: 1.0,
+        color: (0.0, 0.0, 0.0, 1.0),
+    ),
+    Block(
+        kind: White,
+        opacity: 1.0,
+        color: (1.0, 1.0, 1.0, 1.0),
+    ),
+    Block(
+        kind: Red,
+        opacity: 1.0,
+        color: (0.9, 0.0, 0.0, 1.0),
+    ),
+    Block(
+        kind: Blue,
+        opacity: 1.0,
+        color: (0.0, 0.0, 0.9, 1.0),
+    ),
+    Block(
+        kind: Gold,
+        opacity: 1.0,
+        color: (0.91, 0.89, 0.035, 1.0),
+    ),
+    Block(
+        kind: Skin,
+        opacity: 1.0,
+        color: (0.9, 0.78, 0.54, 1.0),
+    ),
+    Block(
+        kind: Green,
+        opacity: 1.0,
+        color: (0.05, 1.0, 0.14, 1.0),
     ),
 ]

@@ -41,12 +41,12 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 3;
+pub const CHUNK_RADIUS: u32 = 8;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 3;
+pub const WORLD_RADIUS: u32 = 8;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
@@ -56,11 +56,15 @@ pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
 const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
 
-pub static BLOCKS: Lazy<Vec<Block>> =
-    Lazy::new(|| from_str(BLOCK_CONFIG).expect("Failed to parse Block data"));
+pub static BLOCKS: Lazy<Vec<Block>> = Lazy::new(|| {
+    let mut blocks: Vec<Block> = from_str(BLOCK_CONFIG).expect("Failed to parse Blocks");
+    blocks.sort_by(|a, b| a.kind.cmp(&b.kind));
+
+    blocks
+});
 
 pub static STRUCTURES: Lazy<HashMap<StructureKind, Structure>> =
-    Lazy::new(|| from_str(STRUCTURE_CONFIG).expect("Failed to parse Structure data"));
+    Lazy::new(|| from_str(STRUCTURE_CONFIG).expect("Failed to parse Structures"));
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
@@ -69,7 +73,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Simulation {
-        let state = Arc::new(State {
+        let state = Arc::from(State {
             agent: Simulation::setup_agent(),
             world: Simulation::setup_world(),
             chunks: Simulation::setup_chunks(),
@@ -117,34 +121,74 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(IVec3::new(0, 0, 0), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(10, 0, 10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(-10, 0, 10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(10, 0, -10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(-10, 0, -10), StructureKind::Swastika);
-        
-        self.generate_structure(IVec3::new(0, 24, 0), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(10, 24, 10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(-10, 24, 10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(10, 24, -10), StructureKind::Swastika);
-        self.generate_structure(IVec3::new(-10, 24, -10), StructureKind::Swastika);
-     
+        let spacing = 32;
+        let shift = 48;
+
+        self.generate_structure(
+            IVec3::new(-spacing + shift, 0, spacing),
+            StructureKind::Mario,
+        );
+        self.generate_structure(IVec3::new(0 + shift, 0, spacing), StructureKind::Mario);
+        self.generate_structure(
+            IVec3::new(spacing + shift, 0, spacing),
+            StructureKind::Mario,
+        );
+
+        self.generate_structure(IVec3::new(-spacing + shift, 0, 0), StructureKind::Mario);
+        self.generate_structure(IVec3::new(0 + shift, 0, 0), StructureKind::Mario);
+        self.generate_structure(IVec3::new(spacing + shift, 0, 0), StructureKind::Mario);
+
+        self.generate_structure(
+            IVec3::new(-spacing + shift, 0, -spacing),
+            StructureKind::Mario,
+        );
+        self.generate_structure(IVec3::new(0 + shift, 0, -spacing), StructureKind::Mario);
+        self.generate_structure(
+            IVec3::new(spacing + shift, 0, -spacing),
+            StructureKind::Mario,
+        );
+
+        self.generate_structure(
+            IVec3::new(-spacing - shift, 0, spacing),
+            StructureKind::Luigi,
+        );
+        self.generate_structure(IVec3::new(0 - shift, 0, spacing), StructureKind::Luigi);
+        self.generate_structure(
+            IVec3::new(spacing - shift, 0, spacing),
+            StructureKind::Luigi,
+        );
+
+        self.generate_structure(IVec3::new(-spacing - shift, 0, 0), StructureKind::Luigi);
+        self.generate_structure(IVec3::new(0 - shift, 0, 0), StructureKind::Luigi);
+        self.generate_structure(IVec3::new(spacing - shift, 0, 0), StructureKind::Luigi);
+
+        self.generate_structure(
+            IVec3::new(-spacing - shift, 0, -spacing),
+            StructureKind::Luigi,
+        );
+        self.generate_structure(IVec3::new(0 - shift, 0, -spacing), StructureKind::Luigi);
+        self.generate_structure(
+            IVec3::new(spacing - shift, 0, -spacing),
+            StructureKind::Luigi,
+        );
+
         self.state.world.write().unwrap().update_window = UPDATE_WINDOW;
     }
 
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: StructureKind) {
-        if STRUCTURES.contains_key(&structure_kind) {
-            let structure = &STRUCTURES[&structure_kind];
-
+        if let Some(structure) = STRUCTURES.get(&structure_kind) {
             for block_data in &structure.blocks[..] {
-                let position_array: [i32; 3] = block_data.position.as_slice().try_into().unwrap();
-                let grid_position: IVec3 = world_position + IVec3::from(position_array);
-    
+                let grid_position = world_position
+                    + IVec3::new(
+                        block_data.position[0],
+                        block_data.position[1],
+                        block_data.position[2],
+                    );
+
                 self.set_kind(grid_position, block_data.kind);
             }
         }
     }
-
 
     fn set_kind(&mut self, grid_position: IVec3, kind: block::BlockKind) {
         if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(&grid_position) {
@@ -248,9 +292,9 @@ impl Simulation {
         agent.look_x_axis -= rotate_actions.x_axis;
         agent.look_y_axis += rotate_actions.y_axis;
 
-        agent.look_x_axis = agent
-            .look_x_axis
-            .clamp(-89.0_f32.to_radians(), 89.0_f32.to_radians());
+        let limit = 89.0_f32.to_radians();
+
+        agent.look_x_axis = agent.look_x_axis.clamp(-limit, limit);
 
         let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
         let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
@@ -275,10 +319,10 @@ impl Simulation {
 
         let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
 
-        let agent_x_axis = y_axis_quat * Vec3::X;
-        let agent_z_axis = y_axis_quat * Vec3::Z;
+        let x_axis = y_axis_quat * Vec3::X;
+        let z_axis = y_axis_quat * Vec3::Z;
 
-        let movement = agent.x_speed * agent_x_axis + agent.z_speed * agent_z_axis;
+        let movement = agent.x_speed * x_axis + agent.z_speed * z_axis;
 
         agent.position += dt * movement;
     }

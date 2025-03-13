@@ -4,6 +4,8 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, Hash, Eq, PartialEq)]
 pub enum StructureKind {
     Swastika,
+    Mario,
+    Luigi,
 }
 
 #[derive(Debug, Deserialize)]

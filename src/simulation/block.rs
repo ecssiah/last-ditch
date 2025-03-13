@@ -1,11 +1,18 @@
 use serde::Deserialize;
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialOrd, Ord, Eq, PartialEq)]
 pub enum BlockKind {
     Air,
     Wood,
     Metal,
     Concrete,
+    Black,
+    White,
+    Red,
+    Blue,
+    Gold,
+    Skin,
+    Green,
 }
 
 #[derive(Debug, Deserialize)]
