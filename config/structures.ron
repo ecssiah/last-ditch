@@ -1,5 +1,6 @@
 {
     Swastika: Structure(
+        kind: Swastika,
         size: [4, 4, 4],
         blocks: [
             BlockData(kind: Wood, position: [-1, -1, 0]),
@@ -46,6 +47,7 @@
         ],
     ),
     Mario: Structure (
+        kind: Mario,
         size: [16, 32, 16],
         blocks: [
             // -10
@@ -358,6 +360,7 @@
         
     ),
     Luigi: Structure (
+        kind: Luigi,
         size: [16, 32, 16],
         blocks: [
             // -10

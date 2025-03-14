@@ -1,15 +1,20 @@
-use super::{ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE};
 use crate::{
     include_shader_src,
-    simulation::{
-        agent::Agent, block::{Block, BlockKind}, chunk::Chunk, world::World, Simulation, BLOCKS, CHUNK_VOLUME
-    },
+    interface::{self, ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
+    simulation::{self, agent::Agent, block, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
+
+const CLEAR_COLOR: wgpu::Color = wgpu::Color {
+    r: 0.2,
+    g: 1.0,
+    b: 1.0,
+    a: 1.0,
+};
 
 #[rustfmt::skip]
 const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
@@ -21,22 +26,18 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
-pub struct VoxelInstance {
+pub struct BlockInstance {
     position: [f32; 3],
     color: [f32; 4],
-}
-
-pub struct VoxelRender {
-    instance_count: u32,
-    instance_buffer: wgpu::Buffer,
-    pipeline: wgpu::RenderPipeline,
+    ao: [f32; 8],
 }
 
 pub struct Render {
+    last_render: u64,
     window: Arc<Window>,
     agent: Arc<RwLock<Agent>>,
     world: Arc<RwLock<World>>,
-    chunks: Arc<[Arc<RwLock<Chunk>>]>,
+    chunks: Arc<[Arc<RwLock<simulation::Chunk>>]>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     size: winit::dpi::PhysicalSize<u32>,
@@ -45,7 +46,8 @@ pub struct Render {
     surface_config: wgpu::SurfaceConfiguration,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    voxel_render: VoxelRender,
+    voxel_chunks: [interface::Chunk; CHUNK_VOLUME as usize],
+    voxel_pipeline: wgpu::RenderPipeline,
 }
 
 impl Render {
@@ -53,7 +55,7 @@ impl Render {
         window: Arc<Window>,
         agent: Arc<RwLock<Agent>>,
         world: Arc<RwLock<World>>,
-        chunks: Arc<[Arc<RwLock<Chunk>>]>,
+        chunks: Arc<[Arc<RwLock<simulation::Chunk>>]>,
     ) -> Render {
         window.set_cursor_visible(false);
 
@@ -123,13 +125,6 @@ impl Render {
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
         });
 
-        let voxel_instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Empty Buffer"),
-            size: 4,
-            usage: wgpu::BufferUsages::VERTEX,
-            mapped_at_creation: false,
-        });
-
         let voxel_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Voxel Pipeline Layout"),
@@ -138,7 +133,7 @@ impl Render {
             });
 
         let voxel_instance_layout = wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<VoxelInstance>() as wgpu::BufferAddress,
+            array_stride: std::mem::size_of::<BlockInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
@@ -154,6 +149,21 @@ impl Render {
             ],
         };
 
+        let voxel_chunks = core::array::from_fn(|_| {
+            let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("Empty Buffer"),
+                size: std::mem::size_of::<BlockInstance>() as u64,
+                usage: wgpu::BufferUsages::VERTEX,
+                mapped_at_creation: false,
+            });
+
+            interface::Chunk {
+                last_render: 0,
+                instance_buffer,
+                instance_count: 0,
+            }
+        });
+
         let voxel_pipeline = Render::create_pipeline(
             &device,
             &surface_config,
@@ -162,13 +172,10 @@ impl Render {
             voxel_instance_layout,
         );
 
-        let voxel_render = VoxelRender {
-            instance_count: 0,
-            instance_buffer: voxel_instance_buffer,
-            pipeline: voxel_pipeline,
-        };
+        let last_render: u64 = 0;
 
         let render = Render {
+            last_render,
             window,
             agent,
             world,
@@ -181,7 +188,8 @@ impl Render {
             surface_config,
             view_projection_buffer,
             view_projection_bind_group,
-            voxel_render,
+            voxel_chunks,
+            voxel_pipeline,
         };
 
         render
@@ -193,13 +201,21 @@ impl Render {
         self.surface.configure(&self.device, &self.surface_config);
     }
 
-    pub fn render(&mut self) {
+    fn update(&mut self) {
         self.update_view_projection();
 
-        if self.world.read().unwrap().update_window > 0 {
-            self.update_chunks();
-        }
+        let last_update = self.world.read().unwrap().last_update;
 
+        if last_update > self.last_render {
+            println!("Update");
+
+            self.update_chunks();
+
+            self.last_render = last_update;
+        }
+    }
+
+    pub fn render(&self) {
         let surface_texture = self
             .surface
             .get_current_texture()
@@ -222,7 +238,7 @@ impl Render {
                 view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {r: 0.2, g: 1.0, b: 1.0, a: 1.0 }),
+                    load: wgpu::LoadOp::Clear(CLEAR_COLOR),
                     store: wgpu::StoreOp::Store,
                 },
             })],
@@ -238,11 +254,14 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.voxel_render.pipeline);
+        render_pass.set_pipeline(&self.voxel_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-        render_pass.set_vertex_buffer(0, self.voxel_render.instance_buffer.slice(..));
 
-        render_pass.draw(0..36, 0..self.voxel_render.instance_count);
+        for chunk in self.voxel_chunks.iter() {
+            render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
+
+            render_pass.draw(0..36, 0..chunk.instance_count);
+        }
 
         drop(render_pass);
 
@@ -252,28 +271,27 @@ impl Render {
         surface_texture.present();
     }
 
-    fn update_chunks(&mut self) {
-        let voxel_instances = self.read_chunks();
-        let voxel_instance_count = voxel_instances.len() as u32;
+    fn read_chunk(&mut self, chunk: &mut interface::Chunk) {
+        if chunk.instance_count > 0 {
+            let block_instances: Vec<BlockInstance> = Vec::new();
 
-        if voxel_instance_count > 0 {
-            let voxel_instance_buffer =
+            chunk.instance_buffer =
                 self.device
                     .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                         label: Some("Voxel Instance Buffer"),
-                        contents: bytemuck::cast_slice(voxel_instances.as_slice()),
+                        contents: bytemuck::cast_slice(block_instances.as_slice()),
                         usage: wgpu::BufferUsages::VERTEX,
                     });
-
-            self.voxel_render.instance_buffer = voxel_instance_buffer;
-            self.voxel_render.instance_count = voxel_instance_count;
+            chunk.instance_count = block_instances.len() as u32;
         }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::RedrawRequested => {
+                self.update();
                 self.render();
+
                 self.window.request_redraw();
             }
             WindowEvent::Resized(size) => {
@@ -283,28 +301,91 @@ impl Render {
         }
     }
 
-    fn read_chunks(&self) -> Vec<VoxelInstance> {
-        let mut voxel_instances: Vec<VoxelInstance> = Vec::new();
-
+    fn update_chunks(&mut self) {
         for (chunk_id, chunk) in self.chunks.iter().enumerate() {
-            let chunk_id = chunk_id as u32;
-            let chunk = chunk.read().unwrap();
+            let last_update = chunk.read().unwrap().last_update;
 
-            for block_id in 0..CHUNK_VOLUME {
-                let palette_id = chunk.blocks[block_id as usize];
-                let kind = chunk.palette[palette_id as usize];
+            if self.voxel_chunks[chunk_id].last_render < last_update {
+                let mut block_instances: Vec<BlockInstance> = Vec::new();
 
-                if kind != BlockKind::Air {
-                    let grid_position = Simulation::get_grid_position(chunk_id, block_id);
-                    let block = &BLOCKS[kind as usize];
+                let chunk = chunk.read().unwrap();
 
-                    let voxel_instance = self.create_voxel_instance(grid_position, block);
-                    voxel_instances.push(voxel_instance);
+                for block_id in 0..CHUNK_VOLUME as usize {
+                    let palette_id = chunk.palette_ids[block_id] as usize;
+                    let kind = chunk.palette[palette_id];
+
+                    if kind != block::Kind::Air {
+                        let grid_position =
+                            Simulation::get_grid_position(chunk_id as u32, block_id as u32);
+                        let block = &BLOCKS[kind as usize];
+                        let meta = &chunk.meta[block_id];
+
+                        let block_instance = self.create_block_instance(grid_position, block, meta);
+
+                        block_instances.push(block_instance);
+                    }
                 }
+
+                self.voxel_chunks[chunk_id].last_render = last_update;
+            }
+        }
+    }
+
+    fn create_block_instance(
+        &self,
+        grid_position: IVec3,
+        block: &block::Block,
+        meta: &block::Meta,
+    ) -> BlockInstance {
+        BlockInstance {
+            position: grid_position.as_vec3().into(),
+            color: [
+                block.color.0 as f32,
+                block.color.1 as f32,
+                block.color.2 as f32,
+                block.color.3 as f32,
+            ],
+            ao: [
+                Render::compute_ao(meta.neighbor_masks[0]),
+                Render::compute_ao(meta.neighbor_masks[1]),
+                Render::compute_ao(meta.neighbor_masks[2]),
+                Render::compute_ao(meta.neighbor_masks[3]),
+                Render::compute_ao(meta.neighbor_masks[4]),
+                Render::compute_ao(meta.neighbor_masks[5]),
+                Render::compute_ao(meta.neighbor_masks[6]),
+                Render::compute_ao(meta.neighbor_masks[7]),
+            ],
+        }
+    }
+
+    fn compute_ao(mask: block::NeighborMask) -> f32 {
+        let mut occlusion: f32 = 0.0;
+        let mut primary_neighbors = 0;
+
+        for dir in 0..6 {
+            if mask.is_solid(dir) {
+                primary_neighbors += 1;
+                occlusion += 0.15;
+            }
+        }
+    
+        let corners = [
+            (0, 4), (0, 2),
+            (1, 5), (1, 3),
+            (2, 4), (3, 5),
+        ];
+    
+        for &(a, b) in &corners {
+            if mask.is_solid(a) && mask.is_solid(b) {
+                occlusion += 0.10;
             }
         }
 
-        voxel_instances
+        if primary_neighbors >= 4 {
+            occlusion += 0.10;
+        }
+    
+        1.0 - occlusion.min(1.0)
     }
 
     fn update_view_projection(&mut self) {
@@ -315,18 +396,6 @@ impl Render {
             0,
             bytemuck::cast_slice(&view_projection_matrix),
         );
-    }
-
-    fn create_voxel_instance(&self, grid_position: IVec3, block: &Block) -> VoxelInstance {
-        VoxelInstance {
-            position: grid_position.as_vec3().into(),
-            color: [
-                block.color.0 as f32,
-                block.color.1 as f32,
-                block.color.2 as f32,
-                block.color.3 as f32,
-            ],
-        }
     }
 
     fn create_depth_texture(
@@ -351,7 +420,7 @@ impl Render {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    // fn sort_instances_by_depth(camera_position: Vec3, instances: &mut Vec<VoxelInstance>) {
+    // fn sort_instances_by_depth(camera_position: Vec3, instances: &mut Vec<BlockInstance>) {
     //     instances.sort_by(|a, b| {
     //         let dist_a = ((a.position[0] - camera_position.x as f32).powi(2)
     //             + (a.position[1] - camera_position.y as f32).powi(2)

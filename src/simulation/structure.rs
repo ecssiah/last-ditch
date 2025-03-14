@@ -1,8 +1,8 @@
-use super::block::BlockKind;
+use super::block;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Hash, Eq, PartialEq)]
-pub enum StructureKind {
+pub enum Kind {
     Swastika,
     Mario,
     Luigi,
@@ -10,12 +10,13 @@ pub enum StructureKind {
 
 #[derive(Debug, Deserialize)]
 pub struct BlockData {
-    pub kind: BlockKind,
+    pub kind: block::Kind,
     pub position: Vec<i32>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Structure {
+    pub kind: Kind,
     pub size: Vec<u32>,
     pub blocks: Vec<BlockData>,
 }

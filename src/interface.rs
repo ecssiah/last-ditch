@@ -2,8 +2,11 @@
 //! both presentation and input management.
 
 pub mod camera;
+pub mod chunk;
 pub mod input;
 pub mod render;
+
+pub use chunk::Chunk;
 
 use crate::simulation::{
     action::{Action, AgentAction},

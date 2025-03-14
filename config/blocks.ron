@@ -1,57 +1,68 @@
 [
     Block(
         kind: Metal,
+        solid: true,
         opacity: 1.0,
         color: (0.1, 0.2, 0.4, 1.0),
     ),
     Block(
         kind: Air,
+        solid: true,
         opacity: 0.0,
         color: (1.0, 1.0, 1.0, 1.0),
     ),
     Block(
         kind: Wood,
+        solid: true,
         opacity: 1.0,
         color: (0.2, 0.11, 0.13, 1.0),
     ),
 
     Block(
         kind: Concrete,
+        solid: true,
         opacity: 1.0,
         color: (0.8, 0.6, 0.7, 1.0),
     ),
     Block(
         kind: Black,
+        solid: true,
         opacity: 1.0,
         color: (0.0, 0.0, 0.0, 1.0),
     ),
     Block(
         kind: White,
+        solid: true,
         opacity: 1.0,
         color: (1.0, 1.0, 1.0, 1.0),
     ),
     Block(
         kind: Red,
+        solid: true,
         opacity: 1.0,
         color: (0.9, 0.0, 0.0, 1.0),
     ),
     Block(
         kind: Blue,
+        solid: true,
         opacity: 1.0,
         color: (0.0, 0.0, 0.9, 1.0),
     ),
     Block(
         kind: Gold,
+        solid: true,
         opacity: 1.0,
         color: (0.91, 0.89, 0.035, 1.0),
     ),
     Block(
         kind: Skin,
+        solid: true,
         opacity: 1.0,
         color: (0.9, 0.78, 0.54, 1.0),
     ),
     Block(
         kind: Green,
+        solid: true,
         opacity: 1.0,
         color: (0.05, 1.0, 0.14, 1.0),
     ),

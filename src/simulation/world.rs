@@ -1,7 +1,8 @@
 #[derive(Debug)]
 pub struct World {
     pub active: bool,
-    pub update_window: u32,
     pub seed: u64,
-    pub time: f32,
+    pub time: f64,
+    pub ticks: u64,
+    pub last_update: u64,
 }

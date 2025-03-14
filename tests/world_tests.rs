@@ -32,7 +32,7 @@ fn test_grid_position_to_chunk_id() {
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Simulation::grid_position_to_chunk_id(&grid_position);
+        let chunk_id = Simulation::grid_position_to_chunk_id(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,
@@ -73,7 +73,7 @@ fn test_grid_position_to_block_id() {
     ];
 
     for (grid_position, expected_block_id) in test_cases {
-        let block_id = Simulation::grid_position_to_block_id(&grid_position);
+        let block_id = Simulation::grid_position_to_block_id(grid_position);
 
         assert_eq!(
             block_id, expected_block_id,
