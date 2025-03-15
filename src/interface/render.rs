@@ -9,6 +9,8 @@ use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
 
+const BLOCK_VERTEX_COUNT: u32 = 36;
+
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.2,
     g: 1.0,
@@ -148,15 +150,16 @@ impl Render {
                 },
                 wgpu::VertexAttribute {
                     format: wgpu::VertexFormat::Float32x4,
-                    offset: (std::mem::size_of::<[f32; 3]>() + 
-                             std::mem::size_of::<[f32; 4]>()) as wgpu::BufferAddress,
+                    offset: (std::mem::size_of::<[f32; 3]>() + std::mem::size_of::<[f32; 4]>())
+                        as wgpu::BufferAddress,
                     shader_location: 2,
                 },
                 wgpu::VertexAttribute {
                     format: wgpu::VertexFormat::Float32x4,
-                    offset: (std::mem::size_of::<[f32; 3]>() + 
-                             std::mem::size_of::<[f32; 4]>() + 
-                             std::mem::size_of::<[f32; 4]>()) as wgpu::BufferAddress,
+                    offset: (std::mem::size_of::<[f32; 3]>()
+                        + std::mem::size_of::<[f32; 4]>()
+                        + std::mem::size_of::<[f32; 4]>())
+                        as wgpu::BufferAddress,
                     shader_location: 3,
                 },
             ],
@@ -220,8 +223,6 @@ impl Render {
         let last_update = self.world.read().unwrap().last_update;
 
         if last_update > self.last_render {
-            println!("Update");
-
             self.update_chunks();
 
             self.last_render = last_update;
@@ -271,9 +272,11 @@ impl Render {
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
         for chunk in self.voxel_chunks.iter() {
-            render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
+            if chunk.instance_count > 0 {
+                render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
-            render_pass.draw(0..36, 0..chunk.instance_count);
+                render_pass.draw(0..BLOCK_VERTEX_COUNT, 0..chunk.instance_count);
+            }
         }
 
         drop(render_pass);
@@ -282,21 +285,6 @@ impl Render {
         self.window.pre_present_notify();
 
         surface_texture.present();
-    }
-
-    fn read_chunk(&mut self, chunk: &mut interface::Chunk) {
-        if chunk.instance_count > 0 {
-            let block_instances: Vec<BlockInstance> = Vec::new();
-
-            chunk.instance_buffer =
-                self.device
-                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                        label: Some("Voxel Instance Buffer"),
-                        contents: bytemuck::cast_slice(block_instances.as_slice()),
-                        usage: wgpu::BufferUsages::VERTEX,
-                    });
-            chunk.instance_count = block_instances.len() as u32;
-        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -339,6 +327,19 @@ impl Render {
                     }
                 }
 
+                let block_instance_count = block_instances.len() as u32;
+
+                if block_instance_count > 0 {
+                    self.voxel_chunks[chunk_id].instance_buffer =
+                        self.device
+                            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                                label: Some("BlockInstance Buffer"),
+                                contents: bytemuck::cast_slice(block_instances.as_slice()),
+                                usage: wgpu::BufferUsages::VERTEX,
+                            });
+                }
+
+                self.voxel_chunks[chunk_id].instance_count = block_instance_count;
                 self.voxel_chunks[chunk_id].last_render = last_update;
             }
         }
@@ -359,45 +360,37 @@ impl Render {
                 block.color.3 as f32,
             ],
             ao: [
-                Render::compute_ao(meta.neighbor_masks[0]),
-                Render::compute_ao(meta.neighbor_masks[1]),
-                Render::compute_ao(meta.neighbor_masks[2]),
-                Render::compute_ao(meta.neighbor_masks[3]),
-                Render::compute_ao(meta.neighbor_masks[4]),
-                Render::compute_ao(meta.neighbor_masks[5]),
-                Render::compute_ao(meta.neighbor_masks[6]),
-                Render::compute_ao(meta.neighbor_masks[7]),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 3, 5)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 3, 5)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 2, 5)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 2, 5)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 3, 4)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 3, 4)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 2, 4)),
+                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 2, 4)),
             ],
         }
     }
 
-    fn compute_ao(mask: block::NeighborMask) -> f32 {
+    fn compute_ao_for_vertex(mask: block::NeighborMask, neighbors: (usize, usize, usize)) -> f32 {
+        let (primary, secondary1, secondary2) = neighbors;
+    
         let mut occlusion: f32 = 0.0;
-        let mut primary_neighbors = 0;
-
-        for dir in 0..6 {
-            if mask.is_solid(dir) {
-                primary_neighbors += 1;
-                occlusion += 0.15;
-            }
+    
+        // Main solid neighbor
+        if mask.is_solid(primary) {
+            occlusion += 0.5;
+        }
+        
+        // Two diagonal solid neighbors
+        if mask.is_solid(secondary1) {
+            occlusion += 0.25;
+        }
+        if mask.is_solid(secondary2) {
+            occlusion += 0.25;
         }
     
-        let corners = [
-            (0, 4), (0, 2),
-            (1, 5), (1, 3),
-            (2, 4), (3, 5),
-        ];
-    
-        for &(a, b) in &corners {
-            if mask.is_solid(a) && mask.is_solid(b) {
-                occlusion += 0.10;
-            }
-        }
-
-        if primary_neighbors >= 4 {
-            occlusion += 0.10;
-        }
-    
+        // Clamp AO to max 1.0 and invert it for brightness
         1.0 - occlusion.min(1.0)
     }
 
@@ -432,22 +425,6 @@ impl Render {
 
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
-
-    // fn sort_instances_by_depth(camera_position: Vec3, instances: &mut Vec<BlockInstance>) {
-    //     instances.sort_by(|a, b| {
-    //         let dist_a = ((a.position[0] - camera_position.x as f32).powi(2)
-    //             + (a.position[1] - camera_position.y as f32).powi(2)
-    //             + (a.position[2] - camera_position.z as f32).powi(2))
-    //         .sqrt();
-
-    //         let dist_b = ((b.position[0] - camera_position.x as f32).powi(2)
-    //             + (b.position[1] - camera_position.y as f32).powi(2)
-    //             + (b.position[2] - camera_position.z as f32).powi(2))
-    //         .sqrt();
-
-    //         dist_b.partial_cmp(&dist_a).unwrap()
-    //     });
-    // }
 
     fn create_pipeline(
         device: &wgpu::Device,

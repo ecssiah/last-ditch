@@ -13,8 +13,10 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
+use block::{Direction, NeighborMask};
 pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
+use log::info;
 use once_cell::sync::Lazy;
 use ron::from_str;
 use state::State;
@@ -41,12 +43,12 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 8;
+pub const CHUNK_RADIUS: u32 = 1;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 8;
+pub const WORLD_RADIUS: u32 = 1;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
@@ -90,6 +92,8 @@ impl Simulation {
 
         let simulation = Simulation { action_rx, state };
 
+        info!("Simulation Initialized");
+
         simulation
     }
 
@@ -132,58 +136,19 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        let spacing = 32;
-        let shift = 48;
+        self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
 
-        self.generate_structure(
-            IVec3::new(-spacing + shift, 0, spacing),
-            structure::Kind::Mario,
-        );
-        self.generate_structure(IVec3::new(0 + shift, 0, spacing), structure::Kind::Mario);
-        self.generate_structure(
-            IVec3::new(spacing + shift, 0, spacing),
-            structure::Kind::Mario,
-        );
+        for (chunk_id, chunk) in self.state.chunks.iter().enumerate() {
+            let chunk = chunk.read().unwrap();
 
-        self.generate_structure(IVec3::new(-spacing + shift, 0, 0), structure::Kind::Mario);
-        self.generate_structure(IVec3::new(0 + shift, 0, 0), structure::Kind::Mario);
-        self.generate_structure(IVec3::new(spacing + shift, 0, 0), structure::Kind::Mario);
-
-        self.generate_structure(
-            IVec3::new(-spacing + shift, 0, -spacing),
-            structure::Kind::Mario,
-        );
-        self.generate_structure(IVec3::new(0 + shift, 0, -spacing), structure::Kind::Mario);
-        self.generate_structure(
-            IVec3::new(spacing + shift, 0, -spacing),
-            structure::Kind::Mario,
-        );
-
-        self.generate_structure(
-            IVec3::new(-spacing - shift, 0, spacing),
-            structure::Kind::Luigi,
-        );
-        self.generate_structure(IVec3::new(0 - shift, 0, spacing), structure::Kind::Luigi);
-        self.generate_structure(
-            IVec3::new(spacing - shift, 0, spacing),
-            structure::Kind::Luigi,
-        );
-
-        self.generate_structure(IVec3::new(-spacing - shift, 0, 0), structure::Kind::Luigi);
-        self.generate_structure(IVec3::new(0 - shift, 0, 0), structure::Kind::Luigi);
-        self.generate_structure(IVec3::new(spacing - shift, 0, 0), structure::Kind::Luigi);
-
-        self.generate_structure(
-            IVec3::new(-spacing - shift, 0, -spacing),
-            structure::Kind::Luigi,
-        );
-        self.generate_structure(IVec3::new(0 - shift, 0, -spacing), structure::Kind::Luigi);
-        self.generate_structure(
-            IVec3::new(spacing - shift, 0, -spacing),
-            structure::Kind::Luigi,
-        );
+            for (block_id, meta) in chunk.meta.iter().enumerate() {
+                info!("{:?}", Simulation::get_grid_position(chunk_id as u32, block_id as u32));
+                info!("{:?}", meta);
+            }
+        }
     }
 
+    #[allow(dead_code)]
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
         if let Some(structure) = STRUCTURES.get(&structure_kind) {
             for block_data in &structure.blocks[..] {
@@ -252,39 +217,7 @@ impl Simulation {
                     chunk.last_update = self.state.world.read().unwrap().ticks;
                 }
 
-                self.update_block_meta(grid_position);
-            }
-        }
-    }
-
-    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::NeighborMask {
-        let mut mask = 0;
-
-        for (index, &(dx, dy, dz)) in NEIGHBORS.iter().enumerate() {
-            let neighbor_grid_position =
-                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
-
-            if Simulation::is_on_map(neighbor_grid_position) {
-                if let Some(block) = self.get_block(grid_position) {
-                    if block.solid {
-                        mask |= 1 << index;
-                    }
-                }
-            }
-        }
-
-        block::NeighborMask::new(mask)
-    }
-
-    fn update_block_meta(&mut self, grid_position: IVec3) {
-        self.compute_neighbor_mask(grid_position);
-
-        for &(dx, dy, dz) in &NEIGHBORS {
-            let neighbor_grid_position =
-                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
-
-            if Simulation::is_on_map(neighbor_grid_position) {
-                self.compute_neighbor_mask(neighbor_grid_position);
+                self.update_block_meta(chunk_id, block_id, grid_position);
             }
         }
     }
@@ -303,6 +236,48 @@ impl Simulation {
                 id as u32
             }
         }
+    }
+
+    fn update_block_meta(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
+        {
+            let neighbor_mask = self.compute_neighbor_mask(grid_position);
+    
+            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+            chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
+        }
+
+        for &(dx, dy, dz) in &NEIGHBORS {
+            let neighbor_grid_position =
+                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+
+            if Simulation::is_on_map(neighbor_grid_position) {
+                let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
+
+                if let Some(neighbor_chunk_id) = Simulation::grid_position_to_chunk_id(neighbor_grid_position) {
+                    let mut neighbor_chunk = self.state.chunks[neighbor_chunk_id as usize].write().unwrap();
+                    neighbor_chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
+                }
+            }
+        }
+    }
+
+    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::NeighborMask {
+        let mut neighbor_mask = NeighborMask(0);
+
+        for (bit, &(dx, dy, dz)) in NEIGHBORS.iter().enumerate() {
+            let neighbor_grid_position =
+                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+
+            if Simulation::is_on_map(neighbor_grid_position) {
+                if let Some(block) = self.get_block(neighbor_grid_position) {
+                    if block.solid {
+                        neighbor_mask.set_solid(bit, true);
+                    }
+                }
+            }
+        }
+
+        neighbor_mask
     }
 
     pub fn run(&mut self) {

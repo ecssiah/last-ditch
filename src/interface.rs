@@ -13,6 +13,7 @@ use crate::simulation::{
 use camera::Camera;
 pub use chunk::Chunk;
 use input::Input;
+use log::info;
 use render::Render;
 use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
@@ -55,14 +56,18 @@ impl Interface {
 
         window.set_cursor_visible(false);
 
-        Interface {
+        let interface = Interface {
             _window: window,
             state,
             action_tx,
             camera,
             input,
             render,
-        }
+        };
+
+        info!("Interface Initialized");
+
+        interface
     }
 
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {

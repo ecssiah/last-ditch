@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialOrd, Ord, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
     Air,
     Wood,
@@ -26,10 +26,14 @@ pub enum Cardinal {
     NW = 7,
 }
 
-#[derive(Clone, Copy, Debug)]
-struct Direction(u8);
+#[derive(Clone, Copy, Debug, Default, Deserialize)]
+pub struct Direction(pub u8);
 
 impl Direction {
+    pub fn new(cardinal_direction: Cardinal) -> Self {
+        Direction(1 << cardinal_direction as u8)
+    }
+
     fn get_cardinal(self) -> Cardinal {
         match self.0 & 0b11 {
             0 => Cardinal::NN,
@@ -54,13 +58,9 @@ impl Direction {
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
-pub struct NeighborMask(u8);
+pub struct NeighborMask(pub u8);
 
 impl NeighborMask {
-    pub fn new(value: u8) -> Self {
-        NeighborMask(value)
-    }
-
     pub fn is_solid(&self, dir: usize) -> bool {
         (self.0 & (1 << dir)) != 0
     }
@@ -74,10 +74,10 @@ impl NeighborMask {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize)]
 pub struct Meta {
-    pub direction: u8,
-    pub neighbor_masks: [NeighborMask; 8],
+    pub direction: Direction,
+    pub neighbor_mask: NeighborMask,
 }
 
 #[derive(Debug, Deserialize)]

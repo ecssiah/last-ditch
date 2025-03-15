@@ -9,13 +9,13 @@ pub enum WorldAction {
     Quit,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct MoveActions {
     pub x_axis: f32,
     pub z_axis: f32,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct RotateActions {
     pub x_axis: f32,
     pub y_axis: f32,

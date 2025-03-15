@@ -13,6 +13,8 @@ pub mod simulation;
 
 use crate::interface::Interface;
 use crate::simulation::Simulation;
+use flexi_logger::{Logger, WriteMode};
+use log::{error, info, warn};
 use std::{sync::Arc, thread};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -72,7 +74,18 @@ impl ApplicationHandler for App {
 
 /// Application entrypoint
 pub async fn run() {
-    env_logger::init();
+    Logger::try_with_str("info")
+        .unwrap()
+        .log_to_file(flexi_logger::FileSpec::default().directory("logs"))
+        .write_mode(WriteMode::BufferAndFlush)
+        .start()
+        .unwrap();
+
+    std::env::set_var("RUST_LOG", "wgpu=debug");
+
+    info!("Starting Last Ditch");
+    warn!("Warn logging active");
+    error!("Error logging active\n");
 
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);
