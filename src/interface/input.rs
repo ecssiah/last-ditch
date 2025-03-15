@@ -1,5 +1,8 @@
-use super::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY};
-use crate::simulation::{action::{Action, MoveActions, RotateActions, WorldAction}, DEFAULT_X_SPEED, DEFAULT_Z_SPEED};
+use crate::interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY};
+use crate::simulation::{
+    action::{Action, MoveActions, RotateActions, WorldAction},
+    DEFAULT_X_SPEED, DEFAULT_Z_SPEED,
+};
 use glam::Vec2;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{

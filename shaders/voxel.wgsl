@@ -4,6 +4,8 @@ var<uniform> view_proj: mat4x4<f32>;
 struct VertexOutput {
     @builtin(position) Position: vec4<f32>,
     @location(0) instance_color: vec4<f32>,
+    @location(1) frag_ao_0: vec4<f32>,
+    @location(2) frag_ao_1: vec4<f32>,
 };
 
 const CUBE_VERTICES: array<vec3<f32>, 8> = array(
@@ -37,6 +39,8 @@ fn vs_main(
     @builtin(vertex_index) vertex_index: u32,
     @location(0) instance_position: vec3<f32>,
     @location(1) instance_color: vec4<f32>,
+    @location(2) ao_0: vec4<f32>,
+    @location(3) ao_1: vec4<f32>,
 ) -> VertexOutput {
     var output: VertexOutput;
 
@@ -44,11 +48,20 @@ fn vs_main(
     output.Position = view_proj * vec4(instance_position + cube_vertex, 1.0);
     
     output.instance_color = instance_color;
+    output.frag_ao_0 = ao_0;
+    output.frag_ao_1 = ao_1;
 
     return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-    return input.instance_color;
+    let ao_factor = (
+        dot(input.frag_ao_0, vec4<f32>(0.125)) + 
+        dot(input.frag_ao_1, vec4<f32>(0.125))
+    );
+
+    let occluded_color = input.instance_color.rgb * ao_factor;
+
+    return vec4<f32>(occluded_color, input.instance_color.a);
 }

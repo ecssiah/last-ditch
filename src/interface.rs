@@ -6,13 +6,12 @@ pub mod chunk;
 pub mod input;
 pub mod render;
 
-pub use chunk::Chunk;
-
 use crate::simulation::{
     action::{Action, AgentAction},
     state::State,
 };
 use camera::Camera;
+pub use chunk::Chunk;
 use input::Input;
 use render::Render;
 use std::sync::Arc;

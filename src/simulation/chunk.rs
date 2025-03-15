@@ -1,4 +1,4 @@
-use super::{block, CHUNK_VOLUME};
+use crate::simulation::{block, CHUNK_VOLUME};
 use glam::IVec3;
 
 #[derive(Debug)]

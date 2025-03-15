@@ -11,4 +11,3 @@ macro_rules! include_config {
         include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/config/", $path))
     };
 }
-

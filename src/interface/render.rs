@@ -146,6 +146,19 @@ impl Render {
                     offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                 },
+                wgpu::VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x4,
+                    offset: (std::mem::size_of::<[f32; 3]>() + 
+                             std::mem::size_of::<[f32; 4]>()) as wgpu::BufferAddress,
+                    shader_location: 2,
+                },
+                wgpu::VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x4,
+                    offset: (std::mem::size_of::<[f32; 3]>() + 
+                             std::mem::size_of::<[f32; 4]>() + 
+                             std::mem::size_of::<[f32; 4]>()) as wgpu::BufferAddress,
+                    shader_location: 3,
+                },
             ],
         };
 

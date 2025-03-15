@@ -1,4 +1,4 @@
-use super::block;
+use crate::simulation::block;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Hash, Eq, PartialEq)]

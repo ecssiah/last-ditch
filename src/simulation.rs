@@ -8,12 +8,12 @@ pub mod chunk;
 pub mod state;
 pub mod structure;
 pub mod world;
-pub use block::Block;
-pub use chunk::Chunk;
 
 use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
+pub use block::Block;
+pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use once_cell::sync::Lazy;
 use ron::from_str;
@@ -245,10 +245,10 @@ impl Simulation {
             if let Some(block_id) = Simulation::grid_position_to_block_id(grid_position) {
                 {
                     let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-    
+
                     let palette_id = self.get_palette_id(&mut chunk, kind);
                     chunk.palette_ids[block_id as usize] = palette_id;
-    
+
                     chunk.last_update = self.state.world.read().unwrap().ticks;
                 }
 
@@ -259,10 +259,11 @@ impl Simulation {
 
     fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::NeighborMask {
         let mut mask = 0;
-    
+
         for (index, &(dx, dy, dz)) in NEIGHBORS.iter().enumerate() {
-            let neighbor_grid_position = grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
-    
+            let neighbor_grid_position =
+                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+
             if Simulation::is_on_map(neighbor_grid_position) {
                 if let Some(block) = self.get_block(grid_position) {
                     if block.solid {
@@ -271,7 +272,7 @@ impl Simulation {
                 }
             }
         }
-    
+
         block::NeighborMask::new(mask)
     }
 
@@ -279,7 +280,8 @@ impl Simulation {
         self.compute_neighbor_mask(grid_position);
 
         for &(dx, dy, dz) in &NEIGHBORS {
-            let neighbor_grid_position = grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+            let neighbor_grid_position =
+                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
 
             if Simulation::is_on_map(neighbor_grid_position) {
                 self.compute_neighbor_mask(neighbor_grid_position);
