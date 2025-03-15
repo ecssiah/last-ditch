@@ -61,6 +61,10 @@ impl Direction {
 pub struct NeighborMask(pub u8);
 
 impl NeighborMask {
+    pub fn new() -> Self {
+        NeighborMask(0)
+    }
+
     pub fn is_solid(&self, dir: usize) -> bool {
         (self.0 & (1 << dir)) != 0
     }

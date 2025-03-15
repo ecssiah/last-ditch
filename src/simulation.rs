@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::{Direction, NeighborMask};
+use block::NeighborMask;
 pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
@@ -55,13 +55,13 @@ pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
-pub const NEIGHBORS: [(isize, isize, isize); 6] = [
-    (1, 0, 0),
-    (-1, 0, 0),
-    (0, 1, 0),
-    (0, -1, 0),
-    (0, 0, 1),
-    (0, 0, -1),
+pub const NEIGHBORS: [IVec3; 6] = [
+    IVec3::new(1 as i32, 0 as i32, 0 as i32),
+    IVec3::new(-1 as i32, 0 as i32, 0 as i32),
+    IVec3::new(0 as i32, 1 as i32, 0 as i32),
+    IVec3::new(0 as i32, -1 as i32, 0 as i32),
+    IVec3::new(0 as i32, 0 as i32, 1 as i32),
+    IVec3::new(0 as i32, 0 as i32, -1 as i32),
 ];
 
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
@@ -101,7 +101,7 @@ impl Simulation {
         Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 12.0, 0.0),
+            position: Vec3::new(0.0, 4.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -137,18 +137,12 @@ impl Simulation {
 
     pub fn generate(&mut self) {
         self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
-
-        for (chunk_id, chunk) in self.state.chunks.iter().enumerate() {
-            let chunk = chunk.read().unwrap();
-
-            for (block_id, meta) in chunk.meta.iter().enumerate() {
-                info!("{:?}", Simulation::get_grid_position(chunk_id as u32, block_id as u32));
-                info!("{:?}", meta);
-            }
-        }
+        self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
+        self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
+        self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
+        self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
     }
 
-    #[allow(dead_code)]
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
         if let Some(structure) = STRUCTURES.get(&structure_kind) {
             for block_data in &structure.blocks[..] {
@@ -239,34 +233,42 @@ impl Simulation {
     }
 
     fn update_block_meta(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
+        let neighbor_mask = self.compute_neighbor_mask(grid_position);
+        
         {
-            let neighbor_mask = self.compute_neighbor_mask(grid_position);
-    
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
             chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
         }
 
-        for &(dx, dy, dz) in &NEIGHBORS {
-            let neighbor_grid_position =
-                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+        for offset in NEIGHBORS.iter() {
+            let neighbor_grid_position = grid_position + offset;
 
             if Simulation::is_on_map(neighbor_grid_position) {
                 let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
 
-                if let Some(neighbor_chunk_id) = Simulation::grid_position_to_chunk_id(neighbor_grid_position) {
-                    let mut neighbor_chunk = self.state.chunks[neighbor_chunk_id as usize].write().unwrap();
-                    neighbor_chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
+                if let Some(neighbor_chunk_id) =
+                    Simulation::grid_position_to_chunk_id(neighbor_grid_position)
+                {
+                    if let Some(neighbor_block_id) =
+                        Simulation::grid_position_to_block_id(neighbor_grid_position)
+                    {
+                        let mut neighbor_chunk = self.state.chunks[neighbor_chunk_id as usize]
+                            .write()
+                            .unwrap();
+
+                        neighbor_chunk.meta[neighbor_block_id as usize].neighbor_mask =
+                            neighbor_mask;
+                    }
                 }
             }
         }
     }
 
     fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::NeighborMask {
-        let mut neighbor_mask = NeighborMask(0);
+        let mut neighbor_mask = NeighborMask::new();
 
-        for (bit, &(dx, dy, dz)) in NEIGHBORS.iter().enumerate() {
-            let neighbor_grid_position =
-                grid_position + IVec3::new(dx as i32, dy as i32, dz as i32);
+        for (bit, offset) in NEIGHBORS.iter().enumerate() {
+            let neighbor_grid_position = grid_position + offset;
 
             if Simulation::is_on_map(neighbor_grid_position) {
                 if let Some(block) = self.get_block(neighbor_grid_position) {

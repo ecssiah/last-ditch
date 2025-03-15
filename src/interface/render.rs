@@ -5,6 +5,7 @@ use crate::{
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
+use log::info;
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -48,8 +49,8 @@ pub struct Render {
     surface_config: wgpu::SurfaceConfiguration,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    voxel_chunks: [interface::Chunk; CHUNK_VOLUME as usize],
-    voxel_pipeline: wgpu::RenderPipeline,
+    block_chunks: [interface::Chunk; CHUNK_VOLUME as usize],
+    block_pipeline: wgpu::RenderPipeline,
 }
 
 impl Render {
@@ -122,19 +123,19 @@ impl Render {
             }],
         });
 
-        let voxel_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Voxel Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_shader_src!("voxel.wgsl").into()),
+        let block_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Block Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_shader_src!("block.wgsl").into()),
         });
 
-        let voxel_pipeline_layout =
+        let block_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Voxel Pipeline Layout"),
+                label: Some("Block Pipeline Layout"),
                 bind_group_layouts: &[&uniform_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
-        let voxel_instance_layout = wgpu::VertexBufferLayout {
+        let block_instance_layout = wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<BlockInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
@@ -165,7 +166,7 @@ impl Render {
             ],
         };
 
-        let voxel_chunks = core::array::from_fn(|_| {
+        let block_chunks = core::array::from_fn(|_| {
             let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Empty Buffer"),
                 size: std::mem::size_of::<BlockInstance>() as u64,
@@ -180,12 +181,12 @@ impl Render {
             }
         });
 
-        let voxel_pipeline = Render::create_pipeline(
+        let block_pipeline = Render::create_pipeline(
             &device,
             &surface_config,
-            &voxel_shader,
-            voxel_pipeline_layout,
-            voxel_instance_layout,
+            &block_shader,
+            block_pipeline_layout,
+            block_instance_layout,
         );
 
         let last_render: u64 = 0;
@@ -204,8 +205,8 @@ impl Render {
             surface_config,
             view_projection_buffer,
             view_projection_bind_group,
-            voxel_chunks,
-            voxel_pipeline,
+            block_chunks,
+            block_pipeline,
         };
 
         render
@@ -268,10 +269,10 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.voxel_pipeline);
+        render_pass.set_pipeline(&self.block_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for chunk in self.voxel_chunks.iter() {
+        for chunk in self.block_chunks.iter() {
             if chunk.instance_count > 0 {
                 render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
@@ -306,7 +307,7 @@ impl Render {
         for (chunk_id, chunk) in self.chunks.iter().enumerate() {
             let last_update = chunk.read().unwrap().last_update;
 
-            if self.voxel_chunks[chunk_id].last_render < last_update {
+            if self.block_chunks[chunk_id].last_render < last_update {
                 let mut block_instances: Vec<BlockInstance> = Vec::new();
 
                 let chunk = chunk.read().unwrap();
@@ -330,7 +331,7 @@ impl Render {
                 let block_instance_count = block_instances.len() as u32;
 
                 if block_instance_count > 0 {
-                    self.voxel_chunks[chunk_id].instance_buffer =
+                    self.block_chunks[chunk_id].instance_buffer =
                         self.device
                             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                                 label: Some("BlockInstance Buffer"),
@@ -339,8 +340,8 @@ impl Render {
                             });
                 }
 
-                self.voxel_chunks[chunk_id].instance_count = block_instance_count;
-                self.voxel_chunks[chunk_id].last_render = last_update;
+                self.block_chunks[chunk_id].instance_count = block_instance_count;
+                self.block_chunks[chunk_id].last_render = last_update;
             }
         }
     }
@@ -359,38 +360,40 @@ impl Render {
                 block.color.2 as f32,
                 block.color.3 as f32,
             ],
-            ao: [
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 3, 5)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 3, 5)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 2, 5)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 2, 5)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 3, 4)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 3, 4)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (0, 2, 4)),
-                Render::compute_ao_for_vertex(meta.neighbor_mask, (1, 2, 4)),
-            ],
+            ao: Render::compute_ao(meta.neighbor_mask),
         }
     }
 
-    fn compute_ao_for_vertex(mask: block::NeighborMask, neighbors: (usize, usize, usize)) -> f32 {
+    fn compute_ao(neighbor_mask: block::NeighborMask) -> [f32; 8] {
+        [
+            Render::compute_vertex_ao(neighbor_mask, (1, 3, 5)),
+            Render::compute_vertex_ao(neighbor_mask, (0, 3, 5)),
+            Render::compute_vertex_ao(neighbor_mask, (0, 2, 5)),
+            Render::compute_vertex_ao(neighbor_mask, (1, 2, 5)),
+            Render::compute_vertex_ao(neighbor_mask, (1, 3, 4)),
+            Render::compute_vertex_ao(neighbor_mask, (0, 3, 4)),
+            Render::compute_vertex_ao(neighbor_mask, (0, 2, 4)),
+            Render::compute_vertex_ao(neighbor_mask, (1, 2, 4)),
+        ]
+    }
+
+    fn compute_vertex_ao(mask: block::NeighborMask, neighbors: (usize, usize, usize)) -> f32 {
         let (primary, secondary1, secondary2) = neighbors;
     
         let mut occlusion: f32 = 0.0;
     
-        // Main solid neighbor
         if mask.is_solid(primary) {
             occlusion += 0.5;
         }
         
-        // Two diagonal solid neighbors
         if mask.is_solid(secondary1) {
             occlusion += 0.25;
         }
+
         if mask.is_solid(secondary2) {
             occlusion += 0.25;
         }
-    
-        // Clamp AO to max 1.0 and invert it for brightness
+
         1.0 - occlusion.min(1.0)
     }
 
@@ -434,7 +437,7 @@ impl Render {
         instance_layout: wgpu::VertexBufferLayout<'_>,
     ) -> wgpu::RenderPipeline {
         device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Voxel Render Pipeline"),
+            label: Some("block Render Pipeline"),
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
                 module: shader,
