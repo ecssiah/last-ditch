@@ -1,15 +1,15 @@
 [
     Block(
+        kind: Air,
+        solid: false,
+        opacity: 0.0,
+        color: (1.0, 1.0, 1.0, 1.0),
+    ),
+    Block(
         kind: Metal,
         solid: true,
         opacity: 1.0,
         color: (0.1, 0.2, 0.4, 1.0),
-    ),
-    Block(
-        kind: Air,
-        solid: true,
-        opacity: 0.0,
-        color: (1.0, 1.0, 1.0, 1.0),
     ),
     Block(
         kind: Wood,
@@ -28,7 +28,7 @@
         kind: Black,
         solid: true,
         opacity: 1.0,
-        color: (0.0, 0.0, 0.0, 1.0),
+        color: (0.01, 0.01, 0.01, 1.0),
     ),
     Block(
         kind: White,

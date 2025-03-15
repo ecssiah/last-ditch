@@ -43,26 +43,17 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 1;
+pub const CHUNK_RADIUS: u32 = 8;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 1;
+pub const WORLD_RADIUS: u32 = 8;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: u32 = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
-
-pub const NEIGHBORS: [IVec3; 6] = [
-    IVec3::new(1 as i32, 0 as i32, 0 as i32),
-    IVec3::new(-1 as i32, 0 as i32, 0 as i32),
-    IVec3::new(0 as i32, 1 as i32, 0 as i32),
-    IVec3::new(0 as i32, -1 as i32, 0 as i32),
-    IVec3::new(0 as i32, 0 as i32, 1 as i32),
-    IVec3::new(0 as i32, 0 as i32, -1 as i32),
-];
 
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
 const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
@@ -98,26 +89,30 @@ impl Simulation {
     }
 
     fn setup_agent() -> Arc<RwLock<Agent>> {
-        Arc::from(RwLock::from(Agent {
+        let agent = Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 4.0, 0.0),
+            position: Vec3::new(0.0, 12.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
-        }))
+        }));
+
+        agent
     }
 
     fn setup_world() -> Arc<RwLock<World>> {
-        Arc::from(RwLock::from(World {
+        let world = Arc::from(RwLock::from(World {
             active: true,
             seed: SEED,
             time: 0.0,
             ticks: 1,
             last_update: 1,
-        }))
+        }));
+
+        world
     }
 
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
@@ -136,11 +131,26 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
-        self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
-        self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
-        self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
-        self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
+
+        self.generate_structure(IVec3::new(10, 0,0), structure::Kind::Mario);
+        
+        self.generate_structure(IVec3::new(-10, 0,0), structure::Kind::Luigi);
+
+        // self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
+        // self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
+        // self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
+        // self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
+        // self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
+
+        // let test_grid_position = IVec3::new(0, 0, 0);
+
+        // if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(test_grid_position) {
+        //     let chunk = self.state.chunks[chunk_id as usize].read().unwrap();
+
+        //     let neighbor_mask = chunk.meta[block_id as usize].neighbor_mask;
+    
+        //     println!("{:08b}", neighbor_mask.get_value());
+        // }
     }
 
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
@@ -167,52 +177,42 @@ impl Simulation {
     }
 
     pub fn get_block(&self, grid_position: IVec3) -> Option<&block::Block> {
-        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(grid_position) {
-            if let Some(block_id) = Simulation::grid_position_to_block_id(grid_position) {
-                let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+            let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                let palette_id = chunk.palette_ids[block_id as usize];
-                let kind = chunk.palette[palette_id as usize];
+            let palette_id = chunk.palette_ids[block_id as usize];
+            let kind = chunk.palette[palette_id as usize];
 
-                Some(&BLOCKS[kind as usize])
-            } else {
-                None
-            }
+            Some(&BLOCKS[kind as usize])
         } else {
             None
         }
     }
 
     pub fn get_meta(&self, grid_position: IVec3) -> Option<block::Meta> {
-        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(grid_position) {
-            if let Some(block_id) = Simulation::grid_position_to_block_id(grid_position) {
-                let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+            let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                let meta = chunk.meta[block_id as usize];
+            let meta = chunk.meta[block_id as usize];
 
-                Some(meta)
-            } else {
-                None
-            }
+            Some(meta)
         } else {
             None
         }
     }
 
     fn set_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
-        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(grid_position) {
-            if let Some(block_id) = Simulation::grid_position_to_block_id(grid_position) {
-                {
-                    let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+            {
+                let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                    let palette_id = self.get_palette_id(&mut chunk, kind);
-                    chunk.palette_ids[block_id as usize] = palette_id;
+                let palette_id = self.get_palette_id(&mut chunk, kind);
+                chunk.palette_ids[block_id as usize] = palette_id;
 
-                    chunk.last_update = self.state.world.read().unwrap().ticks;
-                }
-
-                self.update_block_meta(chunk_id, block_id, grid_position);
+                chunk.last_update = self.state.world.read().unwrap().ticks;
             }
+
+            self.update_block_meta(chunk_id, block_id, grid_position);
         }
     }
 
@@ -234,32 +234,25 @@ impl Simulation {
 
     fn update_block_meta(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
         let neighbor_mask = self.compute_neighbor_mask(grid_position);
-        
+
         {
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
             chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
         }
 
-        for offset in NEIGHBORS.iter() {
+        for (_, offset) in block::NEIGHBORS {
             let neighbor_grid_position = grid_position + offset;
 
-            if Simulation::is_on_map(neighbor_grid_position) {
+            if let Some((neighbor_chunk_id, neighbor_block_id)) =
+                Simulation::grid_position_to_ids(grid_position)
+            {
                 let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
 
-                if let Some(neighbor_chunk_id) =
-                    Simulation::grid_position_to_chunk_id(neighbor_grid_position)
-                {
-                    if let Some(neighbor_block_id) =
-                        Simulation::grid_position_to_block_id(neighbor_grid_position)
-                    {
-                        let mut neighbor_chunk = self.state.chunks[neighbor_chunk_id as usize]
-                            .write()
-                            .unwrap();
+                let mut neighbor_chunk = self.state.chunks[neighbor_chunk_id as usize]
+                    .write()
+                    .unwrap();
 
-                        neighbor_chunk.meta[neighbor_block_id as usize].neighbor_mask =
-                            neighbor_mask;
-                    }
-                }
+                neighbor_chunk.meta[neighbor_block_id as usize].neighbor_mask = neighbor_mask;
             }
         }
     }
@@ -267,13 +260,13 @@ impl Simulation {
     fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::NeighborMask {
         let mut neighbor_mask = NeighborMask::new();
 
-        for (bit, offset) in NEIGHBORS.iter().enumerate() {
+        for (direction_bit, offset) in block::NEIGHBORS {
             let neighbor_grid_position = grid_position + offset;
 
             if Simulation::is_on_map(neighbor_grid_position) {
                 if let Some(block) = self.get_block(neighbor_grid_position) {
                     if block.solid {
-                        neighbor_mask.set_solid(bit, true);
+                        neighbor_mask.set_solid(direction_bit, true);
                     }
                 }
             }
@@ -433,6 +426,34 @@ impl Simulation {
                 + grid_position_shifted.z * CHUNK_AREA as i32;
 
             Some(block_id as u32)
+        } else {
+            None
+        }
+    }
+
+    pub fn grid_position_to_ids(grid_position: IVec3) -> Option<(u32, u32)> {
+        if Simulation::is_on_map(grid_position) {
+            let chunk_position_shifted = grid_position.map(|coordinate| {
+                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
+
+                coordinate_shifted.div_euclid(WORLD_SIZE as i32)
+            });
+
+            let chunk_id = chunk_position_shifted.x
+                + chunk_position_shifted.y * WORLD_SIZE as i32
+                + chunk_position_shifted.z * WORLD_AREA as i32;
+
+            let grid_position_shifted = grid_position.map(|coordinate| {
+                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
+
+                coordinate_shifted.rem_euclid(CHUNK_SIZE as i32)
+            });
+
+            let block_id = grid_position_shifted.x
+                + grid_position_shifted.y * CHUNK_SIZE as i32
+                + grid_position_shifted.z * CHUNK_AREA as i32;
+
+            Some((chunk_id as u32, block_id as u32))
         } else {
             None
         }

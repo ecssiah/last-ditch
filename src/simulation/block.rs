@@ -1,3 +1,4 @@
+use glam::IVec3;
 use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd, Ord)]
@@ -15,72 +16,53 @@ pub enum Kind {
     Green,
 }
 
-pub enum Cardinal {
-    NN = 0,
-    NE = 1,
-    EE = 2,
-    SE = 3,
-    SS = 4,
-    SW = 5,
-    WW = 6,
-    NW = 7,
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum DirectionBit {
+    XPos = 0b00000001,
+    XNeg = 0b00000010,
+    YPos = 0b00000100,
+    YNeg = 0b00001000,
+    ZPos = 0b00010000,
+    ZNeg = 0b00100000,
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize)]
-pub struct Direction(pub u8);
-
-impl Direction {
-    pub fn new(cardinal_direction: Cardinal) -> Self {
-        Direction(1 << cardinal_direction as u8)
-    }
-
-    fn get_cardinal(self) -> Cardinal {
-        match self.0 & 0b11 {
-            0 => Cardinal::NN,
-            1 => Cardinal::NE,
-            2 => Cardinal::EE,
-            3 => Cardinal::SE,
-            4 => Cardinal::SS,
-            5 => Cardinal::SW,
-            6 => Cardinal::WW,
-            7 => Cardinal::NW,
-            _ => unreachable!(),
-        }
-    }
-
-    fn rotate_cw(self) -> Direction {
-        Direction((self.0 + 1) & 0b111)
-    }
-
-    fn rotate_ccw(self) -> Direction {
-        Direction((self.0.wrapping_sub(1)) & 0b111)
-    }
-}
+pub const NEIGHBORS: [(DirectionBit, IVec3); 6] = [
+    (DirectionBit::XPos, IVec3::new(1, 0, 0)),
+    (DirectionBit::XNeg, IVec3::new(-1, 0, 0)),
+    (DirectionBit::YPos, IVec3::new(0, 1, 0)),
+    (DirectionBit::YNeg, IVec3::new(0, -1, 0)),
+    (DirectionBit::ZPos, IVec3::new(0, 0, 1)),
+    (DirectionBit::ZNeg, IVec3::new(0, 0, -1)),
+];
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
-pub struct NeighborMask(pub u8);
+pub struct NeighborMask(u8);
 
 impl NeighborMask {
     pub fn new() -> Self {
         NeighborMask(0)
     }
 
-    pub fn is_solid(&self, dir: usize) -> bool {
-        (self.0 & (1 << dir)) != 0
+    pub fn get_value(&self) -> u8 {
+        self.0
     }
 
-    pub fn set_solid(&mut self, dir: usize, solid: bool) {
+    pub fn is_solid(&self, direction_bit: DirectionBit) -> bool {
+        (self.0 & (direction_bit as u8)) != 0
+    }
+
+    pub fn set_solid(&mut self, direction_bit: DirectionBit, solid: bool) {
         if solid {
-            self.0 |= 1 << dir;
+            self.0 |= direction_bit as u8;
         } else {
-            self.0 &= !(1 << dir);
+            self.0 &= !(direction_bit as u8);
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
 pub struct Meta {
-    pub direction: Direction,
+    pub direction: u8,
     pub neighbor_mask: NeighborMask,
 }
 
@@ -90,4 +72,26 @@ pub struct Block {
     pub opacity: f32,
     pub solid: bool,
     pub color: (f32, f32, f32, f32),
+}
+
+impl Block {
+    pub fn get_bit(target_offset: IVec3) -> Option<DirectionBit> {
+        for (direction_bit, offset) in NEIGHBORS {
+            if target_offset == offset {
+                return Some(direction_bit);
+            }
+        }
+
+        None 
+    }
+
+    pub fn get_offset(target_direction_bit: DirectionBit) -> Option<IVec3> {
+        for (direction_bit, offset) in NEIGHBORS {
+            if target_direction_bit == direction_bit {
+                return Some(offset);
+            }
+        }
+
+        None 
+    }
 }

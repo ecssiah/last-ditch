@@ -40,6 +40,7 @@ struct VertexOutput {
     @location(0) instance_color: vec4<f32>,
     @location(1) ao_0: vec4<f32>,
     @location(2) ao_1: vec4<f32>,
+    @location(3) vertex_index: u32,
 };
 
 @vertex
@@ -53,6 +54,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.instance_color = input.instance_color;
     output.ao_0 = input.ao_0;
     output.ao_1 = input.ao_1;
+    output.vertex_index = cube_index;
 
     return output;
 }
@@ -61,6 +63,7 @@ struct FragmentInput {
     @location(0) instance_color: vec4<f32>,
     @location(1) ao_0: vec4<f32>,
     @location(2) ao_1: vec4<f32>,
+    @location(3) vertex_index: u32,
 }
 
 struct FragmentOutput {
@@ -71,14 +74,20 @@ struct FragmentOutput {
 fn fs_main(input: FragmentInput) -> FragmentOutput {
     var fragment_output: FragmentOutput;
 
-    let ao_factor = (
-        dot(input.ao_0, vec4<f32>(0.125)) + 
-        dot(input.ao_1, vec4<f32>(0.125))
-    );
+    let ao_index = input.vertex_index % 8;
+    let ao_factor = select_ao(ao_index, input.ao_0, input.ao_1);
 
     let occluded_color = input.instance_color.rgb * ao_factor;
 
     fragment_output.color = vec4<f32>(occluded_color, input.instance_color.a);
 
     return fragment_output;
+}
+
+fn select_ao(index: u32, ao_0: vec4<f32>, ao_1: vec4<f32>) -> f32 {
+    if index < 4 {
+        return ao_0[index];
+    } else {
+        return ao_1[index - 4];
+    }
 }

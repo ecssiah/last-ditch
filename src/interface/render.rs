@@ -1,7 +1,7 @@
 use crate::{
     include_shader_src,
     interface::{self, ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
-    simulation::{self, agent::Agent, block, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
+    simulation::{self, agent::Agent, block::{self, NEIGHBORS}, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
@@ -382,15 +382,15 @@ impl Render {
     
         let mut occlusion: f32 = 0.0;
     
-        if mask.is_solid(primary) {
+        if mask.is_solid(NEIGHBORS[primary].0) {
             occlusion += 0.5;
         }
         
-        if mask.is_solid(secondary1) {
+        if mask.is_solid(NEIGHBORS[secondary1].0) {
             occlusion += 0.25;
         }
 
-        if mask.is_solid(secondary2) {
+        if mask.is_solid(NEIGHBORS[secondary2].0) {
             occlusion += 0.25;
         }
 
