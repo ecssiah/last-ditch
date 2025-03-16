@@ -10,6 +10,7 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
+bitflags = "2.4"
 bytemuck = { version = "1.14", features = ["derive"] }
 log = "0.4"
 env_logger = "0.11.6"

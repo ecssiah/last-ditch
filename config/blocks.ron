@@ -66,4 +66,10 @@
         opacity: 1.0,
         color: (0.035, 0.831, 0.102, 1.0),
     ),
+    Block(
+        kind: Brown,
+        solid: true,
+        opacity: 1.0,
+        color: (0.259, 0.184, 0.122, 1.0),
+    ),
 ]

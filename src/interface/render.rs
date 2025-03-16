@@ -1,16 +1,13 @@
 use crate::{
     include_shader_src,
     interface::{self, ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
-    simulation::{self, agent::Agent, block::{self, NEIGHBORS}, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
+    simulation::{self, agent::Agent, block::{self, Neighbors}, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
-use log::info;
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
-
-const BLOCK_VERTEX_COUNT: u32 = 36;
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.2,
@@ -276,7 +273,7 @@ impl Render {
             if chunk.instance_count > 0 {
                 render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
-                render_pass.draw(0..BLOCK_VERTEX_COUNT, 0..chunk.instance_count);
+                render_pass.draw(0..block::BLOCK_VERTEX_COUNT, 0..chunk.instance_count);
             }
         }
 
@@ -360,37 +357,39 @@ impl Render {
                 block.color.2 as f32,
                 block.color.3 as f32,
             ],
-            ao: Render::compute_ao(meta.neighbor_mask),
+            ao: Render::compute_ao(meta.neighbors),
         }
     }
 
-    fn compute_ao(neighbor_mask: block::NeighborMask) -> [f32; 8] {
-        [
-            Render::compute_vertex_ao(neighbor_mask, (1, 3, 5)),
-            Render::compute_vertex_ao(neighbor_mask, (0, 3, 5)),
-            Render::compute_vertex_ao(neighbor_mask, (0, 2, 5)),
-            Render::compute_vertex_ao(neighbor_mask, (1, 2, 5)),
-            Render::compute_vertex_ao(neighbor_mask, (1, 3, 4)),
-            Render::compute_vertex_ao(neighbor_mask, (0, 3, 4)),
-            Render::compute_vertex_ao(neighbor_mask, (0, 2, 4)),
-            Render::compute_vertex_ao(neighbor_mask, (1, 2, 4)),
-        ]
+    fn compute_ao(neighbors: block::Neighbors) -> [f32; 8] {
+        let ao_values = [
+            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SWC, Neighbors::SEC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SWC, Neighbors::SEC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SED, Neighbors::SEC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SED, Neighbors::SEC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SWC, Neighbors::SCC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SWC, Neighbors::SCC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SED, Neighbors::SCC)),
+            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SED, Neighbors::SCC)),
+        ];
+
+        ao_values
     }
 
-    fn compute_vertex_ao(mask: block::NeighborMask, neighbors: (usize, usize, usize)) -> f32 {
+    fn compute_vertex_ao(mask: block::Neighbors, neighbors: (Neighbors, Neighbors, Neighbors)) -> f32 {
         let (primary, secondary1, secondary2) = neighbors;
     
         let mut occlusion: f32 = 0.0;
     
-        if mask.is_solid(NEIGHBORS[primary].0) {
+        if mask.is_solid(primary) {
             occlusion += 0.5;
         }
         
-        if mask.is_solid(NEIGHBORS[secondary1].0) {
+        if mask.is_solid(secondary1) {
             occlusion += 0.25;
         }
 
-        if mask.is_solid(NEIGHBORS[secondary2].0) {
+        if mask.is_solid(secondary2) {
             occlusion += 0.25;
         }
 

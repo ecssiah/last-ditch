@@ -3,7 +3,6 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Hash, Eq, PartialEq)]
 pub enum Kind {
-    Swastika,
     Mario,
     Luigi,
 }
