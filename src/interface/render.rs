@@ -11,9 +11,8 @@ use crate::{
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
-use log::info;
 use std::sync::{Arc, RwLock};
-use wgpu::util::DeviceExt;
+use wgpu::{util::DeviceExt, vertex_attr_array};
 use winit::{event::WindowEvent, window::Window};
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
@@ -34,9 +33,10 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct BlockInstance {
-    position: [f32; 3],
+    position: [f32; 4],
     color: [f32; 4],
-    ao: [f32; 8],
+    ao_1: [f32; 4],
+    ao_2: [f32; 4],
 }
 
 pub struct Render {
@@ -142,31 +142,11 @@ impl Render {
         let block_instance_layout = wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<BlockInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
-            attributes: &[
-                wgpu::VertexAttribute {
-                    format: wgpu::VertexFormat::Float32x3,
-                    offset: 0,
-                    shader_location: 0,
-                },
-                wgpu::VertexAttribute {
-                    format: wgpu::VertexFormat::Float32x4,
-                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                },
-                wgpu::VertexAttribute {
-                    format: wgpu::VertexFormat::Float32x4,
-                    offset: (std::mem::size_of::<[f32; 3]>() + std::mem::size_of::<[f32; 4]>())
-                        as wgpu::BufferAddress,
-                    shader_location: 2,
-                },
-                wgpu::VertexAttribute {
-                    format: wgpu::VertexFormat::Float32x4,
-                    offset: (std::mem::size_of::<[f32; 3]>()
-                        + std::mem::size_of::<[f32; 4]>()
-                        + std::mem::size_of::<[f32; 4]>())
-                        as wgpu::BufferAddress,
-                    shader_location: 3,
-                },
+            attributes: &vertex_attr_array![
+                0 => Float32x4,
+                1 => Float32x4,
+                2 => Float32x4,
+                3 => Float32x4,
             ],
         };
 
@@ -356,133 +336,151 @@ impl Render {
         block: &block::Block,
         meta: &block::Meta,
     ) -> BlockInstance {
+        let position = [
+            grid_position.x as f32,
+            grid_position.y as f32,
+            grid_position.z as f32,
+            0.0,
+        ];
+
+        let color = [
+            block.color.0 as f32,
+            block.color.1 as f32,
+            block.color.2 as f32,
+            block.color.3 as f32,
+        ];
+
+        let (ao_1, ao_2) = Render::compute_ao(meta.neighbors);
+
         BlockInstance {
-            position: grid_position.as_vec3().into(),
-            color: [
-                block.color.0 as f32,
-                block.color.1 as f32,
-                block.color.2 as f32,
-                block.color.3 as f32,
-            ],
-            ao: Render::compute_ao(meta.neighbors),
+            position,
+            color,
+            ao_1,
+            ao_2,
         }
     }
 
-    fn compute_ao(neighbors: block::Neighbors) -> [f32; 8] {
-        let ao_values = [
+    fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
+        let ao_1 = [
             Render::compute_vertex_ao(
                 neighbors,
+                Neighbors::SED,
                 (
-                    Neighbors::CWD,
-                    Neighbors::SWD,
-                    Neighbors::SCD,
+                    Neighbors::CEC,
+                    Neighbors::SCC,
                     Neighbors::CCD,
                 ),
-                (Neighbors::CWC, Neighbors::SWC, Neighbors::SCC),
+                (Neighbors::CED, Neighbors::SCD, Neighbors::SEC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
+                Neighbors::SWD,
                 (
-                    Neighbors::CED,
-                    Neighbors::SED,
-                    Neighbors::SCD,
+                    Neighbors::CWC,
+                    Neighbors::SCC,
                     Neighbors::CCD,
                 ),
-                (Neighbors::CEC, Neighbors::SEC, Neighbors::SCC),
+                (Neighbors::CWD, Neighbors::SCD, Neighbors::SWC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
+                Neighbors::SEU,
                 (
-                    Neighbors::CWD,
-                    Neighbors::NWD,
-                    Neighbors::NCD,
+                    Neighbors::CEC,
+                    Neighbors::SCC,
                     Neighbors::CCU,
                 ),
-                (Neighbors::CWC, Neighbors::NWC, Neighbors::NCC),
+                (Neighbors::CEU, Neighbors::SCU, Neighbors::SEC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
+                Neighbors::SWU,
                 (
-                    Neighbors::CED,
-                    Neighbors::NED,
-                    Neighbors::NCD,
+                    Neighbors::CWC,
+                    Neighbors::SCC,
                     Neighbors::CCU,
                 ),
-                (Neighbors::CEC, Neighbors::NEC, Neighbors::NCC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
-                (
-                    Neighbors::CWD,
-                    Neighbors::SWU,
-                    Neighbors::SCU,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CWC, Neighbors::SWC, Neighbors::SCC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
-                (
-                    Neighbors::CED,
-                    Neighbors::SEU,
-                    Neighbors::SCU,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CEC, Neighbors::SEC, Neighbors::SCC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
-                (
-                    Neighbors::CWD,
-                    Neighbors::NWU,
-                    Neighbors::NCU,
-                    Neighbors::CCU,
-                ),
-                (Neighbors::CWC, Neighbors::NWC, Neighbors::NCC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
-                (
-                    Neighbors::CED,
-                    Neighbors::NEU,
-                    Neighbors::NCU,
-                    Neighbors::CCU,
-                ),
-                (Neighbors::CEC, Neighbors::NEC, Neighbors::NCC),
+                (Neighbors::CWU, Neighbors::SCU, Neighbors::SWC),
             ),
         ];
 
-        ao_values
+        let ao_2 = [
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::NED,
+                (
+                    Neighbors::CEC,
+                    Neighbors::NCC,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CED, Neighbors::NCD, Neighbors::NEC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::NWD,
+                (
+                    Neighbors::CWC,
+                    Neighbors::NCC,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CWD, Neighbors::NCD, Neighbors::NWC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::CCU,
+                (
+                    Neighbors::CEC,
+                    Neighbors::NCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CEU, Neighbors::NCU, Neighbors::NEC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::CCU,
+                (
+                    Neighbors::CWC,
+                    Neighbors::NCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CWU, Neighbors::NCU, Neighbors::NWC),
+            ),
+        ];
+
+        (ao_1, ao_2)
     }
 
     fn compute_vertex_ao(
         mask: block::Neighbors,
-        faces: (Neighbors, Neighbors, Neighbors, Neighbors),
+        point: Neighbors,
+        faces: (Neighbors, Neighbors, Neighbors),
         edges: (Neighbors, Neighbors, Neighbors),
     ) -> f32 {
+        let point = mask.is_solid(point) as u8 as f32;
+    
         let face0 = mask.is_solid(faces.0) as u8 as f32;
         let face1 = mask.is_solid(faces.1) as u8 as f32;
         let face2 = mask.is_solid(faces.2) as u8 as f32;
-        let face3 = mask.is_solid(faces.3) as u8 as f32; // Vertical occluder
     
         let edge0 = mask.is_solid(edges.0) as u8 as f32;
         let edge1 = mask.is_solid(edges.1) as u8 as f32;
         let edge2 = mask.is_solid(edges.2) as u8 as f32;
     
-        let mut occlusion = 0.0;
-    
-        if face0 == 1.0 && face1 == 1.0 && face2 == 1.0 && face3 == 1.0 {
-            occlusion = 0.8;
-        } else {
-            occlusion += face0 * 0.20;
-            occlusion += face1 * 0.20;
-            occlusion += face2 * 0.20;
-            occlusion += face3 * 0.25;
-    
-            occlusion += edge0 * 0.10;
-            occlusion += edge1 * 0.10;
-            occlusion += edge2 * 0.10;
+        if (face0 + face1) == 2.0 || (face1 + face2) == 2.0 || (face2 + face0) == 2.0 {
+            return 0.5;
         }
+    
+        let mut occlusion = 0.0;
+
+        occlusion += face0 * 0.30;
+        occlusion += face1 * 0.30;
+        occlusion += face2 * 0.30;
+        
+        occlusion += edge0 * 0.15;
+        occlusion += edge1 * 0.15;
+        occlusion += edge2 * 0.15;
+    
+        occlusion += point * 0.10;
     
         (1.0 - occlusion).max(0.0)
     }

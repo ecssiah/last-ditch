@@ -25,8 +25,8 @@ struct VertexInput {
     @builtin(vertex_index) vertex_index: u32,
     @location(0) instance_position: vec3<f32>,
     @location(1) instance_color: vec4<f32>,
-    @location(2) ao_0: vec4<f32>,
-    @location(3) ao_1: vec4<f32>,
+    @location(2) ao_1: vec4<f32>,
+    @location(3) ao_2: vec4<f32>,
 }
 
 struct VertexOutput {
@@ -42,9 +42,9 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     let cube_index = CUBE_INDICES[input.vertex_index];
     let cube_vertex = CUBE_VERTICES[cube_index];
 
-    output.Position = view_proj * vec4(input.instance_position + cube_vertex, 1.0);
+    output.Position = view_proj * vec4(input.instance_position.xyz + cube_vertex, 1.0);
     output.instance_color = input.instance_color;
-    output.vertex_ao = select_ao(cube_index, input.ao_0, input.ao_1);
+    output.vertex_ao = select_ao(cube_index, input.ao_1, input.ao_2);
 
     return output;
 }
@@ -69,10 +69,10 @@ fn fs_main(input: FragmentInput) -> FragmentOutput {
     return fragment_output;
 }
 
-fn select_ao(index: u32, ao_0: vec4<f32>, ao_1: vec4<f32>) -> f32 {
+fn select_ao(index: u32, ao_1: vec4<f32>, ao_2: vec4<f32>) -> f32 {
     if index < 4 {
-        return ao_0[index];
+        return ao_1[index];
     } else {
-        return ao_1[index - 4];
+        return ao_2[index - 4];
     }
 }
