@@ -1,7 +1,13 @@
 use crate::{
     include_shader_src,
     interface::{self, ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
-    simulation::{self, agent::Agent, block::{self, Neighbors}, world::World, Simulation, BLOCKS, CHUNK_VOLUME},
+    simulation::{
+        self,
+        agent::Agent,
+        block::{self, Neighbors},
+        world::World,
+        Simulation, BLOCKS, CHUNK_VOLUME,
+    },
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
@@ -364,36 +370,121 @@ impl Render {
 
     fn compute_ao(neighbors: block::Neighbors) -> [f32; 8] {
         let ao_values = [
-            Render::compute_vertex_ao(neighbors, Neighbors::SWD, Neighbors::SCD, Neighbors::CWD),
-            Render::compute_vertex_ao(neighbors, Neighbors::SED, Neighbors::SCD, Neighbors::CED),
-            Render::compute_vertex_ao(neighbors, Neighbors::SWU, Neighbors::SCU, Neighbors::CWU),
-            Render::compute_vertex_ao(neighbors, Neighbors::SEU, Neighbors::SCU, Neighbors::CEU),
-
-            Render::compute_vertex_ao(neighbors, Neighbors::NWD, Neighbors::NCD, Neighbors::CWD),
-            Render::compute_vertex_ao(neighbors, Neighbors::NED, Neighbors::NCD, Neighbors::CED),
-            Render::compute_vertex_ao(neighbors, Neighbors::NWU, Neighbors::NCU, Neighbors::CWU),
-            Render::compute_vertex_ao(neighbors, Neighbors::NEU, Neighbors::NCU, Neighbors::CEU),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CWD,
+                    Neighbors::SWD,
+                    Neighbors::SCD,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CWC, Neighbors::SWC, Neighbors::SCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CED,
+                    Neighbors::SED,
+                    Neighbors::SCD,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CEC, Neighbors::SEC, Neighbors::SCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CWD,
+                    Neighbors::NWD,
+                    Neighbors::NCD,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CWC, Neighbors::NWC, Neighbors::NCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CED,
+                    Neighbors::NED,
+                    Neighbors::NCD,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CEC, Neighbors::NEC, Neighbors::NCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CWD,
+                    Neighbors::SWU,
+                    Neighbors::SCU,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CWC, Neighbors::SWC, Neighbors::SCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CED,
+                    Neighbors::SEU,
+                    Neighbors::SCU,
+                    Neighbors::CCD,
+                ),
+                (Neighbors::CEC, Neighbors::SEC, Neighbors::SCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CWD,
+                    Neighbors::NWU,
+                    Neighbors::NCU,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CWC, Neighbors::NWC, Neighbors::NCC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                (
+                    Neighbors::CED,
+                    Neighbors::NEU,
+                    Neighbors::NCU,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CEC, Neighbors::NEC, Neighbors::NCC),
+            ),
         ];
-
-        info!("{:?}", ao_values);
 
         ao_values
     }
 
-    fn compute_vertex_ao(mask: block::Neighbors, corner: Neighbors, side1: Neighbors, side2: Neighbors) -> f32 {
-        let side1 = mask.is_solid(side1) as u8 as f32;
-        let side2 = mask.is_solid(side2) as u8 as f32;
-        let corner = mask.is_solid(corner) as u8 as f32;
-
-        let vertex_ao;
-
-        if side1 == 1.0 && side2 == 1.0 {
-            vertex_ao = 0.0;
+    fn compute_vertex_ao(
+        mask: block::Neighbors,
+        faces: (Neighbors, Neighbors, Neighbors, Neighbors),
+        edges: (Neighbors, Neighbors, Neighbors),
+    ) -> f32 {
+        let face0 = mask.is_solid(faces.0) as u8 as f32;
+        let face1 = mask.is_solid(faces.1) as u8 as f32;
+        let face2 = mask.is_solid(faces.2) as u8 as f32;
+        let face3 = mask.is_solid(faces.3) as u8 as f32; // Vertical occluder
+    
+        let edge0 = mask.is_solid(edges.0) as u8 as f32;
+        let edge1 = mask.is_solid(edges.1) as u8 as f32;
+        let edge2 = mask.is_solid(edges.2) as u8 as f32;
+    
+        let mut occlusion = 0.0;
+    
+        if face0 == 1.0 && face1 == 1.0 && face2 == 1.0 && face3 == 1.0 {
+            occlusion = 0.8;
         } else {
-            vertex_ao = (3.0 - (side1 + side2 + corner)) / 3.0;
+            occlusion += face0 * 0.20;
+            occlusion += face1 * 0.20;
+            occlusion += face2 * 0.20;
+            occlusion += face3 * 0.25;
+    
+            occlusion += edge0 * 0.10;
+            occlusion += edge1 * 0.10;
+            occlusion += edge2 * 0.10;
         }
-
-        vertex_ao
+    
+        (1.0 - occlusion).max(0.0)
     }
 
     fn update_view_projection(&mut self) {
