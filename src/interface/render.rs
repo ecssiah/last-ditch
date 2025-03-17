@@ -427,7 +427,7 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::CCU,
+                Neighbors::NEU,
                 (
                     Neighbors::CEC,
                     Neighbors::NCC,
@@ -437,7 +437,7 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::CCU,
+                Neighbors::NWU,
                 (
                     Neighbors::CWC,
                     Neighbors::NCC,
