@@ -5,6 +5,7 @@ use crate::{
 };
 use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Mat4, Vec3};
+use log::info;
 use std::sync::{Arc, RwLock};
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
@@ -363,37 +364,36 @@ impl Render {
 
     fn compute_ao(neighbors: block::Neighbors) -> [f32; 8] {
         let ao_values = [
-            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SWC, Neighbors::SEC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SWC, Neighbors::SEC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SED, Neighbors::SEC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SED, Neighbors::SEC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SWC, Neighbors::SCC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SWC, Neighbors::SCC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SWD, Neighbors::SED, Neighbors::SCC)),
-            Render::compute_vertex_ao(neighbors, (Neighbors::SCD, Neighbors::SED, Neighbors::SCC)),
+            Render::compute_vertex_ao(neighbors, Neighbors::SWD, Neighbors::SCD, Neighbors::CWD),
+            Render::compute_vertex_ao(neighbors, Neighbors::SED, Neighbors::SCD, Neighbors::CED),
+            Render::compute_vertex_ao(neighbors, Neighbors::SWU, Neighbors::SCU, Neighbors::CWU),
+            Render::compute_vertex_ao(neighbors, Neighbors::SEU, Neighbors::SCU, Neighbors::CEU),
+
+            Render::compute_vertex_ao(neighbors, Neighbors::NWD, Neighbors::NCD, Neighbors::CWD),
+            Render::compute_vertex_ao(neighbors, Neighbors::NED, Neighbors::NCD, Neighbors::CED),
+            Render::compute_vertex_ao(neighbors, Neighbors::NWU, Neighbors::NCU, Neighbors::CWU),
+            Render::compute_vertex_ao(neighbors, Neighbors::NEU, Neighbors::NCU, Neighbors::CEU),
         ];
+
+        info!("{:?}", ao_values);
 
         ao_values
     }
 
-    fn compute_vertex_ao(mask: block::Neighbors, neighbors: (Neighbors, Neighbors, Neighbors)) -> f32 {
-        let (primary, secondary1, secondary2) = neighbors;
-    
-        let mut occlusion: f32 = 0.0;
-    
-        if mask.is_solid(primary) {
-            occlusion += 0.5;
-        }
-        
-        if mask.is_solid(secondary1) {
-            occlusion += 0.25;
+    fn compute_vertex_ao(mask: block::Neighbors, corner: Neighbors, side1: Neighbors, side2: Neighbors) -> f32 {
+        let side1 = mask.is_solid(side1) as u8 as f32;
+        let side2 = mask.is_solid(side2) as u8 as f32;
+        let corner = mask.is_solid(corner) as u8 as f32;
+
+        let vertex_ao;
+
+        if side1 == 1.0 && side2 == 1.0 {
+            vertex_ao = 0.0;
+        } else {
+            vertex_ao = (3.0 - (side1 + side2 + corner)) / 3.0;
         }
 
-        if mask.is_solid(secondary2) {
-            occlusion += 0.25;
-        }
-
-        1.0 - occlusion.min(1.0)
+        vertex_ao
     }
 
     fn update_view_projection(&mut self) {

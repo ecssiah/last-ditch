@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::{Neighbors, OFFSETS};
+use block::Neighbors;
 pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
@@ -43,12 +43,12 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: u32 = 1;
+pub const CHUNK_RADIUS: u32 = 4;
 pub const CHUNK_SIZE: u32 = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: u32 = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: u32 = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: u32 = 1;
+pub const WORLD_RADIUS: u32 = 4;
 pub const WORLD_SIZE: u32 = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: u32 = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: u32 = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
@@ -92,7 +92,7 @@ impl Simulation {
         let agent = Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 12.0, 0.0),
+            position: Vec3::new(0.0, 4.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -140,20 +140,6 @@ impl Simulation {
         self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
         self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
         self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
-
-        let grid_position = IVec3::new(0, 0, 0);
-
-        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
-            let chunk = self.state.chunks[chunk_id as usize].read().unwrap();
-
-            for block_id in 0..chunk.meta.len() {
-                let meta = chunk.meta[block_id];
-                let grid_position = Simulation::get_grid_position(chunk_id, block_id as u32);
-
-                info!("{:?}", grid_position);
-                info!("{:?}", meta.neighbors);
-            }
-        }
     }
 
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
@@ -241,9 +227,7 @@ impl Simulation {
         {
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-            if let Some(meta) = chunk.meta.get_mut(block_id as usize) {
-                meta.neighbors = neighbors;
-            }
+            chunk.meta[block_id as usize].neighbors = neighbors;
         }
 
         let mut neighbor_updates = Vec::new();
@@ -255,7 +239,9 @@ impl Simulation {
 
             let neighbor_grid_position = grid_position + offset;
 
-            if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(neighbor_grid_position) {
+            if let Some((chunk_id, block_id)) =
+                Simulation::grid_position_to_ids(neighbor_grid_position)
+            {
                 let neighbors = self.compute_neighbor_mask(neighbor_grid_position);
 
                 neighbor_updates.push((chunk_id, block_id, neighbors));
@@ -265,9 +251,7 @@ impl Simulation {
         for (chunk_id, block_id, neighbors) in neighbor_updates {
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-            if let Some(meta) = chunk.meta.get_mut(block_id as usize) {
-                meta.neighbors = neighbors;
-            }
+            chunk.meta[block_id as usize].neighbors = neighbors;
         }
     }
 

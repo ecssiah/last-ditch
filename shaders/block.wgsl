@@ -1,27 +1,21 @@
 const CUBE_VERTICES: array<vec3<f32>, 8> = array(
     vec3<f32>(-0.5, -0.5, -0.5),
     vec3<f32>( 0.5, -0.5, -0.5),
-    vec3<f32>( 0.5,  0.5, -0.5),
     vec3<f32>(-0.5,  0.5, -0.5),
+    vec3<f32>( 0.5,  0.5, -0.5),
     vec3<f32>(-0.5, -0.5,  0.5),
     vec3<f32>( 0.5, -0.5,  0.5),
-    vec3<f32>( 0.5,  0.5,  0.5),
     vec3<f32>(-0.5,  0.5,  0.5),
+    vec3<f32>( 0.5,  0.5,  0.5),
 );
 
 const CUBE_INDICES: array<u32, 36> = array(
-    // Front
-    0, 2, 1, 0, 3, 2,
-    // Right
-    1, 6, 5, 1, 2, 6,
-    // Back
-    5, 7, 4, 5, 6, 7, 
-    // Left
-    4, 3, 0, 4, 7, 3, 
-    // Top
-    6, 3, 7, 6, 2, 3,
-    // Bottom
-    1, 4, 0, 1, 5, 4,  
+    1, 0, 2, 1, 2, 3,
+    4, 5, 7, 4, 7, 6,
+    5, 1, 3, 5, 3, 7, 
+    0, 4, 6, 0, 6, 2, 
+    6, 7, 3, 6, 3, 2,
+    0, 1, 5, 0, 5, 4,  
 );
 
 @group(0) @binding(0)
@@ -38,9 +32,7 @@ struct VertexInput {
 struct VertexOutput {
     @builtin(position) Position: vec4<f32>,
     @location(0) instance_color: vec4<f32>,
-    @location(1) ao_0: vec4<f32>,
-    @location(2) ao_1: vec4<f32>,
-    @location(3) vertex_index: u32,
+    @location(1) vertex_ao: f32,
 };
 
 @vertex
@@ -52,18 +44,14 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
     output.Position = view_proj * vec4(input.instance_position + cube_vertex, 1.0);
     output.instance_color = input.instance_color;
-    output.ao_0 = input.ao_0;
-    output.ao_1 = input.ao_1;
-    output.vertex_index = cube_index;
+    output.vertex_ao = select_ao(cube_index, input.ao_0, input.ao_1);
 
     return output;
 }
 
 struct FragmentInput {
     @location(0) instance_color: vec4<f32>,
-    @location(1) ao_0: vec4<f32>,
-    @location(2) ao_1: vec4<f32>,
-    @location(3) vertex_index: u32,
+    @location(1) vertex_ao: f32,
 }
 
 struct FragmentOutput {
@@ -74,10 +62,7 @@ struct FragmentOutput {
 fn fs_main(input: FragmentInput) -> FragmentOutput {
     var fragment_output: FragmentOutput;
 
-    let ao_index = input.vertex_index % 8;
-    let ao_factor = select_ao(ao_index, input.ao_0, input.ao_1);
-
-    let occluded_color = input.instance_color.rgb * ao_factor;
+    let occluded_color = input.instance_color.rgb * input.vertex_ao;
 
     fragment_output.color = vec4<f32>(occluded_color, input.instance_color.a);
 
