@@ -92,7 +92,7 @@ impl Simulation {
         let agent = Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 4.0, -12.0),
+            position: Vec3::new(0.0, 2.0, -12.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -131,12 +131,12 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(IVec3::new(-12, 0, 0), structure::Kind::Mario);
-        self.generate_structure(IVec3::new(12, 0, 0), structure::Kind::Luigi);
+        // self.generate_structure(IVec3::new(-12, 0, 0), structure::Kind::Mario);
+        // self.generate_structure(IVec3::new(12, 0, 0), structure::Kind::Luigi);
 
-        // self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
-        // self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
-        // self.set_kind(IVec3::new(0, 0, -1), block::Kind::Concrete);
+        self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
+        self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
+        self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
         // self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
         // self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
     }

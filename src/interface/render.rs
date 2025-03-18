@@ -292,7 +292,7 @@ impl Render {
             let last_update = chunk.read().unwrap().last_update;
 
             if self.block_chunks[chunk_id].last_render < last_update {
-                let mut block_instances: Vec<BlockInstance> = Vec::new();
+                let mut block_instances = Vec::new();
 
                 let chunk = chunk.read().unwrap();
 
@@ -364,16 +364,6 @@ impl Render {
         let ao_1 = [
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::SED,
-                (
-                    Neighbors::CEC,
-                    Neighbors::SCC,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CED, Neighbors::SCD, Neighbors::SEC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
                 Neighbors::SWD,
                 (
                     Neighbors::CWC,
@@ -384,13 +374,13 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::SEU,
+                Neighbors::SED,
                 (
                     Neighbors::CEC,
                     Neighbors::SCC,
-                    Neighbors::CCU,
+                    Neighbors::CCD,
                 ),
-                (Neighbors::CEU, Neighbors::SCU, Neighbors::SEC),
+                (Neighbors::CED, Neighbors::SCD, Neighbors::SEC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
@@ -402,19 +392,19 @@ impl Render {
                 ),
                 (Neighbors::CWU, Neighbors::SCU, Neighbors::SWC),
             ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::SEU,
+                (
+                    Neighbors::CEC,
+                    Neighbors::SCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CEU, Neighbors::SCU, Neighbors::SEC),
+            ),
         ];
 
         let ao_2 = [
-            Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NED,
-                (
-                    Neighbors::CEC,
-                    Neighbors::NCC,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CED, Neighbors::NCD, Neighbors::NEC),
-            ),
             Render::compute_vertex_ao(
                 neighbors,
                 Neighbors::NWD,
@@ -427,13 +417,13 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::NEU,
+                Neighbors::NED,
                 (
                     Neighbors::CEC,
                     Neighbors::NCC,
-                    Neighbors::CCU,
+                    Neighbors::CCD,
                 ),
-                (Neighbors::CEU, Neighbors::NCU, Neighbors::NEC),
+                (Neighbors::CED, Neighbors::NCD, Neighbors::NEC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
@@ -444,6 +434,16 @@ impl Render {
                     Neighbors::CCU,
                 ),
                 (Neighbors::CWU, Neighbors::NCU, Neighbors::NWC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::NEU,
+                (
+                    Neighbors::CEC,
+                    Neighbors::NCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CEU, Neighbors::NCU, Neighbors::NEC),
             ),
         ];
 
@@ -472,6 +472,8 @@ impl Render {
     
         let mut occlusion = 0.0;
 
+        occlusion += point * 0.10;
+
         occlusion += face0 * 0.30;
         occlusion += face1 * 0.30;
         occlusion += face2 * 0.30;
@@ -479,8 +481,6 @@ impl Render {
         occlusion += edge0 * 0.15;
         occlusion += edge1 * 0.15;
         occlusion += edge2 * 0.15;
-    
-        occlusion += point * 0.10;
     
         (1.0 - occlusion).max(0.0)
     }
