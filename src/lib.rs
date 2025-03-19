@@ -19,9 +19,10 @@ use std::{sync::Arc, thread};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler,
+    dpi::PhysicalSize,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{Window, WindowId},
+    window::{Window, WindowAttributes, WindowId},
 };
 
 #[derive(Default)]
@@ -33,10 +34,15 @@ struct App {
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        let window_attributes = WindowAttributes::default()
+            .with_title(interface::WINDOW_TITLE)
+            .with_inner_size(PhysicalSize::new(
+                interface::WINDOW_WIDTH,
+                interface::WINDOW_HEIGHT,
+            ));
+
         self.window = Some(Arc::new(
-            event_loop
-                .create_window(Window::default_attributes())
-                .unwrap(),
+            event_loop.create_window(window_attributes).unwrap(),
         ));
 
         let window = self.window.as_ref().unwrap();

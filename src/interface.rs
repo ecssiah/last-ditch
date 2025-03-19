@@ -19,8 +19,10 @@ use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
-pub const WINDOW_WIDTH: u32 = 1024;
-pub const WINDOW_HEIGHT: u32 = 768;
+pub const WINDOW_TITLE: &str = "Last Ditch";
+
+pub const WINDOW_WIDTH: u32 = 2560;
+pub const WINDOW_HEIGHT: u32 = 1440;
 pub const ASPECT_RATIO: f32 = WINDOW_WIDTH as f32 / WINDOW_HEIGHT as f32;
 
 pub const FOV: f32 = 45.0;
@@ -44,7 +46,7 @@ impl Interface {
         action_tx: UnboundedSender<Action>,
         window: Arc<Window>,
         state: Arc<State>,
-    ) -> Interface {
+    ) -> Self {
         let camera = Camera::new();
         let input = Input::new(action_tx.clone());
         let render = pollster::block_on(Render::new(
@@ -56,7 +58,7 @@ impl Interface {
 
         window.set_cursor_visible(false);
 
-        let interface = Interface {
+        let interface = Self {
             _window: window,
             state,
             action_tx,

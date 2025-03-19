@@ -74,14 +74,14 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Simulation {
+    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
         let state = Arc::from(State {
-            agent: Simulation::setup_agent(),
-            world: Simulation::setup_world(),
-            chunks: Simulation::setup_chunks(),
+            agent: Self::setup_agent(),
+            world: Self::setup_world(),
+            chunks: Self::setup_chunks(),
         });
 
-        let simulation = Simulation { action_rx, state };
+        let simulation = Self { action_rx, state };
 
         info!("Simulation Initialized");
 
@@ -120,7 +120,7 @@ impl Simulation {
             core::array::from_fn(|chunk_id| {
                 Arc::from(RwLock::from(Chunk {
                     last_update: 1,
-                    position: Simulation::chunk_id_to_position(chunk_id as u32),
+                    position: Self::chunk_id_to_position(chunk_id as u32),
                     palette: Vec::from([block::Kind::Air]),
                     palette_ids: Box::new([0; CHUNK_VOLUME as usize]),
                     meta: Box::new([block::Meta::default(); CHUNK_VOLUME as usize]),
@@ -160,7 +160,7 @@ impl Simulation {
     }
 
     pub fn get_chunk(&self, grid_position: IVec3) -> Option<Arc<RwLock<chunk::Chunk>>> {
-        if let Some(chunk_id) = Simulation::grid_position_to_chunk_id(grid_position) {
+        if let Some(chunk_id) = Self::grid_position_to_chunk_id(grid_position) {
             Some(self.state.chunks[chunk_id as usize].clone())
         } else {
             None
@@ -168,7 +168,7 @@ impl Simulation {
     }
 
     pub fn get_block(&self, grid_position: IVec3) -> Option<&block::Block> {
-        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
             let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
             let palette_id = chunk.palette_ids[block_id as usize];
@@ -181,7 +181,7 @@ impl Simulation {
     }
 
     pub fn get_meta(&self, grid_position: IVec3) -> Option<block::Meta> {
-        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
             let chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
             let meta = chunk.meta[block_id as usize];
@@ -193,7 +193,7 @@ impl Simulation {
     }
 
     fn set_block_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
-        if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
+        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
             {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
@@ -245,7 +245,7 @@ impl Simulation {
             let neighbor_grid_position = grid_position + offset;
 
             if let Some((chunk_id, block_id)) =
-                Simulation::grid_position_to_ids(neighbor_grid_position)
+                Self::grid_position_to_ids(neighbor_grid_position)
             {
                 let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
 
@@ -407,7 +407,7 @@ impl Simulation {
     }
 
     pub fn grid_position_to_chunk_id(grid_position: IVec3) -> Option<u32> {
-        if Simulation::is_on_map(grid_position) {
+        if Self::is_on_map(grid_position) {
             let chunk_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
@@ -425,7 +425,7 @@ impl Simulation {
     }
 
     pub fn grid_position_to_block_id(grid_position: IVec3) -> Option<u32> {
-        if Simulation::is_on_map(grid_position) {
+        if Self::is_on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
@@ -443,7 +443,7 @@ impl Simulation {
     }
 
     pub fn grid_position_to_ids(grid_position: IVec3) -> Option<(u32, u32)> {
-        if Simulation::is_on_map(grid_position) {
+        if Self::is_on_map(grid_position) {
             let chunk_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
@@ -471,8 +471,8 @@ impl Simulation {
     }
 
     pub fn get_grid_position(chunk_id: u32, block_id: u32) -> IVec3 {
-        let chunk_position = Simulation::chunk_id_to_position(chunk_id);
-        let block_position = Simulation::block_id_to_position(block_id);
+        let chunk_position = Self::chunk_id_to_position(chunk_id);
+        let block_position = Self::block_id_to_position(block_id);
 
         let grid_position = CHUNK_SIZE as i32 * chunk_position + block_position;
 

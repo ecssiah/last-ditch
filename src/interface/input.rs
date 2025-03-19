@@ -32,7 +32,7 @@ pub struct Input {
 }
 
 impl Input {
-    pub fn new(action_tx: UnboundedSender<Action>) -> Input {
+    pub fn new(action_tx: UnboundedSender<Action>) -> Self {
         let key_state = KeyState {
             key_w: 0.0,
             key_a: 0.0,
@@ -45,11 +45,13 @@ impl Input {
             delta: Vec2::ZERO,
         };
 
-        Input {
+        let input = Self {
             action_tx,
             key_state,
             mouse_state,
-        }
+        };
+
+        input
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {

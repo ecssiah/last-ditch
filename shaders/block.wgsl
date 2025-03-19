@@ -32,41 +32,24 @@ struct VertexInput {
 struct VertexOutput {
     @builtin(position) Position: vec4<f32>,
     @location(0) instance_color: vec4<f32>,
-    @location(1) vertex_ao: f32,
+    @location(1) ao: f32,
 };
 
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
-    var output: VertexOutput;
-
     let cube_index = CUBE_INDICES[input.vertex_index];
     let cube_vertex = CUBE_VERTICES[cube_index];
 
-    output.Position = view_proj * vec4(input.instance_position.xyz + cube_vertex, 1.0);
-    output.instance_color = input.instance_color;
-    output.vertex_ao = select_ao(cube_index, input.ao_1, input.ao_2);
+    let position = view_proj * vec4(input.instance_position.xyz + cube_vertex, 1.0);
+    let ao = select_ao(cube_index, input.ao_1, input.ao_2);
+
+    let output = VertexOutput(
+        position,
+        input.instance_color,
+        ao,
+    );
 
     return output;
-}
-
-struct FragmentInput {
-    @location(0) instance_color: vec4<f32>,
-    @location(1) vertex_ao: f32,
-}
-
-struct FragmentOutput {
-    @location(0) color: vec4<f32>
-}
-
-@fragment
-fn fs_main(input: FragmentInput) -> FragmentOutput {
-    var fragment_output: FragmentOutput;
-
-    let occluded_color = input.instance_color.rgb * input.vertex_ao;
-
-    fragment_output.color = vec4<f32>(occluded_color, input.instance_color.a);
-
-    return fragment_output;
 }
 
 fn select_ao(index: u32, ao_1: vec4<f32>, ao_2: vec4<f32>) -> f32 {
@@ -75,4 +58,24 @@ fn select_ao(index: u32, ao_1: vec4<f32>, ao_2: vec4<f32>) -> f32 {
     } else {
         return ao_2[index - 4];
     }
+}
+
+struct FragmentInput {
+    @location(0) instance_color: vec4<f32>,
+    @location(1) ao: f32,
+}
+
+struct FragmentOutput {
+    @location(0) color: vec4<f32>,
+}
+
+@fragment
+fn fs_main(input: FragmentInput) -> FragmentOutput {
+    let occluded_color = input.instance_color.rgb * input.ao;
+
+    let output = FragmentOutput(
+        vec4<f32>(occluded_color, input.instance_color.a),
+    );
+
+    return output;
 }

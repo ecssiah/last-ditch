@@ -2,7 +2,7 @@ use bitflags::bitflags;
 use glam::IVec3;
 use serde::Deserialize;
 
-pub const BLOCK_VERTEX_COUNT: u32 = 36;
+pub const VERTEX_COUNT: u32 = 36;
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
@@ -82,7 +82,7 @@ impl Direction {
 
     const CORNER_INDICES: [usize; 8] = [0, 2, 6, 8, 18, 20, 24, 26];
 
-    pub fn bit(index: usize) -> Option<Direction> {
+    pub fn bit(index: usize) -> Option<Self> {
         Self::from_bits(1 << index)
     }
 
@@ -91,19 +91,19 @@ impl Direction {
     }
 
     pub fn offset(self) -> IVec3 {
-        Direction::OFFSETS[self.index()]
+        Self::OFFSETS[self.index()]
     }
 
     pub fn face_offsets() -> [IVec3; 6] {
-        Direction::FACE_INDICES.map(|i| Direction::OFFSETS[i])
+        Self::FACE_INDICES.map(|i| Self::OFFSETS[i])
     }
 
     pub fn edge_offsets() -> [IVec3; 12] {
-        Direction::EDGE_INDICES.map(|i| Direction::OFFSETS[i])
+        Self::EDGE_INDICES.map(|i| Self::OFFSETS[i])
     }
 
     pub fn corner_offsets() -> [IVec3; 8] {
-        Direction::CORNER_INDICES.map(|i| Direction::OFFSETS[i])
+        Self::CORNER_INDICES.map(|i| Self::OFFSETS[i])
     }
 }
 

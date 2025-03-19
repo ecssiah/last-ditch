@@ -63,7 +63,7 @@ impl Render {
         agent: Arc<RwLock<Agent>>,
         world: Arc<RwLock<World>>,
         chunks: Arc<[Arc<RwLock<simulation::Chunk>>]>,
-    ) -> Render {
+    ) -> Self {
         window.set_cursor_visible(false);
 
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -165,7 +165,7 @@ impl Render {
             }
         });
 
-        let block_pipeline = Render::create_pipeline(
+        let block_pipeline = Self::create_pipeline(
             &device,
             &surface_config,
             &block_shader,
@@ -175,7 +175,7 @@ impl Render {
 
         let last_render: u64 = 0;
 
-        let render = Render {
+        let render = Self {
             last_render,
             window,
             agent,
@@ -227,7 +227,7 @@ impl Render {
                 ..Default::default()
             });
 
-        let depth_texture_view = Render::create_depth_texture(&self.device, &self.surface_config);
+        let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
 
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
@@ -260,7 +260,7 @@ impl Render {
             if chunk.instance_count > 0 {
                 render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
-                render_pass.draw(0..block::BLOCK_VERTEX_COUNT, 0..chunk.instance_count);
+                render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
             }
         }
 
@@ -350,7 +350,7 @@ impl Render {
             block.color.3 as f32,
         ];
 
-        let (ao_1, ao_2) = Render::compute_ao(meta.neighbor_mask);
+        let (ao_1, ao_2) = Self::compute_ao(meta.neighbor_mask);
 
         BlockInstance {
             position,
@@ -362,7 +362,7 @@ impl Render {
 
     fn compute_ao(neighbor_mask: block::NeighborMask) -> ([f32; 4], [f32; 4]) {
         let ao_1 = [
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SED,
                 (
@@ -372,7 +372,7 @@ impl Render {
                 ),
                 (Direction::CED, Direction::SCD, Direction::SEC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SWD,
                 (
@@ -382,7 +382,7 @@ impl Render {
                 ),
                 (Direction::CWD, Direction::SCD, Direction::SWC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SEU,
                 (
@@ -392,7 +392,7 @@ impl Render {
                 ),
                 (Direction::CEU, Direction::SCU, Direction::SEC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SWU,
                 (
@@ -405,7 +405,7 @@ impl Render {
         ];
 
         let ao_2 = [
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NED,
                 (
@@ -415,7 +415,7 @@ impl Render {
                 ),
                 (Direction::CED, Direction::NCD, Direction::NEC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NWD,
                 (
@@ -425,7 +425,7 @@ impl Render {
                 ),
                 (Direction::CWD, Direction::NCD, Direction::NWC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NEU,
                 (
@@ -435,7 +435,7 @@ impl Render {
                 ),
                 (Direction::CEU, Direction::NCU, Direction::NEC),
             ),
-            Render::compute_vertex_ao(
+            Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NWU,
                 (
@@ -486,7 +486,7 @@ impl Render {
     }
 
     fn update_view_projection(&mut self) {
-        let view_projection_matrix = Render::create_view_projection_matrix(self.agent.clone());
+        let view_projection_matrix = Self::create_view_projection_matrix(self.agent.clone());
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
