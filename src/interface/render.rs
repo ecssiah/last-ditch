@@ -4,7 +4,7 @@ use crate::{
     simulation::{
         self,
         agent::Agent,
-        block::{self, Neighbors},
+        block::{self, Direction},
         world::World,
         Simulation, BLOCKS, CHUNK_VOLUME,
     },
@@ -350,7 +350,7 @@ impl Render {
             block.color.3 as f32,
         ];
 
-        let (ao_1, ao_2) = Render::compute_ao(meta.neighbors);
+        let (ao_1, ao_2) = Render::compute_ao(meta.neighbor_mask);
 
         BlockInstance {
             position,
@@ -360,90 +360,90 @@ impl Render {
         }
     }
 
-    fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
+    fn compute_ao(neighbor_mask: block::NeighborMask) -> ([f32; 4], [f32; 4]) {
         let ao_1 = [
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::SED,
+                neighbor_mask,
+                Direction::SED,
                 (
-                    Neighbors::CEC,
-                    Neighbors::SCC,
-                    Neighbors::CCD,
+                    Direction::CEC,
+                    Direction::SCC,
+                    Direction::CCD,
                 ),
-                (Neighbors::CED, Neighbors::SCD, Neighbors::SEC),
+                (Direction::CED, Direction::SCD, Direction::SEC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::SWD,
+                neighbor_mask,
+                Direction::SWD,
                 (
-                    Neighbors::CWC,
-                    Neighbors::SCC,
-                    Neighbors::CCD,
+                    Direction::CWC,
+                    Direction::SCC,
+                    Direction::CCD,
                 ),
-                (Neighbors::CWD, Neighbors::SCD, Neighbors::SWC),
+                (Direction::CWD, Direction::SCD, Direction::SWC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::SEU,
+                neighbor_mask,
+                Direction::SEU,
                 (
-                    Neighbors::CEC,
-                    Neighbors::SCC,
-                    Neighbors::CCU,
+                    Direction::CEC,
+                    Direction::SCC,
+                    Direction::CCU,
                 ),
-                (Neighbors::CEU, Neighbors::SCU, Neighbors::SEC),
+                (Direction::CEU, Direction::SCU, Direction::SEC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::SWU,
+                neighbor_mask,
+                Direction::SWU,
                 (
-                    Neighbors::CWC,
-                    Neighbors::SCC,
-                    Neighbors::CCU,
+                    Direction::CWC,
+                    Direction::SCC,
+                    Direction::CCU,
                 ),
-                (Neighbors::CWU, Neighbors::SCU, Neighbors::SWC),
+                (Direction::CWU, Direction::SCU, Direction::SWC),
             ),
         ];
 
         let ao_2 = [
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NED,
+                neighbor_mask,
+                Direction::NED,
                 (
-                    Neighbors::CEC,
-                    Neighbors::NCC,
-                    Neighbors::CCD,
+                    Direction::CEC,
+                    Direction::NCC,
+                    Direction::CCD,
                 ),
-                (Neighbors::CED, Neighbors::NCD, Neighbors::NEC),
+                (Direction::CED, Direction::NCD, Direction::NEC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NWD,
+                neighbor_mask,
+                Direction::NWD,
                 (
-                    Neighbors::CWC,
-                    Neighbors::NCC,
-                    Neighbors::CCD,
+                    Direction::CWC,
+                    Direction::NCC,
+                    Direction::CCD,
                 ),
-                (Neighbors::CWD, Neighbors::NCD, Neighbors::NWC),
+                (Direction::CWD, Direction::NCD, Direction::NWC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NEU,
+                neighbor_mask,
+                Direction::NEU,
                 (
-                    Neighbors::CEC,
-                    Neighbors::NCC,
-                    Neighbors::CCU,
+                    Direction::CEC,
+                    Direction::NCC,
+                    Direction::CCU,
                 ),
-                (Neighbors::CEU, Neighbors::NCU, Neighbors::NEC),
+                (Direction::CEU, Direction::NCU, Direction::NEC),
             ),
             Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NWU,
+                neighbor_mask,
+                Direction::NWU,
                 (
-                    Neighbors::CWC,
-                    Neighbors::NCC,
-                    Neighbors::CCU,
+                    Direction::CWC,
+                    Direction::NCC,
+                    Direction::CCU,
                 ),
-                (Neighbors::CWU, Neighbors::NCU, Neighbors::NWC),
+                (Direction::CWU, Direction::NCU, Direction::NWC),
             ),
         ];
 
@@ -451,10 +451,10 @@ impl Render {
     }
 
     fn compute_vertex_ao(
-        mask: block::Neighbors,
-        point: Neighbors,
-        faces: (Neighbors, Neighbors, Neighbors),
-        edges: (Neighbors, Neighbors, Neighbors),
+        mask: block::NeighborMask,
+        point: Direction,
+        faces: (Direction, Direction, Direction),
+        edges: (Direction, Direction, Direction),
     ) -> f32 {
         let point = mask.is_solid(point) as u8 as f32;
     

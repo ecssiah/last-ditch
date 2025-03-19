@@ -23,7 +23,7 @@ pub enum Kind {
 
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
-    pub struct Neighbors: u32 {
+    pub struct Direction: u32 {
         // South -Z
         const SED = 1 << 0;  // (-X, -Y, -Z) South East Down
         const SCD = 1 << 1;  // ( 0, -Y, -Z) South Center Down
@@ -59,44 +59,30 @@ bitflags! {
     }
 }
 
-#[rustfmt::skip]
-pub const OFFSETS: [IVec3; 27] = [
-    // South -Z
-    IVec3::new(-1, -1, -1), IVec3::new(0, -1, -1), IVec3::new(1, -1, -1),
-    IVec3::new(-1,  0, -1), IVec3::new(0,  0, -1), IVec3::new(1,  0, -1),
-    IVec3::new(-1,  1, -1), IVec3::new(0,  1, -1), IVec3::new(1,  1, -1),
+impl Direction {
+    #[rustfmt::skip]
+    pub const OFFSETS: [IVec3; 27] = [
+        // South -Z
+        IVec3::new(-1, -1, -1), IVec3::new(0, -1, -1), IVec3::new(1, -1, -1),
+        IVec3::new(-1,  0, -1), IVec3::new(0,  0, -1), IVec3::new(1,  0, -1),
+        IVec3::new(-1,  1, -1), IVec3::new(0,  1, -1), IVec3::new(1,  1, -1),
+        // Center
+        IVec3::new(-1, -1,  0), IVec3::new(0, -1,  0), IVec3::new(1, -1,  0),
+        IVec3::new(-1,  0,  0), IVec3::new(0,  0,  0), IVec3::new(1,  0,  0),
+        IVec3::new(-1,  1,  0), IVec3::new(0,  1,  0), IVec3::new(1,  1,  0),
+        // North +Z
+        IVec3::new(-1, -1,  1), IVec3::new(0, -1,  1), IVec3::new(1, -1,  1),
+        IVec3::new(-1,  0,  1), IVec3::new(0,  0,  1), IVec3::new(1,  0,  1),
+        IVec3::new(-1,  1,  1), IVec3::new(0,  1,  1), IVec3::new(1,  1,  1),
+    ];
 
-    // Center
-    IVec3::new(-1, -1,  0), IVec3::new(0, -1,  0), IVec3::new(1, -1,  0),
-    IVec3::new(-1,  0,  0), IVec3::new(0,  0,  0), IVec3::new(1,  0,  0),
-    IVec3::new(-1,  1,  0), IVec3::new(0,  1,  0), IVec3::new(1,  1,  0),
+    const FACE_INDICES: [usize; 6] = [4, 10, 12, 14, 16, 22];
 
-    // North +Z
-    IVec3::new(-1, -1,  1), IVec3::new(0, -1,  1), IVec3::new(1, -1,  1),
-    IVec3::new(-1,  0,  1), IVec3::new(0,  0,  1), IVec3::new(1,  0,  1),
-    IVec3::new(-1,  1,  1), IVec3::new(0,  1,  1), IVec3::new(1,  1,  1),
-];
+    const EDGE_INDICES: [usize; 12] = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
 
-pub const FACE_OFFSET_INDICES: [usize; 6] = [4, 10, 12, 14, 16, 22];
+    const CORNER_INDICES: [usize; 8] = [0, 2, 6, 8, 18, 20, 24, 26];
 
-pub const EDGE_OFFSET_INDICES: [usize; 12] = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
-
-pub const CORNER_OFFSET_INDICES: [usize; 8] = [0, 2, 6, 8, 18, 20, 24, 26];
-
-impl Neighbors {
-    pub fn is_solid(&self, neighbor: Neighbors) -> bool {
-        self.contains(neighbor)
-    }
-
-    pub fn set_solid(&mut self, neighbor: Neighbors, solid: bool) {
-        if solid {
-            self.insert(neighbor);
-        } else {
-            self.remove(neighbor);
-        }
-    }
-
-    pub fn bit(index: usize) -> Option<Neighbors> {
+    pub fn bit(index: usize) -> Option<Direction> {
         Self::from_bits(1 << index)
     }
 
@@ -105,26 +91,47 @@ impl Neighbors {
     }
 
     pub fn offset(self) -> IVec3 {
-        OFFSETS[self.index()]
+        Direction::OFFSETS[self.index()]
     }
 
     pub fn face_offsets() -> [IVec3; 6] {
-        FACE_OFFSET_INDICES.map(|i| OFFSETS[i])
+        Direction::FACE_INDICES.map(|i| Direction::OFFSETS[i])
     }
 
     pub fn edge_offsets() -> [IVec3; 12] {
-        EDGE_OFFSET_INDICES.map(|i| OFFSETS[i])
+        Direction::EDGE_INDICES.map(|i| Direction::OFFSETS[i])
     }
 
     pub fn corner_offsets() -> [IVec3; 8] {
-        CORNER_OFFSET_INDICES.map(|i| OFFSETS[i])
+        Direction::CORNER_INDICES.map(|i| Direction::OFFSETS[i])
+    }
+}
+
+bitflags! {
+    #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
+    pub struct NeighborMask: u32 {
+        const NONE = 0;
+    }
+}
+
+impl NeighborMask {
+    pub fn is_solid(&self, direction: Direction) -> bool {
+        self.bits() & direction.bits() != 0
+    }
+
+    pub fn set_solid(&mut self, direction: Direction, solid: bool) {
+        if solid {
+            self.insert(NeighborMask::from_bits_retain(self.bits() | direction.bits()));
+        } else {
+            self.remove(NeighborMask::from_bits_retain(self.bits() & !direction.bits()));
+        }
     }
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
 pub struct Meta {
-    pub direction: u8,
-    pub neighbors: Neighbors,
+    pub direction: Direction,
+    pub neighbor_mask: NeighborMask,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]

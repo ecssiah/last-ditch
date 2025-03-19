@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::Neighbors;
+use block::{Direction, NeighborMask};
 pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
@@ -205,7 +205,7 @@ impl Simulation {
             self.update_light_map(chunk_id, block_id, grid_position);
 
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-            
+
             chunk.last_update = self.state.world.read().unwrap().ticks;
         }
     }
@@ -227,18 +227,18 @@ impl Simulation {
     }
 
     fn update_block_meta(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
-        let neighbors = self.compute_neighbor_mask(grid_position);
+        let neighbor_mask = self.compute_neighbor_mask(grid_position);
 
         {
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-            chunk.meta[block_id as usize].neighbors = neighbors;
+            chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
         }
 
-        let mut neighbor_updates = Vec::new();
+        let mut neighbor_mask_updates = Vec::new();
 
-        for offset in block::OFFSETS {
-            if offset == Neighbors::CCC.offset() {
+        for offset in Direction::OFFSETS {
+            if offset == Direction::CCC.offset() {
                 continue;
             }
 
@@ -247,46 +247,44 @@ impl Simulation {
             if let Some((chunk_id, block_id)) =
                 Simulation::grid_position_to_ids(neighbor_grid_position)
             {
-                let neighbors = self.compute_neighbor_mask(neighbor_grid_position);
+                let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
 
-                neighbor_updates.push((chunk_id, block_id, neighbors));
+                neighbor_mask_updates.push((chunk_id, block_id, neighbor_mask));
             }
         }
 
-        for (chunk_id, block_id, neighbors) in neighbor_updates {
+        for (chunk_id, block_id, neighbor_mask) in neighbor_mask_updates {
             let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-            chunk.meta[block_id as usize].neighbors = neighbors;
+            chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
         }
     }
 
-    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> block::Neighbors {
-        let mut neighbors = block::Neighbors::empty();
+    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> NeighborMask {
+        let mut neighbor_mask = NeighborMask::NONE;
 
-        for (index, offset) in block::OFFSETS.iter().enumerate() {
-            let neighbor_grid_position = grid_position + offset;
-
-            if grid_position == neighbor_grid_position {
+        for index in 0..Direction::OFFSETS.len() {
+            if index == Direction::CCC.index() {
                 continue;
             }
 
-            if Simulation::is_on_map(neighbor_grid_position) {
-                if let Some(block) = self.get_block(neighbor_grid_position) {
-                    if block.solid {
-                        if let Some(direction) = Neighbors::bit(index) {
-                            neighbors.set_solid(direction, true);
-                        }
+            let offset = Direction::OFFSETS[index];
+
+            let neighbor_mask_grid_position = grid_position + offset;
+
+            if let Some(block) = self.get_block(neighbor_mask_grid_position) {
+                if block.solid {
+                    if let Some(direction) = Direction::bit(index) {
+                        neighbor_mask.set_solid(direction, true);
                     }
                 }
             }
         }
 
-        neighbors
+        neighbor_mask
     }
 
-    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
-
-    }
+    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
 
     pub fn run(&mut self) {
         let mut previous_instant = Instant::now();
