@@ -379,54 +379,54 @@ impl Render {
         let ao_1 = [
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::SED,
-                (Direction::CEC, Direction::SCC, Direction::CCD),
-                (Direction::CED, Direction::SCD, Direction::SEC),
+                Direction::XN_YN_ZN,
+                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
+                (Direction::XN_YN_Z0, Direction::X0_YN_ZN, Direction::XN_Y0_ZN),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::SWD,
-                (Direction::CWC, Direction::SCC, Direction::CCD),
-                (Direction::CWD, Direction::SCD, Direction::SWC),
+                Direction::XP_YN_ZN,
+                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
+                (Direction::XP_YN_Z0, Direction::X0_YN_ZN, Direction::XP_Y0_ZN),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::SEU,
-                (Direction::CEC, Direction::SCC, Direction::CCU),
-                (Direction::CEU, Direction::SCU, Direction::SEC),
+                Direction::XN_YP_ZN,
+                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
+                (Direction::XN_YP_Z0, Direction::X0_YP_ZN, Direction::XN_Y0_ZN),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::SWU,
-                (Direction::CWC, Direction::SCC, Direction::CCU),
-                (Direction::CWU, Direction::SCU, Direction::SWC),
+                Direction::XP_YP_ZN,
+                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
+                (Direction::XP_YP_Z0, Direction::X0_YP_ZN, Direction::XP_Y0_ZN),
             ),
         ];
 
         let ao_2 = [
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::NED,
-                (Direction::CEC, Direction::NCC, Direction::CCD),
-                (Direction::CED, Direction::NCD, Direction::NEC),
+                Direction::XN_YN_ZP,
+                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
+                (Direction::XN_YN_Z0, Direction::X0_YN_ZP, Direction::XN_Y0_ZP),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::NWD,
-                (Direction::CWC, Direction::NCC, Direction::CCD),
-                (Direction::CWD, Direction::NCD, Direction::NWC),
+                Direction::XP_YN_ZP,
+                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
+                (Direction::XP_YN_Z0, Direction::X0_YN_ZP, Direction::XP_Y0_ZP),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::NEU,
-                (Direction::CEC, Direction::NCC, Direction::CCU),
-                (Direction::CEU, Direction::NCU, Direction::NEC),
+                Direction::XN_YP_ZP,
+                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
+                (Direction::XN_YP_Z0, Direction::X0_YP_ZP, Direction::XN_Y0_ZP),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
-                Direction::NWU,
-                (Direction::CWC, Direction::NCC, Direction::CCU),
-                (Direction::CWU, Direction::NCU, Direction::NWC),
+                Direction::XP_YP_ZP,
+                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
+                (Direction::XP_YP_Z0, Direction::X0_YP_ZP, Direction::XP_Y0_ZP),
             ),
         ];
 

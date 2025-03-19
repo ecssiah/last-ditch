@@ -132,20 +132,13 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        // self.generate_structure(IVec3::new(-12, 0, 0), structure::Kind::Mario);
-        // self.generate_structure(IVec3::new(12, 0, 0), structure::Kind::Luigi);
-
-        self.generate_structure(IVec3::new(0, 0, 0), structure::Kind::LightTest);
-
-        // self.set_block_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
-        // self.set_block_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
-        // self.set_block_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
-        // self.set_block_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
-        // self.set_block_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
+        self.generate_structure(0, 0, 0, structure::Kind::LightTest);
     }
 
-    fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
+    fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
         if let Some(structure) = STRUCTURES.get(&structure_kind) {
+            let world_position = IVec3::new(x, y, z);
+
             for block_data in &structure.blocks[..] {
                 let block_position = IVec3::new(
                     block_data.position[0],
@@ -155,7 +148,12 @@ impl Simulation {
 
                 let grid_position = world_position + block_position;
 
-                self.set_block_kind(grid_position, block_data.kind);
+                self.set_block_kind(
+                    grid_position.x,
+                    grid_position.y,
+                    grid_position.z,
+                    block_data.kind,
+                );
             }
         }
     }
@@ -193,21 +191,76 @@ impl Simulation {
         }
     }
 
-    fn set_block_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
+    fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) {
+        let grid_position = IVec3::new(x, y, z);
+
         if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
-            {
-                let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+            self.update_palette(chunk_id, block_id, kind);
 
-                let palette_id = self.get_and_insert_palette_id(&mut chunk, kind);
-                chunk.palette_ids[block_id as usize] = palette_id;
-            }
-
-            self.update_block_meta(chunk_id, block_id, grid_position);
+            self.update_block_meta(grid_position);
             self.update_light_map(chunk_id, block_id, grid_position);
 
             self.mark_chunk_update(chunk_id);
         }
     }
+
+    fn update_palette(&mut self, chunk_id: u32, block_id: u32, kind: block::Kind) {
+        let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+
+        let palette_id = self.get_and_insert_palette_id(&mut chunk, kind);
+        chunk.palette_ids[block_id as usize] = palette_id;
+    }
+
+    fn update_block_meta(&mut self, grid_position: IVec3) {
+        let mut neighbor_mask_updates: HashMap<u32, Vec<(u32, NeighborMask)>> = HashMap::new();
+
+        for offset in Direction::offsets() {
+            let neighbor_grid_position = grid_position + offset;
+
+            if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
+                let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
+
+                neighbor_mask_updates
+                    .entry(chunk_id)
+                    .or_insert_with(Vec::new)
+                    .push((block_id, neighbor_mask));
+            }
+        }
+
+        for (chunk_id, updates) in neighbor_mask_updates.iter() {
+            let mut chunk = self.state.chunks[*chunk_id as usize].write().unwrap();
+
+            for (block_id, neighbor_mask) in updates {
+                chunk.meta[*block_id as usize].neighbor_mask = *neighbor_mask;
+            }
+        }
+    }
+
+    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> NeighborMask {
+        let mut neighbor_mask = NeighborMask::NONE;
+
+        for index in 0..Direction::offsets().len() {
+            if index == Direction::X0_Y0_Z0.index() {
+                continue;
+            }
+
+            if let Some(offset) = Direction::get_offset(index) {
+                let neighbor_grid_position = grid_position + offset;
+
+                if let Some(block) = self.get_block(neighbor_grid_position) {
+                    if block.solid {
+                        if let Some(direction) = Direction::bit(index) {
+                            neighbor_mask.set_solid(direction, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        neighbor_mask
+    }
+
+    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
 
     fn mark_chunk_update(&mut self, chunk_id: u32) {
         let mut world = self.state.world.write().unwrap();
@@ -232,64 +285,6 @@ impl Simulation {
             }
         }
     }
-
-    fn update_block_meta(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
-        let neighbor_mask = self.compute_neighbor_mask(grid_position);
-
-        {
-            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-
-            chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
-        }
-
-        let mut neighbor_mask_updates = Vec::new();
-
-        for offset in Direction::OFFSETS {
-            if offset == Direction::CCC.offset() {
-                continue;
-            }
-
-            let neighbor_grid_position = grid_position + offset;
-
-            if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
-                let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
-
-                neighbor_mask_updates.push((chunk_id, block_id, neighbor_mask));
-            }
-        }
-
-        for (chunk_id, block_id, neighbor_mask) in neighbor_mask_updates {
-            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-
-            chunk.meta[block_id as usize].neighbor_mask = neighbor_mask;
-        }
-    }
-
-    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> NeighborMask {
-        let mut neighbor_mask = NeighborMask::NONE;
-
-        for index in 0..Direction::OFFSETS.len() {
-            if index == Direction::CCC.index() {
-                continue;
-            }
-
-            let offset = Direction::OFFSETS[index];
-
-            let neighbor_mask_grid_position = grid_position + offset;
-
-            if let Some(block) = self.get_block(neighbor_mask_grid_position) {
-                if block.solid {
-                    if let Some(direction) = Direction::bit(index) {
-                        neighbor_mask.set_solid(direction, true);
-                    }
-                }
-            }
-        }
-
-        neighbor_mask
-    }
-
-    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
 
     pub fn run(&mut self) {
         let mut previous_instant = Instant::now();
