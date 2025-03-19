@@ -147,12 +147,13 @@ impl Simulation {
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
         if let Some(structure) = STRUCTURES.get(&structure_kind) {
             for block_data in &structure.blocks[..] {
-                let grid_position = world_position
-                    + IVec3::new(
-                        block_data.position[0],
-                        block_data.position[1],
-                        block_data.position[2],
-                    );
+                let block_position = IVec3::new(
+                    block_data.position[0],
+                    block_data.position[1],
+                    block_data.position[2],
+                );
+
+                let grid_position = world_position + block_position;
 
                 self.set_block_kind(grid_position, block_data.kind);
             }
