@@ -197,20 +197,26 @@ impl Simulation {
             {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
-                let palette_id = self.get_palette_id(&mut chunk, kind);
+                let palette_id = self.get_and_insert_palette_id(&mut chunk, kind);
                 chunk.palette_ids[block_id as usize] = palette_id;
             }
 
             self.update_block_meta(chunk_id, block_id, grid_position);
             self.update_light_map(chunk_id, block_id, grid_position);
 
-            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
-
-            chunk.last_update = self.state.world.read().unwrap().ticks;
+            self.mark_chunk_update(chunk_id);
         }
     }
 
-    fn get_palette_id(&self, chunk: &mut Chunk, kind: block::Kind) -> u32 {
+    fn mark_chunk_update(&mut self, chunk_id: u32) {
+        let mut world = self.state.world.write().unwrap();
+        let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+
+        chunk.last_update = world.ticks;
+        world.last_update = world.ticks;
+    }
+
+    fn get_and_insert_palette_id(&self, chunk: &mut Chunk, kind: block::Kind) -> u32 {
         match chunk
             .palette
             .iter()
@@ -244,9 +250,7 @@ impl Simulation {
 
             let neighbor_grid_position = grid_position + offset;
 
-            if let Some((chunk_id, block_id)) =
-                Self::grid_position_to_ids(neighbor_grid_position)
-            {
+            if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
                 let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
 
                 neighbor_mask_updates.push((chunk_id, block_id, neighbor_mask));

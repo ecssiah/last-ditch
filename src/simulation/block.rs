@@ -10,15 +10,19 @@ pub enum Kind {
     Wood,
     Metal,
     Concrete,
+    Plastic,
+    Brick,
+    Light,
+    Marker1,
+    Marker2,
     Black,
     White,
     Red,
     Blue,
     Gold,
-    Skin,
+    Beige,
     Green,
     Brown,
-    Light,
 }
 
 bitflags! {
@@ -121,9 +125,13 @@ impl NeighborMask {
 
     pub fn set_solid(&mut self, direction: Direction, solid: bool) {
         if solid {
-            self.insert(NeighborMask::from_bits_retain(self.bits() | direction.bits()));
+            self.insert(NeighborMask::from_bits_retain(
+                self.bits() | direction.bits(),
+            ));
         } else {
-            self.remove(NeighborMask::from_bits_retain(self.bits() & !direction.bits()));
+            self.remove(NeighborMask::from_bits_retain(
+                self.bits() & !direction.bits(),
+            ));
         }
     }
 }

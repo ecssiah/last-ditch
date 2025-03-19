@@ -32,11 +32,16 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
-pub struct BlockInstance {
+struct BlockInstance {
     position: [f32; 4],
     color: [f32; 4],
     ao_1: [f32; 4],
     ao_2: [f32; 4],
+}
+
+struct BlockRender {
+    chunks: [interface::Chunk; CHUNK_VOLUME as usize],
+    pipeline: wgpu::RenderPipeline,
 }
 
 pub struct Render {
@@ -53,8 +58,7 @@ pub struct Render {
     surface_config: wgpu::SurfaceConfiguration,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    block_chunks: [interface::Chunk; CHUNK_VOLUME as usize],
-    block_pipeline: wgpu::RenderPipeline,
+    block_render: BlockRender,
 }
 
 impl Render {
@@ -127,19 +131,46 @@ impl Render {
             }],
         });
 
-        let block_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        let block_render =
+            Self::setup_block_render(&device, &surface_config, &uniform_bind_group_layout);
+
+        let render = Self {
+            last_render: 0,
+            window,
+            agent,
+            world,
+            chunks,
+            device,
+            queue,
+            size,
+            surface,
+            surface_format,
+            surface_config,
+            view_projection_buffer,
+            view_projection_bind_group,
+            block_render,
+        };
+
+        render
+    }
+
+    fn setup_block_render(
+        device: &wgpu::Device,
+        surface_config: &wgpu::SurfaceConfiguration,
+        uniform_bind_group_layout: &wgpu::BindGroupLayout,
+    ) -> BlockRender {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Block Shader"),
             source: wgpu::ShaderSource::Wgsl(include_shader_src!("block.wgsl").into()),
         });
 
-        let block_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Block Pipeline Layout"),
-                bind_group_layouts: &[&uniform_bind_group_layout],
-                push_constant_ranges: &[],
-            });
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("Block Pipeline Layout"),
+            bind_group_layouts: &[&uniform_bind_group_layout],
+            push_constant_ranges: &[],
+        });
 
-        let block_instance_layout = wgpu::VertexBufferLayout {
+        let instance_layout = wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<BlockInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &vertex_attr_array![
@@ -150,7 +181,7 @@ impl Render {
             ],
         };
 
-        let block_chunks = core::array::from_fn(|_| {
+        let chunks = core::array::from_fn(|_| {
             let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Empty Buffer"),
                 size: std::mem::size_of::<BlockInstance>() as u64,
@@ -165,35 +196,17 @@ impl Render {
             }
         });
 
-        let block_pipeline = Self::create_pipeline(
+        let pipeline = Self::create_pipeline(
             &device,
             &surface_config,
-            &block_shader,
-            block_pipeline_layout,
-            block_instance_layout,
+            &shader,
+            pipeline_layout,
+            instance_layout,
         );
 
-        let last_render: u64 = 0;
+        let block_render = BlockRender { chunks, pipeline };
 
-        let render = Self {
-            last_render,
-            window,
-            agent,
-            world,
-            chunks,
-            device,
-            queue,
-            size,
-            surface,
-            surface_format,
-            surface_config,
-            view_projection_buffer,
-            view_projection_bind_group,
-            block_chunks,
-            block_pipeline,
-        };
-
-        render
+        block_render
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -253,10 +266,10 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.block_pipeline);
+        render_pass.set_pipeline(&self.block_render.pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for chunk in self.block_chunks.iter() {
+        for chunk in self.block_render.chunks.iter() {
             if chunk.instance_count > 0 {
                 render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
@@ -291,7 +304,7 @@ impl Render {
         for (chunk_id, chunk) in self.chunks.iter().enumerate() {
             let last_update = chunk.read().unwrap().last_update;
 
-            if self.block_chunks[chunk_id].last_render < last_update {
+            if self.block_render.chunks[chunk_id].last_render < last_update {
                 let mut block_instances = Vec::new();
 
                 let chunk = chunk.read().unwrap();
@@ -315,17 +328,17 @@ impl Render {
                 let block_instance_count = block_instances.len() as u32;
 
                 if block_instance_count > 0 {
-                    self.block_chunks[chunk_id].instance_buffer =
-                        self.device
-                            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                                label: Some("BlockInstance Buffer"),
-                                contents: bytemuck::cast_slice(block_instances.as_slice()),
-                                usage: wgpu::BufferUsages::VERTEX,
-                            });
+                    self.block_render.chunks[chunk_id].instance_buffer = self
+                        .device
+                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                            label: Some("BlockInstance Buffer"),
+                            contents: bytemuck::cast_slice(block_instances.as_slice()),
+                            usage: wgpu::BufferUsages::VERTEX,
+                        });
                 }
 
-                self.block_chunks[chunk_id].instance_count = block_instance_count;
-                self.block_chunks[chunk_id].last_render = last_update;
+                self.block_render.chunks[chunk_id].instance_count = block_instance_count;
+                self.block_render.chunks[chunk_id].last_render = last_update;
             }
         }
     }
@@ -352,12 +365,14 @@ impl Render {
 
         let (ao_1, ao_2) = Self::compute_ao(meta.neighbor_mask);
 
-        BlockInstance {
+        let block_instance = BlockInstance {
             position,
             color,
             ao_1,
             ao_2,
-        }
+        };
+
+        block_instance
     }
 
     fn compute_ao(neighbor_mask: block::NeighborMask) -> ([f32; 4], [f32; 4]) {
@@ -365,41 +380,25 @@ impl Render {
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SED,
-                (
-                    Direction::CEC,
-                    Direction::SCC,
-                    Direction::CCD,
-                ),
+                (Direction::CEC, Direction::SCC, Direction::CCD),
                 (Direction::CED, Direction::SCD, Direction::SEC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SWD,
-                (
-                    Direction::CWC,
-                    Direction::SCC,
-                    Direction::CCD,
-                ),
+                (Direction::CWC, Direction::SCC, Direction::CCD),
                 (Direction::CWD, Direction::SCD, Direction::SWC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SEU,
-                (
-                    Direction::CEC,
-                    Direction::SCC,
-                    Direction::CCU,
-                ),
+                (Direction::CEC, Direction::SCC, Direction::CCU),
                 (Direction::CEU, Direction::SCU, Direction::SEC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::SWU,
-                (
-                    Direction::CWC,
-                    Direction::SCC,
-                    Direction::CCU,
-                ),
+                (Direction::CWC, Direction::SCC, Direction::CCU),
                 (Direction::CWU, Direction::SCU, Direction::SWC),
             ),
         ];
@@ -408,41 +407,25 @@ impl Render {
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NED,
-                (
-                    Direction::CEC,
-                    Direction::NCC,
-                    Direction::CCD,
-                ),
+                (Direction::CEC, Direction::NCC, Direction::CCD),
                 (Direction::CED, Direction::NCD, Direction::NEC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NWD,
-                (
-                    Direction::CWC,
-                    Direction::NCC,
-                    Direction::CCD,
-                ),
+                (Direction::CWC, Direction::NCC, Direction::CCD),
                 (Direction::CWD, Direction::NCD, Direction::NWC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NEU,
-                (
-                    Direction::CEC,
-                    Direction::NCC,
-                    Direction::CCU,
-                ),
+                (Direction::CEC, Direction::NCC, Direction::CCU),
                 (Direction::CEU, Direction::NCU, Direction::NEC),
             ),
             Self::compute_vertex_ao(
                 neighbor_mask,
                 Direction::NWU,
-                (
-                    Direction::CWC,
-                    Direction::NCC,
-                    Direction::CCU,
-                ),
+                (Direction::CWC, Direction::NCC, Direction::CCU),
                 (Direction::CWU, Direction::NCU, Direction::NWC),
             ),
         ];
@@ -457,19 +440,19 @@ impl Render {
         edges: (Direction, Direction, Direction),
     ) -> f32 {
         let point = mask.is_solid(point) as u8 as f32;
-    
+
         let face0 = mask.is_solid(faces.0) as u8 as f32;
         let face1 = mask.is_solid(faces.1) as u8 as f32;
         let face2 = mask.is_solid(faces.2) as u8 as f32;
-    
+
         let edge0 = mask.is_solid(edges.0) as u8 as f32;
         let edge1 = mask.is_solid(edges.1) as u8 as f32;
         let edge2 = mask.is_solid(edges.2) as u8 as f32;
-    
+
         if (face0 + face1) == 2.0 || (face1 + face2) == 2.0 || (face2 + face0) == 2.0 {
             return 0.5;
         }
-    
+
         let mut occlusion = 0.0;
 
         occlusion += point * 0.10;
@@ -477,11 +460,11 @@ impl Render {
         occlusion += face0 * 0.30;
         occlusion += face1 * 0.30;
         occlusion += face2 * 0.30;
-        
+
         occlusion += edge0 * 0.15;
         occlusion += edge1 * 0.15;
         occlusion += edge2 * 0.15;
-    
+
         (1.0 - occlusion).max(0.0)
     }
 

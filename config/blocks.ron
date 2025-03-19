@@ -25,8 +25,44 @@
         solid: true,
         opacity: 1.0,
         emittance: 0,
-        color: (0.8, 0.6, 0.7, 1.0),
+        color: (0.640, 0.640, 0.640, 1.0),
     ),
+    Block(
+        kind: Plastic,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+        color: (0.502, 0.678, 0.502, 1.0),
+    ),
+    Block(
+        kind: Brick,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+        color: (0.671, 0.478, 0.439, 1.0),
+    ),
+    Block(
+        kind: Light,
+        solid: true,
+        opacity: 1.0,
+        emittance: 14,
+        color: (1.000, 0.972, 0.573, 1.0),
+    ),
+    Block(
+        kind: Marker1,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+        color: (1.0, 0.0, 1.0, 1.0),
+    ),
+    Block(
+        kind: Marker2,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+        color: (0.0, 1.0, 0.0, 1.0),
+    ),
+
     Block(
         kind: Black,
         solid: true,
@@ -63,7 +99,7 @@
         color: (0.91, 0.89, 0.035, 1.0),
     ),
     Block(
-        kind: Skin,
+        kind: Beige,
         solid: true,
         opacity: 1.0,
         emittance: 0,
@@ -83,11 +119,4 @@
         emittance: 0,
         color: (0.259, 0.184, 0.122, 1.0),
     ),
-    Block(
-        kind: Light,
-        solid: true,
-        opacity: 1.0,
-        emittance: 14,
-        color: (1.000, 0.972, 0.573, 1.0),
-    )
 ]
