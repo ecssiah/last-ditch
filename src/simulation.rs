@@ -92,7 +92,7 @@ impl Simulation {
         let agent = Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 2.0, -12.0),
+            position: Vec3::new(0.0, 6.0, -12.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -124,6 +124,7 @@ impl Simulation {
                     palette: Vec::from([block::Kind::Air]),
                     palette_ids: Box::new([0; CHUNK_VOLUME as usize]),
                     meta: Box::new([block::Meta::default(); CHUNK_VOLUME as usize]),
+                    light_map: Box::new([block::LightLevel::default(); CHUNK_VOLUME as usize]),
                 }))
             });
 
@@ -134,11 +135,13 @@ impl Simulation {
         // self.generate_structure(IVec3::new(-12, 0, 0), structure::Kind::Mario);
         // self.generate_structure(IVec3::new(12, 0, 0), structure::Kind::Luigi);
 
-        self.set_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
-        self.set_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
-        self.set_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
-        // self.set_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
-        // self.set_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
+        self.generate_structure(IVec3::new(0, 0, 0), structure::Kind::LightTest);
+
+        // self.set_block_kind(IVec3::new(0, 0, 0), block::Kind::Concrete);
+        // self.set_block_kind(IVec3::new(1, 0, 0), block::Kind::Concrete);
+        // self.set_block_kind(IVec3::new(0, 0, 1), block::Kind::Concrete);
+        // self.set_block_kind(IVec3::new(1, 0, 1), block::Kind::Concrete);
+        // self.set_block_kind(IVec3::new(1, 1, 1), block::Kind::Concrete);
     }
 
     fn generate_structure(&mut self, world_position: IVec3, structure_kind: structure::Kind) {
@@ -151,7 +154,7 @@ impl Simulation {
                         block_data.position[2],
                     );
 
-                self.set_kind(grid_position, block_data.kind);
+                self.set_block_kind(grid_position, block_data.kind);
             }
         }
     }
@@ -189,18 +192,21 @@ impl Simulation {
         }
     }
 
-    fn set_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
+    fn set_block_kind(&mut self, grid_position: IVec3, kind: block::Kind) {
         if let Some((chunk_id, block_id)) = Simulation::grid_position_to_ids(grid_position) {
             {
                 let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
                 let palette_id = self.get_palette_id(&mut chunk, kind);
                 chunk.palette_ids[block_id as usize] = palette_id;
-
-                chunk.last_update = self.state.world.read().unwrap().ticks;
             }
 
             self.update_block_meta(chunk_id, block_id, grid_position);
+            self.update_light_map(chunk_id, block_id, grid_position);
+
+            let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
+            
+            chunk.last_update = self.state.world.read().unwrap().ticks;
         }
     }
 
@@ -276,6 +282,10 @@ impl Simulation {
         }
 
         neighbors
+    }
+
+    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {
+
     }
 
     pub fn run(&mut self) {

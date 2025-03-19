@@ -18,43 +18,44 @@ pub enum Kind {
     Skin,
     Green,
     Brown,
+    Light,
 }
 
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
     pub struct Neighbors: u32 {
         // South -Z
-        const SWD = 1 << 0;  // (-X, -Y, -Z) South West Down
+        const SED = 1 << 0;  // (-X, -Y, -Z) South East Down
         const SCD = 1 << 1;  // ( 0, -Y, -Z) South Center Down
-        const SED = 1 << 2;  // (+X, -Y, -Z) South East Down
-        const SWC = 1 << 3;  // (-X,  0, -Z) South West Center
+        const SWD = 1 << 2;  // (+X, -Y, -Z) South West Down
+        const SEC = 1 << 3;  // (-X,  0, -Z) South East Center
         const SCC = 1 << 4;  // ( 0,  0, -Z) South Center Center
-        const SEC = 1 << 5;  // (+X,  0, -Z) South East Center
-        const SWU = 1 << 6;  // (-X, +Y, -Z) South West Up
+        const SWC = 1 << 5;  // (+X,  0, -Z) South West Center
+        const SEU = 1 << 6;  // (-X, +Y, -Z) South East Up
         const SCU = 1 << 7;  // ( 0, +Y, -Z) South Center Up
-        const SEU = 1 << 8;  // (+X, +Y, -Z) South East Up
+        const SWU = 1 << 8;  // (+X, +Y, -Z) South West Up
 
         // Center
-        const CWD = 1 << 9;  // (-X, -Y,  0) Center West Down
+        const CED = 1 << 9;  // (-X, -Y,  0) Center East Down
         const CCD = 1 << 10; // ( 0, -Y,  0) Center Center Down
-        const CED = 1 << 11; // (+X, -Y,  0) Center East Down
-        const CWC = 1 << 12; // (-X,  0,  0) Center West Center
+        const CWD = 1 << 11; // (+X, -Y,  0) Center West Down
+        const CEC = 1 << 12; // (-X,  0,  0) Center East Center
         const CCC = 1 << 13; // ( 0,  0,  0) Center
-        const CEC = 1 << 14; // (+X,  0,  0) Center East Center
-        const CWU = 1 << 15; // (-X, +Y,  0) Center West Up
+        const CWC = 1 << 14; // (+X,  0,  0) Center West Center
+        const CEU = 1 << 15; // (-X, +Y,  0) Center East Up
         const CCU = 1 << 16; // ( 0, +Y,  0) Center Center Up
-        const CEU = 1 << 17; // (+X, +Y,  0) Center East Up
+        const CWU = 1 << 17; // (+X, +Y,  0) Center West Up
 
         // North +Z
-        const NWD = 1 << 18; // (-X, -Y, +Z) North West Down
+        const NED = 1 << 18; // (-X, -Y, +Z) North East Down
         const NCD = 1 << 19; // ( 0, -Y, +Z) North Center Down
-        const NED = 1 << 20; // (+X, -Y, +Z) North East Down
-        const NWC = 1 << 21; // (-X,  0, +Z) North West Center
+        const NWD = 1 << 20; // (+X, -Y, +Z) North West Down
+        const NEC = 1 << 21; // (-X,  0, +Z) North East Center
         const NCC = 1 << 22; // ( 0,  0, +Z) North Center Center
-        const NEC = 1 << 23; // (+X,  0, +Z) North East Center
-        const NWU = 1 << 24; // (-X, +Y, +Z) North West Up
+        const NWC = 1 << 23; // (+X,  0, +Z) North West Center
+        const NEU = 1 << 24; // (-X, +Y, +Z) North East Up
         const NCU = 1 << 25; // ( 0, +Y, +Z) North Center Up
-        const NEU = 1 << 26; // (+X, +Y, +Z) North East Up
+        const NWU = 1 << 26; // (+X, +Y, +Z) North West Up
     }
 }
 
@@ -126,10 +127,17 @@ pub struct Meta {
     pub neighbors: Neighbors,
 }
 
+#[derive(Clone, Copy, Debug, Default, Deserialize)]
+pub struct LightLevel {
+    pub received: u8,
+    pub emitted: u8,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Block {
     pub kind: Kind,
     pub opacity: f32,
+    pub emittance: u8,
     pub solid: bool,
     pub color: (f32, f32, f32, f32),
 }

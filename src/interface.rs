@@ -19,8 +19,8 @@ use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
 
-pub const WINDOW_WIDTH: u32 = 800;
-pub const WINDOW_HEIGHT: u32 = 600;
+pub const WINDOW_WIDTH: u32 = 1024;
+pub const WINDOW_HEIGHT: u32 = 768;
 pub const ASPECT_RATIO: f32 = WINDOW_WIDTH as f32 / WINDOW_HEIGHT as f32;
 
 pub const FOV: f32 = 45.0;

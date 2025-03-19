@@ -16,9 +16,9 @@ use wgpu::{util::DeviceExt, vertex_attr_array};
 use winit::{event::WindowEvent, window::Window};
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
-    r: 0.2,
-    g: 1.0,
-    b: 1.0,
+    r: 0.0,
+    g: 0.0,
+    b: 0.0,
     a: 1.0,
 };
 
@@ -364,16 +364,6 @@ impl Render {
         let ao_1 = [
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::SWD,
-                (
-                    Neighbors::CWC,
-                    Neighbors::SCC,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CWD, Neighbors::SCD, Neighbors::SWC),
-            ),
-            Render::compute_vertex_ao(
-                neighbors,
                 Neighbors::SED,
                 (
                     Neighbors::CEC,
@@ -384,13 +374,13 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::SWU,
+                Neighbors::SWD,
                 (
                     Neighbors::CWC,
                     Neighbors::SCC,
-                    Neighbors::CCU,
+                    Neighbors::CCD,
                 ),
-                (Neighbors::CWU, Neighbors::SCU, Neighbors::SWC),
+                (Neighbors::CWD, Neighbors::SCD, Neighbors::SWC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
@@ -402,19 +392,19 @@ impl Render {
                 ),
                 (Neighbors::CEU, Neighbors::SCU, Neighbors::SEC),
             ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::SWU,
+                (
+                    Neighbors::CWC,
+                    Neighbors::SCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CWU, Neighbors::SCU, Neighbors::SWC),
+            ),
         ];
 
         let ao_2 = [
-            Render::compute_vertex_ao(
-                neighbors,
-                Neighbors::NWD,
-                (
-                    Neighbors::CWC,
-                    Neighbors::NCC,
-                    Neighbors::CCD,
-                ),
-                (Neighbors::CWD, Neighbors::NCD, Neighbors::NWC),
-            ),
             Render::compute_vertex_ao(
                 neighbors,
                 Neighbors::NED,
@@ -427,13 +417,13 @@ impl Render {
             ),
             Render::compute_vertex_ao(
                 neighbors,
-                Neighbors::NWU,
+                Neighbors::NWD,
                 (
                     Neighbors::CWC,
                     Neighbors::NCC,
-                    Neighbors::CCU,
+                    Neighbors::CCD,
                 ),
-                (Neighbors::CWU, Neighbors::NCU, Neighbors::NWC),
+                (Neighbors::CWD, Neighbors::NCD, Neighbors::NWC),
             ),
             Render::compute_vertex_ao(
                 neighbors,
@@ -444,6 +434,16 @@ impl Render {
                     Neighbors::CCU,
                 ),
                 (Neighbors::CEU, Neighbors::NCU, Neighbors::NEC),
+            ),
+            Render::compute_vertex_ao(
+                neighbors,
+                Neighbors::NWU,
+                (
+                    Neighbors::CWC,
+                    Neighbors::NCC,
+                    Neighbors::CCU,
+                ),
+                (Neighbors::CWU, Neighbors::NCU, Neighbors::NWC),
             ),
         ];
 
