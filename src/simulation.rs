@@ -200,7 +200,7 @@ impl Simulation {
             self.update_block_meta(grid_position);
             self.update_light_map(chunk_id, block_id, grid_position);
 
-            self.mark_chunk_update(chunk_id);
+            self.flag_chunk_update(chunk_id);
         }
     }
 
@@ -262,7 +262,7 @@ impl Simulation {
 
     fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
 
-    fn mark_chunk_update(&mut self, chunk_id: u32) {
+    fn flag_chunk_update(&mut self, chunk_id: u32) {
         let mut world = self.state.world.write().unwrap();
         let mut chunk = self.state.chunks[chunk_id as usize].write().unwrap();
 
