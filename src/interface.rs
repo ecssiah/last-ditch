@@ -2,16 +2,15 @@
 //! both presentation and input management.
 
 pub mod camera;
-pub mod chunk;
 pub mod input;
 pub mod render;
+pub mod chunk;
 
 use crate::simulation::{
     action::{Action, AgentAction},
     state::State,
 };
 use camera::Camera;
-pub use chunk::Chunk;
 use input::Input;
 use log::info;
 use render::Render;
@@ -49,12 +48,7 @@ impl Interface {
     ) -> Self {
         let camera = Camera::new();
         let input = Input::new(action_tx.clone());
-        let render = pollster::block_on(Render::new(
-            window.clone(),
-            state.agent.clone(),
-            state.world.clone(),
-            state.chunks.clone(),
-        ));
+        let render = pollster::block_on(Render::new(window.clone(), state.clone()));
 
         window.set_cursor_visible(false);
 

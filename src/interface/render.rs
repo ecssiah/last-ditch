@@ -1,18 +1,21 @@
 use crate::{
     include_shader_src,
-    interface::{self, ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE},
+    interface::{
+        chunk::{ChunkMesh, ChunkVertex},
+        ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
+    },
     simulation::{
-        self,
         agent::Agent,
         block::{self, Direction},
-        world::World,
-        Simulation, BLOCKS, CHUNK_VOLUME,
+        chunk::ChunkID,
+        state::State,
     },
 };
-use bytemuck::{Pod, Zeroable};
-use glam::{IVec3, Mat4, Vec3};
-use std::sync::{Arc, RwLock};
-use wgpu::{util::DeviceExt, vertex_attr_array};
+use glam::{Mat4, Vec3};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 use winit::{event::WindowEvent, window::Window};
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
@@ -30,26 +33,10 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     0.0, 0.0, 0.0, 1.0,
 ]);
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, Pod, Zeroable)]
-struct BlockInstance {
-    position: [f32; 4],
-    color: [f32; 4],
-    ao_1: [f32; 4],
-    ao_2: [f32; 4],
-}
-
-struct BlockRender {
-    chunks: [interface::Chunk; CHUNK_VOLUME as usize],
-    pipeline: wgpu::RenderPipeline,
-}
-
 pub struct Render {
     last_render: u64,
     window: Arc<Window>,
-    agent: Arc<RwLock<Agent>>,
-    world: Arc<RwLock<World>>,
-    chunks: Arc<[Arc<RwLock<simulation::Chunk>>]>,
+    state: Arc<State>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     size: winit::dpi::PhysicalSize<u32>,
@@ -58,16 +45,11 @@ pub struct Render {
     surface_config: wgpu::SurfaceConfiguration,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
-    block_render: BlockRender,
+    chunk_pipeline: wgpu::RenderPipeline,
 }
 
 impl Render {
-    pub async fn new(
-        window: Arc<Window>,
-        agent: Arc<RwLock<Agent>>,
-        world: Arc<RwLock<World>>,
-        chunks: Arc<[Arc<RwLock<simulation::Chunk>>]>,
-    ) -> Self {
+    pub async fn new(window: Arc<Window>, state: Arc<State>) -> Self {
         window.set_cursor_visible(false);
 
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -131,15 +113,29 @@ impl Render {
             }],
         });
 
-        let block_render =
-            Self::setup_block_render(&device, &surface_config, &uniform_bind_group_layout);
+        let chunk_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Chunk Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_shader_src!("chunk.wgsl").into()),
+        });
+
+        let chunk_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Chunk Pipeline Layout"),
+                bind_group_layouts: &[&uniform_bind_group_layout],
+                push_constant_ranges: &[],
+            });
+
+        let chunk_pipeline = Render::create_chunk_render_pipeline(
+            &device,
+            &chunk_pipeline_layout,
+            &chunk_shader,
+            surface_format,
+        );
 
         let render = Self {
             last_render: 0,
             window,
-            agent,
-            world,
-            chunks,
+            state,
             device,
             queue,
             size,
@@ -148,65 +144,55 @@ impl Render {
             surface_config,
             view_projection_buffer,
             view_projection_bind_group,
-            block_render,
+            chunk_pipeline,
         };
 
         render
     }
 
-    fn setup_block_render(
+    fn create_chunk_render_pipeline(
         device: &wgpu::Device,
-        surface_config: &wgpu::SurfaceConfiguration,
-        uniform_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> BlockRender {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Block Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_shader_src!("block.wgsl").into()),
-        });
-
-        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Block Pipeline Layout"),
-            bind_group_layouts: &[&uniform_bind_group_layout],
-            push_constant_ranges: &[],
-        });
-
-        let instance_layout = wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<BlockInstance>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Instance,
-            attributes: &vertex_attr_array![
-                0 => Float32x4,
-                1 => Float32x4,
-                2 => Float32x4,
-                3 => Float32x4,
-            ],
-        };
-
-        let chunks = core::array::from_fn(|_| {
-            let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("Empty Buffer"),
-                size: std::mem::size_of::<BlockInstance>() as u64,
-                usage: wgpu::BufferUsages::VERTEX,
-                mapped_at_creation: false,
-            });
-
-            interface::Chunk {
-                last_render: 0,
-                instance_buffer,
-                instance_count: 0,
-            }
-        });
-
-        let pipeline = Self::create_pipeline(
-            &device,
-            &surface_config,
-            &shader,
-            pipeline_layout,
-            instance_layout,
-        );
-
-        let block_render = BlockRender { chunks, pipeline };
-
-        block_render
+        layout: &wgpu::PipelineLayout,
+        shader_module: &wgpu::ShaderModule,
+        surface_format: wgpu::TextureFormat,
+    ) -> wgpu::RenderPipeline {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Chunk Mesh Pipeline"),
+            layout: Some(layout),
+            vertex: wgpu::VertexState {
+                module: shader_module,
+                entry_point: Some("vs_main"),
+                buffers: &[ChunkVertex::desc()],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: shader_module,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: surface_format,
+                    blend: Some(wgpu::BlendState::REPLACE),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            cache: None,
+        })
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -218,7 +204,7 @@ impl Render {
     fn update(&mut self) {
         self.update_view_projection();
 
-        let last_update = self.world.read().unwrap().last_update;
+        let last_update = self.state.world.read().unwrap().last_update;
 
         if last_update > self.last_render {
             self.update_chunks();
@@ -266,15 +252,13 @@ impl Render {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.block_render.pipeline);
+        render_pass.set_pipeline(&self.chunk_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for chunk in self.block_render.chunks.iter() {
-            if chunk.instance_count > 0 {
-                render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
+        for chunk in self.state.chunks.iter() {
+            // render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
 
-                render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
-            }
+            // render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
         }
 
         drop(render_pass);
@@ -300,106 +284,65 @@ impl Render {
         }
     }
 
-    fn update_chunks(&mut self) {
-        for (chunk_id, chunk) in self.chunks.iter().enumerate() {
-            let last_update = chunk.read().unwrap().last_update;
-
-            if self.block_render.chunks[chunk_id].last_render < last_update {
-                let mut block_instances = Vec::new();
-
-                let chunk = chunk.read().unwrap();
-
-                for block_id in 0..CHUNK_VOLUME as usize {
-                    let palette_id = chunk.palette_ids[block_id] as usize;
-                    let kind = chunk.palette[palette_id];
-
-                    if kind != block::Kind::Air {
-                        let grid_position =
-                            Simulation::get_grid_position(chunk_id as u32, block_id as u32);
-                        let block = &BLOCKS[kind as usize];
-                        let meta = &chunk.meta[block_id];
-
-                        let block_instance = self.create_block_instance(grid_position, block, meta);
-
-                        block_instances.push(block_instance);
-                    }
-                }
-
-                let block_instance_count = block_instances.len() as u32;
-
-                if block_instance_count > 0 {
-                    self.block_render.chunks[chunk_id].instance_buffer = self
-                        .device
-                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                            label: Some("BlockInstance Buffer"),
-                            contents: bytemuck::cast_slice(block_instances.as_slice()),
-                            usage: wgpu::BufferUsages::VERTEX,
-                        });
-                }
-
-                self.block_render.chunks[chunk_id].instance_count = block_instance_count;
-                self.block_render.chunks[chunk_id].last_render = last_update;
-            }
-        }
-    }
-
-    fn create_block_instance(
-        &self,
-        grid_position: IVec3,
-        block: &block::Block,
-        meta: &block::Meta,
-    ) -> BlockInstance {
-        let position = [
-            grid_position.x as f32,
-            grid_position.y as f32,
-            grid_position.z as f32,
-            0.0,
-        ];
-
-        let color = [
-            block.color.0 as f32,
-            block.color.1 as f32,
-            block.color.2 as f32,
-            block.color.3 as f32,
-        ];
-
-        let (ao_1, ao_2) = Self::compute_ao(meta.neighbors);
-
-        let block_instance = BlockInstance {
-            position,
-            color,
-            ao_1,
-            ao_2,
-        };
-
-        block_instance
-    }
+    fn update_chunks(&mut self) {}
 
     fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
         let ao_1 = [
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XN_YN_ZN,
-                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
-                (Direction::XN_YN_Z0, Direction::X0_YN_ZN, Direction::XN_Y0_ZN),
+                (
+                    Direction::XN_Y0_Z0,
+                    Direction::X0_Y0_ZN,
+                    Direction::X0_YN_Z0,
+                ),
+                (
+                    Direction::XN_YN_Z0,
+                    Direction::X0_YN_ZN,
+                    Direction::XN_Y0_ZN,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XP_YN_ZN,
-                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
-                (Direction::XP_YN_Z0, Direction::X0_YN_ZN, Direction::XP_Y0_ZN),
+                (
+                    Direction::XP_Y0_Z0,
+                    Direction::X0_Y0_ZN,
+                    Direction::X0_YN_Z0,
+                ),
+                (
+                    Direction::XP_YN_Z0,
+                    Direction::X0_YN_ZN,
+                    Direction::XP_Y0_ZN,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XN_YP_ZN,
-                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
-                (Direction::XN_YP_Z0, Direction::X0_YP_ZN, Direction::XN_Y0_ZN),
+                (
+                    Direction::XN_Y0_Z0,
+                    Direction::X0_Y0_ZN,
+                    Direction::X0_YP_Z0,
+                ),
+                (
+                    Direction::XN_YP_Z0,
+                    Direction::X0_YP_ZN,
+                    Direction::XN_Y0_ZN,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XP_YP_ZN,
-                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
-                (Direction::XP_YP_Z0, Direction::X0_YP_ZN, Direction::XP_Y0_ZN),
+                (
+                    Direction::XP_Y0_Z0,
+                    Direction::X0_Y0_ZN,
+                    Direction::X0_YP_Z0,
+                ),
+                (
+                    Direction::XP_YP_Z0,
+                    Direction::X0_YP_ZN,
+                    Direction::XP_Y0_ZN,
+                ),
             ),
         ];
 
@@ -407,26 +350,58 @@ impl Render {
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XN_YN_ZP,
-                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
-                (Direction::XN_YN_Z0, Direction::X0_YN_ZP, Direction::XN_Y0_ZP),
+                (
+                    Direction::XN_Y0_Z0,
+                    Direction::X0_Y0_ZP,
+                    Direction::X0_YN_Z0,
+                ),
+                (
+                    Direction::XN_YN_Z0,
+                    Direction::X0_YN_ZP,
+                    Direction::XN_Y0_ZP,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XP_YN_ZP,
-                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
-                (Direction::XP_YN_Z0, Direction::X0_YN_ZP, Direction::XP_Y0_ZP),
+                (
+                    Direction::XP_Y0_Z0,
+                    Direction::X0_Y0_ZP,
+                    Direction::X0_YN_Z0,
+                ),
+                (
+                    Direction::XP_YN_Z0,
+                    Direction::X0_YN_ZP,
+                    Direction::XP_Y0_ZP,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XN_YP_ZP,
-                (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
-                (Direction::XN_YP_Z0, Direction::X0_YP_ZP, Direction::XN_Y0_ZP),
+                (
+                    Direction::XN_Y0_Z0,
+                    Direction::X0_Y0_ZP,
+                    Direction::X0_YP_Z0,
+                ),
+                (
+                    Direction::XN_YP_Z0,
+                    Direction::X0_YP_ZP,
+                    Direction::XN_Y0_ZP,
+                ),
             ),
             Self::compute_vertex_ao(
                 neighbors,
                 Direction::XP_YP_ZP,
-                (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
-                (Direction::XP_YP_Z0, Direction::X0_YP_ZP, Direction::XP_Y0_ZP),
+                (
+                    Direction::XP_Y0_Z0,
+                    Direction::X0_Y0_ZP,
+                    Direction::X0_YP_Z0,
+                ),
+                (
+                    Direction::XP_YP_Z0,
+                    Direction::X0_YP_ZP,
+                    Direction::XP_Y0_ZP,
+                ),
             ),
         ];
 
@@ -469,7 +444,7 @@ impl Render {
     }
 
     fn update_view_projection(&mut self) {
-        let view_projection_matrix = Self::create_view_projection_matrix(self.agent.clone());
+        let view_projection_matrix = Self::create_view_projection_matrix(self.state.agent.clone());
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -498,65 +473,6 @@ impl Render {
         });
 
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
-    }
-
-    fn create_pipeline(
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
-        shader: &wgpu::ShaderModule,
-        pipeline_layout: wgpu::PipelineLayout,
-        instance_layout: wgpu::VertexBufferLayout<'_>,
-    ) -> wgpu::RenderPipeline {
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("block Render Pipeline"),
-            layout: Some(&pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: shader,
-                entry_point: Some("vs_main"),
-                buffers: &[instance_layout],
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: shader,
-                entry_point: Some("fs_main"),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: config.format,
-                    blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent {
-                            src_factor: wgpu::BlendFactor::SrcAlpha,
-                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                            operation: wgpu::BlendOperation::Add,
-                        },
-                        alpha: wgpu::BlendComponent {
-                            src_factor: wgpu::BlendFactor::One,
-                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                            operation: wgpu::BlendOperation::Add,
-                        },
-                    }),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
-                unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                conservative: false,
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
-            }),
-            multisample: wgpu::MultisampleState::default(),
-            multiview: None,
-            cache: None,
-        })
     }
 
     fn create_view_projection_matrix(agent: Arc<RwLock<Agent>>) -> [[f32; 4]; 4] {
