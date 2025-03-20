@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::{Direction, NeighborMask};
+use block::{Direction, Neighbors, Visibility};
 pub use chunk::Chunk;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
@@ -133,6 +133,12 @@ impl Simulation {
 
     pub fn generate(&mut self) {
         self.generate_structure(0, 0, 0, structure::Kind::LightTest);
+
+        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(IVec3::new(0, 0, -3)) {
+            let chunk = self.state.chunks[chunk_id as usize].read().unwrap();
+
+            println!("{:?}", chunk.meta[block_id as usize].visibility);
+        }
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -197,8 +203,8 @@ impl Simulation {
         if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
             self.update_palette(chunk_id, block_id, kind);
 
-            self.update_block_meta(grid_position);
-            self.update_light_map(chunk_id, block_id, grid_position);
+            self.update_meta(grid_position);
+            self.update_light(chunk_id, block_id, grid_position);
 
             self.flag_chunk_update(chunk_id);
         }
@@ -211,33 +217,38 @@ impl Simulation {
         chunk.palette_ids[block_id as usize] = palette_id;
     }
 
-    fn update_block_meta(&mut self, grid_position: IVec3) {
-        let mut neighbor_mask_updates: HashMap<u32, Vec<(u32, NeighborMask)>> = HashMap::new();
+    fn update_meta(&mut self, grid_position: IVec3) {
+        self.update_neighbors(grid_position);
+        self.update_visibility(grid_position);
+    }
+
+    fn update_neighbors(&mut self, grid_position: IVec3) {
+        let mut updates: HashMap<u32, Vec<(u32, Neighbors)>> = HashMap::new();
 
         for offset in Direction::offsets() {
             let neighbor_grid_position = grid_position + offset;
 
             if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
-                let neighbor_mask = self.compute_neighbor_mask(neighbor_grid_position);
+                let neighbors = self.compute_neighbors(neighbor_grid_position);
 
-                neighbor_mask_updates
+                updates
                     .entry(chunk_id)
                     .or_insert_with(Vec::new)
-                    .push((block_id, neighbor_mask));
+                    .push((block_id, neighbors));
             }
         }
 
-        for (chunk_id, updates) in neighbor_mask_updates.iter() {
+        for (chunk_id, updates) in updates.iter() {
             let mut chunk = self.state.chunks[*chunk_id as usize].write().unwrap();
 
-            for (block_id, neighbor_mask) in updates {
-                chunk.meta[*block_id as usize].neighbor_mask = *neighbor_mask;
+            for (block_id, neighbors) in updates {
+                chunk.meta[*block_id as usize].neighbors = *neighbors;
             }
         }
     }
 
-    fn compute_neighbor_mask(&mut self, grid_position: IVec3) -> NeighborMask {
-        let mut neighbor_mask = NeighborMask::NONE;
+    fn compute_neighbors(&mut self, grid_position: IVec3) -> Neighbors {
+        let mut neighbors = Neighbors::NONE;
 
         for index in 0..Direction::offsets().len() {
             if index == Direction::X0_Y0_Z0.index() {
@@ -250,17 +261,74 @@ impl Simulation {
                 if let Some(block) = self.get_block(neighbor_grid_position) {
                     if block.solid {
                         if let Some(direction) = Direction::bit(index) {
-                            neighbor_mask.set_solid(direction, true);
+                            neighbors.set_solid(direction, true);
                         }
                     }
                 }
             }
         }
 
-        neighbor_mask
+        neighbors
     }
 
-    fn update_light_map(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
+    fn update_visibility(&mut self, grid_position: IVec3) {
+        let mut updates: HashMap<u32, Vec<(u32, Visibility)>> = HashMap::new();
+
+        for offset in Direction::face_offsets() {
+            let neighbor_grid_position = grid_position + offset;
+
+            if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
+                let visibility = self.compute_visibility(neighbor_grid_position);
+
+                updates
+                    .entry(chunk_id)
+                    .or_insert_with(Vec::new)
+                    .push((block_id, visibility));
+            }
+        }
+
+        for (chunk_id, updates) in updates.iter() {
+            let mut chunk = self.state.chunks[*chunk_id as usize].write().unwrap();
+
+            for (block_id, visibility) in updates {
+                chunk.meta[*block_id as usize].visibility = *visibility;
+            }
+        }
+    }
+
+    fn compute_visibility(&self, grid_position: IVec3) -> Visibility {
+        let mut visibility = Visibility::empty();
+
+        for index in 0..Direction::offsets().len() {
+            if index == Direction::X0_Y0_Z0.index() {
+                continue;
+            }
+
+            if let Some(offset) = Direction::get_offset(index) {
+                let neighbor_grid_position = grid_position + offset;
+
+                if let Some(block) = self.get_block(neighbor_grid_position) {
+                    if block.kind == block::Kind::Air {
+                        if let Some(direction) = Direction::bit(index) {
+                            match direction {
+                                Direction::XP_Y0_Z0 => visibility.insert(Visibility::XP),
+                                Direction::XN_Y0_Z0 => visibility.insert(Visibility::XN),
+                                Direction::X0_YP_Z0 => visibility.insert(Visibility::YP),
+                                Direction::X0_YN_Z0 => visibility.insert(Visibility::YN),
+                                Direction::X0_Y0_ZP => visibility.insert(Visibility::ZP),
+                                Direction::X0_Y0_ZN => visibility.insert(Visibility::ZN),
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        visibility
+    }
+
+    fn update_light(&mut self, chunk_id: u32, block_id: u32, grid_position: IVec3) {}
 
     fn flag_chunk_update(&mut self, chunk_id: u32) {
         let mut world = self.state.world.write().unwrap();

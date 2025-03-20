@@ -42,6 +42,18 @@ bitflags! {
     }
 }
 
+bitflags! {
+    #[derive(Clone, Copy, Debug, Default, Deserialize)]
+    pub struct Visibility: u8 {
+        const XP = 1 << 0;
+        const XN = 1 << 1;
+        const YP = 1 << 2;
+        const YN = 1 << 3;
+        const ZP = 1 << 4;
+        const ZN = 1 << 5;
+    }
+}
+
 impl Direction {
     #[rustfmt::skip]
     const OFFSETS: [IVec3; 27] = [
@@ -85,37 +97,37 @@ impl Direction {
     }
 
     pub fn face_offsets() -> [IVec3; 6] {
-        Self::FACE_INDICES.map(|i| Self::OFFSETS[i])
+        Self::FACE_INDICES.map(|index| Self::OFFSETS[index])
     }
 
     pub fn edge_offsets() -> [IVec3; 12] {
-        Self::EDGE_INDICES.map(|i| Self::OFFSETS[i])
+        Self::EDGE_INDICES.map(|index| Self::OFFSETS[index])
     }
 
     pub fn corner_offsets() -> [IVec3; 8] {
-        Self::CORNER_INDICES.map(|i| Self::OFFSETS[i])
+        Self::CORNER_INDICES.map(|index| Self::OFFSETS[index])
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
-    pub struct NeighborMask: u32 {
+    pub struct Neighbors: u32 {
         const NONE = 0;
     }
 }
 
-impl NeighborMask {
+impl Neighbors {
     pub fn is_solid(&self, direction: Direction) -> bool {
         self.bits() & direction.bits() != 0
     }
 
     pub fn set_solid(&mut self, direction: Direction, solid: bool) {
         if solid {
-            self.insert(NeighborMask::from_bits_retain(
+            self.insert(Neighbors::from_bits_retain(
                 self.bits() | direction.bits(),
             ));
         } else {
-            self.remove(NeighborMask::from_bits_retain(
+            self.remove(Neighbors::from_bits_retain(
                 self.bits() & !direction.bits(),
             ));
         }
@@ -125,7 +137,8 @@ impl NeighborMask {
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
 pub struct Meta {
     pub direction: Direction,
-    pub neighbor_mask: NeighborMask,
+    pub visibility: Visibility,
+    pub neighbors: Neighbors,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize)]

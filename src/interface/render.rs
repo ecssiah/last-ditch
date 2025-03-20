@@ -363,7 +363,7 @@ impl Render {
             block.color.3 as f32,
         ];
 
-        let (ao_1, ao_2) = Self::compute_ao(meta.neighbor_mask);
+        let (ao_1, ao_2) = Self::compute_ao(meta.neighbors);
 
         let block_instance = BlockInstance {
             position,
@@ -375,28 +375,28 @@ impl Render {
         block_instance
     }
 
-    fn compute_ao(neighbor_mask: block::NeighborMask) -> ([f32; 4], [f32; 4]) {
+    fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
         let ao_1 = [
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XN_YN_ZN,
                 (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
                 (Direction::XN_YN_Z0, Direction::X0_YN_ZN, Direction::XN_Y0_ZN),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XP_YN_ZN,
                 (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YN_Z0),
                 (Direction::XP_YN_Z0, Direction::X0_YN_ZN, Direction::XP_Y0_ZN),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XN_YP_ZN,
                 (Direction::XN_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
                 (Direction::XN_YP_Z0, Direction::X0_YP_ZN, Direction::XN_Y0_ZN),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XP_YP_ZN,
                 (Direction::XP_Y0_Z0, Direction::X0_Y0_ZN, Direction::X0_YP_Z0),
                 (Direction::XP_YP_Z0, Direction::X0_YP_ZN, Direction::XP_Y0_ZN),
@@ -405,25 +405,25 @@ impl Render {
 
         let ao_2 = [
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XN_YN_ZP,
                 (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
                 (Direction::XN_YN_Z0, Direction::X0_YN_ZP, Direction::XN_Y0_ZP),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XP_YN_ZP,
                 (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YN_Z0),
                 (Direction::XP_YN_Z0, Direction::X0_YN_ZP, Direction::XP_Y0_ZP),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XN_YP_ZP,
                 (Direction::XN_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
                 (Direction::XN_YP_Z0, Direction::X0_YP_ZP, Direction::XN_Y0_ZP),
             ),
             Self::compute_vertex_ao(
-                neighbor_mask,
+                neighbors,
                 Direction::XP_YP_ZP,
                 (Direction::XP_Y0_Z0, Direction::X0_Y0_ZP, Direction::X0_YP_Z0),
                 (Direction::XP_YP_Z0, Direction::X0_YP_ZP, Direction::XP_Y0_ZP),
@@ -434,7 +434,7 @@ impl Render {
     }
 
     fn compute_vertex_ao(
-        mask: block::NeighborMask,
+        mask: block::Neighbors,
         point: Direction,
         faces: (Direction, Direction, Direction),
         edges: (Direction, Direction, Direction),
