@@ -11,8 +11,7 @@ pub mod interface;
 mod macros;
 pub mod simulation;
 
-use crate::interface::Interface;
-use crate::simulation::Simulation;
+use crate::{interface::Interface, simulation::Simulation};
 use flexi_logger::{Logger, WriteMode};
 use log::{error, info, warn};
 use std::{sync::Arc, thread};

@@ -1,25 +1,17 @@
 use crate::{
     include_shader_src,
     interface::{
-        chunk::{ChunkMesh, ChunkVertex},
+        chunk::{ChunkMesh, ChunkMeshCache, ChunkVertex, GpuChunkMeshCache},
         ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
-        agent::Agent,
-        block::{self, Direction, Face},
-        chunk::ChunkID,
-        state::State,
-        Chunk, Simulation, CHUNK_SIZE, CHUNK_VOLUME, WORLD_VOLUME,
+        agent::Agent, block::Face, chunk::ChunkID, state::State, Simulation, CHUNK_VOLUME,
+        WORLD_VOLUME,
     },
 };
 use glam::{IVec3, Mat4, Vec3};
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 use winit::{event::WindowEvent, window::Window};
-
-use super::chunk::{ChunkMeshCache, GpuChunkMeshCache};
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.0,

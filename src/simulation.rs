@@ -21,8 +21,8 @@ use log::info;
 use once_cell::sync::Lazy;
 use ron::from_str;
 use state::State;
-use std::collections::HashMap;
 use std::{
+    collections::HashMap,
     sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
