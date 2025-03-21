@@ -1,3 +1,4 @@
+use crate::simulation::BLOCK_RADIUS;
 use bitflags::bitflags;
 use glam::IVec3;
 use serde::Deserialize;
@@ -41,18 +42,6 @@ bitflags! {
         const XN_YN_ZP = 1 << 18; const X0_YN_ZP = 1 << 19; const XP_YN_ZP = 1 << 20;
         const XN_Y0_ZP = 1 << 21; const X0_Y0_ZP = 1 << 22; const XP_Y0_ZP = 1 << 23;
         const XN_YP_ZP = 1 << 24; const X0_YP_ZP = 1 << 25; const XP_YP_ZP = 1 << 26;
-    }
-}
-
-bitflags! {
-    #[derive(Clone, Copy, Debug, Default, Deserialize)]
-    pub struct Visibility: u8 {
-        const XP = 1 << 0;
-        const XN = 1 << 1;
-        const YP = 1 << 2;
-        const YN = 1 << 3;
-        const ZP = 1 << 4;
-        const ZN = 1 << 5;
     }
 }
 
@@ -112,6 +101,88 @@ impl Direction {
 }
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+    pub struct Face: u8 {
+        const XP = 1 << 0;
+        const XN = 1 << 1;
+        const YP = 1 << 2;
+        const YN = 1 << 3;
+        const ZP = 1 << 4;
+        const ZN = 1 << 5;
+    }
+}
+
+impl Face {
+    const XP_QUAD: [(f32, f32, f32); 4] = [
+        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+    ];
+
+    const XN_QUAD: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+    ];
+
+    const YP_QUAD: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+    ];
+
+    const YN_QUAD: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+    ];
+
+    const ZP_QUAD: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+    ];
+
+    const ZN_QUAD: [(f32, f32, f32); 4] = [
+        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+    ];
+
+    pub const ALL: [Face; 6] = [Face::XP, Face::XN, Face::YP, Face::YN, Face::ZP, Face::ZN];
+
+    pub fn quad_offsets(self) -> &'static [(f32, f32, f32); 4] {
+        match self {
+            Face::XP => &Self::XP_QUAD,
+            Face::XN => &Self::XN_QUAD,
+            Face::YP => &Self::YP_QUAD,
+            Face::YN => &Self::YN_QUAD,
+            Face::ZP => &Self::ZP_QUAD,
+            Face::ZN => &Self::ZN_QUAD,
+            _ => panic!("Invalid or multiple Face flags set: {:?}", self),
+        }
+    }
+
+    pub fn normal(self) -> IVec3 {
+        match self {
+            Face::XP => IVec3::new(1, 0, 0),
+            Face::XN => IVec3::new(-1, 0, 0),
+            Face::YP => IVec3::new(0, 1, 0),
+            Face::YN => IVec3::new(0, -1, 0),
+            Face::ZP => IVec3::new(0, 0, 1),
+            Face::ZN => IVec3::new(0, 0, -1),
+            _ => panic!("Invalid or multiple Face flags set: {:?}", self),
+        }
+    }
+}
+
+bitflags! {
     #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
     pub struct Neighbors: u32 {
         const NONE = 0;
@@ -125,13 +196,9 @@ impl Neighbors {
 
     pub fn set_solid(&mut self, direction: Direction, solid: bool) {
         if solid {
-            self.insert(Neighbors::from_bits_retain(
-                self.bits() | direction.bits(),
-            ));
+            self.insert(Neighbors::from_bits_retain(self.bits() | direction.bits()));
         } else {
-            self.remove(Neighbors::from_bits_retain(
-                self.bits() & !direction.bits(),
-            ));
+            self.remove(Neighbors::from_bits_retain(self.bits() & !direction.bits()));
         }
     }
 }
@@ -139,7 +206,7 @@ impl Neighbors {
 #[derive(Clone, Copy, Debug, Default, Deserialize)]
 pub struct Meta {
     pub direction: Direction,
-    pub visibility: Visibility,
+    pub visibility: Face,
     pub neighbors: Neighbors,
 }
 

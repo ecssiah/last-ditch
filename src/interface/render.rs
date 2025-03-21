@@ -5,18 +5,17 @@ use crate::{
         ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
-        agent::Agent,
-        block::{self, Direction},
-        chunk::ChunkID,
-        state::State,
+        agent::Agent, block::{self, Direction, Face}, chunk::ChunkID, state::State, Chunk, Simulation, CHUNK_SIZE, CHUNK_VOLUME, WORLD_VOLUME
     },
 };
-use glam::{Mat4, Vec3};
+use glam::{IVec3, Mat4, Vec3};
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
 };
 use winit::{event::WindowEvent, window::Window};
+
+use super::chunk::{ChunkMeshCache, GpuChunkMeshCache};
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.0,
@@ -46,6 +45,8 @@ pub struct Render {
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
+    chunk_mesh_cache: ChunkMeshCache,
+    gpu_chunk_mesh_cache: GpuChunkMeshCache,
 }
 
 impl Render {
@@ -132,6 +133,9 @@ impl Render {
             surface_format,
         );
 
+        let chunk_mesh_cache = Default::default();
+        let gpu_chunk_mesh_cache = Default::default();
+
         let render = Self {
             last_render: 0,
             window,
@@ -145,6 +149,8 @@ impl Render {
             view_projection_buffer,
             view_projection_bind_group,
             chunk_pipeline,
+            chunk_mesh_cache,
+            gpu_chunk_mesh_cache,
         };
 
         render
@@ -207,7 +213,8 @@ impl Render {
         let last_update = self.state.world.read().unwrap().last_update;
 
         if last_update > self.last_render {
-            self.update_chunks();
+            self.update_chunk_meshes();
+            self.update_gpu_meshes();
 
             self.last_render = last_update;
         }
@@ -284,7 +291,78 @@ impl Render {
         }
     }
 
-    fn update_chunks(&mut self) {}
+    fn update_chunk_meshes(&mut self) {
+        for chunk_id in 0..WORLD_VOLUME {
+            let chunk = self.state.chunks[chunk_id].read().unwrap();
+
+            if self.chunk_mesh_cache.needs_update(chunk_id, chunk.last_update) {
+                let mut chunk_mesh = self.generate_chunk_mesh(chunk_id);
+
+                chunk_mesh.last_render = chunk.last_update;
+
+                self.chunk_mesh_cache.insert(chunk_id, chunk_mesh);
+            }
+        }
+    }
+
+    fn update_gpu_meshes(&mut self) {
+        for (chunk_id, mesh) in self.chunk_mesh_cache.meshes.iter().enumerate() {
+            if let Some(chunk_mesh) = mesh {
+                if self.gpu_chunk_mesh_cache.get(chunk_id).is_none() {
+                    self.gpu_chunk_mesh_cache.upload_mesh(&self.device, chunk_id, chunk_mesh);
+                }
+            }
+        }
+    }
+
+    fn generate_chunk_mesh(&self, chunk_id: ChunkID) -> ChunkMesh {
+        let mut vertices = Vec::new();
+        let mut indices = Vec::new();
+
+        let chunk = self.state.chunks[chunk_id].read().unwrap();
+
+        for block_id in 0..CHUNK_VOLUME {
+            let grid_position = Simulation::get_grid_position(chunk_id, block_id);
+            let meta = chunk.meta[block_id];
+    
+            for face in Face::ALL {
+                if meta.visibility.contains(face) {
+                    let normal = face.normal();
+                    let quad = self.generate_quad(grid_position, face);
+                    let start_index = vertices.len() as u32;
+    
+                    vertices.extend(quad);
+                    indices.extend([
+                        start_index, start_index + 1, start_index + 2,
+                        start_index, start_index + 2, start_index + 3,
+                    ]);
+                }
+            }
+        }
+
+        ChunkMesh {
+            last_render: 0,
+            vertices,
+            indices,
+        }
+    }
+
+    fn generate_quad(&self, grid_position: IVec3, face: Face) -> [ChunkVertex; 4] {
+        let base = grid_position.as_vec3();
+        let normal = face.normal().as_vec3();
+        let offsets = face.quad_offsets();
+
+        offsets.map(|(ox, oy, oz)| {
+            let position = base + Vec3::new(ox, oy, oz);
+
+            ChunkVertex {
+                position: position.to_array(),
+                normal: normal.to_array(),
+                color: [1.0, 1.0, 1.0, 1.0],
+                ao: 1.0,
+            }
+        })
+    }
 
     fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
         let ao_1 = [

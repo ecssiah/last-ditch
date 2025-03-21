@@ -30,15 +30,16 @@ impl ChunkVertex {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ChunkMesh {
     pub last_render: u64,
     pub vertices: Vec<ChunkVertex>,
     pub indices: Vec<u32>,
 }
 
+#[derive(Debug, Default)]
 pub struct ChunkMeshCache {
-    meshes: Vec<Option<ChunkMesh>>,
+    pub meshes: Vec<Option<ChunkMesh>>,
 }
 
 impl ChunkMeshCache {
@@ -57,12 +58,19 @@ impl ChunkMeshCache {
     pub fn get(&self, chunk_id: ChunkID) -> Option<&ChunkMesh> {
         self.meshes[chunk_id].as_ref()
     }
+
+    pub fn needs_update(&self, chunk_id: ChunkID, last_update: u64) -> bool {
+        self.meshes[chunk_id]
+            .as_ref()
+            .map_or(true, |mesh| mesh.last_render < last_update)
+    }
 }
 
-struct GpuChunkMesh {
-    vertex_buffer: wgpu::Buffer,
-    index_buffer: wgpu::Buffer,
-    index_count: u32,
+#[derive(Debug)]
+pub struct GpuChunkMesh {
+    pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: wgpu::Buffer,
+    pub index_count: u32,
 }
 
 impl GpuChunkMesh {
@@ -87,6 +95,7 @@ impl GpuChunkMesh {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct GpuChunkMeshCache {
     meshes: HashMap<ChunkID, GpuChunkMesh>,
 }

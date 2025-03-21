@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::{BlockID, Direction, Neighbors, Visibility};
+use block::{BlockID, Direction, Neighbors, Face};
 pub use chunk::Chunk;
 use chunk::ChunkID;
 use glam::{IVec3, Quat, Vec3};
@@ -268,7 +268,7 @@ impl Simulation {
     }
 
     fn update_visibility(&mut self, grid_position: IVec3) {
-        let mut updates: HashMap<ChunkID, Vec<(BlockID, Visibility)>> = HashMap::new();
+        let mut updates: HashMap<ChunkID, Vec<(BlockID, Face)>> = HashMap::new();
 
         for offset in Direction::face_offsets() {
             let neighbor_grid_position = grid_position + offset;
@@ -292,8 +292,8 @@ impl Simulation {
         }
     }
 
-    fn compute_visibility(&self, grid_position: IVec3) -> Visibility {
-        let mut visibility = Visibility::empty();
+    fn compute_visibility(&self, grid_position: IVec3) -> Face {
+        let mut visibility = Face::empty();
 
         for index in 0..Direction::offsets().len() {
             if index == Direction::X0_Y0_Z0.index() {
@@ -307,12 +307,12 @@ impl Simulation {
                     if block.kind == block::Kind::Air {
                         if let Some(direction) = Direction::bit(index) {
                             match direction {
-                                Direction::XP_Y0_Z0 => visibility.insert(Visibility::XP),
-                                Direction::XN_Y0_Z0 => visibility.insert(Visibility::XN),
-                                Direction::X0_YP_Z0 => visibility.insert(Visibility::YP),
-                                Direction::X0_YN_Z0 => visibility.insert(Visibility::YN),
-                                Direction::X0_Y0_ZP => visibility.insert(Visibility::ZP),
-                                Direction::X0_Y0_ZN => visibility.insert(Visibility::ZN),
+                                Direction::XP_Y0_Z0 => visibility.insert(Face::XP),
+                                Direction::XN_Y0_Z0 => visibility.insert(Face::XN),
+                                Direction::X0_YP_Z0 => visibility.insert(Face::YP),
+                                Direction::X0_YN_Z0 => visibility.insert(Face::YN),
+                                Direction::X0_Y0_ZP => visibility.insert(Face::ZP),
+                                Direction::X0_Y0_ZN => visibility.insert(Face::ZN),
                                 _ => (),
                             }
                         }
