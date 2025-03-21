@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use crate::simulation::{chunk::ChunkID, WORLD_VOLUME};
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
-use crate::simulation::{chunk::ChunkID, WORLD_VOLUME};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]

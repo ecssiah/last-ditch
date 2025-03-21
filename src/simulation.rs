@@ -13,7 +13,7 @@ use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
-use block::{BlockID, Direction, Neighbors, Face};
+use block::{BlockID, Direction, Face, Neighbors};
 pub use chunk::Chunk;
 use chunk::ChunkID;
 use glam::{IVec3, Quat, Vec3};
@@ -117,18 +117,17 @@ impl Simulation {
     }
 
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
-        let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME] =
-            core::array::from_fn(|chunk_id| {
-                Arc::from(RwLock::from(Chunk {
-                    last_update: 1,
-                    id: chunk_id,
-                    position: Self::chunk_id_to_position(chunk_id),
-                    palette: Vec::from([block::Kind::Air]),
-                    palette_ids: Box::new([0; CHUNK_VOLUME]),
-                    meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
-                    light: Box::new([block::LightLevel::default(); CHUNK_VOLUME]),
-                }))
-            });
+        let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME] = core::array::from_fn(|chunk_id| {
+            Arc::from(RwLock::from(Chunk {
+                last_update: 1,
+                id: chunk_id,
+                position: Self::chunk_id_to_position(chunk_id),
+                palette: Vec::from([block::Kind::Air]),
+                palette_ids: Box::new([0; CHUNK_VOLUME]),
+                meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
+                light: Box::new([block::LightLevel::default(); CHUNK_VOLUME]),
+            }))
+        });
 
         Arc::from(chunks)
     }

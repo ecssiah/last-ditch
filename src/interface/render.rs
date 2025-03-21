@@ -5,7 +5,11 @@ use crate::{
         ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
-        agent::Agent, block::{self, Direction, Face}, chunk::ChunkID, state::State, Chunk, Simulation, CHUNK_SIZE, CHUNK_VOLUME, WORLD_VOLUME
+        agent::Agent,
+        block::{self, Direction, Face},
+        chunk::ChunkID,
+        state::State,
+        Chunk, Simulation, CHUNK_SIZE, CHUNK_VOLUME, WORLD_VOLUME,
     },
 };
 use glam::{IVec3, Mat4, Vec3};
@@ -295,7 +299,10 @@ impl Render {
         for chunk_id in 0..WORLD_VOLUME {
             let chunk = self.state.chunks[chunk_id].read().unwrap();
 
-            if self.chunk_mesh_cache.needs_update(chunk_id, chunk.last_update) {
+            if self
+                .chunk_mesh_cache
+                .needs_update(chunk_id, chunk.last_update)
+            {
                 let mut chunk_mesh = self.generate_chunk_mesh(chunk_id);
 
                 chunk_mesh.last_render = chunk.last_update;
@@ -309,7 +316,8 @@ impl Render {
         for (chunk_id, mesh) in self.chunk_mesh_cache.meshes.iter().enumerate() {
             if let Some(chunk_mesh) = mesh {
                 if self.gpu_chunk_mesh_cache.get(chunk_id).is_none() {
-                    self.gpu_chunk_mesh_cache.upload_mesh(&self.device, chunk_id, chunk_mesh);
+                    self.gpu_chunk_mesh_cache
+                        .upload_mesh(&self.device, chunk_id, chunk_mesh);
                 }
             }
         }
@@ -324,18 +332,24 @@ impl Render {
         for block_id in 0..CHUNK_VOLUME {
             let grid_position = Simulation::get_grid_position(chunk_id, block_id);
             let meta = chunk.meta[block_id];
-    
+
             for face in Face::ALL {
                 if meta.visibility.contains(face) {
-                    let normal = face.normal();
-                    let quad = self.generate_quad(grid_position, face);
+                    let face_quad = self.generate_quad(grid_position, face);
+
+                    vertices.extend(face_quad);
+
                     let start_index = vertices.len() as u32;
-    
-                    vertices.extend(quad);
-                    indices.extend([
-                        start_index, start_index + 1, start_index + 2,
-                        start_index, start_index + 2, start_index + 3,
-                    ]);
+                    let face_indices = [
+                        start_index,
+                        start_index + 1,
+                        start_index + 2,
+                        start_index,
+                        start_index + 2,
+                        start_index + 3,
+                    ];
+
+                    indices.extend(face_indices);
                 }
             }
         }
@@ -362,163 +376,6 @@ impl Render {
                 ao: 1.0,
             }
         })
-    }
-
-    fn compute_ao(neighbors: block::Neighbors) -> ([f32; 4], [f32; 4]) {
-        let ao_1 = [
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XN_YN_ZN,
-                (
-                    Direction::XN_Y0_Z0,
-                    Direction::X0_Y0_ZN,
-                    Direction::X0_YN_Z0,
-                ),
-                (
-                    Direction::XN_YN_Z0,
-                    Direction::X0_YN_ZN,
-                    Direction::XN_Y0_ZN,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XP_YN_ZN,
-                (
-                    Direction::XP_Y0_Z0,
-                    Direction::X0_Y0_ZN,
-                    Direction::X0_YN_Z0,
-                ),
-                (
-                    Direction::XP_YN_Z0,
-                    Direction::X0_YN_ZN,
-                    Direction::XP_Y0_ZN,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XN_YP_ZN,
-                (
-                    Direction::XN_Y0_Z0,
-                    Direction::X0_Y0_ZN,
-                    Direction::X0_YP_Z0,
-                ),
-                (
-                    Direction::XN_YP_Z0,
-                    Direction::X0_YP_ZN,
-                    Direction::XN_Y0_ZN,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XP_YP_ZN,
-                (
-                    Direction::XP_Y0_Z0,
-                    Direction::X0_Y0_ZN,
-                    Direction::X0_YP_Z0,
-                ),
-                (
-                    Direction::XP_YP_Z0,
-                    Direction::X0_YP_ZN,
-                    Direction::XP_Y0_ZN,
-                ),
-            ),
-        ];
-
-        let ao_2 = [
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XN_YN_ZP,
-                (
-                    Direction::XN_Y0_Z0,
-                    Direction::X0_Y0_ZP,
-                    Direction::X0_YN_Z0,
-                ),
-                (
-                    Direction::XN_YN_Z0,
-                    Direction::X0_YN_ZP,
-                    Direction::XN_Y0_ZP,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XP_YN_ZP,
-                (
-                    Direction::XP_Y0_Z0,
-                    Direction::X0_Y0_ZP,
-                    Direction::X0_YN_Z0,
-                ),
-                (
-                    Direction::XP_YN_Z0,
-                    Direction::X0_YN_ZP,
-                    Direction::XP_Y0_ZP,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XN_YP_ZP,
-                (
-                    Direction::XN_Y0_Z0,
-                    Direction::X0_Y0_ZP,
-                    Direction::X0_YP_Z0,
-                ),
-                (
-                    Direction::XN_YP_Z0,
-                    Direction::X0_YP_ZP,
-                    Direction::XN_Y0_ZP,
-                ),
-            ),
-            Self::compute_vertex_ao(
-                neighbors,
-                Direction::XP_YP_ZP,
-                (
-                    Direction::XP_Y0_Z0,
-                    Direction::X0_Y0_ZP,
-                    Direction::X0_YP_Z0,
-                ),
-                (
-                    Direction::XP_YP_Z0,
-                    Direction::X0_YP_ZP,
-                    Direction::XP_Y0_ZP,
-                ),
-            ),
-        ];
-
-        (ao_1, ao_2)
-    }
-
-    fn compute_vertex_ao(
-        mask: block::Neighbors,
-        point: Direction,
-        faces: (Direction, Direction, Direction),
-        edges: (Direction, Direction, Direction),
-    ) -> f32 {
-        let point = mask.is_solid(point) as u8 as f32;
-
-        let face0 = mask.is_solid(faces.0) as u8 as f32;
-        let face1 = mask.is_solid(faces.1) as u8 as f32;
-        let face2 = mask.is_solid(faces.2) as u8 as f32;
-
-        let edge0 = mask.is_solid(edges.0) as u8 as f32;
-        let edge1 = mask.is_solid(edges.1) as u8 as f32;
-        let edge2 = mask.is_solid(edges.2) as u8 as f32;
-
-        if (face0 + face1) == 2.0 || (face1 + face2) == 2.0 || (face2 + face0) == 2.0 {
-            return 0.5;
-        }
-
-        let mut occlusion = 0.0;
-
-        occlusion += point * 0.10;
-
-        occlusion += face0 * 0.30;
-        occlusion += face1 * 0.30;
-        occlusion += face2 * 0.30;
-
-        occlusion += edge0 * 0.15;
-        occlusion += edge1 * 0.15;
-        occlusion += edge2 * 0.15;
-
-        (1.0 - occlusion).max(0.0)
     }
 
     fn update_view_projection(&mut self) {
