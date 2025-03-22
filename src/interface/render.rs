@@ -213,7 +213,7 @@ impl Render {
         self.update_view_projection();
 
         let last_update = self.state.world.read().unwrap().last_update;
-
+        
         if last_update > self.last_render {
             self.update_chunk_meshes();
             self.update_gpu_meshes();
@@ -359,11 +359,15 @@ impl Render {
         render_pass.set_pipeline(&self.chunk_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for chunk in self.state.chunks.iter() {
-            // render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
+        for mesh in self.gpu_chunk_mesh_cache.meshes.values() {
+            let index_count = mesh.index_count;
 
-            // render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
-        }
+            if index_count > 0 {
+                render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+                render_pass.draw_indexed(0..index_count, 0, 0..1);
+            }
+        }      
 
         drop(render_pass);
 

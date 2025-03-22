@@ -96,7 +96,7 @@ impl GpuChunkMesh {
 
 #[derive(Debug, Default)]
 pub struct GpuChunkMeshCache {
-    meshes: HashMap<ChunkID, GpuChunkMesh>,
+    pub meshes: HashMap<ChunkID, GpuChunkMesh>,
 }
 
 impl GpuChunkMeshCache {
