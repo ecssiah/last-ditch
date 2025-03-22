@@ -7,7 +7,7 @@ pub const VERTEX_COUNT: u32 = 36;
 
 pub type BlockID = usize;
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
     Air,
     Wood,

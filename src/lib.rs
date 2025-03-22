@@ -34,10 +34,10 @@ struct App {
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window_attributes = WindowAttributes::default()
-            .with_title(interface::WINDOW_TITLE)
+            .with_title(interface::consts::WINDOW_TITLE)
             .with_inner_size(PhysicalSize::new(
-                interface::WINDOW_WIDTH,
-                interface::WINDOW_HEIGHT,
+                interface::consts::WINDOW_WIDTH,
+                interface::consts::WINDOW_HEIGHT,
             ));
 
         self.window = Some(Arc::new(

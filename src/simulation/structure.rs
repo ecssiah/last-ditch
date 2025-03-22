@@ -9,13 +9,13 @@ pub enum Kind {
     LightTest2,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct BlockData {
     pub kind: block::Kind,
     pub position: Vec<i32>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Structure {
     pub kind: Kind,
     pub size: Vec<u32>,

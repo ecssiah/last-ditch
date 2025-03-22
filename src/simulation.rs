@@ -5,21 +5,20 @@ pub mod action;
 pub mod agent;
 pub mod block;
 pub mod chunk;
+pub mod consts;
 pub mod state;
 pub mod structure;
 pub mod world;
 
-use crate::include_config;
 use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
 use agent::Agent;
 pub use block::Block;
 use block::{BlockID, Direction, Face, Neighbors};
 pub use chunk::Chunk;
 use chunk::ChunkID;
+pub use consts::*;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
-use once_cell::sync::Lazy;
-use ron::from_str;
 use state::State;
 use std::{
     collections::HashMap,
@@ -27,54 +26,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use structure::Structure;
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
-
-pub const SEED: u64 = 101;
-pub const SIMULATION_WAIT: u64 = 16;
-pub const UPDATE_WINDOW: u32 = 2;
-
-pub const DEFAULT_Z_SPEED: f32 = 22.0;
-pub const DEFAULT_X_SPEED: f32 = 22.0;
-pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
-
-pub const BLOCK_RADIUS: f32 = 0.5;
-pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
-pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
-pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
-
-pub const CHUNK_RADIUS: usize = 4;
-pub const CHUNK_SIZE: usize = 2 * CHUNK_RADIUS + 1;
-pub const CHUNK_AREA: usize = CHUNK_SIZE * CHUNK_SIZE;
-pub const CHUNK_VOLUME: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-
-pub const WORLD_RADIUS: usize = 4;
-pub const WORLD_SIZE: usize = 2 * WORLD_RADIUS + 1;
-pub const WORLD_AREA: usize = WORLD_SIZE * WORLD_SIZE;
-pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
-
-pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
-
-const BLOCK_CONFIG: &str = include_config!("blocks.ron");
-const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
-
-pub static BLOCKS: Lazy<Vec<Block>> = Lazy::new(|| {
-    let mut blocks: Vec<Block> = from_str(BLOCK_CONFIG).expect("Failed to parse Blocks");
-    blocks.sort_by(|a, b| a.kind.cmp(&b.kind));
-
-    blocks
-});
-
-pub static STRUCTURES: Lazy<HashMap<structure::Kind, Structure>> = Lazy::new(|| {
-    let list: Vec<Structure> =
-        ron::from_str(STRUCTURE_CONFIG).expect("Failed to parse structures.ron");
-
-    list.into_iter()
-        .map(|structure| (structure.kind, structure)) // assumes `Structure` has a `kind: structure::Kind` field
-        .collect()
-});
-
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
     state: Arc<State>,
@@ -166,36 +119,32 @@ impl Simulation {
     }
 
     pub fn get_chunk(&self, grid_position: IVec3) -> Option<Arc<RwLock<chunk::Chunk>>> {
-        if let Some(chunk_id) = Self::grid_position_to_chunk_id(grid_position) {
-            Some(self.state.chunks[chunk_id].clone())
-        } else {
-            None
-        }
+        let chunk_id = Self::grid_position_to_chunk_id(grid_position)?;
+        
+        Some(self.state.chunks[chunk_id].clone())
     }
 
     pub fn get_block(&self, grid_position: IVec3) -> Option<&block::Block> {
-        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
-            let chunk = self.state.chunks[chunk_id].write().unwrap();
+        let (chunk_id, block_id) = Self::grid_position_to_ids(grid_position)?;
 
-            let palette_id = chunk.palette_ids[block_id];
-            let kind = chunk.palette[palette_id];
+        let chunk = self.state.chunks[chunk_id].write().unwrap();
 
-            Some(&BLOCKS[kind as usize])
-        } else {
-            None
-        }
+        let palette_id = chunk.palette_ids[block_id];
+        let kind = chunk.palette[palette_id];
+
+        let block = BLOCKS.get(&kind)?;
+
+        Some(block)
     }
 
     pub fn get_meta(&self, grid_position: IVec3) -> Option<block::Meta> {
-        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
-            let chunk = self.state.chunks[chunk_id].write().unwrap();
+        let (chunk_id, block_id) = Self::grid_position_to_ids(grid_position)?;
 
-            let meta = chunk.meta[block_id];
+        let chunk = self.state.chunks[chunk_id].write().unwrap();
 
-            Some(meta)
-        } else {
-            None
-        }
+        let meta = chunk.meta[block_id];
+
+        Some(meta)
     }
 
     fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) {
