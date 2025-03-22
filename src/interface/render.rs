@@ -5,8 +5,12 @@ use crate::{
         ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
-        agent::Agent, block::Face, chunk::ChunkID, state::State, Simulation, CHUNK_VOLUME,
-        WORLD_VOLUME,
+        self,
+        agent::Agent,
+        block::{self, Face},
+        chunk::ChunkID,
+        state::State,
+        CHUNK_VOLUME, WORLD_VOLUME,
     },
 };
 use glam::{IVec3, Mat4, Vec3};
@@ -213,7 +217,7 @@ impl Render {
         self.update_view_projection();
 
         let last_update = self.state.world.read().unwrap().last_update;
-        
+
         if last_update > self.last_render {
             self.update_chunk_meshes();
             self.update_gpu_meshes();
@@ -234,8 +238,6 @@ impl Render {
 
                 chunk_mesh.last_render = chunk.last_update;
 
-                log::info!("{:?}", chunk_mesh);
-
                 self.chunk_mesh_cache.insert(chunk_id, chunk_mesh);
             }
         }
@@ -244,7 +246,9 @@ impl Render {
     fn update_gpu_meshes(&mut self) {
         for (chunk_id, mesh) in self.chunk_mesh_cache.meshes.iter().enumerate() {
             if let Some(chunk_mesh) = mesh {
-                if self.gpu_chunk_mesh_cache.get(chunk_id).is_none() {
+                let needs_upload = self.gpu_chunk_mesh_cache.get(chunk_id).is_none();
+
+                if needs_upload {
                     self.gpu_chunk_mesh_cache
                         .upload_mesh(&self.device, chunk_id, chunk_mesh);
                 }
@@ -259,8 +263,14 @@ impl Render {
         let chunk = self.state.chunks[chunk_id].read().unwrap();
 
         for block_id in 0..CHUNK_VOLUME {
-            let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
+            let grid_position = simulation::Simulation::ids_to_grid_position(chunk_id, block_id);
             let meta = chunk.meta[block_id];
+
+            if let Some(block) = chunk.get_block(block_id) {
+                if block.kind != block::Kind::Air {
+                    log::info!("{:?}", grid_position);
+                }
+            }
 
             for face in Face::ALL {
                 if meta.visibility.contains(face) {
@@ -360,14 +370,13 @@ impl Render {
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
         for mesh in self.gpu_chunk_mesh_cache.meshes.values() {
-            let index_count = mesh.index_count;
-
-            if index_count > 0 {
+            if mesh.index_count > 0 {
                 render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-                render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-                render_pass.draw_indexed(0..index_count, 0, 0..1);
+                render_pass
+                    .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+                render_pass.draw_indexed(0..mesh.index_count, 0, 0..1);
             }
-        }      
+        }
 
         drop(render_pass);
 

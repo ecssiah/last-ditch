@@ -92,7 +92,9 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(0, 0, 0, structure::Kind::LightTest1);
+        self.set_block_kind(0, 0, 0, block::Kind::Concrete);
+
+        // self.generate_structure(0, 0, 0, structure::Kind::LightTest1);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {

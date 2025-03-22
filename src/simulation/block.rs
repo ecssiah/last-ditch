@@ -113,71 +113,78 @@ bitflags! {
 }
 
 impl Face {
-    const XP_QUAD: [(f32, f32, f32); 4] = [
-        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
-        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+    #[rustfmt::skip]
+    const XP_VERTICES: [(f32, f32, f32); 4] = [
+        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
     ];
 
-    const XN_QUAD: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
-        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
-        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+    #[rustfmt::skip]
+    const XN_VERTICES: [(f32, f32, f32); 4] = [
         (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
-    const YP_QUAD: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+    #[rustfmt::skip]
+    const YP_VERTICES: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
-    const YN_QUAD: [(f32, f32, f32); 4] = [
+    #[rustfmt::skip]
+    const YN_VERTICES: [(f32, f32, f32); 4] = [
         (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
     ];
 
-    const ZP_QUAD: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
-        (BLOCK_RADIUS, -BLOCK_RADIUS, BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
-        (-BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_RADIUS),
+    #[rustfmt::skip]
+    const ZP_VERTICES: [(f32, f32, f32); 4] = [
+        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
     ];
 
-    const ZN_QUAD: [(f32, f32, f32); 4] = [
-        (BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+    #[rustfmt::skip]
+    const ZN_VERTICES: [(f32, f32, f32); 4] = [
+        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
         (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
-        (BLOCK_RADIUS, BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
     pub const ALL: [Face; 6] = [Face::XP, Face::XN, Face::YP, Face::YN, Face::ZP, Face::ZN];
 
     pub fn quad_offsets(self) -> &'static [(f32, f32, f32); 4] {
         match self {
-            Face::XP => &Self::XP_QUAD,
-            Face::XN => &Self::XN_QUAD,
-            Face::YP => &Self::YP_QUAD,
-            Face::YN => &Self::YN_QUAD,
-            Face::ZP => &Self::ZP_QUAD,
-            Face::ZN => &Self::ZN_QUAD,
-            _ => panic!("Invalid or multiple Face flags set: {:?}", self),
+            Face::XP => &Self::XP_VERTICES,
+            Face::XN => &Self::XN_VERTICES,
+            Face::YP => &Self::YP_VERTICES,
+            Face::YN => &Self::YN_VERTICES,
+            Face::ZP => &Self::ZP_VERTICES,
+            Face::ZN => &Self::ZN_VERTICES,
+            _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
+    #[rustfmt::skip]
     pub fn normal(self) -> IVec3 {
         match self {
-            Face::XP => IVec3::new(1, 0, 0),
-            Face::XN => IVec3::new(-1, 0, 0),
-            Face::YP => IVec3::new(0, 1, 0),
-            Face::YN => IVec3::new(0, -1, 0),
-            Face::ZP => IVec3::new(0, 0, 1),
-            Face::ZN => IVec3::new(0, 0, -1),
-            _ => panic!("Invalid or multiple Face flags set: {:?}", self),
+            Face::XP => IVec3::new( 1,  0,  0),
+            Face::XN => IVec3::new(-1,  0,  0),
+            Face::YP => IVec3::new( 0,  1,  0),
+            Face::YN => IVec3::new( 0, -1,  0),
+            Face::ZP => IVec3::new( 0,  0,  1),
+            Face::ZN => IVec3::new( 0,  0, -1),
+            _ => panic!("Invalid Face: {:?}", self),
         }
     }
 }
