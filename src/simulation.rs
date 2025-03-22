@@ -133,7 +133,7 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(0, 0, 0, structure::Kind::LightTest);
+        self.generate_structure(0, 0, 0, structure::Kind::LightTest1);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -470,7 +470,7 @@ impl Simulation {
     }
 
     pub fn grid_position_to_chunk_id(grid_position: IVec3) -> Option<ChunkID> {
-        if Self::is_on_map(grid_position) {
+        if Self::on_map(grid_position) {
             let chunk_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
@@ -488,7 +488,7 @@ impl Simulation {
     }
 
     pub fn grid_position_to_block_id(grid_position: IVec3) -> Option<BlockID> {
-        if Self::is_on_map(grid_position) {
+        if Self::on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
@@ -506,34 +506,13 @@ impl Simulation {
     }
 
     pub fn grid_position_to_ids(grid_position: IVec3) -> Option<(ChunkID, BlockID)> {
-        if Self::is_on_map(grid_position) {
-            let chunk_position_shifted = grid_position.map(|coordinate| {
-                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
+        let chunk_id = Simulation::grid_position_to_chunk_id(grid_position)?;
+        let block_id = Simulation::grid_position_to_block_id(grid_position)?;
 
-                coordinate_shifted.div_euclid(WORLD_SIZE as i32)
-            });
-
-            let chunk_id = chunk_position_shifted.x
-                + chunk_position_shifted.y * WORLD_SIZE as i32
-                + chunk_position_shifted.z * WORLD_AREA as i32;
-
-            let grid_position_shifted = grid_position.map(|coordinate| {
-                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
-
-                coordinate_shifted.rem_euclid(CHUNK_SIZE as i32)
-            });
-
-            let block_id = grid_position_shifted.x
-                + grid_position_shifted.y * CHUNK_SIZE as i32
-                + grid_position_shifted.z * CHUNK_AREA as i32;
-
-            Some((chunk_id as ChunkID, block_id as BlockID))
-        } else {
-            None
-        }
+        Some((chunk_id, block_id))
     }
 
-    pub fn get_grid_position(chunk_id: ChunkID, block_id: BlockID) -> IVec3 {
+    pub fn ids_to_grid_position(chunk_id: ChunkID, block_id: BlockID) -> IVec3 {
         let chunk_position = Self::chunk_id_to_position(chunk_id);
         let block_position = Self::block_id_to_position(block_id);
 
@@ -542,7 +521,7 @@ impl Simulation {
         grid_position
     }
 
-    pub fn is_on_map(grid_position: IVec3) -> bool {
+    pub fn on_map(grid_position: IVec3) -> bool {
         let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;
         let in_y_range = grid_position.y.abs() <= WORLD_BOUNDARY as i32;
         let in_z_range = grid_position.z.abs() <= WORLD_BOUNDARY as i32;

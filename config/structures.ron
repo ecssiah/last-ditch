@@ -1,5 +1,18 @@
 {
-    LightTest: Structure (
+    LightTest1: Structure (
+        kind: LightTest,
+        size: [16, 16, 16],
+        blocks: [
+            BlockData(kind: Marker1, position: [0, 0, 24]),
+            BlockData(kind: Marker2, position: [24, 0, 0]),
+
+            BlockData(kind: Concrete, position: [1, 0, 0]),
+            BlockData(kind: Concrete, position: [0, 0, 1]),
+            BlockData(kind: Concrete, position: [1, 0, 1]),
+            BlockData(kind: Concrete, position: [1, 1, 1]),
+        ],
+    ),
+    LightTest2: Structure (
         kind: LightTest,
         size: [16, 16, 16],
         blocks: [

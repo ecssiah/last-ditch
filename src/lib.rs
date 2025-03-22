@@ -88,8 +88,8 @@ pub async fn run() {
 
     std::env::set_var("RUST_LOG", "wgpu=debug");
 
-    info!("Starting Last Ditch");
-    warn!("Warn logging active");
+    info!("Starting Last Ditch\n");
+    warn!("Warn logging active\n");
     error!("Error logging active\n");
 
     let event_loop = EventLoop::new().unwrap();

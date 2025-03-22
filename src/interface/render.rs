@@ -216,77 +216,6 @@ impl Render {
         }
     }
 
-    pub fn render(&self) {
-        let surface_texture = self
-            .surface
-            .get_current_texture()
-            .expect("failed to acquire next swapchain texture");
-
-        let texture_view = surface_texture
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor {
-                format: Some(self.surface_format.add_srgb_suffix()),
-                ..Default::default()
-            });
-
-        let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
-
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("World Render Pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &texture_view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(CLEAR_COLOR),
-                    store: wgpu::StoreOp::Store,
-                },
-            })],
-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &depth_texture_view,
-                depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(1.0),
-                    store: wgpu::StoreOp::Store,
-                }),
-                stencil_ops: None,
-            }),
-            timestamp_writes: None,
-            occlusion_query_set: None,
-        });
-
-        render_pass.set_pipeline(&self.chunk_pipeline);
-        render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-
-        for chunk in self.state.chunks.iter() {
-            // render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
-
-            // render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
-        }
-
-        drop(render_pass);
-
-        self.queue.submit([encoder.finish()]);
-        self.window.pre_present_notify();
-
-        surface_texture.present();
-    }
-
-    pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        match event {
-            WindowEvent::RedrawRequested => {
-                self.update();
-                self.render();
-
-                self.window.request_redraw();
-            }
-            WindowEvent::Resized(size) => {
-                self.resize(*size);
-            }
-            _ => (),
-        }
-    }
-
     fn update_chunk_meshes(&mut self) {
         for chunk_id in 0..WORLD_VOLUME {
             let chunk = self.state.chunks[chunk_id].read().unwrap();
@@ -322,7 +251,7 @@ impl Render {
         let chunk = self.state.chunks[chunk_id].read().unwrap();
 
         for block_id in 0..CHUNK_VOLUME {
-            let grid_position = Simulation::get_grid_position(chunk_id, block_id);
+            let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
             let meta = chunk.meta[block_id];
 
             for face in Face::ALL {
@@ -380,6 +309,82 @@ impl Render {
         );
     }
 
+    pub fn render(&self) {
+        let surface_texture = self
+            .surface
+            .get_current_texture()
+            .expect("failed to acquire next swapchain texture");
+
+        let texture_view = surface_texture
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor {
+                format: Some(self.surface_format.add_srgb_suffix()),
+                ..Default::default()
+            });
+
+        let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
+
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("World Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &texture_view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(CLEAR_COLOR),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &depth_texture_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+        });
+
+        render_pass.set_pipeline(&self.chunk_pipeline);
+        render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
+
+        for chunk in self.state.chunks.iter() {
+            // render_pass.set_vertex_buffer(0, chunk.instance_buffer.slice(..));
+
+            // render_pass.draw(0..block::VERTEX_COUNT, 0..chunk.instance_count);
+        }
+
+        drop(render_pass);
+
+        self.queue.submit([encoder.finish()]);
+        self.window.pre_present_notify();
+
+        surface_texture.present();
+    }
+
+    fn create_view_projection_matrix(agent: Arc<RwLock<Agent>>) -> [[f32; 4]; 4] {
+        let agent = agent.read().unwrap();
+
+        let opengl_projection =
+            Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+        let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
+
+        let forward = agent.look_rotation * Vec3::Z;
+        let up = agent.look_rotation * Vec3::Y;
+
+        let eye = agent.position;
+        let target = eye + forward;
+
+        let view = Mat4::look_at_rh(eye, target, up);
+
+        let view_projection = projection * view;
+
+        view_projection.to_cols_array_2d()
+    }
+
     fn create_depth_texture(
         device: &wgpu::Device,
         config: &wgpu::SurfaceConfiguration,
@@ -402,23 +407,18 @@ impl Render {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn create_view_projection_matrix(agent: Arc<RwLock<Agent>>) -> [[f32; 4]; 4] {
-        let agent = agent.read().unwrap();
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
+        match event {
+            WindowEvent::RedrawRequested => {
+                self.update();
+                self.render();
 
-        let opengl_projection =
-            Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
-        let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
-
-        let forward = agent.look_rotation * Vec3::Z;
-        let up = agent.look_rotation * Vec3::Y;
-
-        let eye = agent.position;
-        let target = eye + forward;
-
-        let view = Mat4::look_at_rh(eye, target, up);
-
-        let view_projection = projection * view;
-
-        view_projection.to_cols_array_2d()
+                self.window.request_redraw();
+            }
+            WindowEvent::Resized(size) => {
+                self.resize(*size);
+            }
+            _ => (),
+        }
     }
 }
