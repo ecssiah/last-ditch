@@ -1,6 +1,6 @@
-{
-    LightTest1: Structure (
-        kind: LightTest,
+[
+    Structure (
+        kind: LightTest1,
         size: [16, 16, 16],
         blocks: [
             BlockData(kind: Marker1, position: [0, 0, 24]),
@@ -12,8 +12,8 @@
             BlockData(kind: Concrete, position: [1, 1, 1]),
         ],
     ),
-    LightTest2: Structure (
-        kind: LightTest,
+    Structure (
+        kind: LightTest2,
         size: [16, 16, 16],
         blocks: [
             BlockData(kind: Marker1, position: [0, 0, 24]),
@@ -145,7 +145,7 @@
             BlockData(kind: Brown, position: [4, 0, 4]),
         ],
     ),
-    Mario: Structure (
+    Structure (
         kind: Mario,
         size: [16, 32, 16],
         blocks: [
@@ -537,7 +537,7 @@
         ],
         
     ),
-    Luigi: Structure (
+    Structure (
         kind: Luigi,
         size: [16, 32, 16],
         blocks: [
@@ -928,4 +928,4 @@
             BlockData(kind: Green, position: [1, 22, 2]),
         ],
     ),
-}
+]

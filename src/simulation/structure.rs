@@ -1,7 +1,7 @@
 use crate::simulation::block;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq)]
 pub enum Kind {
     Mario,
     Luigi,
@@ -9,13 +9,13 @@ pub enum Kind {
     LightTest2,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BlockData {
     pub kind: block::Kind,
     pub position: Vec<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Structure {
     pub kind: Kind,
     pub size: Vec<u32>,

@@ -66,8 +66,14 @@ pub static BLOCKS: Lazy<Vec<Block>> = Lazy::new(|| {
     blocks
 });
 
-pub static STRUCTURES: Lazy<HashMap<structure::Kind, Structure>> =
-    Lazy::new(|| from_str(STRUCTURE_CONFIG).expect("Failed to parse Structures"));
+pub static STRUCTURES: Lazy<HashMap<structure::Kind, Structure>> = Lazy::new(|| {
+    let list: Vec<Structure> =
+        ron::from_str(STRUCTURE_CONFIG).expect("Failed to parse structures.ron");
+
+    list.into_iter()
+        .map(|structure| (structure.kind, structure)) // assumes `Structure` has a `kind: structure::Kind` field
+        .collect()
+});
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,

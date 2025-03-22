@@ -117,7 +117,7 @@ fn test_get_grid_position() {
     ];
 
     for ((chunk_id, block_id), expected_grid_position) in test_cases {
-        let grid_position = Simulation::get_grid_position(chunk_id, block_id);
+        let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
 
         assert_eq!(
             grid_position, expected_grid_position,
