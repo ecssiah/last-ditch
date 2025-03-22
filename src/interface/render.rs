@@ -129,8 +129,8 @@ impl Render {
             surface_format,
         );
 
-        let chunk_mesh_cache = Default::default();
-        let gpu_chunk_mesh_cache = Default::default();
+        let chunk_mesh_cache = ChunkMeshCache::new();
+        let gpu_chunk_mesh_cache = GpuChunkMeshCache::new();
 
         let render = Self {
             last_render: 0,
@@ -186,7 +186,13 @@ impl Render {
                 unclipped_depth: false,
                 conservative: false,
             },
-            depth_stencil: None,
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+            }),
             multisample: wgpu::MultisampleState {
                 count: 1,
                 mask: !0,
@@ -227,6 +233,8 @@ impl Render {
                 let mut chunk_mesh = self.generate_chunk_mesh(chunk_id);
 
                 chunk_mesh.last_render = chunk.last_update;
+
+                log::info!("{:?}", chunk_mesh);
 
                 self.chunk_mesh_cache.insert(chunk_id, chunk_mesh);
             }

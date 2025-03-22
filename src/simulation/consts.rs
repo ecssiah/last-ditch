@@ -2,7 +2,6 @@ use crate::{
     include_config,
     simulation::{block, structure},
 };
-use itertools::Itertools;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
