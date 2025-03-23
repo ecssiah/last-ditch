@@ -9,7 +9,7 @@ pub struct ChunkVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
     pub color: [f32; 4],
-    pub ao: f32,
+    pub ao: u32,
 }
 
 impl ChunkVertex {
@@ -17,7 +17,7 @@ impl ChunkVertex {
         0 => Float32x3,
         1 => Float32x3,
         2 => Float32x4,
-        3 => Float32,
+        3 => Uint32,
     ];
 
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {

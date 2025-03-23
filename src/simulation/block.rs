@@ -3,8 +3,6 @@ use bitflags::bitflags;
 use glam::IVec3;
 use serde::Deserialize;
 
-pub const VERTEX_COUNT: u32 = 36;
-
 pub type BlockID = usize;
 
 #[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]
@@ -113,12 +111,14 @@ bitflags! {
 }
 
 impl Face {
+    pub const ALL: [Face; 6] = [Face::XP, Face::XN, Face::YP, Face::YN, Face::ZP, Face::ZN];
+
     #[rustfmt::skip]
     const XP_VERTICES: [(f32, f32, f32); 4] = [
-        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
         ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
         ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
     #[rustfmt::skip]
@@ -160,8 +160,6 @@ impl Face {
         (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
         ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
-
-    pub const ALL: [Face; 6] = [Face::XP, Face::XN, Face::YP, Face::YN, Face::ZP, Face::ZN];
 
     pub fn quad_offsets(self) -> &'static [(f32, f32, f32); 4] {
         match self {

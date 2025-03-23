@@ -185,7 +185,7 @@ impl Render {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
@@ -264,21 +264,28 @@ impl Render {
 
         for block_id in 0..CHUNK_VOLUME {
             let grid_position = simulation::Simulation::ids_to_grid_position(chunk_id, block_id);
-            let meta = chunk.meta[block_id];
 
-            if let Some(block) = chunk.get_block(block_id) {
-                if block.kind != block::Kind::Air {
-                    log::info!("{:?}", grid_position);
-                }
-            }
+            let meta = chunk.meta[block_id];
+            let block = chunk.get_block(block_id).unwrap();
 
             for face in Face::ALL {
                 if meta.visibility.contains(face) {
-                    let face_quad = self.generate_quad(grid_position, face);
+                    let face_vertices = self.generate_quad(grid_position, face);
+                    let face_ao = self.generate_ao(&meta, face);
 
-                    vertices.extend(face_quad);
+                    let chunk_vertices =
+                        face_vertices
+                            .iter()
+                            .enumerate()
+                            .map(|(face_index, face_vertex)| ChunkVertex {
+                                position: face_vertex.to_array(),
+                                normal: face.normal().as_vec3().to_array(),
+                                color: [block.color.0, block.color.1, block.color.2, block.color.3],
+                                ao: face_ao[face_index],
+                            });
 
                     let start_index = vertices.len() as u32;
+
                     let face_indices = [
                         start_index,
                         start_index + 1,
@@ -288,6 +295,7 @@ impl Render {
                         start_index + 3,
                     ];
 
+                    vertices.extend(chunk_vertices);
                     indices.extend(face_indices);
                 }
             }
@@ -300,21 +308,92 @@ impl Render {
         }
     }
 
-    fn generate_quad(&self, grid_position: IVec3, face: Face) -> [ChunkVertex; 4] {
+    fn generate_quad(&self, grid_position: IVec3, face: Face) -> [Vec3; 4] {
         let base = grid_position.as_vec3();
-        let normal = face.normal().as_vec3();
         let offsets = face.quad_offsets();
 
         offsets.map(|(ox, oy, oz)| {
             let position = base + Vec3::new(ox, oy, oz);
 
-            ChunkVertex {
-                position: position.to_array(),
-                normal: normal.to_array(),
-                color: [1.0, 1.0, 1.0, 1.0],
-                ao: 1.0,
-            }
+            position
         })
+    }
+
+    fn generate_ao(&self, meta: &block::Meta, face: Face) -> [u32; 4] {
+        let neighbors = &meta.neighbors;
+
+        match face {
+            Face::XP => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::XP_YN_Z0),
+                neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                neighbors.is_solid(block::Direction::XP_YP_Z0),
+                neighbors.is_solid(block::Direction::XP_Y0_ZP),
+            ]),
+            Face::XN => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::XN_YN_Z0),
+                neighbors.is_solid(block::Direction::XN_Y0_ZP),
+                neighbors.is_solid(block::Direction::XN_YP_Z0),
+                neighbors.is_solid(block::Direction::XN_Y0_ZN),
+            ]),
+            Face::YP => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::X0_YP_ZP),
+                neighbors.is_solid(block::Direction::XP_YP_Z0),
+                neighbors.is_solid(block::Direction::X0_YP_ZN),
+                neighbors.is_solid(block::Direction::XN_YP_Z0),
+            ]),
+            Face::YN => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::X0_YN_ZN),
+                neighbors.is_solid(block::Direction::XN_YN_Z0),
+                neighbors.is_solid(block::Direction::X0_YN_ZP),
+                neighbors.is_solid(block::Direction::XN_YN_Z0),
+            ]),
+            Face::ZP => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::X0_YN_ZP),
+                neighbors.is_solid(block::Direction::XP_Y0_ZP),
+                neighbors.is_solid(block::Direction::X0_YP_ZP),
+                neighbors.is_solid(block::Direction::XN_Y0_ZP),
+            ]),
+            Face::ZN => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::X0_YP_ZN),
+                neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                neighbors.is_solid(block::Direction::X0_YN_ZN),
+                neighbors.is_solid(block::Direction::XP_Y0_ZN),
+            ]),
+            _ => [0; 4],
+        }
+    }
+
+    fn weighted_corner_ao(&self, edge_flags: [bool; 4]) -> [u32; 4] {
+        let mut ao = [0; 4];
+
+        if edge_flags[0] && edge_flags[1] {
+            ao[1] = 2;
+        } else if edge_flags[1] && edge_flags[2] {
+            ao[3] = 2;
+        } else if edge_flags[2] && edge_flags[3] {
+            ao[2] = 2;
+        } else if edge_flags[3] && edge_flags[0] {
+            ao[0] = 2;
+        } else {
+            if edge_flags[0] {
+                ao[0] = 1;
+                ao[1] = 1;
+            }
+            if edge_flags[1] {
+                ao[1] = 1;
+                ao[3] = 1;
+            }
+            if edge_flags[2] {
+                ao[3] = 1;
+                ao[2] = 1;
+            }
+            if edge_flags[3] {
+                ao[2] = 1;
+                ao[0] = 1;
+            }
+        }
+
+        ao
     }
 
     fn update_view_projection(&mut self) {

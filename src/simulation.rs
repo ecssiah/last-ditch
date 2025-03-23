@@ -52,7 +52,7 @@ impl Simulation {
         let agent = Arc::from(RwLock::from(Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 6.0, -12.0),
+            position: Vec3::new(0.0, 2.0, -12.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -92,9 +92,7 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.set_block_kind(0, 0, 0, block::Kind::Concrete);
-
-        // self.generate_structure(0, 0, 0, structure::Kind::LightTest1);
+        self.generate_structure(0, 0, 0, structure::Kind::LightTest1);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -226,16 +224,30 @@ impl Simulation {
     fn update_visibility(&mut self, grid_position: IVec3) {
         let mut updates: HashMap<ChunkID, Vec<(BlockID, Face)>> = HashMap::new();
 
+        if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
+            let visibility = self.compute_visibility(grid_position);
+
+            updates
+                .entry(chunk_id)
+                .or_insert_with(Vec::new)
+                .push((block_id, visibility));
+
+        }
+
         for offset in Direction::face_offsets() {
             let neighbor_grid_position = grid_position + offset;
 
             if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(neighbor_grid_position) {
-                let visibility = self.compute_visibility(neighbor_grid_position);
+                if let Some(block) = self.get_block(neighbor_grid_position) {
+                    if block.kind != block::Kind::Air {
+                        let visibility = self.compute_visibility(neighbor_grid_position);
 
-                updates
-                    .entry(chunk_id)
-                    .or_insert_with(Vec::new)
-                    .push((block_id, visibility));
+                        updates
+                            .entry(chunk_id)
+                            .or_insert_with(Vec::new)
+                            .push((block_id, visibility));
+                    }
+                }
             }
         }
 

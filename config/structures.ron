@@ -6,10 +6,9 @@
             BlockData(kind: Marker1, position: [0, 0, 24]),
             BlockData(kind: Marker2, position: [24, 0, 0]),
 
-            BlockData(kind: Concrete, position: [1, 0, 0]),
-            BlockData(kind: Concrete, position: [0, 0, 1]),
-            BlockData(kind: Concrete, position: [1, 0, 1]),
-            BlockData(kind: Concrete, position: [1, 1, 1]),
+            BlockData(kind: White, position: [0, 0, 0]),
+            BlockData(kind: White, position: [0, 1, 1]),
+            BlockData(kind: White, position: [1, 0, 1]),
         ],
     ),
     Structure (
