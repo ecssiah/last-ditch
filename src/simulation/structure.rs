@@ -5,8 +5,8 @@ use serde::Deserialize;
 pub enum Kind {
     Mario,
     Luigi,
-    LightTest1,
-    LightTest2,
+    AOTest,
+    LightTest,
 }
 
 #[derive(Debug, Deserialize)]

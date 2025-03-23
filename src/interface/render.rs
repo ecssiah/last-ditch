@@ -2,22 +2,15 @@ use crate::{
     include_shader_src,
     interface::{
         chunk::{ChunkMesh, ChunkMeshCache, ChunkVertex, GpuChunkMeshCache},
-        ASPECT_RATIO, FAR_PLANE, FOV, NEAR_PLANE,
+        AO_INTENSITY, ASPECT_RATIO, DEBUG_COLORING, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
-        self,
-        agent::Agent,
-        block::{self, Face},
-        chunk::ChunkID,
-        state::State,
-        CHUNK_VOLUME, WORLD_VOLUME,
+        agent::Agent, block, chunk::ChunkID, state::State, Simulation, CHUNK_VOLUME, WORLD_VOLUME,
     },
 };
 use glam::{IVec3, Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use winit::{event::WindowEvent, window::Window};
-
-use super::consts::AO_INTENSITY;
 
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.0,
@@ -265,52 +258,62 @@ impl Render {
         let chunk = self.state.chunks[chunk_id].read().unwrap();
 
         for block_id in 0..CHUNK_VOLUME {
-            let grid_position = simulation::Simulation::ids_to_grid_position(chunk_id, block_id);
+            let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
 
             let meta = chunk.meta[block_id];
             let block = chunk.get_block(block_id).unwrap();
 
-            for face in Face::ALL {
-                if meta.visibility.contains(face) {
-                    let face_vertices = self.generate_quad(grid_position, face);
-                    let face_ao = self.generate_ao(&meta, face);
-
-                    let color = match face {
-                        Face::XP => [1.0, 0.0, 0.0, 1.0],
-                        Face::XN => [1.0, 1.0, 0.0, 1.0],
-                        Face::YP => [0.0, 1.0, 0.0, 1.0],
-                        Face::YN => [0.0, 1.0, 1.0, 1.0],
-                        Face::ZP => [0.0, 0.0, 1.0, 1.0],
-                        Face::ZN => [1.0, 0.0, 1.0, 1.0],
-                        _ => [1.0, 1.0, 1.0, 1.0],
-                    };
-
-                    let chunk_vertices =
-                        face_vertices
-                            .iter()
-                            .enumerate()
-                            .map(|(face_index, face_vertex)| ChunkVertex {
-                                position: face_vertex.to_array(),
-                                normal: face.normal().as_vec3().to_array(),
-                                // color: [block.color.0, block.color.1, block.color.2, block.color.3],
-                                color,
-                                ao: face_ao[face_index],
-                            });
-
-                    let start_index = vertices.len() as u32;
-
-                    let face_indices = [
-                        start_index,
-                        start_index + 1,
-                        start_index + 2,
-                        start_index,
-                        start_index + 2,
-                        start_index + 3,
-                    ];
-
-                    vertices.extend(chunk_vertices);
-                    indices.extend(face_indices);
+            for face in block::Face::ALL {
+                if meta.visibility.contains(face) == false {
+                    continue;
                 }
+
+                let face_vertices = self.generate_quad(grid_position, face);
+                let face_normal = face.normal().as_vec3().to_array();
+                let face_ao = self.generate_ao(&meta, face);
+
+                let face_color = if DEBUG_COLORING {
+                    match face {
+                        block::Face::XP => [1.0, 0.6, 0.6, 1.0],
+                        block::Face::XN => [1.0, 1.0, 0.6, 1.0],
+                        block::Face::YP => [0.6, 1.0, 0.6, 1.0],
+                        block::Face::YN => [0.6, 1.0, 1.0, 1.0],
+                        block::Face::ZP => [0.6, 0.6, 1.0, 1.0],
+                        block::Face::ZN => [1.0, 0.6, 1.0, 1.0],
+                        _ => [1.0, 1.0, 1.0, 1.0],
+                    }
+                } else {
+                    [block.color.0, block.color.1, block.color.2, block.color.3]
+                };
+
+                let chunk_vertices =
+                    face_vertices
+                        .iter()
+                        .enumerate()
+                        .map(|(face_index, face_vertex)| {
+                            let face_position = face_vertex.to_array();
+
+                            ChunkVertex {
+                                position: face_position,
+                                normal: face_normal,
+                                color: face_color,
+                                ao: face_ao[face_index],
+                            }
+                        });
+
+                let start_index = vertices.len() as u32;
+
+                let face_indices = [
+                    start_index,
+                    start_index + 1,
+                    start_index + 2,
+                    start_index,
+                    start_index + 2,
+                    start_index + 3,
+                ];
+
+                vertices.extend(chunk_vertices);
+                indices.extend(face_indices);
             }
         }
 
@@ -321,7 +324,7 @@ impl Render {
         }
     }
 
-    fn generate_quad(&self, grid_position: IVec3, face: Face) -> [Vec3; 4] {
+    fn generate_quad(&self, grid_position: IVec3, face: block::Face) -> [Vec3; 4] {
         let base = grid_position.as_vec3();
         let offsets = face.quad_offsets();
 
@@ -332,41 +335,41 @@ impl Render {
         })
     }
 
-    fn generate_ao(&self, meta: &block::Meta, face: Face) -> [f32; 4] {
+    fn generate_ao(&self, meta: &block::Meta, face: block::Face) -> [f32; 4] {
         let neighbors = &meta.neighbors;
 
         match face {
-            Face::XP => self.weighted_corner_ao([
+            block::Face::XP => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::XP_YN_Z0),
                 neighbors.is_solid(block::Direction::XP_Y0_ZN),
                 neighbors.is_solid(block::Direction::XP_YP_Z0),
                 neighbors.is_solid(block::Direction::XP_Y0_ZP),
             ]),
-            Face::XN => self.weighted_corner_ao([
+            block::Face::XN => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::XN_YN_Z0),
                 neighbors.is_solid(block::Direction::XN_Y0_ZP),
                 neighbors.is_solid(block::Direction::XN_YP_Z0),
                 neighbors.is_solid(block::Direction::XN_Y0_ZN),
             ]),
-            Face::YP => self.weighted_corner_ao([
+            block::Face::YP => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::X0_YP_ZP),
                 neighbors.is_solid(block::Direction::XP_YP_Z0),
                 neighbors.is_solid(block::Direction::X0_YP_ZN),
                 neighbors.is_solid(block::Direction::XN_YP_Z0),
             ]),
-            Face::YN => self.weighted_corner_ao([
+            block::Face::YN => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::X0_YN_ZN),
                 neighbors.is_solid(block::Direction::XN_YN_Z0),
                 neighbors.is_solid(block::Direction::X0_YN_ZP),
                 neighbors.is_solid(block::Direction::XN_YN_Z0),
             ]),
-            Face::ZP => self.weighted_corner_ao([
+            block::Face::ZP => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::X0_YN_ZP),
                 neighbors.is_solid(block::Direction::XP_Y0_ZP),
                 neighbors.is_solid(block::Direction::X0_YP_ZP),
                 neighbors.is_solid(block::Direction::XN_Y0_ZP),
             ]),
-            Face::ZN => self.weighted_corner_ao([
+            block::Face::ZN => self.weighted_corner_ao([
                 neighbors.is_solid(block::Direction::XP_Y0_ZN),
                 neighbors.is_solid(block::Direction::X0_YP_ZN),
                 neighbors.is_solid(block::Direction::XN_Y0_ZN),
