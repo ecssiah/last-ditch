@@ -17,6 +17,8 @@ use glam::{IVec3, Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use winit::{event::WindowEvent, window::Window};
 
+use super::consts::AO_INTENSITY;
+
 const CLEAR_COLOR: wgpu::Color = wgpu::Color {
     r: 0.0,
     g: 0.0,
@@ -273,6 +275,16 @@ impl Render {
                     let face_vertices = self.generate_quad(grid_position, face);
                     let face_ao = self.generate_ao(&meta, face);
 
+                    let color = match face {
+                        Face::XP => [1.0, 0.0, 0.0, 1.0],
+                        Face::XN => [1.0, 1.0, 0.0, 1.0],
+                        Face::YP => [0.0, 1.0, 0.0, 1.0],
+                        Face::YN => [0.0, 1.0, 1.0, 1.0],
+                        Face::ZP => [0.0, 0.0, 1.0, 1.0],
+                        Face::ZN => [1.0, 0.0, 1.0, 1.0],
+                        _ => [1.0, 1.0, 1.0, 1.0],
+                    };
+
                     let chunk_vertices =
                         face_vertices
                             .iter()
@@ -280,7 +292,8 @@ impl Render {
                             .map(|(face_index, face_vertex)| ChunkVertex {
                                 position: face_vertex.to_array(),
                                 normal: face.normal().as_vec3().to_array(),
-                                color: [block.color.0, block.color.1, block.color.2, block.color.3],
+                                // color: [block.color.0, block.color.1, block.color.2, block.color.3],
+                                color,
                                 ao: face_ao[face_index],
                             });
 
@@ -319,7 +332,7 @@ impl Render {
         })
     }
 
-    fn generate_ao(&self, meta: &block::Meta, face: Face) -> [u32; 4] {
+    fn generate_ao(&self, meta: &block::Meta, face: Face) -> [f32; 4] {
         let neighbors = &meta.neighbors;
 
         match face {
@@ -354,42 +367,42 @@ impl Render {
                 neighbors.is_solid(block::Direction::XN_Y0_ZP),
             ]),
             Face::ZN => self.weighted_corner_ao([
+                neighbors.is_solid(block::Direction::XP_Y0_ZN),
                 neighbors.is_solid(block::Direction::X0_YP_ZN),
                 neighbors.is_solid(block::Direction::XN_Y0_ZN),
                 neighbors.is_solid(block::Direction::X0_YN_ZN),
-                neighbors.is_solid(block::Direction::XP_Y0_ZN),
             ]),
-            _ => [0; 4],
+            _ => [AO_INTENSITY[0]; 4],
         }
     }
 
-    fn weighted_corner_ao(&self, edge_flags: [bool; 4]) -> [u32; 4] {
-        let mut ao = [0; 4];
+    fn weighted_corner_ao(&self, edge_flags: [bool; 4]) -> [f32; 4] {
+        let mut ao = [AO_INTENSITY[0]; 4];
 
         if edge_flags[0] && edge_flags[1] {
-            ao[1] = 2;
+            ao[1] = AO_INTENSITY[2];
         } else if edge_flags[1] && edge_flags[2] {
-            ao[3] = 2;
+            ao[3] = AO_INTENSITY[2];
         } else if edge_flags[2] && edge_flags[3] {
-            ao[2] = 2;
+            ao[2] = AO_INTENSITY[2];
         } else if edge_flags[3] && edge_flags[0] {
-            ao[0] = 2;
+            ao[0] = AO_INTENSITY[2];
         } else {
             if edge_flags[0] {
-                ao[0] = 1;
-                ao[1] = 1;
+                ao[0] = AO_INTENSITY[1];
+                ao[1] = AO_INTENSITY[1];
             }
             if edge_flags[1] {
-                ao[1] = 1;
-                ao[3] = 1;
+                ao[1] = AO_INTENSITY[1];
+                ao[3] = AO_INTENSITY[1];
             }
             if edge_flags[2] {
-                ao[3] = 1;
-                ao[2] = 1;
+                ao[3] = AO_INTENSITY[1];
+                ao[2] = AO_INTENSITY[1];
             }
             if edge_flags[3] {
-                ao[2] = 1;
-                ao[0] = 1;
+                ao[2] = AO_INTENSITY[1];
+                ao[0] = AO_INTENSITY[1];
             }
         }
 

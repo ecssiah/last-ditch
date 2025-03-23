@@ -49,18 +49,20 @@ impl Simulation {
     }
 
     fn setup_agent() -> Arc<RwLock<Agent>> {
-        let agent = Arc::from(RwLock::from(Agent {
+        let mut agent = Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 2.0, -12.0),
+            position: Vec3::new(0.0, 0.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
-        }));
+        };
 
-        agent
+        agent.set_rotation(0.0, 0.0);
+
+        Arc::from(RwLock::from(agent))
     }
 
     fn setup_world() -> Arc<RwLock<World>> {

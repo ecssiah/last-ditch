@@ -5,7 +5,7 @@ struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
     @location(2) color: vec4<f32>,
-    @location(3) ao: u32,
+    @location(3) ao: f32,
 };
 
 struct VertexOutput {
@@ -19,16 +19,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
     output.Position = view_proj * vec4<f32>(input.position, 1.0);
     output.color = input.color;
-
-    var ao_strength: f32 = 1.0;
-
-    if input.ao == 2 {
-        ao_strength = 0.05;
-    } else if input.ao == 1 {
-        ao_strength = 0.5;
-    }
-
-    output.ao = ao_strength;
+    output.ao = input.ao;
 
     return output;
 }
