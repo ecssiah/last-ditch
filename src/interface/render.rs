@@ -475,72 +475,72 @@ impl Render {
                 face_ao
             }
             block::Face::ZP => {
-                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
-                let edge1 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
-                let edge2 = neighbors.is_solid(block::Direction::XN_YP_Z0);
-                let edge3 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+                let edge0 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
+                let edge1 = neighbors.is_solid(block::Direction::X0_YP_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XP_Y0_ZP);
+                let edge3 = neighbors.is_solid(block::Direction::X0_YN_ZP);
 
-                // if edge0 && edge1 {
-                //     face_ao[1] = AO_INTENSITY[2];
-                // } else if edge1 && edge2 {
-                //     face_ao[3] = AO_INTENSITY[2];
-                // } else if edge2 && edge3 {
-                //     face_ao[2] = AO_INTENSITY[2];
-                // } else if edge3 && edge0 {
-                //     face_ao[0] = AO_INTENSITY[2];
-                // } else {
-                //     if edge0 {
-                //         face_ao[0] = AO_INTENSITY[1];
-                //         face_ao[1] = AO_INTENSITY[1];
-                //     }
-                //     if edge1 {
-                //         face_ao[1] = AO_INTENSITY[1];
-                //         face_ao[3] = AO_INTENSITY[1];
-                //     }
-                //     if edge2 {
-                //         face_ao[3] = AO_INTENSITY[1];
-                //         face_ao[2] = AO_INTENSITY[1];
-                //     }
-                //     if edge3 {
-                //         face_ao[2] = AO_INTENSITY[1];
-                //         face_ao[0] = AO_INTENSITY[1];
-                //     }
-                // }
+                if edge0 && edge1 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge3 && edge0 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[3] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[1] = AO_INTENSITY[1];
+                        face_ao[0] = AO_INTENSITY[1];
+                    }
+                }
                
                 face_ao
             }
             block::Face::ZN => {
-                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
-                let edge1 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
-                let edge2 = neighbors.is_solid(block::Direction::XN_YP_Z0);
-                let edge3 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+                let edge0 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+                let edge1 = neighbors.is_solid(block::Direction::X0_YP_ZN);
+                let edge2 = neighbors.is_solid(block::Direction::XP_Y0_ZN);
+                let edge3 = neighbors.is_solid(block::Direction::X0_YN_ZN);
 
-                // if edge0 && edge1 {
-                //     face_ao[1] = AO_INTENSITY[2];
-                // } else if edge1 && edge2 {
-                //     face_ao[3] = AO_INTENSITY[2];
-                // } else if edge2 && edge3 {
-                //     face_ao[2] = AO_INTENSITY[2];
-                // } else if edge3 && edge0 {
-                //     face_ao[0] = AO_INTENSITY[2];
-                // } else {
-                //     if edge0 {
-                //         face_ao[0] = AO_INTENSITY[1];
-                //         face_ao[1] = AO_INTENSITY[1];
-                //     }
-                //     if edge1 {
-                //         face_ao[1] = AO_INTENSITY[1];
-                //         face_ao[3] = AO_INTENSITY[1];
-                //     }
-                //     if edge2 {
-                //         face_ao[3] = AO_INTENSITY[1];
-                //         face_ao[2] = AO_INTENSITY[1];
-                //     }
-                //     if edge3 {
-                //         face_ao[2] = AO_INTENSITY[1];
-                //         face_ao[0] = AO_INTENSITY[1];
-                //     }
-                // }
+                if edge0 && edge1 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge3 && edge0 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[3] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[1] = AO_INTENSITY[1];
+                        face_ao[0] = AO_INTENSITY[1];
+                    }
+                }
               
                 face_ao
             }
