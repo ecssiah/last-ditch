@@ -18,12 +18,12 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: usize = 2;
+pub const CHUNK_RADIUS: usize = 4;
 pub const CHUNK_SIZE: usize = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: usize = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: usize = 2;
+pub const WORLD_RADIUS: usize = 4;
 pub const WORLD_SIZE: usize = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: usize = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;

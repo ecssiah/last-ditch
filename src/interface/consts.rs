@@ -13,4 +13,4 @@ pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
 pub const DEBUG_COLOR: bool = true;
 
-pub const AO_INTENSITY: [f32; 3] = [1.0, 0.4, 0.01];
+pub const AO_INTENSITY: [f32; 3] = [1.0, 0.5, 0.01];

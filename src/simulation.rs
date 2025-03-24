@@ -95,6 +95,9 @@ impl Simulation {
 
     pub fn generate(&mut self) {
         self.generate_structure(0, 0, 0, structure::Kind::AOTest);
+
+        // self.generate_structure(-12, 0, 0, structure::Kind::Mario);
+        // self.generate_structure(12, 0, 0, structure::Kind::Luigi);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -122,7 +125,7 @@ impl Simulation {
 
     pub fn get_chunk(&self, grid_position: IVec3) -> Option<Arc<RwLock<chunk::Chunk>>> {
         let chunk_id = Self::grid_position_to_chunk_id(grid_position)?;
-        
+
         Some(self.state.chunks[chunk_id].clone())
     }
 
@@ -233,7 +236,6 @@ impl Simulation {
                 .entry(chunk_id)
                 .or_insert_with(Vec::new)
                 .push((block_id, visibility));
-
         }
 
         for offset in Direction::face_offsets() {
