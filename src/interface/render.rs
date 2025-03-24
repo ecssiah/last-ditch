@@ -337,6 +337,12 @@ impl Render {
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
                     neighbors.is_solid(block::Direction::XP_YP_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
                 ])
             },
             block::Face::XN => {
@@ -345,6 +351,12 @@ impl Render {
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
                 ])
             },
             block::Face::YP => {
@@ -353,6 +365,12 @@ impl Render {
                     neighbors.is_solid(block::Direction::XP_YP_Z0),
                     neighbors.is_solid(block::Direction::X0_YP_ZN),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
                 ])
             },
             block::Face::YN => {
@@ -361,6 +379,12 @@ impl Render {
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
                 ])
             },
             block::Face::ZP => {
@@ -369,6 +393,12 @@ impl Render {
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
                     neighbors.is_solid(block::Direction::X0_YP_ZP),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
                 ])
             },
             block::Face::ZN => {
@@ -377,52 +407,46 @@ impl Render {
                     neighbors.is_solid(block::Direction::XP_Y0_ZN),
                     neighbors.is_solid(block::Direction::X0_YP_ZN),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
                 ])
             },
             _ => panic!("Invalid Face: {:?}", face),
         }
     }
 
-    fn calculate_face_ao(&self, edge: [bool; 4]) -> [f32; 4] {
-        let mut ao = [AO_INTENSITY[0]; 4];
+    fn calculate_face_ao(&self, edges: [bool; 4], faces: [bool; 4]) -> [f32; 4] {
+        let mut face_ao = [AO_INTENSITY[0]; 4];
 
-        if edge[0] {
-            ao[0] = AO_INTENSITY[1];
-            ao[1] = AO_INTENSITY[1];
+        if edges[3] && edges[0] {
+            face_ao[0] = AO_INTENSITY[2];
+        } else if (edges[3] && faces[0]) || (edges[0] && faces[3]) {
+            face_ao[0] = AO_INTENSITY[1];
         }
 
-        if edge[1] {
-            ao[1] = AO_INTENSITY[1];
-            ao[2] = AO_INTENSITY[1];
+        if edges[0] && edges[1] {
+            face_ao[1] = AO_INTENSITY[2];
+        } else if (edges[0] && faces[1]) || (edges[1] && faces[0]) {
+            face_ao[1] = AO_INTENSITY[1];
         }
 
-        if edge[2] {
-            ao[2] = AO_INTENSITY[1];
-            ao[3] = AO_INTENSITY[1];
+        if edges[1] && edges[2] {
+            face_ao[2] = AO_INTENSITY[2];
+        } else if (edges[1] && faces[2]) || (edges[2] && faces[1]) {
+            face_ao[2] = AO_INTENSITY[1];
         }
 
-        if edge[3] {
-            ao[3] = AO_INTENSITY[1];
-            ao[0] = AO_INTENSITY[1];
+        if edges[2] && edges[3] {
+            face_ao[3] = AO_INTENSITY[2];
+        } else if (edges[2] && faces[3]) || (edges[3] && faces[2]) {
+            face_ao[3] = AO_INTENSITY[1];
         }
 
-        if edge[3] && edge[0] {
-            ao[0] = AO_INTENSITY[2];
-        }
-
-        if edge[0] && edge[1] {
-            ao[1] = AO_INTENSITY[2];
-        }
-
-        if edge[1] && edge[2] {
-            ao[2] = AO_INTENSITY[2];
-        }
-
-        if edge[2] && edge[3] {
-            ao[3] = AO_INTENSITY[2];
-        }
-
-        ao
+        face_ao
     }
 
     fn update_view_projection(&mut self) {
