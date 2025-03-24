@@ -11,6 +11,6 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-pub const DEBUG_COLORING: bool = true;
+pub const DEBUG_COLOR: bool = true;
 
 pub const AO_INTENSITY: [f32; 3] = [1.0, 0.4, 0.01];

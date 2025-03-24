@@ -155,10 +155,10 @@ impl Face {
 
     #[rustfmt::skip]
     const ZN_VERTICES: [(f32, f32, f32); 4] = [
-        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
         (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
         ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
     pub fn quad_offsets(self) -> &'static [(f32, f32, f32); 4] {
@@ -182,6 +182,18 @@ impl Face {
             Face::YN => IVec3::new( 0, -1,  0),
             Face::ZP => IVec3::new( 0,  0,  1),
             Face::ZN => IVec3::new( 0,  0, -1),
+            _ => panic!("Invalid Face: {:?}", self),
+        }
+    }
+
+    pub fn debug_color(self) -> [f32; 4] {
+        match self {
+            Face::XP => [1.0, 0.6, 0.6, 1.0],
+            Face::XN => [1.0, 1.0, 0.6, 1.0],
+            Face::YP => [0.6, 1.0, 0.6, 1.0],
+            Face::YN => [0.6, 1.0, 1.0, 1.0],
+            Face::ZP => [0.6, 0.6, 1.0, 1.0],
+            Face::ZN => [1.0, 0.6, 1.0, 1.0],
             _ => panic!("Invalid Face: {:?}", self),
         }
     }

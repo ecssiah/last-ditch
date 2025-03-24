@@ -2,7 +2,7 @@ use crate::{
     include_shader_src,
     interface::{
         chunk::{ChunkMesh, ChunkMeshCache, ChunkVertex, GpuChunkMeshCache},
-        AO_INTENSITY, ASPECT_RATIO, DEBUG_COLORING, FAR_PLANE, FOV, NEAR_PLANE,
+        AO_INTENSITY, ASPECT_RATIO, DEBUG_COLOR, FAR_PLANE, FOV, NEAR_PLANE,
     },
     simulation::{
         agent::Agent, block, chunk::ChunkID, state::State, Simulation, CHUNK_VOLUME, WORLD_VOLUME,
@@ -260,7 +260,7 @@ impl Render {
         for block_id in 0..CHUNK_VOLUME {
             let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
 
-            let meta = chunk.meta[block_id];
+            let meta = &chunk.meta[block_id];
             let block = chunk.get_block(block_id).unwrap();
 
             for face in block::Face::ALL {
@@ -270,34 +270,28 @@ impl Render {
 
                 let face_vertices = self.generate_quad(grid_position, face);
                 let face_normal = face.normal().as_vec3().to_array();
-                let face_ao = self.generate_ao(&meta, face);
 
-                let face_color = if DEBUG_COLORING {
-                    match face {
-                        block::Face::XP => [1.0, 0.6, 0.6, 1.0],
-                        block::Face::XN => [1.0, 1.0, 0.6, 1.0],
-                        block::Face::YP => [0.6, 1.0, 0.6, 1.0],
-                        block::Face::YN => [0.6, 1.0, 1.0, 1.0],
-                        block::Face::ZP => [0.6, 0.6, 1.0, 1.0],
-                        block::Face::ZN => [1.0, 0.6, 1.0, 1.0],
-                        _ => [1.0, 1.0, 1.0, 1.0],
-                    }
+                let face_color = if DEBUG_COLOR {
+                    face.debug_color()
                 } else {
                     [block.color.0, block.color.1, block.color.2, block.color.3]
                 };
+                
+                let face_ao = self.generate_ao(&meta, face);
 
                 let chunk_vertices =
                     face_vertices
                         .iter()
                         .enumerate()
                         .map(|(face_index, face_vertex)| {
-                            let face_position = face_vertex.to_array();
+                            let vertex_position = face_vertex.to_array();
+                            let vertex_ao = face_ao[face_index];
 
                             ChunkVertex {
-                                position: face_position,
+                                position: vertex_position,
                                 normal: face_normal,
                                 color: face_color,
-                                ao: face_ao[face_index],
+                                ao: vertex_ao,
                             }
                         });
 
@@ -336,46 +330,221 @@ impl Render {
     }
 
     fn generate_ao(&self, meta: &block::Meta, face: block::Face) -> [f32; 4] {
+        let mut face_ao = [AO_INTENSITY[0]; 4];
         let neighbors = &meta.neighbors;
 
         match face {
-            block::Face::XP => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::XP_YN_Z0),
-                neighbors.is_solid(block::Direction::XP_Y0_ZN),
-                neighbors.is_solid(block::Direction::XP_YP_Z0),
-                neighbors.is_solid(block::Direction::XP_Y0_ZP),
-            ]),
-            block::Face::XN => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::XN_YN_Z0),
-                neighbors.is_solid(block::Direction::XN_Y0_ZP),
-                neighbors.is_solid(block::Direction::XN_YP_Z0),
-                neighbors.is_solid(block::Direction::XN_Y0_ZN),
-            ]),
-            block::Face::YP => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::X0_YP_ZP),
-                neighbors.is_solid(block::Direction::XP_YP_Z0),
-                neighbors.is_solid(block::Direction::X0_YP_ZN),
-                neighbors.is_solid(block::Direction::XN_YP_Z0),
-            ]),
-            block::Face::YN => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::X0_YN_ZN),
-                neighbors.is_solid(block::Direction::XN_YN_Z0),
-                neighbors.is_solid(block::Direction::X0_YN_ZP),
-                neighbors.is_solid(block::Direction::XN_YN_Z0),
-            ]),
-            block::Face::ZP => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::X0_YN_ZP),
-                neighbors.is_solid(block::Direction::XP_Y0_ZP),
-                neighbors.is_solid(block::Direction::X0_YP_ZP),
-                neighbors.is_solid(block::Direction::XN_Y0_ZP),
-            ]),
-            block::Face::ZN => self.weighted_corner_ao([
-                neighbors.is_solid(block::Direction::XP_Y0_ZN),
-                neighbors.is_solid(block::Direction::X0_YP_ZN),
-                neighbors.is_solid(block::Direction::XN_Y0_ZN),
-                neighbors.is_solid(block::Direction::X0_YN_ZN),
-            ]),
-            _ => [AO_INTENSITY[0]; 4],
+            block::Face::XP => {
+                let edge0 = neighbors.is_solid(block::Direction::XP_YN_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::XP_Y0_ZN);
+                let edge2 = neighbors.is_solid(block::Direction::XP_YP_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::XP_Y0_ZP);
+
+                if edge0 && edge3 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge0 && edge1 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[3] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                }
+
+                face_ao
+            }
+            block::Face::XN => {
+                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XN_YP_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+
+                if edge0 && edge1 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else if edge3 && edge0 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[1] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[3] = AO_INTENSITY[1];
+                        face_ao[0] = AO_INTENSITY[1];
+                    }
+                }
+
+                face_ao
+            }
+            block::Face::YP => {
+                let edge0 = neighbors.is_solid(block::Direction::XN_YP_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::X0_YP_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XP_YP_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::X0_YP_ZN);
+
+                if edge0 && edge1 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge3 && edge0 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[1] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                }
+                 
+                face_ao
+            }
+            block::Face::YN => {
+                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::X0_YN_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XP_YN_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::X0_YN_ZN);
+
+                if edge0 && edge1 {
+                    face_ao[3] = AO_INTENSITY[2];
+                } else if edge1 && edge2 {
+                    face_ao[2] = AO_INTENSITY[2];
+                } else if edge2 && edge3 {
+                    face_ao[1] = AO_INTENSITY[2];
+                } else if edge3 && edge0 {
+                    face_ao[0] = AO_INTENSITY[2];
+                } else {
+                    if edge0 {
+                        face_ao[3] = AO_INTENSITY[1];
+                        face_ao[0] = AO_INTENSITY[1];
+                    }
+                    if edge1 {
+                        face_ao[2] = AO_INTENSITY[1];
+                        face_ao[3] = AO_INTENSITY[1];
+                    }
+                    if edge2 {
+                        face_ao[1] = AO_INTENSITY[1];
+                        face_ao[2] = AO_INTENSITY[1];
+                    }
+                    if edge3 {
+                        face_ao[0] = AO_INTENSITY[1];
+                        face_ao[1] = AO_INTENSITY[1];
+                    }
+                }
+              
+                face_ao
+            }
+            block::Face::ZP => {
+                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XN_YP_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+
+                // if edge0 && edge1 {
+                //     face_ao[1] = AO_INTENSITY[2];
+                // } else if edge1 && edge2 {
+                //     face_ao[3] = AO_INTENSITY[2];
+                // } else if edge2 && edge3 {
+                //     face_ao[2] = AO_INTENSITY[2];
+                // } else if edge3 && edge0 {
+                //     face_ao[0] = AO_INTENSITY[2];
+                // } else {
+                //     if edge0 {
+                //         face_ao[0] = AO_INTENSITY[1];
+                //         face_ao[1] = AO_INTENSITY[1];
+                //     }
+                //     if edge1 {
+                //         face_ao[1] = AO_INTENSITY[1];
+                //         face_ao[3] = AO_INTENSITY[1];
+                //     }
+                //     if edge2 {
+                //         face_ao[3] = AO_INTENSITY[1];
+                //         face_ao[2] = AO_INTENSITY[1];
+                //     }
+                //     if edge3 {
+                //         face_ao[2] = AO_INTENSITY[1];
+                //         face_ao[0] = AO_INTENSITY[1];
+                //     }
+                // }
+               
+                face_ao
+            }
+            block::Face::ZN => {
+                let edge0 = neighbors.is_solid(block::Direction::XN_YN_Z0);
+                let edge1 = neighbors.is_solid(block::Direction::XN_Y0_ZP);
+                let edge2 = neighbors.is_solid(block::Direction::XN_YP_Z0);
+                let edge3 = neighbors.is_solid(block::Direction::XN_Y0_ZN);
+
+                // if edge0 && edge1 {
+                //     face_ao[1] = AO_INTENSITY[2];
+                // } else if edge1 && edge2 {
+                //     face_ao[3] = AO_INTENSITY[2];
+                // } else if edge2 && edge3 {
+                //     face_ao[2] = AO_INTENSITY[2];
+                // } else if edge3 && edge0 {
+                //     face_ao[0] = AO_INTENSITY[2];
+                // } else {
+                //     if edge0 {
+                //         face_ao[0] = AO_INTENSITY[1];
+                //         face_ao[1] = AO_INTENSITY[1];
+                //     }
+                //     if edge1 {
+                //         face_ao[1] = AO_INTENSITY[1];
+                //         face_ao[3] = AO_INTENSITY[1];
+                //     }
+                //     if edge2 {
+                //         face_ao[3] = AO_INTENSITY[1];
+                //         face_ao[2] = AO_INTENSITY[1];
+                //     }
+                //     if edge3 {
+                //         face_ao[2] = AO_INTENSITY[1];
+                //         face_ao[0] = AO_INTENSITY[1];
+                //     }
+                // }
+              
+                face_ao
+            }
+            _ => face_ao,
         }
     }
 

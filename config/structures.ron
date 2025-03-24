@@ -3,65 +3,84 @@
         kind: AOTest,
         size: [4, 4, 4],
         blocks: [
-            BlockData(kind: White, position: [ 0, -7,  1]),
-            BlockData(kind: White, position: [-1, -7,  0]),
-            BlockData(kind: White, position: [ 1, -7,  0]),
+            BlockData(kind: White, position: [ 0, -4,  3]),
+            BlockData(kind: White, position: [ 0, -3,  4]),
 
-            BlockData(kind: White, position: [ 0, -2,  7]),
-            BlockData(kind: White, position: [ 0, -1,  8]),
+            BlockData(kind: White, position: [ 3, -4,  0]),
+            BlockData(kind: White, position: [ 4, -3,  0]),
 
-            BlockData(kind: White, position: [ 7, -2,  0]),
-            BlockData(kind: White, position: [ 8, -1,  0]),
+            BlockData(kind: White, position: [ 0, -4, -3]),
+            BlockData(kind: White, position: [ 0, -3, -4]),
 
-            BlockData(kind: White, position: [ 0, -2, -7]),
-            BlockData(kind: White, position: [ 0, -1, -8]),
+            BlockData(kind: White, position: [-3, -4,  0]),
+            BlockData(kind: White, position: [-4, -3,  0]),
 
-            BlockData(kind: White, position: [-7, -2,  0]),
-            BlockData(kind: White, position: [-8, -1,  0]),
+            BlockData(kind: White, position: [ 0,  4,  3]),
+            BlockData(kind: White, position: [ 0,  3,  4]),
 
-            BlockData(kind: White, position: [ 0,  2,  7]),
-            BlockData(kind: White, position: [ 0,  1,  8]),
+            BlockData(kind: White, position: [ 3,  4,  0]),
+            BlockData(kind: White, position: [ 4,  3,  0]),
 
-            BlockData(kind: White, position: [ 7,  2,  0]),
-            BlockData(kind: White, position: [ 8,  1,  0]),
+            BlockData(kind: White, position: [ 0,  4, -3]),
+            BlockData(kind: White, position: [ 0,  3, -4]),
 
-            BlockData(kind: White, position: [ 0,  2, -7]),
-            BlockData(kind: White, position: [ 0,  1, -8]),
+            BlockData(kind: White, position: [-3,  4,  0]),
+            BlockData(kind: White, position: [-4,  3,  0]),
 
-            BlockData(kind: White, position: [-7,  2,  0]),
-            BlockData(kind: White, position: [-8,  1,  0]),
 
-            BlockData(kind: White, position: [ 7, -2,  7]),
-            BlockData(kind: White, position: [ 8, -1,  7]),
-            BlockData(kind: White, position: [ 7, -1,  8]),
+            BlockData(kind: White, position: [ 4,  0,  3]),
+            BlockData(kind: White, position: [ 3,  0,  4]),
 
-            BlockData(kind: White, position: [-7, -2,  7]),
-            BlockData(kind: White, position: [-8, -1,  7]),
-            BlockData(kind: White, position: [-7, -1,  8]),
+            BlockData(kind: White, position: [-4,  0,  3]),
+            BlockData(kind: White, position: [-3,  0,  4]),
 
-            BlockData(kind: White, position: [ 7, -2, -7]),
-            BlockData(kind: White, position: [ 8, -1, -7]),
-            BlockData(kind: White, position: [ 7, -1, -8]),
+            BlockData(kind: White, position: [ 4,  0, -3]),
+            BlockData(kind: White, position: [ 3,  0, -4]),
 
-            BlockData(kind: White, position: [-7, -2, -7]),
-            BlockData(kind: White, position: [-8, -1, -7]),
-            BlockData(kind: White, position: [-7, -1, -8]),
+            BlockData(kind: White, position: [-4,  0, -3]),
+            BlockData(kind: White, position: [-3,  0, -4]),
 
-            BlockData(kind: White, position: [ 7,  2,  7]),
-            BlockData(kind: White, position: [ 8,  1,  7]),
-            BlockData(kind: White, position: [ 7,  1,  8]),
+            BlockData(kind: White, position: [-4,  0,  3]),
+            BlockData(kind: White, position: [-3,  0,  4]),
 
-            BlockData(kind: White, position: [-7,  2,  7]),
-            BlockData(kind: White, position: [-8,  1,  7]),
-            BlockData(kind: White, position: [-7,  1,  8]),
+            BlockData(kind: White, position: [ 4,  0, -3]),
+            BlockData(kind: White, position: [ 3,  0, -4]),
 
-            BlockData(kind: White, position: [ 7,  2, -7]),
-            BlockData(kind: White, position: [ 8,  1, -7]),
-            BlockData(kind: White, position: [ 7,  1, -8]),
+            BlockData(kind: White, position: [-4,  0, -3]),
+            BlockData(kind: White, position: [-3,  0, -4]),
 
-            BlockData(kind: White, position: [-7,  2, -7]),
-            BlockData(kind: White, position: [-8,  1, -7]),
-            BlockData(kind: White, position: [-7,  1, -8]),
+
+            BlockData(kind: White, position: [ 3, -4,  3]),
+            BlockData(kind: White, position: [ 4, -3,  3]),
+            BlockData(kind: White, position: [ 3, -3,  4]),
+
+            BlockData(kind: White, position: [-3, -4,  3]),
+            BlockData(kind: White, position: [-4, -3,  3]),
+            BlockData(kind: White, position: [-3, -3,  4]),
+
+            BlockData(kind: White, position: [ 3, -4, -3]),
+            BlockData(kind: White, position: [ 4, -3, -3]),
+            BlockData(kind: White, position: [ 3, -3, -4]),
+
+            BlockData(kind: White, position: [-3, -4, -3]),
+            BlockData(kind: White, position: [-4, -3, -3]),
+            BlockData(kind: White, position: [-3, -3, -4]),
+
+            BlockData(kind: White, position: [ 3,  4,  3]),
+            BlockData(kind: White, position: [ 4,  3,  3]),
+            BlockData(kind: White, position: [ 3,  3,  4]),
+
+            BlockData(kind: White, position: [-3,  4,  3]),
+            BlockData(kind: White, position: [-4,  3,  3]),
+            BlockData(kind: White, position: [-3,  3,  4]),
+
+            BlockData(kind: White, position: [ 3,  4, -3]),
+            BlockData(kind: White, position: [ 4,  3, -3]),
+            BlockData(kind: White, position: [ 3,  3, -4]),
+
+            BlockData(kind: White, position: [-3,  4, -3]),
+            BlockData(kind: White, position: [-4,  3, -3]),
+            BlockData(kind: White, position: [-3,  3, -4]),
         ],
     ),
     Structure (
