@@ -335,8 +335,8 @@ impl Render {
                 self.calculate_face_ao([
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
                     neighbors.is_solid(block::Direction::XP_YP_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
                 ])
             },
             block::Face::XN => {
