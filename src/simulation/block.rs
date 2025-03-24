@@ -139,10 +139,10 @@ impl Face {
 
     #[rustfmt::skip]
     const YN_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
         (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
+        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
+        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
     ];
 
     #[rustfmt::skip]
