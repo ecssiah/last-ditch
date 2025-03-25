@@ -95,10 +95,10 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        self.generate_structure(0, 0, 0, structure::Kind::AOTest);
+        // self.generate_structure(0, 0, 0, structure::Kind::AOTest);
 
-        // self.generate_structure(-12, 0, 0, structure::Kind::Mario);
-        // self.generate_structure(12, 0, 0, structure::Kind::Luigi);
+        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
+        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {

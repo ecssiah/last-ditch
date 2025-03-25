@@ -68,7 +68,7 @@
         solid: true,
         opacity: 1.0,
         emittance: 0,
-        color: (0.01, 0.01, 0.01, 1.0),
+        color: (0.02, 0.02, 0.02, 1.0),
     ),
     Block(
         kind: White,

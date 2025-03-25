@@ -12,12 +12,7 @@ use glam::{IVec3, Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use winit::{event::WindowEvent, window::Window};
 
-const CLEAR_COLOR: wgpu::Color = wgpu::Color {
-    r: 0.0,
-    g: 0.0,
-    b: 0.0,
-    a: 1.0,
-};
+use super::consts::CLEAR_COLOR;
 
 #[rustfmt::skip]
 const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
@@ -37,6 +32,7 @@ pub struct Render {
     surface: wgpu::Surface<'static>,
     surface_format: wgpu::TextureFormat,
     surface_config: wgpu::SurfaceConfiguration,
+    surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
@@ -128,6 +124,11 @@ impl Render {
             surface_format,
         );
 
+        let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
+            format: Some(surface_format.add_srgb_suffix()),
+            ..Default::default()
+        };
+
         let chunk_mesh_cache = ChunkMeshCache::new();
         let gpu_chunk_mesh_cache = GpuChunkMeshCache::new();
 
@@ -141,6 +142,7 @@ impl Render {
             surface,
             surface_format,
             surface_config,
+            surface_texture_view_descriptor,
             view_projection_buffer,
             view_projection_bind_group,
             chunk_pipeline,
@@ -452,57 +454,34 @@ impl Render {
     }
 
     fn calculate_face_ao(faces: [bool; 4], edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
-        let mut face_ao = [AO_INTENSITY[0]; 4];
+        [
+            Self::calculate_vertex_ao(edges[3], edges[0], faces[3], faces[0], corners[3]),
+            Self::calculate_vertex_ao(edges[0], edges[1], faces[0], faces[1], corners[0]),
+            Self::calculate_vertex_ao(edges[1], edges[2], faces[1], faces[2], corners[1]),
+            Self::calculate_vertex_ao(edges[2], edges[3], faces[2], faces[3], corners[2]),
+        ]
+    }
 
-        if edges[3] && edges[0] {
-            face_ao[0] = AO_INTENSITY[2];
-        } else if edges[3] {
-            if faces[0] && corners[3] {
-                face_ao[0] = AO_INTENSITY[1];
+    fn calculate_vertex_ao(
+        edge1: bool,
+        edge2: bool,
+        face1: bool,
+        face2: bool,
+        corner: bool,
+    ) -> f32 {
+        if edge1 && edge2 {
+            return AO_INTENSITY[2];
+        } else if edge1 {
+            if face2 && corner {
+                return AO_INTENSITY[1];
             }
-        }  else if edges[0] {
-            if faces[3] && corners[3] {
-                face_ao[0] = AO_INTENSITY[1];
+        } else if edge2 {
+            if face1 && corner {
+                return AO_INTENSITY[1];
             }
         }
 
-        if edges[0] && edges[1] {
-            face_ao[1] = AO_INTENSITY[2];
-        } else if edges[0] {
-            if faces[1] && corners[0] {
-                face_ao[1] = AO_INTENSITY[1];
-            }
-        } else if edges[1] {
-            if faces[0] && corners[0] {
-                face_ao[1] = AO_INTENSITY[1];
-            }
-        }
-
-        if edges[1] && edges[2] {
-            face_ao[2] = AO_INTENSITY[2];
-        } else if edges[1] {
-            if faces[2] && corners[1] {
-                face_ao[2] = AO_INTENSITY[1];
-            }
-        } else if edges[2] {
-            if faces[1] && corners[1] {
-                face_ao[2] = AO_INTENSITY[1];
-            }
-        }
-
-        if edges[2] && edges[3] {
-            face_ao[3] = AO_INTENSITY[2];
-        } else if edges[2] {
-            if faces[3] && corners[2] {
-                face_ao[3] = AO_INTENSITY[1];
-            }
-        } else if edges[3] {
-            if faces[2] && corners[2] {
-                face_ao[3] = AO_INTENSITY[1];
-            }
-        }
-
-        face_ao
+        AO_INTENSITY[0]
     }
 
     fn update_view_projection(&mut self) {
@@ -516,6 +495,8 @@ impl Render {
     }
 
     pub fn render(&self) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+
         let surface_texture = self
             .surface
             .get_current_texture()
@@ -523,33 +504,37 @@ impl Render {
 
         let texture_view = surface_texture
             .texture
-            .create_view(&wgpu::TextureViewDescriptor {
-                format: Some(self.surface_format.add_srgb_suffix()),
-                ..Default::default()
-            });
+            .create_view(&self.surface_texture_view_descriptor);
+
+        let chunk_render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+            view: &texture_view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color {
+                    r: CLEAR_COLOR[0],
+                    g: CLEAR_COLOR[1],
+                    b: CLEAR_COLOR[2],
+                    a: CLEAR_COLOR[3],
+                }),
+                store: wgpu::StoreOp::Store,
+            },
+        });
 
         let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
 
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let chunk_depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
+            view: &depth_texture_view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Clear(1.0),
+                store: wgpu::StoreOp::Store,
+            }),
+            stencil_ops: None,
+        });
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("World Render Pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &texture_view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(CLEAR_COLOR),
-                    store: wgpu::StoreOp::Store,
-                },
-            })],
-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &depth_texture_view,
-                depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(1.0),
-                    store: wgpu::StoreOp::Store,
-                }),
-                stencil_ops: None,
-            }),
+            color_attachments: &[chunk_render_pass_color_attachment],
+            depth_stencil_attachment: chunk_depth_stencil_attachment,
             timestamp_writes: None,
             occlusion_query_set: None,
         });
