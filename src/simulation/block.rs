@@ -1,6 +1,6 @@
 use crate::simulation::BLOCK_RADIUS;
 use bitflags::bitflags;
-use glam::IVec3;
+use glam::{IVec3, Vec3};
 use serde::Deserialize;
 
 pub type BlockID = usize;
@@ -111,77 +111,64 @@ bitflags! {
 }
 
 impl Face {
-    pub const ALL: [Face; 6] = [Face::XP, Face::XN, Face::YP, Face::YN, Face::ZP, Face::ZN];
-
     #[rustfmt::skip]
-    const XP_VERTICES: [(f32, f32, f32); 4] = [
-        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
+    pub const ALL: [Face; 6] = [
+        Face::XP, 
+        Face::XN, 
+        Face::YP, 
+        Face::YN, 
+        Face::ZP, 
+        Face::ZN
     ];
 
-    #[rustfmt::skip]
-    const XN_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
-    ];
+    pub fn quad(self) -> [Vec3; 4] {
+        let center = self.normal() * BLOCK_RADIUS;
+        let up = self.up();
+        let right = self.right();
+
+        [
+            center + (-right - up) * BLOCK_RADIUS,
+            center + ( right - up) * BLOCK_RADIUS,
+            center + ( right + up) * BLOCK_RADIUS,
+            center + (-right + up) * BLOCK_RADIUS,
+        ]
+    }
 
     #[rustfmt::skip]
-    const YP_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
-    ];
-
-    #[rustfmt::skip]
-    const YN_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-    ];
-
-    #[rustfmt::skip]
-    const ZP_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS,  BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS,  BLOCK_RADIUS),
-    ];
-
-    #[rustfmt::skip]
-    const ZN_VERTICES: [(f32, f32, f32); 4] = [
-        (-BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS, -BLOCK_RADIUS, -BLOCK_RADIUS),
-        ( BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
-        (-BLOCK_RADIUS,  BLOCK_RADIUS, -BLOCK_RADIUS),
-    ];
-
-    pub fn quad_offsets(self) -> &'static [(f32, f32, f32); 4] {
+    pub fn normal(self) -> Vec3 {
         match self {
-            Face::XP => &Self::XP_VERTICES,
-            Face::XN => &Self::XN_VERTICES,
-            Face::YP => &Self::YP_VERTICES,
-            Face::YN => &Self::YN_VERTICES,
-            Face::ZP => &Self::ZP_VERTICES,
-            Face::ZN => &Self::ZN_VERTICES,
+            Face::XP => Vec3::new( 1.0,  0.0,  0.0),
+            Face::XN => Vec3::new(-1.0,  0.0,  0.0),
+            Face::YP => Vec3::new( 0.0,  1.0,  0.0),
+            Face::YN => Vec3::new( 0.0, -1.0,  0.0),
+            Face::ZP => Vec3::new( 0.0,  0.0,  1.0),
+            Face::ZN => Vec3::new( 0.0,  0.0, -1.0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
     #[rustfmt::skip]
-    pub fn normal(self) -> IVec3 {
+    pub fn up(self) -> Vec3 {
         match self {
-            Face::XP => IVec3::new( 1,  0,  0),
-            Face::XN => IVec3::new(-1,  0,  0),
-            Face::YP => IVec3::new( 0,  1,  0),
-            Face::YN => IVec3::new( 0, -1,  0),
-            Face::ZP => IVec3::new( 0,  0,  1),
-            Face::ZN => IVec3::new( 0,  0, -1),
+            Face::XP => Vec3::new( 0.0,  1.0,  0.0),
+            Face::XN => Vec3::new( 0.0,  1.0,  0.0),
+            Face::YP => Vec3::new( 0.0,  0.0,  1.0),
+            Face::YN => Vec3::new( 0.0,  0.0,  1.0),
+            Face::ZP => Vec3::new( 0.0,  1.0,  0.0),
+            Face::ZN => Vec3::new( 0.0,  1.0,  0.0),
+            _ => panic!("Invalid Face: {:?}", self),
+        }
+    }
+
+    #[rustfmt::skip]
+    pub fn right(self) -> Vec3 {
+        match self {
+            Face::XP => Vec3::new( 0.0,  0.0, -1.0),
+            Face::XN => Vec3::new( 0.0,  0.0,  1.0),
+            Face::YP => Vec3::new(-1.0,  0.0,  0.0),
+            Face::YN => Vec3::new( 1.0,  0.0,  0.0),
+            Face::ZP => Vec3::new( 1.0,  0.0,  0.0),
+            Face::ZN => Vec3::new(-1.0,  0.0,  0.0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }

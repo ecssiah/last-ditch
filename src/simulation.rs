@@ -28,6 +28,7 @@ use std::{
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
+
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
     state: Arc<State>,

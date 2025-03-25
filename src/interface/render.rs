@@ -268,8 +268,8 @@ impl Render {
                     continue;
                 }
 
-                let face_vertices = self.generate_quad(grid_position, face);
-                let face_normal = face.normal().as_vec3().to_array();
+                let face_vertices = Self::generate_quad(grid_position, face);
+                let face_normal = face.normal().to_array();
 
                 let face_color = if DEBUG_COLOR {
                     face.debug_color()
@@ -277,7 +277,7 @@ impl Render {
                     [block.color.0, block.color.1, block.color.2, block.color.3]
                 };
 
-                let face_ao = self.calculate_ao(meta.neighbors, face);
+                let face_ao = Self::calculate_ao(meta.neighbors, face);
 
                 let chunk_vertices =
                     face_vertices
@@ -318,108 +318,140 @@ impl Render {
         }
     }
 
-    fn generate_quad(&self, grid_position: IVec3, face: block::Face) -> [Vec3; 4] {
+    fn generate_quad(grid_position: IVec3, face: block::Face) -> [Vec3; 4] {
         let base = grid_position.as_vec3();
-        let offsets = face.quad_offsets();
+        let offsets = face.quad();
 
-        offsets.map(|(ox, oy, oz)| {
-            let position = base + Vec3::new(ox, oy, oz);
-
-            position
-        })
+        offsets.map(|offset| base + offset)
     }
 
-    fn calculate_ao(&self, neighbors: block::Neighbors, face: block::Face) -> [f32; 4] {
+    fn calculate_ao(neighbors: block::Neighbors, face: block::Face) -> [f32; 4] {
         match face {
-            block::Face::XP => {
-                self.calculate_face_ao([
-                    neighbors.is_solid(block::Direction::XP_YN_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+            block::Face::XP => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
                 ],
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                ],
+            ),
+            block::Face::XN => Self::calculate_face_ao(
                 [
                     neighbors.is_solid(block::Direction::X0_YN_Z0),
                     neighbors.is_solid(block::Direction::X0_Y0_ZP),
                     neighbors.is_solid(block::Direction::X0_YP_Z0),
                     neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                ])
-            },
-            block::Face::XN => {
-                self.calculate_face_ao([
+                ],
+                [
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                ])
-            },
-            block::Face::YP => {
-                self.calculate_face_ao([
-                    neighbors.is_solid(block::Direction::X0_YP_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_ZN),
-                    neighbors.is_solid(block::Direction::XN_YP_Z0),
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
                 ],
+            ),
+            block::Face::YP => Self::calculate_face_ao(
                 [
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
                     neighbors.is_solid(block::Direction::X0_Y0_ZN),
                     neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ])
-            },
-            block::Face::YN => {
-                self.calculate_face_ao([
-                    neighbors.is_solid(block::Direction::X0_YN_ZP),
-                    neighbors.is_solid(block::Direction::XP_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_Z0),
+                    neighbors.is_solid(block::Direction::X0_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                ],
+            ),
+            block::Face::YN => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
+                ],
+                [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_YN_ZP),
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                ],
+            ),
+            block::Face::ZP => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ])
-            },
-            block::Face::ZP => {
-                self.calculate_face_ao([
+                ],
+                [
                     neighbors.is_solid(block::Direction::X0_YN_ZP),
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
                     neighbors.is_solid(block::Direction::X0_YP_ZP),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ])
-            },
-            block::Face::ZN => {
-                self.calculate_face_ao([
-                    neighbors.is_solid(block::Direction::X0_YN_ZN),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
-                    neighbors.is_solid(block::Direction::X0_YP_ZN),
-                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
                 ],
+            ),
+            block::Face::ZN => Self::calculate_face_ao(
                 [
                     neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ])
-            },
+                    neighbors.is_solid(block::Direction::X0_YP_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_ZN),
+                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                    neighbors.is_solid(block::Direction::X0_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                ],
+            ),
             _ => panic!("Invalid Face: {:?}", face),
         }
     }
 
-    fn calculate_face_ao(&self, edges: [bool; 4], faces: [bool; 4]) -> [f32; 4] {
+    fn calculate_face_ao(faces: [bool; 4], edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
         let mut face_ao = [AO_INTENSITY[0]; 4];
 
         if edges[3] && edges[0] {
