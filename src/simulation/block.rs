@@ -113,12 +113,12 @@ bitflags! {
 impl Face {
     #[rustfmt::skip]
     pub const ALL: [Face; 6] = [
-        Face::XP, 
-        Face::XN, 
-        Face::YP, 
-        Face::YN, 
-        Face::ZP, 
-        Face::ZN
+        Face::XP,
+        Face::XN,
+        Face::YP,
+        Face::YN,
+        Face::ZP,
+        Face::ZN,
     ];
 
     pub fn quad(self) -> [Vec3; 4] {
@@ -128,8 +128,8 @@ impl Face {
 
         [
             center + (-right - up) * BLOCK_RADIUS,
-            center + ( right - up) * BLOCK_RADIUS,
-            center + ( right + up) * BLOCK_RADIUS,
+            center + (right - up) * BLOCK_RADIUS,
+            center + (right + up) * BLOCK_RADIUS,
             center + (-right + up) * BLOCK_RADIUS,
         ]
     }

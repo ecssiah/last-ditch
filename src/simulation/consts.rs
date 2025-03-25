@@ -37,9 +37,7 @@ pub static BLOCKS: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
     let list: Vec<block::Block> =
         ron::from_str::<Vec<block::Block>>(BLOCK_CONFIG).expect("Failed to parse Blocks");
 
-    list.into_iter()
-        .map(|block| (block.kind, block))
-        .collect()
+    list.into_iter().map(|block| (block.kind, block)).collect()
 });
 
 pub static STRUCTURES: Lazy<HashMap<structure::Kind, structure::Structure>> = Lazy::new(|| {

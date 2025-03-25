@@ -1,4 +1,4 @@
-use crate::simulation::{self, block, CHUNK_VOLUME};
+use crate::simulation::{block, BLOCKS, CHUNK_VOLUME};
 use glam::IVec3;
 
 pub type ChunkID = usize;
@@ -20,7 +20,7 @@ impl Chunk {
         let palette_id = self.palette_ids[block_id];
         let kind = self.palette[palette_id];
 
-        let block = simulation::BLOCKS.get(&kind)?;
+        let block = BLOCKS.get(&kind)?;
 
         Some(block)
     }
