@@ -456,26 +456,50 @@ impl Render {
 
         if edges[3] && edges[0] {
             face_ao[0] = AO_INTENSITY[2];
-        } else if (edges[3] && faces[0]) || (edges[0] && faces[3]) {
-            face_ao[0] = AO_INTENSITY[1];
+        } else if edges[3] {
+            if faces[0] && corners[3] {
+                face_ao[0] = AO_INTENSITY[1];
+            }
+        }  else if edges[0] {
+            if faces[3] && corners[3] {
+                face_ao[0] = AO_INTENSITY[1];
+            }
         }
 
         if edges[0] && edges[1] {
             face_ao[1] = AO_INTENSITY[2];
-        } else if (edges[0] && faces[1]) || (edges[1] && faces[0]) {
-            face_ao[1] = AO_INTENSITY[1];
+        } else if edges[0] {
+            if faces[1] && corners[0] {
+                face_ao[1] = AO_INTENSITY[1];
+            }
+        } else if edges[1] {
+            if faces[0] && corners[0] {
+                face_ao[1] = AO_INTENSITY[1];
+            }
         }
 
         if edges[1] && edges[2] {
             face_ao[2] = AO_INTENSITY[2];
-        } else if (edges[1] && faces[2]) || (edges[2] && faces[1]) {
-            face_ao[2] = AO_INTENSITY[1];
+        } else if edges[1] {
+            if faces[2] && corners[1] {
+                face_ao[2] = AO_INTENSITY[1];
+            }
+        } else if edges[2] {
+            if faces[1] && corners[1] {
+                face_ao[2] = AO_INTENSITY[1];
+            }
         }
 
         if edges[2] && edges[3] {
             face_ao[3] = AO_INTENSITY[2];
-        } else if (edges[2] && faces[3]) || (edges[3] && faces[2]) {
-            face_ao[3] = AO_INTENSITY[1];
+        } else if edges[2] {
+            if faces[3] && corners[2] {
+                face_ao[3] = AO_INTENSITY[1];
+            }
+        } else if edges[3] {
+            if faces[2] && corners[2] {
+                face_ao[3] = AO_INTENSITY[1];
+            }
         }
 
         face_ao
