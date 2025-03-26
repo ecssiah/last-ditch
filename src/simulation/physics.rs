@@ -1,10 +1,14 @@
+use crate::simulation::agent::{Agent, AgentID};
 use rapier3d::{
     na::{vector, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::{
-        nalgebra, CCDSolver, ColliderSet, DefaultBroadPhase, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, PhysicsHooks, RigidBodySet
+        nalgebra, CCDSolver, ColliderBuilder, ColliderSet, DefaultBroadPhase, ImpulseJointSet,
+        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyBuilder,
+        RigidBodyHandle, RigidBodySet,
     },
 };
+use std::collections::HashMap;
 
 pub struct Physics {
     pub gravity: Vector3<f32>,
@@ -15,15 +19,16 @@ pub struct Physics {
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
-    pub bodies: RigidBodySet,
-    pub colliders: ColliderSet,
     pub ccd_solver: CCDSolver,
     pub query_pipeline: QueryPipeline,
+    pub bodies: RigidBodySet,
+    pub colliders: ColliderSet,
+    pub agent_handles: HashMap<AgentID, RigidBodyHandle>,
 }
 
 impl Physics {
     pub fn new() -> Physics {
-        let physics = Self {
+        let mut physics = Self {
             gravity: vector![0.0, -9.81, 0.0],
             integration_parameters: IntegrationParameters::default(),
             pipeline: PhysicsPipeline::new(),
@@ -36,10 +41,16 @@ impl Physics {
             query_pipeline: QueryPipeline::new(),
             bodies: RigidBodySet::new(),
             colliders: ColliderSet::new(),
+            agent_handles: HashMap::new(),
         };
+
+        let collider = ColliderBuilder::cuboid(100.0, 0.1, 100.0).build();
+        physics.colliders.insert(collider);
 
         physics
     }
+
+    pub fn add_agent(&mut self, agent: Agent) {}
 
     pub fn step(&mut self) {
         let physics_hooks = ();

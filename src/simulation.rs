@@ -110,6 +110,12 @@ impl Simulation {
         // self.generate_structure(12, -6, 0, structure::Kind::Luigi);
 
         self.generate_ground();
+
+        self.set_block_kind(0, 2, 0, block::Kind::Gold);
+        self.set_block_kind(1, 1, 0, block::Kind::Gold);
+        self.set_block_kind(-1, 1, 0, block::Kind::Gold);
+        self.set_block_kind(0, 1, 1, block::Kind::Gold);
+        self.set_block_kind(0, 1, -1, block::Kind::Gold);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {

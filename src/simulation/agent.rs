@@ -1,7 +1,9 @@
 use glam::{Quat, Vec3};
 
+pub type AgentID = u32;
+
 pub struct Agent {
-    pub id: u32,
+    pub id: AgentID,
     pub name: &'static str,
     pub position: Vec3,
     pub z_speed: f32,
