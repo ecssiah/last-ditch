@@ -1,6 +1,5 @@
 use glam::{Quat, Vec3};
 
-#[derive(Debug)]
 pub struct Agent {
     pub id: u32,
     pub name: &'static str,

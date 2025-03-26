@@ -4,7 +4,6 @@ use glam::IVec3;
 pub type ChunkID = usize;
 pub type PaletteID = usize;
 
-#[derive(Debug)]
 pub struct Chunk {
     pub last_update: u64,
     pub id: ChunkID,

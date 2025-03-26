@@ -17,6 +17,7 @@ pub enum Kind {
     Marker1,
     Marker2,
     Black,
+    Grey,
     White,
     Red,
     Blue,

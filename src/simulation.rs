@@ -6,6 +6,7 @@ pub mod agent;
 pub mod block;
 pub mod chunk;
 pub mod consts;
+pub mod physics;
 pub mod state;
 pub mod structure;
 pub mod world;
@@ -19,6 +20,7 @@ use chunk::ChunkID;
 pub use consts::*;
 use glam::{IVec3, Quat, Vec3};
 use log::info;
+use physics::Physics;
 use state::State;
 use std::{
     collections::HashMap,
@@ -39,6 +41,7 @@ impl Simulation {
         let state = Arc::from(State {
             agent: Self::setup_agent(),
             world: Self::setup_world(),
+            physics: Self::setup_physics(),
             chunks: Self::setup_chunks(),
         });
 
@@ -53,7 +56,7 @@ impl Simulation {
         let mut agent = Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 0.0, 0.0),
+            position: Vec3::new(0.0, 6.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -78,6 +81,12 @@ impl Simulation {
         world
     }
 
+    fn setup_physics() -> Arc<RwLock<Physics>> {
+        let physics = Arc::from(RwLock::from(Physics::new()));
+
+        physics
+    }
+
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
         let chunks: [Arc<RwLock<Chunk>>; WORLD_VOLUME] = core::array::from_fn(|chunk_id| {
             Arc::from(RwLock::from(Chunk {
@@ -97,8 +106,10 @@ impl Simulation {
     pub fn generate(&mut self) {
         // self.generate_structure(0, 0, 0, structure::Kind::AOTest);
 
-        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
-        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
+        // self.generate_structure(-12, -6, 0, structure::Kind::Mario);
+        // self.generate_structure(12, -6, 0, structure::Kind::Luigi);
+
+        self.generate_ground();
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -120,6 +131,20 @@ impl Simulation {
                     grid_position.z,
                     block_data.kind,
                 );
+            }
+        }
+    }
+
+    fn generate_ground(&mut self) {
+        for x in -(2 * CHUNK_RADIUS as isize)..=(2 * CHUNK_RADIUS as isize) {
+            for z in -(2 * CHUNK_RADIUS as isize)..=(2 * CHUNK_RADIUS as isize) {
+                let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
+                    block::Kind::White
+                } else {
+                    block::Kind::Grey
+                };
+                
+                self.set_block_kind(x as i32, 0, z as i32, kind);
             }
         }
     }
@@ -340,7 +365,15 @@ impl Simulation {
 
     fn update(&mut self, dt: f64) {
         self.process_actions();
-        self.evolve(dt);
+
+        self.evolve_world(dt);
+
+        {
+            let mut physics = self.state.physics.write().unwrap();
+            physics.step();
+        }
+
+        self.evolve_agents(dt);
     }
 
     pub fn get_state(&self) -> Arc<State> {
@@ -395,8 +428,7 @@ impl Simulation {
     }
 
     fn evolve(&mut self, dt: f64) {
-        self.evolve_world(dt);
-        self.evolve_agents(dt);
+
     }
 
     fn evolve_world(&mut self, dt: f64) {

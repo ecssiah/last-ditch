@@ -1,4 +1,3 @@
-#[derive(Debug)]
 pub struct World {
     pub active: bool,
     pub seed: u64,
