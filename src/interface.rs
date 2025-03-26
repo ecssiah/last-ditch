@@ -439,13 +439,13 @@ impl Interface {
 
     fn calculate_vertex_ao(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
-            AO_INTENSITY[2]
+            AMBIENT_OCCLUSION_LEVEL[2]
         } else if edge1 || edge2 {
-            AO_INTENSITY[1]
+            AMBIENT_OCCLUSION_LEVEL[1]
         } else if corner {
-            AO_INTENSITY[1]
+            AMBIENT_OCCLUSION_LEVEL[1]
         } else {
-            AO_INTENSITY[0]
+            AMBIENT_OCCLUSION_LEVEL[0]
         }
     }
 

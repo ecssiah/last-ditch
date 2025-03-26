@@ -14,4 +14,4 @@ pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 pub const DEBUG_COLOR: bool = false;
 pub const CLEAR_COLOR: [f64; 4] = [0.0, 0.0, 0.0, 1.0];
 
-pub const AO_INTENSITY: [f32; 3] = [1.0, 0.6, 0.2];
+pub const AMBIENT_OCCLUSION_LEVEL: [f32; 3] = [1.0, 0.6, 0.2];
