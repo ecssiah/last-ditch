@@ -13,7 +13,6 @@ pub mod simulation;
 
 use crate::{interface::Interface, simulation::Simulation};
 use flexi_logger::{Logger, WriteMode};
-use log::{error, info, warn};
 use std::{sync::Arc, thread};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -88,9 +87,9 @@ pub async fn run() {
 
     std::env::set_var("RUST_LOG", "wgpu=debug");
 
-    info!("Starting Last Ditch\n");
-    warn!("Warn logging active\n");
-    error!("Error logging active\n");
+    log::info!("Last Ditch");
+    log::info!("Version: {:?}", env!("CARGO_PKG_VERSION"));
+    log::info!("");
 
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);

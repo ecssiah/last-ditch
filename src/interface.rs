@@ -23,7 +23,6 @@ use crate::{
     },
 };
 use glam::{IVec3, Mat4, Vec3};
-use log::info;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
@@ -174,7 +173,7 @@ impl Interface {
             gpu_chunk_mesh_cache,
         };
 
-        info!("Interface Initialized");
+        log::info!("Interface Initialized");
 
         interface
     }

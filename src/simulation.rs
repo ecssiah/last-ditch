@@ -19,7 +19,6 @@ pub use chunk::Chunk;
 use chunk::ChunkID;
 pub use consts::*;
 use glam::{IVec3, Quat, Vec3};
-use log::info;
 use physics::Physics;
 use state::State;
 use std::{
@@ -47,7 +46,7 @@ impl Simulation {
 
         let simulation = Self { action_rx, state };
 
-        info!("Simulation Initialized");
+        log::info!("Simulation Initialized");
 
         simulation
     }

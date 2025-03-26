@@ -1,11 +1,11 @@
-use crate::simulation::agent::{Agent, AgentID};
+use crate::simulation::agent::AgentID;
 use rapier3d::{
     na::{vector, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::{
         nalgebra, CCDSolver, ColliderBuilder, ColliderSet, DefaultBroadPhase, ImpulseJointSet,
-        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyBuilder,
-        RigidBodyHandle, RigidBodySet,
+        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyHandle,
+        RigidBodySet,
     },
 };
 use std::collections::HashMap;
@@ -49,8 +49,6 @@ impl Physics {
 
         physics
     }
-
-    pub fn add_agent(&mut self, agent: Agent) {}
 
     pub fn step(&mut self) {
         let physics_hooks = ();
