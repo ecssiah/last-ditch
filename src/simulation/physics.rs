@@ -49,9 +49,9 @@ impl Physics {
         };
 
         let ground_collider = ColliderBuilder::cuboid(
-            (CHUNK_RADIUS + CHUNK_SIZE) as f32,
+            (CHUNK_SIZE) as f32,
             1.0,
-            (CHUNK_RADIUS + CHUNK_SIZE) as f32,
+            (CHUNK_SIZE) as f32,
         )
         .build();
 
@@ -82,17 +82,21 @@ impl Physics {
         let Some(rb_handle) = self.agent_handles.get(&agent.id) else {
             return;
         };
+
         let Some(rb) = self.bodies.get_mut(*rb_handle) else {
             return;
         };
 
         let input_dir = Vec3::new(agent.x_speed, 0.0, agent.z_speed);
+
         if input_dir.length_squared() < f32::EPSILON {
+            let current = rb.linvel();
+            rb.set_linvel(vector![0.0, current.y, 0.0], true);
             return;
         }
 
         let forward = agent.look_rotation * input_dir.normalize();
-        let speed = 4.0;
+        let speed = 6.0;
 
         let velocity = vector![forward.x * speed, rb.linvel().y, forward.z * speed];
         rb.set_linvel(velocity, true);
@@ -105,10 +109,6 @@ impl Physics {
 
                 let translation = pos.translation.vector;
                 agent.position = Vec3::new(translation.x, translation.y, translation.z);
-
-                let rotation = pos.rotation;
-                agent.look_rotation =
-                    Quat::from_xyzw(rotation.i, rotation.j, rotation.k, rotation.w);
             }
         }
     }
