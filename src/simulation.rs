@@ -55,7 +55,7 @@ impl Simulation {
         let mut agent = Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(0.0, 6.0, 0.0),
+            position: Vec3::new(-6.0, 6.0, 0.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -69,21 +69,21 @@ impl Simulation {
     }
 
     fn setup_world() -> Arc<RwLock<World>> {
-        let world = Arc::from(RwLock::from(World {
+        let world = World {
             active: true,
             seed: SEED,
             time: 0.0,
             ticks: 1,
             last_update: 1,
-        }));
+        };
 
-        world
+        Arc::from(RwLock::from(world))
     }
 
     fn setup_physics() -> Arc<RwLock<Physics>> {
-        let physics = Arc::from(RwLock::from(Physics::new()));
+        let physics = Physics::new();
 
-        physics
+        Arc::from(RwLock::from(physics))
     }
 
     fn setup_chunks() -> Arc<[Arc<RwLock<Chunk>>]> {
@@ -115,6 +115,11 @@ impl Simulation {
         self.set_block_kind(-1, 1, 0, block::Kind::Gold);
         self.set_block_kind(0, 1, 1, block::Kind::Gold);
         self.set_block_kind(0, 1, -1, block::Kind::Gold);
+
+        let agent = self.state.agent.read().unwrap();
+        let mut physics = self.state.physics.write().unwrap();
+
+        physics.add_agent(*agent);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -148,7 +153,7 @@ impl Simulation {
                 } else {
                     block::Kind::Grey
                 };
-                
+
                 self.set_block_kind(x as i32, 0, z as i32, kind);
             }
         }
@@ -373,12 +378,24 @@ impl Simulation {
 
         self.evolve_world(dt);
 
+        let agent_snapshot = {
+            let agent = self.state.agent.read().unwrap();
+            agent.clone()
+        };
+
         {
             let mut physics = self.state.physics.write().unwrap();
+            physics.apply_agent_input(&agent_snapshot);
             physics.step();
         }
 
-        self.evolve_agents(dt);
+        {
+            let physics = self.state.physics.write().unwrap();
+            let mut agent = self.state.agent.write().unwrap();
+            physics.sync_agent_transforms(&mut *agent);
+        }
+
+        // self.evolve_agents(dt);
     }
 
     pub fn get_state(&self) -> Arc<State> {

@@ -2,6 +2,7 @@ use glam::{Quat, Vec3};
 
 pub type AgentID = u32;
 
+#[derive(Clone, Copy)]
 pub struct Agent {
     pub id: AgentID,
     pub name: &'static str,

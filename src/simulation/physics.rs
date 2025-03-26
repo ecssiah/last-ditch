@@ -1,11 +1,15 @@
-use crate::simulation::agent::AgentID;
+use crate::simulation::{
+    agent::{Agent, AgentID},
+    CHUNK_RADIUS, CHUNK_SIZE,
+};
+use glam::{Quat, Vec3};
 use rapier3d::{
     na::{vector, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::{
         nalgebra, CCDSolver, ColliderBuilder, ColliderSet, DefaultBroadPhase, ImpulseJointSet,
-        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyHandle,
-        RigidBodySet,
+        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyBuilder,
+        RigidBodyHandle, RigidBodySet,
     },
 };
 use std::collections::HashMap;
@@ -44,10 +48,69 @@ impl Physics {
             agent_handles: HashMap::new(),
         };
 
-        let collider = ColliderBuilder::cuboid(100.0, 0.1, 100.0).build();
-        physics.colliders.insert(collider);
+        let ground_collider = ColliderBuilder::cuboid(
+            (CHUNK_RADIUS + CHUNK_SIZE) as f32,
+            1.0,
+            (CHUNK_RADIUS + CHUNK_SIZE) as f32,
+        )
+        .build();
+
+        physics.colliders.insert(ground_collider);
 
         physics
+    }
+
+    pub fn add_agent(&mut self, agent: Agent) {
+        let position = vector![agent.position.x, agent.position.y, agent.position.z];
+
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .lock_rotations()
+            .translation(position)
+            .build();
+
+        let rigid_body_handle = self.bodies.insert(rigid_body);
+
+        let collider = ColliderBuilder::capsule_y(0.9, 0.4).build();
+
+        self.colliders
+            .insert_with_parent(collider, rigid_body_handle, &mut self.bodies);
+
+        self.agent_handles.insert(agent.id, rigid_body_handle);
+    }
+
+    pub fn apply_agent_input(&mut self, agent: &Agent) {
+        let Some(rb_handle) = self.agent_handles.get(&agent.id) else {
+            return;
+        };
+        let Some(rb) = self.bodies.get_mut(*rb_handle) else {
+            return;
+        };
+
+        let input_dir = Vec3::new(agent.x_speed, 0.0, agent.z_speed);
+        if input_dir.length_squared() < f32::EPSILON {
+            return;
+        }
+
+        let forward = agent.look_rotation * input_dir.normalize();
+        let speed = 4.0;
+
+        let velocity = vector![forward.x * speed, rb.linvel().y, forward.z * speed];
+        rb.set_linvel(velocity, true);
+    }
+
+    pub fn sync_agent_transforms(&self, agent: &mut Agent) {
+        if let Some(rb_handle) = self.agent_handles.get(&agent.id) {
+            if let Some(rb) = self.bodies.get(*rb_handle) {
+                let pos = rb.position();
+
+                let translation = pos.translation.vector;
+                agent.position = Vec3::new(translation.x, translation.y, translation.z);
+
+                let rotation = pos.rotation;
+                agent.look_rotation =
+                    Quat::from_xyzw(rotation.i, rotation.j, rotation.k, rotation.w);
+            }
+        }
     }
 
     pub fn step(&mut self) {
