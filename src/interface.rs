@@ -304,17 +304,23 @@ impl Interface {
 
                 let start_index = vertices.len() as u32;
 
-                let face_indices = [
-                    start_index,
+                let (i0, i1, i2, i3) = (
+                    start_index + 0,
                     start_index + 1,
                     start_index + 2,
-                    start_index,
-                    start_index + 2,
                     start_index + 3,
-                ];
+                );
+
+                let (tri_a, tri_b) = if (face_ao[1] + face_ao[3]) > (face_ao[0] + face_ao[2]) {
+                    ([i0, i1, i3], [i1, i2, i3])
+                } else {
+                    ([i0, i1, i2], [i0, i2, i3])
+                };
+
+                indices.extend_from_slice(&tri_a);
+                indices.extend_from_slice(&tri_b);
 
                 vertices.extend(chunk_vertices);
-                indices.extend(face_indices);
             }
         }
 
@@ -336,12 +342,6 @@ impl Interface {
         match face {
             block::Face::XP => Self::calculate_face_ao(
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                ],
-                [
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_ZN),
                     neighbors.is_solid(block::Direction::XP_YP_Z0),
@@ -355,12 +355,6 @@ impl Interface {
                 ],
             ),
             block::Face::XN => Self::calculate_face_ao(
-                [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                ],
                 [
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
@@ -376,12 +370,6 @@ impl Interface {
             ),
             block::Face::YP => Self::calculate_face_ao(
                 [
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                ],
-                [
                     neighbors.is_solid(block::Direction::X0_YP_ZN),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
                     neighbors.is_solid(block::Direction::X0_YP_ZP),
@@ -395,12 +383,6 @@ impl Interface {
                 ],
             ),
             block::Face::YN => Self::calculate_face_ao(
-                [
-                    neighbors.is_solid(block::Direction::X0_Y0_ZN),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ],
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
@@ -416,12 +398,6 @@ impl Interface {
             ),
             block::Face::ZP => Self::calculate_face_ao(
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                ],
-                [
                     neighbors.is_solid(block::Direction::X0_YN_ZP),
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
                     neighbors.is_solid(block::Direction::X0_YP_ZP),
@@ -435,12 +411,6 @@ impl Interface {
                 ],
             ),
             block::Face::ZN => Self::calculate_face_ao(
-                [
-                    neighbors.is_solid(block::Direction::X0_YN_Z0),
-                    neighbors.is_solid(block::Direction::XN_Y0_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_Z0),
-                ],
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
@@ -458,35 +428,25 @@ impl Interface {
         }
     }
 
-    fn calculate_face_ao(faces: [bool; 4], edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
+    fn calculate_face_ao(edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
         [
-            Self::calculate_vertex_ao(edges[3], edges[0], faces[3], faces[0], corners[3]),
-            Self::calculate_vertex_ao(edges[0], edges[1], faces[0], faces[1], corners[0]),
-            Self::calculate_vertex_ao(edges[1], edges[2], faces[1], faces[2], corners[1]),
-            Self::calculate_vertex_ao(edges[2], edges[3], faces[2], faces[3], corners[2]),
+            Self::calculate_vertex_ao(edges[3], edges[0], corners[3]),
+            Self::calculate_vertex_ao(edges[0], edges[1], corners[0]),
+            Self::calculate_vertex_ao(edges[1], edges[2], corners[1]),
+            Self::calculate_vertex_ao(edges[2], edges[3], corners[2]),
         ]
     }
 
-    fn calculate_vertex_ao(
-        edge1: bool,
-        edge2: bool,
-        face1: bool,
-        face2: bool,
-        corner: bool,
-    ) -> f32 {
+    fn calculate_vertex_ao(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
-            return AO_INTENSITY[2];
-        } else if edge1 {
-            if face2 && corner {
-                return AO_INTENSITY[1];
-            }
-        } else if edge2 {
-            if face1 && corner {
-                return AO_INTENSITY[1];
-            }
+            AO_INTENSITY[2]
+        } else if edge1 || edge2 {
+            AO_INTENSITY[1]
+        } else if corner {
+            AO_INTENSITY[1]
+        } else {
+            AO_INTENSITY[0]
         }
-
-        AO_INTENSITY[0]
     }
 
     pub fn render(&mut self) {

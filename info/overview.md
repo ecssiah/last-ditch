@@ -9,4 +9,3 @@ or align with the Laws, resulting in variation in the evolution of the Garden.
 of information in the world to become aware of the alteration.
     * This means an agent needs to be motivated in some way to become aware of the source. In other words, an agent can have its own reason for acquiring the information, or the agent
     needs to be me made aware by other agents that enforce the information.
-

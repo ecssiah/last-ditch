@@ -106,8 +106,8 @@ impl Simulation {
     pub fn generate(&mut self) {
         // self.generate_structure(0, 0, 0, structure::Kind::AOTest);
 
-        // self.generate_structure(-12, -6, 0, structure::Kind::Mario);
-        // self.generate_structure(12, -6, 0, structure::Kind::Luigi);
+        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
+        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
 
         self.generate_ground();
 
@@ -431,10 +431,6 @@ impl Simulation {
         let target_rotation = y_axis_quat * x_axis_quat;
 
         agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
-    }
-
-    fn evolve(&mut self, dt: f64) {
-
     }
 
     fn evolve_world(&mut self, dt: f64) {
