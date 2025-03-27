@@ -343,8 +343,6 @@ impl Simulation {
         let chunk = &self.state.chunks[chunk_id].read().unwrap();
 
         if chunk.mesh.vertices.len() > 0 {
-            let world_position = Simulation::chunk_id_to_world_position(chunk_id);
-
             let mut physics = self.state.physics.write().unwrap();
 
             physics.add_chunk_collider(chunk_id, &chunk.mesh.vertices, &chunk.mesh.indices);
@@ -380,13 +378,14 @@ impl Simulation {
                 let face_ao = Self::calculate_ao(meta.neighbors, face);
 
                 let chunk_vertices = face_quad.iter().enumerate().map(|(index, position)| {
-                    let vertex_ao = face_ao[index];
+                    let position = *position;
+                    let ao = face_ao[index];
 
                     chunk::Vertex {
-                        position: *position,
+                        position,
                         normal,
                         color,
-                        ao: vertex_ao,
+                        ao,
                     }
                 });
 

@@ -74,6 +74,17 @@ impl ApplicationHandler for App {
 
         interface.handle_window_event(&event);
     }
+
+    fn device_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        device_id: winit::event::DeviceId,
+        event: winit::event::DeviceEvent,
+    ) {
+        let interface = self.interface.as_mut().unwrap();
+        
+        interface.handle_device_event(&event);
+    }
 }
 
 /// Application entrypoint

@@ -10,7 +10,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalPosition,
     event::{
-        DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
+        DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent
     },
     keyboard::{KeyCode, PhysicalKey},
 };
@@ -91,6 +91,15 @@ impl Input {
                 position,
             } => {
                 self.handle_cursor_moved(device_id, position);
+            }
+            _ => (),
+        }
+    }
+
+    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
+        match event {
+            DeviceEvent::MouseMotion { delta: (dx, dy) } => {
+                self.handle_mouse_motion(*dx, *dy);
             }
             _ => (),
         }
@@ -201,5 +210,9 @@ impl Input {
         }
 
         self.mouse_state.last_position = Some(current_position);
+    }
+
+    pub fn handle_mouse_motion(&mut self, dx: f64, dy: f64) {
+        self.mouse_state.delta += Vec2::new(dx as f32, dy as f32);
     }
 }

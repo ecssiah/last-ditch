@@ -19,7 +19,7 @@ use crate::{
 use glam::{Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
-use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
+use winit::{event::{DeviceEvent, WindowEvent}, event_loop::ActiveEventLoop, window::Window};
 
 #[rustfmt::skip]
 const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
@@ -57,6 +57,7 @@ impl Interface {
 
         let input = Input::new(action_tx.clone());
 
+        window.set_cursor_grab(winit::window::CursorGrabMode::Locked).expect("Failed to grab cursor");
         window.set_cursor_visible(false);
 
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -323,6 +324,10 @@ impl Interface {
             WindowEvent::Resized(size) => self.resize(*size),
             _ => (),
         }
+    }
+
+    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
+        self.input.handle_device_event(&event);
     }
 
     fn create_chunk_render_pipeline(
