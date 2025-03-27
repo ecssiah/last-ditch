@@ -345,8 +345,6 @@ impl Simulation {
         if chunk.mesh.vertices.len() > 0 {
             let world_position = Simulation::chunk_id_to_world_position(chunk_id);
 
-            log::info!("Collider at: {:?}", world_position);
-
             let mut physics = self.state.physics.write().unwrap();
 
             physics.add_chunk_collider(chunk_id, &chunk.mesh.vertices, &chunk.mesh.indices);
