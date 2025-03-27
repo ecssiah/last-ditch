@@ -18,7 +18,7 @@ use block::{BlockID, Direction, Face, Neighbors};
 pub use chunk::Chunk;
 use chunk::ChunkID;
 pub use consts::*;
-use glam::{IVec3, Quat, Vec3};
+use glam::{IVec3, Quat, Vec3, Vec4};
 use physics::Physics;
 use state::State;
 use std::{
@@ -29,6 +29,8 @@ use std::{
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
+
+use crate::interface::consts::DEBUG_COLOR;
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
@@ -96,6 +98,7 @@ impl Simulation {
                 palette_ids: Box::new([0; CHUNK_VOLUME]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
                 light: Box::new([block::LightLevel::default(); CHUNK_VOLUME]),
+                mesh: chunk::Mesh::default(),
             }))
         });
 
@@ -103,11 +106,6 @@ impl Simulation {
     }
 
     pub fn generate(&mut self) {
-        // self.generate_structure(0, 0, 0, structure::Kind::AOTest);
-
-        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
-        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
-
         self.generate_ground();
 
         self.set_block_kind(0, 2, 0, block::Kind::Gold);
@@ -115,6 +113,9 @@ impl Simulation {
         self.set_block_kind(-1, 1, 0, block::Kind::Gold);
         self.set_block_kind(0, 1, 1, block::Kind::Gold);
         self.set_block_kind(0, 1, -1, block::Kind::Gold);
+
+        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
+        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
 
         let agent = self.state.agent.read().unwrap();
         let mut physics = self.state.physics.write().unwrap();
@@ -194,8 +195,10 @@ impl Simulation {
         if let Some((chunk_id, block_id)) = Self::grid_position_to_ids(grid_position) {
             self.update_palette(chunk_id, block_id, kind);
 
-            self.update_meta(grid_position);
+            self.update_neighbors(grid_position);
+            self.update_visibility(grid_position);
             self.update_light(chunk_id, block_id, grid_position);
+            self.update_chunk_mesh(chunk_id);
 
             self.flag_chunk_update(chunk_id);
         }
@@ -206,11 +209,6 @@ impl Simulation {
 
         let palette_id = self.get_and_insert_palette_id(&mut chunk, kind);
         chunk.palette_ids[block_id] = palette_id;
-    }
-
-    fn update_meta(&mut self, grid_position: IVec3) {
-        self.update_neighbors(grid_position);
-        self.update_visibility(grid_position);
     }
 
     fn update_neighbors(&mut self, grid_position: IVec3) {
@@ -333,6 +331,222 @@ impl Simulation {
     }
 
     fn update_light(&mut self, _chunk_id: ChunkID, _block_id: BlockID, _grid_position: IVec3) {}
+
+    fn update_chunk_mesh(&mut self, chunk_id: ChunkID) {
+        let mesh = self.generate_chunk_mesh(chunk_id);
+
+        {        
+            let mut chunk = self.state.chunks[chunk_id].write().unwrap();
+            chunk.mesh = mesh;
+        }
+
+        let chunk = &self.state.chunks[chunk_id].read().unwrap();
+
+        if chunk.mesh.vertices.len() > 0 {
+            let world_position = Simulation::chunk_id_to_world_position(chunk_id);
+
+            log::info!("Collider at: {:?}", world_position);
+    
+            let mut physics = self.state.physics.write().unwrap();
+    
+            physics.add_chunk_collider(
+                chunk_id,
+                world_position.into(),
+                &chunk.mesh.vertices,
+                &chunk.mesh.indices,
+            );
+        }
+    }
+
+    fn generate_chunk_mesh(&self, chunk_id: ChunkID) -> chunk::Mesh {
+        let mut vertices = Vec::new();
+        let mut indices = Vec::new();
+
+        let chunk = self.state.chunks[chunk_id].read().unwrap();
+
+        for block_id in 0..CHUNK_VOLUME {
+            let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
+
+            let meta = &chunk.meta[block_id];
+            let block = chunk.get_block(block_id).unwrap();
+
+            for face in block::Face::ALL {
+                if meta.visibility.contains(face) == false {
+                    continue;
+                }
+
+                let face_quad = Self::generate_quad(grid_position, face);
+                let normal = face.normal();
+
+                let color = if DEBUG_COLOR {
+                    face.debug_color()
+                } else {
+                    Vec4::new(block.color.0, block.color.1, block.color.2, block.color.3)
+                };
+
+                let face_ao = Self::calculate_ao(meta.neighbors, face);
+
+                let chunk_vertices = face_quad.iter().enumerate().map(|(index, position)| {
+                    let vertex_ao = face_ao[index];
+
+                    chunk::Vertex {
+                        position: *position,
+                        normal,
+                        color,
+                        ao: vertex_ao,
+                    }
+                });
+
+                let start_index = vertices.len() as u32;
+
+                let diagonal_a = face_ao[0] + face_ao[2];
+                let diagonal_b = face_ao[1] + face_ao[3];
+
+                let face_indices = if diagonal_a > diagonal_b {
+                    [
+                        start_index + 1,
+                        start_index + 2,
+                        start_index + 3,
+                        start_index + 1,
+                        start_index + 3,
+                        start_index + 0,
+                    ]
+                } else {
+                    [
+                        start_index + 0,
+                        start_index + 1,
+                        start_index + 2,
+                        start_index + 0,
+                        start_index + 2,
+                        start_index + 3,
+                    ]
+                };
+
+                vertices.extend(chunk_vertices);
+                indices.extend(face_indices);
+            }
+        }
+
+        chunk::Mesh { vertices, indices }
+    }
+
+    fn generate_quad(grid_position: IVec3, face: block::Face) -> [Vec3; 4] {
+        let base = grid_position.as_vec3();
+        let offsets = face.quad();
+
+        offsets.map(|offset| base + offset)
+    }
+
+    fn calculate_ao(neighbors: block::Neighbors, face: block::Face) -> [f32; 4] {
+        match face {
+            block::Face::XP => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_Z0),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                ],
+            ),
+            block::Face::XN => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::XN_YN_Z0),
+                    neighbors.is_solid(block::Direction::XN_Y0_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_Z0),
+                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                ],
+            ),
+            block::Face::YP => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_Z0),
+                    neighbors.is_solid(block::Direction::X0_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                ],
+            ),
+            block::Face::YN => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_Z0),
+                    neighbors.is_solid(block::Direction::X0_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_Z0),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                ],
+            ),
+            block::Face::ZP => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_ZP),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
+                    neighbors.is_solid(block::Direction::X0_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_Y0_ZP),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XP_YN_ZP),
+                    neighbors.is_solid(block::Direction::XP_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YP_ZP),
+                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                ],
+            ),
+            block::Face::ZN => Self::calculate_face_ao(
+                [
+                    neighbors.is_solid(block::Direction::X0_YN_ZN),
+                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
+                    neighbors.is_solid(block::Direction::X0_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                ],
+                [
+                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                    neighbors.is_solid(block::Direction::XN_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YP_ZN),
+                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                ],
+            ),
+            _ => panic!("Invalid Face: {:?}", face),
+        }
+    }
+
+    fn calculate_face_ao(edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
+        [
+            Self::calculate_vertex_ao(edges[3], edges[0], corners[3]),
+            Self::calculate_vertex_ao(edges[0], edges[1], corners[0]),
+            Self::calculate_vertex_ao(edges[1], edges[2], corners[1]),
+            Self::calculate_vertex_ao(edges[2], edges[3], corners[2]),
+        ]
+    }
+
+    fn calculate_vertex_ao(edge1: bool, edge2: bool, corner: bool) -> f32 {
+        if edge1 && edge2 {
+            AMBIENT_OCCLUSION_LEVEL[2]
+        } else if edge1 || edge2 {
+            AMBIENT_OCCLUSION_LEVEL[1]
+        } else if corner {
+            AMBIENT_OCCLUSION_LEVEL[1]
+        } else {
+            AMBIENT_OCCLUSION_LEVEL[0]
+        }
+    }
 
     fn flag_chunk_update(&mut self, chunk_id: usize) {
         let mut world = self.state.world.write().unwrap();
@@ -479,6 +693,13 @@ impl Simulation {
         let chunk_position = chunk_position_shifted - IVec3::splat(WORLD_RADIUS as i32);
 
         chunk_position
+    }
+
+    fn chunk_id_to_world_position(chunk_id: ChunkID) -> Vec3 {
+        let grid_position = Self::chunk_id_to_position(chunk_id);
+        let world_position = grid_position.as_vec3() * CHUNK_SIZE as f32;
+
+        world_position
     }
 
     fn block_id_to_position(block_id: BlockID) -> IVec3 {

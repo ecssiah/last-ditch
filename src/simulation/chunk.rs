@@ -1,17 +1,32 @@
-use crate::simulation::{block, BLOCKS, CHUNK_VOLUME};
-use glam::IVec3;
+use crate::simulation::{block, world, BLOCKS, CHUNK_VOLUME};
+use glam::{IVec3, Vec3, Vec4};
 
 pub type ChunkID = usize;
 pub type PaletteID = usize;
 
+#[derive(Debug, Clone, Copy)]
+pub struct Vertex {
+    pub position: Vec3,
+    pub normal: Vec3,
+    pub color: Vec4,
+    pub ao: f32,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Mesh {
+    pub vertices: Vec<Vertex>,
+    pub indices: Vec<u32>,
+}
+
 pub struct Chunk {
-    pub last_update: u64,
+    pub last_update: world::Tick,
     pub id: ChunkID,
     pub position: IVec3,
     pub palette: Vec<block::Kind>,
     pub palette_ids: Box<[PaletteID; CHUNK_VOLUME]>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
     pub light: Box<[block::LightLevel; CHUNK_VOLUME]>,
+    pub mesh: Mesh,
 }
 
 impl Chunk {

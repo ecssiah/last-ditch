@@ -1,6 +1,6 @@
 use crate::simulation::BLOCK_RADIUS;
 use bitflags::bitflags;
-use glam::{IVec3, Vec3};
+use glam::{IVec3, Vec3, Vec4};
 use serde::Deserialize;
 
 pub type BlockID = usize;
@@ -174,14 +174,14 @@ impl Face {
         }
     }
 
-    pub fn debug_color(self) -> [f32; 4] {
+    pub fn debug_color(self) -> Vec4 {
         match self {
-            Face::XP => [1.0, 0.6, 0.6, 1.0],
-            Face::XN => [1.0, 1.0, 0.6, 1.0],
-            Face::YP => [0.6, 1.0, 0.6, 1.0],
-            Face::YN => [0.6, 1.0, 1.0, 1.0],
-            Face::ZP => [0.6, 0.6, 1.0, 1.0],
-            Face::ZN => [1.0, 0.6, 1.0, 1.0],
+            Face::XP => Vec4::new(1.0, 0.6, 0.6, 1.0),
+            Face::XN => Vec4::new(1.0, 1.0, 0.6, 1.0),
+            Face::YP => Vec4::new(0.6, 1.0, 0.6, 1.0),
+            Face::YN => Vec4::new(0.6, 1.0, 1.0, 1.0),
+            Face::ZP => Vec4::new(0.6, 0.6, 1.0, 1.0),
+            Face::ZN => Vec4::new(1.0, 0.6, 1.0, 1.0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }

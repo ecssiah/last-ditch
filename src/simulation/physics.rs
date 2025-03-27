@@ -1,17 +1,20 @@
 use crate::simulation::{
+    self,
     agent::{Agent, AgentID},
+    chunk::ChunkID,
     CHUNK_RADIUS, CHUNK_SIZE,
 };
 use glam::{Quat, Vec3};
 use rapier3d::{
-    na::{vector, Vector3},
+    na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::{
-        nalgebra, CCDSolver, ColliderBuilder, ColliderSet, DefaultBroadPhase, ImpulseJointSet,
-        IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase, RigidBodyBuilder,
-        RigidBodyHandle, RigidBodySet,
+        nalgebra, CCDSolver, ColliderBuilder, ColliderHandle, ColliderSet, DefaultBroadPhase,
+        ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase,
+        RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
 };
+use specs::world;
 use std::collections::HashMap;
 
 pub struct Physics {
@@ -25,14 +28,15 @@ pub struct Physics {
     pub multibody_joint_set: MultibodyJointSet,
     pub ccd_solver: CCDSolver,
     pub query_pipeline: QueryPipeline,
-    pub bodies: RigidBodySet,
-    pub colliders: ColliderSet,
-    pub agent_handles: HashMap<AgentID, RigidBodyHandle>,
+    pub rigid_body_set: RigidBodySet,
+    pub collider_set: ColliderSet,
+    pub chunk_collider_handles: HashMap<ChunkID, ColliderHandle>,
+    pub agent_body_handles: HashMap<AgentID, RigidBodyHandle>,
 }
 
 impl Physics {
     pub fn new() -> Physics {
-        let mut physics = Self {
+        let physics = Self {
             gravity: vector![0.0, -9.81, 0.0],
             integration_parameters: IntegrationParameters::default(),
             pipeline: PhysicsPipeline::new(),
@@ -43,15 +47,11 @@ impl Physics {
             multibody_joint_set: MultibodyJointSet::new(),
             ccd_solver: CCDSolver::new(),
             query_pipeline: QueryPipeline::new(),
-            bodies: RigidBodySet::new(),
-            colliders: ColliderSet::new(),
-            agent_handles: HashMap::new(),
+            rigid_body_set: RigidBodySet::new(),
+            collider_set: ColliderSet::new(),
+            chunk_collider_handles: HashMap::new(),
+            agent_body_handles: HashMap::new(),
         };
-
-        let ground_collider =
-            ColliderBuilder::cuboid((CHUNK_SIZE) as f32, 1.0, (CHUNK_SIZE) as f32).build();
-
-        physics.colliders.insert(ground_collider);
 
         physics
     }
@@ -64,22 +64,60 @@ impl Physics {
             .translation(position)
             .build();
 
-        let rigid_body_handle = self.bodies.insert(rigid_body);
+        let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
 
         let collider = ColliderBuilder::capsule_y(0.9, 0.4).build();
 
-        self.colliders
-            .insert_with_parent(collider, rigid_body_handle, &mut self.bodies);
+        self.collider_set
+            .insert_with_parent(collider, rigid_body_handle, &mut self.rigid_body_set);
 
-        self.agent_handles.insert(agent.id, rigid_body_handle);
+        self.agent_body_handles.insert(agent.id, rigid_body_handle);
+    }
+
+    pub fn add_chunk_collider(
+        &mut self,
+        chunk_id: ChunkID,
+        world_position: Vec3,
+        vertices: &[simulation::chunk::Vertex],
+        indices: &[u32],
+    ) {
+        let points: Vec<Point3<f32>> = vertices.iter().map(|v| Point3::from(v.position)).collect();
+
+        let triangle_indices: Vec<[u32; 3]> = indices
+            .chunks(3)
+            .map(|tri| [tri[0], tri[1], tri[2]])
+            .collect();
+
+        match ColliderBuilder::trimesh(points, triangle_indices) {
+            Ok(builder) => {
+                let collider = builder.build();
+
+                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
+                    self.collider_set.remove(
+                        old_handle,
+                        &mut self.island_manager,
+                        &mut self.rigid_body_set,
+                        true,
+                    );
+                }
+
+                let handle = self.collider_set.insert(collider);
+                self.chunk_collider_handles.insert(chunk_id, handle);
+
+                log::info!("Added: {:?}", chunk_id);
+            }
+            Err(err) => {
+                log::warn!("Failed to build collider for chunk {}: {:?}", chunk_id, err);
+            }
+        }
     }
 
     pub fn apply_agent_input(&mut self, agent: &Agent) {
-        let Some(rb_handle) = self.agent_handles.get(&agent.id) else {
+        let Some(rb_handle) = self.agent_body_handles.get(&agent.id) else {
             return;
         };
 
-        let Some(rb) = self.bodies.get_mut(*rb_handle) else {
+        let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) else {
             return;
         };
 
@@ -97,15 +135,15 @@ impl Physics {
             return;
         }
 
-        let speed = 0.2;
+        let speed = 0.3;
         let velocity = vector![input_dir.x * speed, rb.linvel().y, input_dir.z * speed];
 
         rb.set_linvel(velocity, true);
     }
 
     pub fn sync_agent_transforms(&self, agent: &mut Agent) {
-        if let Some(rb_handle) = self.agent_handles.get(&agent.id) {
-            if let Some(rb) = self.bodies.get(*rb_handle) {
+        if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
+            if let Some(rb) = self.rigid_body_set.get(*rb_handle) {
                 let pos = rb.position();
 
                 let translation = pos.translation.vector;
@@ -124,8 +162,8 @@ impl Physics {
             &mut self.island_manager,
             &mut self.broad_phase,
             &mut self.narrow_phase,
-            &mut self.bodies,
-            &mut self.colliders,
+            &mut self.rigid_body_set,
+            &mut self.collider_set,
             &mut self.impulse_joint_set,
             &mut self.multibody_joint_set,
             &mut self.ccd_solver,
