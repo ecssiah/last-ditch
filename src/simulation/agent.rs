@@ -12,6 +12,7 @@ pub struct Agent {
     pub look_x_axis: f32,
     pub look_y_axis: f32,
     pub look_rotation: Quat,
+    pub is_jumping: bool,
 }
 
 impl Agent {

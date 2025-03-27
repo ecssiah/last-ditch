@@ -11,13 +11,12 @@ use crate::{
     simulation::{
         action::{Action, AgentAction},
         agent::Agent,
-        block,
         state::State,
         world::Tick,
         CHUNK_VOLUME,
     },
 };
-use glam::{IVec3, Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::Window};
@@ -178,22 +177,12 @@ impl Interface {
         }
     }
 
-    fn send_move_actions(&mut self) {
-        let move_actions = self.input.get_move_actions();
+    fn send_movement_actions(&mut self) {
+        let movement_actions = self.input.get_movement_actions();
 
         self.action_tx
-            .send(Action::Agent(AgentAction::Move(move_actions)))
+            .send(Action::Agent(AgentAction::Movement(movement_actions)))
             .unwrap();
-    }
-
-    fn send_rotate_actions(&mut self) {
-        let rotate_actions = self.input.get_rotate_actions();
-
-        if rotate_actions.y_axis.abs() > 1e-6 || rotate_actions.x_axis.abs() > 1e-6 {
-            self.action_tx
-                .send(Action::Agent(AgentAction::Rotate(rotate_actions)))
-                .unwrap();
-        }
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -205,8 +194,7 @@ impl Interface {
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
         self.check_active(event_loop);
 
-        self.send_move_actions();
-        self.send_rotate_actions();
+        self.send_movement_actions();
     }
 
     fn update_view_projection(&mut self) {

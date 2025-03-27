@@ -11,7 +11,8 @@ pub mod state;
 pub mod structure;
 pub mod world;
 
-use action::{Action, AgentAction, MoveActions, RotateActions, WorldAction};
+use crate::{interface::consts::DEBUG_COLOR, simulation::action::MovementActions};
+use action::{Action, AgentAction, WorldAction};
 use agent::Agent;
 pub use block::Block;
 use block::{BlockID, Direction, Face, Neighbors};
@@ -29,8 +30,6 @@ use std::{
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 use world::World;
-
-use crate::interface::consts::DEBUG_COLOR;
 
 pub struct Simulation {
     action_rx: UnboundedReceiver<Action>,
@@ -57,12 +56,13 @@ impl Simulation {
         let mut agent = Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(-6.0, 6.0, 0.0),
+            position: Vec3::new(-12.0, 26.0, 2.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
             look_rotation: Quat::IDENTITY,
+            is_jumping: false,
         };
 
         agent.set_rotation(0.0, 0.0);
@@ -335,7 +335,7 @@ impl Simulation {
     fn update_chunk_mesh(&mut self, chunk_id: ChunkID) {
         let mesh = self.generate_chunk_mesh(chunk_id);
 
-        {        
+        {
             let mut chunk = self.state.chunks[chunk_id].write().unwrap();
             chunk.mesh = mesh;
         }
@@ -346,15 +346,10 @@ impl Simulation {
             let world_position = Simulation::chunk_id_to_world_position(chunk_id);
 
             log::info!("Collider at: {:?}", world_position);
-    
+
             let mut physics = self.state.physics.write().unwrap();
-    
-            physics.add_chunk_collider(
-                chunk_id,
-                world_position.into(),
-                &chunk.mesh.vertices,
-                &chunk.mesh.indices,
-            );
+
+            physics.add_chunk_collider(chunk_id, &chunk.mesh.vertices, &chunk.mesh.indices);
         }
     }
 
@@ -622,11 +617,8 @@ impl Simulation {
                 Action::World(WorldAction::Quit) => {
                     self.process_quit_action();
                 }
-                Action::Agent(AgentAction::Move(move_actions)) => {
-                    self.process_move_actions(&move_actions);
-                }
-                Action::Agent(AgentAction::Rotate(rotate_actions)) => {
-                    self.process_rotate_actions(&rotate_actions);
+                Action::Agent(AgentAction::Movement(movement_actions)) => {
+                    self.process_movement_actions(&movement_actions);
                 }
             }
         }
@@ -638,29 +630,29 @@ impl Simulation {
         world.active = false;
     }
 
-    fn process_move_actions(&mut self, move_actions: &MoveActions) {
+    fn process_movement_actions(&mut self, movement_actions: &MovementActions) {
         let mut agent = self.state.agent.write().unwrap();
 
-        agent.z_speed = move_actions.z_axis;
-        agent.x_speed = move_actions.x_axis;
-    }
+        agent.z_speed = movement_actions.direction.z;
+        agent.x_speed = movement_actions.direction.x;
 
-    fn process_rotate_actions(&mut self, rotate_actions: &RotateActions) {
-        let mut agent = self.state.agent.write().unwrap();
+        if movement_actions.rotation.length_squared() > 1e-6 {
+            agent.look_x_axis -= movement_actions.rotation.x;
+            agent.look_y_axis += movement_actions.rotation.y;
 
-        agent.look_x_axis -= rotate_actions.x_axis;
-        agent.look_y_axis += rotate_actions.y_axis;
+            let limit = 89.0_f32.to_radians();
 
-        let limit = 89.0_f32.to_radians();
+            agent.look_x_axis = agent.look_x_axis.clamp(-limit, limit);
 
-        agent.look_x_axis = agent.look_x_axis.clamp(-limit, limit);
+            let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
+            let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
 
-        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
-        let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
+            let target_rotation = y_axis_quat * x_axis_quat;
 
-        let target_rotation = y_axis_quat * x_axis_quat;
+            agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
+        }
 
-        agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
+        agent.is_jumping = movement_actions.is_jumping;
     }
 
     fn evolve_world(&mut self, dt: f64) {
@@ -668,19 +660,6 @@ impl Simulation {
 
         state.time += dt;
         state.ticks += 1;
-    }
-
-    fn evolve_agents(&mut self, dt: f64) {
-        let mut agent = self.state.agent.write().unwrap();
-
-        let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
-
-        let x_axis = y_axis_quat * Vec3::X;
-        let z_axis = y_axis_quat * Vec3::Z;
-
-        let movement = agent.x_speed * x_axis + agent.z_speed * z_axis;
-
-        agent.position += dt as f32 * movement;
     }
 
     fn chunk_id_to_position(chunk_id: ChunkID) -> IVec3 {

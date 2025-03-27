@@ -1,3 +1,5 @@
+use glam::Vec3;
+
 #[derive(Debug)]
 pub enum Action {
     World(WorldAction),
@@ -10,19 +12,13 @@ pub enum WorldAction {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct MoveActions {
-    pub x_axis: f32,
-    pub z_axis: f32,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RotateActions {
-    pub x_axis: f32,
-    pub y_axis: f32,
+pub struct MovementActions {
+    pub direction: Vec3,
+    pub rotation: Vec3,
+    pub is_jumping: bool,
 }
 
 #[derive(Debug)]
 pub enum AgentAction {
-    Move(MoveActions),
-    Rotate(RotateActions),
+    Movement(MovementActions),
 }

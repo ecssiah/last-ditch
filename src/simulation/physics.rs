@@ -2,9 +2,8 @@ use crate::simulation::{
     self,
     agent::{Agent, AgentID},
     chunk::ChunkID,
-    CHUNK_RADIUS, CHUNK_SIZE,
 };
-use glam::{Quat, Vec3};
+use glam::Vec3;
 use rapier3d::{
     na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
@@ -14,7 +13,6 @@ use rapier3d::{
         RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
 };
-use specs::world;
 use std::collections::HashMap;
 
 pub struct Physics {
@@ -62,6 +60,7 @@ impl Physics {
         let rigid_body = RigidBodyBuilder::dynamic()
             .lock_rotations()
             .translation(position)
+            .additional_mass(80.0)
             .build();
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
@@ -77,7 +76,6 @@ impl Physics {
     pub fn add_chunk_collider(
         &mut self,
         chunk_id: ChunkID,
-        world_position: Vec3,
         vertices: &[simulation::chunk::Vertex],
         indices: &[u32],
     ) {
@@ -103,8 +101,6 @@ impl Physics {
 
                 let handle = self.collider_set.insert(collider);
                 self.chunk_collider_handles.insert(chunk_id, handle);
-
-                log::info!("Added: {:?}", chunk_id);
             }
             Err(err) => {
                 log::warn!("Failed to build collider for chunk {}: {:?}", chunk_id, err);
@@ -127,16 +123,21 @@ impl Physics {
 
         let input_dir = agent.x_speed * right_xz + agent.z_speed * forward_xz;
 
+        let mut velocity = *rb.linvel();
+
         if input_dir.length_squared() < f32::EPSILON {
-            let current = rb.linvel();
-
-            rb.set_linvel(vector![0.0, current.y, 0.0], true);
-
-            return;
+            velocity.x = 0.0;
+            velocity.z = 0.0;
+        } else {
+            let speed = 0.3;
+            velocity.x = input_dir.x * speed;
+            velocity.z = input_dir.z * speed;
         }
 
-        let speed = 0.3;
-        let velocity = vector![input_dir.x * speed, rb.linvel().y, input_dir.z * speed];
+        if agent.is_jumping {
+            let jump_force = 0.4;
+            velocity.y += jump_force;
+        }
 
         rb.set_linvel(velocity, true);
     }

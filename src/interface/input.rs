@@ -1,11 +1,11 @@
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::{
-        action::{Action, MoveActions, RotateActions, WorldAction},
+        action::{Action, MovementActions, WorldAction},
         DEFAULT_X_SPEED, DEFAULT_Z_SPEED,
     },
 };
-use glam::Vec2;
+use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalPosition,
@@ -20,6 +20,7 @@ pub struct KeyState {
     key_a: f32,
     key_s: f32,
     key_d: f32,
+    key_space: f32,
 }
 
 pub struct MouseState {
@@ -40,6 +41,7 @@ impl Input {
             key_a: 0.0,
             key_s: 0.0,
             key_d: 0.0,
+            key_space: 0.0,
         };
 
         let mouse_state = MouseState {
@@ -94,24 +96,30 @@ impl Input {
         }
     }
 
-    pub fn get_move_actions(&mut self) -> MoveActions {
-        let move_actions = MoveActions {
-            x_axis: DEFAULT_X_SPEED * (self.key_state.key_a + self.key_state.key_d),
-            z_axis: DEFAULT_Z_SPEED * (self.key_state.key_w + self.key_state.key_s),
-        };
+    pub fn get_movement_actions(&mut self) -> MovementActions {
+        let direction = Vec3::new(
+            DEFAULT_X_SPEED * (self.key_state.key_a + self.key_state.key_d),
+            0.0,
+            DEFAULT_Z_SPEED * (self.key_state.key_w + self.key_state.key_s),
+        );
 
-        move_actions
-    }
-
-    pub fn get_rotate_actions(&mut self) -> RotateActions {
-        let rotate_actions = RotateActions {
-            x_axis: -MOUSE_X_SENSITIVITY * self.mouse_state.delta.y,
-            y_axis: -MOUSE_Y_SENSITIVITY * self.mouse_state.delta.x,
-        };
+        let rotation = Vec3::new(
+            -MOUSE_X_SENSITIVITY * self.mouse_state.delta.y,
+            -MOUSE_Y_SENSITIVITY * self.mouse_state.delta.x,
+            0.0,
+        );
 
         self.mouse_state.delta = Vec2::ZERO;
 
-        rotate_actions
+        let is_jumping = self.key_state.key_space > 0.0;
+
+        let movement_actions = MovementActions {
+            direction,
+            rotation,
+            is_jumping,
+        };
+
+        movement_actions
     }
 
     pub fn handle_keyboard_input(
@@ -152,6 +160,13 @@ impl Input {
                     self.key_state.key_d -= 1.0;
                 } else if key_event.state == ElementState::Released {
                     self.key_state.key_d += 1.0;
+                }
+            }
+            PhysicalKey::Code(KeyCode::Space) => {
+                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                    self.key_state.key_space += 1.0;
+                } else if key_event.state == ElementState::Released {
+                    self.key_state.key_space -= 1.0;
                 }
             }
             _ => (),
