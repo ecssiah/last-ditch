@@ -45,6 +45,19 @@ impl ApplicationHandler for App {
 
         let window = self.window.as_ref().unwrap();
 
+        window
+            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+            .expect("Failed to grab cursor");
+        window.set_cursor_visible(false);
+
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
+
+        let adapter_future = instance.request_adapter(&wgpu::RequestAdapterOptions::default());
+        let adapter = pollster::block_on(adapter_future).unwrap();
+
+        let device_future = adapter.request_device(&wgpu::DeviceDescriptor::default(), None);
+        let (device, queue) = pollster::block_on(device_future).unwrap();
+
         let (action_tx, action_rx) = unbounded_channel();
 
         let mut simulation = Simulation::new(action_rx);
@@ -52,8 +65,15 @@ impl ApplicationHandler for App {
 
         let state = simulation.get_state();
 
-        let interface_future = Interface::new(action_tx, window.clone(), state);
-        let interface = pollster::block_on(interface_future);
+        let interface = Interface::new(
+            action_tx,
+            window.clone(),
+            instance,
+            adapter,
+            device,
+            queue,
+            state,
+        );
 
         let simulation_thread = thread::spawn(move || simulation.run());
 

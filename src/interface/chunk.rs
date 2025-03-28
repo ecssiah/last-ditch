@@ -62,7 +62,7 @@ impl Mesh {
 
 #[derive(Debug, Default)]
 pub struct MeshCache {
-    pub meshes: HashMap<ChunkID, Mesh>,
+    meshes: HashMap<ChunkID, Mesh>,
 }
 
 impl MeshCache {
@@ -97,6 +97,14 @@ impl MeshCache {
 
     pub fn get(&self, chunk_id: ChunkID) -> Option<&Mesh> {
         self.meshes.get(&chunk_id)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&ChunkID, &Mesh)> {
+        self.meshes.iter()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &Mesh> {
+        self.meshes.values()
     }
 
     pub fn unload_chunk(&mut self, chunk_id: ChunkID) {

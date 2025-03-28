@@ -17,6 +17,7 @@ use crate::{
     },
 };
 use glam::{Mat4, Vec3};
+use wgpu::{Adapter, Device, Instance, Queue};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
@@ -52,9 +53,13 @@ pub struct Interface {
 }
 
 impl Interface {
-    pub async fn new(
+    pub fn new(
         action_tx: UnboundedSender<Action>,
         window: Arc<Window>,
+        instance: Instance,
+        adapter: Adapter,
+        device: Device,
+        queue: Queue,
         state: Arc<State>,
     ) -> Self {
         let last_update: Tick = 0;
@@ -65,18 +70,6 @@ impl Interface {
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
         window.set_cursor_visible(false);
-
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
-
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions::default())
-            .await
-            .unwrap();
-
-        let (device, queue) = adapter
-            .request_device(&wgpu::DeviceDescriptor::default(), None)
-            .await
-            .unwrap();
 
         let size = window.inner_size();
 
@@ -262,7 +255,7 @@ impl Interface {
         });
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("World Render Pass"),
+            label: Some("Chunk Render Pass"),
             color_attachments: &[chunk_render_pass_color_attachment],
             depth_stencil_attachment: chunk_depth_stencil_attachment,
             timestamp_writes: None,
@@ -272,7 +265,7 @@ impl Interface {
         render_pass.set_pipeline(&self.chunk_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for mesh in self.mesh_cache.meshes.values() {
+        for mesh in self.mesh_cache.values() {
             if mesh.index_count > 0 {
                 render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
                 render_pass

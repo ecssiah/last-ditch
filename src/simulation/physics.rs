@@ -8,9 +8,9 @@ use rapier3d::{
     na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::{
-        nalgebra, CCDSolver, ColliderBuilder, ColliderHandle, ColliderSet, DefaultBroadPhase,
-        ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, NarrowPhase,
-        RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
+        nalgebra, CCDSolver, CoefficientCombineRule, ColliderBuilder, ColliderHandle, ColliderSet,
+        DefaultBroadPhase, ImpulseJointSet, IntegrationParameters, IslandManager,
+        MultibodyJointSet, NarrowPhase, RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
 };
 use std::collections::HashMap;
@@ -65,7 +65,10 @@ impl Physics {
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
 
-        let collider = ColliderBuilder::capsule_y(0.9, 0.4).build();
+        let collider = ColliderBuilder::capsule_y(0.9, 0.4)
+            .friction(0.0)
+            .friction_combine_rule(CoefficientCombineRule::Min)
+            .build();
 
         self.collider_set
             .insert_with_parent(collider, rigid_body_handle, &mut self.rigid_body_set);
