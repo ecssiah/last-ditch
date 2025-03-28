@@ -52,6 +52,21 @@ impl Simulation {
         simulation
     }
 
+    pub fn run(&mut self) {
+        let mut previous_instant = Instant::now();
+
+        loop {
+            let now = Instant::now();
+
+            let dt = now.duration_since(previous_instant).as_secs_f64();
+            previous_instant = now;
+
+            self.update(dt);
+
+            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
+        }
+    }
+
     fn setup_agent() -> Arc<RwLock<Agent>> {
         let mut agent = Agent {
             id: 0,
@@ -171,7 +186,7 @@ impl Simulation {
     pub fn get_chunk(&self, grid_position: IVec3) -> Option<Arc<RwLock<chunk::Chunk>>> {
         let chunk_id = Self::grid_position_to_chunk_id(grid_position)?;
 
-        Some(self.state.chunks[chunk_id].clone())
+        Some(Arc::clone(&self.state.chunks[chunk_id]))
     }
 
     pub fn get_block(&self, grid_position: IVec3) -> Option<&block::Block> {
@@ -556,21 +571,6 @@ impl Simulation {
         }
     }
 
-    pub fn run(&mut self) {
-        let mut previous_instant = Instant::now();
-
-        loop {
-            let now = Instant::now();
-
-            let dt = now.duration_since(previous_instant).as_secs_f64();
-            previous_instant = now;
-
-            self.update(dt);
-
-            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
-        }
-    }
-
     fn update(&mut self, dt: f64) {
         self.process_actions();
 
@@ -592,12 +592,10 @@ impl Simulation {
             let mut agent = self.state.agent.write().unwrap();
             physics.sync_agent_transforms(&mut *agent);
         }
-
-        // self.evolve_agents(dt);
     }
 
     pub fn get_state(&self) -> Arc<State> {
-        self.state.clone()
+        Arc::clone(&self.state)
     }
 
     fn process_actions(&mut self) {

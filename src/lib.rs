@@ -20,12 +20,11 @@ use winit::{
     dpi::PhysicalSize,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{Window, WindowAttributes, WindowId},
+    window::{WindowAttributes, WindowId},
 };
 
 #[derive(Default)]
 struct App {
-    window: Option<Arc<Window>>,
     interface: Option<Interface>,
     simulation_thread: Option<thread::JoinHandle<()>>,
 }
@@ -39,24 +38,16 @@ impl ApplicationHandler for App {
                 interface::consts::WINDOW_HEIGHT,
             ));
 
-        self.window = Some(Arc::new(
-            event_loop.create_window(window_attributes).unwrap(),
-        ));
-
-        let window = self.window.as_ref().unwrap();
-
-        window
-            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
-            .expect("Failed to grab cursor");
-        window.set_cursor_visible(false);
-
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
-        let adapter_future = instance.request_adapter(&wgpu::RequestAdapterOptions::default());
-        let adapter = pollster::block_on(adapter_future).unwrap();
+        let adapter =
+            pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))
+                .expect("Failed to find GPU adapter");
 
-        let device_future = adapter.request_device(&wgpu::DeviceDescriptor::default(), None);
-        let (device, queue) = pollster::block_on(device_future).unwrap();
+        let (device, queue) =
+            pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default(), None))
+                .expect("Failed to create device");
 
         let (action_tx, action_rx) = unbounded_channel();
 
@@ -67,7 +58,7 @@ impl ApplicationHandler for App {
 
         let interface = Interface::new(
             action_tx,
-            window.clone(),
+            Arc::clone(&window),
             instance,
             adapter,
             device,

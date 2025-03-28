@@ -17,9 +17,9 @@ use crate::{
     },
 };
 use glam::{Mat4, Vec3};
-use wgpu::{Adapter, Device, Instance, Queue};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
+use wgpu::{Adapter, Device, Instance, Queue};
 use winit::{
     event::{DeviceEvent, WindowEvent},
     event_loop::ActiveEventLoop,
@@ -73,7 +73,7 @@ impl Interface {
 
         let size = window.inner_size();
 
-        let surface = instance.create_surface(window.clone()).unwrap();
+        let surface = instance.create_surface(Arc::clone(&window)).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
         let surface_format = surface_capabilities.formats[0];
         let surface_config = wgpu::SurfaceConfiguration {
@@ -198,7 +198,8 @@ impl Interface {
     }
 
     fn update_view_projection(&mut self) {
-        let view_projection_matrix = Self::create_view_projection_matrix(self.state.agent.clone());
+        let view_projection_matrix =
+            Self::create_view_projection_matrix(Arc::clone(&self.state.agent));
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
