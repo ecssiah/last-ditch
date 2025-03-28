@@ -1,7 +1,7 @@
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::{
-        action::{Action, MovementActions, WorldAction},
+        action::{Action, AgentAction, JumpAction, MovementAction, WorldAction},
         DEFAULT_X_SPEED, DEFAULT_Z_SPEED,
     },
 };
@@ -19,7 +19,6 @@ pub struct KeyState {
     key_a: f32,
     key_s: f32,
     key_d: f32,
-    key_space: f32,
 }
 
 pub struct MouseState {
@@ -39,7 +38,6 @@ impl Input {
             key_a: 0.0,
             key_s: 0.0,
             key_d: 0.0,
-            key_space: 0.0,
         };
 
         let mouse_state = MouseState {
@@ -96,7 +94,7 @@ impl Input {
         }
     }
 
-    pub fn get_movement_actions(&mut self) -> MovementActions {
+    pub fn get_movement_actions(&mut self) -> MovementAction {
         let direction = Vec3::new(
             DEFAULT_X_SPEED * (self.key_state.key_a + self.key_state.key_d),
             0.0,
@@ -111,12 +109,9 @@ impl Input {
 
         self.mouse_state.delta = Vec2::ZERO;
 
-        let is_jumping = self.key_state.key_space > 0.0;
-
-        let movement_actions = MovementActions {
+        let movement_actions = MovementAction {
             direction,
             rotation,
-            is_jumping,
         };
 
         movement_actions
@@ -164,9 +159,13 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.key_space += 1.0;
+                    self.action_tx
+                        .send(Action::Agent(AgentAction::Jump(JumpAction::Start)))
+                        .unwrap();
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.key_space -= 1.0;
+                    self.action_tx
+                        .send(Action::Agent(AgentAction::Jump(JumpAction::End)))
+                        .unwrap();
                 }
             }
             _ => (),

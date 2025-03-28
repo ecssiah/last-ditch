@@ -1,8 +1,4 @@
-use crate::simulation::{
-    self,
-    agent::{Agent, AgentID},
-    chunk::ChunkID,
-};
+use crate::simulation::{self, agent::Agent, chunk::ChunkID, id::AgentID, JUMP_FORCE, MAX_JUMP_DURATION};
 use glam::Vec3;
 use rapier3d::{
     na::{vector, Point3, Vector3},
@@ -13,7 +9,7 @@ use rapier3d::{
         MultibodyJointSet, NarrowPhase, RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 pub struct Physics {
     pub gravity: Vector3<f32>,
@@ -54,7 +50,7 @@ impl Physics {
         physics
     }
 
-    pub fn add_agent(&mut self, agent: Agent) {
+    pub fn add_agent(&mut self, agent: &Agent) {
         let position = vector![agent.position.x, agent.position.y, agent.position.z];
 
         let rigid_body = RigidBodyBuilder::dynamic()
@@ -111,7 +107,9 @@ impl Physics {
         }
     }
 
-    pub fn apply_agent_input(&mut self, agent: &Agent) {
+    pub fn apply_agent_movement(&mut self, agent: Arc<RwLock<Agent>>) {
+        let agent = agent.read().unwrap();
+
         let Some(rb_handle) = self.agent_body_handles.get(&agent.id) else {
             return;
         };
@@ -137,12 +135,33 @@ impl Physics {
             velocity.z = input_dir.z * speed;
         }
 
-        if agent.is_jumping {
-            let jump_force = 0.4;
-            velocity.y += jump_force;
-        }
-
         rb.set_linvel(velocity, true);
+    }
+
+    pub fn apply_agent_jump(&mut self, dt: f64, agent: Arc<RwLock<Agent>>) {
+        let mut agent = agent.write().unwrap();
+
+        if agent.jump_state.active {
+            if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
+                if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                    agent.jump_state.timer += dt as f32;
+
+                    let still_powered = agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
+
+                    if still_powered {
+                        let force = vector![0.0, JUMP_FORCE * dt as f32, 0.0];
+                        rb.add_force(force, true);
+                    } else {
+                        agent.jump_state.active = false;
+
+                        let lv = rb.linvel();
+                        if agent.jump_state.cancel && lv.y > 0.0 {
+                            rb.set_linvel(vector![lv.x, lv.y * 0.5, lv.z], true);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn sync_agent_transforms(&self, agent: &mut Agent) {

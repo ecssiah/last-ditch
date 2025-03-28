@@ -32,6 +32,9 @@ pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub const AMBIENT_OCCLUSION_LEVEL: [f32; 3] = [1.0, 0.6, 0.2];
 
+pub const MAX_JUMP_DURATION: f32 = 0.25;
+pub const JUMP_FORCE: f32 = 1000.0;
+
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
 const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
 

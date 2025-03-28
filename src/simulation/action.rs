@@ -12,13 +12,19 @@ pub enum WorldAction {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct MovementActions {
+pub struct MovementAction {
     pub direction: Vec3,
     pub rotation: Vec3,
-    pub is_jumping: bool,
+}
+
+#[derive(Debug)]
+pub enum JumpAction {
+    Start,
+    End,
 }
 
 #[derive(Debug)]
 pub enum AgentAction {
-    Movement(MovementActions),
+    Movement(MovementAction),
+    Jump(JumpAction),
 }

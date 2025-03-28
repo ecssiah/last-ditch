@@ -6,12 +6,16 @@ pub mod agent;
 pub mod block;
 pub mod chunk;
 pub mod consts;
+pub mod id;
 pub mod physics;
 pub mod state;
 pub mod structure;
 pub mod world;
 
-use crate::{interface::consts::DEBUG_COLOR, simulation::action::MovementActions};
+use crate::{
+    interface::consts::DEBUG_COLOR,
+    simulation::action::{JumpAction, MovementAction},
+};
 use action::{Action, AgentAction, WorldAction};
 use agent::Agent;
 pub use block::Block;
@@ -68,18 +72,9 @@ impl Simulation {
     }
 
     fn setup_agent() -> Arc<RwLock<Agent>> {
-        let mut agent = Agent {
-            id: 0,
-            name: "Melchizedek",
-            position: Vec3::new(-16.0, 24.0, 2.0),
-            x_speed: 0.0,
-            z_speed: 0.0,
-            look_x_axis: 0.0,
-            look_y_axis: 0.0,
-            look_rotation: Quat::IDENTITY,
-            is_jumping: false,
-        };
+        let mut agent = Agent::new();
 
+        agent.set_position(0.0, 3.0, 0.0);
         agent.set_rotation(0.0, 0.0);
 
         Arc::from(RwLock::from(agent))
@@ -129,10 +124,10 @@ impl Simulation {
         self.set_block_kind(0, 1, 1, block::Kind::Gold);
         self.set_block_kind(0, 1, -1, block::Kind::Gold);
 
-        self.generate_structure(0, -6, -48, structure::Kind::Luigi);
-        self.generate_structure(-16, -6, 0, structure::Kind::Mario);
-        self.generate_structure(16, -6, 0, structure::Kind::Mario);
-        // self.generate_structure(0, -6, 16, structure::Kind::Luigi);
+        self.generate_structure(0, 0, -20, structure::Kind::Luigi);
+        self.generate_structure(-20, 0, 0, structure::Kind::Mario);
+        self.generate_structure(20, 0, 0, structure::Kind::Mario);
+        self.generate_structure(0, 0, 20, structure::Kind::Luigi);
 
         self.set_block_kind(0, 48, 0, block::Kind::Metal);
         self.set_block_kind(-1, 48, 0, block::Kind::Metal);
@@ -143,7 +138,7 @@ impl Simulation {
         let agent = self.state.agent.read().unwrap();
         let mut physics = self.state.physics.write().unwrap();
 
-        physics.add_agent(*agent);
+        physics.add_agent(&agent);
     }
 
     fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: structure::Kind) {
@@ -170,8 +165,8 @@ impl Simulation {
     }
 
     fn generate_ground(&mut self) {
-        for x in -(2 * CHUNK_RADIUS as isize)..=(2 * CHUNK_RADIUS as isize) {
-            for z in -(2 * CHUNK_RADIUS as isize)..=(2 * CHUNK_RADIUS as isize) {
+        for x in -(CHUNK_RADIUS as isize)..=(CHUNK_RADIUS as isize) {
+            for z in -(CHUNK_RADIUS as isize)..=(CHUNK_RADIUS as isize) {
                 let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
                     block::Kind::White
                 } else {
@@ -572,24 +567,21 @@ impl Simulation {
     }
 
     fn update(&mut self, dt: f64) {
-        self.process_actions();
-
+        self.handle_actions();
         self.evolve_world(dt);
-
-        let agent_snapshot = {
-            let agent = self.state.agent.read().unwrap();
-            agent.clone()
-        };
 
         {
             let mut physics = self.state.physics.write().unwrap();
-            physics.apply_agent_input(&agent_snapshot);
+            physics.apply_agent_movement(self.state.agent.clone());
+            physics.apply_agent_jump(dt, self.state.agent.clone());
+
             physics.step();
         }
 
         {
             let physics = self.state.physics.write().unwrap();
             let mut agent = self.state.agent.write().unwrap();
+
             physics.sync_agent_transforms(&mut *agent);
         }
     }
@@ -598,26 +590,29 @@ impl Simulation {
         Arc::clone(&self.state)
     }
 
-    fn process_actions(&mut self) {
+    fn handle_actions(&mut self) {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
                 Action::World(WorldAction::Quit) => {
-                    self.process_quit_action();
+                    self.handle_quit_action();
                 }
                 Action::Agent(AgentAction::Movement(movement_actions)) => {
-                    self.process_movement_actions(&movement_actions);
+                    self.handle_movement_action(&movement_actions);
+                }
+                Action::Agent(AgentAction::Jump(jump_action)) => {
+                    self.handle_jump_action(&jump_action);
                 }
             }
         }
     }
 
-    fn process_quit_action(&mut self) {
+    fn handle_quit_action(&mut self) {
         let mut world = self.state.world.write().unwrap();
 
         world.active = false;
     }
 
-    fn process_movement_actions(&mut self, movement_actions: &MovementActions) {
+    fn handle_movement_action(&mut self, movement_actions: &MovementAction) {
         let mut agent = self.state.agent.write().unwrap();
 
         agent.z_speed = movement_actions.direction.z;
@@ -638,8 +633,21 @@ impl Simulation {
 
             agent.look_rotation = agent.look_rotation.slerp(target_rotation, 0.3);
         }
+    }
 
-        agent.is_jumping = movement_actions.is_jumping;
+    fn handle_jump_action(&mut self, jump_action: &JumpAction) {
+        let mut agent = self.state.agent.write().unwrap();
+
+        match jump_action {
+            JumpAction::Start => {
+                agent.jump_state.active = true;
+                agent.jump_state.timer = 0.0;
+                agent.jump_state.cancel = false;
+            }
+            JumpAction::End => {
+                agent.jump_state.cancel = true;
+            }
+        }
     }
 
     fn evolve_world(&mut self, dt: f64) {
