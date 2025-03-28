@@ -1,6 +1,6 @@
 use crate::simulation::{
-    self, agent::Agent, chunk::ChunkID, id::AgentID, JUMP_HOLD_FORCE, JUMP_LAUNCE_VELOCITY,
-    MAX_JUMP_DURATION,
+    self, agent::Agent, chunk::ChunkID, id::AgentID, FIXED_DT, JUMP_HOLD_FORCE,
+    JUMP_LAUNCE_VELOCITY, MAX_JUMP_DURATION,
 };
 use glam::Vec3;
 use rapier3d::{
@@ -157,19 +157,19 @@ impl Physics {
         }
     }
 
-    pub fn update_agent_jump(&mut self, dt: f64, agent: Arc<RwLock<Agent>>) {
+    pub fn update_agent_jump(&mut self, agent: Arc<RwLock<Agent>>) {
         let mut agent = agent.write().unwrap();
 
         if agent.jump_state.active {
             if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
                 if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
-                    agent.jump_state.timer += dt as f32;
+                    agent.jump_state.timer += FIXED_DT as f32;
 
-                    let still_powered =
+                    let is_powered =
                         agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
 
-                    if still_powered {
-                        let force = vector![0.0, JUMP_HOLD_FORCE * dt as f32, 0.0];
+                    if is_powered {
+                        let force = vector![0.0, JUMP_HOLD_FORCE * FIXED_DT as f32, 0.0];
                         rb.add_force(force, true);
                     } else {
                         agent.jump_state.active = false;

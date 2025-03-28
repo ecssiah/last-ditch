@@ -19,12 +19,12 @@ pub enum Kind {
     Black,
     Grey,
     White,
-    Red,
-    Blue,
-    Gold,
-    Beige,
-    Green,
-    Brown,
+    Skin,
+    GoldMetal,
+    BlueCloth,
+    RedCloth,
+    GreenCloth,
+    Leather,
 }
 
 bitflags! {

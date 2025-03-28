@@ -6,8 +6,9 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
 pub const SEED: u64 = 101;
-pub const SIMULATION_WAIT: u64 = 16;
-pub const UPDATE_WINDOW: u32 = 2;
+
+pub const FIXED_DT: f64 = 1.0 / 60.0;
+pub const SIMULATION_WAIT_DURATION: u64 = 500;
 
 pub const DEFAULT_Z_SPEED: f32 = 22.0;
 pub const DEFAULT_X_SPEED: f32 = 22.0;

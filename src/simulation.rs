@@ -57,17 +57,22 @@ impl Simulation {
     }
 
     pub fn run(&mut self) {
-        let mut previous_instant = Instant::now();
+        let mut accumulator = 0.0;
+        let mut previous = Instant::now();
 
         loop {
             let now = Instant::now();
+            let frame_time = now.duration_since(previous).as_secs_f64();
+            previous = now;
 
-            let dt = now.duration_since(previous_instant).as_secs_f64();
-            previous_instant = now;
+            accumulator += frame_time;
 
-            self.update(dt);
+            while accumulator >= FIXED_DT {
+                self.update();
+                accumulator -= FIXED_DT;
+            }
 
-            thread::sleep(Duration::from_millis(SIMULATION_WAIT));
+            thread::sleep(Duration::from_micros(SIMULATION_WAIT_DURATION));
         }
     }
 
@@ -118,11 +123,11 @@ impl Simulation {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.set_block_kind(0, 2, 0, block::Kind::Gold);
-        self.set_block_kind(1, 1, 0, block::Kind::Gold);
-        self.set_block_kind(-1, 1, 0, block::Kind::Gold);
-        self.set_block_kind(0, 1, 1, block::Kind::Gold);
-        self.set_block_kind(0, 1, -1, block::Kind::Gold);
+        self.set_block_kind(0, 2, 0, block::Kind::GoldMetal);
+        self.set_block_kind(1, 1, 0, block::Kind::GoldMetal);
+        self.set_block_kind(-1, 1, 0, block::Kind::GoldMetal);
+        self.set_block_kind(0, 1, 1, block::Kind::GoldMetal);
+        self.set_block_kind(0, 1, -1, block::Kind::GoldMetal);
 
         self.generate_structure(0, 0, -20, structure::Kind::Luigi);
         self.generate_structure(-20, 0, 0, structure::Kind::Mario);
@@ -566,14 +571,14 @@ impl Simulation {
         }
     }
 
-    fn update(&mut self, dt: f64) {
+    fn update(&mut self) {
         self.handle_actions();
-        self.evolve_world(dt);
+        self.evolve_world();
 
         {
             let mut physics = self.state.physics.write().unwrap();
             physics.update_agent_movement(self.state.agent.clone());
-            physics.update_agent_jump(dt, self.state.agent.clone());
+            physics.update_agent_jump(self.state.agent.clone());
 
             physics.step();
         }
@@ -657,10 +662,10 @@ impl Simulation {
         }
     }
 
-    fn evolve_world(&mut self, dt: f64) {
+    fn evolve_world(&mut self) {
         let mut state = self.state.world.write().unwrap();
 
-        state.time += dt;
+        state.time += FIXED_DT;
         state.ticks += 1;
     }
 
