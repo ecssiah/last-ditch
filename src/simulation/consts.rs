@@ -10,9 +10,14 @@ pub const SEED: u64 = 101;
 pub const FIXED_DT: f64 = 1.0 / 60.0;
 pub const SIMULATION_WAIT_DURATION: u64 = 500;
 
+pub const GRAVITY_ACCELERATION: f32 = -60.0;
+
 pub const DEFAULT_Z_SPEED: f32 = 22.0;
 pub const DEFAULT_X_SPEED: f32 = 22.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
+pub const MAX_JUMP_DURATION: f32 = 0.25;
+pub const JUMP_LAUNCH_VELOCITY: f32 = 28.0;
+pub const JUMP_HOLD_FORCE: f32 = 6.0;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
@@ -32,10 +37,6 @@ pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub const AMBIENT_OCCLUSION_LEVEL: [f32; 3] = [1.0, 0.6, 0.2];
-
-pub const MAX_JUMP_DURATION: f32 = 0.25;
-pub const JUMP_LAUNCE_VELOCITY: f32 = 12.0;
-pub const JUMP_HOLD_FORCE: f32 = 1.0;
 
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
 const STRUCTURE_CONFIG: &str = include_config!("structures.ron");

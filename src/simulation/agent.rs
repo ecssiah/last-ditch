@@ -24,7 +24,7 @@ pub struct Agent {
 impl Agent {
     pub fn new() -> Agent {
         let agent = Self {
-            id: id::agent::next(),
+            id: id::agent_id(),
             name: String::from(""),
             position: Vec3::ZERO,
             z_speed: 0.0,

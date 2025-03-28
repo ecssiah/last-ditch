@@ -7,6 +7,7 @@ pub mod block;
 pub mod chunk;
 pub mod consts;
 pub mod id;
+pub mod observation;
 pub mod physics;
 pub mod state;
 pub mod structure;

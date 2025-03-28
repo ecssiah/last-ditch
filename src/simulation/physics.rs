@@ -1,16 +1,9 @@
-use crate::simulation::{
-    self, agent::Agent, chunk::ChunkID, id::AgentID, FIXED_DT, JUMP_HOLD_FORCE,
-    JUMP_LAUNCE_VELOCITY, MAX_JUMP_DURATION,
-};
+use crate::simulation::{self, agent::Agent, chunk::ChunkID, consts::*, id::AgentID};
 use glam::Vec3;
 use rapier3d::{
     na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
-    prelude::{
-        nalgebra, CCDSolver, CoefficientCombineRule, ColliderBuilder, ColliderHandle, ColliderSet,
-        DefaultBroadPhase, ImpulseJointSet, IntegrationParameters, IslandManager,
-        MultibodyJointSet, NarrowPhase, RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
-    },
+    prelude::*,
 };
 use std::{
     collections::HashMap,
@@ -37,8 +30,11 @@ pub struct Physics {
 impl Physics {
     pub fn new() -> Physics {
         let physics = Self {
-            gravity: vector![0.0, -9.81, 0.0],
-            integration_parameters: IntegrationParameters::default(),
+            gravity: vector![0.0, GRAVITY_ACCELERATION, 0.0],
+            integration_parameters: IntegrationParameters {
+                dt: FIXED_DT as f32,
+                ..Default::default()
+            },
             pipeline: PhysicsPipeline::new(),
             island_manager: IslandManager::new(),
             broad_phase: DefaultBroadPhase::new(),
@@ -152,7 +148,7 @@ impl Physics {
         if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
             if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
                 let lv = rb.linvel();
-                rb.set_linvel(vector![lv.x, JUMP_LAUNCE_VELOCITY, lv.z], true);
+                rb.set_linvel(vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z], true);
             }
         }
     }
