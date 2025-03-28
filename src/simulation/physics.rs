@@ -1,4 +1,7 @@
-use crate::simulation::{self, agent::Agent, chunk::ChunkID, id::AgentID, JUMP_FORCE, MAX_JUMP_DURATION};
+use crate::simulation::{
+    self, agent::Agent, chunk::ChunkID, id::AgentID, JUMP_HOLD_FORCE, JUMP_LAUNCE_VELOCITY,
+    MAX_JUMP_DURATION,
+};
 use glam::Vec3;
 use rapier3d::{
     na::{vector, Point3, Vector3},
@@ -9,7 +12,10 @@ use rapier3d::{
         MultibodyJointSet, NarrowPhase, RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
 };
-use std::{collections::HashMap, sync::{Arc, RwLock}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 pub struct Physics {
     pub gravity: Vector3<f32>,
@@ -64,6 +70,8 @@ impl Physics {
         let collider = ColliderBuilder::capsule_y(0.9, 0.4)
             .friction(0.0)
             .friction_combine_rule(CoefficientCombineRule::Min)
+            .restitution(0.0)
+            .restitution_combine_rule(CoefficientCombineRule::Min)
             .build();
 
         self.collider_set
@@ -107,7 +115,7 @@ impl Physics {
         }
     }
 
-    pub fn apply_agent_movement(&mut self, agent: Arc<RwLock<Agent>>) {
+    pub fn update_agent_movement(&mut self, agent: Arc<RwLock<Agent>>) {
         let agent = agent.read().unwrap();
 
         let Some(rb_handle) = self.agent_body_handles.get(&agent.id) else {
@@ -138,7 +146,18 @@ impl Physics {
         rb.set_linvel(velocity, true);
     }
 
-    pub fn apply_agent_jump(&mut self, dt: f64, agent: Arc<RwLock<Agent>>) {
+    pub fn begin_agent_jump(&mut self, agent: Arc<RwLock<Agent>>) {
+        let agent = agent.read().unwrap();
+
+        if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
+            if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                let lv = rb.linvel();
+                rb.set_linvel(vector![lv.x, JUMP_LAUNCE_VELOCITY, lv.z], true);
+            }
+        }
+    }
+
+    pub fn update_agent_jump(&mut self, dt: f64, agent: Arc<RwLock<Agent>>) {
         let mut agent = agent.write().unwrap();
 
         if agent.jump_state.active {
@@ -146,10 +165,11 @@ impl Physics {
                 if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
                     agent.jump_state.timer += dt as f32;
 
-                    let still_powered = agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
+                    let still_powered =
+                        agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
 
                     if still_powered {
-                        let force = vector![0.0, JUMP_FORCE * dt as f32, 0.0];
+                        let force = vector![0.0, JUMP_HOLD_FORCE * dt as f32, 0.0];
                         rb.add_force(force, true);
                     } else {
                         agent.jump_state.active = false;
@@ -176,9 +196,6 @@ impl Physics {
     }
 
     pub fn step(&mut self) {
-        let physics_hooks = ();
-        let event_handler = ();
-
         self.pipeline.step(
             &self.gravity,
             &self.integration_parameters,
@@ -191,8 +208,8 @@ impl Physics {
             &mut self.multibody_joint_set,
             &mut self.ccd_solver,
             Some(&mut self.query_pipeline),
-            &physics_hooks,
-            &event_handler,
+            &(),
+            &(),
         );
     }
 }

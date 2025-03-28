@@ -74,7 +74,7 @@ impl Simulation {
     fn setup_agent() -> Arc<RwLock<Agent>> {
         let mut agent = Agent::new();
 
-        agent.set_position(0.0, 3.0, 0.0);
+        agent.set_position(3.0, 3.0, 3.0);
         agent.set_rotation(0.0, 0.0);
 
         Arc::from(RwLock::from(agent))
@@ -218,7 +218,7 @@ impl Simulation {
             self.update_light(chunk_id, block_id, grid_position);
             self.update_chunk_mesh(chunk_id);
 
-            self.flag_chunk_update(chunk_id);
+            self.set_chunk_last_update(chunk_id);
         }
     }
 
@@ -542,7 +542,7 @@ impl Simulation {
         }
     }
 
-    fn flag_chunk_update(&mut self, chunk_id: usize) {
+    fn set_chunk_last_update(&mut self, chunk_id: usize) {
         let mut world = self.state.world.write().unwrap();
         let mut chunk = self.state.chunks[chunk_id].write().unwrap();
 
@@ -572,8 +572,8 @@ impl Simulation {
 
         {
             let mut physics = self.state.physics.write().unwrap();
-            physics.apply_agent_movement(self.state.agent.clone());
-            physics.apply_agent_jump(dt, self.state.agent.clone());
+            physics.update_agent_movement(self.state.agent.clone());
+            physics.update_agent_jump(dt, self.state.agent.clone());
 
             physics.step();
         }
@@ -636,15 +636,22 @@ impl Simulation {
     }
 
     fn handle_jump_action(&mut self, jump_action: &JumpAction) {
-        let mut agent = self.state.agent.write().unwrap();
-
         match jump_action {
             JumpAction::Start => {
-                agent.jump_state.active = true;
-                agent.jump_state.timer = 0.0;
-                agent.jump_state.cancel = false;
+                {
+                    let mut agent = self.state.agent.write().unwrap();
+
+                    agent.jump_state.active = true;
+                    agent.jump_state.timer = 0.0;
+                    agent.jump_state.cancel = false;
+                }
+
+                let mut physics = self.state.physics.write().unwrap();
+                physics.begin_agent_jump(self.state.agent.clone());
             }
             JumpAction::End => {
+                let mut agent = self.state.agent.write().unwrap();
+
                 agent.jump_state.cancel = true;
             }
         }

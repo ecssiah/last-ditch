@@ -9,7 +9,8 @@ use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     event::{
-        DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent
+        DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
+        WindowEvent,
     },
     keyboard::{KeyCode, PhysicalKey},
 };
@@ -40,9 +41,7 @@ impl Input {
             key_d: 0.0,
         };
 
-        let mouse_state = MouseState {
-            delta: Vec2::ZERO,
-        };
+        let mouse_state = MouseState { delta: Vec2::ZERO };
 
         let input = Self {
             action_tx,
