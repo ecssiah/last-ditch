@@ -19,7 +19,11 @@ use crate::{
 use glam::{Mat4, Vec3};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::UnboundedSender;
-use winit::{event::{DeviceEvent, WindowEvent}, event_loop::ActiveEventLoop, window::Window};
+use winit::{
+    event::{DeviceEvent, WindowEvent},
+    event_loop::ActiveEventLoop,
+    window::Window,
+};
 
 #[rustfmt::skip]
 const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
@@ -57,7 +61,9 @@ impl Interface {
 
         let input = Input::new(action_tx.clone());
 
-        window.set_cursor_grab(winit::window::CursorGrabMode::Locked).expect("Failed to grab cursor");
+        window
+            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+            .expect("Failed to grab cursor");
         window.set_cursor_visible(false);
 
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -281,6 +287,8 @@ impl Interface {
         self.window.pre_present_notify();
 
         surface_texture.present();
+
+        self.window.request_redraw();
     }
 
     fn update_meshes(&mut self) {
@@ -317,10 +325,7 @@ impl Interface {
         self.input.handle_window_event(&event);
 
         match event {
-            WindowEvent::RedrawRequested => {
-                self.render();
-                self.window.request_redraw();
-            }
+            WindowEvent::RedrawRequested => self.render(),
             WindowEvent::Resized(size) => self.resize(*size),
             _ => (),
         }

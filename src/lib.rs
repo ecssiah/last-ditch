@@ -77,12 +77,12 @@ impl ApplicationHandler for App {
 
     fn device_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
-        device_id: winit::event::DeviceId,
+        _event_loop: &ActiveEventLoop,
+        _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
         let interface = self.interface.as_mut().unwrap();
-        
+
         interface.handle_device_event(&event);
     }
 }

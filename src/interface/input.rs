@@ -8,7 +8,6 @@ use crate::{
 use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
-    dpi::PhysicalPosition,
     event::{
         DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent
     },
@@ -24,7 +23,6 @@ pub struct KeyState {
 }
 
 pub struct MouseState {
-    last_position: Option<Vec2>,
     delta: Vec2,
 }
 
@@ -45,7 +43,6 @@ impl Input {
         };
 
         let mouse_state = MouseState {
-            last_position: None,
             delta: Vec2::ZERO,
         };
 
@@ -85,12 +82,6 @@ impl Input {
                 phase,
             } => {
                 self.handle_mouse_wheel(device_id, delta, phase);
-            }
-            WindowEvent::CursorMoved {
-                device_id,
-                position,
-            } => {
-                self.handle_cursor_moved(device_id, position);
             }
             _ => (),
         }
@@ -198,18 +189,6 @@ impl Input {
         phase: &TouchPhase,
     ) {
         println!("{:?} {:?}", delta, phase);
-    }
-
-    pub fn handle_cursor_moved(&mut self, _device_id: &DeviceId, position: &PhysicalPosition<f64>) {
-        let current_position = Vec2::new(position.x as f32, position.y as f32);
-
-        if let Some(last_position) = self.mouse_state.last_position {
-            let current_delta = current_position - last_position;
-
-            self.mouse_state.delta += current_delta;
-        }
-
-        self.mouse_state.last_position = Some(current_position);
     }
 
     pub fn handle_mouse_motion(&mut self, dx: f64, dy: f64) {

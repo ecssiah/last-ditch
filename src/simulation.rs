@@ -56,7 +56,7 @@ impl Simulation {
         let mut agent = Agent {
             id: 0,
             name: "Melchizedek",
-            position: Vec3::new(-12.0, 26.0, 2.0),
+            position: Vec3::new(-16.0, 24.0, 2.0),
             x_speed: 0.0,
             z_speed: 0.0,
             look_x_axis: 0.0,
@@ -114,8 +114,16 @@ impl Simulation {
         self.set_block_kind(0, 1, 1, block::Kind::Gold);
         self.set_block_kind(0, 1, -1, block::Kind::Gold);
 
-        self.generate_structure(-12, -6, 0, structure::Kind::Mario);
-        self.generate_structure(12, -6, 0, structure::Kind::Luigi);
+        self.generate_structure(0, -6, -48, structure::Kind::Luigi);
+        self.generate_structure(-16, -6, 0, structure::Kind::Mario);
+        self.generate_structure(16, -6, 0, structure::Kind::Mario);
+        // self.generate_structure(0, -6, 16, structure::Kind::Luigi);
+
+        self.set_block_kind(0, 48, 0, block::Kind::Metal);
+        self.set_block_kind(-1, 48, 0, block::Kind::Metal);
+        self.set_block_kind(1, 48, 0, block::Kind::Metal);
+        self.set_block_kind(0, 48, 1, block::Kind::Metal);
+        self.set_block_kind(0, 48, -1, block::Kind::Metal);
 
         let agent = self.state.agent.read().unwrap();
         let mut physics = self.state.physics.write().unwrap();
@@ -391,28 +399,14 @@ impl Simulation {
 
                 let start_index = vertices.len() as u32;
 
-                let diagonal_a = face_ao[0] + face_ao[2];
-                let diagonal_b = face_ao[1] + face_ao[3];
-
-                let face_indices = if diagonal_a > diagonal_b {
-                    [
-                        start_index + 1,
-                        start_index + 2,
-                        start_index + 3,
-                        start_index + 1,
-                        start_index + 3,
-                        start_index + 0,
-                    ]
-                } else {
-                    [
-                        start_index + 0,
-                        start_index + 1,
-                        start_index + 2,
-                        start_index + 0,
-                        start_index + 2,
-                        start_index + 3,
-                    ]
-                };
+                let face_indices = [
+                    start_index + 0,
+                    start_index + 1,
+                    start_index + 2,
+                    start_index + 0,
+                    start_index + 2,
+                    start_index + 3,
+                ];
 
                 vertices.extend(chunk_vertices);
                 indices.extend(face_indices);
@@ -531,9 +525,7 @@ impl Simulation {
     fn calculate_vertex_ao(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
             AMBIENT_OCCLUSION_LEVEL[2]
-        } else if edge1 || edge2 {
-            AMBIENT_OCCLUSION_LEVEL[1]
-        } else if corner {
+        } else if corner || edge1 || edge2 {
             AMBIENT_OCCLUSION_LEVEL[1]
         } else {
             AMBIENT_OCCLUSION_LEVEL[0]
@@ -659,7 +651,7 @@ impl Simulation {
         state.ticks += 1;
     }
 
-    fn chunk_id_to_position(chunk_id: ChunkID) -> IVec3 {
+    pub fn chunk_id_to_position(chunk_id: ChunkID) -> IVec3 {
         let chunk_position_shifted = IVec3::new(
             (chunk_id % WORLD_SIZE) as i32,
             (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32,
@@ -671,14 +663,14 @@ impl Simulation {
         chunk_position
     }
 
-    fn chunk_id_to_world_position(chunk_id: ChunkID) -> Vec3 {
+    pub fn chunk_id_to_world_position(chunk_id: ChunkID) -> Vec3 {
         let grid_position = Self::chunk_id_to_position(chunk_id);
         let world_position = grid_position.as_vec3() * CHUNK_SIZE as f32;
 
         world_position
     }
 
-    fn block_id_to_position(block_id: BlockID) -> IVec3 {
+    pub fn block_id_to_position(block_id: BlockID) -> IVec3 {
         let block_position_shifted = IVec3::new(
             (block_id % CHUNK_SIZE) as i32,
             (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32,
