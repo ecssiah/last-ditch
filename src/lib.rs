@@ -54,16 +54,16 @@ impl ApplicationHandler for App {
         let mut simulation = Simulation::new(action_rx);
         simulation.generate();
 
-        let state = simulation.get_state();
+        let observation = simulation.get_observation();
 
         let interface = Interface::new(
             action_tx,
+            Arc::clone(&observation),
             Arc::clone(&window),
             instance,
             adapter,
             device,
             queue,
-            state,
         );
 
         let simulation_thread = thread::spawn(move || simulation.run());

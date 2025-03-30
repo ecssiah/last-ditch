@@ -1,41 +1,39 @@
-use crate::simulation::{block, world, BLOCKS, CHUNK_VOLUME};
-use glam::{IVec3, Vec3, Vec4};
+use crate::simulation::{block, id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID}, time::Tick, BLOCKS, CHUNK_VOLUME};
+use glam::IVec3;
 
-pub type ChunkID = usize;
-pub type PaletteID = usize;
-
-#[derive(Debug, Clone, Copy)]
-pub struct Vertex {
-    pub position: Vec3,
-    pub normal: Vec3,
-    pub color: Vec4,
-    pub ao: f32,
-}
-
-#[derive(Debug, Default, Clone)]
-pub struct Mesh {
-    pub vertices: Vec<Vertex>,
-    pub indices: Vec<u32>,
-}
+pub mod mesh;
+pub mod vertex;
 
 pub struct Chunk {
-    pub last_update: world::Tick,
+    pub last_update: Tick,
     pub id: ChunkID,
     pub position: IVec3,
     pub palette: Vec<block::Kind>,
-    pub palette_ids: Box<[PaletteID; CHUNK_VOLUME]>,
+    pub palette_ids: Vec<PaletteID>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
     pub light: Box<[block::LightLevel; CHUNK_VOLUME]>,
-    pub mesh: Mesh,
+    pub mesh: mesh::Mesh,
 }
 
 impl Chunk {
-    pub fn get_block(&self, block_id: block::BlockID) -> Option<&block::Block> {
-        let palette_id = self.palette_ids[block_id];
-        let kind = self.palette[palette_id];
+    pub fn get_block(&self, block_id: BlockID) -> Option<&block::Block> {
+        let palette_id = self.palette_ids.get(usize::from(block_id))?;
+        let kind = self.palette.get(usize::from(*palette_id))?;
 
         let block = BLOCKS.get(&kind)?;
 
         Some(block)
+    }
+
+    pub fn get_meta(&self, block_id: BlockID) -> Option<&block::Meta> {
+        let meta = self.meta.get(usize::from(block_id))?;
+
+        Some(meta)
+    }
+
+    pub fn get_meta_mut(&mut self, block_id: BlockID) -> Option<&mut block::Meta> {
+        let meta = self.meta.get_mut(usize::from(block_id))?;
+
+        Some(meta)
     }
 }

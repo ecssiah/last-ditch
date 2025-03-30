@@ -1,17 +1,18 @@
-use crate::simulation::id::{self, AgentID};
+use crate::simulation::id::agent_id::AgentID;
 use glam::{Quat, Vec3};
+use std::time::Duration;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct JumpState {
     pub active: bool,
     pub cancel: bool,
-    pub timer: f32,
+    pub timer: Duration,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Agent {
     pub id: AgentID,
-    pub name: String,
+    pub name: &'static str,
     pub position: Vec3,
     pub z_speed: f32,
     pub x_speed: f32,
@@ -22,10 +23,10 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new() -> Agent {
+    pub fn new(agent_id: AgentID) -> Agent {
         let agent = Self {
-            id: id::agent_id(),
-            name: String::from(""),
+            id: agent_id,
+            name: "",
             position: Vec3::ZERO,
             z_speed: 0.0,
             x_speed: 0.0,
@@ -35,7 +36,7 @@ impl Agent {
             jump_state: JumpState {
                 active: false,
                 cancel: false,
-                timer: 0.0,
+                timer: Duration::ZERO,
             },
         };
 

@@ -3,8 +3,6 @@ use bitflags::bitflags;
 use glam::{IVec3, Vec3, Vec4};
 use serde::Deserialize;
 
-pub type BlockID = usize;
-
 #[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
     Air,

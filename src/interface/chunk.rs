@@ -1,4 +1,4 @@
-use crate::simulation::{chunk::ChunkID, world::Tick};
+use crate::simulation::{id::chunk_id::ChunkID, time::Tick};
 use bytemuck::{Pod, Zeroable};
 use std::collections::HashMap;
 use wgpu::util::DeviceExt;

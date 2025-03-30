@@ -9,11 +9,7 @@ use crate::{
     include_shader_src,
     interface::{self, consts::*, input::Input},
     simulation::{
-        action::{Action, AgentAction},
-        agent::Agent,
-        state::State,
-        world::Tick,
-        CHUNK_VOLUME,
+        action::{Action, AgentAction}, agent::Agent, id::chunk_id::ChunkID, observation::Observation, CHUNK_VOLUME
     },
 };
 use glam::{Mat4, Vec3};
@@ -35,10 +31,9 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 ]);
 
 pub struct Interface {
-    last_update: Tick,
-    window: Arc<Window>,
     action_tx: UnboundedSender<Action>,
-    state: Arc<State>,
+    observation: Arc<RwLock<Observation>>,
+    window: Arc<Window>,
     input: Input,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -55,15 +50,13 @@ pub struct Interface {
 impl Interface {
     pub fn new(
         action_tx: UnboundedSender<Action>,
+        observation: Arc<RwLock<Observation>>,
         window: Arc<Window>,
         instance: Instance,
         adapter: Adapter,
         device: Device,
         queue: Queue,
-        state: Arc<State>,
     ) -> Self {
-        let last_update: Tick = 0;
-
         let input = Input::new(action_tx.clone());
 
         window
@@ -147,10 +140,9 @@ impl Interface {
         let mesh_cache = interface::chunk::MeshCache::new();
 
         let interface = Self {
-            last_update,
-            window,
-            state,
             action_tx,
+            observation,
+            window,
             input,
             device,
             queue,
@@ -287,6 +279,7 @@ impl Interface {
 
     fn update_meshes(&mut self) {
         for chunk_id in 0..CHUNK_VOLUME {
+            let chunk_id = ChunkID(chunk_id);
             let chunk = self.state.chunks[chunk_id].read().unwrap();
 
             if self.mesh_cache.needs_update(chunk_id, chunk.last_update) {

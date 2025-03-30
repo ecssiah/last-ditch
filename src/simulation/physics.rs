@@ -1,14 +1,17 @@
-use crate::simulation::{self, agent::Agent, chunk::ChunkID, consts::*, id::AgentID};
+use crate::simulation::{
+    self,
+    agent::Agent,
+    consts::*,
+    id::{agent_id::AgentID, chunk_id::ChunkID},
+    state::State,
+};
 use glam::Vec3;
 use rapier3d::{
     na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::*,
 };
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::collections::HashMap;
 
 pub struct Physics {
     pub gravity: Vector3<f32>,
@@ -29,27 +32,60 @@ pub struct Physics {
 
 impl Physics {
     pub fn new() -> Physics {
+        let gravity = vector![0.0, GRAVITY_ACCELERATION, 0.0];
+
+        let integration_parameters = IntegrationParameters {
+            dt: FIXED_DT.as_secs_f32(),
+            ..Default::default()
+        };
+
+        let pipeline = PhysicsPipeline::new();
+        let island_manager = IslandManager::new();
+        let broad_phase = DefaultBroadPhase::new();
+        let narrow_phase = NarrowPhase::new();
+        let impulse_joint_set = ImpulseJointSet::new();
+        let multibody_joint_set = MultibodyJointSet::new();
+        let ccd_solver = CCDSolver::new();
+        let query_pipeline = QueryPipeline::new();
+        let rigid_body_set = RigidBodySet::new();
+        let collider_set = ColliderSet::new();
+
+        let agent_body_handles = HashMap::new();
+        let chunk_collider_handles = HashMap::new();
+
         let physics = Self {
-            gravity: vector![0.0, GRAVITY_ACCELERATION, 0.0],
-            integration_parameters: IntegrationParameters {
-                dt: FIXED_DT as f32,
-                ..Default::default()
-            },
-            pipeline: PhysicsPipeline::new(),
-            island_manager: IslandManager::new(),
-            broad_phase: DefaultBroadPhase::new(),
-            narrow_phase: NarrowPhase::new(),
-            impulse_joint_set: ImpulseJointSet::new(),
-            multibody_joint_set: MultibodyJointSet::new(),
-            ccd_solver: CCDSolver::new(),
-            query_pipeline: QueryPipeline::new(),
-            rigid_body_set: RigidBodySet::new(),
-            collider_set: ColliderSet::new(),
-            chunk_collider_handles: HashMap::new(),
-            agent_body_handles: HashMap::new(),
+            gravity,
+            integration_parameters,
+            pipeline,
+            island_manager,
+            broad_phase,
+            narrow_phase,
+            impulse_joint_set,
+            multibody_joint_set,
+            ccd_solver,
+            query_pipeline,
+            rigid_body_set,
+            collider_set,
+            agent_body_handles,
+            chunk_collider_handles,
         };
 
         physics
+    }
+
+    pub fn generate(&mut self, agents: &HashMap<AgentID, Agent>) {
+        for agent in agents.values() {
+            self.add_agent(agent);
+        }
+    }
+
+    pub fn update(&mut self, state: &mut State) {
+        if let Some(user_agent) = state.agents.get_mut(&AgentID::USER_AGENT_ID) {
+            self.update_agent_movement(user_agent);
+            self.update_agent_jump(user_agent);
+            self.step();
+            self.sync_agent_transforms(user_agent);
+        }
     }
 
     pub fn add_agent(&mut self, agent: &Agent) {
@@ -76,15 +112,17 @@ impl Physics {
         self.agent_body_handles.insert(agent.id, rigid_body_handle);
     }
 
-    pub fn add_chunk_collider(
-        &mut self,
-        chunk_id: ChunkID,
-        vertices: &[simulation::chunk::Vertex],
-        indices: &[u32],
-    ) {
-        let points: Vec<Point3<f32>> = vertices.iter().map(|v| Point3::from(v.position)).collect();
+    pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
+        let points: Vec<Point3<f32>> = chunk
+            .mesh
+            .vertices
+            .iter()
+            .map(|v| Point3::from(v.position))
+            .collect();
 
-        let triangle_indices: Vec<[u32; 3]> = indices
+        let triangle_indices: Vec<[u32; 3]> = chunk
+            .mesh
+            .indices
             .chunks(3)
             .map(|tri| [tri[0], tri[1], tri[2]])
             .collect();
@@ -93,7 +131,7 @@ impl Physics {
             Ok(builder) => {
                 let collider = builder.build();
 
-                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
+                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk.id) {
                     self.collider_set.remove(
                         old_handle,
                         &mut self.island_manager,
@@ -103,17 +141,19 @@ impl Physics {
                 }
 
                 let handle = self.collider_set.insert(collider);
-                self.chunk_collider_handles.insert(chunk_id, handle);
+                self.chunk_collider_handles.insert(chunk.id, handle);
             }
             Err(err) => {
-                log::warn!("Failed to build collider for chunk {}: {:?}", chunk_id, err);
+                log::warn!(
+                    "Failed to build collider for chunk {:?}: {:?}",
+                    chunk.id,
+                    err
+                );
             }
         }
     }
 
-    pub fn update_agent_movement(&mut self, agent: Arc<RwLock<Agent>>) {
-        let agent = agent.read().unwrap();
-
+    pub fn update_agent_movement(&mut self, agent: &Agent) {
         let Some(rb_handle) = self.agent_body_handles.get(&agent.id) else {
             return;
         };
@@ -142,9 +182,7 @@ impl Physics {
         rb.set_linvel(velocity, true);
     }
 
-    pub fn begin_agent_jump(&mut self, agent: Arc<RwLock<Agent>>) {
-        let agent = agent.read().unwrap();
-
+    pub fn begin_agent_jump(&mut self, agent: &Agent) {
         if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
             if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
                 let lv = rb.linvel();
@@ -153,19 +191,17 @@ impl Physics {
         }
     }
 
-    pub fn update_agent_jump(&mut self, agent: Arc<RwLock<Agent>>) {
-        let mut agent = agent.write().unwrap();
-
+    pub fn update_agent_jump(&mut self, agent: &mut Agent) {
         if agent.jump_state.active {
             if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
                 if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
-                    agent.jump_state.timer += FIXED_DT as f32;
+                    agent.jump_state.timer += FIXED_DT;
 
                     let is_powered =
                         agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
 
                     if is_powered {
-                        let force = vector![0.0, JUMP_HOLD_FORCE * FIXED_DT as f32, 0.0];
+                        let force = vector![0.0, JUMP_HOLD_FORCE * FIXED_DT.as_secs_f32(), 0.0];
                         rb.add_force(force, true);
                     } else {
                         agent.jump_state.active = false;
