@@ -162,7 +162,7 @@ impl Physics {
             return;
         };
 
-        let forward = agent.look_rotation * Vec3::Z;
+        let forward = agent.orientation * Vec3::Z;
         let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
         let right_xz = Vec3::Y.cross(forward_xz).normalize();
 

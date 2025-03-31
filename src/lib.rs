@@ -52,7 +52,6 @@ impl ApplicationHandler for App {
         let (action_tx, action_rx) = unbounded_channel();
 
         let mut simulation = Simulation::new(action_rx);
-        simulation.generate();
 
         let observation = simulation.get_observation();
 

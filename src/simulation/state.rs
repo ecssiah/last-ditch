@@ -1,15 +1,14 @@
 use crate::simulation::{
     agent::Agent,
-    chunk::Chunk,
     id::agent_id::AgentID,
     time::{Tick, Time},
-    CHUNK_VOLUME,
+    world::World,
 };
 use std::collections::HashMap;
 
 pub struct LastUpdate {
     pub agents: Tick,
-    pub chunks: Tick,
+    pub world: Tick,
 }
 
 pub struct State {
@@ -18,5 +17,5 @@ pub struct State {
     pub last_update: LastUpdate,
     pub time: Time,
     pub agents: HashMap<AgentID, Agent>,
-    pub chunks: [Chunk; CHUNK_VOLUME],
+    pub world: World,
 }

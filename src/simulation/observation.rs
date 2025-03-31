@@ -21,7 +21,9 @@ impl Observation {
         observation
     }
 
-    pub fn update(&mut self, state: &State) {}
+    pub fn update(&mut self, state: &State) {
+
+    }
 
     pub fn request_view(&mut self, agent_id: AgentID) -> Option<ObservationID> {
         None

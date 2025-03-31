@@ -2,7 +2,7 @@ use glam::IVec3;
 use last_ditch::simulation::*;
 
 #[test]
-fn test_grid_position_to_chunk_id() {
+fn test_chunk_id_at() {
     let test_cases = vec![
         (
             IVec3::new(
@@ -32,7 +32,7 @@ fn test_grid_position_to_chunk_id() {
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Simulation::grid_position_to_chunk_id(grid_position);
+        let chunk_id = Simulation::Chunk::id_at(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,
@@ -43,7 +43,7 @@ fn test_grid_position_to_chunk_id() {
 }
 
 #[test]
-fn test_grid_position_to_block_id() {
+fn test_block_id_at() {
     let test_cases = vec![
         (
             IVec3::new(
@@ -73,7 +73,7 @@ fn test_grid_position_to_block_id() {
     ];
 
     for (grid_position, expected_block_id) in test_cases {
-        let block_id = Simulation::grid_position_to_block_id(grid_position);
+        let block_id = Simulation::Block::id_at(grid_position);
 
         assert_eq!(
             block_id, expected_block_id,
@@ -84,7 +84,7 @@ fn test_grid_position_to_block_id() {
 }
 
 #[test]
-fn test_get_grid_position() {
+fn test_grid_position() {
     let test_cases = vec![
         (
             (0, 0),
@@ -117,7 +117,10 @@ fn test_get_grid_position() {
     ];
 
     for ((chunk_id, block_id), expected_grid_position) in test_cases {
-        let grid_position = Simulation::ids_to_grid_position(chunk_id, block_id);
+        let chunk_id = ChunkID(chunk_id);
+        let block_id = BlockID(block_id);
+
+        let grid_position = World::grid_position(chunk_id, block_id);
 
         assert_eq!(
             grid_position, expected_grid_position,

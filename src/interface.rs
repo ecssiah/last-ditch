@@ -402,8 +402,8 @@ impl Interface {
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
-        let forward = agent.look_rotation * Vec3::Z;
-        let up = agent.look_rotation * Vec3::Y;
+        let forward = agent.orientation * Vec3::Z;
+        let up = agent.orientation * Vec3::Y;
 
         let eye = agent.position;
         let target = eye + forward;

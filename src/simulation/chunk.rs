@@ -1,5 +1,5 @@
-use crate::simulation::{block, id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID}, time::Tick, BLOCKS, CHUNK_VOLUME};
-use glam::IVec3;
+use crate::simulation::{block, id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID}, time::Tick, world::World, Simulation, BLOCKS, CHUNK_SIZE, CHUNK_VOLUME, WORLD_AREA, WORLD_BOUNDARY, WORLD_RADIUS, WORLD_SIZE};
+use glam::{IVec3, Vec3};
 
 pub mod mesh;
 pub mod vertex;
@@ -36,4 +36,46 @@ impl Chunk {
 
         Some(meta)
     }
+
+    pub fn local_position(chunk_id: ChunkID) -> IVec3 {
+        let chunk_id: usize = usize::from(chunk_id);
+
+        let chunk_position_shifted = IVec3::new(
+            (chunk_id % WORLD_SIZE) as i32,
+            (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32,
+            (chunk_id / WORLD_AREA) as i32,
+        );
+
+        let chunk_position = chunk_position_shifted - IVec3::splat(WORLD_RADIUS as i32);
+
+        chunk_position
+    }
+
+    pub fn world_position(chunk_id: ChunkID) -> Vec3 {
+        let grid_position = Self::local_position(chunk_id);
+        let world_position = grid_position.as_vec3() * CHUNK_SIZE as f32;
+
+        world_position
+    }
+
+    pub fn id_at(grid_position: IVec3) -> Option<ChunkID> {
+        if World::on_map(grid_position) {
+            let chunk_position_shifted = grid_position.map(|coordinate| {
+                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
+
+                coordinate_shifted.div_euclid(WORLD_SIZE as i32)
+            });
+
+            let chunk_id = chunk_position_shifted.x
+                + chunk_position_shifted.y * WORLD_SIZE as i32
+                + chunk_position_shifted.z * WORLD_AREA as i32;
+
+            let chunk_id = ChunkID(chunk_id as usize);
+
+            Some(chunk_id)
+        } else {
+            None
+        }
+    }
+
 }

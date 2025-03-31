@@ -18,7 +18,7 @@ pub struct Agent {
     pub x_speed: f32,
     pub look_x_axis: f32,
     pub look_y_axis: f32,
-    pub look_rotation: Quat,
+    pub orientation: Quat,
     pub jump_state: JumpState,
 }
 
@@ -32,7 +32,7 @@ impl Agent {
             x_speed: 0.0,
             look_x_axis: 0.0,
             look_y_axis: 0.0,
-            look_rotation: Quat::default(),
+            orientation: Quat::default(),
             jump_state: JumpState {
                 active: false,
                 cancel: false,
@@ -59,6 +59,6 @@ impl Agent {
         let y_axis_quat = Quat::from_rotation_y(self.look_y_axis);
         let x_axis_quat = Quat::from_rotation_x(self.look_x_axis);
 
-        self.look_rotation = y_axis_quat * x_axis_quat;
+        self.orientation = y_axis_quat * x_axis_quat;
     }
 }
