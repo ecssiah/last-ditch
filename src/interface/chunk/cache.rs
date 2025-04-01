@@ -1,3 +1,9 @@
+use crate::{
+    interface::chunk::{mesh::Mesh, vertex::Vertex},
+    simulation::{id::chunk_id::ChunkID, time::Tick},
+};
+use std::collections::HashMap;
+
 #[derive(Debug, Default)]
 pub struct Cache {
     meshes: HashMap<ChunkID, Mesh>,

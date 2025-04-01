@@ -1,4 +1,11 @@
-use crate::simulation::{block, id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID}, time::Tick, world::World, Simulation, BLOCKS, CHUNK_SIZE, CHUNK_VOLUME, WORLD_AREA, WORLD_BOUNDARY, WORLD_RADIUS, WORLD_SIZE};
+use crate::simulation::{
+    block,
+    id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
+    time::Tick,
+    world::World,
+    Simulation, BLOCKS, CHUNK_SIZE, CHUNK_VOLUME, WORLD_AREA, WORLD_BOUNDARY, WORLD_RADIUS,
+    WORLD_SIZE,
+};
 use glam::{IVec3, Vec3};
 
 pub mod mesh;
@@ -77,5 +84,4 @@ impl Chunk {
             None
         }
     }
-
 }

@@ -3,7 +3,13 @@ use std::collections::HashMap;
 use glam::{IVec3, Vec3, Vec4};
 
 use crate::simulation::{
-    block::{self, Direction, Face, Neighbors}, chunk, id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID}, structure, time::Tick, Block, Chunk, AMBIENT_OCCLUSION_LEVEL, BLOCKS, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME, STRUCTURES, WORLD_BOUNDARY, WORLD_VOLUME
+    block::{self, Direction, Face, Neighbors},
+    chunk,
+    id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
+    structure,
+    time::Tick,
+    Block, Chunk, AMBIENT_OCCLUSION_LEVEL, BLOCKS, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME,
+    STRUCTURES, WORLD_BOUNDARY, WORLD_VOLUME,
 };
 
 pub struct World {
@@ -496,6 +502,14 @@ impl World {
         let grid_position = CHUNK_SIZE as i32 * chunk_position + block_position;
 
         grid_position
+    }
+
+    pub fn world_position_at(grid_position: Vec3) -> IVec3 {
+        IVec3::new(
+            grid_position.x.trunc() as i32,
+            grid_position.y.trunc() as i32,
+            grid_position.z.trunc() as i32,
+        )
     }
 
     pub fn on_map(grid_position: IVec3) -> bool {

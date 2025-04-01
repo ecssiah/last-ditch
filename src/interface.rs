@@ -9,7 +9,11 @@ use crate::{
     include_shader_src,
     interface::{self, consts::*, input::Input},
     simulation::{
-        action::{Action, AgentAction}, agent::Agent, id::chunk_id::ChunkID, observation::Observation, CHUNK_VOLUME
+        action::{Action, AgentAction},
+        agent::Agent,
+        id::chunk_id::ChunkID,
+        observation::{Observation, Status},
+        CHUNK_VOLUME,
     },
 };
 use glam::{Mat4, Vec3};
@@ -44,7 +48,7 @@ pub struct Interface {
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
-    mesh_cache: interface::chunk::MeshCache,
+    mesh_cache: interface::chunk::cache::Cache,
 }
 
 impl Interface {
@@ -137,7 +141,7 @@ impl Interface {
             ..Default::default()
         };
 
-        let mesh_cache = interface::chunk::MeshCache::new();
+        let mesh_cache = interface::chunk::cache::Cache::new();
 
         let interface = Self {
             action_tx,
@@ -162,9 +166,11 @@ impl Interface {
     }
 
     fn check_active(&mut self, event_loop: &ActiveEventLoop) {
-        let world = self.state.world.read().unwrap();
+        let observation = self.observation.read().unwrap();
 
-        if world.active == false {
+        let status = observation.get_status();
+
+        if status == Status::Shutdown {
             event_loop.exit();
         }
     }
@@ -190,6 +196,8 @@ impl Interface {
     }
 
     fn update_view_projection(&mut self) {
+        let observation = self.observation.read().unwrap();
+
         let view_projection_matrix =
             Self::create_view_projection_matrix(Arc::clone(&self.state.agent));
 
@@ -283,11 +291,11 @@ impl Interface {
             let chunk = self.state.chunks[chunk_id].read().unwrap();
 
             if self.mesh_cache.needs_update(chunk_id, chunk.last_update) {
-                let vertices: Vec<chunk::Vertex> = chunk
+                let vertices: Vec<chunk::vertex::Vertex> = chunk
                     .mesh
                     .vertices
                     .iter()
-                    .map(|vertex| chunk::Vertex {
+                    .map(|vertex| chunk::vertex::Vertex {
                         position: vertex.position.to_array(),
                         normal: vertex.normal.to_array(),
                         color: vertex.color.to_array(),
@@ -334,7 +342,7 @@ impl Interface {
             vertex: wgpu::VertexState {
                 module: shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[interface::chunk::Vertex::desc()],
+                buffers: &[interface::chunk::vertex::Vertex::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {

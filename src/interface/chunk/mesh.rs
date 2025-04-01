@@ -1,3 +1,5 @@
+use crate::{interface::chunk::vertex::Vertex, simulation::time::Tick};
+use wgpu::util::DeviceExt;
 
 #[derive(Debug)]
 pub struct Mesh {

@@ -1,4 +1,4 @@
-use crate::simulation::{id::block_id::BlockID, world::World, Simulation, BLOCK_RADIUS, CHUNK_AREA, CHUNK_RADIUS, CHUNK_SIZE, WORLD_BOUNDARY};
+use crate::simulation::{consts::*, id::block_id::BlockID, world::World};
 use bitflags::bitflags;
 use glam::{IVec3, Vec3, Vec4};
 use serde::Deserialize;
@@ -168,18 +168,6 @@ impl Face {
             Face::YN => Vec3::new( 1.0,  0.0,  0.0),
             Face::ZP => Vec3::new( 1.0,  0.0,  0.0),
             Face::ZN => Vec3::new(-1.0,  0.0,  0.0),
-            _ => panic!("Invalid Face: {:?}", self),
-        }
-    }
-
-    pub fn debug_color(self) -> Vec4 {
-        match self {
-            Face::XP => Vec4::new(1.0, 0.6, 0.6, 1.0),
-            Face::XN => Vec4::new(1.0, 1.0, 0.6, 1.0),
-            Face::YP => Vec4::new(0.6, 1.0, 0.6, 1.0),
-            Face::YN => Vec4::new(0.6, 1.0, 1.0, 1.0),
-            Face::ZP => Vec4::new(0.6, 0.6, 1.0, 1.0),
-            Face::ZN => Vec4::new(1.0, 0.6, 1.0, 1.0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }

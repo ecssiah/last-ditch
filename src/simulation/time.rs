@@ -1,5 +1,5 @@
-use std::time::Duration;
 use crate::simulation::FIXED_TICK_RATE;
+use std::time::Duration;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Tick(pub u64);
