@@ -1,5 +1,9 @@
 use glam::IVec3;
-use last_ditch::simulation::*;
+use last_ditch::simulation::{
+    id::{block_id::BlockID, chunk_id::ChunkID},
+    world::World,
+    *,
+};
 
 #[test]
 fn test_chunk_id_at() {
@@ -10,16 +14,16 @@ fn test_chunk_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(0),
+            Some(ChunkID(0)),
         ),
-        (IVec3::new(0, 0, 0), Some((WORLD_VOLUME - 1) / 2)),
+        (IVec3::new(0, 0, 0), Some(ChunkID((WORLD_VOLUME - 1) / 2))),
         (
             IVec3::new(
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
             ),
-            Some(WORLD_VOLUME - 1),
+            Some(ChunkID(WORLD_VOLUME - 1)),
         ),
         (
             IVec3::new(
@@ -27,12 +31,12 @@ fn test_chunk_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(WORLD_SIZE - 1),
+            Some(ChunkID(WORLD_SIZE - 1)),
         ),
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Simulation::Chunk::id_at(grid_position);
+        let chunk_id = Chunk::id_at(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,
@@ -51,16 +55,16 @@ fn test_block_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(0),
+            Some(BlockID(0)),
         ),
-        (IVec3::new(0, 0, 0), Some((CHUNK_VOLUME - 1) / 2)),
+        (IVec3::new(0, 0, 0), Some(BlockID((CHUNK_VOLUME - 1) / 2))),
         (
             IVec3::new(
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
             ),
-            Some(CHUNK_VOLUME - 1),
+            Some(BlockID(CHUNK_VOLUME - 1)),
         ),
         (
             IVec3::new(
@@ -68,12 +72,12 @@ fn test_block_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(CHUNK_SIZE - 1),
+            Some(BlockID(CHUNK_SIZE - 1)),
         ),
     ];
 
     for (grid_position, expected_block_id) in test_cases {
-        let block_id = Simulation::Block::id_at(grid_position);
+        let block_id = Block::id_at(grid_position);
 
         assert_eq!(
             block_id, expected_block_id,

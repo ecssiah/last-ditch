@@ -18,7 +18,6 @@ use crate::simulation::{
     action::{JumpAction, MovementAction},
     id::agent_id::AgentID,
     observation::Observation,
-    state::LastUpdate,
     time::{Tick, Time},
     world::World,
 };
@@ -50,7 +49,6 @@ impl Simulation {
         let state = State {
             active: true,
             seed: SEED,
-            last_update: Self::setup_last_update(),
             agents: Self::setup_agents(),
             time: Self::setup_time(),
             world: Self::setup_world(),
@@ -96,15 +94,6 @@ impl Simulation {
 
             thread::sleep(SIMULATION_WAIT_DURATION);
         }
-    }
-
-    fn setup_last_update() -> LastUpdate {
-        let last_update = LastUpdate {
-            agents: Tick::ZERO,
-            world: Tick::ZERO,
-        };
-
-        last_update
     }
 
     fn setup_time() -> Time {

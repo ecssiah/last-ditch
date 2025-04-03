@@ -3,7 +3,6 @@ use wgpu::util::DeviceExt;
 
 #[derive(Debug)]
 pub struct Mesh {
-    pub last_update: Tick,
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub index_count: u32,
@@ -12,7 +11,6 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(
         device: &wgpu::Device,
-        creation_tick: Tick,
         vertices: Vec<Vertex>,
         indices: Vec<u32>,
     ) -> Self {
@@ -29,7 +27,6 @@ impl Mesh {
         });
 
         Self {
-            last_update: creation_tick,
             vertex_buffer,
             index_buffer,
             index_count: indices.len() as u32,

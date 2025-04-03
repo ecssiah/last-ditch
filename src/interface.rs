@@ -11,13 +11,19 @@ use crate::{
     simulation::{
         action::{Action, AgentAction},
         agent::Agent,
-        id::chunk_id::ChunkID,
-        observation::{Observation, Status},
-        CHUNK_VOLUME,
+        id::{agent_id::AgentID, chunk_id::ChunkID},
+        observation::{
+            view::{AgentView, ChunkView, View},
+            Observation, Status,
+        },
+        time::Tick,
     },
 };
 use glam::{Mat4, Vec3};
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 use tokio::sync::mpsc::UnboundedSender;
 use wgpu::{Adapter, Device, Instance, Queue};
 use winit::{
@@ -48,7 +54,7 @@ pub struct Interface {
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
-    mesh_cache: interface::chunk::cache::Cache,
+    chunks: HashMap<ChunkID, interface::chunk::Chunk>,
 }
 
 impl Interface {
@@ -141,7 +147,7 @@ impl Interface {
             ..Default::default()
         };
 
-        let mesh_cache = interface::chunk::cache::Cache::new();
+        let chunks = HashMap::new();
 
         let interface = Self {
             action_tx,
@@ -157,7 +163,7 @@ impl Interface {
             view_projection_buffer,
             view_projection_bind_group,
             chunk_pipeline,
-            mesh_cache,
+            chunks,
         };
 
         log::info!("Interface Initialized");
@@ -165,15 +171,7 @@ impl Interface {
         interface
     }
 
-    fn check_active(&mut self, event_loop: &ActiveEventLoop) {
-        let observation = self.observation.read().unwrap();
-
-        let status = observation.get_status();
-
-        if status == Status::Shutdown {
-            event_loop.exit();
-        }
-    }
+    fn check_active(&mut self, event_loop: &ActiveEventLoop) {}
 
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
@@ -190,16 +188,94 @@ impl Interface {
     }
 
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
-        self.check_active(event_loop);
-
         self.send_movement_actions();
+
+        let status = self.get_status();
+
+        if status == Status::Shutdown {
+            event_loop.exit();
+        }
+
+        if let Some(view) = self.get_view(AgentID::USER_AGENT_ID) {
+            self.update_user_agent(&view.agent_view);
+            self.update_chunks(&view.chunk_views);
+        }
     }
 
-    fn update_view_projection(&mut self) {
+    pub fn get_status(&self) -> Status {
         let observation = self.observation.read().unwrap();
 
-        let view_projection_matrix =
-            Self::create_view_projection_matrix(Arc::clone(&self.state.agent));
+        let status = observation.get_status();
+
+        status
+    }
+
+    pub fn get_view(&self, agent_id: AgentID) -> Option<View> {
+        let observation = self.observation.read().unwrap();
+
+        observation.get_view(agent_id)
+    }
+
+    fn update_user_agent(&mut self, agent_view: &AgentView) {
+        self.update_view_projection(agent_view);
+    }
+
+    fn update_chunks(&mut self, chunk_views: &HashMap<ChunkID, ChunkView>) {
+        for (chunk_id, chunk_view) in chunk_views {
+            if let Some(chunk) = self.chunks.get(chunk_id) {
+                if chunk_view.tick > chunk.tick {
+                    let vertices: Vec<chunk::vertex::Vertex> = chunk_view
+                        .mesh
+                        .vertices
+                        .iter()
+                        .map(|vertex| chunk::vertex::Vertex {
+                            position: vertex.position.to_array(),
+                            normal: vertex.normal.to_array(),
+                            color: vertex.color.to_array(),
+                            ao: vertex.ao,
+                        })
+                        .collect();
+
+                    let indices: Vec<u32> = chunk_view.mesh.indices.clone();
+
+                    let chunk = interface::chunk::Chunk {
+                        id: *chunk_id,
+                        tick: chunk_view.tick,
+                        mesh: interface::chunk::mesh::Mesh::new(&self.device, vertices, indices),
+                    };
+
+                    self.chunks.insert(*chunk_id, chunk);
+                }
+            } else {
+                let vertices: Vec<chunk::vertex::Vertex> = chunk_view
+                    .mesh
+                    .vertices
+                    .iter()
+                    .map(|vertex| chunk::vertex::Vertex {
+                        position: vertex.position.to_array(),
+                        normal: vertex.normal.to_array(),
+                        color: vertex.color.to_array(),
+                        ao: vertex.ao,
+                    })
+                    .collect();
+
+                let indices: Vec<u32> = chunk_view.mesh.indices.clone();
+
+                let chunk = interface::chunk::Chunk {
+                    id: *chunk_id,
+                    tick: chunk_view.tick,
+                    mesh: interface::chunk::mesh::Mesh::new(&self.device, vertices, indices),
+                };
+
+                self.chunks.insert(*chunk_id, chunk);
+            }
+        }
+    }
+
+    fn update_view_projection(&mut self, agent_view: &AgentView) {
+        let observation = self.observation.read().unwrap();
+
+        let view_projection_matrix = Self::create_view_projection_matrix(agent_view);
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -209,16 +285,6 @@ impl Interface {
     }
 
     pub fn render(&mut self) {
-        self.update_view_projection();
-
-        let last_update = self.state.world.read().unwrap().last_update;
-
-        if last_update > self.last_update {
-            self.update_meshes();
-
-            self.last_update = last_update;
-        }
-
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let surface_texture = self
@@ -266,12 +332,12 @@ impl Interface {
         render_pass.set_pipeline(&self.chunk_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
 
-        for mesh in self.mesh_cache.values() {
-            if mesh.index_count > 0 {
-                render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        for chunk in self.chunks.values() {
+            if chunk.mesh.index_count > 0 {
+                render_pass.set_vertex_buffer(0, chunk.mesh.vertex_buffer.slice(..));
                 render_pass
-                    .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-                render_pass.draw_indexed(0..mesh.index_count, 0, 0..1);
+                    .set_index_buffer(chunk.mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+                render_pass.draw_indexed(0..chunk.mesh.index_count, 0, 0..1);
             }
         }
 
@@ -283,37 +349,6 @@ impl Interface {
         surface_texture.present();
 
         self.window.request_redraw();
-    }
-
-    fn update_meshes(&mut self) {
-        for chunk_id in 0..CHUNK_VOLUME {
-            let chunk_id = ChunkID(chunk_id);
-            let chunk = self.state.chunks[chunk_id].read().unwrap();
-
-            if self.mesh_cache.needs_update(chunk_id, chunk.last_update) {
-                let vertices: Vec<chunk::vertex::Vertex> = chunk
-                    .mesh
-                    .vertices
-                    .iter()
-                    .map(|vertex| chunk::vertex::Vertex {
-                        position: vertex.position.to_array(),
-                        normal: vertex.normal.to_array(),
-                        color: vertex.color.to_array(),
-                        ao: vertex.ao,
-                    })
-                    .collect();
-
-                let indices: Vec<u32> = chunk.mesh.indices.clone();
-
-                self.mesh_cache.upload_mesh(
-                    &self.device,
-                    chunk_id,
-                    vertices,
-                    indices,
-                    chunk.last_update,
-                );
-            }
-        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -403,17 +438,15 @@ impl Interface {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn create_view_projection_matrix(agent: Arc<RwLock<Agent>>) -> [[f32; 4]; 4] {
-        let agent = agent.read().unwrap();
-
+    fn create_view_projection_matrix(agent_view: &AgentView) -> [[f32; 4]; 4] {
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
-        let forward = agent.orientation * Vec3::Z;
-        let up = agent.orientation * Vec3::Y;
+        let forward = agent_view.orientation * Vec3::Z;
+        let up = agent_view.orientation * Vec3::Y;
 
-        let eye = agent.position;
+        let eye = agent_view.position;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

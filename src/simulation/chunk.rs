@@ -1,10 +1,10 @@
 use crate::simulation::{
     block,
+    consts::*,
     id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
     time::Tick,
     world::World,
-    Simulation, BLOCKS, CHUNK_SIZE, CHUNK_VOLUME, WORLD_AREA, WORLD_BOUNDARY, WORLD_RADIUS,
-    WORLD_SIZE,
+    BLOCKS,
 };
 use glam::{IVec3, Vec3};
 
@@ -12,8 +12,8 @@ pub mod mesh;
 pub mod vertex;
 
 pub struct Chunk {
-    pub last_update: Tick,
     pub id: ChunkID,
+    pub tick: Tick,
     pub position: IVec3,
     pub palette: Vec<block::Kind>,
     pub palette_ids: Vec<PaletteID>,

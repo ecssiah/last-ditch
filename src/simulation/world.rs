@@ -30,7 +30,7 @@ impl World {
             let chunk_id = ChunkID(index);
 
             Chunk {
-                last_update: Tick(1),
+                tick: Tick(1),
                 id: chunk_id,
                 position: Chunk::local_position(chunk_id),
                 palette: Vec::from([block::Kind::Air]),
@@ -482,9 +482,9 @@ impl World {
         }
     }
 
-    fn set_chunk_last_update(&mut self, tick: Tick, chunk_id: ChunkID) {
+    fn set_chunk_tick(&mut self, tick: Tick, chunk_id: ChunkID) {
         if let Some(chunk) = self.chunks.get_mut(usize::from(chunk_id)) {
-            chunk.last_update = tick;
+            chunk.tick = tick;
         }
     }
 

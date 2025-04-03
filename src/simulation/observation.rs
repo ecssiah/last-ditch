@@ -46,32 +46,15 @@ impl Observation {
             for agent_id in self.repository.list_agents() {
                 if let Some(agent) = state.agents.get(&agent_id) {
                     if let Some(view) = self.repository.get(agent_id) {
-                        let agent_view = if state.last_update.agents > view.tick {
-                            Some(AgentView {
-                                agent_id: agent.id,
-                                position: agent.position,
-                                orientation: agent.orientation,
-                            })
-                        } else {
-                            None
+                        let agent_view = self.generate_agent_view(agent);
+                        let chunk_views = self.generate_chunk_views(state, agent.position, &view.chunk_views);
+
+                        let new_view = View {
+                            agent_view,
+                            chunk_views,
                         };
 
-                        let chunk_views = if state.last_update.world > view.tick {
-                            Some(self.generate_chunk_views(state, agent.position))
-                        } else {
-                            None
-                        };
-
-                        if agent_view.is_some() || chunk_views.is_some() {
-                            let new_view = View {
-                                agent_view: agent_view.unwrap_or_else(|| view.agent_view.clone()),
-                                chunk_views: chunk_views
-                                    .unwrap_or_else(|| view.chunk_views.clone()),
-                                ..(*view).clone()
-                            };
-
-                            self.repository.update(agent_id, new_view);
-                        }
+                        self.repository.update(agent_id, new_view);
                     }
                 }
             }
@@ -82,34 +65,42 @@ impl Observation {
         }
     }
 
+    pub fn register_agent(&mut self, state: &State, agent_id: AgentID) {
+        if let Some(agent) = state.agents.get(&agent_id) {
+            let view = View {
+                agent_view: self.generate_agent_view(agent),
+                chunk_views: self.generate_chunk_views(state, agent.position, &HashMap::new()),
+            };
+
+            self.repository.add(agent_id, view);
+        }
+    }
+
     pub fn get_status(&self) -> Status {
         let status = self.status.read().unwrap();
 
         status.clone()
     }
 
-    pub fn register_agent(&mut self, state: &State, agent_id: AgentID) {
-        if let Some(agent) = state.agents.get(&agent_id) {
-            let view = self.generate_view(state, agent);
-
-            self.repository.add(agent_id, view);
+    pub fn get_view(&self, agent_id: AgentID) -> Option<View> {
+        if let Some(view) = self.repository.get(agent_id) {
+            Some((*view).clone())
+        } else {
+            None
         }
     }
 
-    fn generate_view(&self, state: &State, agent: &Agent) -> View {
-        View {
-            tick: state.time.tick,
-            agent_view: AgentView {
-                agent_id: agent.id,
-                position: agent.position,
-                orientation: agent.orientation,
-            },
-            chunk_views: self.generate_chunk_views(state, agent.position),
+    fn generate_agent_view(&self, agent: &Agent) -> AgentView {
+        AgentView {
+            id: agent.id,
+            tick: agent.tick,
+            position: agent.position,
+            orientation: agent.orientation,
         }
     }
 
-    fn generate_chunk_views(&self, state: &State, position: Vec3) -> HashMap<ChunkID, ChunkView> {
-        let mut chunk_views = HashMap::new();
+    fn generate_chunk_views(&self, state: &State, position: Vec3, old_chunk_views: &HashMap<ChunkID, ChunkView>) -> HashMap<ChunkID, ChunkView> {
+        let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
 
         for x in (grid_position.x - 1)..=(grid_position.x + 1) {
@@ -118,19 +109,36 @@ impl Observation {
                     let chunk_position = IVec3::new(x, y, z);
 
                     if let Some(chunk) = state.world.get_chunk_at(chunk_position) {
-                        let chunk_view = ChunkView {
-                            tick: state.time.tick,
-                            chunk_id: chunk.id,
-                            position: chunk.position,
-                            mesh: chunk.mesh.clone(),
-                        };
+                        if let Some(old_chunk_view) = old_chunk_views.get(&chunk.id) {
+                            if old_chunk_view.tick < chunk.tick {
+                                let new_chunk_view = ChunkView {
+                                    id: chunk.id,
+                                    tick: state.time.tick,
+                                    position: chunk.position,
+                                    mesh: chunk.mesh.clone(),
+                                };
 
-                        chunk_views.insert(chunk_view.chunk_id, chunk_view);
+                                new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
+                            } else {
+                                let new_chunk_view = old_chunk_view.clone();
+
+                                new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
+                            }
+                        } else {
+                            let new_chunk_view = ChunkView {
+                                id: chunk.id,
+                                tick: state.time.tick,
+                                position: chunk.position,
+                                mesh: chunk.mesh.clone(),
+                            };
+
+                            new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
+                        }
                     }
                 }
             }
         }
 
-        chunk_views
+        new_chunk_views
     }
 }
