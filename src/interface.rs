@@ -231,7 +231,7 @@ impl Interface {
                             position: vertex.position.to_array(),
                             normal: vertex.normal.to_array(),
                             color: vertex.color.to_array(),
-                            ao: vertex.ao,
+                            light: vertex.light,
                         })
                         .collect();
 
@@ -254,7 +254,7 @@ impl Interface {
                         position: vertex.position.to_array(),
                         normal: vertex.normal.to_array(),
                         color: vertex.color.to_array(),
-                        ao: vertex.ao,
+                        light: vertex.light,
                     })
                     .collect();
 

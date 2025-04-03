@@ -37,8 +37,6 @@ pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
-pub const AMBIENT_OCCLUSION_LEVEL: [f32; 3] = [1.0, 0.6, 0.2];
-
 const BLOCK_CONFIG: &str = include_config!("blocks.ron");
 const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
 

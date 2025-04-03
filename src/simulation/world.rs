@@ -1,16 +1,14 @@
-use std::collections::HashMap;
-
-use glam::{IVec3, Vec3, Vec4};
-
 use crate::simulation::{
     block::{self, Direction, Face, Neighbors},
     chunk,
+    consts::*,
     id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
     structure,
     time::Tick,
-    Block, Chunk, AMBIENT_OCCLUSION_LEVEL, BLOCKS, CHUNK_RADIUS, CHUNK_SIZE, CHUNK_VOLUME,
-    STRUCTURES, WORLD_BOUNDARY, WORLD_VOLUME,
+    Block, Chunk, BLOCKS,
 };
+use glam::{IVec3, Vec3, Vec4};
+use std::collections::HashMap;
 
 pub struct World {
     pub chunks: [Chunk; CHUNK_VOLUME],
@@ -329,18 +327,20 @@ impl World {
                                 block.color.3,
                             );
 
-                            let face_ao = Self::calculate_ao(meta.neighbors, face);
+                            let (face_edges, face_corners) =
+                                Self::get_face_neighbors(meta.neighbors, face);
+                            let face_light = Self::calculate_face_light(face_edges, face_corners);
 
                             let chunk_vertices =
                                 face_quad.iter().enumerate().map(|(index, position)| {
                                     let position = *position;
-                                    let ao = face_ao[index];
+                                    let light = face_light[index];
 
                                     chunk::Vertex {
                                         position,
                                         normal,
                                         color,
-                                        ao,
+                                        light,
                                     }
                                 });
 
@@ -373,9 +373,12 @@ impl World {
         offsets.map(|offset| base + offset)
     }
 
-    fn calculate_ao(neighbors: block::Neighbors, face: block::Face) -> [f32; 4] {
-        match face {
-            block::Face::XP => Self::calculate_face_ao(
+    fn get_face_neighbors(
+        neighbors: block::Neighbors,
+        face: block::Face,
+    ) -> ([bool; 4], [bool; 4]) {
+        let face_neighbors = match face {
+            block::Face::XP => (
                 [
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_ZN),
@@ -389,7 +392,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XP_YN_ZP),
                 ],
             ),
-            block::Face::XN => Self::calculate_face_ao(
+            block::Face::XN => (
                 [
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
@@ -403,7 +406,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZN),
                 ],
             ),
-            block::Face::YP => Self::calculate_face_ao(
+            block::Face::YP => (
                 [
                     neighbors.is_solid(block::Direction::X0_YP_ZN),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
@@ -417,7 +420,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XP_YP_ZN),
                 ],
             ),
-            block::Face::YN => Self::calculate_face_ao(
+            block::Face::YN => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
@@ -431,7 +434,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZN),
                 ],
             ),
-            block::Face::ZP => Self::calculate_face_ao(
+            block::Face::ZP => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZP),
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
@@ -445,7 +448,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZP),
                 ],
             ),
-            block::Face::ZN => Self::calculate_face_ao(
+            block::Face::ZN => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
@@ -460,25 +463,27 @@ impl World {
                 ],
             ),
             _ => panic!("Invalid Face: {:?}", face),
-        }
+        };
+
+        face_neighbors
     }
 
-    fn calculate_face_ao(edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
+    fn calculate_face_light(edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
         [
-            Self::calculate_vertex_ao(edges[3], edges[0], corners[3]),
-            Self::calculate_vertex_ao(edges[0], edges[1], corners[0]),
-            Self::calculate_vertex_ao(edges[1], edges[2], corners[1]),
-            Self::calculate_vertex_ao(edges[2], edges[3], corners[2]),
+            Self::calculate_vertex_light(edges[3], edges[0], corners[3]),
+            Self::calculate_vertex_light(edges[0], edges[1], corners[0]),
+            Self::calculate_vertex_light(edges[1], edges[2], corners[1]),
+            Self::calculate_vertex_light(edges[2], edges[3], corners[2]),
         ]
     }
 
-    fn calculate_vertex_ao(edge1: bool, edge2: bool, corner: bool) -> f32 {
+    fn calculate_vertex_light(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
-            AMBIENT_OCCLUSION_LEVEL[2]
+            chunk::Vertex::LIGHT_LEVEL[0]
         } else if corner || edge1 || edge2 {
-            AMBIENT_OCCLUSION_LEVEL[1]
+            chunk::Vertex::LIGHT_LEVEL[1]
         } else {
-            AMBIENT_OCCLUSION_LEVEL[0]
+            chunk::Vertex::LIGHT_LEVEL[2]
         }
     }
 
