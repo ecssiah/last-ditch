@@ -10,13 +10,11 @@ use crate::{
     interface::{self, consts::*, input::Input},
     simulation::{
         action::{Action, AgentAction},
-        agent::Agent,
         id::{agent_id::AgentID, chunk_id::ChunkID},
         observation::{
             view::{AgentView, ChunkView, View},
             Observation, Status,
         },
-        time::Tick,
     },
 };
 use glam::{Mat4, Vec3};
@@ -171,7 +169,13 @@ impl Interface {
         interface
     }
 
-    fn check_active(&mut self, event_loop: &ActiveEventLoop) {}
+    fn check_active(&mut self, event_loop: &ActiveEventLoop) {
+        let status = self.get_status();
+
+        if status == Status::Shutdown {
+            event_loop.exit();
+        }
+    }
 
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
@@ -188,17 +192,12 @@ impl Interface {
     }
 
     pub fn update(&mut self, event_loop: &ActiveEventLoop) {
+        self.check_active(event_loop);
         self.send_movement_actions();
 
-        let status = self.get_status();
-
-        if status == Status::Shutdown {
-            event_loop.exit();
-        }
-
-        if let Some(view) = self.get_view(AgentID::USER_AGENT_ID) {
-            self.update_user_agent(&view.agent_view);
-            self.update_chunks(&view.chunk_views);
+        if let Some(user_view) = self.get_view(AgentID::USER_AGENT_ID) {
+            self.update_user_agent(&user_view.agent_view);
+            self.update_chunks(&user_view.chunk_views);
         }
     }
 
@@ -273,8 +272,6 @@ impl Interface {
     }
 
     fn update_view_projection(&mut self, agent_view: &AgentView) {
-        let observation = self.observation.read().unwrap();
-
         let view_projection_matrix = Self::create_view_projection_matrix(agent_view);
 
         self.queue.write_buffer(

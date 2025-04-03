@@ -1,4 +1,4 @@
-use crate::{interface::chunk::vertex::Vertex, simulation::time::Tick};
+use crate::interface::chunk::vertex::Vertex;
 use wgpu::util::DeviceExt;
 
 #[derive(Debug)]
@@ -9,11 +9,7 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(
-        device: &wgpu::Device,
-        vertices: Vec<Vertex>,
-        indices: Vec<u32>,
-    ) -> Self {
+    pub fn new(device: &wgpu::Device, vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Interface Chunk Vertex Buffer"),
             contents: bytemuck::cast_slice(&vertices),

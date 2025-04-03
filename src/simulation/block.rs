@@ -1,6 +1,6 @@
 use crate::simulation::{consts::*, id::block_id::BlockID, world::World};
 use bitflags::bitflags;
-use glam::{IVec3, Vec3, Vec4};
+use glam::{IVec3, Vec3};
 use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]

@@ -482,12 +482,6 @@ impl World {
         }
     }
 
-    fn set_chunk_tick(&mut self, tick: Tick, chunk_id: ChunkID) {
-        if let Some(chunk) = self.chunks.get_mut(usize::from(chunk_id)) {
-            chunk.tick = tick;
-        }
-    }
-
     pub fn ids_at(grid_position: IVec3) -> Option<(ChunkID, BlockID)> {
         let chunk_id = Chunk::id_at(grid_position)?;
         let block_id = Block::id_at(grid_position)?;
