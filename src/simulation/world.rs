@@ -36,7 +36,7 @@ impl World {
                 palette: Vec::from([block::Kind::Air]),
                 palette_ids: Vec::from([PaletteID(0)]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
-                light: Box::new([block::LightLevel::default(); CHUNK_VOLUME]),
+                light: Box::new([block::Light::default(); CHUNK_VOLUME]),
                 mesh: chunk::Mesh::default(),
             }
         });

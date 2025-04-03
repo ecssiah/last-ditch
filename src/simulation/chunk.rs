@@ -20,7 +20,7 @@ pub struct Chunk {
     pub palette: Vec<block::Kind>,
     pub palette_ids: Vec<PaletteID>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
-    pub light: Box<[block::LightLevel; CHUNK_VOLUME]>,
+    pub light: Box<[block::Light; CHUNK_VOLUME]>,
     pub mesh: chunk::Mesh,
 }
 
