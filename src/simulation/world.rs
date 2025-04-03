@@ -37,7 +37,7 @@ impl World {
                 palette_ids: Vec::from([PaletteID(0)]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
                 light: Box::new([block::LightLevel::default(); CHUNK_VOLUME]),
-                mesh: chunk::mesh::Mesh::default(),
+                mesh: chunk::Mesh::default(),
             }
         });
 
@@ -303,7 +303,7 @@ impl World {
         }
     }
 
-    fn generate_chunk_mesh(&self, chunk_id: ChunkID) -> chunk::mesh::Mesh {
+    fn generate_chunk_mesh(&self, chunk_id: ChunkID) -> chunk::Mesh {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
@@ -336,7 +336,7 @@ impl World {
                                     let position = *position;
                                     let ao = face_ao[index];
 
-                                    chunk::vertex::Vertex {
+                                    chunk::Vertex {
                                         position,
                                         normal,
                                         color,
@@ -363,7 +363,7 @@ impl World {
             }
         }
 
-        chunk::mesh::Mesh { vertices, indices }
+        chunk::Mesh { vertices, indices }
     }
 
     fn generate_quad(grid_position: IVec3, face: block::Face) -> [Vec3; 4] {

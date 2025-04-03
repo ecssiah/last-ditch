@@ -1,13 +1,16 @@
 use crate::{
-    interface::chunk::mesh::Mesh,
+    interface,
     simulation::{id::chunk_id::ChunkID, time::Tick},
 };
 
 pub mod mesh;
 pub mod vertex;
 
+pub use mesh::Mesh;
+pub use vertex::Vertex;
+
 pub struct Chunk {
     pub id: ChunkID,
     pub tick: Tick,
-    pub mesh: Mesh,
+    pub mesh: interface::chunk::Mesh,
 }

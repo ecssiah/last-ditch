@@ -223,11 +223,11 @@ impl Interface {
         for (chunk_id, chunk_view) in chunk_views {
             if let Some(chunk) = self.chunks.get(chunk_id) {
                 if chunk_view.tick > chunk.tick {
-                    let vertices: Vec<chunk::vertex::Vertex> = chunk_view
+                    let vertices: Vec<interface::chunk::Vertex> = chunk_view
                         .mesh
                         .vertices
                         .iter()
-                        .map(|vertex| chunk::vertex::Vertex {
+                        .map(|vertex| interface::chunk::Vertex {
                             position: vertex.position.to_array(),
                             normal: vertex.normal.to_array(),
                             color: vertex.color.to_array(),
@@ -240,17 +240,17 @@ impl Interface {
                     let chunk = interface::chunk::Chunk {
                         id: *chunk_id,
                         tick: chunk_view.tick,
-                        mesh: interface::chunk::mesh::Mesh::new(&self.device, vertices, indices),
+                        mesh: interface::chunk::Mesh::new(&self.device, vertices, indices),
                     };
 
                     self.chunks.insert(*chunk_id, chunk);
                 }
             } else {
-                let vertices: Vec<chunk::vertex::Vertex> = chunk_view
+                let vertices: Vec<interface::chunk::Vertex> = chunk_view
                     .mesh
                     .vertices
                     .iter()
-                    .map(|vertex| chunk::vertex::Vertex {
+                    .map(|vertex| interface::chunk::Vertex {
                         position: vertex.position.to_array(),
                         normal: vertex.normal.to_array(),
                         color: vertex.color.to_array(),
@@ -263,7 +263,7 @@ impl Interface {
                 let chunk = interface::chunk::Chunk {
                     id: *chunk_id,
                     tick: chunk_view.tick,
-                    mesh: interface::chunk::mesh::Mesh::new(&self.device, vertices, indices),
+                    mesh: interface::chunk::Mesh::new(&self.device, vertices, indices),
                 };
 
                 self.chunks.insert(*chunk_id, chunk);
@@ -374,7 +374,7 @@ impl Interface {
             vertex: wgpu::VertexState {
                 module: shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[interface::chunk::vertex::Vertex::desc()],
+                buffers: &[interface::chunk::Vertex::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {

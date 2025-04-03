@@ -1,5 +1,5 @@
 use crate::simulation::{
-    block,
+    block, chunk,
     consts::*,
     id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
     time::Tick,
@@ -7,6 +7,8 @@ use crate::simulation::{
     BLOCKS,
 };
 use glam::{IVec3, Vec3};
+pub use mesh::Mesh;
+pub use vertex::Vertex;
 
 pub mod mesh;
 pub mod vertex;
@@ -19,7 +21,7 @@ pub struct Chunk {
     pub palette_ids: Vec<PaletteID>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
     pub light: Box<[block::LightLevel; CHUNK_VOLUME]>,
-    pub mesh: mesh::Mesh,
+    pub mesh: chunk::Mesh,
 }
 
 impl Chunk {

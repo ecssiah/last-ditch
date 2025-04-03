@@ -1,5 +1,5 @@
 use crate::simulation::{
-    self,
+    chunk,
     id::{agent_id::AgentID, chunk_id::ChunkID},
     time::Tick,
 };
@@ -19,7 +19,7 @@ pub struct ChunkView {
     pub id: ChunkID,
     pub tick: Tick,
     pub position: IVec3,
-    pub mesh: simulation::chunk::mesh::Mesh,
+    pub mesh: chunk::Mesh,
 }
 
 #[derive(Clone)]

@@ -47,7 +47,8 @@ impl Observation {
                 if let Some(agent) = state.agents.get(&agent_id) {
                     if let Some(view) = self.repository.get(agent_id) {
                         let agent_view = self.generate_agent_view(agent);
-                        let chunk_views = self.generate_chunk_views(state, agent.position, &view.chunk_views);
+                        let chunk_views =
+                            self.generate_chunk_views(state, agent.position, &view.chunk_views);
 
                         let new_view = View {
                             agent_view,
@@ -99,7 +100,12 @@ impl Observation {
         }
     }
 
-    fn generate_chunk_views(&self, state: &State, position: Vec3, old_chunk_views: &HashMap<ChunkID, ChunkView>) -> HashMap<ChunkID, ChunkView> {
+    fn generate_chunk_views(
+        &self,
+        state: &State,
+        position: Vec3,
+        old_chunk_views: &HashMap<ChunkID, ChunkView>,
+    ) -> HashMap<ChunkID, ChunkView> {
         let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
 
