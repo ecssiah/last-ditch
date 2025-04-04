@@ -12,7 +12,10 @@ pub mod simulation;
 
 mod macros;
 
-use crate::{interface::Interface, simulation::Simulation};
+use crate::{
+    interface::{consts::*, Interface},
+    simulation::Simulation,
+};
 use std::{sync::Arc, thread};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -20,7 +23,7 @@ use winit::{
     dpi::PhysicalSize,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{WindowAttributes, WindowId},
+    window::{Fullscreen, WindowAttributes, WindowId},
 };
 
 #[derive(Default)]
@@ -31,12 +34,22 @@ struct App {
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let window_attributes = WindowAttributes::default()
-            .with_title(interface::consts::WINDOW_TITLE)
-            .with_inner_size(PhysicalSize::new(
-                interface::consts::WINDOW_WIDTH,
-                interface::consts::WINDOW_HEIGHT,
-            ));
+        let monitor = event_loop
+            .primary_monitor()
+            .expect("No primary monitor found");
+
+        let window_attributes = if FULLSCREEN {
+            WindowAttributes::default()
+                .with_title(interface::consts::WINDOW_TITLE)
+                .with_fullscreen(Some(Fullscreen::Borderless(Some(monitor))))
+        } else {
+            WindowAttributes::default()
+                .with_title(interface::consts::WINDOW_TITLE)
+                .with_inner_size(PhysicalSize::new(
+                    interface::consts::WINDOW_WIDTH,
+                    interface::consts::WINDOW_HEIGHT,
+                ))
+        };
 
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
@@ -68,10 +81,10 @@ impl ApplicationHandler for App {
         let simulation_thread = thread::spawn(move || {
             simulation.run();
         });
-        
+
         self.simulation_thread = Some(simulation_thread);
         self.interface = Some(interface);
-        
+
         window.request_redraw();
     }
 

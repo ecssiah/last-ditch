@@ -87,8 +87,8 @@ impl World {
     }
 
     pub fn generate_ground(&mut self) {
-        for x in -(CHUNK_RADIUS as isize)..=(CHUNK_RADIUS as isize) {
-            for z in -(CHUNK_RADIUS as isize)..=(CHUNK_RADIUS as isize) {
+        for x in -(4 * CHUNK_RADIUS as isize)..=(4 * CHUNK_RADIUS as isize) {
+            for z in -(4 * CHUNK_RADIUS as isize)..=(4 * CHUNK_RADIUS as isize) {
                 let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
                     &block::Kind::White
                 } else {
