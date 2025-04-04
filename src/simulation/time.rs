@@ -1,5 +1,5 @@
 use crate::simulation::FIXED_TICK_RATE;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Tick(pub u64);
@@ -36,4 +36,6 @@ impl Tick {
 pub struct Time {
     pub clock: Duration,
     pub tick: Tick,
+    pub work_time: Duration,
+    pub previous_instant: Instant,
 }

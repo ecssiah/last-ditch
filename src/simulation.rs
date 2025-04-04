@@ -75,25 +75,20 @@ impl Simulation {
     }
 
     pub fn run(&mut self) {
-        let mut accumulator = Duration::ZERO;
-        let mut previous = Instant::now();
+        {
+            let mut observation = self.observation.write().unwrap();
+
+            if let Some(agent) = self.state.agents.get(&AgentID::USER_AGENT_ID) {
+                observation.register_agent(agent);
+            }
+        }
 
         self.state.world.generate();
-        self.physics.generate(&self.state.agents);
+        self.physics
+            .generate(&self.state.agents, &self.state.world.chunks);
 
         loop {
-            let now = Instant::now();
-            let frame_time = now.duration_since(previous);
-            previous = now;
-
-            accumulator += frame_time;
-
-            while accumulator >= FIXED_DT {
-                self.update();
-                accumulator -= FIXED_DT;
-            }
-
-            thread::sleep(SIMULATION_WAIT_DURATION);
+            self.update();
         }
     }
 
@@ -101,6 +96,8 @@ impl Simulation {
         let time = Time {
             clock: Duration::ZERO,
             tick: Tick::ZERO,
+            work_time: Duration::ZERO,
+            previous_instant: Instant::now(),
         };
 
         time
@@ -126,16 +123,28 @@ impl Simulation {
     }
 
     fn update(&mut self) {
-        self.handle_actions();
-        self.evolve_time();
+        let now = Instant::now();
+        let frame_time = now.duration_since(self.state.time.previous_instant);
+        self.state.time.previous_instant = now;
 
-        self.physics.update(&mut self.state);
+        self.state.time.work_time += frame_time;
 
-        if let Ok(mut observation) = self.observation.write() {
-            observation.update(&self.state);
-        } else {
-            log::error!("Failed to acquire Observation write lock");
+        while self.state.time.work_time >= FIXED_DT {
+            self.handle_actions();
+            self.evolve_time();
+
+            self.physics.update(&mut self.state);
+
+            if let Ok(mut observation) = self.observation.write() {
+                observation.update(&self.state);
+            } else {
+                log::error!("Failed to acquire Observation write lock");
+            }
+
+            self.state.time.work_time -= FIXED_DT;
         }
+
+        thread::sleep(SIMULATION_WAIT_DURATION);
     }
 
     fn handle_actions(&mut self) {

@@ -1,9 +1,5 @@
 use crate::simulation::{
-    self,
-    agent::Agent,
-    consts::*,
-    id::{agent_id::AgentID, chunk_id::ChunkID},
-    state::State,
+    self, agent::Agent, chunk, consts::*, id::{agent_id::AgentID, chunk_id::ChunkID}, state::State
 };
 use glam::Vec3;
 use rapier3d::{
@@ -72,9 +68,13 @@ impl Physics {
         physics
     }
 
-    pub fn generate(&mut self, agents: &HashMap<AgentID, Agent>) {
+    pub fn generate(&mut self, agents: &HashMap<AgentID, Agent>, chunks: &[chunk::Chunk; CHUNK_VOLUME]) {
         for agent in agents.values() {
             self.add_agent(agent);
+        }
+
+        for chunk in chunks {
+            self.add_chunk_collider(chunk);
         }
     }
 

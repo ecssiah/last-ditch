@@ -66,15 +66,13 @@ impl Observation {
         }
     }
 
-    pub fn register_agent(&mut self, state: &State, agent_id: AgentID) {
-        if let Some(agent) = state.agents.get(&agent_id) {
-            let view = View {
-                agent_view: self.generate_agent_view(agent),
-                chunk_views: self.generate_chunk_views(state, agent.position, &HashMap::new()),
-            };
+    pub fn register_agent(&mut self, agent: &Agent) {
+        let view = View {
+            agent_view: self.generate_agent_view(agent),
+            chunk_views: HashMap::new(),
+        };
 
-            self.repository.add(agent_id, view);
-        }
+        self.repository.add(agent.id, view);
     }
 
     pub fn get_status(&self) -> Status {
@@ -109,9 +107,9 @@ impl Observation {
         let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
 
-        for x in (grid_position.x - 1)..=(grid_position.x + 1) {
-            for y in (grid_position.y - 1)..=(grid_position.y + 1) {
-                for z in (grid_position.z - 1)..=(grid_position.z + 1) {
+        for x in (grid_position.x - 3)..=(grid_position.x + 3) {
+            for y in (grid_position.y - 3)..=(grid_position.y + 3) {
+                for z in (grid_position.z - 3)..=(grid_position.z + 3) {
                     let chunk_position = IVec3::new(x, y, z);
 
                     if let Some(chunk) = state.world.get_chunk_at(chunk_position) {

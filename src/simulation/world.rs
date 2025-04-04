@@ -45,22 +45,22 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        // self.set_block_kind(0, 2, 0, &block::Kind::GoldMetal);
-        // self.set_block_kind(1, 1, 0, &block::Kind::GoldMetal);
-        // self.set_block_kind(-1, 1, 0, &block::Kind::GoldMetal);
-        // self.set_block_kind(0, 1, 1, &block::Kind::GoldMetal);
-        // self.set_block_kind(0, 1, -1, &block::Kind::GoldMetal);
+        self.set_block_kind(0, 2, 0, &block::Kind::GoldMetal);
+        self.set_block_kind(1, 1, 0, &block::Kind::GoldMetal);
+        self.set_block_kind(-1, 1, 0, &block::Kind::GoldMetal);
+        self.set_block_kind(0, 1, 1, &block::Kind::GoldMetal);
+        self.set_block_kind(0, 1, -1, &block::Kind::GoldMetal);
 
-        // self.generate_structure(0, 0, -20, &structure::Kind::Luigi);
-        // self.generate_structure(-20, 0, 0, &structure::Kind::Mario);
-        // self.generate_structure(20, 0, 0, &structure::Kind::Mario);
-        // self.generate_structure(0, 0, 20, &structure::Kind::Luigi);
+        self.generate_structure(0, 0, -20, &structure::Kind::Luigi);
+        self.generate_structure(-20, 0, 0, &structure::Kind::Mario);
+        self.generate_structure(20, 0, 0, &structure::Kind::Mario);
+        self.generate_structure(0, 0, 20, &structure::Kind::Luigi);
 
-        // self.set_block_kind(0, 48, 0, &block::Kind::Metal);
-        // self.set_block_kind(-1, 48, 0, &block::Kind::Metal);
-        // self.set_block_kind(1, 48, 0, &block::Kind::Metal);
-        // self.set_block_kind(0, 48, 1, &block::Kind::Metal);
-        // self.set_block_kind(0, 48, -1, &block::Kind::Metal);
+        self.set_block_kind(0, 48, 0, &block::Kind::Metal);
+        self.set_block_kind(-1, 48, 0, &block::Kind::Metal);
+        self.set_block_kind(1, 48, 0, &block::Kind::Metal);
+        self.set_block_kind(0, 48, 1, &block::Kind::Metal);
+        self.set_block_kind(0, 48, -1, &block::Kind::Metal);
     }
 
     pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
@@ -137,10 +137,7 @@ impl World {
         let grid_position = IVec3::new(x, y, z);
 
         if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
-            log::info!("{:?} {:?}", chunk_id, block_id);
-
             self.update_palette(chunk_id, block_id, kind);
-
             self.update_neighbors(grid_position);
             self.update_visibility(grid_position);
             self.update_light(chunk_id, block_id, grid_position);
