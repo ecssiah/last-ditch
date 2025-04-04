@@ -39,8 +39,8 @@ impl Repository {
 
     pub fn get(&self, agent_id: AgentID) -> Option<Arc<View>> {
         let buffers = self.buffers.read().unwrap();
-
-        buffers.get(&agent_id).and_then(|buffer| buffer.get())
+        
+        buffers.get(&agent_id).map(|buffer| buffer.get())
     }
 
     pub fn list_agents(&self) -> Vec<AgentID> {

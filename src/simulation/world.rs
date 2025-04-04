@@ -32,7 +32,7 @@ impl World {
                 id: chunk_id,
                 position: Chunk::local_position(chunk_id),
                 palette: Vec::from([block::Kind::Air]),
-                palette_ids: Vec::from([PaletteID(0)]),
+                blocks: Box::new([PaletteID(0); CHUNK_VOLUME]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
                 light: Box::new([block::Light::default(); CHUNK_VOLUME]),
                 mesh: chunk::Mesh::default(),
@@ -45,22 +45,22 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.set_block_kind(0, 2, 0, &block::Kind::GoldMetal);
-        self.set_block_kind(1, 1, 0, &block::Kind::GoldMetal);
-        self.set_block_kind(-1, 1, 0, &block::Kind::GoldMetal);
-        self.set_block_kind(0, 1, 1, &block::Kind::GoldMetal);
-        self.set_block_kind(0, 1, -1, &block::Kind::GoldMetal);
+        // self.set_block_kind(0, 2, 0, &block::Kind::GoldMetal);
+        // self.set_block_kind(1, 1, 0, &block::Kind::GoldMetal);
+        // self.set_block_kind(-1, 1, 0, &block::Kind::GoldMetal);
+        // self.set_block_kind(0, 1, 1, &block::Kind::GoldMetal);
+        // self.set_block_kind(0, 1, -1, &block::Kind::GoldMetal);
 
-        self.generate_structure(0, 0, -20, &structure::Kind::Luigi);
-        self.generate_structure(-20, 0, 0, &structure::Kind::Mario);
-        self.generate_structure(20, 0, 0, &structure::Kind::Mario);
-        self.generate_structure(0, 0, 20, &structure::Kind::Luigi);
+        // self.generate_structure(0, 0, -20, &structure::Kind::Luigi);
+        // self.generate_structure(-20, 0, 0, &structure::Kind::Mario);
+        // self.generate_structure(20, 0, 0, &structure::Kind::Mario);
+        // self.generate_structure(0, 0, 20, &structure::Kind::Luigi);
 
-        self.set_block_kind(0, 48, 0, &block::Kind::Metal);
-        self.set_block_kind(-1, 48, 0, &block::Kind::Metal);
-        self.set_block_kind(1, 48, 0, &block::Kind::Metal);
-        self.set_block_kind(0, 48, 1, &block::Kind::Metal);
-        self.set_block_kind(0, 48, -1, &block::Kind::Metal);
+        // self.set_block_kind(0, 48, 0, &block::Kind::Metal);
+        // self.set_block_kind(-1, 48, 0, &block::Kind::Metal);
+        // self.set_block_kind(1, 48, 0, &block::Kind::Metal);
+        // self.set_block_kind(0, 48, 1, &block::Kind::Metal);
+        // self.set_block_kind(0, 48, -1, &block::Kind::Metal);
     }
 
     pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
@@ -125,7 +125,7 @@ impl World {
 
         let chunk = self.get_chunk(chunk_id)?;
 
-        let palette_id = *chunk.palette_ids.get(usize::from(block_id))?;
+        let palette_id = *chunk.blocks.get(usize::from(block_id))?;
         let kind = chunk.palette[usize::from(palette_id)];
 
         let block = BLOCKS.get(&kind)?;
@@ -137,6 +137,8 @@ impl World {
         let grid_position = IVec3::new(x, y, z);
 
         if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
+            log::info!("{:?} {:?}", chunk_id, block_id);
+
             self.update_palette(chunk_id, block_id, kind);
 
             self.update_neighbors(grid_position);
@@ -153,10 +155,10 @@ impl World {
     fn update_palette(&mut self, chunk_id: ChunkID, block_id: BlockID, kind: &block::Kind) {
         if let Some(chunk) = self.get_chunk_mut(chunk_id) {
             if let Some(palette_id) = Self::get_palette_id(chunk, kind) {
-                chunk.palette_ids[usize::from(block_id)] = palette_id;
+                chunk.blocks[usize::from(block_id)] = palette_id;
             } else {
                 chunk.palette.push(kind.clone());
-                chunk.palette_ids[usize::from(block_id)] = PaletteID(chunk.palette.len() - 1);
+                chunk.blocks[usize::from(block_id)] = PaletteID(chunk.palette.len() - 1);
             }
         }
     }

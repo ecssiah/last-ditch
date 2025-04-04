@@ -8,11 +8,11 @@
 //! The Simulation handles the evolution of the world.
 
 pub mod interface;
-mod macros;
 pub mod simulation;
 
+mod macros;
+
 use crate::{interface::Interface, simulation::Simulation};
-use flexi_logger::{Logger, WriteMode};
 use std::{sync::Arc, thread};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -51,7 +51,7 @@ impl ApplicationHandler for App {
 
         let (action_tx, action_rx) = unbounded_channel();
 
-        let mut simulation = Simulation::new(action_rx);
+        let mut simulation = Box::new(Simulation::new(action_rx));
 
         let observation = simulation.get_observation();
 
@@ -65,11 +65,13 @@ impl ApplicationHandler for App {
             queue,
         );
 
-        let simulation_thread = thread::spawn(move || simulation.run());
-
+        let simulation_thread = thread::spawn(move || {
+            simulation.run();
+        });
+        
         self.simulation_thread = Some(simulation_thread);
         self.interface = Some(interface);
-
+        
         window.request_redraw();
     }
 
@@ -99,10 +101,10 @@ impl ApplicationHandler for App {
 
 /// Application entrypoint
 pub async fn run() {
-    Logger::try_with_str("info")
+    flexi_logger::Logger::try_with_str("info")
         .unwrap()
         .log_to_file(flexi_logger::FileSpec::default().directory("logs"))
-        .write_mode(WriteMode::BufferAndFlush)
+        .write_mode(flexi_logger::WriteMode::Direct)
         .start()
         .unwrap();
 

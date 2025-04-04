@@ -1,3 +1,7 @@
+pub mod buffer;
+pub mod repository;
+pub mod view;
+
 use crate::simulation::{
     agent::Agent,
     id::{agent_id::AgentID, chunk_id::ChunkID},
@@ -13,10 +17,6 @@ use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
 };
-
-pub mod buffer;
-pub mod repository;
-pub mod view;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Status {

@@ -1,7 +1,3 @@
-use crate::simulation::{consts::*, id::block_id::BlockID, world::World};
-use glam::IVec3;
-use serde::Deserialize;
-
 pub mod direction;
 pub mod face;
 pub mod kind;
@@ -15,6 +11,10 @@ pub use kind::Kind;
 pub use light::Light;
 pub use meta::Meta;
 pub use neighbors::Neighbors;
+
+use crate::simulation::{consts::*, id::block_id::BlockID, world::World};
+use glam::IVec3;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Block {

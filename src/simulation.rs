@@ -14,6 +14,10 @@ pub mod structure;
 pub mod time;
 pub mod world;
 
+pub use block::Block;
+pub use chunk::Chunk;
+pub use consts::*;
+
 use crate::simulation::{
     action::{JumpAction, MovementAction},
     id::agent_id::AgentID,
@@ -23,9 +27,6 @@ use crate::simulation::{
 };
 use action::{Action, AgentAction, WorldAction};
 use agent::Agent;
-pub use block::Block;
-pub use chunk::Chunk;
-pub use consts::*;
 use glam::Quat;
 use physics::Physics;
 use state::State;

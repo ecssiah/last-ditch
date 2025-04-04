@@ -38,7 +38,7 @@ impl Physics {
             dt: FIXED_DT.as_secs_f32(),
             ..Default::default()
         };
-
+        
         let pipeline = PhysicsPipeline::new();
         let island_manager = IslandManager::new();
         let broad_phase = DefaultBroadPhase::new();
@@ -49,7 +49,6 @@ impl Physics {
         let query_pipeline = QueryPipeline::new();
         let rigid_body_set = RigidBodySet::new();
         let collider_set = ColliderSet::new();
-
         let agent_body_handles = HashMap::new();
         let chunk_collider_handles = HashMap::new();
 

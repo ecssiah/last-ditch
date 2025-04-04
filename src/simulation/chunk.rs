@@ -1,3 +1,9 @@
+pub mod mesh;
+pub mod vertex;
+
+pub use mesh::Mesh;
+pub use vertex::Vertex;
+
 use crate::simulation::{
     block, chunk,
     consts::*,
@@ -7,18 +13,13 @@ use crate::simulation::{
     BLOCKS,
 };
 use glam::{IVec3, Vec3};
-pub use mesh::Mesh;
-pub use vertex::Vertex;
-
-pub mod mesh;
-pub mod vertex;
 
 pub struct Chunk {
     pub id: ChunkID,
     pub tick: Tick,
     pub position: IVec3,
     pub palette: Vec<block::Kind>,
-    pub palette_ids: Vec<PaletteID>,
+    pub blocks: Box<[PaletteID; CHUNK_VOLUME]>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
     pub light: Box<[block::Light; CHUNK_VOLUME]>,
     pub mesh: chunk::Mesh,
@@ -26,7 +27,7 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn get_block(&self, block_id: BlockID) -> Option<&block::Block> {
-        let palette_id = self.palette_ids.get(usize::from(block_id))?;
+        let palette_id = self.blocks.get(usize::from(block_id))?;
         let kind = self.palette.get(usize::from(*palette_id))?;
 
         let block = BLOCKS.get(&kind)?;
