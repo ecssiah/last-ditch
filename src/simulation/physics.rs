@@ -192,6 +192,8 @@ impl Physics {
             JumpStage::Launch => {
                 if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
                     if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                        entity.jump_state.stage = JumpStage::Rise;
+
                         let lv = rb.linvel();
                         let jump_velocity = vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z];
 
@@ -206,7 +208,6 @@ impl Physics {
     
                         if entity.jump_state.timer < MAX_JUMP_TICKS {
                             let force = vector![0.0, JUMP_HOLD_FORCE, 0.0];
-
                             rb.add_force(force, true);
                         } else {
                             entity.jump_state.stage = JumpStage::Fall;
@@ -218,11 +219,13 @@ impl Physics {
                 if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
                     if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
                         entity.jump_state.stage = JumpStage::Ground;
+
+                        rb.reset_forces(true);
     
                         let lv = rb.linvel();
-                        if lv.y > 0.0 {
-                            rb.set_linvel(vector![lv.x, lv.y * 0.5, lv.z], true);
-                        }
+                        let damped_velocity = vector![lv.x, 0.5 * lv.y, lv.z];
+
+                        rb.set_linvel(damped_velocity, true);
                     }
                 }
             },

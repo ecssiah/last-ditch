@@ -5,7 +5,7 @@ pub use id::ID;
 use crate::simulation::{population::entity, time::Tick};
 use glam::{Quat, Vec3};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum JumpStage {
     Ground,
     Launch,

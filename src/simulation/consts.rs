@@ -11,14 +11,14 @@ pub const FIXED_TICK_RATE: u32 = 60;
 pub const FIXED_DT: Duration = Duration::from_nanos(1_000_000_000 / FIXED_TICK_RATE as u64);
 pub const SIMULATION_WAIT_DURATION: Duration = Duration::from_micros(500);
 
-pub const GRAVITY_ACCELERATION: f32 = -60.0;
+pub const GRAVITY_ACCELERATION: f32 = -48.0;
 
 pub const DEFAULT_Z_SPEED: f32 = 22.0;
 pub const DEFAULT_X_SPEED: f32 = 22.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
-pub const MAX_JUMP_TICKS: u32 = 8;
-pub const JUMP_LAUNCH_VELOCITY: f32 = 28.0;
-pub const JUMP_HOLD_FORCE: f32 = 6.0;
+pub const MAX_JUMP_TICKS: u32 = 22;
+pub const JUMP_LAUNCH_VELOCITY: f32 = 16.0;
+pub const JUMP_HOLD_FORCE: f32 = 18.0;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
