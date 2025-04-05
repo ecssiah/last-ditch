@@ -66,11 +66,11 @@ impl ApplicationHandler for App {
 
         let mut simulation = Box::new(Simulation::new(action_rx));
 
-        let observation = simulation.get_observation();
+        let views = simulation.get_views();
 
         let interface = Interface::new(
             action_tx,
-            Arc::clone(&observation),
+            Arc::clone(&views),
             Arc::clone(&window),
             instance,
             adapter,

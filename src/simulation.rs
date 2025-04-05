@@ -5,19 +5,19 @@ pub mod actions;
 pub mod block;
 pub mod chunk;
 pub mod consts;
-pub mod observation;
 pub mod physics;
 pub mod population;
 pub mod state;
 pub mod structure;
 pub mod time;
+pub mod views;
 pub mod world;
 
 pub use block::Block;
 pub use chunk::Chunk;
 pub use consts::*;
 
-use crate::simulation::{actions::Actions, observation::Observation};
+use crate::simulation::{actions::Actions, views::Views};
 use actions::Action;
 use physics::Physics;
 use state::State;
@@ -31,7 +31,7 @@ pub struct Simulation {
     actions: Actions,
     state: State,
     physics: Physics,
-    observation: Arc<RwLock<Observation>>,
+    views: Arc<RwLock<Views>>,
 }
 
 impl Simulation {
@@ -40,13 +40,13 @@ impl Simulation {
         let state = State::new();
         let physics = Physics::new();
 
-        let observation = Arc::new(RwLock::new(Observation::new()));
+        let views = Arc::new(RwLock::new(Views::new()));
 
         let simulation = Self {
             actions,
             state,
             physics,
-            observation,
+            views,
         };
 
         log::info!("Simulation Initialized");
@@ -58,21 +58,21 @@ impl Simulation {
         self.state.generate();
         self.physics.generate(&self.state);
 
-        self.setup_observation();
+        self.setup_views();
 
         loop {
             self.update();
         }
     }
 
-    pub fn get_observation(&self) -> Arc<RwLock<Observation>> {
-        Arc::clone(&self.observation)
+    pub fn get_views(&self) -> Arc<RwLock<Views>> {
+        Arc::clone(&self.views)
     }
 
-    fn setup_observation(&mut self) {
-        let mut observation = self.observation.write().unwrap();
+    fn setup_views(&mut self) {
+        let mut views = self.views.write().unwrap();
 
-        observation.generate(&self.state);
+        views.generate(&self.state);
     }
 
     fn update(&mut self) {
@@ -82,7 +82,7 @@ impl Simulation {
             self.actions.tick(&mut self.state);
             self.state.tick();
             self.physics.tick(&mut self.state);
-            self.tick_observation();
+            self.tick_views();
 
             self.state.time.use_work_time();
         }
@@ -90,11 +90,11 @@ impl Simulation {
         thread::sleep(SIMULATION_WAIT_DURATION);
     }
 
-    fn tick_observation(&mut self) {
-        if let Ok(mut observation) = self.observation.write() {
-            observation.tick(&self.state);
+    fn tick_views(&mut self) {
+        if let Ok(mut views) = self.views.write() {
+            views.tick(&self.state);
         } else {
-            log::error!("Failed to acquire Observation write lock");
+            log::error!("Failed to acquire Views write lock");
         }
     }
 }

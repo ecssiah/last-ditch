@@ -1,6 +1,6 @@
 use crate::simulation::{
-    observation::{buffer::Buffer, view::View},
     population::entity,
+    views::{buffer::Buffer, view::View},
 };
 use std::{
     collections::HashMap,
@@ -37,13 +37,13 @@ impl Repository {
         }
     }
 
-    pub fn get(&self, entity_id: entity::ID) -> Option<Arc<View>> {
+    pub fn get(&self, entity_id: &entity::ID) -> Option<Arc<View>> {
         let buffers = self.buffers.read().unwrap();
 
-        buffers.get(&entity_id).map(|buffer| buffer.get())
+        buffers.get(entity_id).map(|buffer| buffer.get())
     }
 
-    pub fn list_entities(&self) -> Vec<entity::ID> {
+    pub fn entity_ids(&self) -> Vec<entity::ID> {
         let buffers = self.buffers.read().unwrap();
 
         buffers.keys().cloned().collect()

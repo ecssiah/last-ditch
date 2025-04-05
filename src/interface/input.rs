@@ -190,6 +190,8 @@ impl Input {
     }
 
     pub fn handle_mouse_motion(&mut self, dx: f64, dy: f64) {
-        self.mouse_state.delta += Vec2::new(dx as f32, dy as f32);
+        let delta = Vec2::new(dx as f32, dy as f32);
+
+        self.mouse_state.delta += delta;
     }
 }

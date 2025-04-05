@@ -11,11 +11,11 @@ use crate::{
     simulation::{
         self,
         actions::{Action, EntityAction},
-        observation::{
-            view::{ChunkView, EntityView, View},
-            Observation,
-        },
         state,
+        views::{
+            view::{ChunkView, EntityView, View},
+            Views,
+        },
     },
 };
 use glam::{Mat4, Vec3};
@@ -41,7 +41,7 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 
 pub struct Interface {
     action_tx: UnboundedSender<Action>,
-    observation: Arc<RwLock<Observation>>,
+    views: Arc<RwLock<Views>>,
     window: Arc<Window>,
     input: Input,
     device: wgpu::Device,
@@ -59,7 +59,7 @@ pub struct Interface {
 impl Interface {
     pub fn new(
         action_tx: UnboundedSender<Action>,
-        observation: Arc<RwLock<Observation>>,
+        views: Arc<RwLock<Views>>,
         window: Arc<Window>,
         instance: Instance,
         adapter: Adapter,
@@ -150,7 +150,7 @@ impl Interface {
 
         let interface = Self {
             action_tx,
-            observation,
+            views,
             window,
             input,
             device,
@@ -203,17 +203,17 @@ impl Interface {
     }
 
     pub fn get_mode(&self) -> state::Mode {
-        let observation = self.observation.read().unwrap();
+        let views = self.views.read().unwrap();
 
-        let status = observation.get_mode();
+        let status = views.get_mode();
 
         status
     }
 
     pub fn get_view(&self, entity_id: simulation::population::entity::ID) -> Option<View> {
-        let observation = self.observation.read().unwrap();
+        let views = self.views.read().unwrap();
 
-        observation.get_view(entity_id)
+        views.get_view(entity_id)
     }
 
     fn update_user_entity(&mut self, agent_view: &EntityView) {

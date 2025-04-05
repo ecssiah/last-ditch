@@ -28,14 +28,17 @@ impl Face {
 
     pub fn quad(self) -> [Vec3; 4] {
         let center = self.normal() * BLOCK_RADIUS;
-        let up = self.up();
-        let right = self.right();
+        
+        let right = self.right() * BLOCK_RADIUS;
+        let up = self.up() * BLOCK_RADIUS;
+        let left = -right;
+        let down = -up;
 
         [
-            center + (-right - up) * BLOCK_RADIUS,
-            center + (right - up) * BLOCK_RADIUS,
-            center + (right + up) * BLOCK_RADIUS,
-            center + (-right + up) * BLOCK_RADIUS,
+            center + left + down,
+            center + right + down,
+            center + right + up,
+            center + left + up,
         ]
     }
 

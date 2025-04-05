@@ -4,12 +4,12 @@ pub mod view;
 
 use crate::simulation::{
     chunk,
-    observation::{
+    population::{entity, Entity},
+    state::{self, State},
+    views::{
         repository::Repository,
         view::{ChunkView, EntityView, View},
     },
-    population::{entity, Entity},
-    state::{self, State},
     world::World,
 };
 use glam::{IVec3, Vec3};
@@ -18,19 +18,19 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-pub struct Observation {
+pub struct Views {
     mode: Arc<RwLock<state::Mode>>,
     repository: repository::Repository,
 }
 
-impl Observation {
+impl Views {
     pub fn new() -> Self {
         let mode = Arc::new(RwLock::new(state::Mode::Simulating));
         let repository = Repository::new();
 
-        let observation = Self { mode, repository };
+        let views = Self { mode, repository };
 
-        observation
+        views
     }
 
     pub fn generate(&mut self, state: &State) {
@@ -42,9 +42,9 @@ impl Observation {
     pub fn tick(&mut self, state: &State) {
         match state.mode {
             state::Mode::Simulating => {
-                for entity_id in self.repository.list_entities() {
+                for entity_id in self.repository.entity_ids() {
                     if let Some(entity) = state.population.get(&entity_id) {
-                        if let Some(view) = self.repository.get(entity_id) {
+                        if let Some(view) = self.repository.get(&entity_id) {
                             let entity_view = self.generate_entity_view(entity);
                             let chunk_views = self.generate_chunk_views(
                                 state,
@@ -86,7 +86,7 @@ impl Observation {
     }
 
     pub fn get_view(&self, entity_id: entity::ID) -> Option<View> {
-        if let Some(view) = self.repository.get(entity_id) {
+        if let Some(view) = self.repository.get(&entity_id) {
             Some((*view).clone())
         } else {
             None
