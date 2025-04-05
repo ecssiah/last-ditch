@@ -4,12 +4,12 @@ pub mod view;
 
 use crate::simulation::{
     chunk,
-    population::{entity, Entity},
     observation::{
         repository::Repository,
         view::{ChunkView, EntityView, View},
     },
-    state::State,
+    population::{entity, Entity},
+    state::{self, State},
     world::World,
 };
 use glam::{IVec3, Vec3};
@@ -18,25 +18,17 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Status {
-    Running,
-    Saving,
-    Loading,
-    Shutdown,
-}
-
 pub struct Observation {
-    status: Arc<RwLock<Status>>,
+    mode: Arc<RwLock<state::Mode>>,
     repository: repository::Repository,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let status = Arc::new(RwLock::new(Status::Running));
+        let mode = Arc::new(RwLock::new(state::Mode::Simulating));
         let repository = Repository::new();
 
-        let observation = Self { status, repository };
+        let observation = Self { mode, repository };
 
         observation
     }
@@ -48,27 +40,33 @@ impl Observation {
     }
 
     pub fn tick(&mut self, state: &State) {
-        if state.active {
-            for entity_id in self.repository.list_entities() {
-                if let Some(entity) = state.population.get(&entity_id) {
-                    if let Some(view) = self.repository.get(entity_id) {
-                        let entity_view = self.generate_entity_view(entity);
-                        let chunk_views =
-                            self.generate_chunk_views(state, entity.position, &view.chunk_views);
+        match state.mode {
+            state::Mode::Simulating => {
+                for entity_id in self.repository.list_entities() {
+                    if let Some(entity) = state.population.get(&entity_id) {
+                        if let Some(view) = self.repository.get(entity_id) {
+                            let entity_view = self.generate_entity_view(entity);
+                            let chunk_views = self.generate_chunk_views(
+                                state,
+                                entity.position,
+                                &view.chunk_views,
+                            );
 
-                        let new_view = View {
-                            entity_view,
-                            chunk_views,
-                        };
+                            let new_view = View {
+                                entity_view,
+                                chunk_views,
+                            };
 
-                        self.repository.update(entity_id, new_view);
+                            self.repository.update(entity_id, new_view);
+                        }
                     }
                 }
             }
-        } else {
-            let mut status = self.status.write().unwrap();
+            state::Mode::Exit => {
+                let mut mode = self.mode.write().unwrap();
 
-            *status = Status::Shutdown;
+                *mode = state::Mode::Exit;
+            }
         }
     }
 
@@ -81,10 +79,10 @@ impl Observation {
         self.repository.add(entity.id, view);
     }
 
-    pub fn get_status(&self) -> Status {
-        let status = self.status.read().unwrap();
+    pub fn get_mode(&self) -> state::Mode {
+        let mode = self.mode.read().unwrap();
 
-        status.clone()
+        mode.clone()
     }
 
     pub fn get_view(&self, entity_id: entity::ID) -> Option<View> {

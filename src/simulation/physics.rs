@@ -1,7 +1,10 @@
 use crate::simulation::{
     self, chunk,
     consts::*,
-    population::{entity::{self, JumpStage}, Entity},
+    population::{
+        entity::{self, JumpStage},
+        Entity,
+    },
     state::State,
 };
 use glam::Vec3;
@@ -163,7 +166,7 @@ impl Physics {
             return;
         };
 
-        let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) else {
+        let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) else {
             return;
         };
 
@@ -173,7 +176,7 @@ impl Physics {
 
         let input_dir = entity.x_speed * right_xz + entity.z_speed * forward_xz;
 
-        let mut velocity = *rb.linvel();
+        let mut velocity = *rigid_body.linvel();
 
         if input_dir.length_squared() < f32::EPSILON {
             velocity.x = 0.0;
@@ -184,61 +187,61 @@ impl Physics {
             velocity.z = input_dir.z * speed;
         }
 
-        rb.set_linvel(velocity, true);
+        rigid_body.set_linvel(velocity, true);
     }
 
     pub fn tick_entity_jump(&mut self, entity: &mut Entity) {
         match entity.jump_state.stage {
             JumpStage::Launch => {
                 if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
                         entity.jump_state.stage = JumpStage::Rise;
 
-                        let lv = rb.linvel();
+                        let lv = rigid_body.linvel();
                         let jump_velocity = vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z];
 
-                        rb.set_linvel(jump_velocity, true);
+                        rigid_body.set_linvel(jump_velocity, true);
                     }
                 }
-            },
+            }
             JumpStage::Rise => {
                 if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
                         entity.jump_state.timer += 1;
-    
+
                         if entity.jump_state.timer < MAX_JUMP_TICKS {
                             let force = vector![0.0, JUMP_HOLD_FORCE, 0.0];
-                            rb.add_force(force, true);
+                            rigid_body.add_force(force, true);
                         } else {
                             entity.jump_state.stage = JumpStage::Fall;
                         }
                     }
                 }
-            },
+            }
             JumpStage::Fall => {
                 if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
                         entity.jump_state.stage = JumpStage::Ground;
 
-                        rb.reset_forces(true);
-    
-                        let lv = rb.linvel();
+                        rigid_body.reset_forces(true);
+
+                        let lv = rigid_body.linvel();
                         let damped_velocity = vector![lv.x, 0.5 * lv.y, lv.z];
 
-                        rb.set_linvel(damped_velocity, true);
+                        rigid_body.set_linvel(damped_velocity, true);
                     }
                 }
-            },
+            }
             _ => (),
         }
     }
 
     pub fn sync_entity_transforms(&self, entity: &mut Entity) {
         if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-            if let Some(rb) = self.rigid_body_set.get(*rb_handle) {
-                let pos = rb.position();
+            if let Some(rigid_body) = self.rigid_body_set.get(*rb_handle) {
+                let position = rigid_body.position();
 
-                let translation = pos.translation.vector;
+                let translation = position.translation.vector;
                 entity.position = Vec3::new(translation.x, translation.y, translation.z);
             }
         }

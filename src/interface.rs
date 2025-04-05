@@ -13,8 +13,9 @@ use crate::{
         actions::{Action, EntityAction},
         observation::{
             view::{ChunkView, EntityView, View},
-            Observation, Status,
+            Observation,
         },
+        state,
     },
 };
 use glam::{Mat4, Vec3};
@@ -170,9 +171,9 @@ impl Interface {
     }
 
     fn check_active(&mut self, event_loop: &ActiveEventLoop) {
-        let status = self.get_status();
+        let status = self.get_mode();
 
-        if status == Status::Shutdown {
+        if status == state::Mode::Exit {
             event_loop.exit();
         }
     }
@@ -201,10 +202,10 @@ impl Interface {
         }
     }
 
-    pub fn get_status(&self) -> Status {
+    pub fn get_mode(&self) -> state::Mode {
         let observation = self.observation.read().unwrap();
 
-        let status = observation.get_status();
+        let status = observation.get_mode();
 
         status
     }

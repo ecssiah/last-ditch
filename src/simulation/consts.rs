@@ -17,7 +17,7 @@ pub const DEFAULT_Z_SPEED: f32 = 22.0;
 pub const DEFAULT_X_SPEED: f32 = 22.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 pub const MAX_JUMP_TICKS: u32 = 22;
-pub const JUMP_LAUNCH_VELOCITY: f32 = 16.0;
+pub const JUMP_LAUNCH_VELOCITY: f32 = 22.0;
 pub const JUMP_HOLD_FORCE: f32 = 18.0;
 
 pub const BLOCK_RADIUS: f32 = 0.5;

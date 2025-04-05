@@ -1,8 +1,14 @@
 use crate::simulation::{population::Population, time::Time, world::World, DEFAULT_SEED};
 
+#[derive(Clone, PartialEq, Eq)]
+pub enum Mode {
+    Simulating,
+    Exit,
+}
+
 pub struct State {
-    pub active: bool,
     pub seed: u64,
+    pub mode: Mode,
     pub time: Time,
     pub population: Population,
     pub world: World,
@@ -11,8 +17,8 @@ pub struct State {
 impl State {
     pub fn new() -> State {
         let state = State {
-            active: true,
             seed: DEFAULT_SEED,
+            mode: Mode::Simulating,
             time: Time::new(),
             population: Population::new(),
             world: World::new(),

@@ -1,6 +1,6 @@
 use crate::simulation::{
-    population::entity,
     observation::{buffer::Buffer, view::View},
+    population::entity,
 };
 use std::{
     collections::HashMap,

@@ -10,6 +10,7 @@ pub use world_action::WorldAction;
 
 use crate::simulation::population::entity;
 use crate::simulation::population::entity::JumpStage;
+use crate::simulation::state;
 use crate::simulation::state::State;
 use glam::Quat;
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -42,7 +43,7 @@ impl Actions {
     }
 
     fn handle_quit_action(&mut self, state: &mut State) {
-        state.active = false;
+        state.mode = state::Mode::Exit;
     }
 
     fn handle_movement_action(&mut self, state: &mut State, movement_actions: &MovementAction) {
