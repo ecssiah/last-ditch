@@ -47,9 +47,7 @@ impl World {
         self.generate_ground();
     }
 
-    pub fn tick(&mut self, tick: &Tick) {
-        self.tick = *tick;
-    }
+    pub fn tick(&mut self) {}
 
     pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
         if let Some(structure) = STRUCTURES.get(structure_kind) {

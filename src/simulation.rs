@@ -58,7 +58,7 @@ impl Simulation {
         self.state.generate();
         self.physics.generate(&self.state);
 
-        self.setup_views();
+        self.generate_views();
 
         loop {
             self.update();
@@ -69,32 +69,29 @@ impl Simulation {
         Arc::clone(&self.views)
     }
 
-    fn setup_views(&mut self) {
+    fn generate_views(&mut self) {
         let mut views = self.views.write().unwrap();
 
         views.generate(&self.state);
     }
 
     fn update(&mut self) {
-        self.state.time.calculate_work_time();
+        self.state.calculate_work_time();
 
-        while self.state.time.has_work_time() {
+        while self.state.has_work_time() {
             self.actions.tick(&mut self.state);
             self.state.tick();
             self.physics.tick(&mut self.state);
-            self.tick_views();
 
-            self.state.time.use_work_time();
+            self.tick_views();
         }
 
         thread::sleep(SIMULATION_WAIT_DURATION);
     }
 
     fn tick_views(&mut self) {
-        if let Ok(mut views) = self.views.write() {
-            views.tick(&self.state);
-        } else {
-            log::error!("Failed to acquire Views write lock");
-        }
+        let mut views = self.views.write().unwrap();
+
+        views.tick(&self.state);
     }
 }

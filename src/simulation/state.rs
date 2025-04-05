@@ -1,4 +1,6 @@
-use crate::simulation::{population::Population, time::Time, world::World, DEFAULT_SEED};
+use std::time::Instant;
+
+use crate::simulation::{population::Population, time::Time, world::World, DEFAULT_SEED, FIXED_DT};
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -32,9 +34,22 @@ impl State {
         self.world.generate();
     }
 
+    pub fn has_work_time(&self) -> bool {
+        self.time.work_time >= FIXED_DT
+    }
+
+    pub fn calculate_work_time(&mut self) {
+        let now = Instant::now();
+        let frame_time = now.duration_since(self.time.previous);
+        self.time.previous = now;
+
+        self.time.work_time += frame_time;
+    }
+
     pub fn tick(&mut self) {
+        self.population.tick();
+        self.world.tick();
+
         self.time.tick();
-        self.population.tick(&self.time.tick);
-        self.world.tick(&self.time.tick);
     }
 }

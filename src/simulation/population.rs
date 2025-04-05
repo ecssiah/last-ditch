@@ -4,17 +4,13 @@ pub use entity::Entity;
 
 use std::collections::HashMap;
 
-use crate::simulation::time::Tick;
-
 pub struct Population {
-    tick: Tick,
     entities: HashMap<entity::ID, Entity>,
 }
 
 impl Population {
     pub fn new() -> Population {
         let population = Population {
-            tick: Tick::ZERO,
             entities: HashMap::new(),
         };
 
@@ -30,9 +26,7 @@ impl Population {
         self.entities.insert(user_entity.id, user_entity);
     }
 
-    pub fn tick(&mut self, tick: &Tick) {
-        self.tick = *tick;
-    }
+    pub fn tick(&mut self) {}
 
     pub fn all(&self) -> impl Iterator<Item = &Entity> {
         self.entities.values()
