@@ -1,13 +1,13 @@
 //! The Simulation module contains all of the logic required to generate and evolve
 //! the core civilizational garden.
 
-pub mod action;
-pub mod agent;
+pub mod actions;
 pub mod block;
 pub mod chunk;
 pub mod consts;
 pub mod observation;
 pub mod physics;
+pub mod population;
 pub mod state;
 pub mod structure;
 pub mod time;
@@ -17,50 +17,36 @@ pub use block::Block;
 pub use chunk::Chunk;
 pub use consts::*;
 
-use crate::simulation::{
-    action::{JumpAction, MovementAction},
-    observation::Observation,
-    time::{Tick, Time},
-    world::World,
-};
-use action::{Action, AgentAction, WorldAction};
-use agent::Agent;
-use glam::Quat;
+use crate::simulation::{actions::Actions, observation::Observation};
+use actions::Action;
 use physics::Physics;
 use state::State;
 use std::{
-    collections::HashMap,
     sync::{Arc, RwLock},
     thread,
-    time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    action_rx: UnboundedReceiver<Action>,
+    actions: Actions,
     state: State,
-    observation: Arc<RwLock<Observation>>,
     physics: Physics,
+    observation: Arc<RwLock<Observation>>,
 }
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let state = State {
-            active: true,
-            seed: SEED,
-            agents: Self::setup_agents(),
-            time: Self::setup_time(),
-            world: Self::setup_world(),
-        };
-
-        let observation = Arc::new(RwLock::new(Observation::new()));
+        let actions = Actions::new(action_rx);
+        let state = State::new();
         let physics = Physics::new();
 
+        let observation = Arc::new(RwLock::new(Observation::new()));
+
         let simulation = Self {
-            action_rx,
+            actions,
             state,
-            observation,
             physics,
+            observation,
         };
 
         log::info!("Simulation Initialized");
@@ -68,147 +54,47 @@ impl Simulation {
         simulation
     }
 
-    pub fn get_observation(&self) -> Arc<RwLock<Observation>> {
-        Arc::clone(&self.observation)
-    }
-
     pub fn run(&mut self) {
-        {
-            let mut observation = self.observation.write().unwrap();
+        self.state.generate();
+        self.physics.generate(&self.state);
 
-            if let Some(agent) = self.state.agents.get(&agent::ID::USER_AGENT) {
-                observation.register_agent(agent);
-            }
-        }
-
-        self.state.world.generate();
-        self.physics
-            .generate(&self.state.agents, &self.state.world.chunks);
+        self.setup_observation();
 
         loop {
             self.update();
         }
     }
 
-    fn setup_time() -> Time {
-        let time = Time {
-            clock: Duration::ZERO,
-            tick: Tick::ZERO,
-            work_time: Duration::ZERO,
-            previous_instant: Instant::now(),
-        };
-
-        time
+    pub fn get_observation(&self) -> Arc<RwLock<Observation>> {
+        Arc::clone(&self.observation)
     }
 
-    fn setup_agents() -> HashMap<agent::ID, Agent> {
-        let mut agents = HashMap::new();
+    fn setup_observation(&mut self) {
+        let mut observation = self.observation.write().unwrap();
 
-        let mut user_agent = Agent::new(agent::ID::USER_AGENT);
-
-        user_agent.set_position(3.0, 3.0, 3.0);
-        user_agent.set_rotation(0.0, 0.0);
-
-        agents.insert(user_agent.id, user_agent);
-
-        agents
-    }
-
-    fn setup_world() -> World {
-        let world = World::new();
-
-        world
+        observation.generate(&self.state);
     }
 
     fn update(&mut self) {
-        let now = Instant::now();
-        let frame_time = now.duration_since(self.state.time.previous_instant);
-        self.state.time.previous_instant = now;
+        self.state.time.calculate_work_time();
 
-        self.state.time.work_time += frame_time;
+        while self.state.time.has_work_time() {
+            self.actions.tick(&mut self.state);
+            self.state.tick();
+            self.physics.tick(&mut self.state);
+            self.tick_observation();
 
-        while self.state.time.work_time >= FIXED_DT {
-            self.handle_actions();
-            self.evolve_time();
-
-            self.physics.update(&mut self.state);
-
-            if let Ok(mut observation) = self.observation.write() {
-                observation.update(&self.state);
-            } else {
-                log::error!("Failed to acquire Observation write lock");
-            }
-
-            self.state.time.work_time -= FIXED_DT;
+            self.state.time.use_work_time();
         }
 
         thread::sleep(SIMULATION_WAIT_DURATION);
     }
 
-    fn handle_actions(&mut self) {
-        while let Ok(action) = self.action_rx.try_recv() {
-            match action {
-                Action::World(WorldAction::Quit) => {
-                    self.handle_quit_action();
-                }
-                Action::Agent(AgentAction::Movement(movement_actions)) => {
-                    self.handle_movement_action(&movement_actions);
-                }
-                Action::Agent(AgentAction::Jump(jump_action)) => {
-                    self.handle_jump_action(&jump_action);
-                }
-            }
+    fn tick_observation(&mut self) {
+        if let Ok(mut observation) = self.observation.write() {
+            observation.tick(&self.state);
+        } else {
+            log::error!("Failed to acquire Observation write lock");
         }
-    }
-
-    fn handle_quit_action(&mut self) {
-        self.state.active = false;
-    }
-
-    fn handle_movement_action(&mut self, movement_actions: &MovementAction) {
-        if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
-            agent.z_speed = movement_actions.direction.z;
-            agent.x_speed = movement_actions.direction.x;
-
-            if movement_actions.rotation.length_squared() > 1e-6 {
-                agent.look_x_axis -= movement_actions.rotation.x;
-                agent.look_y_axis += movement_actions.rotation.y;
-
-                let limit = 89.0_f32.to_radians();
-
-                agent.look_x_axis = agent.look_x_axis.clamp(-limit, limit);
-
-                let y_axis_quat = Quat::from_rotation_y(agent.look_y_axis);
-                let x_axis_quat = Quat::from_rotation_x(agent.look_x_axis);
-
-                let target_rotation = y_axis_quat * x_axis_quat;
-
-                agent.orientation = agent.orientation.slerp(target_rotation, 0.3);
-            }
-        }
-    }
-
-    fn handle_jump_action(&mut self, jump_action: &JumpAction) {
-        match jump_action {
-            JumpAction::Start => {
-                if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
-                    agent.jump_state.active = true;
-                    agent.jump_state.timer = Duration::ZERO;
-                    agent.jump_state.cancel = false;
-
-                    self.physics.begin_agent_jump(agent);
-                }
-            }
-            JumpAction::End => {
-                if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
-                    agent.jump_state.cancel = true;
-                }
-            }
-        }
-    }
-
-    fn evolve_time(&mut self) {
-        self.state.time.clock += FIXED_DT;
-        self.state.time.tick.advance();
     }
 }

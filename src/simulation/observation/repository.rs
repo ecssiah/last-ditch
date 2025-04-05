@@ -1,5 +1,5 @@
 use crate::simulation::{
-    agent,
+    population::entity,
     observation::{buffer::Buffer, view::View},
 };
 use std::{
@@ -8,7 +8,7 @@ use std::{
 };
 
 pub struct Repository {
-    buffers: Arc<RwLock<HashMap<agent::ID, Buffer>>>,
+    buffers: Arc<RwLock<HashMap<entity::ID, Buffer>>>,
 }
 
 impl Repository {
@@ -20,30 +20,30 @@ impl Repository {
         repository
     }
 
-    pub fn add(&self, agent_id: agent::ID, view: View) {
+    pub fn add(&self, entity_id: entity::ID, view: View) {
         let buffer = Buffer::new(view);
         let mut buffers = self.buffers.write().unwrap();
 
-        buffers.insert(agent_id, buffer);
+        buffers.insert(entity_id, buffer);
     }
 
-    pub fn update(&self, agent_id: agent::ID, view: View) {
+    pub fn update(&self, entity_id: entity::ID, view: View) {
         let buffers = self.buffers.read().unwrap();
 
-        if let Some(buffer) = buffers.get(&agent_id) {
+        if let Some(buffer) = buffers.get(&entity_id) {
             buffer.update(view);
         } else {
-            log::error!("ObservationID {:?} not found for update.", agent_id);
+            log::error!("ObservationID {:?} not found for update.", entity_id);
         }
     }
 
-    pub fn get(&self, agent_id: agent::ID) -> Option<Arc<View>> {
+    pub fn get(&self, entity_id: entity::ID) -> Option<Arc<View>> {
         let buffers = self.buffers.read().unwrap();
 
-        buffers.get(&agent_id).map(|buffer| buffer.get())
+        buffers.get(&entity_id).map(|buffer| buffer.get())
     }
 
-    pub fn list_agents(&self) -> Vec<agent::ID> {
+    pub fn list_entities(&self) -> Vec<entity::ID> {
         let buffers = self.buffers.read().unwrap();
 
         buffers.keys().cloned().collect()

@@ -1,8 +1,7 @@
 use crate::simulation::{
-    self,
-    agent::{self, Agent},
-    chunk,
+    self, chunk,
     consts::*,
+    population::{entity::{self, JumpStage}, Entity},
     state::State,
 };
 use glam::Vec3;
@@ -27,7 +26,7 @@ pub struct Physics {
     pub rigid_body_set: RigidBodySet,
     pub collider_set: ColliderSet,
     pub chunk_collider_handles: HashMap<chunk::ID, ColliderHandle>,
-    pub agent_body_handles: HashMap<agent::ID, RigidBodyHandle>,
+    pub entity_body_handles: HashMap<entity::ID, RigidBodyHandle>,
 }
 
 impl Physics {
@@ -49,7 +48,7 @@ impl Physics {
         let query_pipeline = QueryPipeline::new();
         let rigid_body_set = RigidBodySet::new();
         let collider_set = ColliderSet::new();
-        let agent_body_handles = HashMap::new();
+        let entity_body_handles = HashMap::new();
         let chunk_collider_handles = HashMap::new();
 
         let physics = Self {
@@ -65,38 +64,36 @@ impl Physics {
             query_pipeline,
             rigid_body_set,
             collider_set,
-            agent_body_handles,
+            entity_body_handles,
             chunk_collider_handles,
         };
 
         physics
     }
 
-    pub fn generate(
-        &mut self,
-        agents: &HashMap<agent::ID, Agent>,
-        chunks: &[chunk::Chunk; CHUNK_VOLUME],
-    ) {
-        for agent in agents.values() {
-            self.add_agent(agent);
+    pub fn generate(&mut self, state: &State) {
+        for entity in state.population.all() {
+            self.add_entity(entity);
         }
 
-        for chunk in chunks {
+        for chunk in state.world.chunks.iter() {
             self.add_chunk_collider(chunk);
         }
     }
 
-    pub fn update(&mut self, state: &mut State) {
-        if let Some(user_agent) = state.agents.get_mut(&agent::ID::USER_AGENT) {
-            self.update_agent_movement(user_agent);
-            self.update_agent_jump(user_agent);
+    pub fn tick(&mut self, state: &mut State) {
+        if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY) {
+            self.tick_entity_movement(entity);
+            self.tick_entity_jump(entity);
+
             self.step();
-            self.sync_agent_transforms(user_agent);
+
+            self.sync_entity_transforms(entity);
         }
     }
 
-    pub fn add_agent(&mut self, agent: &Agent) {
-        let position = vector![agent.position.x, agent.position.y, agent.position.z];
+    pub fn add_entity(&mut self, entity: &Entity) {
+        let position = vector![entity.position.x, entity.position.y, entity.position.z];
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .lock_rotations()
@@ -116,7 +113,8 @@ impl Physics {
         self.collider_set
             .insert_with_parent(collider, rigid_body_handle, &mut self.rigid_body_set);
 
-        self.agent_body_handles.insert(agent.id, rigid_body_handle);
+        self.entity_body_handles
+            .insert(entity.id, rigid_body_handle);
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
@@ -160,8 +158,8 @@ impl Physics {
         }
     }
 
-    pub fn update_agent_movement(&mut self, agent: &Agent) {
-        let Some(rb_handle) = self.agent_body_handles.get(&agent.id) else {
+    pub fn tick_entity_movement(&mut self, entity: &Entity) {
+        let Some(rb_handle) = self.entity_body_handles.get(&entity.id) else {
             return;
         };
 
@@ -169,11 +167,11 @@ impl Physics {
             return;
         };
 
-        let forward = agent.orientation * Vec3::Z;
+        let forward = entity.orientation * Vec3::Z;
         let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
         let right_xz = Vec3::Y.cross(forward_xz).normalize();
 
-        let input_dir = agent.x_speed * right_xz + agent.z_speed * forward_xz;
+        let input_dir = entity.x_speed * right_xz + entity.z_speed * forward_xz;
 
         let mut velocity = *rb.linvel();
 
@@ -189,47 +187,56 @@ impl Physics {
         rb.set_linvel(velocity, true);
     }
 
-    pub fn begin_agent_jump(&mut self, agent: &Agent) {
-        if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
-            if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
-                let lv = rb.linvel();
-                rb.set_linvel(vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z], true);
-            }
-        }
-    }
-
-    pub fn update_agent_jump(&mut self, agent: &mut Agent) {
-        if agent.jump_state.active {
-            if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
-                if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
-                    agent.jump_state.timer += FIXED_DT;
-
-                    let is_powered =
-                        agent.jump_state.timer < MAX_JUMP_DURATION && !agent.jump_state.cancel;
-
-                    if is_powered {
-                        let force = vector![0.0, JUMP_HOLD_FORCE * FIXED_DT.as_secs_f32(), 0.0];
-                        rb.add_force(force, true);
-                    } else {
-                        agent.jump_state.active = false;
-
+    pub fn tick_entity_jump(&mut self, entity: &mut Entity) {
+        match entity.jump_state.stage {
+            JumpStage::Launch => {
+                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
+                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
                         let lv = rb.linvel();
-                        if agent.jump_state.cancel && lv.y > 0.0 {
+                        let jump_velocity = vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z];
+
+                        rb.set_linvel(jump_velocity, true);
+                    }
+                }
+            },
+            JumpStage::Rise => {
+                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
+                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                        entity.jump_state.timer += 1;
+    
+                        if entity.jump_state.timer < MAX_JUMP_TICKS {
+                            let force = vector![0.0, JUMP_HOLD_FORCE, 0.0];
+
+                            rb.add_force(force, true);
+                        } else {
+                            entity.jump_state.stage = JumpStage::Fall;
+                        }
+                    }
+                }
+            },
+            JumpStage::Fall => {
+                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
+                    if let Some(rb) = self.rigid_body_set.get_mut(*rb_handle) {
+                        entity.jump_state.stage = JumpStage::Ground;
+    
+                        let lv = rb.linvel();
+                        if lv.y > 0.0 {
                             rb.set_linvel(vector![lv.x, lv.y * 0.5, lv.z], true);
                         }
                     }
                 }
-            }
+            },
+            _ => (),
         }
     }
 
-    pub fn sync_agent_transforms(&self, agent: &mut Agent) {
-        if let Some(rb_handle) = self.agent_body_handles.get(&agent.id) {
+    pub fn sync_entity_transforms(&self, entity: &mut Entity) {
+        if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
             if let Some(rb) = self.rigid_body_set.get(*rb_handle) {
                 let pos = rb.position();
 
                 let translation = pos.translation.vector;
-                agent.position = Vec3::new(translation.x, translation.y, translation.z);
+                entity.position = Vec3::new(translation.x, translation.y, translation.z);
             }
         }
     }

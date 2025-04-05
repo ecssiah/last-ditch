@@ -2,20 +2,26 @@ pub mod id;
 
 pub use id::ID;
 
-use crate::simulation::{agent, time::Tick};
+use crate::simulation::{population::entity, time::Tick};
 use glam::{Quat, Vec3};
-use std::time::Duration;
 
-#[derive(Copy, Clone)]
-pub struct JumpState {
-    pub active: bool,
-    pub cancel: bool,
-    pub timer: Duration,
+#[derive(Clone)]
+pub enum JumpStage {
+    Ground,
+    Launch,
+    Rise,
+    Fall,
 }
 
-#[derive(Copy, Clone)]
-pub struct Agent {
-    pub id: agent::ID,
+#[derive(Clone)]
+pub struct JumpState {
+    pub stage: JumpStage,
+    pub timer: u32,
+}
+
+#[derive(Clone)]
+pub struct Entity {
+    pub id: entity::ID,
     pub tick: Tick,
     pub name: &'static str,
     pub position: Vec3,
@@ -27,10 +33,10 @@ pub struct Agent {
     pub jump_state: JumpState,
 }
 
-impl Agent {
-    pub fn new(agent_id: id::ID) -> Agent {
-        let agent = Self {
-            id: agent_id,
+impl Entity {
+    pub fn new(entity_id: id::ID) -> Entity {
+        let entity = Self {
+            id: entity_id,
             tick: Tick::ZERO,
             name: "",
             position: Vec3::ZERO,
@@ -40,13 +46,12 @@ impl Agent {
             look_y_axis: 0.0,
             orientation: Quat::default(),
             jump_state: JumpState {
-                active: false,
-                cancel: false,
-                timer: Duration::ZERO,
+                stage: JumpStage::Ground,
+                timer: 0,
             },
         };
 
-        agent
+        entity
     }
 
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {

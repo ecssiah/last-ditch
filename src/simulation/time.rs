@@ -1,4 +1,4 @@
-use crate::simulation::FIXED_TICK_RATE;
+use crate::simulation::{FIXED_DT, FIXED_TICK_RATE};
 use std::time::{Duration, Instant};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -38,4 +38,38 @@ pub struct Time {
     pub tick: Tick,
     pub work_time: Duration,
     pub previous_instant: Instant,
+}
+
+impl Time {
+    pub fn new() -> Time {
+        let time = Time {
+            clock: Duration::ZERO,
+            tick: Tick::ZERO,
+            work_time: Duration::ZERO,
+            previous_instant: Instant::now(),
+        };
+
+        time
+    }
+
+    pub fn calculate_work_time(&mut self) {
+        let now = Instant::now();
+        let frame_time = now.duration_since(self.previous_instant);
+        self.previous_instant = now;
+
+        self.work_time += frame_time;
+    }
+
+    pub fn tick(&mut self) {
+        self.clock += FIXED_DT;
+        self.tick.advance();
+    }
+
+    pub fn has_work_time(&self) -> bool {
+        self.work_time >= FIXED_DT
+    }
+
+    pub fn use_work_time(&mut self) {
+        self.work_time -= FIXED_DT;
+    }
 }

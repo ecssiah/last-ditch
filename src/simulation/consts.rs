@@ -5,7 +5,7 @@ use crate::{
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, time::Duration};
 
-pub const SEED: u64 = 128;
+pub const DEFAULT_SEED: u64 = 128;
 
 pub const FIXED_TICK_RATE: u32 = 60;
 pub const FIXED_DT: Duration = Duration::from_nanos(1_000_000_000 / FIXED_TICK_RATE as u64);
@@ -16,7 +16,7 @@ pub const GRAVITY_ACCELERATION: f32 = -60.0;
 pub const DEFAULT_Z_SPEED: f32 = 22.0;
 pub const DEFAULT_X_SPEED: f32 = 22.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
-pub const MAX_JUMP_DURATION: Duration = Duration::from_millis(500);
+pub const MAX_JUMP_TICKS: u32 = 8;
 pub const JUMP_LAUNCH_VELOCITY: f32 = 28.0;
 pub const JUMP_HOLD_FORCE: f32 = 6.0;
 

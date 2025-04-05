@@ -10,14 +10,16 @@ use glam::{IVec3, Vec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
+    pub tick: Tick,
     pub chunks: [Chunk; CHUNK_VOLUME],
 }
 
 impl World {
     pub fn new() -> World {
+        let tick = Tick::ZERO;
         let chunks = Self::setup_chunks();
 
-        let world = Self { chunks };
+        let world = Self { tick, chunks };
 
         world
     }
@@ -27,7 +29,7 @@ impl World {
             let chunk_id = chunk::ID(index);
 
             Chunk {
-                tick: Tick(1),
+                tick: Tick::ZERO,
                 id: chunk_id,
                 position: Chunk::local_position(chunk_id),
                 palette: Vec::from([block::Kind::Air]),
@@ -43,6 +45,10 @@ impl World {
 
     pub fn generate(&mut self) {
         self.generate_ground();
+    }
+
+    pub fn tick(&mut self, tick: &Tick) {
+        self.tick = *tick;
     }
 
     pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {

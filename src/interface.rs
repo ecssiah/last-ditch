@@ -10,9 +10,9 @@ use crate::{
     interface::{self, consts::*, input::Input},
     simulation::{
         self,
-        action::{Action, AgentAction},
+        actions::{Action, EntityAction},
         observation::{
-            view::{AgentView, ChunkView, View},
+            view::{ChunkView, EntityView, View},
             Observation, Status,
         },
     },
@@ -181,7 +181,7 @@ impl Interface {
         let movement_actions = self.input.get_movement_actions();
 
         self.action_tx
-            .send(Action::Agent(AgentAction::Movement(movement_actions)))
+            .send(Action::Agent(EntityAction::Movement(movement_actions)))
             .unwrap();
     }
 
@@ -195,8 +195,8 @@ impl Interface {
         self.check_active(event_loop);
         self.send_movement_actions();
 
-        if let Some(user_view) = self.get_view(simulation::agent::ID::USER_AGENT) {
-            self.update_user_agent(&user_view.agent_view);
+        if let Some(user_view) = self.get_view(simulation::population::entity::ID::USER_ENTITY) {
+            self.update_user_entity(&user_view.entity_view);
             self.update_chunks(&user_view.chunk_views);
         }
     }
@@ -209,13 +209,13 @@ impl Interface {
         status
     }
 
-    pub fn get_view(&self, agent_id: simulation::agent::ID) -> Option<View> {
+    pub fn get_view(&self, entity_id: simulation::population::entity::ID) -> Option<View> {
         let observation = self.observation.read().unwrap();
 
-        observation.get_view(agent_id)
+        observation.get_view(entity_id)
     }
 
-    fn update_user_agent(&mut self, agent_view: &AgentView) {
+    fn update_user_entity(&mut self, agent_view: &EntityView) {
         self.update_view_projection(agent_view);
     }
 
@@ -271,7 +271,7 @@ impl Interface {
         }
     }
 
-    fn update_view_projection(&mut self, agent_view: &AgentView) {
+    fn update_view_projection(&mut self, agent_view: &EntityView) {
         let view_projection_matrix = Self::create_view_projection_matrix(agent_view);
 
         self.queue.write_buffer(
@@ -435,7 +435,7 @@ impl Interface {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn create_view_projection_matrix(agent_view: &AgentView) -> [[f32; 4]; 4] {
+    fn create_view_projection_matrix(agent_view: &EntityView) -> [[f32; 4]; 4] {
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;

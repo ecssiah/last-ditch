@@ -3,11 +3,11 @@ pub mod repository;
 pub mod view;
 
 use crate::simulation::{
-    agent::{self, Agent},
     chunk,
+    population::{entity, Entity},
     observation::{
         repository::Repository,
-        view::{AgentView, ChunkView, View},
+        view::{ChunkView, EntityView, View},
     },
     state::State,
     world::World,
@@ -41,21 +41,27 @@ impl Observation {
         observation
     }
 
-    pub fn update(&mut self, state: &State) {
+    pub fn generate(&mut self, state: &State) {
+        if let Some(entity) = state.population.get(&entity::ID::USER_ENTITY) {
+            self.register_entity(entity);
+        }
+    }
+
+    pub fn tick(&mut self, state: &State) {
         if state.active {
-            for agent_id in self.repository.list_agents() {
-                if let Some(agent) = state.agents.get(&agent_id) {
-                    if let Some(view) = self.repository.get(agent_id) {
-                        let agent_view = self.generate_agent_view(agent);
+            for entity_id in self.repository.list_entities() {
+                if let Some(entity) = state.population.get(&entity_id) {
+                    if let Some(view) = self.repository.get(entity_id) {
+                        let entity_view = self.generate_entity_view(entity);
                         let chunk_views =
-                            self.generate_chunk_views(state, agent.position, &view.chunk_views);
+                            self.generate_chunk_views(state, entity.position, &view.chunk_views);
 
                         let new_view = View {
-                            agent_view,
+                            entity_view,
                             chunk_views,
                         };
 
-                        self.repository.update(agent_id, new_view);
+                        self.repository.update(entity_id, new_view);
                     }
                 }
             }
@@ -66,13 +72,13 @@ impl Observation {
         }
     }
 
-    pub fn register_agent(&mut self, agent: &Agent) {
+    pub fn register_entity(&mut self, entity: &Entity) {
         let view = View {
-            agent_view: self.generate_agent_view(agent),
+            entity_view: self.generate_entity_view(entity),
             chunk_views: HashMap::new(),
         };
 
-        self.repository.add(agent.id, view);
+        self.repository.add(entity.id, view);
     }
 
     pub fn get_status(&self) -> Status {
@@ -81,20 +87,20 @@ impl Observation {
         status.clone()
     }
 
-    pub fn get_view(&self, agent_id: agent::ID) -> Option<View> {
-        if let Some(view) = self.repository.get(agent_id) {
+    pub fn get_view(&self, entity_id: entity::ID) -> Option<View> {
+        if let Some(view) = self.repository.get(entity_id) {
             Some((*view).clone())
         } else {
             None
         }
     }
 
-    fn generate_agent_view(&self, agent: &Agent) -> AgentView {
-        AgentView {
-            id: agent.id,
-            tick: agent.tick,
-            position: agent.position,
-            orientation: agent.orientation,
+    fn generate_entity_view(&self, entity: &Entity) -> EntityView {
+        EntityView {
+            id: entity.id,
+            tick: entity.tick,
+            position: entity.position,
+            orientation: entity.orientation,
         }
     }
 

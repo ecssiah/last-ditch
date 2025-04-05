@@ -1,7 +1,7 @@
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::{
-        action::{Action, AgentAction, JumpAction, MovementAction, WorldAction},
+        actions::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
         DEFAULT_X_SPEED, DEFAULT_Z_SPEED,
     },
 };
@@ -159,11 +159,11 @@ impl Input {
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
                     self.action_tx
-                        .send(Action::Agent(AgentAction::Jump(JumpAction::Start)))
+                        .send(Action::Agent(EntityAction::Jump(JumpAction::Start)))
                         .unwrap();
                 } else if key_event.state == ElementState::Released {
                     self.action_tx
-                        .send(Action::Agent(AgentAction::Jump(JumpAction::End)))
+                        .send(Action::Agent(EntityAction::Jump(JumpAction::End)))
                         .unwrap();
                 }
             }
