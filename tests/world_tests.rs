@@ -1,9 +1,5 @@
 use glam::IVec3;
-use last_ditch::simulation::{
-    id::{block_id::BlockID, chunk_id::ChunkID},
-    world::World,
-    *,
-};
+use last_ditch::simulation::{world::World, *};
 
 #[test]
 fn test_chunk_id_at() {
@@ -14,16 +10,16 @@ fn test_chunk_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(ChunkID(0)),
+            Some(chunk::ID(0)),
         ),
-        (IVec3::new(0, 0, 0), Some(ChunkID((WORLD_VOLUME - 1) / 2))),
+        (IVec3::new(0, 0, 0), Some(chunk::ID((WORLD_VOLUME - 1) / 2))),
         (
             IVec3::new(
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
             ),
-            Some(ChunkID(WORLD_VOLUME - 1)),
+            Some(chunk::ID(WORLD_VOLUME - 1)),
         ),
         (
             IVec3::new(
@@ -31,7 +27,7 @@ fn test_chunk_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(ChunkID(WORLD_SIZE - 1)),
+            Some(chunk::ID(WORLD_SIZE - 1)),
         ),
     ];
 
@@ -55,16 +51,16 @@ fn test_block_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(BlockID(0)),
+            Some(block::ID(0)),
         ),
-        (IVec3::new(0, 0, 0), Some(BlockID((CHUNK_VOLUME - 1) / 2))),
+        (IVec3::new(0, 0, 0), Some(block::ID((CHUNK_VOLUME - 1) / 2))),
         (
             IVec3::new(
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
                 WORLD_BOUNDARY as i32,
             ),
-            Some(BlockID(CHUNK_VOLUME - 1)),
+            Some(block::ID(CHUNK_VOLUME - 1)),
         ),
         (
             IVec3::new(
@@ -72,7 +68,7 @@ fn test_block_id_at() {
                 -(WORLD_BOUNDARY as i32),
                 -(WORLD_BOUNDARY as i32),
             ),
-            Some(BlockID(CHUNK_SIZE - 1)),
+            Some(block::ID(CHUNK_SIZE - 1)),
         ),
     ];
 
@@ -121,8 +117,8 @@ fn test_grid_position() {
     ];
 
     for ((chunk_id, block_id), expected_grid_position) in test_cases {
-        let chunk_id = ChunkID(chunk_id);
-        let block_id = BlockID(block_id);
+        let chunk_id = chunk::ID(chunk_id);
+        let block_id = block::ID(block_id);
 
         let grid_position = World::grid_position(chunk_id, block_id);
 

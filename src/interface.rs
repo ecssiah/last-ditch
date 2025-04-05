@@ -9,8 +9,8 @@ use crate::{
     include_shader_src,
     interface::{self, consts::*, input::Input},
     simulation::{
+        self,
         action::{Action, AgentAction},
-        id::{agent_id::AgentID, chunk_id::ChunkID},
         observation::{
             view::{AgentView, ChunkView, View},
             Observation, Status,
@@ -52,7 +52,7 @@ pub struct Interface {
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
-    chunks: HashMap<ChunkID, interface::chunk::Chunk>,
+    chunks: HashMap<simulation::chunk::ID, interface::chunk::Chunk>,
 }
 
 impl Interface {
@@ -195,7 +195,7 @@ impl Interface {
         self.check_active(event_loop);
         self.send_movement_actions();
 
-        if let Some(user_view) = self.get_view(AgentID::USER_AGENT_ID) {
+        if let Some(user_view) = self.get_view(simulation::agent::ID::USER_AGENT) {
             self.update_user_agent(&user_view.agent_view);
             self.update_chunks(&user_view.chunk_views);
         }
@@ -209,7 +209,7 @@ impl Interface {
         status
     }
 
-    pub fn get_view(&self, agent_id: AgentID) -> Option<View> {
+    pub fn get_view(&self, agent_id: simulation::agent::ID) -> Option<View> {
         let observation = self.observation.read().unwrap();
 
         observation.get_view(agent_id)
@@ -219,7 +219,7 @@ impl Interface {
         self.update_view_projection(agent_view);
     }
 
-    fn update_chunks(&mut self, chunk_views: &HashMap<ChunkID, ChunkView>) {
+    fn update_chunks(&mut self, chunk_views: &HashMap<simulation::chunk::ID, ChunkView>) {
         for (chunk_id, chunk_view) in chunk_views {
             if let Some(chunk) = self.chunks.get(chunk_id) {
                 if chunk_view.tick > chunk.tick {

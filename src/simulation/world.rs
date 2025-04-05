@@ -2,7 +2,6 @@ use crate::simulation::{
     block::{self, Direction, Face, Neighbors},
     chunk,
     consts::*,
-    id::{block_id::BlockID, chunk_id::ChunkID, palette_id::PaletteID},
     structure,
     time::Tick,
     Block, Chunk, BLOCKS,
@@ -25,14 +24,14 @@ impl World {
 
     fn setup_chunks() -> [Chunk; WORLD_VOLUME] {
         let chunks: [Chunk; WORLD_VOLUME] = core::array::from_fn(|index| {
-            let chunk_id = ChunkID(index);
+            let chunk_id = chunk::ID(index);
 
             Chunk {
                 tick: Tick(1),
                 id: chunk_id,
                 position: Chunk::local_position(chunk_id),
                 palette: Vec::from([block::Kind::Air]),
-                blocks: Box::new([PaletteID(0); CHUNK_VOLUME]),
+                blocks: Box::new([0; CHUNK_VOLUME]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
                 light: Box::new([block::Light::default(); CHUNK_VOLUME]),
                 mesh: chunk::Mesh::default(),
@@ -87,13 +86,13 @@ impl World {
         }
     }
 
-    pub fn get_chunk(&self, chunk_id: ChunkID) -> Option<&chunk::Chunk> {
+    pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
         let chunk = self.chunks.get(usize::from(chunk_id))?;
 
         Some(chunk)
     }
 
-    pub fn get_chunk_mut(&mut self, chunk_id: ChunkID) -> Option<&mut chunk::Chunk> {
+    pub fn get_chunk_mut(&mut self, chunk_id: chunk::ID) -> Option<&mut chunk::Chunk> {
         let chunk = self.chunks.get_mut(usize::from(chunk_id))?;
 
         Some(chunk)
@@ -136,28 +135,28 @@ impl World {
         }
     }
 
-    fn update_palette(&mut self, chunk_id: ChunkID, block_id: BlockID, kind: &block::Kind) {
+    fn update_palette(&mut self, chunk_id: chunk::ID, block_id: block::ID, kind: &block::Kind) {
         if let Some(chunk) = self.get_chunk_mut(chunk_id) {
             if let Some(palette_id) = Self::get_palette_id(chunk, kind) {
                 chunk.blocks[usize::from(block_id)] = palette_id;
             } else {
                 chunk.palette.push(kind.clone());
-                chunk.blocks[usize::from(block_id)] = PaletteID(chunk.palette.len() - 1);
+                chunk.blocks[usize::from(block_id)] = chunk.palette.len() - 1;
             }
         }
     }
 
-    fn get_palette_id(chunk: &Chunk, kind: &block::Kind) -> Option<PaletteID> {
+    fn get_palette_id(chunk: &Chunk, kind: &block::Kind) -> Option<usize> {
         let palette_id = chunk
             .palette
             .iter()
             .position(|palette_kind| kind == palette_kind)?;
 
-        Some(PaletteID(palette_id))
+        Some(palette_id)
     }
 
     fn update_neighbors(&mut self, grid_position: IVec3) {
-        let mut updates: HashMap<ChunkID, Vec<(BlockID, Neighbors)>> = HashMap::new();
+        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Neighbors)>> = HashMap::new();
 
         for offset in Direction::offsets() {
             let neighbor_grid_position = grid_position + offset;
@@ -206,7 +205,7 @@ impl World {
     }
 
     fn update_visibility(&mut self, grid_position: IVec3) {
-        let mut updates: HashMap<ChunkID, Vec<(BlockID, Face)>> = HashMap::new();
+        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Face)>> = HashMap::new();
 
         if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
             let visibility = self.compute_visibility(grid_position);
@@ -277,9 +276,9 @@ impl World {
         visibility
     }
 
-    fn update_light(&mut self, _chunk_id: ChunkID, _block_id: BlockID, _grid_position: IVec3) {}
+    fn update_light(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
 
-    fn update_chunk_mesh(&mut self, chunk_id: ChunkID) {
+    fn update_chunk_mesh(&mut self, chunk_id: chunk::ID) {
         let mesh = self.generate_chunk_mesh(chunk_id);
 
         if let Some(chunk) = self.chunks.get_mut(usize::from(chunk_id)) {
@@ -287,17 +286,16 @@ impl World {
         }
     }
 
-    fn generate_chunk_mesh(&self, chunk_id: ChunkID) -> chunk::Mesh {
+    fn generate_chunk_mesh(&self, chunk_id: chunk::ID) -> chunk::Mesh {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
-        if let Some(chunk) = self.chunks.get(usize::from(chunk_id)) {
-            for block_id in 0..CHUNK_VOLUME {
-                let block_id = BlockID(block_id);
-                let grid_position = World::grid_position(chunk_id, block_id);
-
-                if let Some(meta) = chunk.meta.get(usize::from(block_id)) {
+        if let Some(chunk) = self.get_chunk(chunk_id) {
+            for block_id in (0..CHUNK_VOLUME).map(block::ID) {
+                if let Some(meta) = chunk.get_meta(block_id) {
                     if let Some(block) = chunk.get_block(block_id) {
+                        let grid_position = World::grid_position(chunk_id, block_id);
+
                         for face in block::Face::ALL {
                             if meta.visibility.contains(face) == false {
                                 continue;
@@ -318,8 +316,7 @@ impl World {
                             let face_light = Self::calculate_face_light(face_edges, face_corners);
 
                             let chunk_vertices =
-                                face_quad.iter().enumerate().map(|(index, position)| {
-                                    let position = *position;
+                                face_quad.iter().enumerate().map(|(index, &position)| {
                                     let light = face_light[index];
 
                                     chunk::Vertex {
@@ -473,14 +470,14 @@ impl World {
         }
     }
 
-    pub fn ids_at(grid_position: IVec3) -> Option<(ChunkID, BlockID)> {
+    pub fn ids_at(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
         let chunk_id = Chunk::id_at(grid_position)?;
         let block_id = Block::id_at(grid_position)?;
 
         Some((chunk_id, block_id))
     }
 
-    pub fn grid_position(chunk_id: ChunkID, block_id: BlockID) -> IVec3 {
+    pub fn grid_position(chunk_id: chunk::ID, block_id: block::ID) -> IVec3 {
         let chunk_position = Chunk::local_position(chunk_id);
         let block_position = Block::local_position(block_id);
 

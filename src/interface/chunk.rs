@@ -6,11 +6,11 @@ pub use vertex::Vertex;
 
 use crate::{
     interface,
-    simulation::{id::chunk_id::ChunkID, time::Tick},
+    simulation::{self, time::Tick},
 };
 
 pub struct Chunk {
-    pub id: ChunkID,
+    pub id: simulation::chunk::ID,
     pub tick: Tick,
     pub mesh: interface::chunk::Mesh,
 }

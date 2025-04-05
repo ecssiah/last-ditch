@@ -1,14 +1,10 @@
-use crate::simulation::{
-    chunk,
-    id::{agent_id::AgentID, chunk_id::ChunkID},
-    time::Tick,
-};
+use crate::simulation::{agent, chunk, time::Tick};
 use glam::{IVec3, Quat, Vec3};
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct AgentView {
-    pub id: AgentID,
+    pub id: agent::ID,
     pub tick: Tick,
     pub position: Vec3,
     pub orientation: Quat,
@@ -16,7 +12,7 @@ pub struct AgentView {
 
 #[derive(Clone)]
 pub struct ChunkView {
-    pub id: ChunkID,
+    pub id: chunk::ID,
     pub tick: Tick,
     pub position: IVec3,
     pub mesh: chunk::Mesh,
@@ -25,5 +21,5 @@ pub struct ChunkView {
 #[derive(Clone)]
 pub struct View {
     pub agent_view: AgentView,
-    pub chunk_views: HashMap<ChunkID, ChunkView>,
+    pub chunk_views: HashMap<chunk::ID, ChunkView>,
 }

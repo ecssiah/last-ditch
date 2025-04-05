@@ -1,5 +1,9 @@
 use crate::simulation::{
-    self, agent::Agent, chunk, consts::*, id::{agent_id::AgentID, chunk_id::ChunkID}, state::State
+    self,
+    agent::{self, Agent},
+    chunk,
+    consts::*,
+    state::State,
 };
 use glam::Vec3;
 use rapier3d::{
@@ -22,8 +26,8 @@ pub struct Physics {
     pub query_pipeline: QueryPipeline,
     pub rigid_body_set: RigidBodySet,
     pub collider_set: ColliderSet,
-    pub chunk_collider_handles: HashMap<ChunkID, ColliderHandle>,
-    pub agent_body_handles: HashMap<AgentID, RigidBodyHandle>,
+    pub chunk_collider_handles: HashMap<chunk::ID, ColliderHandle>,
+    pub agent_body_handles: HashMap<agent::ID, RigidBodyHandle>,
 }
 
 impl Physics {
@@ -34,7 +38,7 @@ impl Physics {
             dt: FIXED_DT.as_secs_f32(),
             ..Default::default()
         };
-        
+
         let pipeline = PhysicsPipeline::new();
         let island_manager = IslandManager::new();
         let broad_phase = DefaultBroadPhase::new();
@@ -68,7 +72,11 @@ impl Physics {
         physics
     }
 
-    pub fn generate(&mut self, agents: &HashMap<AgentID, Agent>, chunks: &[chunk::Chunk; CHUNK_VOLUME]) {
+    pub fn generate(
+        &mut self,
+        agents: &HashMap<agent::ID, Agent>,
+        chunks: &[chunk::Chunk; CHUNK_VOLUME],
+    ) {
         for agent in agents.values() {
             self.add_agent(agent);
         }
@@ -79,7 +87,7 @@ impl Physics {
     }
 
     pub fn update(&mut self, state: &mut State) {
-        if let Some(user_agent) = state.agents.get_mut(&AgentID::USER_AGENT_ID) {
+        if let Some(user_agent) = state.agents.get_mut(&agent::ID::USER_AGENT) {
             self.update_agent_movement(user_agent);
             self.update_agent_jump(user_agent);
             self.step();

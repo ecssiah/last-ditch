@@ -3,8 +3,8 @@ pub mod repository;
 pub mod view;
 
 use crate::simulation::{
-    agent::Agent,
-    id::{agent_id::AgentID, chunk_id::ChunkID},
+    agent::{self, Agent},
+    chunk,
     observation::{
         repository::Repository,
         view::{AgentView, ChunkView, View},
@@ -81,7 +81,7 @@ impl Observation {
         status.clone()
     }
 
-    pub fn get_view(&self, agent_id: AgentID) -> Option<View> {
+    pub fn get_view(&self, agent_id: agent::ID) -> Option<View> {
         if let Some(view) = self.repository.get(agent_id) {
             Some((*view).clone())
         } else {
@@ -102,8 +102,8 @@ impl Observation {
         &self,
         state: &State,
         position: Vec3,
-        old_chunk_views: &HashMap<ChunkID, ChunkView>,
-    ) -> HashMap<ChunkID, ChunkView> {
+        old_chunk_views: &HashMap<chunk::ID, ChunkView>,
+    ) -> HashMap<chunk::ID, ChunkView> {
         let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
 

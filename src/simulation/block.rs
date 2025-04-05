@@ -1,5 +1,6 @@
 pub mod direction;
 pub mod face;
+pub mod id;
 pub mod kind;
 pub mod light;
 pub mod meta;
@@ -7,12 +8,13 @@ pub mod neighbors;
 
 pub use direction::Direction;
 pub use face::Face;
+pub use id::ID;
 pub use kind::Kind;
 pub use light::Light;
 pub use meta::Meta;
 pub use neighbors::Neighbors;
 
-use crate::simulation::{consts::*, id::block_id::BlockID, world::World};
+use crate::simulation::{block, consts::*, world::World};
 use glam::IVec3;
 use serde::Deserialize;
 
@@ -26,7 +28,7 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn local_position(block_id: BlockID) -> IVec3 {
+    pub fn local_position(block_id: block::ID) -> IVec3 {
         let block_id = usize::from(block_id);
 
         let block_position_shifted = IVec3::new(
@@ -40,7 +42,7 @@ impl Block {
         block_position
     }
 
-    pub fn id_at(grid_position: IVec3) -> Option<BlockID> {
+    pub fn id_at(grid_position: IVec3) -> Option<block::ID> {
         if World::on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
@@ -52,7 +54,7 @@ impl Block {
                 + grid_position_shifted.y * CHUNK_SIZE as i32
                 + grid_position_shifted.z * CHUNK_AREA as i32;
 
-            Some(BlockID(block_id as usize))
+            Some(block::ID(block_id as usize))
         } else {
             None
         }

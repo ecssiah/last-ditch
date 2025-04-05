@@ -6,7 +6,6 @@ pub mod agent;
 pub mod block;
 pub mod chunk;
 pub mod consts;
-pub mod id;
 pub mod observation;
 pub mod physics;
 pub mod state;
@@ -20,7 +19,6 @@ pub use consts::*;
 
 use crate::simulation::{
     action::{JumpAction, MovementAction},
-    id::agent_id::AgentID,
     observation::Observation,
     time::{Tick, Time},
     world::World,
@@ -78,7 +76,7 @@ impl Simulation {
         {
             let mut observation = self.observation.write().unwrap();
 
-            if let Some(agent) = self.state.agents.get(&AgentID::USER_AGENT_ID) {
+            if let Some(agent) = self.state.agents.get(&agent::ID::USER_AGENT) {
                 observation.register_agent(agent);
             }
         }
@@ -103,10 +101,10 @@ impl Simulation {
         time
     }
 
-    fn setup_agents() -> HashMap<AgentID, Agent> {
+    fn setup_agents() -> HashMap<agent::ID, Agent> {
         let mut agents = HashMap::new();
 
-        let mut user_agent = Agent::new(AgentID::USER_AGENT_ID);
+        let mut user_agent = Agent::new(agent::ID::USER_AGENT);
 
         user_agent.set_position(3.0, 3.0, 3.0);
         user_agent.set_rotation(0.0, 0.0);
@@ -168,7 +166,7 @@ impl Simulation {
     }
 
     fn handle_movement_action(&mut self, movement_actions: &MovementAction) {
-        if let Some(agent) = self.state.agents.get_mut(&AgentID::USER_AGENT_ID) {
+        if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
             agent.z_speed = movement_actions.direction.z;
             agent.x_speed = movement_actions.direction.x;
 
@@ -193,7 +191,7 @@ impl Simulation {
     fn handle_jump_action(&mut self, jump_action: &JumpAction) {
         match jump_action {
             JumpAction::Start => {
-                if let Some(agent) = self.state.agents.get_mut(&AgentID::USER_AGENT_ID) {
+                if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
                     agent.jump_state.active = true;
                     agent.jump_state.timer = Duration::ZERO;
                     agent.jump_state.cancel = false;
@@ -202,7 +200,7 @@ impl Simulation {
                 }
             }
             JumpAction::End => {
-                if let Some(agent) = self.state.agents.get_mut(&AgentID::USER_AGENT_ID) {
+                if let Some(agent) = self.state.agents.get_mut(&agent::ID::USER_AGENT) {
                     agent.jump_state.cancel = true;
                 }
             }
