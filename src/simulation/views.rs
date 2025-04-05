@@ -106,7 +106,7 @@ impl Views {
         &self,
         state: &State,
         position: Vec3,
-        old_chunk_views: &HashMap<chunk::ID, ChunkView>,
+        chunk_views: &HashMap<chunk::ID, ChunkView>,
     ) -> HashMap<chunk::ID, ChunkView> {
         let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
@@ -117,36 +117,45 @@ impl Views {
                     let chunk_position = IVec3::new(x, y, z);
 
                     if let Some(chunk) = state.world.get_chunk_at(chunk_position) {
-                        if let Some(old_chunk_view) = old_chunk_views.get(&chunk.id) {
-                            if old_chunk_view.tick < chunk.tick {
-                                let new_chunk_view = ChunkView {
-                                    id: chunk.id,
-                                    tick: state.time.tick,
-                                    position: chunk.position,
-                                    mesh: chunk.mesh.clone(),
-                                };
+                        let chunk_view = self.generate_chunk_view(state, chunk, chunk_views);
 
-                                new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
-                            } else {
-                                let new_chunk_view = old_chunk_view.clone();
-
-                                new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
-                            }
-                        } else {
-                            let new_chunk_view = ChunkView {
-                                id: chunk.id,
-                                tick: state.time.tick,
-                                position: chunk.position,
-                                mesh: chunk.mesh.clone(),
-                            };
-
-                            new_chunk_views.insert(new_chunk_view.id, new_chunk_view);
-                        }
+                        new_chunk_views.insert(chunk.id, chunk_view);
                     }
                 }
             }
         }
 
         new_chunk_views
+    }
+
+    fn generate_chunk_view(
+        &self,
+        state: &State,
+        chunk: &chunk::Chunk,
+        chunk_views: &HashMap<chunk::ID, ChunkView>,
+    ) -> ChunkView {
+        let chunk_view;
+
+        if let Some(old_chunk_view) = chunk_views.get(&chunk.id) {
+            if old_chunk_view.tick < chunk.tick {
+                chunk_view = ChunkView {
+                    id: chunk.id,
+                    tick: state.time.get_clock_tick(),
+                    position: chunk.position,
+                    mesh: chunk.mesh.clone(),
+                };
+            } else {
+                chunk_view = old_chunk_view.clone();
+            }
+        } else {
+            chunk_view = ChunkView {
+                id: chunk.id,
+                tick: state.time.get_clock_tick(),
+                position: chunk.position,
+                mesh: chunk.mesh.clone(),
+            };
+        }
+
+        chunk_view
     }
 }

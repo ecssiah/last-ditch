@@ -182,9 +182,8 @@ impl Physics {
             velocity.x = 0.0;
             velocity.z = 0.0;
         } else {
-            let speed = 0.3;
-            velocity.x = input_dir.x * speed;
-            velocity.z = input_dir.z * speed;
+            velocity.x = input_dir.x * DEFAULT_X_SPEED;
+            velocity.z = input_dir.z * DEFAULT_Z_SPEED;
         }
 
         rigid_body.set_linvel(velocity, true);

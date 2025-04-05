@@ -1,9 +1,6 @@
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
-    simulation::{
-        actions::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
-        DEFAULT_X_SPEED, DEFAULT_Z_SPEED,
-    },
+    simulation::actions::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
 };
 use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
@@ -95,9 +92,9 @@ impl Input {
 
     pub fn get_movement_actions(&mut self) -> MovementAction {
         let direction = Vec3::new(
-            DEFAULT_X_SPEED * (self.key_state.key_a + self.key_state.key_d),
+            self.key_state.key_a + self.key_state.key_d,
             0.0,
-            DEFAULT_Z_SPEED * (self.key_state.key_w + self.key_state.key_s),
+            self.key_state.key_w + self.key_state.key_s,
         );
 
         let rotation = Vec3::new(

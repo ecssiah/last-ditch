@@ -76,9 +76,9 @@ impl Simulation {
     }
 
     fn update(&mut self) {
-        self.state.calculate_work_time();
+        self.state.calculate_work();
 
-        while self.state.has_work_time() {
+        while self.state.has_work() {
             self.actions.tick(&mut self.state);
             self.state.tick();
             self.physics.tick(&mut self.state);
