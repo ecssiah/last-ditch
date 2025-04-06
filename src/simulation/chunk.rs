@@ -12,6 +12,7 @@ use glam::{IVec3, Vec3};
 pub struct Chunk {
     pub id: chunk::ID,
     pub tick: Tick,
+    pub updated: bool,
     pub position: IVec3,
     pub palette: Vec<block::Kind>,
     pub blocks: Box<[usize; CHUNK_VOLUME]>,
@@ -29,9 +30,9 @@ impl Chunk {
         if Block::on_map(block_id) {
             let palette_id = self.blocks.get(usize::from(block_id))?;
             let kind = self.palette.get(usize::from(*palette_id))?;
-    
+
             let block = BLOCKS.get(&kind)?;
-    
+
             Some(block)
         } else {
             None
@@ -53,13 +54,13 @@ impl Chunk {
     pub fn position(chunk_id: chunk::ID) -> Option<IVec3> {
         if Self::on_map(chunk_id) {
             let chunk_id: usize = chunk_id.into();
-    
+
             let x = (chunk_id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
             let y = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
             let z = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
-    
+
             let local_position = IVec3::new(x, y, z);
-    
+
             Some(local_position)
         } else {
             None
@@ -91,5 +92,12 @@ impl Chunk {
         } else {
             None
         }
+    }
+
+    pub fn position_at(grid_position: IVec3) -> Option<IVec3> {
+        let chunk_id = Self::id_at(grid_position)?;
+        let position = Self::position(chunk_id)?;
+
+        Some(position)
     }
 }

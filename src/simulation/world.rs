@@ -30,8 +30,9 @@ impl World {
             let chunk_position = Chunk::position(chunk_id).unwrap();
 
             Chunk {
-                tick: Tick::ZERO,
                 id: chunk_id,
+                tick: Tick::ZERO,
+                updated: false,
                 position: chunk_position,
                 palette: Vec::from([block::Kind::Air]),
                 blocks: Box::new([0; CHUNK_VOLUME]),
@@ -46,6 +47,14 @@ impl World {
 
     pub fn generate(&mut self) {
         self.generate_ground();
+
+        self.update_chunk_meshes();
+    }
+
+    fn update_chunk_meshes(&mut self) {
+        for chunk_id in (0..WORLD_VOLUME).map(chunk::ID) {
+            self.update_chunk_mesh(chunk_id);
+        }
     }
 
     pub fn tick(&mut self) {}
@@ -55,10 +64,9 @@ impl World {
 
         for x in -world_boundary..=world_boundary {
             for z in -world_boundary..=world_boundary {
-                let chunk_x = ((x + CHUNK_RADIUS as isize).div_euclid(CHUNK_SIZE as isize)) as i32;
-                let chunk_z = ((z + CHUNK_RADIUS as isize).div_euclid(CHUNK_SIZE as isize)) as i32;
+                let chunk_position = Chunk::position_at(IVec3::new(x as i32, 0, z as i32)).unwrap();
 
-                let (primary_color, secondary_color) = if (chunk_x + chunk_z) % 2 == 0 {
+                let (primary_color, secondary_color) = if (chunk_position.x + chunk_position.z) % 2 == 0 {
                     (&block::Kind::GreenCloth, &block::Kind::Concrete)
                 } else {
                     (&block::Kind::BlueCloth, &block::Kind::Grey)
@@ -141,7 +149,8 @@ impl World {
             self.update_neighbors(grid_position);
             self.update_visibility(grid_position);
             self.update_light(chunk_id, block_id, grid_position);
-            self.update_chunk_mesh(chunk_id);
+
+            self.mark_update(chunk_id);
 
             true
         } else {
@@ -292,11 +301,22 @@ impl World {
 
     fn update_light(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
 
-    fn update_chunk_mesh(&mut self, chunk_id: chunk::ID) {
-        let mesh = self.generate_chunk_mesh(chunk_id);
+    fn mark_update(&mut self, chunk_id: chunk::ID) {
+        if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+            chunk.updated = true;
+        }
+    }
 
-        if let Some(chunk) = self.chunks.get_mut(usize::from(chunk_id)) {
-            chunk.mesh = mesh;
+    fn update_chunk_mesh(&mut self, chunk_id: chunk::ID) {
+        if let Some(chunk) = self.get_chunk(chunk_id) {
+            if chunk.updated {
+                let mesh = self.generate_chunk_mesh(chunk_id);
+
+                if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+                    chunk.mesh = mesh;
+                    chunk.updated = false;
+                }
+            }
         }
     }
 
@@ -304,60 +324,50 @@ impl World {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
-        if let Some(chunk) = self.get_chunk(chunk_id) {
-            for block_id in (0..CHUNK_VOLUME).map(block::ID) {
-                if let Some(meta) = chunk.get_meta(block_id) {
-                    if let Some(block) = chunk.get_block(block_id) {
-                        if let Some(grid_position) = World::grid_position(chunk_id, block_id) {
-                            for face in block::Face::ALL {
-                                if meta.visibility.contains(face) == false {
-                                    continue;
-                                }
+        let chunk = self.get_chunk(chunk_id).unwrap();
 
-                                let face_quad = Self::generate_quad(grid_position, face);
-                                let normal = face.normal();
+        for block_id in (0..CHUNK_VOLUME).map(block::ID) {
+            let meta = chunk.get_meta(block_id).unwrap();
+            let block = chunk.get_block(block_id).unwrap();
+            let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
-                                let color = Vec4::new(
-                                    block.color.0,
-                                    block.color.1,
-                                    block.color.2,
-                                    block.color.3,
-                                );
-
-                                let (face_edges, face_corners) =
-                                    Self::get_face_neighbors(meta.neighbors, face);
-                                let face_light =
-                                    Self::calculate_face_light(face_edges, face_corners);
-
-                                let chunk_vertices =
-                                    face_quad.iter().enumerate().map(|(index, &position)| {
-                                        let light = face_light[index];
-
-                                        chunk::Vertex {
-                                            position,
-                                            normal,
-                                            color,
-                                            light,
-                                        }
-                                    });
-
-                                let start_index = vertices.len() as u32;
-
-                                let face_indices = [
-                                    start_index + 0,
-                                    start_index + 1,
-                                    start_index + 2,
-                                    start_index + 0,
-                                    start_index + 2,
-                                    start_index + 3,
-                                ];
-
-                                vertices.extend(chunk_vertices);
-                                indices.extend(face_indices);
-                            }
-                        }
-                    }
+            for face in block::Face::ALL {
+                if meta.visibility.contains(face) == false {
+                    continue;
                 }
+
+                let face_quad = Self::generate_quad(grid_position, face);
+                let normal = face.normal();
+
+                let color = Vec4::new(block.color.0, block.color.1, block.color.2, block.color.3);
+
+                let (face_edges, face_corners) = Self::get_face_neighbors(meta.neighbors, face);
+                let face_light = Self::calculate_face_light(face_edges, face_corners);
+
+                let chunk_vertices = face_quad.iter().enumerate().map(|(index, &position)| {
+                    let light = face_light[index];
+
+                    chunk::Vertex {
+                        position,
+                        normal,
+                        color,
+                        light,
+                    }
+                });
+
+                let start_index = vertices.len() as u32;
+
+                let face_indices = [
+                    start_index + 0,
+                    start_index + 1,
+                    start_index + 2,
+                    start_index + 0,
+                    start_index + 2,
+                    start_index + 3,
+                ];
+
+                vertices.extend(chunk_vertices);
+                indices.extend(face_indices);
             }
         }
 

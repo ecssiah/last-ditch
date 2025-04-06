@@ -65,4 +65,11 @@ impl Block {
             None
         }
     }
+
+    pub fn position_at(grid_position: IVec3) -> Option<IVec3> {
+        let block_id = Self::id_at(grid_position)?;
+        let position = Self::position(block_id)?;
+
+        Some(position)
+    }
 }
