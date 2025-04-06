@@ -28,22 +28,32 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn local_position(block_id: block::ID) -> IVec3 {
-        let block_id: usize = block_id.into();
+    pub fn on_map(block_id: block::ID) -> bool {
+        (0..CHUNK_VOLUME).contains(&block_id.into())
+    }
 
-        let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-        let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
-
-        let block_position = IVec3::new(x, y, z);
-
-        block_position
+    pub fn position(block_id: block::ID) -> Option<IVec3> {
+        if Self::on_map(block_id) {
+            let block_id: usize = block_id.into();
+    
+            let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+            let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+            let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+    
+            let block_position = IVec3::new(x, y, z);
+    
+            Some(block_position)
+        } else {
+            None
+        }
     }
 
     pub fn id_at(grid_position: IVec3) -> Option<block::ID> {
         if World::on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
-                (coordinate + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32)
+                let coordinate_shift = coordinate + CHUNK_RADIUS as i32;
+
+                coordinate_shift.rem_euclid(CHUNK_SIZE as i32)
             });
 
             let block_id = grid_position_shifted.x

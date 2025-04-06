@@ -27,11 +27,12 @@ impl World {
     fn setup_chunks() -> [Chunk; WORLD_VOLUME] {
         let chunks: [Chunk; WORLD_VOLUME] = core::array::from_fn(|index| {
             let chunk_id = chunk::ID(index);
+            let chunk_position = Chunk::position(chunk_id).unwrap();
 
             Chunk {
                 tick: Tick::ZERO,
                 id: chunk_id,
-                position: Chunk::local_position(chunk_id),
+                position: chunk_position,
                 palette: Vec::from([block::Kind::Air]),
                 blocks: Box::new([0; CHUNK_VOLUME]),
                 meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
@@ -62,7 +63,7 @@ impl World {
                 } else {
                     (&block::Kind::BlueCloth, &block::Kind::Grey)
                 };
-    
+
                 let kind = if x == 0 && z == 0 {
                     &block::Kind::GoldMetal
                 } else if (x % 2 == 0) ^ (z % 2 == 0) {
@@ -307,52 +308,53 @@ impl World {
             for block_id in (0..CHUNK_VOLUME).map(block::ID) {
                 if let Some(meta) = chunk.get_meta(block_id) {
                     if let Some(block) = chunk.get_block(block_id) {
-                        let grid_position = World::grid_position(chunk_id, block_id);
+                        if let Some(grid_position) = World::grid_position(chunk_id, block_id) {
+                            for face in block::Face::ALL {
+                                if meta.visibility.contains(face) == false {
+                                    continue;
+                                }
 
-                        for face in block::Face::ALL {
-                            if meta.visibility.contains(face) == false {
-                                continue;
+                                let face_quad = Self::generate_quad(grid_position, face);
+                                let normal = face.normal();
+
+                                let color = Vec4::new(
+                                    block.color.0,
+                                    block.color.1,
+                                    block.color.2,
+                                    block.color.3,
+                                );
+
+                                let (face_edges, face_corners) =
+                                    Self::get_face_neighbors(meta.neighbors, face);
+                                let face_light =
+                                    Self::calculate_face_light(face_edges, face_corners);
+
+                                let chunk_vertices =
+                                    face_quad.iter().enumerate().map(|(index, &position)| {
+                                        let light = face_light[index];
+
+                                        chunk::Vertex {
+                                            position,
+                                            normal,
+                                            color,
+                                            light,
+                                        }
+                                    });
+
+                                let start_index = vertices.len() as u32;
+
+                                let face_indices = [
+                                    start_index + 0,
+                                    start_index + 1,
+                                    start_index + 2,
+                                    start_index + 0,
+                                    start_index + 2,
+                                    start_index + 3,
+                                ];
+
+                                vertices.extend(chunk_vertices);
+                                indices.extend(face_indices);
                             }
-
-                            let face_quad = Self::generate_quad(grid_position, face);
-                            let normal = face.normal();
-
-                            let color = Vec4::new(
-                                block.color.0,
-                                block.color.1,
-                                block.color.2,
-                                block.color.3,
-                            );
-
-                            let (face_edges, face_corners) =
-                                Self::get_face_neighbors(meta.neighbors, face);
-                            let face_light = Self::calculate_face_light(face_edges, face_corners);
-
-                            let chunk_vertices =
-                                face_quad.iter().enumerate().map(|(index, &position)| {
-                                    let light = face_light[index];
-
-                                    chunk::Vertex {
-                                        position,
-                                        normal,
-                                        color,
-                                        light,
-                                    }
-                                });
-
-                            let start_index = vertices.len() as u32;
-
-                            let face_indices = [
-                                start_index + 0,
-                                start_index + 1,
-                                start_index + 2,
-                                start_index + 0,
-                                start_index + 2,
-                                start_index + 3,
-                            ];
-
-                            vertices.extend(chunk_vertices);
-                            indices.extend(face_indices);
                         }
                     }
                 }
@@ -490,21 +492,23 @@ impl World {
         Some((chunk_id, block_id))
     }
 
-    pub fn grid_position(chunk_id: chunk::ID, block_id: block::ID) -> IVec3 {
-        let chunk_position = Chunk::local_position(chunk_id);
-        let block_position = Block::local_position(block_id);
+    pub fn grid_position(chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
+        let chunk_position = Chunk::position(chunk_id)?;
+        let block_position = Block::position(block_id)?;
 
         let grid_position = CHUNK_SIZE as i32 * chunk_position + block_position;
 
-        grid_position
+        Some(grid_position)
     }
 
     pub fn world_position_at(grid_position: Vec3) -> IVec3 {
-        IVec3::new(
+        let world_position = IVec3::new(
             grid_position.x.trunc() as i32,
             grid_position.y.trunc() as i32,
             grid_position.z.trunc() as i32,
-        )
+        );
+
+        world_position
     }
 
     pub fn on_map(grid_position: IVec3) -> bool {

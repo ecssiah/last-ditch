@@ -120,7 +120,7 @@ fn test_grid_position() {
         let chunk_id = chunk::ID(chunk_id);
         let block_id = block::ID(block_id);
 
-        let grid_position = World::grid_position(chunk_id, block_id);
+        let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
         assert_eq!(
             grid_position, expected_grid_position,
