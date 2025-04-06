@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 pub struct World {
     pub tick: Tick,
-    pub chunks: [Chunk; CHUNK_VOLUME],
+    pub chunks: [Chunk; WORLD_VOLUME],
 }
 
 impl World {
@@ -49,6 +49,33 @@ impl World {
 
     pub fn tick(&mut self) {}
 
+    pub fn generate_ground(&mut self) {
+        let world_boundary = WORLD_BOUNDARY as isize;
+
+        for x in -world_boundary..=world_boundary {
+            for z in -world_boundary..=world_boundary {
+                let chunk_x = ((x + CHUNK_RADIUS as isize).div_euclid(CHUNK_SIZE as isize)) as i32;
+                let chunk_z = ((z + CHUNK_RADIUS as isize).div_euclid(CHUNK_SIZE as isize)) as i32;
+
+                let (primary_color, secondary_color) = if (chunk_x + chunk_z) % 2 == 0 {
+                    (&block::Kind::GreenCloth, &block::Kind::Concrete)
+                } else {
+                    (&block::Kind::BlueCloth, &block::Kind::Grey)
+                };
+    
+                let kind = if x == 0 && z == 0 {
+                    &block::Kind::GoldMetal
+                } else if (x % 2 == 0) ^ (z % 2 == 0) {
+                    primary_color
+                } else {
+                    secondary_color
+                };
+
+                self.set_block_kind(x as i32, 0, z as i32, kind);
+            }
+        }
+    }
+
     pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
         if let Some(structure) = STRUCTURES.get(structure_kind) {
             let world_position = IVec3::new(x, y, z);
@@ -68,24 +95,6 @@ impl World {
                     grid_position.z,
                     &block_data.kind,
                 );
-            }
-        }
-    }
-
-    pub fn generate_ground(&mut self) {
-        let chunk_radius = CHUNK_RADIUS as isize;
-
-        for x in -4 * chunk_radius..=4 * chunk_radius {
-            for z in -4 * chunk_radius..=4 * chunk_radius {
-                let kind = if x == 0 && z == 0 {
-                    &block::Kind::GoldMetal
-                } else if (x % 2 == 0) ^ (z % 2 == 0) {
-                    &block::Kind::White
-                } else {
-                    &block::Kind::Grey
-                };
-
-                self.set_block_kind(x as i32, 0, z as i32, kind);
             }
         }
     }

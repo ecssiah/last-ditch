@@ -10,8 +10,8 @@ pub struct State {
     pub seed: u64,
     pub mode: Mode,
     pub time: Time,
-    pub population: Population,
     pub world: World,
+    pub population: Population,
 }
 
 impl State {
@@ -20,8 +20,8 @@ impl State {
             seed: DEFAULT_SEED,
             mode: Mode::Simulating,
             time: Time::new(),
-            population: Population::new(),
             world: World::new(),
+            population: Population::new(),
         };
 
         state

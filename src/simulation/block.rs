@@ -29,15 +29,13 @@ pub struct Block {
 
 impl Block {
     pub fn local_position(block_id: block::ID) -> IVec3 {
-        let block_id = usize::from(block_id);
+        let block_id: usize = block_id.into();
 
-        let block_position_shifted = IVec3::new(
-            (block_id % CHUNK_SIZE) as i32,
-            (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32,
-            (block_id / CHUNK_AREA) as i32,
-        );
+        let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+        let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+        let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
 
-        let block_position = block_position_shifted - IVec3::splat(CHUNK_RADIUS as i32);
+        let block_position = IVec3::new(x, y, z);
 
         block_position
     }
@@ -45,9 +43,7 @@ impl Block {
     pub fn id_at(grid_position: IVec3) -> Option<block::ID> {
         if World::on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
-                let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
-
-                coordinate_shifted.rem_euclid(CHUNK_SIZE as i32)
+                (coordinate + CHUNK_RADIUS as i32).rem_euclid(CHUNK_SIZE as i32)
             });
 
             let block_id = grid_position_shifted.x

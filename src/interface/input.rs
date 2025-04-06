@@ -12,38 +12,38 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
 };
 
-pub struct KeyState {
+pub struct KeyInputs {
     key_w: f32,
     key_a: f32,
     key_s: f32,
     key_d: f32,
 }
 
-pub struct MouseState {
+pub struct MouseInputs {
     delta: Vec2,
 }
 
 pub struct Input {
     action_tx: UnboundedSender<Action>,
-    key_state: KeyState,
-    mouse_state: MouseState,
+    key_inputs: KeyInputs,
+    mouse_inputs: MouseInputs,
 }
 
 impl Input {
     pub fn new(action_tx: UnboundedSender<Action>) -> Self {
-        let key_state = KeyState {
+        let key_inputs = KeyInputs {
             key_w: 0.0,
             key_a: 0.0,
             key_s: 0.0,
             key_d: 0.0,
         };
 
-        let mouse_state = MouseState { delta: Vec2::ZERO };
+        let mouse_inputs = MouseInputs { delta: Vec2::ZERO };
 
         let input = Self {
             action_tx,
-            key_state,
-            mouse_state,
+            key_inputs,
+            mouse_inputs,
         };
 
         input
@@ -52,9 +52,10 @@ impl Input {
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
-                self.action_tx
-                    .send(Action::World(WorldAction::Quit))
-                    .unwrap();
+                let world_action = WorldAction::Quit;
+                let action = Action::World(world_action);
+
+                self.action_tx.send(action).unwrap();
             }
             WindowEvent::KeyboardInput {
                 device_id,
@@ -92,18 +93,18 @@ impl Input {
 
     pub fn get_movement_actions(&mut self) -> MovementAction {
         let direction = Vec3::new(
-            self.key_state.key_a + self.key_state.key_d,
+            self.key_inputs.key_a + self.key_inputs.key_d,
             0.0,
-            self.key_state.key_w + self.key_state.key_s,
+            self.key_inputs.key_w + self.key_inputs.key_s,
         );
 
         let rotation = Vec3::new(
-            -MOUSE_X_SENSITIVITY * self.mouse_state.delta.y,
-            -MOUSE_Y_SENSITIVITY * self.mouse_state.delta.x,
+            -MOUSE_X_SENSITIVITY * self.mouse_inputs.delta.y,
+            -MOUSE_Y_SENSITIVITY * self.mouse_inputs.delta.x,
             0.0,
         );
 
-        self.mouse_state.delta = Vec2::ZERO;
+        self.mouse_inputs.delta = Vec2::ZERO;
 
         let movement_actions = MovementAction {
             direction,
@@ -121,47 +122,52 @@ impl Input {
     ) {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                self.action_tx
-                    .send(Action::World(WorldAction::Quit))
-                    .unwrap();
+                let world_action = WorldAction::Quit;
+                let action = Action::World(world_action);
+
+                self.action_tx.send(action).unwrap();
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.key_w += 1.0;
+                    self.key_inputs.key_w += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.key_w -= 1.0;
+                    self.key_inputs.key_w -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.key_s -= 1.0;
+                    self.key_inputs.key_s -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.key_s += 1.0;
+                    self.key_inputs.key_s += 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.key_a += 1.0;
+                    self.key_inputs.key_a += 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.key_a -= 1.0;
+                    self.key_inputs.key_a -= 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.key_state.key_d -= 1.0;
+                    self.key_inputs.key_d -= 1.0;
                 } else if key_event.state == ElementState::Released {
-                    self.key_state.key_d += 1.0;
+                    self.key_inputs.key_d += 1.0;
                 }
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    self.action_tx
-                        .send(Action::Agent(EntityAction::Jump(JumpAction::Start)))
-                        .unwrap();
+                    let jump_action = JumpAction::Start;
+                    let entity_action = EntityAction::Jump(jump_action);
+                    let action = Action::Agent(entity_action);
+
+                    self.action_tx.send(action).unwrap();
                 } else if key_event.state == ElementState::Released {
-                    self.action_tx
-                        .send(Action::Agent(EntityAction::Jump(JumpAction::End)))
-                        .unwrap();
+                    let jump_action = JumpAction::End;
+                    let entity_action = EntityAction::Jump(jump_action);
+                    let action = Action::Agent(entity_action);
+
+                    self.action_tx.send(action).unwrap();
                 }
             }
             _ => (),
@@ -189,6 +195,6 @@ impl Input {
     pub fn handle_mouse_motion(&mut self, dx: f64, dy: f64) {
         let delta = Vec2::new(dx as f32, dy as f32);
 
-        self.mouse_state.delta += delta;
+        self.mouse_inputs.delta += delta;
     }
 }

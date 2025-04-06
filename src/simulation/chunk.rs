@@ -43,22 +43,20 @@ impl Chunk {
     }
 
     pub fn local_position(chunk_id: chunk::ID) -> IVec3 {
-        let chunk_id: usize = usize::from(chunk_id);
+        let chunk_id: usize = chunk_id.into();
 
-        let chunk_position_shifted = IVec3::new(
-            (chunk_id % WORLD_SIZE) as i32,
-            (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32,
-            (chunk_id / WORLD_AREA) as i32,
-        );
+        let x = (chunk_id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let y = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let z = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
 
-        let chunk_position = chunk_position_shifted - IVec3::splat(WORLD_RADIUS as i32);
+        let local_position = IVec3::new(x, y, z);
 
-        chunk_position
+        local_position
     }
 
     pub fn world_position(chunk_id: chunk::ID) -> Vec3 {
-        let grid_position = Self::local_position(chunk_id);
-        let world_position = grid_position.as_vec3() * CHUNK_SIZE as f32;
+        let local_position = Self::local_position(chunk_id);
+        let world_position = local_position.as_vec3() * CHUNK_SIZE as f32;
 
         world_position
     }
@@ -68,7 +66,7 @@ impl Chunk {
             let chunk_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shifted = coordinate + WORLD_BOUNDARY as i32;
 
-                coordinate_shifted.div_euclid(WORLD_SIZE as i32)
+                coordinate_shifted.div_euclid(CHUNK_SIZE as i32)
             });
 
             let chunk_id = chunk_position_shifted.x

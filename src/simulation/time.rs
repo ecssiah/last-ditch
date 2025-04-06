@@ -40,7 +40,7 @@ impl Time {
 
     pub fn tick(&mut self) {
         self.clock += 1;
-        
+
         self.work_time -= FIXED_DT;
     }
 }

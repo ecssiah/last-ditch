@@ -7,16 +7,8 @@ pub mod input;
 
 use crate::{
     include_shader_src,
-    interface::{self, consts::*, input::Input},
-    simulation::{
-        self,
-        actions::{Action, EntityAction},
-        state,
-        views::{
-            view::{ChunkView, EntityView, View},
-            Views,
-        },
-    },
+    interface::{consts::*, input::Input},
+    simulation::{self},
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -40,8 +32,8 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 ]);
 
 pub struct Interface {
-    action_tx: UnboundedSender<Action>,
-    views: Arc<RwLock<Views>>,
+    action_tx: UnboundedSender<simulation::actions::Action>,
+    views: Arc<RwLock<simulation::views::Views>>,
     window: Arc<Window>,
     input: Input,
     device: wgpu::Device,
@@ -53,13 +45,13 @@ pub struct Interface {
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
     chunk_pipeline: wgpu::RenderPipeline,
-    chunks: HashMap<simulation::chunk::ID, interface::chunk::Chunk>,
+    chunks: HashMap<simulation::chunk::ID, chunk::Chunk>,
 }
 
 impl Interface {
     pub fn new(
-        action_tx: UnboundedSender<Action>,
-        views: Arc<RwLock<Views>>,
+        action_tx: UnboundedSender<simulation::actions::Action>,
+        views: Arc<RwLock<simulation::views::Views>>,
         window: Arc<Window>,
         instance: Instance,
         adapter: Adapter,
@@ -173,17 +165,17 @@ impl Interface {
     fn check_active(&mut self, event_loop: &ActiveEventLoop) {
         let status = self.get_mode();
 
-        if status == state::Mode::Exit {
+        if status == simulation::state::Mode::Exit {
             event_loop.exit();
         }
     }
 
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
+        let entity_action = simulation::actions::EntityAction::Movement(movement_actions);
+        let action = simulation::actions::Action::Agent(entity_action);
 
-        self.action_tx
-            .send(Action::Agent(EntityAction::Movement(movement_actions)))
-            .unwrap();
+        self.action_tx.send(action).unwrap();
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -202,7 +194,7 @@ impl Interface {
         }
     }
 
-    pub fn get_mode(&self) -> state::Mode {
+    pub fn get_mode(&self) -> simulation::state::Mode {
         let views = self.views.read().unwrap();
 
         let status = views.get_mode();
@@ -210,25 +202,31 @@ impl Interface {
         status
     }
 
-    pub fn get_view(&self, entity_id: simulation::population::entity::ID) -> Option<View> {
+    pub fn get_view(
+        &self,
+        entity_id: simulation::population::entity::ID,
+    ) -> Option<simulation::views::view::View> {
         let views = self.views.read().unwrap();
 
         views.get_view(entity_id)
     }
 
-    fn update_user_entity(&mut self, agent_view: &EntityView) {
-        self.update_view_projection(agent_view);
+    fn update_user_entity(&mut self, entity_view: &simulation::views::view::EntityView) {
+        self.update_view_projection(entity_view);
     }
 
-    fn update_chunks(&mut self, chunk_views: &HashMap<simulation::chunk::ID, ChunkView>) {
+    fn update_chunks(
+        &mut self,
+        chunk_views: &HashMap<simulation::chunk::ID, simulation::views::view::ChunkView>,
+    ) {
         for (chunk_id, chunk_view) in chunk_views {
             if let Some(chunk) = self.chunks.get(chunk_id) {
                 if chunk_view.tick > chunk.tick {
-                    let vertices: Vec<interface::chunk::Vertex> = chunk_view
+                    let vertices: Vec<chunk::Vertex> = chunk_view
                         .mesh
                         .vertices
                         .iter()
-                        .map(|vertex| interface::chunk::Vertex {
+                        .map(|vertex| chunk::Vertex {
                             position: vertex.position.to_array(),
                             normal: vertex.normal.to_array(),
                             color: vertex.color.to_array(),
@@ -238,20 +236,20 @@ impl Interface {
 
                     let indices: Vec<u32> = chunk_view.mesh.indices.clone();
 
-                    let chunk = interface::chunk::Chunk {
+                    let chunk = chunk::Chunk {
                         id: *chunk_id,
                         tick: chunk_view.tick,
-                        mesh: interface::chunk::Mesh::new(&self.device, vertices, indices),
+                        mesh: chunk::Mesh::new(&self.device, vertices, indices),
                     };
 
                     self.chunks.insert(*chunk_id, chunk);
                 }
             } else {
-                let vertices: Vec<interface::chunk::Vertex> = chunk_view
+                let vertices: Vec<chunk::Vertex> = chunk_view
                     .mesh
                     .vertices
                     .iter()
-                    .map(|vertex| interface::chunk::Vertex {
+                    .map(|vertex| chunk::Vertex {
                         position: vertex.position.to_array(),
                         normal: vertex.normal.to_array(),
                         color: vertex.color.to_array(),
@@ -261,10 +259,10 @@ impl Interface {
 
                 let indices: Vec<u32> = chunk_view.mesh.indices.clone();
 
-                let chunk = interface::chunk::Chunk {
+                let chunk = chunk::Chunk {
                     id: *chunk_id,
                     tick: chunk_view.tick,
-                    mesh: interface::chunk::Mesh::new(&self.device, vertices, indices),
+                    mesh: chunk::Mesh::new(&self.device, vertices, indices),
                 };
 
                 self.chunks.insert(*chunk_id, chunk);
@@ -272,8 +270,8 @@ impl Interface {
         }
     }
 
-    fn update_view_projection(&mut self, agent_view: &EntityView) {
-        let view_projection_matrix = Self::create_view_projection_matrix(agent_view);
+    fn update_view_projection(&mut self, entity_view: &simulation::views::view::EntityView) {
+        let view_projection_matrix = Self::create_view_projection_matrix(entity_view);
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -375,7 +373,7 @@ impl Interface {
             vertex: wgpu::VertexState {
                 module: shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[interface::chunk::Vertex::desc()],
+                buffers: &[chunk::Vertex::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -436,15 +434,17 @@ impl Interface {
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
-    fn create_view_projection_matrix(agent_view: &EntityView) -> [[f32; 4]; 4] {
+    fn create_view_projection_matrix(
+        entity_view: &simulation::views::view::EntityView,
+    ) -> [[f32; 4]; 4] {
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
-        let forward = agent_view.orientation * Vec3::Z;
-        let up = agent_view.orientation * Vec3::Y;
+        let forward = entity_view.orientation * Vec3::Z;
+        let up = entity_view.orientation * Vec3::Y;
 
-        let eye = agent_view.position;
+        let eye = entity_view.position;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);
