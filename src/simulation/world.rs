@@ -48,7 +48,11 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.generate_structure(-12, 0, 12, &structure::Kind::Luigi);
+        self.generate_structure(-12, 1, 12, &structure::Kind::Luigi);
+
+        self.set_block_kind(0, 1, 0, &block::kind::Kind::Metal);
+        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal);
+        self.set_block_kind(0, 3, 0, &block::kind::Kind::GoldMetal);
 
         self.update_chunk_meshes();
     }
@@ -77,9 +81,7 @@ impl World {
                         (&block::Kind::BlueCloth, &block::Kind::Grey)
                     };
 
-                let kind = if x == 0 && z == 0 {
-                    &block::Kind::GoldMetal
-                } else if (x % 2 == 0) ^ (z % 2 == 0) {
+                let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
                     primary_color
                 } else {
                     secondary_color
@@ -524,13 +526,21 @@ impl World {
         Some(grid_position)
     }
 
-    pub fn world_position_at(grid_position: Vec3) -> IVec3 {
-        let world_position = IVec3::new(
-            grid_position.x.trunc() as i32,
-            grid_position.y.trunc() as i32,
-            grid_position.z.trunc() as i32,
-        );
+    pub fn position_at(grid_position: IVec3) -> Option<Vec3> {
+        if Self::on_map(grid_position) {
+            Some(grid_position.as_vec3())
+        } else {
+            None
+        }
+    } 
 
-        world_position
+    pub fn grid_position_at(position: Vec3) -> Option<IVec3> {
+        let grid_position = position.as_ivec3();
+
+        if Self::on_map(grid_position) {
+            Some(grid_position)
+        } else {
+            None
+        }
     }
 }

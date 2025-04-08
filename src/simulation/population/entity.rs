@@ -1,23 +1,12 @@
 pub mod id;
+pub mod jump_state;
 
 pub use id::ID;
+pub use jump_state::JumpStage;
+pub use jump_state::JumpState;
 
 use crate::simulation::{population::entity, time::Tick};
 use glam::{Quat, Vec3};
-
-#[derive(Clone, Debug)]
-pub enum JumpStage {
-    Ground,
-    Launch,
-    Rise,
-    Fall,
-}
-
-#[derive(Clone)]
-pub struct JumpState {
-    pub stage: JumpStage,
-    pub timer: u32,
-}
 
 #[derive(Clone)]
 pub struct Entity {
@@ -25,6 +14,7 @@ pub struct Entity {
     pub tick: Tick,
     pub name: &'static str,
     pub position: Vec3,
+    pub chunk_update: bool,
     pub z_speed: f32,
     pub x_speed: f32,
     pub look_x_axis: f32,
@@ -40,6 +30,7 @@ impl Entity {
             tick: Tick::ZERO,
             name: "",
             position: Vec3::ZERO,
+            chunk_update: false,
             z_speed: 0.0,
             x_speed: 0.0,
             look_x_axis: 0.0,

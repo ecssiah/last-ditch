@@ -5,7 +5,7 @@ use crate::simulation::{
         entity::{self, JumpStage},
         Entity,
     },
-    state::State,
+    state::State, world::World, Chunk,
 };
 use glam::Vec3;
 use nalgebra::Unit;
@@ -82,7 +82,7 @@ impl Physics {
     }
 
     pub fn generate_boundaries(&mut self) {
-        let boundary = WORLD_BOUNDARY as f32;
+        let boundary = (WORLD_BOUNDARY as f32) + 0.5;
 
         let boundary_positions = [
             (vector![-boundary, 0.0, 0.0], vector![1.0, 0.0, 0.0]),
@@ -138,7 +138,7 @@ impl Physics {
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
 
-        let collider = ColliderBuilder::capsule_y(0.9, 0.4)
+        let collider = ColliderBuilder::capsule_y(0.5, 0.4)
             .friction(0.0)
             .friction_combine_rule(CoefficientCombineRule::Min)
             .restitution(0.0)
@@ -270,10 +270,19 @@ impl Physics {
     pub fn sync_entities(&self, entity: &mut Entity) {
         if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
             if let Some(rigid_body) = self.rigid_body_set.get(*rb_handle) {
-                let position = rigid_body.position();
+                let rigid_body_position = rigid_body.position();
 
-                let translation = position.translation.vector;
+                let translation = rigid_body_position.translation.vector;
+                let next_position = Vec3::new(translation.x, translation.y, translation.z);
+
+                let current_grid_position = World::grid_position_at(entity.position).unwrap();
+                let next_grid_position = World::grid_position_at(next_position).unwrap();
+
+                let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+                let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+
                 entity.position = Vec3::new(translation.x, translation.y, translation.z);
+                entity.chunk_update = next_chunk_id != current_chunk_id;
             }
         }
     }

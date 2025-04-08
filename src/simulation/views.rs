@@ -43,9 +43,12 @@ impl Views {
                     let view = self.repository.get(&entity_id).unwrap();
 
                     let entity_view = self.generate_entity_view(entity);
-                    
-                    let chunk_views =
-                        self.generate_chunk_views(state, entity.position, &view.chunk_views);
+
+                    let chunk_views = if entity.chunk_update {
+                        self.generate_chunk_views(state, entity.position, &view.chunk_views)
+                    } else {
+                        view.chunk_views.clone()
+                    };
 
                     let new_view = View {
                         entity_view,
@@ -103,7 +106,7 @@ impl Views {
     ) -> HashMap<chunk::ID, ChunkView> {
         let mut new_chunk_views = HashMap::new();
 
-        let grid_position = World::world_position_at(position);
+        let grid_position = World::grid_position_at(position).unwrap();
         let chunk_position = Chunk::position_at(grid_position).unwrap();
 
         let x_range = (chunk_position.x - VIEW_RADIUS)..=(chunk_position.x + VIEW_RADIUS);

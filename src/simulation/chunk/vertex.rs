@@ -9,5 +9,5 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub const LIGHT_LEVEL: [f32; 3] = [0.2, 0.6, 1.0];
+    pub const LIGHT_LEVEL: [f32; 3] = [0.3, 0.8, 1.0];
 }
