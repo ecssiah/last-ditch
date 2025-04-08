@@ -3,14 +3,10 @@ pub mod repository;
 pub mod view;
 
 use crate::simulation::{
-    chunk,
-    population::{entity, Entity},
-    state::{self, State},
-    views::{
+    chunk, population::{entity, Entity}, state::{self, State}, views::{
         repository::Repository,
         view::{ChunkView, EntityView, View},
-    },
-    world::World,
+    }, world::World, Chunk, VIEW_RADIUS
 };
 use glam::{IVec3, Vec3};
 use std::{
@@ -47,6 +43,7 @@ impl Views {
                     let view = self.repository.get(&entity_id).unwrap();
 
                     let entity_view = self.generate_entity_view(entity);
+                    
                     let chunk_views =
                         self.generate_chunk_views(state, entity.position, &view.chunk_views);
 
@@ -104,18 +101,21 @@ impl Views {
         position: Vec3,
         chunk_views: &HashMap<chunk::ID, ChunkView>,
     ) -> HashMap<chunk::ID, ChunkView> {
-        let view_radius = 1;
-
         let mut new_chunk_views = HashMap::new();
-        let grid_position = World::world_position_at(position);
-        let chunk_position = chunk::Chunk::position_at(grid_position).unwrap();
 
-        for x in (chunk_position.x - view_radius)..=(chunk_position.x + view_radius) {
-            for y in (chunk_position.y - view_radius)..=(chunk_position.y + view_radius) {
-                for z in (chunk_position.z - view_radius)..=(chunk_position.z + view_radius) {
+        let grid_position = World::world_position_at(position);
+        let chunk_position = Chunk::position_at(grid_position).unwrap();
+
+        let x_range = (chunk_position.x - VIEW_RADIUS)..=(chunk_position.x + VIEW_RADIUS);
+        let y_range = (chunk_position.y - VIEW_RADIUS)..=(chunk_position.y + VIEW_RADIUS);
+        let z_range = (chunk_position.z - VIEW_RADIUS)..=(chunk_position.z + VIEW_RADIUS);
+
+        for x in x_range {
+            for y in y_range.clone() {
+                for z in z_range.clone() {
                     let chunk_position = IVec3::new(x, y, z);
 
-                    if let Some(chunk_id) = chunk::Chunk::id_at(chunk_position) {
+                    if let Some(chunk_id) = Chunk::id_at(chunk_position) {
                         if let Some(chunk) = state.world.get_chunk(chunk_id) {
                             let chunk_view = self.generate_chunk_view(state, chunk, chunk_views);
 

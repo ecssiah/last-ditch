@@ -8,6 +8,7 @@ use crate::simulation::{
     state::State,
 };
 use glam::Vec3;
+use nalgebra::Unit;
 use rapier3d::{
     na::{vector, Point3, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
@@ -75,10 +76,41 @@ impl Physics {
     }
 
     pub fn generate(&mut self, state: &State) {
+        self.generate_boundaries();
+        self.generate_entities(state);
+        self.generate_chunks(state);
+    }
+
+    pub fn generate_boundaries(&mut self) {
+        let boundary = WORLD_BOUNDARY as f32;
+
+        let boundary_positions = [
+            (vector![-boundary, 0.0, 0.0], vector![1.0, 0.0, 0.0]),
+            (vector![boundary, 0.0, 0.0], vector![-1.0, 0.0, 0.0]),
+            (vector![0.0, -boundary, 0.0], vector![0.0, 1.0, 0.0]),
+            (vector![0.0, boundary, 0.0], vector![0.0, -1.0, 0.0]),
+            (vector![0.0, 0.0, -boundary], vector![0.0, 0.0, 1.0]),
+            (vector![0.0, 0.0, boundary], vector![0.0, 0.0, -1.0]),
+        ];
+
+        for (position, normal) in boundary_positions.iter() {
+            let unit_normal = Unit::new_normalize(*normal);
+
+            let collider = ColliderBuilder::halfspace(unit_normal)
+                .translation(*position)
+                .build();
+
+            self.collider_set.insert(collider);
+        }
+    }
+
+    pub fn generate_entities(&mut self, state: &State) {
         for entity in state.population.all() {
             self.add_entity(entity);
         }
+    }
 
+    pub fn generate_chunks(&mut self, state: &State) {
         for chunk in state.world.chunks.iter() {
             self.add_chunk_collider(chunk);
         }
@@ -91,7 +123,7 @@ impl Physics {
 
             self.step();
 
-            self.sync_entity_transforms(entity);
+            self.sync_entities(entity);
         }
     }
 
@@ -125,14 +157,14 @@ impl Physics {
             .mesh
             .vertices
             .iter()
-            .map(|v| Point3::from(v.position))
+            .map(|vertex| Point3::from(vertex.position))
             .collect();
 
         let triangle_indices: Vec<[u32; 3]> = chunk
             .mesh
             .indices
             .chunks(3)
-            .map(|tri| [tri[0], tri[1], tri[2]])
+            .map(|triangle| [triangle[0], triangle[1], triangle[2]])
             .collect();
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
@@ -235,7 +267,7 @@ impl Physics {
         }
     }
 
-    pub fn sync_entity_transforms(&self, entity: &mut Entity) {
+    pub fn sync_entities(&self, entity: &mut Entity) {
         if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
             if let Some(rigid_body) = self.rigid_body_set.get(*rb_handle) {
                 let position = rigid_body.position();
