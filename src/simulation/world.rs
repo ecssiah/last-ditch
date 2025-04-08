@@ -48,6 +48,8 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
+        self.generate_structure(-12, 0, 12, &structure::Kind::Luigi);
+
         self.update_chunk_meshes();
     }
 
@@ -57,7 +59,9 @@ impl World {
         }
     }
 
-    pub fn tick(&mut self) {}
+    pub fn tick(&mut self, tick: &Tick) {
+        self.tick = *tick;
+    }
 
     pub fn generate_ground(&mut self) {
         let world_boundary = WORLD_BOUNDARY as isize;
@@ -66,11 +70,12 @@ impl World {
             for z in -world_boundary..=world_boundary {
                 let chunk_position = Chunk::position_at(IVec3::new(x as i32, 0, z as i32)).unwrap();
 
-                let (primary_color, secondary_color) = if (chunk_position.x + chunk_position.z) % 2 == 0 {
-                    (&block::Kind::GreenCloth, &block::Kind::Concrete)
-                } else {
-                    (&block::Kind::BlueCloth, &block::Kind::Grey)
-                };
+                let (primary_color, secondary_color) =
+                    if (chunk_position.x + chunk_position.z) % 2 == 0 {
+                        (&block::Kind::GreenCloth, &block::Kind::Concrete)
+                    } else {
+                        (&block::Kind::BlueCloth, &block::Kind::Grey)
+                    };
 
                 let kind = if x == 0 && z == 0 {
                     &block::Kind::GoldMetal
@@ -121,7 +126,7 @@ impl World {
     }
 
     pub fn get_chunk_at(&self, grid_position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = Chunk::id_at(grid_position)?;
+        let chunk_id = Chunk::id_at_grid(grid_position)?;
 
         let chunk = self.get_chunk(chunk_id);
 
@@ -495,9 +500,17 @@ impl World {
         }
     }
 
+    pub fn on_map(grid_position: IVec3) -> bool {
+        let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;
+        let in_y_range = grid_position.y.abs() <= WORLD_BOUNDARY as i32;
+        let in_z_range = grid_position.z.abs() <= WORLD_BOUNDARY as i32;
+
+        in_x_range && in_y_range && in_z_range
+    }
+
     pub fn ids_at(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
-        let chunk_id = Chunk::id_at(grid_position)?;
-        let block_id = Block::id_at(grid_position)?;
+        let chunk_id = Chunk::id_at_grid(grid_position)?;
+        let block_id = Block::id_at_grid(grid_position)?;
 
         Some((chunk_id, block_id))
     }
@@ -519,13 +532,5 @@ impl World {
         );
 
         world_position
-    }
-
-    pub fn on_map(grid_position: IVec3) -> bool {
-        let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;
-        let in_y_range = grid_position.y.abs() <= WORLD_BOUNDARY as i32;
-        let in_z_range = grid_position.z.abs() <= WORLD_BOUNDARY as i32;
-
-        in_x_range && in_y_range && in_z_range
     }
 }

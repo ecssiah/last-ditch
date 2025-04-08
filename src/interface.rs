@@ -219,54 +219,30 @@ impl Interface {
         &mut self,
         chunk_views: &HashMap<simulation::chunk::ID, simulation::views::view::ChunkView>,
     ) {
+        self.chunks.clear();
+
         for (chunk_id, chunk_view) in chunk_views {
-            if let Some(chunk) = self.chunks.get(chunk_id) {
-                if chunk_view.tick > chunk.tick {
-                    let vertices: Vec<chunk::Vertex> = chunk_view
-                        .mesh
-                        .vertices
-                        .iter()
-                        .map(|vertex| chunk::Vertex {
-                            position: vertex.position.to_array(),
-                            normal: vertex.normal.to_array(),
-                            color: vertex.color.to_array(),
-                            light: vertex.light,
-                        })
-                        .collect();
+            let vertices: Vec<chunk::Vertex> = chunk_view
+                .mesh
+                .vertices
+                .iter()
+                .map(|vertex| chunk::Vertex {
+                    position: vertex.position.to_array(),
+                    normal: vertex.normal.to_array(),
+                    color: vertex.color.to_array(),
+                    light: vertex.light,
+                })
+                .collect();
 
-                    let indices: Vec<u32> = chunk_view.mesh.indices.clone();
+            let indices: Vec<u32> = chunk_view.mesh.indices.clone();
 
-                    let chunk = chunk::Chunk {
-                        id: *chunk_id,
-                        tick: chunk_view.tick,
-                        mesh: chunk::Mesh::new(&self.device, vertices, indices),
-                    };
+            let chunk = chunk::Chunk {
+                id: *chunk_id,
+                tick: chunk_view.tick,
+                mesh: chunk::Mesh::new(&self.device, vertices, indices),
+            };
 
-                    self.chunks.insert(*chunk_id, chunk);
-                }
-            } else {
-                let vertices: Vec<chunk::Vertex> = chunk_view
-                    .mesh
-                    .vertices
-                    .iter()
-                    .map(|vertex| chunk::Vertex {
-                        position: vertex.position.to_array(),
-                        normal: vertex.normal.to_array(),
-                        color: vertex.color.to_array(),
-                        light: vertex.light,
-                    })
-                    .collect();
-
-                let indices: Vec<u32> = chunk_view.mesh.indices.clone();
-
-                let chunk = chunk::Chunk {
-                    id: *chunk_id,
-                    tick: chunk_view.tick,
-                    mesh: chunk::Mesh::new(&self.device, vertices, indices),
-                };
-
-                self.chunks.insert(*chunk_id, chunk);
-            }
+            self.chunks.insert(*chunk_id, chunk);
         }
     }
 

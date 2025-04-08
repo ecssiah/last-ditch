@@ -28,27 +28,19 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn on_map(block_id: block::ID) -> bool {
-        (0..CHUNK_VOLUME).contains(&block_id.into())
+    pub fn id_at(position: IVec3) -> Option<block::ID> {
+        let position_shift = position + IVec3::splat(CHUNK_RADIUS as i32);
+
+        let block_id = position_shift.x
+            + position_shift.y * CHUNK_SIZE as i32
+            + position_shift.z * CHUNK_AREA as i32;
+
+        let block_id = block::ID(block_id as usize);
+
+        Some(block_id)
     }
 
-    pub fn position(block_id: block::ID) -> Option<IVec3> {
-        if Self::on_map(block_id) {
-            let block_id: usize = block_id.into();
-    
-            let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-            let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
-            let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
-    
-            let block_position = IVec3::new(x, y, z);
-    
-            Some(block_position)
-        } else {
-            None
-        }
-    }
-
-    pub fn id_at(grid_position: IVec3) -> Option<block::ID> {
+    pub fn id_at_grid(grid_position: IVec3) -> Option<block::ID> {
         if World::on_map(grid_position) {
             let grid_position_shifted = grid_position.map(|coordinate| {
                 let coordinate_shift = coordinate + CHUNK_RADIUS as i32;
@@ -66,8 +58,24 @@ impl Block {
         }
     }
 
+    pub fn position(block_id: block::ID) -> Option<IVec3> {
+        if block::ID::valid(block_id) {
+            let block_id: usize = block_id.into();
+
+            let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+            let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
+            let z = (block_id / CHUNK_AREA) as i32 - CHUNK_RADIUS as i32;
+
+            let block_position = IVec3::new(x, y, z);
+
+            Some(block_position)
+        } else {
+            None
+        }
+    }
+
     pub fn position_at(grid_position: IVec3) -> Option<IVec3> {
-        let block_id = Self::id_at(grid_position)?;
+        let block_id = Self::id_at_grid(grid_position)?;
         let position = Self::position(block_id)?;
 
         Some(position)

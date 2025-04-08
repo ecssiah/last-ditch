@@ -43,23 +43,19 @@ impl Views {
         match state.mode {
             state::Mode::Simulating => {
                 for entity_id in self.repository.entity_ids() {
-                    if let Some(entity) = state.population.get(&entity_id) {
-                        if let Some(view) = self.repository.get(&entity_id) {
-                            let entity_view = self.generate_entity_view(entity);
-                            let chunk_views = self.generate_chunk_views(
-                                state,
-                                entity.position,
-                                &view.chunk_views,
-                            );
+                    let entity = state.population.get(&entity_id).unwrap();
+                    let view = self.repository.get(&entity_id).unwrap();
 
-                            let new_view = View {
-                                entity_view,
-                                chunk_views,
-                            };
+                    let entity_view = self.generate_entity_view(entity);
+                    let chunk_views =
+                        self.generate_chunk_views(state, entity.position, &view.chunk_views);
 
-                            self.repository.update(entity_id, new_view);
-                        }
-                    }
+                    let new_view = View {
+                        entity_view,
+                        chunk_views,
+                    };
+
+                    self.repository.update(entity_id, new_view);
                 }
             }
             state::Mode::Exit => {
@@ -108,18 +104,23 @@ impl Views {
         position: Vec3,
         chunk_views: &HashMap<chunk::ID, ChunkView>,
     ) -> HashMap<chunk::ID, ChunkView> {
+        let view_radius = 1;
+
         let mut new_chunk_views = HashMap::new();
         let grid_position = World::world_position_at(position);
+        let chunk_position = chunk::Chunk::position_at(grid_position).unwrap();
 
-        for x in (grid_position.x - 3)..=(grid_position.x + 3) {
-            for y in (grid_position.y - 3)..=(grid_position.y + 3) {
-                for z in (grid_position.z - 3)..=(grid_position.z + 3) {
+        for x in (chunk_position.x - view_radius)..=(chunk_position.x + view_radius) {
+            for y in (chunk_position.y - view_radius)..=(chunk_position.y + view_radius) {
+                for z in (chunk_position.z - view_radius)..=(chunk_position.z + view_radius) {
                     let chunk_position = IVec3::new(x, y, z);
 
-                    if let Some(chunk) = state.world.get_chunk_at(chunk_position) {
-                        let chunk_view = self.generate_chunk_view(state, chunk, chunk_views);
+                    if let Some(chunk_id) = chunk::Chunk::id_at(chunk_position) {
+                        if let Some(chunk) = state.world.get_chunk(chunk_id) {
+                            let chunk_view = self.generate_chunk_view(state, chunk, chunk_views);
 
-                        new_chunk_views.insert(chunk.id, chunk_view);
+                            new_chunk_views.insert(chunk.id, chunk_view);
+                        }
                     }
                 }
             }

@@ -36,13 +36,15 @@ impl State {
     }
 
     pub fn generate(&mut self) {
-        self.population.generate();
         self.world.generate();
+        self.population.generate();
     }
 
     pub fn tick(&mut self) {
-        self.population.tick();
-        self.world.tick();
+        let clock_tick = &self.time.get_clock_tick();
+
+        self.world.tick(clock_tick);
+        self.population.tick(clock_tick);
 
         self.time.tick();
     }

@@ -32,7 +32,7 @@ fn test_chunk_id_at() {
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Chunk::id_at(grid_position);
+        let chunk_id = Chunk::id_at_grid(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,
@@ -73,7 +73,7 @@ fn test_block_id_at() {
     ];
 
     for (grid_position, expected_block_id) in test_cases {
-        let block_id = Block::id_at(grid_position);
+        let block_id = Block::id_at_grid(grid_position);
 
         assert_eq!(
             block_id, expected_block_id,
