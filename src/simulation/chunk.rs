@@ -48,9 +48,9 @@ impl Chunk {
     }
 
     pub fn on_map(position: IVec3) -> bool {
-        let in_x_range = position.x.abs() <= CHUNK_RADIUS as i32;
-        let in_y_range = position.y.abs() <= CHUNK_RADIUS as i32;
-        let in_z_range = position.z.abs() <= CHUNK_RADIUS as i32;
+        let in_x_range = position.x.abs() <= WORLD_RADIUS as i32;
+        let in_y_range = position.y.abs() <= WORLD_RADIUS as i32;
+        let in_z_range = position.z.abs() <= WORLD_RADIUS as i32;
 
         in_x_range && in_y_range && in_z_range
     }
