@@ -5,7 +5,9 @@ use crate::simulation::{
         entity::{self, JumpStage},
         Entity,
     },
-    state::State, world::World, Chunk,
+    state::State,
+    world::World,
+    Chunk,
 };
 use glam::Vec3;
 use nalgebra::Unit;
@@ -124,6 +126,41 @@ impl Physics {
             self.step();
 
             self.sync_entities(entity);
+        }
+
+        self.update_chunk_colliders(state);
+    }
+
+    fn update_chunk_colliders(&mut self, state: &State) {
+        let entity = state.population.get(&entity::ID::USER_ENTITY).unwrap();
+
+        let current_grid_position = World::grid_position_at(entity.position).unwrap();
+        let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+
+        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, VIEW_RADIUS as i32);
+
+        let current_loaded_chunks: Vec<chunk::ID> =
+            self.chunk_collider_handles.keys().cloned().collect();
+
+        for chunk_id in current_loaded_chunks {
+            if !visible_chunk_ids.contains(&chunk_id) {
+                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
+                    self.collider_set.remove(
+                        old_handle,
+                        &mut self.island_manager,
+                        &mut self.rigid_body_set,
+                        true,
+                    );
+                }
+            }
+        }
+
+        for &chunk_id in visible_chunk_ids.iter() {
+            if !self.chunk_collider_handles.contains_key(&chunk_id) {
+                if let Some(chunk) = state.world.get_chunk(chunk_id) {
+                    self.add_chunk_collider(chunk);
+                }
+            }
         }
     }
 
@@ -278,11 +315,16 @@ impl Physics {
                 let current_grid_position = World::grid_position_at(entity.position).unwrap();
                 let next_grid_position = World::grid_position_at(next_position).unwrap();
 
-                let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-                let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+                entity.position = next_position;
 
-                entity.position = Vec3::new(translation.x, translation.y, translation.z);
-                entity.chunk_update = next_chunk_id != current_chunk_id;
+                if current_grid_position == next_grid_position {
+                    entity.chunk_update = false;
+                } else {
+                    let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+                    let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+
+                    entity.chunk_update = next_chunk_id != current_chunk_id;
+                }
             }
         }
     }

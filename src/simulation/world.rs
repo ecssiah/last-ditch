@@ -543,4 +543,29 @@ impl World {
             None
         }
     }
+
+    pub fn visible_chunk_ids(chunk_id: chunk::ID, radius: i32) -> Vec<chunk::ID> {
+        let chunk_count_estimate = ((2 * radius + 1).pow(3)) as usize;
+        let mut chunk_ids = Vec::with_capacity(chunk_count_estimate);
+
+        if let Some(chunk_position) = Chunk::position(chunk_id) {
+            for x in -radius..=radius {
+                for y in -radius..=radius {
+                    for z in -radius..=radius {
+                        let distance = x.abs() + y.abs() + z.abs();
+        
+                        if distance <= radius {
+                            let visible_chunk_position = chunk_position + IVec3::new(x, y, z);
+
+                            if let Some(visible_chunk_id) = Chunk::id_at(visible_chunk_position) {
+                                chunk_ids.push(visible_chunk_id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    
+        chunk_ids
+    }
 }
