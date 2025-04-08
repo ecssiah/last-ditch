@@ -58,13 +58,13 @@ impl Chunk {
     pub fn id_at(position: IVec3) -> Option<chunk::ID> {
         if Self::on_map(position) {
             let position_shift = position + IVec3::splat(WORLD_RADIUS as i32);
-            
+
             let chunk_id = position_shift.x
                 + position_shift.y * WORLD_SIZE as i32
                 + position_shift.z * WORLD_AREA as i32;
-    
+
             let chunk_id = chunk::ID(chunk_id as usize);
-    
+
             Some(chunk_id)
         } else {
             None

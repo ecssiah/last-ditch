@@ -532,7 +532,7 @@ impl World {
         } else {
             None
         }
-    } 
+    }
 
     pub fn grid_position_at(position: Vec3) -> Option<IVec3> {
         let grid_position = position.as_ivec3();
@@ -553,7 +553,7 @@ impl World {
                 for y in -radius..=radius {
                     for z in -radius..=radius {
                         let distance = x.abs() + y.abs() + z.abs();
-        
+
                         if distance <= radius {
                             let visible_chunk_position = chunk_position + IVec3::new(x, y, z);
 
@@ -565,7 +565,7 @@ impl World {
                 }
             }
         }
-    
+
         chunk_ids
     }
 }

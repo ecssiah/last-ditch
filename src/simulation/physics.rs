@@ -80,7 +80,6 @@ impl Physics {
     pub fn generate(&mut self, state: &State) {
         self.generate_boundaries();
         self.generate_entities(state);
-        self.generate_chunks(state);
     }
 
     pub fn generate_boundaries(&mut self) {
@@ -112,12 +111,6 @@ impl Physics {
         }
     }
 
-    pub fn generate_chunks(&mut self, state: &State) {
-        for chunk in state.world.chunks.iter() {
-            self.add_chunk_collider(chunk);
-        }
-    }
-
     pub fn tick(&mut self, state: &mut State) {
         if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY) {
             self.tick_entity_movement(entity);
@@ -137,7 +130,7 @@ impl Physics {
         let current_grid_position = World::grid_position_at(entity.position).unwrap();
         let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
 
-        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, VIEW_RADIUS as i32);
+        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
 
         let current_loaded_chunks: Vec<chunk::ID> =
             self.chunk_collider_handles.keys().cloned().collect();

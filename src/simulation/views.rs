@@ -3,10 +3,15 @@ pub mod repository;
 pub mod view;
 
 use crate::simulation::{
-    chunk, population::{entity, Entity}, state::{self, State}, views::{
+    chunk,
+    population::{entity, Entity},
+    state::{self, State},
+    views::{
         repository::Repository,
         view::{ChunkView, EntityView, View},
-    }, world::World, Chunk, VIEW_RADIUS
+    },
+    world::World,
+    Chunk, USER_VIEW_RADIUS,
 };
 use glam::{IVec3, Vec3};
 use std::{
@@ -109,9 +114,9 @@ impl Views {
         let grid_position = World::grid_position_at(position).unwrap();
         let chunk_position = Chunk::position_at(grid_position).unwrap();
 
-        let x_range = (chunk_position.x - VIEW_RADIUS)..=(chunk_position.x + VIEW_RADIUS);
-        let y_range = (chunk_position.y - VIEW_RADIUS)..=(chunk_position.y + VIEW_RADIUS);
-        let z_range = (chunk_position.z - VIEW_RADIUS)..=(chunk_position.z + VIEW_RADIUS);
+        let x_range = (chunk_position.x - USER_VIEW_RADIUS)..=(chunk_position.x + USER_VIEW_RADIUS);
+        let y_range = (chunk_position.y - USER_VIEW_RADIUS)..=(chunk_position.y + USER_VIEW_RADIUS);
+        let z_range = (chunk_position.z - USER_VIEW_RADIUS)..=(chunk_position.z + USER_VIEW_RADIUS);
 
         for x in x_range {
             for y in y_range.clone() {
