@@ -1,5 +1,5 @@
 use crate::{
-    include_config,
+    include_assets,
     simulation::{block, structure},
 };
 use once_cell::sync::Lazy;
@@ -39,8 +39,8 @@ pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub const USER_VIEW_RADIUS: i32 = 2;
 
-const BLOCK_CONFIG: &str = include_config!("blocks.ron");
-const STRUCTURE_CONFIG: &str = include_config!("structures.ron");
+const BLOCK_CONFIG: &str = include_assets!("config/blocks.ron");
+const STRUCTURE_CONFIG: &str = include_assets!("config/structures.ron");
 
 pub static BLOCKS: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
     let list: Vec<block::Block> =

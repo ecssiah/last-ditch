@@ -6,7 +6,7 @@ pub mod consts;
 pub mod input;
 
 use crate::{
-    include_assets_src, interface::{consts::*, input::Input}, simulation::{self}
+    include_assets, interface::{consts::*, input::Input}, simulation::{self}
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -114,7 +114,7 @@ impl Interface {
 
         let chunk_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Chunk Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_assets_src!("shaders/chunk.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
         });
 
         let chunk_pipeline_layout =
