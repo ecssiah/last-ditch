@@ -1,7 +1,7 @@
 use crate::{include_assets, interface::render, simulation::block};
 use once_cell::sync::Lazy;
 use ron::from_str;
-use std::{collections::HashMap, fs};
+use std::collections::HashMap;
 
 pub const WINDOW_TITLE: &str = "Last Ditch";
 

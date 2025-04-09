@@ -39,7 +39,9 @@ struct FragmentOutput {
 @fragment
 fn fs_main(input: FragmentInput) -> FragmentOutput {
     var output: FragmentOutput;
-    output.color = textureSample(atlas, atlas_sampler, input.uv);
+    
+    let sampled_color = textureSample(atlas, atlas_sampler, input.uv);
+    output.color = sampled_color * vec4<f32>(vec3<f32>(input.light), 1.0);
 
     return output;
 }

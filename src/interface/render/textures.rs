@@ -1,12 +1,15 @@
+use crate::interface::render::TextureAtlas;
 use std::collections::HashMap;
 
 pub struct Textures {
+    pub texture_atlas: TextureAtlas,
     pub texture_map: HashMap<String, (wgpu::Texture, wgpu::TextureView, wgpu::Sampler)>,
 }
 
 impl Textures {
     pub fn new() -> Textures {
         let textures = Textures {
+            texture_atlas: TextureAtlas::new("atlas".to_string(), 32, 1024, 1024),
             texture_map: HashMap::new(),
         };
 

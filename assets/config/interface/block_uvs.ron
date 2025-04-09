@@ -1,7 +1,7 @@
 [
     BlockUVConfig(
         kind: Metal1,
-        face_uvs: {
+        tile_position: {
             "XP": (0, 0),
             "XN": (0, 0),
             "YP": (0, 0),
@@ -12,7 +12,7 @@
     ),
     BlockUVConfig(
         kind: Metal2,
-        face_uvs: {
+        tile_position: {
             "XP": (0, 1),
             "XN": (0, 1),
             "YP": (0, 1),
@@ -23,7 +23,7 @@
     ),
     BlockUVConfig(
         kind: Metal3,
-        face_uvs: {
+        tile_position: {
             "XP": (0, 2),
             "XN": (0, 2),
             "YP": (0, 2),
@@ -34,7 +34,7 @@
     ),
     BlockUVConfig(
         kind: Metal4,
-        face_uvs: {
+        tile_position: {
             "XP": (1, 0),
             "XN": (1, 0),
             "YP": (1, 0),
@@ -45,7 +45,7 @@
     ),
     BlockUVConfig(
         kind: Metal5,
-        face_uvs: {
+        tile_position: {
             "XP": (1, 1),
             "XN": (1, 1),
             "YP": (1, 1),
@@ -56,7 +56,7 @@
     ),
     BlockUVConfig(
         kind: Metal6,
-        face_uvs: {
+        tile_position: {
             "XP": (0, 0),
             "XN": (0, 1),
             "YP": (0, 2),

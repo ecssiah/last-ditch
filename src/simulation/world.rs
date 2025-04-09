@@ -49,8 +49,9 @@ impl World {
         self.generate_ground();
 
         self.set_block_kind(0, 1, 0, &block::kind::Kind::Metal1);
-        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal1);
-        self.set_block_kind(0, 3, 0, &block::kind::Kind::Metal2);
+        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal2);
+
+        self.set_block_kind(0, 6, 0, &block::Kind::Metal6);
 
         self.update_chunk_meshes();
     }

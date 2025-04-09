@@ -1,20 +1,37 @@
+use glam::Vec2;
+
 use crate::simulation::BLOCK_SIZE;
 
-pub struct TextureAtlas {}
+pub struct TextureAtlas {
+    pub label: String,
+    pub tile_size: u32,
+    pub width: u32,
+    pub height: u32,
+}
 
 impl TextureAtlas {
-    pub const TILE_SIZE: u32 = 32;
-    pub const ATLAS_WIDTH: u32 = 1024;
-    pub const ATLAS_HEIGHT: u32 = 1024;
+    pub fn new(label: String, tile_size: u32, width: u32, height: u32) -> TextureAtlas {
+        let texture_atlas = TextureAtlas {
+            label,
+            tile_size,
+            width,
+            height,
+        };
 
-    pub fn get_uv_coords(tile_x: u32, tile_y: u32) -> [f32; 4] {
-        let u_min = (tile_x * Self::TILE_SIZE) as f32 / Self::ATLAS_WIDTH as f32;
-        let v_min = (tile_y * Self::TILE_SIZE) as f32 / Self::ATLAS_HEIGHT as f32;
-        let u_max =
-            ((tile_x + BLOCK_SIZE as u32) * Self::TILE_SIZE) as f32 / Self::ATLAS_WIDTH as f32;
-        let v_max =
-            ((tile_y + BLOCK_SIZE as u32) * Self::TILE_SIZE) as f32 / Self::ATLAS_HEIGHT as f32;
+        texture_atlas
+    }
 
-        [u_min, v_min, u_max, v_max]
+    pub fn get_uv_coords(&self, tile_x: u32, tile_y: u32) -> Vec<Vec2> {
+        let u_min = (tile_x * self.tile_size) as f32 / self.width as f32;
+        let v_min = (tile_y * self.tile_size) as f32 / self.height as f32;
+        let u_max = ((tile_x + BLOCK_SIZE as u32) * self.tile_size) as f32 / self.width as f32;
+        let v_max = ((tile_y + BLOCK_SIZE as u32) * self.tile_size) as f32 / self.height as f32;
+
+        Vec::from([
+            Vec2::new(u_min, v_max),
+            Vec2::new(u_max, v_max),
+            Vec2::new(u_min, v_min),
+            Vec2::new(u_max, v_min),
+        ])
     }
 }

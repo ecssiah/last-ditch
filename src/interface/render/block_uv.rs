@@ -5,5 +5,5 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize)]
 pub struct BlockUV {
     pub kind: block::Kind,
-    pub face_uvs: HashMap<block::Direction, [u32; 2]>,
+    pub tile_position: HashMap<block::Direction, [u32; 2]>,
 }

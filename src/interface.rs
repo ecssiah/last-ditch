@@ -288,13 +288,18 @@ impl Interface {
             for face in &chunk_view.mesh.faces {
                 let face_vertices = face.vertices();
                 let block_uv = BLOCK_UVS.get(&face.kind).unwrap();
-                let face_uvs = block_uv.face_uvs.get(&face.direction).unwrap();
+                let tile_position = block_uv.tile_position.get(&face.direction).unwrap();
+
+                let uvs = self
+                    .textures
+                    .texture_atlas
+                    .get_uv_coords(tile_position[0], tile_position[1]);
 
                 for (index, vertex) in face_vertices.iter().enumerate() {
                     vertices.push(chunk::Vertex {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
-                        uv: [face_uvs[0] as f32, face_uvs[1] as f32],
+                        uv: uvs[index].to_array(),
                         light: face.light[index],
                     });
                 }
