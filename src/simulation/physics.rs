@@ -1,3 +1,5 @@
+pub mod rect;
+
 use crate::simulation::{
     self, chunk,
     consts::*,
@@ -12,7 +14,7 @@ use crate::simulation::{
 use glam::Vec3;
 use nalgebra::Unit;
 use rapier3d::{
-    na::{vector, Point3, Vector3},
+    na::{vector, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::*,
 };
@@ -151,7 +153,9 @@ impl Physics {
         for &chunk_id in visible_chunk_ids.iter() {
             if !self.chunk_collider_handles.contains_key(&chunk_id) {
                 if let Some(chunk) = state.world.get_chunk(chunk_id) {
-                    self.add_chunk_collider(chunk);
+                    if chunk.mesh.faces.len() > 0 {
+                        self.add_chunk_collider(chunk);
+                    }
                 }
             }
         }
@@ -183,19 +187,18 @@ impl Physics {
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
-        let points: Vec<Point3<f32>> = chunk
-            .mesh
-            .vertices
-            .iter()
-            .map(|vertex| Point3::from(vertex.position))
-            .collect();
+        let (old_points, old_triangle_indices) = chunk.mesh.vertices_and_indices();
+        let (points, triangle_indices) = chunk.mesh.optimized_vertices_and_indices();
 
-        let triangle_indices: Vec<[u32; 3]> = chunk
-            .mesh
-            .indices
-            .chunks(3)
-            .map(|triangle| [triangle[0], triangle[1], triangle[2]])
-            .collect();
+        println!("Points:");
+        println!("Before: {:?} After: {:?}", old_points.len(), points.len());
+
+        println!("Indices:");
+        println!(
+            "Before: {:?} After: {:?}",
+            old_triangle_indices.len(),
+            triangle_indices.len()
+        );
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
             Ok(builder) => {

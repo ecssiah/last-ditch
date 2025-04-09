@@ -16,6 +16,22 @@ bitflags! {
         const XN_YN_ZP = 1 << 18; const X0_YN_ZP = 1 << 19; const XP_YN_ZP = 1 << 20;
         const XN_Y0_ZP = 1 << 21; const X0_Y0_ZP = 1 << 22; const XP_Y0_ZP = 1 << 23;
         const XN_YP_ZP = 1 << 24; const X0_YP_ZP = 1 << 25; const XP_YP_ZP = 1 << 26;
+
+        const XP = Self::XP_Y0_Z0.bits();
+        const XN = Self::XN_Y0_Z0.bits();
+        const YP = Self::X0_YP_Z0.bits();
+        const YN = Self::X0_YN_Z0.bits();
+        const ZP = Self::X0_Y0_ZP.bits();
+        const ZN = Self::X0_Y0_ZN.bits();
+
+        const ORIGIN = Self::X0_Y0_Z0.bits();
+
+        const EAST = Self::XP_Y0_Z0.bits();
+        const WEST = Self::XN_Y0_Z0.bits();
+        const UP = Self::X0_YP_Z0.bits();
+        const DOWN = Self::X0_YN_Z0.bits();
+        const NORTH = Self::X0_Y0_ZP.bits();
+        const SOUTH = Self::X0_Y0_ZN.bits();
     }
 }
 
@@ -35,11 +51,40 @@ impl Direction {
         IVec3::new(-1,  1,  1), IVec3::new(0,  1,  1), IVec3::new(1,  1,  1),
     ];
 
-    const FACE_INDICES: [usize; 6] = [4, 10, 12, 14, 16, 22];
+    const FACES: [Direction; 6] = [
+        Direction::XP_Y0_Z0,
+        Direction::XN_Y0_Z0,
+        Direction::X0_YP_Z0,
+        Direction::X0_YN_Z0,
+        Direction::X0_Y0_ZP,
+        Direction::X0_Y0_ZN,
+    ];
 
-    const EDGE_INDICES: [usize; 12] = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
+    const EDGES: [Direction; 12] = [
+        Direction::X0_YN_ZN,
+        Direction::XN_Y0_ZN,
+        Direction::XP_Y0_ZN,
+        Direction::X0_YP_ZN,
+        Direction::XN_YN_Z0,
+        Direction::XP_YN_Z0,
+        Direction::XN_YP_Z0,
+        Direction::XP_YP_Z0,
+        Direction::X0_YN_ZP,
+        Direction::XN_Y0_ZP,
+        Direction::XP_Y0_ZP,
+        Direction::X0_YP_ZP,
+    ];
 
-    const CORNER_INDICES: [usize; 8] = [0, 2, 6, 8, 18, 20, 24, 26];
+    const CORNERS: [Direction; 8] = [
+        Direction::XN_YN_ZN,
+        Direction::XP_YN_ZN,
+        Direction::XN_YP_ZN,
+        Direction::XP_YP_ZN,
+        Direction::XN_YN_ZP,
+        Direction::XP_YN_ZP,
+        Direction::XN_YP_ZP,
+        Direction::XP_YP_ZP,
+    ];
 
     pub fn bit(index: usize) -> Option<Self> {
         Self::from_bits(1 << index)
@@ -61,15 +106,27 @@ impl Direction {
         Self::OFFSETS
     }
 
+    pub fn faces() -> [Direction; 6] {
+        Self::FACES
+    }
+
+    pub fn edges() -> [Direction; 12] {
+        Self::EDGES
+    }
+
+    pub fn corners() -> [Direction; 8] {
+        Self::CORNERS
+    }
+
     pub fn face_offsets() -> [IVec3; 6] {
-        Self::FACE_INDICES.map(|index| Self::OFFSETS[index])
+        Self::FACES.map(|face| face.offset())
     }
 
     pub fn edge_offsets() -> [IVec3; 12] {
-        Self::EDGE_INDICES.map(|index| Self::OFFSETS[index])
+        Self::EDGES.map(|edge| edge.offset())
     }
 
     pub fn corner_offsets() -> [IVec3; 8] {
-        Self::CORNER_INDICES.map(|index| Self::OFFSETS[index])
+        Self::CORNERS.map(|corner| corner.offset())
     }
 }

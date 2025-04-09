@@ -36,8 +36,8 @@ impl World {
                 position: chunk_position,
                 palette: Vec::from([block::Kind::Air]),
                 blocks: Box::new([0; CHUNK_VOLUME]),
-                meta: Box::new([block::Meta::default(); CHUNK_VOLUME]),
-                light: Box::new([block::Light::default(); CHUNK_VOLUME]),
+                meta: Box::new(core::array::from_fn(|_| block::Meta::default())),
+                light: Box::new(core::array::from_fn(|_| block::Light::default())),
                 mesh: chunk::Mesh::default(),
             }
         });
@@ -235,7 +235,8 @@ impl World {
     }
 
     fn update_visibility(&mut self, grid_position: IVec3) {
-        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Face)>> = HashMap::new();
+        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Vec<block::Direction>)>> =
+            HashMap::new();
 
         if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
             let visibility = self.compute_visibility(grid_position);
@@ -274,34 +275,22 @@ impl World {
         }
     }
 
-    fn compute_visibility(&self, grid_position: IVec3) -> Face {
-        let mut visibility = Face::empty();
+    fn compute_visibility(&self, grid_position: IVec3) -> Vec<block::Direction> {
+        let visibility: Vec<block::Direction> = Direction::faces()
+            .iter()
+            .filter_map(|&direction| {
+                let neighbor_grid_position = grid_position + direction.offset();
 
-        for index in 0..Direction::offsets().len() {
-            if index == Direction::X0_Y0_Z0.index() {
-                continue;
-            }
-
-            if let Some(offset) = Direction::get_offset(index) {
-                let neighbor_grid_position = grid_position + offset;
-
-                if let Some(block) = self.get_block(neighbor_grid_position) {
-                    if block.kind == block::Kind::Air {
-                        if let Some(direction) = Direction::bit(index) {
-                            match direction {
-                                Direction::XP_Y0_Z0 => visibility.insert(Face::XP),
-                                Direction::XN_Y0_Z0 => visibility.insert(Face::XN),
-                                Direction::X0_YP_Z0 => visibility.insert(Face::YP),
-                                Direction::X0_YN_Z0 => visibility.insert(Face::YN),
-                                Direction::X0_Y0_ZP => visibility.insert(Face::ZP),
-                                Direction::X0_Y0_ZN => visibility.insert(Face::ZN),
-                                _ => (),
-                            }
-                        }
-                    }
+                if self
+                    .get_block(neighbor_grid_position)
+                    .map_or(false, |block| block.kind == block::Kind::Air)
+                {
+                    Some(direction)
+                } else {
+                    None
                 }
-            }
-        }
+            })
+            .collect();
 
         visibility
     }
@@ -328,9 +317,7 @@ impl World {
     }
 
     fn generate_chunk_mesh(&self, chunk_id: chunk::ID) -> chunk::Mesh {
-        let mut vertices = Vec::new();
-        let mut indices = Vec::new();
-
+        let mut faces = Vec::new();
         let chunk = self.get_chunk(chunk_id).unwrap();
 
         for block_id in (0..CHUNK_VOLUME).map(block::ID) {
@@ -338,62 +325,28 @@ impl World {
             let block = chunk.get_block(block_id).unwrap();
             let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
-            for face in block::Face::ALL {
-                if meta.visibility.contains(face) == false {
-                    continue;
+            for direction in Direction::faces() {
+                if meta.visibility.contains(&direction) {
+                    let mut face = Face::new(grid_position, direction, Vec4::from(block.color));
+
+                    let (face_edges, face_corners) =
+                        Self::get_face_neighbors(meta.neighbors, direction);
+                    face.light = Self::calculate_face_light(face_edges, face_corners);
+
+                    faces.push(face);
                 }
-
-                let face_quad = Self::generate_quad(grid_position, face);
-                let normal = face.normal();
-
-                let color = Vec4::new(block.color.0, block.color.1, block.color.2, block.color.3);
-
-                let (face_edges, face_corners) = Self::get_face_neighbors(meta.neighbors, face);
-                let face_light = Self::calculate_face_light(face_edges, face_corners);
-
-                let chunk_vertices = face_quad.iter().enumerate().map(|(index, &position)| {
-                    let light = face_light[index];
-
-                    chunk::Vertex {
-                        position,
-                        normal,
-                        color,
-                        light,
-                    }
-                });
-
-                let start_index = vertices.len() as u32;
-
-                let face_indices = [
-                    start_index + 0,
-                    start_index + 1,
-                    start_index + 2,
-                    start_index + 0,
-                    start_index + 2,
-                    start_index + 3,
-                ];
-
-                vertices.extend(chunk_vertices);
-                indices.extend(face_indices);
             }
         }
 
-        chunk::Mesh { vertices, indices }
-    }
-
-    fn generate_quad(grid_position: IVec3, face: block::Face) -> [Vec3; 4] {
-        let base = grid_position.as_vec3();
-        let offsets = face.quad();
-
-        offsets.map(|offset| base + offset)
+        chunk::Mesh { faces }
     }
 
     fn get_face_neighbors(
         neighbors: block::Neighbors,
-        face: block::Face,
+        direction: block::Direction,
     ) -> ([bool; 4], [bool; 4]) {
-        let face_neighbors = match face {
-            block::Face::XP => (
+        let face_neighbors = match direction {
+            block::Direction::XP => (
                 [
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
                     neighbors.is_solid(block::Direction::XP_Y0_ZN),
@@ -407,7 +360,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XP_YN_ZP),
                 ],
             ),
-            block::Face::XN => (
+            block::Direction::XN => (
                 [
                     neighbors.is_solid(block::Direction::XN_YN_Z0),
                     neighbors.is_solid(block::Direction::XN_Y0_ZP),
@@ -421,7 +374,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZN),
                 ],
             ),
-            block::Face::YP => (
+            block::Direction::YP => (
                 [
                     neighbors.is_solid(block::Direction::X0_YP_ZN),
                     neighbors.is_solid(block::Direction::XN_YP_Z0),
@@ -435,7 +388,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XP_YP_ZN),
                 ],
             ),
-            block::Face::YN => (
+            block::Direction::YN => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XP_YN_Z0),
@@ -449,7 +402,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZN),
                 ],
             ),
-            block::Face::ZP => (
+            block::Direction::ZP => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZP),
                     neighbors.is_solid(block::Direction::XP_Y0_ZP),
@@ -463,7 +416,7 @@ impl World {
                     neighbors.is_solid(block::Direction::XN_YN_ZP),
                 ],
             ),
-            block::Face::ZN => (
+            block::Direction::ZN => (
                 [
                     neighbors.is_solid(block::Direction::X0_YN_ZN),
                     neighbors.is_solid(block::Direction::XN_Y0_ZN),
@@ -477,28 +430,28 @@ impl World {
                     neighbors.is_solid(block::Direction::XP_YN_ZN),
                 ],
             ),
-            _ => panic!("Invalid Face: {:?}", face),
+            _ => panic!("Invalid Direction: {:?}", direction),
         };
 
         face_neighbors
     }
 
-    fn calculate_face_light(edges: [bool; 4], corners: [bool; 4]) -> [f32; 4] {
-        [
+    fn calculate_face_light(edges: [bool; 4], corners: [bool; 4]) -> Vec4 {
+        Vec4::new(
             Self::calculate_vertex_light(edges[3], edges[0], corners[3]),
             Self::calculate_vertex_light(edges[0], edges[1], corners[0]),
             Self::calculate_vertex_light(edges[1], edges[2], corners[1]),
             Self::calculate_vertex_light(edges[2], edges[3], corners[2]),
-        ]
+        )
     }
 
     fn calculate_vertex_light(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
-            chunk::Vertex::LIGHT_LEVEL[0]
+            AMBIENT_LIGHT_LEVEL[0]
         } else if corner || edge1 || edge2 {
-            chunk::Vertex::LIGHT_LEVEL[1]
+            AMBIENT_LIGHT_LEVEL[1]
         } else {
-            chunk::Vertex::LIGHT_LEVEL[2]
+            AMBIENT_LIGHT_LEVEL[2]
         }
     }
 

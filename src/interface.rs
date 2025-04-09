@@ -6,7 +6,9 @@ pub mod consts;
 pub mod input;
 
 use crate::{
-    include_assets, interface::{consts::*, input::Input}, simulation::{self}
+    include_assets,
+    interface::{consts::*, input::Input},
+    simulation::{self},
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -220,19 +222,30 @@ impl Interface {
         self.chunks.clear();
 
         for (chunk_id, chunk_view) in chunk_views {
-            let vertices: Vec<chunk::Vertex> = chunk_view
-                .mesh
-                .vertices
-                .iter()
-                .map(|vertex| chunk::Vertex {
-                    position: vertex.position.to_array(),
-                    normal: vertex.normal.to_array(),
-                    color: vertex.color.to_array(),
-                    light: vertex.light,
-                })
-                .collect();
+            let mut vertices = Vec::new();
+            let mut indices = Vec::new();
+            let mut index_offset = 0;
 
-            let indices: Vec<u32> = chunk_view.mesh.indices.clone();
+            for face in &chunk_view.mesh.faces {
+                let face_vertices = face.vertices();
+                for (index, vertex) in face_vertices.iter().enumerate() {
+                    vertices.push(chunk::Vertex {
+                        position: vertex.to_array(),
+                        normal: face.normal().as_vec3().to_array(),
+                        color: face.color.to_array(),
+                        light: face.light[index],
+                    });
+                }
+
+                indices.push(index_offset + 0);
+                indices.push(index_offset + 1);
+                indices.push(index_offset + 2);
+                indices.push(index_offset + 0);
+                indices.push(index_offset + 2);
+                indices.push(index_offset + 3);
+
+                index_offset += 4;
+            }
 
             let chunk = chunk::Chunk {
                 id: *chunk_id,

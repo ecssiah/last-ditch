@@ -1,9 +1,8 @@
 use crate::simulation::block;
-use serde::Deserialize;
 
-#[derive(Clone, Copy, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Default)]
 pub struct Meta {
     pub direction: block::Direction,
-    pub visibility: block::Face,
+    pub visibility: Vec<block::Direction>,
     pub neighbors: block::Neighbors,
 }
