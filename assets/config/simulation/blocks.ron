@@ -41,4 +41,16 @@
         opacity: 1.0,
         emittance: 0,
     ),
+    Block(
+        kind: Cheese,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),    
+    Block(
+        kind: Moni,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
 ]

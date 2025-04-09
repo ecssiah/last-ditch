@@ -23,8 +23,8 @@ impl Mesh {
                 vertices.push(Point3::new(vertex.x, vertex.y, vertex.z));
             }
 
-            indices.push([start_index, start_index + 1, start_index + 2]);
-            indices.push([start_index, start_index + 2, start_index + 3]);
+            indices.push([start_index + 0, start_index + 1, start_index + 2]);
+            indices.push([start_index + 2, start_index + 3, start_index + 0]);
         }
 
         (vertices, indices)
@@ -87,8 +87,8 @@ impl Mesh {
                         vertices.push(Point3::new(x1, y1, zf));
                         vertices.push(Point3::new(x0, y1, zf));
 
-                        indices.push([start_index, start_index + 1, start_index + 2]);
-                        indices.push([start_index, start_index + 2, start_index + 3]);
+                        indices.push([start_index + 0, start_index + 1, start_index + 2]);
+                        indices.push([start_index + 2, start_index + 3, start_index + 0]);
                     }
                     Direction::XP | Direction::XN => {
                         while grid.contains(&(x, y + width, z)) {

@@ -30,8 +30,8 @@ impl TextureAtlas {
         Vec::from([
             Vec2::new(u_min, v_max),
             Vec2::new(u_max, v_max),
-            Vec2::new(u_min, v_min),
             Vec2::new(u_max, v_min),
+            Vec2::new(u_min, v_min),
         ])
     }
 }

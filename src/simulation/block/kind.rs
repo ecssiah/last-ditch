@@ -9,4 +9,6 @@ pub enum Kind {
     Metal4,
     Metal5,
     Metal6,
+    Cheese,
+    Moni,
 }

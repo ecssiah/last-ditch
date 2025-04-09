@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 pub const WINDOW_TITLE: &str = "Last Ditch";
 
-pub const FULLSCREEN: bool = false;
+pub const FULLSCREEN: bool = true;
 
 pub const WINDOW_WIDTH: u32 = 2560;
 pub const WINDOW_HEIGHT: u32 = 1440;

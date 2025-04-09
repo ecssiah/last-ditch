@@ -48,10 +48,20 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.set_block_kind(0, 1, 0, &block::kind::Kind::Metal1);
-        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal2);
+        self.set_block_kind(2, 4, 2, &block::kind::Kind::Metal6);
+        self.set_block_kind(-2, 4, 2, &block::kind::Kind::Metal6);
+        self.set_block_kind(2, 4, -2, &block::kind::Kind::Metal6);
+        self.set_block_kind(-2, 4, -2, &block::kind::Kind::Metal6);
 
-        self.set_block_kind(0, 6, 0, &block::Kind::Metal6);
+        self.set_block_kind(2, 2, 0, &block::Kind::Cheese);
+
+        self.set_block_kind(-2, 2, 0, &block::Kind::Moni);
+
+        self.set_block_kind(1, 6, 0, &block::kind::Kind::Metal6);
+        self.set_block_kind(-1, 6, 0, &block::kind::Kind::Metal6);
+        self.set_block_kind(0, 6, -1, &block::kind::Kind::Metal6);
+        self.set_block_kind(0, 6, 1, &block::kind::Kind::Metal6);
+        self.set_block_kind(0, 6, 0, &block::kind::Kind::Metal6);
 
         self.update_chunk_meshes();
     }
