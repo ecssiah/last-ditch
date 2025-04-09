@@ -35,15 +35,13 @@ impl Mesh {
         let mut indices = Vec::new();
 
         for direction in block::Direction::faces() {
-            let mut face_positions: HashSet<(i32, i32, i32)> = HashSet::new();
+            let mut grid: HashSet<(i32, i32, i32)> = HashSet::new();
 
             let direction_faces = self.faces.iter().filter(|face| face.direction == direction);
 
             for face in direction_faces {
-                face_positions.insert((face.position.x, face.position.y, face.position.z));
+                grid.insert((face.position.x, face.position.y, face.position.z));
             }
-
-            let mut grid = face_positions.clone();
 
             while let Some(&(x, y, z)) = grid.iter().next() {
                 let mut width = 1;

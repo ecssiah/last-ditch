@@ -1,5 +1,3 @@
-pub mod rect;
-
 use crate::simulation::{
     self, chunk,
     consts::*,
@@ -43,6 +41,7 @@ impl Physics {
 
         let integration_parameters = IntegrationParameters {
             dt: FIXED_DT.as_secs_f32(),
+            normalized_allowed_linear_error: 0.01,
             ..Default::default()
         };
 
@@ -167,7 +166,10 @@ impl Physics {
         let rigid_body = RigidBodyBuilder::dynamic()
             .lock_rotations()
             .translation(position)
+            .linear_damping(0.9)
+            .angular_damping(1.0)
             .additional_mass(80.0)
+            .ccd_enabled(true)
             .build();
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
@@ -187,18 +189,7 @@ impl Physics {
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
-        let (old_points, old_triangle_indices) = chunk.mesh.vertices_and_indices();
         let (points, triangle_indices) = chunk.mesh.optimized_vertices_and_indices();
-
-        println!("Points:");
-        println!("Before: {:?} After: {:?}", old_points.len(), points.len());
-
-        println!("Indices:");
-        println!(
-            "Before: {:?} After: {:?}",
-            old_triangle_indices.len(),
-            triangle_indices.len()
-        );
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
             Ok(builder) => {

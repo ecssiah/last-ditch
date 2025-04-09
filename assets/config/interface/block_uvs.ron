@@ -1,0 +1,68 @@
+[
+    BlockUVConfig(
+        kind: Metal1,
+        face_uvs: {
+            "XP": (0, 0),
+            "XN": (0, 0),
+            "YP": (0, 0),
+            "YN": (0, 0),
+            "ZP": (0, 0),
+            "ZN": (0, 0),
+        },
+    ),
+    BlockUVConfig(
+        kind: Metal2,
+        face_uvs: {
+            "XP": (0, 1),
+            "XN": (0, 1),
+            "YP": (0, 1),
+            "YN": (0, 1),
+            "ZP": (0, 1),
+            "ZN": (0, 1),
+        },
+    ),
+    BlockUVConfig(
+        kind: Metal3,
+        face_uvs: {
+            "XP": (0, 2),
+            "XN": (0, 2),
+            "YP": (0, 2),
+            "YN": (0, 2),
+            "ZP": (0, 2),
+            "ZN": (0, 2),
+        },
+    ),
+    BlockUVConfig(
+        kind: Metal4,
+        face_uvs: {
+            "XP": (1, 0),
+            "XN": (1, 0),
+            "YP": (1, 0),
+            "YN": (1, 0),
+            "ZP": (1, 0),
+            "ZN": (1, 0),
+        },
+    ),
+    BlockUVConfig(
+        kind: Metal5,
+        face_uvs: {
+            "XP": (1, 1),
+            "XN": (1, 1),
+            "YP": (1, 1),
+            "YN": (1, 1),
+            "ZP": (1, 1),
+            "ZN": (1, 1),
+        },
+    ),
+    BlockUVConfig(
+        kind: Metal6,
+        face_uvs: {
+            "XP": (0, 0),
+            "XN": (0, 1),
+            "YP": (0, 2),
+            "YN": (1, 1),
+            "ZP": (2, 1),
+            "ZN": (2, 2),
+        },
+    ),
+]

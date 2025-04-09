@@ -1,9 +1,9 @@
 use bitflags::bitflags;
 use glam::IVec3;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 bitflags! {
-    #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, Hash, PartialEq, Eq)]
     pub struct Direction: u32 {
         const XN_YN_ZN = 1 << 00; const X0_YN_ZN = 1 << 01; const XP_YN_ZN = 1 << 02;
         const XN_Y0_ZN = 1 << 03; const X0_Y0_ZN = 1 << 04; const XP_Y0_ZN = 1 << 05;

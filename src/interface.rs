@@ -4,11 +4,12 @@
 pub mod chunk;
 pub mod consts;
 pub mod input;
+pub mod render;
 
 use crate::{
     include_assets,
-    interface::{consts::*, input::Input},
-    simulation::{self},
+    interface::{consts::*, input::Input, render::Textures},
+    simulation::{self, USER_VIEW_OFFSET},
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -44,6 +45,8 @@ pub struct Interface {
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     view_projection_buffer: wgpu::Buffer,
     view_projection_bind_group: wgpu::BindGroup,
+    texture_sampler_bind_group: wgpu::BindGroup,
+    textures: Textures,
     chunk_pipeline: wgpu::RenderPipeline,
     chunks: HashMap<simulation::chunk::ID, chunk::Chunk>,
 }
@@ -114,6 +117,55 @@ impl Interface {
             }],
         });
 
+        let mut textures = Textures::new();
+
+        pollster::block_on(textures.load_texture_atlas(
+            &device,
+            &queue,
+            &"assets/textures/atlas.png".to_string(),
+            "atlas",
+        ));
+
+        let texture_sampler_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Texture and Sampler Bind Group Layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+            });
+
+        let (_, atlas_texture_view, atlas_sampler) = textures.texture_map.get("atlas").unwrap();
+
+        let texture_sampler_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Texture and Sampler Bind Group"),
+            layout: &texture_sampler_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&atlas_texture_view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&atlas_sampler),
+                },
+            ],
+        });
+
         let chunk_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Chunk Shader"),
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
@@ -122,7 +174,10 @@ impl Interface {
         let chunk_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Chunk Pipeline Layout"),
-                bind_group_layouts: &[&uniform_bind_group_layout],
+                bind_group_layouts: &[
+                    &uniform_bind_group_layout,
+                    &texture_sampler_bind_group_layout,
+                ],
                 push_constant_ranges: &[],
             });
 
@@ -153,14 +208,18 @@ impl Interface {
             surface_texture_view_descriptor,
             view_projection_buffer,
             view_projection_bind_group,
+            texture_sampler_bind_group,
             chunk_pipeline,
             chunks,
+            textures,
         };
 
         log::info!("Interface Initialized");
 
         interface
     }
+
+    pub fn setup(&mut self) {}
 
     fn check_active(&mut self, event_loop: &ActiveEventLoop) {
         let status = self.get_mode();
@@ -228,11 +287,14 @@ impl Interface {
 
             for face in &chunk_view.mesh.faces {
                 let face_vertices = face.vertices();
+                let block_uv = BLOCK_UVS.get(&face.kind).unwrap();
+                let face_uvs = block_uv.face_uvs.get(&face.direction).unwrap();
+
                 for (index, vertex) in face_vertices.iter().enumerate() {
                     vertices.push(chunk::Vertex {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
-                        color: face.color.to_array(),
+                        uv: [face_uvs[0] as f32, face_uvs[1] as f32],
                         light: face.light[index],
                     });
                 }
@@ -314,6 +376,7 @@ impl Interface {
 
         render_pass.set_pipeline(&self.chunk_pipeline);
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
+        render_pass.set_bind_group(1, &self.texture_sampler_bind_group, &[]);
 
         for chunk in self.chunks.values() {
             if chunk.mesh.index_count > 0 {
@@ -431,7 +494,7 @@ impl Interface {
         let forward = entity_view.orientation * Vec3::Z;
         let up = entity_view.orientation * Vec3::Y;
 
-        let eye = entity_view.position;
+        let eye = entity_view.position + USER_VIEW_OFFSET * up;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

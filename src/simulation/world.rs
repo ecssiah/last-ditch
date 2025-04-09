@@ -48,11 +48,9 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.generate_structure(-12, 1, 12, &structure::Kind::Luigi);
-
-        self.set_block_kind(0, 1, 0, &block::kind::Kind::Metal);
-        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal);
-        self.set_block_kind(0, 3, 0, &block::kind::Kind::GoldMetal);
+        self.set_block_kind(0, 1, 0, &block::kind::Kind::Metal1);
+        self.set_block_kind(0, 2, 0, &block::kind::Kind::Metal1);
+        self.set_block_kind(0, 3, 0, &block::kind::Kind::Metal2);
 
         self.update_chunk_meshes();
     }
@@ -76,9 +74,9 @@ impl World {
 
                 let (primary_color, secondary_color) =
                     if (chunk_position.x + chunk_position.z) % 2 == 0 {
-                        (&block::Kind::GreenCloth, &block::Kind::Concrete)
+                        (&block::Kind::Metal3, &block::Kind::Metal4)
                     } else {
-                        (&block::Kind::BlueCloth, &block::Kind::Grey)
+                        (&block::Kind::Metal5, &block::Kind::Metal6)
                     };
 
                 let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
@@ -327,7 +325,7 @@ impl World {
 
             for direction in Direction::faces() {
                 if meta.visibility.contains(&direction) {
-                    let mut face = Face::new(grid_position, direction, Vec4::from(block.color));
+                    let mut face = Face::new(grid_position, direction, block.kind);
 
                     let (face_edges, face_corners) =
                         Self::get_face_neighbors(meta.neighbors, direction);

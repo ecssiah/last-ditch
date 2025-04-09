@@ -1,0 +1,44 @@
+[
+    Block(
+        kind: Air,
+        solid: false,
+        opacity: 0.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal1,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal2,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal3,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal4,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal5,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Metal6,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+]

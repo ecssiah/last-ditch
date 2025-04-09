@@ -10,11 +10,12 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
-bitflags = "2.4"
+bitflags = { version = "2.4.0", features = ["serde"]}
 bytemuck = { version = "1.14", features = ["derive"] }
 env_logger = "0.11.6"
 flexi_logger = "0.27"
 glam = "0.29.0"
+image = "0.25.6"
 itertools = "0.12"
 log = "0.4"
 nalgebra = { version = "0.33", features = ["convert-glam029"] }

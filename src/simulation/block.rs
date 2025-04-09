@@ -24,7 +24,6 @@ pub struct Block {
     pub opacity: f32,
     pub emittance: u8,
     pub solid: bool,
-    pub color: (f32, f32, f32, f32),
 }
 
 impl Block {
