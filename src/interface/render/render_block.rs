@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
-pub struct BlockUV {
+pub struct RenderBlock {
     pub kind: block::Kind,
-    pub tile_position: HashMap<block::Direction, [u32; 2]>,
+    pub atlas_coordinates: HashMap<block::Direction, [u32; 2]>,
 }

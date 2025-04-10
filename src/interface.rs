@@ -282,13 +282,13 @@ impl Interface {
 
             for face in &chunk_view.mesh.faces {
                 let face_vertices = face.vertices();
-                let block_uv = BLOCK_UVS.get(&face.kind).unwrap();
-                let tile_position = block_uv.tile_position.get(&face.direction).unwrap();
+                let render_block = RENDER_BLOCKS.get(&face.kind).unwrap();
+                let atlas_coordinates = render_block.atlas_coordinates.get(&face.direction).unwrap();
 
                 let uvs = self
                     .textures
                     .texture_atlas
-                    .get_uv_coords(tile_position[0], tile_position[1]);
+                    .get_uv_coords(atlas_coordinates[0], atlas_coordinates[1]);
 
                 for (index, vertex) in face_vertices.iter().enumerate() {
                     vertices.push(chunk::Vertex {

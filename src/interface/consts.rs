@@ -1,6 +1,5 @@
-use crate::{include_assets, interface::render, simulation::block};
+use crate::{include_assets, interface::render::RenderBlock, simulation::block};
 use once_cell::sync::Lazy;
-use ron::from_str;
 use std::collections::HashMap;
 
 pub const FULLSCREEN: bool = true;
@@ -18,18 +17,11 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-const BLOCK_UVS_CONFIG: &str = include_assets!("config/interface/block_uvs.ron");
+const RENDER_BLOCKS_CONFIG: &str = include_assets!("config/interface/render_blocks.ron");
 
-pub static BLOCK_UVS: Lazy<HashMap<block::Kind, render::BlockUV>> = Lazy::new(|| {
-    let blocks: Vec<render::BlockUVConfig> =
-        from_str(BLOCK_UVS_CONFIG).expect("Failed to parse block_uvs.ron");
+pub static RENDER_BLOCKS: Lazy<HashMap<block::Kind, RenderBlock>> = Lazy::new(|| {
+    let list: Vec<RenderBlock> =
+        ron::from_str::<Vec<RenderBlock>>(RENDER_BLOCKS_CONFIG).expect("Failed to parse Blocks");
 
-    blocks
-        .into_iter()
-        .map(|block_uv_config| {
-            let block_uv =
-                render::BlockUV::try_from(block_uv_config).expect("Invalid block UV definition");
-            (block_uv.kind.clone(), block_uv)
-        })
-        .collect()
+    list.into_iter().map(|block| (block.kind, block)).collect()
 });

@@ -4,7 +4,6 @@ pub mod id;
 pub mod kind;
 pub mod light;
 pub mod meta;
-pub mod neighbors;
 
 pub use direction::Direction;
 pub use face::Face;
@@ -12,7 +11,6 @@ pub use id::ID;
 pub use kind::Kind;
 pub use light::Light;
 pub use meta::Meta;
-pub use neighbors::Neighbors;
 
 use crate::simulation::{block, consts::*, world::World};
 use glam::IVec3;

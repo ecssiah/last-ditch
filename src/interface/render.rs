@@ -1,9 +1,7 @@
-pub mod block_uv;
-pub mod block_uv_config;
+pub mod render_block;
 pub mod textures;
 pub mod texture_atlas;
 
-pub use block_uv::BlockUV;
-pub use block_uv_config::BlockUVConfig;
+pub use render_block::RenderBlock;
 pub use textures::Textures;
 pub use texture_atlas::TextureAtlas;

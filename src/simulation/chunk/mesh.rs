@@ -5,12 +5,18 @@ use crate::simulation::{
 use nalgebra::Point3;
 use std::collections::HashSet;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Mesh {
     pub faces: Vec<block::Face>,
 }
 
 impl Mesh {
+    pub fn new() -> Mesh {
+        let mesh = Mesh { faces: Vec::new() };
+
+        mesh
+    }
+
     pub fn vertices_and_indices(&self) -> (Vec<Point3<f32>>, Vec<[u32; 3]>) {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
@@ -48,7 +54,7 @@ impl Mesh {
                 let mut height = 1;
 
                 match direction {
-                    Direction::ZP | Direction::ZN => {
+                    Direction::XoYoZp | Direction::XoYoZn => {
                         while grid.contains(&(x + width, y, z)) {
                             width += 1;
                         }
@@ -72,8 +78,8 @@ impl Mesh {
 
                         let zf = z as f32
                             + match direction {
-                                Direction::ZP => BLOCK_RADIUS,
-                                Direction::ZN => -BLOCK_RADIUS,
+                                Direction::XoYoZp => BLOCK_RADIUS,
+                                Direction::XoYoZn => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 
@@ -90,7 +96,7 @@ impl Mesh {
                         indices.push([start_index + 0, start_index + 1, start_index + 2]);
                         indices.push([start_index + 2, start_index + 3, start_index + 0]);
                     }
-                    Direction::XP | Direction::XN => {
+                    Direction::XpYoZo | Direction::XnYoZo => {
                         while grid.contains(&(x, y + width, z)) {
                             width += 1;
                         }
@@ -114,8 +120,8 @@ impl Mesh {
 
                         let xf = x as f32
                             + match direction {
-                                Direction::XP => BLOCK_RADIUS,
-                                Direction::XN => -BLOCK_RADIUS,
+                                Direction::XpYoZo => BLOCK_RADIUS,
+                                Direction::XnYoZo => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 
@@ -132,7 +138,7 @@ impl Mesh {
                         indices.push([start_index, start_index + 1, start_index + 2]);
                         indices.push([start_index, start_index + 2, start_index + 3]);
                     }
-                    Direction::YP | Direction::YN => {
+                    Direction::XoYpZo | Direction::XoYnZo => {
                         while grid.contains(&(x + width, y, z)) {
                             width += 1;
                         }
@@ -156,8 +162,8 @@ impl Mesh {
 
                         let yf = y as f32
                             + match direction {
-                                Direction::YP => BLOCK_RADIUS,
-                                Direction::YN => -BLOCK_RADIUS,
+                                Direction::XoYpZo => BLOCK_RADIUS,
+                                Direction::XoYnZo => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 

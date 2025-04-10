@@ -1,109 +1,94 @@
-use bitflags::bitflags;
 use glam::IVec3;
 use serde::{Deserialize, Serialize};
 
-bitflags! {
-    #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, Hash, PartialEq, Eq)]
-    pub struct Direction: u32 {
-        const XN_YN_ZN = 1 << 00; const X0_YN_ZN = 1 << 01; const XP_YN_ZN = 1 << 02;
-        const XN_Y0_ZN = 1 << 03; const X0_Y0_ZN = 1 << 04; const XP_Y0_ZN = 1 << 05;
-        const XN_YP_ZN = 1 << 06; const X0_YP_ZN = 1 << 07; const XP_YP_ZN = 1 << 08;
+#[rustfmt::skip]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
+pub enum Direction {
+    XnYnZn, XoYnZn, XpYnZn,
+    XnYoZn, XoYoZn, XpYoZn,
+    XnYpZn, XoYpZn, XpYpZn,
 
-        const XN_YN_Z0 = 1 << 09; const X0_YN_Z0 = 1 << 10; const XP_YN_Z0 = 1 << 11;
-        const XN_Y0_Z0 = 1 << 12; const X0_Y0_Z0 = 1 << 13; const XP_Y0_Z0 = 1 << 14;
-        const XN_YP_Z0 = 1 << 15; const X0_YP_Z0 = 1 << 16; const XP_YP_Z0 = 1 << 17;
+    XnYnZo, XoYnZo, XpYnZo,
+    XnYoZo, XoYoZo, XpYoZo,
+    XnYpZo, XoYpZo, XpYpZo,
 
-        const XN_YN_ZP = 1 << 18; const X0_YN_ZP = 1 << 19; const XP_YN_ZP = 1 << 20;
-        const XN_Y0_ZP = 1 << 21; const X0_Y0_ZP = 1 << 22; const XP_Y0_ZP = 1 << 23;
-        const XN_YP_ZP = 1 << 24; const X0_YP_ZP = 1 << 25; const XP_YP_ZP = 1 << 26;
-
-        const XP = Self::XP_Y0_Z0.bits();
-        const XN = Self::XN_Y0_Z0.bits();
-        const YP = Self::X0_YP_Z0.bits();
-        const YN = Self::X0_YN_Z0.bits();
-        const ZP = Self::X0_Y0_ZP.bits();
-        const ZN = Self::X0_Y0_ZN.bits();
-
-        const ORIGIN = Self::X0_Y0_Z0.bits();
-
-        const EAST = Self::XP_Y0_Z0.bits();
-        const WEST = Self::XN_Y0_Z0.bits();
-        const UP = Self::X0_YP_Z0.bits();
-        const DOWN = Self::X0_YN_Z0.bits();
-        const NORTH = Self::X0_Y0_ZP.bits();
-        const SOUTH = Self::X0_Y0_ZN.bits();
-    }
+    XnYnZp, XoYnZp, XpYnZp,
+    XnYoZp, XoYoZp, XpYoZp,
+    XnYpZp, XoYpZp, XpYpZp,
 }
 
 impl Direction {
     #[rustfmt::skip]
-    const OFFSETS: [IVec3; 27] = [
-        IVec3::new(-1, -1, -1), IVec3::new(0, -1, -1), IVec3::new(1, -1, -1),
-        IVec3::new(-1,  0, -1), IVec3::new(0,  0, -1), IVec3::new(1,  0, -1),
-        IVec3::new(-1,  1, -1), IVec3::new(0,  1, -1), IVec3::new(1,  1, -1),
-
-        IVec3::new(-1, -1,  0), IVec3::new(0, -1,  0), IVec3::new(1, -1,  0),
-        IVec3::new(-1,  0,  0), IVec3::new(0,  0,  0), IVec3::new(1,  0,  0),
-        IVec3::new(-1,  1,  0), IVec3::new(0,  1,  0), IVec3::new(1,  1,  0),
-
-        IVec3::new(-1, -1,  1), IVec3::new(0, -1,  1), IVec3::new(1, -1,  1),
-        IVec3::new(-1,  0,  1), IVec3::new(0,  0,  1), IVec3::new(1,  0,  1),
-        IVec3::new(-1,  1,  1), IVec3::new(0,  1,  1), IVec3::new(1,  1,  1),
+    const ALL: [Direction; 27] = [
+        Direction::XnYnZn, 
+        Direction::XoYnZn, 
+        Direction::XpYnZn,
+        Direction::XnYoZn, 
+        Direction::XoYoZn, 
+        Direction::XpYoZn,
+        Direction::XnYpZn, 
+        Direction::XoYpZn, 
+        Direction::XpYpZn,
+        Direction::XnYnZo, 
+        Direction::XoYnZo, 
+        Direction::XpYnZo,
+        Direction::XnYoZo, 
+        Direction::XoYoZo, 
+        Direction::XpYoZo,
+        Direction::XnYpZo, 
+        Direction::XoYpZo, 
+        Direction::XpYpZo,
+        Direction::XnYnZp, 
+        Direction::XoYnZp, 
+        Direction::XpYnZp,
+        Direction::XnYoZp, 
+        Direction::XoYoZp, 
+        Direction::XpYoZp,
+        Direction::XnYpZp, 
+        Direction::XoYpZp, 
+        Direction::XpYpZp,
     ];
 
+    #[rustfmt::skip]
     const FACES: [Direction; 6] = [
-        Direction::XP_Y0_Z0,
-        Direction::XN_Y0_Z0,
-        Direction::X0_YP_Z0,
-        Direction::X0_YN_Z0,
-        Direction::X0_Y0_ZP,
-        Direction::X0_Y0_ZN,
+        Direction::XpYoZo,
+        Direction::XnYoZo,
+        Direction::XoYpZo,
+        Direction::XoYnZo,
+        Direction::XoYoZp,
+        Direction::XoYoZn,
     ];
 
+    #[rustfmt::skip]
     const EDGES: [Direction; 12] = [
-        Direction::X0_YN_ZN,
-        Direction::XN_Y0_ZN,
-        Direction::XP_Y0_ZN,
-        Direction::X0_YP_ZN,
-        Direction::XN_YN_Z0,
-        Direction::XP_YN_Z0,
-        Direction::XN_YP_Z0,
-        Direction::XP_YP_Z0,
-        Direction::X0_YN_ZP,
-        Direction::XN_Y0_ZP,
-        Direction::XP_Y0_ZP,
-        Direction::X0_YP_ZP,
+        Direction::XoYnZn,
+        Direction::XnYoZn,
+        Direction::XpYoZn,
+        Direction::XoYpZn,
+        Direction::XnYnZo,
+        Direction::XpYnZo,
+        Direction::XnYpZo,
+        Direction::XpYpZo,
+        Direction::XoYnZp,
+        Direction::XnYoZp,
+        Direction::XpYoZp,
+        Direction::XoYpZp,
     ];
 
+    #[rustfmt::skip]
     const CORNERS: [Direction; 8] = [
-        Direction::XN_YN_ZN,
-        Direction::XP_YN_ZN,
-        Direction::XN_YP_ZN,
-        Direction::XP_YP_ZN,
-        Direction::XN_YN_ZP,
-        Direction::XP_YN_ZP,
-        Direction::XN_YP_ZP,
-        Direction::XP_YP_ZP,
+        Direction::XnYnZn,
+        Direction::XpYnZn,
+        Direction::XnYpZn,
+        Direction::XpYpZn,
+        Direction::XnYnZp,
+        Direction::XpYnZp,
+        Direction::XnYpZp,
+        Direction::XpYpZp,
     ];
 
-    pub fn bit(index: usize) -> Option<Self> {
-        Self::from_bits(1 << index)
-    }
-
-    pub fn index(self) -> usize {
-        self.bits().trailing_zeros() as usize
-    }
-
-    pub fn offset(self) -> IVec3 {
-        Self::OFFSETS[self.index()]
-    }
-
-    pub fn get_offset(index: usize) -> Option<IVec3> {
-        Self::OFFSETS.get(index).copied()
-    }
-
-    pub fn offsets() -> [IVec3; 27] {
-        Self::OFFSETS
+    pub fn all() -> [Direction; 27] {
+        Self::ALL
     }
 
     pub fn faces() -> [Direction; 6] {
@@ -116,6 +101,38 @@ impl Direction {
 
     pub fn corners() -> [Direction; 8] {
         Self::CORNERS
+    }
+
+    pub fn offset(&self) -> IVec3 {
+        match self {
+            Direction::XnYnZn => IVec3::new(-1, -1, -1), 
+            Direction::XoYnZn => IVec3::new(0, -1, -1), 
+            Direction::XpYnZn => IVec3::new(1, -1, -1),
+            Direction::XnYoZn => IVec3::new(-1,  0, -1), 
+            Direction::XoYoZn => IVec3::new(0,  0, -1), 
+            Direction::XpYoZn => IVec3::new(1,  0, -1),
+            Direction::XnYpZn => IVec3::new(-1,  1, -1), 
+            Direction::XoYpZn => IVec3::new(0,  1, -1), 
+            Direction::XpYpZn => IVec3::new(1,  1, -1),
+            Direction::XnYnZo => IVec3::new(-1, -1,  0), 
+            Direction::XoYnZo => IVec3::new(0, -1,  0), 
+            Direction::XpYnZo => IVec3::new(1, -1,  0),
+            Direction::XnYoZo => IVec3::new(-1,  0,  0), 
+            Direction::XoYoZo => IVec3::new(0,  0,  0), 
+            Direction::XpYoZo => IVec3::new(1,  0,  0),
+            Direction::XnYpZo => IVec3::new(-1,  1,  0), 
+            Direction::XoYpZo => IVec3::new(0,  1,  0), 
+            Direction::XpYpZo => IVec3::new(1,  1,  0),
+            Direction::XnYnZp => IVec3::new(-1, -1,  1), 
+            Direction::XoYnZp => IVec3::new(0, -1,  1), 
+            Direction::XpYnZp => IVec3::new(1, -1,  1),
+            Direction::XnYoZp => IVec3::new(-1,  0,  1), 
+            Direction::XoYoZp => IVec3::new(0,  0,  1), 
+            Direction::XpYoZp => IVec3::new(1,  0,  1),
+            Direction::XnYpZp => IVec3::new(-1,  1,  1), 
+            Direction::XoYpZp => IVec3::new(0,  1,  1), 
+            Direction::XpYpZp => IVec3::new(1,  1,  1),
+        }
     }
 
     pub fn face_offsets() -> [IVec3; 6] {

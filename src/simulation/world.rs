@@ -1,5 +1,5 @@
 use crate::simulation::{
-    block::{self, Direction, Face, Neighbors},
+    block::{self, Direction, Face},
     chunk,
     consts::*,
     structure,
@@ -36,9 +36,9 @@ impl World {
                 updated: false,
                 palette: Vec::from([block::Kind::Air]),
                 blocks: Box::new([0; CHUNK_VOLUME]),
-                meta: Box::new(core::array::from_fn(|_| block::Meta::default())),
-                light: Box::new(core::array::from_fn(|_| block::Light::default())),
-                mesh: chunk::Mesh::default(),
+                meta: Box::new(core::array::from_fn(|_| block::Meta::new())),
+                light: Box::new(core::array::from_fn(|_| block::Light::new())),
+                mesh: chunk::Mesh::new(),
             }
         });
 
@@ -195,10 +195,11 @@ impl World {
     }
 
     fn update_neighbors(&mut self, grid_position: IVec3) {
-        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Neighbors)>> = HashMap::new();
+        let mut updates: HashMap<chunk::ID, Vec<(block::ID, Vec<block::Direction>)>> =
+            HashMap::new();
 
-        for offset in Direction::offsets() {
-            let neighbor_grid_position = grid_position + offset;
+        for direction in Direction::all() {
+            let neighbor_grid_position = grid_position + direction.offset();
 
             if let Some((chunk_id, block_id)) = World::ids_at(neighbor_grid_position) {
                 let neighbors = self.compute_neighbors(neighbor_grid_position);
@@ -219,23 +220,19 @@ impl World {
         }
     }
 
-    fn compute_neighbors(&mut self, grid_position: IVec3) -> Neighbors {
-        let mut neighbors = Neighbors::NONE;
+    fn compute_neighbors(&mut self, grid_position: IVec3) -> Vec<block::Direction> {
+        let mut neighbors = Vec::new();
 
-        for index in 0..Direction::offsets().len() {
-            if index == Direction::X0_Y0_Z0.index() {
+        for direction in Direction::all() {
+            if direction == Direction::XoYoZo {
                 continue;
             }
 
-            if let Some(offset) = Direction::get_offset(index) {
-                let neighbor_grid_position = grid_position + offset;
+            let neighbor_grid_position = grid_position + direction.offset();
 
-                if let Some(block) = self.get_block(neighbor_grid_position) {
-                    if block.solid {
-                        if let Some(direction) = Direction::bit(index) {
-                            neighbors.set_solid(direction, true);
-                        }
-                    }
+            if let Some(block) = self.get_block(neighbor_grid_position) {
+                if block.solid {
+                    neighbors.push(direction);
                 }
             }
         }
@@ -346,7 +343,7 @@ impl World {
                     let mut face = Face::new(grid_position, direction, block.kind);
 
                     let (face_edges, face_corners) =
-                        Self::get_face_neighbors(meta.neighbors, direction);
+                        Self::get_face_neighbors(direction, &meta.neighbors);
                     face.light = Self::calculate_face_light(face_edges, face_corners);
 
                     faces.push(face);
@@ -358,92 +355,92 @@ impl World {
     }
 
     fn get_face_neighbors(
-        neighbors: block::Neighbors,
         direction: block::Direction,
+        neighbors: &Vec<block::Direction>,
     ) -> ([bool; 4], [bool; 4]) {
         let face_neighbors = match direction {
-            block::Direction::XP => (
+            block::Direction::XpYoZo => (
                 [
-                    neighbors.is_solid(block::Direction::XP_YN_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
-                    neighbors.is_solid(block::Direction::XP_YP_Z0),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
+                    neighbors.contains(&block::Direction::XpYnZo),
+                    neighbors.contains(&block::Direction::XpYoZn),
+                    neighbors.contains(&block::Direction::XpYpZo),
+                    neighbors.contains(&block::Direction::XpYoZp),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::XP_YN_ZN),
-                    neighbors.is_solid(block::Direction::XP_YP_ZN),
-                    neighbors.is_solid(block::Direction::XP_YP_ZP),
-                    neighbors.is_solid(block::Direction::XP_YN_ZP),
-                ],
-            ),
-            block::Direction::XN => (
-                [
-                    neighbors.is_solid(block::Direction::XN_YN_Z0),
-                    neighbors.is_solid(block::Direction::XN_Y0_ZP),
-                    neighbors.is_solid(block::Direction::XN_YP_Z0),
-                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
-                ],
-                [
-                    neighbors.is_solid(block::Direction::XN_YN_ZP),
-                    neighbors.is_solid(block::Direction::XN_YP_ZP),
-                    neighbors.is_solid(block::Direction::XN_YP_ZN),
-                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                    neighbors.contains(&block::Direction::XpYnZn),
+                    neighbors.contains(&block::Direction::XpYpZn),
+                    neighbors.contains(&block::Direction::XpYpZp),
+                    neighbors.contains(&block::Direction::XpYnZp),
                 ],
             ),
-            block::Direction::YP => (
+            block::Direction::XnYoZo => (
                 [
-                    neighbors.is_solid(block::Direction::X0_YP_ZN),
-                    neighbors.is_solid(block::Direction::XN_YP_Z0),
-                    neighbors.is_solid(block::Direction::X0_YP_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_Z0),
+                    neighbors.contains(&block::Direction::XnYnZo),
+                    neighbors.contains(&block::Direction::XnYoZp),
+                    neighbors.contains(&block::Direction::XnYpZo),
+                    neighbors.contains(&block::Direction::XnYoZn),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::XN_YP_ZN),
-                    neighbors.is_solid(block::Direction::XN_YP_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_ZN),
-                ],
-            ),
-            block::Direction::YN => (
-                [
-                    neighbors.is_solid(block::Direction::X0_YN_ZN),
-                    neighbors.is_solid(block::Direction::XP_YN_Z0),
-                    neighbors.is_solid(block::Direction::X0_YN_ZP),
-                    neighbors.is_solid(block::Direction::XN_YN_Z0),
-                ],
-                [
-                    neighbors.is_solid(block::Direction::XP_YN_ZN),
-                    neighbors.is_solid(block::Direction::XP_YN_ZP),
-                    neighbors.is_solid(block::Direction::XN_YN_ZP),
-                    neighbors.is_solid(block::Direction::XN_YN_ZN),
+                    neighbors.contains(&block::Direction::XnYnZp),
+                    neighbors.contains(&block::Direction::XnYpZp),
+                    neighbors.contains(&block::Direction::XnYpZn),
+                    neighbors.contains(&block::Direction::XnYnZn),
                 ],
             ),
-            block::Direction::ZP => (
+            block::Direction::XoYpZo => (
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_ZP),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZP),
-                    neighbors.is_solid(block::Direction::X0_YP_ZP),
-                    neighbors.is_solid(block::Direction::XN_Y0_ZP),
+                    neighbors.contains(&block::Direction::XoYpZn),
+                    neighbors.contains(&block::Direction::XnYpZo),
+                    neighbors.contains(&block::Direction::XoYpZp),
+                    neighbors.contains(&block::Direction::XpYpZo),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::XP_YN_ZP),
-                    neighbors.is_solid(block::Direction::XP_YP_ZP),
-                    neighbors.is_solid(block::Direction::XN_YP_ZP),
-                    neighbors.is_solid(block::Direction::XN_YN_ZP),
+                    neighbors.contains(&block::Direction::XnYpZn),
+                    neighbors.contains(&block::Direction::XnYpZp),
+                    neighbors.contains(&block::Direction::XpYpZp),
+                    neighbors.contains(&block::Direction::XpYpZn),
                 ],
             ),
-            block::Direction::ZN => (
+            block::Direction::XoYnZo => (
                 [
-                    neighbors.is_solid(block::Direction::X0_YN_ZN),
-                    neighbors.is_solid(block::Direction::XN_Y0_ZN),
-                    neighbors.is_solid(block::Direction::X0_YP_ZN),
-                    neighbors.is_solid(block::Direction::XP_Y0_ZN),
+                    neighbors.contains(&block::Direction::XoYnZn),
+                    neighbors.contains(&block::Direction::XpYnZo),
+                    neighbors.contains(&block::Direction::XoYnZp),
+                    neighbors.contains(&block::Direction::XnYnZo),
                 ],
                 [
-                    neighbors.is_solid(block::Direction::XN_YN_ZN),
-                    neighbors.is_solid(block::Direction::XN_YP_ZN),
-                    neighbors.is_solid(block::Direction::XP_YP_ZN),
-                    neighbors.is_solid(block::Direction::XP_YN_ZN),
+                    neighbors.contains(&block::Direction::XpYnZn),
+                    neighbors.contains(&block::Direction::XpYnZp),
+                    neighbors.contains(&block::Direction::XnYnZp),
+                    neighbors.contains(&block::Direction::XnYnZn),
+                ],
+            ),
+            block::Direction::XoYoZp => (
+                [
+                    neighbors.contains(&block::Direction::XoYnZp),
+                    neighbors.contains(&block::Direction::XpYoZp),
+                    neighbors.contains(&block::Direction::XoYpZp),
+                    neighbors.contains(&block::Direction::XnYoZp),
+                ],
+                [
+                    neighbors.contains(&block::Direction::XpYnZp),
+                    neighbors.contains(&block::Direction::XpYpZp),
+                    neighbors.contains(&block::Direction::XnYpZp),
+                    neighbors.contains(&block::Direction::XnYnZp),
+                ],
+            ),
+            block::Direction::XoYoZn => (
+                [
+                    neighbors.contains(&block::Direction::XoYnZn),
+                    neighbors.contains(&block::Direction::XnYoZn),
+                    neighbors.contains(&block::Direction::XoYpZn),
+                    neighbors.contains(&block::Direction::XpYoZn),
+                ],
+                [
+                    neighbors.contains(&block::Direction::XnYnZn),
+                    neighbors.contains(&block::Direction::XnYpZn),
+                    neighbors.contains(&block::Direction::XpYpZn),
+                    neighbors.contains(&block::Direction::XpYnZn),
                 ],
             ),
             _ => panic!("Invalid Direction: {:?}", direction),

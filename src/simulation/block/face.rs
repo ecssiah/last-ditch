@@ -42,36 +42,36 @@ impl Face {
 
     pub fn normal(&self) -> IVec3 {
         match self.direction {
-            Direction::XP => IVec3::new(1, 0, 0),
-            Direction::XN => IVec3::new(-1, 0, 0),
-            Direction::YP => IVec3::new(0, 1, 0),
-            Direction::YN => IVec3::new(0, -1, 0),
-            Direction::ZP => IVec3::new(0, 0, 1),
-            Direction::ZN => IVec3::new(0, 0, -1),
+            Direction::XpYoZo => IVec3::new(1, 0, 0),
+            Direction::XnYoZo => IVec3::new(-1, 0, 0),
+            Direction::XoYpZo => IVec3::new(0, 1, 0),
+            Direction::XoYnZo => IVec3::new(0, -1, 0),
+            Direction::XoYoZp => IVec3::new(0, 0, 1),
+            Direction::XoYoZn => IVec3::new(0, 0, -1),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
     pub fn up(&self) -> IVec3 {
         match self.direction {
-            Direction::XP => IVec3::new(0, 1, 0),
-            Direction::XN => IVec3::new(0, 1, 0),
-            Direction::YP => IVec3::new(0, 0, 1),
-            Direction::YN => IVec3::new(0, 0, 1),
-            Direction::ZP => IVec3::new(0, 1, 0),
-            Direction::ZN => IVec3::new(0, 1, 0),
+            Direction::XpYoZo => IVec3::new(0, 1, 0),
+            Direction::XnYoZo => IVec3::new(0, 1, 0),
+            Direction::XoYpZo => IVec3::new(0, 0, 1),
+            Direction::XoYnZo => IVec3::new(0, 0, 1),
+            Direction::XoYoZp => IVec3::new(0, 1, 0),
+            Direction::XoYoZn => IVec3::new(0, 1, 0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
     pub fn right(&self) -> IVec3 {
         match self.direction {
-            Direction::XP => IVec3::new(0, 0, -1),
-            Direction::XN => IVec3::new(0, 0, 1),
-            Direction::YP => IVec3::new(-1, 0, 0),
-            Direction::YN => IVec3::new(1, 0, 0),
-            Direction::ZP => IVec3::new(1, 0, 0),
-            Direction::ZN => IVec3::new(-1, 0, 0),
+            Direction::XpYoZo => IVec3::new(0, 0, -1),
+            Direction::XnYoZo => IVec3::new(0, 0, 1),
+            Direction::XoYpZo => IVec3::new(-1, 0, 0),
+            Direction::XoYnZo => IVec3::new(1, 0, 0),
+            Direction::XoYoZp => IVec3::new(1, 0, 0),
+            Direction::XoYoZn => IVec3::new(-1, 0, 0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
@@ -81,7 +81,7 @@ impl Face {
 
         if same_direction {
             match self.direction {
-                Direction::XP | Direction::XN => {
+                Direction::XpYoZo | Direction::XnYoZo => {
                     let same_z = self.position.z == face.position.z;
                     let y_connected = (self.position.y - face.position.y).abs() == 1;
                     let same_y = self.position.y == face.position.y;
@@ -89,7 +89,7 @@ impl Face {
 
                     (same_z && y_connected) || (same_y && z_connected)
                 }
-                Direction::YP | Direction::YN => {
+                Direction::XoYpZo | Direction::XoYnZo => {
                     let same_x = self.position.x == face.position.x;
                     let z_connected = (self.position.z - face.position.z).abs() == 1;
                     let same_z = self.position.z == face.position.z;
@@ -97,7 +97,7 @@ impl Face {
 
                     (same_x && z_connected) || (same_z && x_connected)
                 }
-                Direction::ZP | Direction::ZN => {
+                Direction::XoYoZp | Direction::XoYoZn => {
                     let same_x = self.position.x == face.position.x;
                     let y_connected = (self.position.y - face.position.y).abs() == 1;
                     let same_y = self.position.y == face.position.y;
