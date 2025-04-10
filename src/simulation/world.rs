@@ -31,9 +31,9 @@ impl World {
 
             Chunk {
                 id: chunk_id,
+                position: chunk_position,
                 tick: Tick::ZERO,
                 updated: false,
-                position: chunk_position,
                 palette: Vec::from([block::Kind::Air]),
                 blocks: Box::new([0; CHUNK_VOLUME]),
                 meta: Box::new(core::array::from_fn(|_| block::Meta::default())),
@@ -48,20 +48,20 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.set_block_kind(2, 4, 2, &block::kind::Kind::Metal6);
-        self.set_block_kind(-2, 4, 2, &block::kind::Kind::Metal6);
-        self.set_block_kind(2, 4, -2, &block::kind::Kind::Metal6);
-        self.set_block_kind(-2, 4, -2, &block::kind::Kind::Metal6);
+        self.set_block_kind(2, 4, 2, &block::Kind::Metal6);
+        self.set_block_kind(-2, 4, 2, &block::Kind::Metal6);
+        self.set_block_kind(2, 4, -2, &block::Kind::Metal6);
+        self.set_block_kind(-2, 4, -2, &block::Kind::Metal6);
 
         self.set_block_kind(2, 2, 0, &block::Kind::Cheese);
 
         self.set_block_kind(-2, 2, 0, &block::Kind::Moni);
 
-        self.set_block_kind(1, 6, 0, &block::kind::Kind::Metal6);
-        self.set_block_kind(-1, 6, 0, &block::kind::Kind::Metal6);
-        self.set_block_kind(0, 6, -1, &block::kind::Kind::Metal6);
-        self.set_block_kind(0, 6, 1, &block::kind::Kind::Metal6);
-        self.set_block_kind(0, 6, 0, &block::kind::Kind::Metal6);
+        self.set_block_kind(1, 6, 0, &block::Kind::Metal6);
+        self.set_block_kind(-1, 6, 0, &block::Kind::Metal6);
+        self.set_block_kind(0, 6, -1, &block::Kind::Metal6);
+        self.set_block_kind(0, 6, 1, &block::Kind::Metal6);
+        self.set_block_kind(0, 6, 0, &block::Kind::Metal6);
 
         self.update_chunk_meshes();
     }
@@ -163,7 +163,7 @@ impl World {
         if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
             self.update_palette(chunk_id, block_id, kind);
             self.update_neighbors(grid_position);
-            self.update_visibility(grid_position);
+            self.update_visibility(chunk_id, block_id, grid_position);
             self.update_light(chunk_id, block_id, grid_position);
 
             self.mark_update(chunk_id);
@@ -243,17 +243,24 @@ impl World {
         neighbors
     }
 
-    fn update_visibility(&mut self, grid_position: IVec3) {
+    fn update_visibility(
+        &mut self,
+        chunk_id: chunk::ID,
+        block_id: block::ID,
+        grid_position: IVec3,
+    ) {
         let mut updates: HashMap<chunk::ID, Vec<(block::ID, Vec<block::Direction>)>> =
             HashMap::new();
 
-        if let Some((chunk_id, block_id)) = World::ids_at(grid_position) {
-            let visibility = self.compute_visibility(grid_position);
+        if let Some(block) = self.get_block(grid_position) {
+            if block.kind != block::Kind::Air {
+                let visibility = self.compute_visibility(grid_position);
 
-            updates
-                .entry(chunk_id)
-                .or_insert_with(Vec::new)
-                .push((block_id, visibility));
+                updates
+                    .entry(chunk_id)
+                    .or_insert_with(Vec::new)
+                    .push((block_id, visibility));
+            }
         }
 
         for offset in Direction::face_offsets() {

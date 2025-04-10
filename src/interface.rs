@@ -63,11 +63,6 @@ impl Interface {
     ) -> Self {
         let input = Input::new(action_tx.clone());
 
-        window
-            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
-            .expect("Failed to grab cursor");
-        window.set_cursor_visible(false);
-
         let size = window.inner_size();
 
         let surface = instance.create_surface(Arc::clone(&window)).unwrap();
@@ -351,10 +346,10 @@ impl Interface {
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Clear(wgpu::Color {
-                    r: CLEAR_COLOR[0],
-                    g: CLEAR_COLOR[1],
-                    b: CLEAR_COLOR[2],
-                    a: CLEAR_COLOR[3],
+                    r: WINDOW_CLEAR_COLOR[0],
+                    g: WINDOW_CLEAR_COLOR[1],
+                    b: WINDOW_CLEAR_COLOR[2],
+                    a: WINDOW_CLEAR_COLOR[3],
                 }),
                 store: wgpu::StoreOp::Store,
             },
@@ -493,7 +488,7 @@ impl Interface {
         entity_view: &simulation::views::view::EntityView,
     ) -> [[f32; 4]; 4] {
         let opengl_projection =
-            Mat4::perspective_rh(FOV.to_radians(), ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+            Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
         let forward = entity_view.orientation * Vec3::Z;

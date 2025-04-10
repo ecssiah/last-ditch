@@ -11,9 +11,9 @@ use glam::{IVec3, Vec3};
 
 pub struct Chunk {
     pub id: chunk::ID,
+    pub position: IVec3,
     pub tick: Tick,
     pub updated: bool,
-    pub position: IVec3,
     pub palette: Vec<block::Kind>,
     pub blocks: Box<[usize; CHUNK_VOLUME]>,
     pub meta: Box<[block::Meta; CHUNK_VOLUME]>,
