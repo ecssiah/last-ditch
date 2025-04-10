@@ -281,6 +281,10 @@ impl Interface {
             let mut index_offset = 0;
 
             for face in &chunk_view.mesh.faces {
+                if face.kind == simulation::block::Kind::Air {
+                    continue;
+                }
+
                 let face_vertices = face.vertices();
                 let render_block = RENDER_BLOCKS.get(&face.kind).unwrap();
                 let atlas_coordinates = render_block.atlas_coordinates.get(&face.direction).unwrap();

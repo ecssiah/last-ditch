@@ -48,20 +48,47 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
-        self.set_block_kind(2, 4, 2, &block::Kind::Metal6);
-        self.set_block_kind(-2, 4, 2, &block::Kind::Metal6);
-        self.set_block_kind(2, 4, -2, &block::Kind::Metal6);
-        self.set_block_kind(-2, 4, -2, &block::Kind::Metal6);
+        self.set_cube(
+            IVec3::new(-6, 5, -6),
+            IVec3::new(6, 5, 6),
+            &block::Kind::Stone1,
+        );
 
-        self.set_block_kind(2, 2, 0, &block::Kind::Cheese);
+        self.set_cube(
+            IVec3::new(-3, 5, -3),
+            IVec3::new(3, 5, 3),
+            &block::Kind::Air,
+        );
 
-        self.set_block_kind(-2, 2, 0, &block::Kind::Moni);
+        self.set_cube(
+            IVec3::new(-5, 6, -5),
+            IVec3::new(5, 6, 5),
+            &block::Kind::Stone1,
+        );
 
-        self.set_block_kind(1, 6, 0, &block::Kind::Metal6);
-        self.set_block_kind(-1, 6, 0, &block::Kind::Metal6);
-        self.set_block_kind(0, 6, -1, &block::Kind::Metal6);
-        self.set_block_kind(0, 6, 1, &block::Kind::Metal6);
-        self.set_block_kind(0, 6, 0, &block::Kind::Metal6);
+        self.set_block_kind(5, 5, 5, &block::Kind::Engraved2);
+        self.set_block_kind(5, 4, 5, &block::Kind::Engraved1);
+        self.set_block_kind(5, 3, 5, &block::Kind::Engraved2);
+        self.set_block_kind(5, 2, 5, &block::Kind::Engraved1);
+        self.set_block_kind(5, 1, 5, &block::Kind::Engraved2);
+
+        self.set_block_kind(-5, 5, 5, &block::Kind::Engraved2);
+        self.set_block_kind(-5, 4, 5, &block::Kind::Engraved1);
+        self.set_block_kind(-5, 3, 5, &block::Kind::Engraved2);
+        self.set_block_kind(-5, 2, 5, &block::Kind::Engraved1);
+        self.set_block_kind(-5, 1, 5, &block::Kind::Engraved2);
+
+        self.set_block_kind(5, 5, -5, &block::Kind::Engraved2);
+        self.set_block_kind(5, 4, -5, &block::Kind::Engraved1);
+        self.set_block_kind(5, 3, -5, &block::Kind::Engraved2);
+        self.set_block_kind(5, 2, -5, &block::Kind::Engraved1);
+        self.set_block_kind(5, 1, -5, &block::Kind::Engraved2);
+
+        self.set_block_kind(-5, 5, -5, &block::Kind::Engraved2);
+        self.set_block_kind(-5, 4, -5, &block::Kind::Engraved1);
+        self.set_block_kind(-5, 3, -5, &block::Kind::Engraved2);
+        self.set_block_kind(-5, 2, -5, &block::Kind::Engraved1);
+        self.set_block_kind(-5, 1, -5, &block::Kind::Engraved2);
 
         self.update_chunk_meshes();
     }
@@ -83,17 +110,10 @@ impl World {
             for z in -world_boundary..=world_boundary {
                 let chunk_position = Chunk::position_at(IVec3::new(x as i32, 0, z as i32)).unwrap();
 
-                let (primary_color, secondary_color) =
-                    if (chunk_position.x + chunk_position.z) % 2 == 0 {
-                        (&block::Kind::Metal3, &block::Kind::Metal4)
-                    } else {
-                        (&block::Kind::Metal5, &block::Kind::Metal6)
-                    };
-
-                let kind = if (x % 2 == 0) ^ (z % 2 == 0) {
-                    primary_color
+                let kind = if (chunk_position.x + chunk_position.z) % 2 == 0 {
+                    &block::Kind::Stone1
                 } else {
-                    secondary_color
+                    &block::Kind::Stone2
                 };
 
                 self.set_block_kind(x as i32, 0, z as i32, kind);
@@ -171,6 +191,16 @@ impl World {
             true
         } else {
             false
+        }
+    }
+
+    pub fn set_cube(&mut self, min: IVec3, max: IVec3, kind: &block::Kind) {
+        for x in min.x..=max.x {
+            for y in min.y..=max.y {
+                for z in min.z..=max.z {
+                    self.set_block_kind(x, y, z, kind);
+                }
+            }
         }
     }
 
@@ -336,17 +366,20 @@ impl World {
         for block_id in (0..CHUNK_VOLUME).map(block::ID) {
             let meta = chunk.get_meta(block_id).unwrap();
             let block = chunk.get_block(block_id).unwrap();
-            let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
-            for direction in Direction::faces() {
-                if meta.visibility.contains(&direction) {
-                    let mut face = Face::new(grid_position, direction, block.kind);
+            if block.solid {
+                let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
-                    let (face_edges, face_corners) =
-                        Self::get_face_neighbors(direction, &meta.neighbors);
-                    face.light = Self::calculate_face_light(face_edges, face_corners);
+                for direction in Direction::faces() {
+                    if meta.visibility.contains(&direction) {
+                        let mut face = Face::new(grid_position, direction, block.kind);
 
-                    faces.push(face);
+                        let (face_edges, face_corners) =
+                            Self::get_face_neighbors(direction, &meta.neighbors);
+                        face.light = Self::calculate_face_light(face_edges, face_corners);
+
+                        faces.push(face);
+                    }
                 }
             }
         }

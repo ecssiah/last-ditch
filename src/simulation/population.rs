@@ -24,7 +24,7 @@ impl Population {
     pub fn generate(&mut self) {
         let mut user_entity = Entity::new(entity::ID::USER_ENTITY);
 
-        user_entity.set_position(0.0, 10.0, 0.0);
+        user_entity.set_position(10.0, 2.0, 10.0);
         user_entity.set_rotation(0.0, 0.0);
 
         self.entities.insert(user_entity.id, user_entity);

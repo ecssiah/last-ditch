@@ -1,6 +1,6 @@
 [
     RenderBlock(
-        kind: Metal1,
+        kind: Engraved1,
         atlas_coordinates: {
             XpYoZo: (0, 0),
             XnYoZo: (0, 0),
@@ -11,29 +11,7 @@
         },
     ),
     RenderBlock(
-        kind: Metal2,
-        atlas_coordinates: {
-            XpYoZo: (0, 1),
-            XnYoZo: (0, 1),
-            XoYpZo: (0, 1),
-            XoYnZo: (0, 1),
-            XoYoZp: (0, 1),
-            XoYoZn: (0, 1),
-        },
-    ),
-    RenderBlock(
-        kind: Metal3,
-        atlas_coordinates: {
-            XpYoZo: (0, 2),
-            XnYoZo: (0, 2),
-            XoYpZo: (0, 2),
-            XoYnZo: (0, 2),
-            XoYoZp: (0, 2),
-            XoYoZn: (0, 2),
-        },
-    ),
-    RenderBlock(
-        kind: Metal4,
+        kind: Engraved2,
         atlas_coordinates: {
             XpYoZo: (1, 0),
             XnYoZo: (1, 0),
@@ -44,7 +22,18 @@
         },
     ),
     RenderBlock(
-        kind: Metal5,
+        kind: Stone1,
+        atlas_coordinates: {
+            XpYoZo: (0, 1),
+            XnYoZo: (0, 1),
+            XoYpZo: (0, 1),
+            XoYnZo: (0, 1),
+            XoYoZp: (0, 1),
+            XoYoZn: (0, 1),
+        },
+    ),
+    RenderBlock(
+        kind: Stone2,
         atlas_coordinates: {
             XpYoZo: (1, 1),
             XnYoZo: (1, 1),
@@ -52,39 +41,6 @@
             XoYnZo: (1, 1),
             XoYoZp: (1, 1),
             XoYoZn: (1, 1),
-        },
-    ),
-    RenderBlock(
-        kind: Metal6,
-        atlas_coordinates: {
-            XpYoZo: (1, 0),
-            XnYoZo: (0, 1),
-            XoYpZo: (1, 2),
-            XoYnZo: (1, 1),
-            XoYoZp: (2, 1),
-            XoYoZn: (2, 2),
-        },
-    ),
-    RenderBlock(
-        kind: Cheese,
-        atlas_coordinates: {
-            XpYoZo: (0, 3),
-            XnYoZo: (0, 3),
-            XoYpZo: (0, 3),
-            XoYnZo: (0, 3),
-            XoYoZp: (0, 3),
-            XoYoZn: (0, 3),
-        },
-    ),
-    RenderBlock(
-        kind: Moni,
-        atlas_coordinates: {
-            XpYoZo: (1, 3),
-            XnYoZo: (1, 3),
-            XoYpZo: (1, 3),
-            XoYnZo: (1, 3),
-            XoYoZp: (1, 3),
-            XoYoZn: (1, 3),
         },
     ),
 ]
