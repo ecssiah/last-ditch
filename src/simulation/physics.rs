@@ -1,6 +1,9 @@
+pub mod entity_controller;
+
 use crate::simulation::{
     self, chunk,
     consts::*,
+    physics::entity_controller::EntityController,
     population::{
         entity::{self, JumpStage},
         Entity,
@@ -10,8 +13,9 @@ use crate::simulation::{
     Chunk,
 };
 use glam::Vec3;
-use nalgebra::Unit;
+use nalgebra::{Isometry3, Translation3, Unit, UnitQuaternion};
 use rapier3d::{
+    control::KinematicCharacterController,
     na::{vector, Vector3},
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::*,
@@ -32,7 +36,7 @@ pub struct Physics {
     pub rigid_body_set: RigidBodySet,
     pub collider_set: ColliderSet,
     pub chunk_collider_handles: HashMap<chunk::ID, ColliderHandle>,
-    pub entity_body_handles: HashMap<entity::ID, RigidBodyHandle>,
+    pub entity_controllers: HashMap<entity::ID, EntityController>,
 }
 
 impl Physics {
@@ -41,7 +45,6 @@ impl Physics {
 
         let integration_parameters = IntegrationParameters {
             dt: FIXED_DT.as_secs_f32(),
-            normalized_allowed_linear_error: 0.01,
             ..Default::default()
         };
 
@@ -55,8 +58,8 @@ impl Physics {
         let query_pipeline = QueryPipeline::new();
         let rigid_body_set = RigidBodySet::new();
         let collider_set = ColliderSet::new();
-        let entity_body_handles = HashMap::new();
         let chunk_collider_handles = HashMap::new();
+        let entity_controllers = HashMap::new();
 
         let physics = Self {
             gravity,
@@ -71,8 +74,8 @@ impl Physics {
             query_pipeline,
             rigid_body_set,
             collider_set,
-            entity_body_handles,
             chunk_collider_handles,
+            entity_controllers,
         };
 
         physics
@@ -117,12 +120,70 @@ impl Physics {
             self.tick_entity_movement(entity);
             self.tick_entity_jump(entity);
 
+            self.tick_character_controllers(entity);
+
             self.step();
 
             self.sync_entities(entity);
         }
 
         self.update_chunk_colliders(state);
+    }
+
+    fn tick_character_controllers(&mut self, entity: &mut Entity) {
+        let Some(entity_controller) = self.entity_controllers.get(&entity.id) else {
+            return;
+        };
+
+        let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+            return;
+        };
+
+        let forward = entity.orientation * Vec3::Z;
+        let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
+        let right_xz = Vec3::Y.cross(forward_xz).normalize();
+
+        let input_dir = entity.x_speed * right_xz + entity.z_speed * forward_xz;
+
+        let position = rigid_body.translation();
+        let position_iso =
+            Isometry3::from_parts(Translation3::from(*position), UnitQuaternion::identity());
+
+        entity.velocity.x = input_dir.x * DEFAULT_X_SPEED;
+        entity.velocity.z = input_dir.z * DEFAULT_Z_SPEED;
+
+        match entity.jump_state.stage {
+            JumpStage::Launch => {
+                entity.jump_state.stage = JumpStage::Rise;
+                entity.velocity.y = JUMP_LAUNCH_VELOCITY;
+            }
+            JumpStage::Rise => {
+                entity.jump_state.timer += 1;
+
+                if entity.jump_state.timer < MAX_JUMP_TICKS {
+                    entity.velocity.y = JUMP_HOLD_FORCE;
+                } else {
+                    entity.jump_state.stage = JumpStage::Fall;
+                }
+            }
+            JumpStage::Fall => {
+                entity.jump_state.stage = JumpStage::Ground;
+                entity.velocity.y = 0.5 * entity.velocity.y;
+            }
+            _ => (),
+        }
+
+        // entity_controller.character_controller.move_shape(
+        //     FIXED_DT.as_secs_f32(),
+        //     &self.rigid_body_set,
+        //     &self.collider_set,
+        //     &self.query_pipeline,
+        //     entity_controller.shape.as_ref(),
+        //     &position_iso,
+        //     vector![entity.velocity.x, entity.velocity.y, entity.velocity.z],
+        //     QueryFilter::default(),
+        //     |_| {},
+        // );
     }
 
     fn update_chunk_colliders(&mut self, state: &State) {
@@ -174,6 +235,8 @@ impl Physics {
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
 
+        let entity_shape = SharedShape::capsule_y(0.5, 0.4);
+
         let collider = ColliderBuilder::capsule_y(0.5, 0.4)
             .friction(0.0)
             .friction_combine_rule(CoefficientCombineRule::Min)
@@ -184,8 +247,18 @@ impl Physics {
         self.collider_set
             .insert_with_parent(collider, rigid_body_handle, &mut self.rigid_body_set);
 
-        self.entity_body_handles
-            .insert(entity.id, rigid_body_handle);
+        let character_controller = KinematicCharacterController {
+            ..Default::default()
+        };
+
+        let entity_controller = EntityController {
+            entity_id: entity.id,
+            shape: entity_shape,
+            rigid_body_handle: rigid_body_handle,
+            character_controller: character_controller,
+        };
+
+        self.entity_controllers.insert(entity.id, entity_controller);
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
@@ -218,11 +291,14 @@ impl Physics {
     }
 
     pub fn tick_entity_movement(&mut self, entity: &Entity) {
-        let Some(rb_handle) = self.entity_body_handles.get(&entity.id) else {
+        let Some(entity_controller) = self.entity_controllers.get(&entity.id) else {
             return;
         };
 
-        let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) else {
+        let Some(rigid_body) = self
+            .rigid_body_set
+            .get_mut(entity_controller.rigid_body_handle)
+        else {
             return;
         };
 
@@ -246,73 +322,47 @@ impl Physics {
     }
 
     pub fn tick_entity_jump(&mut self, entity: &mut Entity) {
+        let Some(entity_controller) = self.entity_controllers.get(&entity.id) else {
+            return;
+        };
+
+        let Some(rigid_body) = self
+            .rigid_body_set
+            .get_mut(entity_controller.rigid_body_handle)
+        else {
+            return;
+        };
+
         match entity.jump_state.stage {
             JumpStage::Launch => {
-                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
-                        entity.jump_state.stage = JumpStage::Rise;
+                entity.jump_state.stage = JumpStage::Rise;
 
-                        let lv = rigid_body.linvel();
-                        let jump_velocity = vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z];
+                let lv = rigid_body.linvel();
+                let jump_velocity = vector![lv.x, JUMP_LAUNCH_VELOCITY, lv.z];
 
-                        rigid_body.set_linvel(jump_velocity, true);
-                    }
-                }
+                rigid_body.set_linvel(jump_velocity, true);
             }
             JumpStage::Rise => {
-                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
-                        entity.jump_state.timer += 1;
+                entity.jump_state.timer += 1;
 
-                        if entity.jump_state.timer < MAX_JUMP_TICKS {
-                            let force = vector![0.0, JUMP_HOLD_FORCE, 0.0];
-                            rigid_body.add_force(force, true);
-                        } else {
-                            entity.jump_state.stage = JumpStage::Fall;
-                        }
-                    }
+                if entity.jump_state.timer < MAX_JUMP_TICKS {
+                    let force = vector![0.0, JUMP_HOLD_FORCE, 0.0];
+                    rigid_body.add_force(force, true);
+                } else {
+                    entity.jump_state.stage = JumpStage::Fall;
                 }
             }
             JumpStage::Fall => {
-                if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-                    if let Some(rigid_body) = self.rigid_body_set.get_mut(*rb_handle) {
-                        entity.jump_state.stage = JumpStage::Ground;
+                entity.jump_state.stage = JumpStage::Ground;
 
-                        rigid_body.reset_forces(true);
+                rigid_body.reset_forces(true);
 
-                        let lv = rigid_body.linvel();
-                        let damped_velocity = vector![lv.x, 0.5 * lv.y, lv.z];
+                let lv = rigid_body.linvel();
+                let damped_velocity = vector![lv.x, 0.5 * lv.y, lv.z];
 
-                        rigid_body.set_linvel(damped_velocity, true);
-                    }
-                }
+                rigid_body.set_linvel(damped_velocity, true);
             }
             _ => (),
-        }
-    }
-
-    pub fn sync_entities(&self, entity: &mut Entity) {
-        if let Some(rb_handle) = self.entity_body_handles.get(&entity.id) {
-            if let Some(rigid_body) = self.rigid_body_set.get(*rb_handle) {
-                let rigid_body_position = rigid_body.position();
-
-                let translation = rigid_body_position.translation.vector;
-                let next_position = Vec3::new(translation.x, translation.y, translation.z);
-
-                let current_grid_position = World::grid_position_at(entity.position).unwrap();
-                let next_grid_position = World::grid_position_at(next_position).unwrap();
-
-                entity.position = next_position;
-
-                if current_grid_position == next_grid_position {
-                    entity.chunk_update = false;
-                } else {
-                    let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-                    let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
-
-                    entity.chunk_update = next_chunk_id != current_chunk_id;
-                }
-            }
         }
     }
 
@@ -332,5 +382,34 @@ impl Physics {
             &(),
             &(),
         );
+    }
+
+    pub fn sync_entities(&self, entity: &mut Entity) {
+        let Some(entity_controller) = self.entity_controllers.get(&entity.id) else {
+            return;
+        };
+
+        let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+            return;
+        };
+
+        let rigid_body_position = rigid_body.position();
+
+        let translation = rigid_body_position.translation.vector;
+        let next_position = Vec3::new(translation.x, translation.y, translation.z);
+
+        let current_grid_position = World::grid_position_at(entity.position).unwrap();
+        let next_grid_position = World::grid_position_at(next_position).unwrap();
+
+        entity.position = next_position;
+
+        if current_grid_position == next_grid_position {
+            entity.chunk_update = false;
+        } else {
+            let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+            let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+
+            entity.chunk_update = next_chunk_id != current_chunk_id;
+        }
     }
 }

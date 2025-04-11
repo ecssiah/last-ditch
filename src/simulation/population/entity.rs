@@ -14,6 +14,7 @@ pub struct Entity {
     pub tick: Tick,
     pub name: &'static str,
     pub position: Vec3,
+    pub velocity: Vec3,
     pub chunk_update: bool,
     pub z_speed: f32,
     pub x_speed: f32,
@@ -30,6 +31,7 @@ impl Entity {
             tick: Tick::ZERO,
             name: "",
             position: Vec3::ZERO,
+            velocity: Vec3::ZERO,
             chunk_update: false,
             z_speed: 0.0,
             x_speed: 0.0,
@@ -47,6 +49,10 @@ impl Entity {
 
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
         self.position = Vec3::new(x, y, z);
+    }
+
+    pub fn set_velocity(&mut self, x: f32, y: f32, z: f32) {
+        self.velocity = Vec3::new(x, y, z);
     }
 
     pub fn set_rotation(&mut self, x_axis: f32, y_axis: f32) {

@@ -24,6 +24,82 @@ impl World {
         world
     }
 
+    pub fn generate(&mut self) {
+        self.generate_ground();
+
+        self.set_cube(
+            IVec3::new(15, 4, 15),
+            IVec3::new(17, 6, 17),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(-17, 4, 15),
+            IVec3::new(-15, 6, 17),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(15, 4, -17),
+            IVec3::new(17, 6, -15),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(-17, 4, -17),
+            IVec3::new(-15, 6, -15),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(-6, 5, -6),
+            IVec3::new(6, 5, 6),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-3, 5, -3),
+            IVec3::new(3, 5, 3),
+            &block::Kind::Air,
+        );
+
+        self.set_cube(
+            IVec3::new(-5, 6, -5),
+            IVec3::new(5, 6, 5),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(5, 1, 5),
+            IVec3::new(5, 5, 5),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5, 1, 5),
+            IVec3::new(-5, 5, 5),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(5, 1, -5),
+            IVec3::new(5, 5, -5),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5, 1, -5),
+            IVec3::new(-5, 5, -5),
+            &block::Kind::Engraved1,
+        );
+
+        self.update_chunk_meshes();
+    }
+
+    pub fn tick(&mut self, tick: &Tick) {
+        self.tick = *tick;
+    }
+
     fn setup_chunks() -> [Chunk; WORLD_VOLUME] {
         let chunks: [Chunk; WORLD_VOLUME] = core::array::from_fn(|index| {
             let chunk_id = chunk::ID(index);
@@ -45,65 +121,13 @@ impl World {
         chunks
     }
 
-    pub fn generate(&mut self) {
-        self.generate_ground();
-
-        self.set_cube(
-            IVec3::new(-6, 5, -6),
-            IVec3::new(6, 5, 6),
-            &block::Kind::Stone1,
-        );
-
-        self.set_cube(
-            IVec3::new(-3, 5, -3),
-            IVec3::new(3, 5, 3),
-            &block::Kind::Air,
-        );
-
-        self.set_cube(
-            IVec3::new(-5, 6, -5),
-            IVec3::new(5, 6, 5),
-            &block::Kind::Stone1,
-        );
-
-        self.set_block_kind(5, 5, 5, &block::Kind::Engraved2);
-        self.set_block_kind(5, 4, 5, &block::Kind::Engraved1);
-        self.set_block_kind(5, 3, 5, &block::Kind::Engraved2);
-        self.set_block_kind(5, 2, 5, &block::Kind::Engraved1);
-        self.set_block_kind(5, 1, 5, &block::Kind::Engraved2);
-
-        self.set_block_kind(-5, 5, 5, &block::Kind::Engraved2);
-        self.set_block_kind(-5, 4, 5, &block::Kind::Engraved1);
-        self.set_block_kind(-5, 3, 5, &block::Kind::Engraved2);
-        self.set_block_kind(-5, 2, 5, &block::Kind::Engraved1);
-        self.set_block_kind(-5, 1, 5, &block::Kind::Engraved2);
-
-        self.set_block_kind(5, 5, -5, &block::Kind::Engraved2);
-        self.set_block_kind(5, 4, -5, &block::Kind::Engraved1);
-        self.set_block_kind(5, 3, -5, &block::Kind::Engraved2);
-        self.set_block_kind(5, 2, -5, &block::Kind::Engraved1);
-        self.set_block_kind(5, 1, -5, &block::Kind::Engraved2);
-
-        self.set_block_kind(-5, 5, -5, &block::Kind::Engraved2);
-        self.set_block_kind(-5, 4, -5, &block::Kind::Engraved1);
-        self.set_block_kind(-5, 3, -5, &block::Kind::Engraved2);
-        self.set_block_kind(-5, 2, -5, &block::Kind::Engraved1);
-        self.set_block_kind(-5, 1, -5, &block::Kind::Engraved2);
-
-        self.update_chunk_meshes();
-    }
-
     fn update_chunk_meshes(&mut self) {
         for chunk_id in (0..WORLD_VOLUME).map(chunk::ID) {
             self.update_chunk_mesh(chunk_id);
         }
     }
 
-    pub fn tick(&mut self, tick: &Tick) {
-        self.tick = *tick;
-    }
-
-    pub fn generate_ground(&mut self) {
+    fn generate_ground(&mut self) {
         let world_boundary = WORLD_BOUNDARY as isize;
 
         for x in -world_boundary..=world_boundary {
@@ -121,7 +145,7 @@ impl World {
         }
     }
 
-    pub fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
+    fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
         if let Some(structure) = STRUCTURES.get(structure_kind) {
             let world_position = IVec3::new(x, y, z);
 
@@ -323,11 +347,9 @@ impl World {
             .iter()
             .filter_map(|&direction| {
                 let neighbor_grid_position = grid_position + direction.offset();
+                let block = self.get_block(neighbor_grid_position);
 
-                if self
-                    .get_block(neighbor_grid_position)
-                    .map_or(false, |block| block.kind == block::Kind::Air)
-                {
+                if block.map_or(false, |block| block.kind == block::Kind::Air) {
                     Some(direction)
                 } else {
                     None
@@ -364,10 +386,10 @@ impl World {
         let chunk = self.get_chunk(chunk_id).unwrap();
 
         for block_id in (0..CHUNK_VOLUME).map(block::ID) {
-            let meta = chunk.get_meta(block_id).unwrap();
             let block = chunk.get_block(block_id).unwrap();
 
             if block.solid {
+                let meta = chunk.get_meta(block_id).unwrap();
                 let grid_position = World::grid_position(chunk_id, block_id).unwrap();
 
                 for direction in Direction::faces() {
@@ -376,6 +398,7 @@ impl World {
 
                         let (face_edges, face_corners) =
                             Self::get_face_neighbors(direction, &meta.neighbors);
+
                         face.light = Self::calculate_face_light(face_edges, face_corners);
 
                         faces.push(face);

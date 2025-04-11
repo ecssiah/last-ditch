@@ -37,6 +37,18 @@ impl Views {
     pub fn generate(&mut self, state: &State) {
         if let Some(entity) = state.population.get(&entity::ID::USER_ENTITY) {
             self.register_entity(entity);
+
+            let view = self.repository.get(&entity::ID::USER_ENTITY).unwrap();
+
+            let entity_view = self.generate_entity_view(entity);
+            let chunk_views = self.generate_chunk_views(state, entity.position, &view.chunk_views);
+
+            let new_view = View {
+                entity_view,
+                chunk_views,
+            };
+
+            self.repository.update(entity.id, new_view);
         }
     }
 
