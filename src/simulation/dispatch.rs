@@ -8,20 +8,20 @@ pub use entity_action::JumpAction;
 pub use entity_action::MovementAction;
 pub use world_action::WorldAction;
 
+use crate::simulation::admin;
 use crate::simulation::population::entity;
 use crate::simulation::population::entity::JumpStage;
-use crate::simulation::state;
 use crate::simulation::state::State;
 use glam::Quat;
 use tokio::sync::mpsc::UnboundedReceiver;
 
-pub struct Actions {
+pub struct Dispatch {
     action_rx: UnboundedReceiver<Action>,
 }
 
-impl Actions {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Actions {
-        let actions = Actions { action_rx };
+impl Dispatch {
+    pub fn new(action_rx: UnboundedReceiver<Action>) -> Dispatch {
+        let actions = Dispatch { action_rx };
 
         actions
     }
@@ -29,25 +29,25 @@ impl Actions {
     pub fn tick(&mut self, state: &mut State) {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
-                Action::World(WorldAction::Quit) => {
-                    self.handle_quit_action(state);
-                }
                 Action::Agent(EntityAction::Movement(movement_actions)) => {
                     self.handle_movement_action(state, &movement_actions);
                 }
                 Action::Agent(EntityAction::Jump(jump_action)) => {
                     self.handle_jump_action(state, &jump_action);
                 }
+                Action::World(WorldAction::Exit) => {
+                    self.handle_exit_action(state);
+                }
             }
         }
     }
 
-    fn handle_quit_action(&mut self, state: &mut State) {
-        state.mode = state::Mode::Exit;
+    fn handle_exit_action(&mut self, state: &mut State) {
+        state.admin.mode = admin::Mode::Exit;
     }
 
     fn handle_movement_action(&mut self, state: &mut State, movement_actions: &MovementAction) {
-        if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY) {
+        if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
             entity.z_speed = movement_actions.direction.z;
             entity.x_speed = movement_actions.direction.x;
 
@@ -72,13 +72,13 @@ impl Actions {
     fn handle_jump_action(&mut self, state: &mut State, jump_action: &JumpAction) {
         match jump_action {
             JumpAction::Start => {
-                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY) {
+                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
                     entity.jump_state.stage = JumpStage::Launch;
                     entity.jump_state.timer = 0;
                 }
             }
             JumpAction::End => {
-                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY) {
+                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
                     entity.jump_state.stage = JumpStage::Fall;
                 }
             }

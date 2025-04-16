@@ -6,24 +6,20 @@ use crate::simulation::FIXED_DT;
 use std::time::{Duration, Instant};
 
 pub struct Time {
-    clock: Tick,
-    previous: Instant,
-    work_time: Duration,
+    pub tick: Tick,
+    pub work_time: Duration,
+    pub simulation_instant: Instant,
 }
 
 impl Time {
     pub fn new() -> Time {
         let time = Time {
-            clock: Tick::ZERO,
-            previous: Instant::now(),
+            tick: Tick::ZERO,
+            simulation_instant: Instant::now(),
             work_time: Duration::ZERO,
         };
 
         time
-    }
-
-    pub fn get_clock_tick(&self) -> Tick {
-        self.clock
     }
 
     pub fn has_work(&self) -> bool {
@@ -32,14 +28,14 @@ impl Time {
 
     pub fn calculate_work(&mut self) {
         let now = Instant::now();
-        let frame_time = now.duration_since(self.previous);
-        self.previous = now;
+        let frame_time = now.duration_since(self.simulation_instant);
+        self.simulation_instant = now;
 
         self.work_time += frame_time;
     }
 
     pub fn tick(&mut self) {
-        self.clock += 1;
+        self.tick += 1;
 
         self.work_time -= FIXED_DT;
     }

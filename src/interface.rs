@@ -15,6 +15,7 @@ use glam::{Mat4, Vec3};
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
+    time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedSender;
 use wgpu::{Adapter, Device, Instance, Queue};
@@ -33,8 +34,11 @@ const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
 ]);
 
 pub struct Interface {
-    action_tx: UnboundedSender<simulation::actions::Action>,
-    views: Arc<RwLock<simulation::views::Views>>,
+    delta_time: Duration,
+    render_instant: Instant,
+    render_alpha: f32,
+    action_tx: UnboundedSender<simulation::dispatch::Action>,
+    observation_lock: Arc<RwLock<simulation::observation::Observation>>,
     window: Arc<Window>,
     input: Input,
     device: wgpu::Device,
@@ -53,8 +57,8 @@ pub struct Interface {
 
 impl Interface {
     pub fn new(
-        action_tx: UnboundedSender<simulation::actions::Action>,
-        views: Arc<RwLock<simulation::views::Views>>,
+        action_tx: UnboundedSender<simulation::dispatch::Action>,
+        observation_lock: Arc<RwLock<simulation::observation::Observation>>,
         window: Arc<Window>,
         instance: Instance,
         adapter: Adapter,
@@ -190,9 +194,16 @@ impl Interface {
 
         let chunks = HashMap::new();
 
+        let delta_time = Duration::ZERO;
+        let render_instant = Instant::now();
+        let render_alpha = 0.0;
+
         let interface = Self {
+            delta_time,
+            render_instant,
+            render_alpha,
             action_tx,
-            views,
+            observation_lock,
             window,
             input,
             device,
@@ -216,18 +227,20 @@ impl Interface {
 
     pub fn setup(&mut self) {}
 
-    fn check_active(&mut self, event_loop: &ActiveEventLoop) {
-        let status = self.get_mode();
-
-        if status == simulation::state::Mode::Exit {
+    fn check_active(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        view: &simulation::observation::view::View,
+    ) {
+        if view.admin_view.mode == simulation::admin::Mode::Exit {
             event_loop.exit();
         }
     }
 
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
-        let entity_action = simulation::actions::EntityAction::Movement(movement_actions);
-        let action = simulation::actions::Action::Agent(entity_action);
+        let entity_action = simulation::dispatch::EntityAction::Movement(movement_actions);
+        let action = simulation::dispatch::Action::Agent(entity_action);
 
         self.action_tx.send(action).unwrap();
     }
@@ -238,44 +251,49 @@ impl Interface {
         self.surface.configure(&self.device, &self.surface_config);
     }
 
-    pub fn update(&mut self, event_loop: &ActiveEventLoop) {
-        self.check_active(event_loop);
-        self.send_movement_actions();
+    pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if let Some(view) = self.get_view(&simulation::population::entity::ID::USER_ENTITY1) {
+            self.check_active(event_loop, &view);
+            self.send_movement_actions();
 
-        if let Some(user_view) = self.get_view(simulation::population::entity::ID::USER_ENTITY) {
-            self.update_user_entity(&user_view.entity_view);
-            self.update_chunks(&user_view.chunk_views);
+            self.update_view(&view);
         }
     }
 
-    pub fn get_mode(&self) -> simulation::state::Mode {
-        let views = self.views.read().unwrap();
-
-        let status = views.get_mode();
-
-        status
-    }
-
-    pub fn get_view(
+    fn get_view(
         &self,
-        entity_id: simulation::population::entity::ID,
-    ) -> Option<simulation::views::view::View> {
-        let views = self.views.read().unwrap();
+        entity_id: &simulation::population::entity::ID,
+    ) -> Option<simulation::observation::view::View> {
+        let observation = self.observation_lock.read().unwrap();
 
-        views.get_view(entity_id)
+        observation.get_view(entity_id)
     }
 
-    fn update_user_entity(&mut self, entity_view: &simulation::views::view::EntityView) {
+    fn update_view(&mut self, view: &simulation::observation::view::View) {
+        if let Some(entity_view) = view.population_view.entity_views.get(&view.entity_id) {
+            self.update_entity_view(&entity_view);
+
+            self.update_population_view(&view.population_view);
+            self.update_world_view(&view.world_view);
+
+            self.update_render_alpha(&view.time_view);
+        }
+    }
+
+    fn update_entity_view(&mut self, entity_view: &simulation::observation::view::EntityView) {
         self.update_view_projection(entity_view);
     }
 
-    fn update_chunks(
+    fn update_population_view(
         &mut self,
-        chunk_views: &HashMap<simulation::chunk::ID, simulation::views::view::ChunkView>,
+        _population_view: &simulation::observation::view::PopulationView,
     ) {
+    }
+
+    fn update_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
         self.chunks.clear();
 
-        for (chunk_id, chunk_view) in chunk_views {
+        for (chunk_id, chunk_view) in &world_view.chunk_views {
             let mut vertices = Vec::new();
             let mut indices = Vec::new();
             let mut index_offset = 0;
@@ -287,7 +305,8 @@ impl Interface {
 
                 let face_vertices = face.vertices();
                 let render_block = RENDER_BLOCKS.get(&face.kind).unwrap();
-                let atlas_coordinates = render_block.atlas_coordinates.get(&face.direction).unwrap();
+                let atlas_coordinates =
+                    render_block.atlas_coordinates.get(&face.direction).unwrap();
 
                 let uvs = self
                     .textures
@@ -323,8 +342,8 @@ impl Interface {
         }
     }
 
-    fn update_view_projection(&mut self, entity_view: &simulation::views::view::EntityView) {
-        let view_projection_matrix = Self::create_view_projection_matrix(entity_view);
+    fn update_view_projection(&mut self, entity_view: &simulation::observation::view::EntityView) {
+        let view_projection_matrix = self.create_view_projection_matrix(entity_view);
 
         self.queue.write_buffer(
             &self.view_projection_buffer,
@@ -333,7 +352,7 @@ impl Interface {
         );
     }
 
-    pub fn render(&mut self) {
+    pub fn handle_redraw_requested(&mut self) {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let surface_texture = self
@@ -401,11 +420,20 @@ impl Interface {
         self.window.request_redraw();
     }
 
+    fn update_render_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
+        let now = Instant::now();
+        self.delta_time = now - self.render_instant;
+        self.render_instant = now;
+
+        let render_alpha = (now - time_view.simulation_instant).as_secs_f32();
+        self.render_alpha = render_alpha.clamp(0.0, 1.0);
+    }
+
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         self.input.handle_window_event(&event);
 
         match event {
-            WindowEvent::RedrawRequested => self.render(),
+            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
             WindowEvent::Resized(size) => self.resize(*size),
             _ => (),
         }
@@ -489,16 +517,24 @@ impl Interface {
     }
 
     fn create_view_projection_matrix(
-        entity_view: &simulation::views::view::EntityView,
+        &self,
+        entity_view: &simulation::observation::view::EntityView,
     ) -> [[f32; 4]; 4] {
+        let entity_position_interpolated = entity_view
+            .position
+            .lerp(entity_view.next_position, self.render_alpha);
+        let entity_orientation_interpolated = entity_view
+            .orientation
+            .lerp(entity_view.next_orientation, self.render_alpha);
+
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
-        let forward = entity_view.orientation * Vec3::Z;
-        let up = entity_view.orientation * Vec3::Y;
+        let forward = entity_orientation_interpolated * Vec3::Z;
+        let up = entity_orientation_interpolated * Vec3::Y;
 
-        let eye = entity_view.position + USER_VIEW_OFFSET * up;
+        let eye = entity_position_interpolated + USER_VIEW_OFFSET * up;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

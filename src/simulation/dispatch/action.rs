@@ -1,4 +1,4 @@
-use crate::simulation::actions::{EntityAction, WorldAction};
+use crate::simulation::dispatch::{EntityAction, WorldAction};
 
 #[derive(Debug)]
 pub enum Action {

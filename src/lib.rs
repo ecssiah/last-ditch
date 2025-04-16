@@ -72,21 +72,21 @@ impl ApplicationHandler for App {
 
         let mut simulation = Box::new(Simulation::new(action_rx));
 
-        let views = simulation.get_views();
+        let observation_lock = simulation.get_observation_arc();
+
+        let simulation_thread = thread::spawn(move || {
+            simulation.run();
+        });
 
         let interface = Interface::new(
             action_tx,
-            Arc::clone(&views),
+            Arc::clone(&observation_lock),
             Arc::clone(&window),
             instance,
             adapter,
             device,
             queue,
         );
-
-        let simulation_thread = thread::spawn(move || {
-            simulation.run();
-        });
 
         self.simulation_thread = Some(simulation_thread);
         self.interface = Some(interface);
@@ -97,7 +97,7 @@ impl ApplicationHandler for App {
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let interface = self.interface.as_mut().unwrap();
 
-        interface.update(event_loop);
+        interface.handle_about_to_wait(event_loop);
     }
 
     fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {

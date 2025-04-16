@@ -145,7 +145,7 @@ impl World {
         }
     }
 
-    fn generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
+    fn _generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {
         if let Some(structure) = STRUCTURES.get(structure_kind) {
             let world_position = IVec3::new(x, y, z);
 

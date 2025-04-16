@@ -1,14 +1,7 @@
-use crate::simulation::{population::Population, time::Time, world::World, DEFAULT_SEED};
-
-#[derive(Clone, PartialEq, Eq)]
-pub enum Mode {
-    Simulating,
-    Exit,
-}
+use crate::simulation::{admin::{Admin, Mode}, population::Population, time::Time, world::World, SETTLEMENT_PERIOD};
 
 pub struct State {
-    pub seed: u64,
-    pub mode: Mode,
+    pub admin: Admin,
     pub time: Time,
     pub world: World,
     pub population: Population,
@@ -17,8 +10,7 @@ pub struct State {
 impl State {
     pub fn new() -> State {
         let state = State {
-            seed: DEFAULT_SEED,
-            mode: Mode::Simulating,
+            admin: Admin::new(),
             time: Time::new(),
             world: World::new(),
             population: Population::new(),
@@ -40,11 +32,21 @@ impl State {
         self.population.generate();
     }
 
-    pub fn tick(&mut self) {
-        let clock_tick = &self.time.get_clock_tick();
+    pub fn settle(&mut self) {
+        self.admin.settlement_tick += 1;
 
-        self.world.tick(clock_tick);
-        self.population.tick(clock_tick);
+        self.tick();
+
+        if self.admin.settlement_tick > SETTLEMENT_PERIOD {
+            self.admin.mode = Mode::Simulate;
+        }
+    }
+
+    pub fn tick(&mut self) {
+        let tick = &self.time.tick;
+
+        self.world.tick(tick);
+        self.population.tick(tick);
 
         self.time.tick();
     }

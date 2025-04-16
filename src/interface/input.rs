@@ -1,6 +1,6 @@
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
-    simulation::actions::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
+    simulation::dispatch::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
 };
 use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
@@ -52,7 +52,7 @@ impl Input {
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
-                let world_action = WorldAction::Quit;
+                let world_action = WorldAction::Exit;
                 let action = Action::World(world_action);
 
                 self.action_tx.send(action).unwrap();
@@ -122,7 +122,7 @@ impl Input {
     ) {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                let world_action = WorldAction::Quit;
+                let world_action = WorldAction::Exit;
                 let action = Action::World(world_action);
 
                 self.action_tx.send(action).unwrap();

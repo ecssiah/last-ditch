@@ -1,6 +1,6 @@
 use crate::simulation::{
     population::entity,
-    views::{buffer::Buffer, view::View},
+    observation::{buffer::Buffer, view::View},
 };
 use std::{
     collections::HashMap,
@@ -20,21 +20,13 @@ impl Repository {
         repository
     }
 
-    pub fn add(&self, entity_id: entity::ID, view: View) {
-        let buffer = Buffer::new(view);
+    pub fn set(&self, entity_id: &entity::ID, view: View) {
         let mut buffers = self.buffers.write().unwrap();
 
-        buffers.insert(entity_id, buffer);
-    }
-
-    pub fn update(&self, entity_id: entity::ID, view: View) {
-        let buffers = self.buffers.read().unwrap();
-
-        if let Some(buffer) = buffers.get(&entity_id) {
-            buffer.update(view);
-        } else {
-            log::error!("ObservationID {:?} not found for update.", entity_id);
-        }
+        buffers
+            .entry(*entity_id)
+            .and_modify(|buffer| buffer.update(view.clone()))
+            .or_insert_with(|| Buffer::new(view));
     }
 
     pub fn get(&self, entity_id: &entity::ID) -> Option<Arc<View>> {

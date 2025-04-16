@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use crate::simulation::time::Tick;
 
 pub struct Population {
-    tick: Tick,
-    entities: HashMap<entity::ID, Entity>,
+    pub tick: Tick,
+    pub entities: HashMap<entity::ID, Entity>,
 }
 
 impl Population {
@@ -22,12 +22,12 @@ impl Population {
     }
 
     pub fn generate(&mut self) {
-        let mut user_entity = Entity::new(entity::ID::USER_ENTITY);
+        let mut user_entity1 = Entity::new(entity::ID::USER_ENTITY1);
 
-        user_entity.set_position(10.0, 2.0, 10.0);
-        user_entity.set_rotation(0.0, 0.0);
+        user_entity1.set_position(10.0, 2.0, 10.0);
+        user_entity1.set_rotation(0.0, 0.0);
 
-        self.entities.insert(user_entity.id, user_entity);
+        self.entities.insert(user_entity1.id, user_entity1);
     }
 
     pub fn tick(&mut self, tick: &Tick) {

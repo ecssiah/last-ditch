@@ -1,22 +1,22 @@
-use crate::simulation::views::view::View;
+use crate::simulation::observation::view::View;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc, RwLock,
 };
 
 pub struct Buffer {
-    buffers: [Arc<RwLock<View>>; 2],
+    buffer_locks: [Arc<RwLock<View>>; 2],
     write_index: AtomicUsize,
     read_index: AtomicUsize,
 }
 
 impl Buffer {
     pub fn new(view: View) -> Self {
-        let view_arc1 = Arc::new(RwLock::new(view));
-        let view_arc2 = view_arc1.clone();
+        let view1_lock = Arc::new(RwLock::new(view));
+        let view2_lock = view1_lock.clone();
 
         let buffer = Self {
-            buffers: [view_arc1, view_arc2],
+            buffer_locks: [view1_lock, view2_lock],
             write_index: AtomicUsize::new(0),
             read_index: AtomicUsize::new(0),
         };
@@ -33,7 +33,7 @@ impl Buffer {
 
     fn swap(&self, view: View) -> usize {
         let index = self.write_index.load(Ordering::Relaxed);
-        let mut buffer = self.buffers[index].write().unwrap();
+        let mut buffer = self.buffer_locks[index].write().unwrap();
         *buffer = view;
 
         index
@@ -41,7 +41,7 @@ impl Buffer {
 
     pub fn get(&self) -> Arc<View> {
         let index = self.read_index.load(Ordering::Acquire);
-        let buffer = self.buffers[index].read().unwrap();
+        let buffer = self.buffer_locks[index].read().unwrap();
 
         Arc::new(buffer.clone())
     }

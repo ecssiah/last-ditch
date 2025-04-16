@@ -2,7 +2,7 @@ use crate::{include_assets, interface::render::RenderBlock, simulation::block};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
-pub const FULLSCREEN: bool = true;
+pub const FULLSCREEN: bool = false;
 
 pub const WINDOW_TITLE: &str = "Last Ditch";
 pub const WINDOW_WIDTH: u32 = 2560;

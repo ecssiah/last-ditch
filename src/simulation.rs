@@ -1,24 +1,25 @@
 //! The Simulation module contains all of the logic required to generate and evolve
 //! the core civilizational garden.
 
-pub mod actions;
+pub mod admin;
 pub mod block;
 pub mod chunk;
 pub mod consts;
+pub mod dispatch;
+pub mod observation;
 pub mod physics;
 pub mod population;
 pub mod state;
 pub mod structure;
 pub mod time;
-pub mod views;
 pub mod world;
 
 pub use block::Block;
 pub use chunk::Chunk;
 pub use consts::*;
 
-use crate::simulation::{actions::Actions, views::Views};
-use actions::Action;
+use crate::simulation::{dispatch::Dispatch, observation::Observation, population::entity};
+use dispatch::Action;
 use physics::Physics;
 use state::State;
 use std::{
@@ -28,25 +29,25 @@ use std::{
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    actions: Actions,
+    actions: Dispatch,
     state: State,
     physics: Physics,
-    views: Arc<RwLock<Views>>,
+    observation_lock: Arc<RwLock<Observation>>,
 }
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let actions = Actions::new(action_rx);
+        let actions = Dispatch::new(action_rx);
         let state = State::new();
         let physics = Physics::new();
 
-        let views = Arc::new(RwLock::new(Views::new()));
+        let observation_lock = Arc::new(RwLock::new(Observation::new()));
 
         let simulation = Self {
             actions,
             state,
             physics,
-            views,
+            observation_lock,
         };
 
         log::info!("Simulation Initialized");
@@ -58,21 +59,21 @@ impl Simulation {
         self.state.generate();
         self.physics.generate(&self.state);
 
-        self.generate_views();
+        self.generate_view();
 
         loop {
             self.update();
         }
     }
 
-    pub fn get_views(&self) -> Arc<RwLock<Views>> {
-        Arc::clone(&self.views)
+    fn generate_view(&self) {
+        let observation = self.observation_lock.read().unwrap();
+
+        observation.generate_view(&entity::ID::USER_ENTITY1, &self.state);
     }
 
-    fn generate_views(&mut self) {
-        let mut views = self.views.write().unwrap();
-
-        views.generate(&self.state);
+    pub fn get_observation_arc(&self) -> Arc<RwLock<Observation>> {
+        Arc::clone(&self.observation_lock)
     }
 
     fn update(&mut self) {
@@ -80,18 +81,29 @@ impl Simulation {
 
         while self.state.has_work() {
             self.actions.tick(&mut self.state);
-            self.state.tick();
-            self.physics.tick(&mut self.state);
 
-            self.tick_views();
+            match self.state.admin.mode {
+                admin::mode::Mode::Load => {
+                    self.state.settle();
+                    self.physics.tick(&mut self.state);
+                }
+                admin::Mode::Simulate => {
+                    self.state.tick();
+                    self.physics.tick(&mut self.state);
+                }
+                admin::Mode::Shutdown => {}
+                admin::Mode::Exit => {}
+            }
+
+            self.tick_observation();
         }
 
         thread::sleep(SIMULATION_WAIT_DURATION);
     }
 
-    fn tick_views(&mut self) {
-        let mut views = self.views.write().unwrap();
+    fn tick_observation(&mut self) {
+        let mut observation = self.observation_lock.write().unwrap();
 
-        views.tick(&self.state);
+        observation.tick(&self.state);
     }
 }

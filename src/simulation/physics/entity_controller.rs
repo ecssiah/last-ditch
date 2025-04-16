@@ -1,12 +1,12 @@
 use crate::simulation::population::entity;
 use rapier3d::{
     control::KinematicCharacterController,
-    prelude::{RigidBodyHandle, SharedShape},
+    prelude::{ColliderHandle, RigidBodyHandle},
 };
 
 pub struct EntityController {
     pub entity_id: entity::ID,
-    pub shape: SharedShape,
     pub rigid_body_handle: RigidBodyHandle,
+    pub collider_handle: ColliderHandle,
     pub character_controller: KinematicCharacterController,
 }
