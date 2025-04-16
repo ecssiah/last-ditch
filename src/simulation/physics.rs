@@ -13,10 +13,11 @@ use crate::simulation::{
     Chunk,
 };
 use glam::Vec3;
-use nalgebra::Unit;
+use nalgebra::{Unit, UnitQuaternion};
 use rapier3d::{
     control::{CharacterLength, EffectiveCharacterMovement, KinematicCharacterController},
     na::{vector, Vector3},
+    parry::query::ShapeCastOptions,
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::*,
 };
@@ -153,14 +154,23 @@ impl Physics {
     pub fn add_entity(&mut self, entity: &Entity) {
         let position = vector![entity.position.x, entity.position.y, entity.position.z];
 
-        let rigid_body = RigidBodyBuilder::kinematic_position_based()
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .ccd_enabled(true)
+            .linear_damping(0.1)
             .lock_rotations()
             .translation(position)
             .build();
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
 
-        let collider = ColliderBuilder::capsule_y(0.5, 0.4).build();
+        let collider = ColliderBuilder::cuboid(ENTITY_SIZE_X, ENTITY_SIZE_Y, ENTITY_SIZE_Z)
+            .mass(50.0)
+            .contact_skin(0.02)
+            .friction(0.0)
+            .friction_combine_rule(CoefficientCombineRule::Average)
+            .restitution(0.0)
+            .restitution_combine_rule(CoefficientCombineRule::Average)
+            .build();
 
         let collider_handle = self.collider_set.insert_with_parent(
             collider,
@@ -168,19 +178,10 @@ impl Physics {
             &mut self.rigid_body_set,
         );
 
-        let character_controller = KinematicCharacterController {
-            up: Vector::y_axis(),
-            offset: CharacterLength::Absolute(0.1),
-            snap_to_ground: Some(CharacterLength::Absolute(0.05)),
-            autostep: None,
-            ..Default::default()
-        };
-
         let entity_controller = EntityController {
             entity_id: entity.id,
             rigid_body_handle,
             collider_handle,
-            character_controller,
         };
 
         self.entity_controllers.insert(entity.id, entity_controller);
@@ -191,7 +192,12 @@ impl Physics {
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
             Ok(builder) => {
-                let collider = builder.build();
+                let collider = builder
+                    .friction(0.0)
+                    .friction_combine_rule(CoefficientCombineRule::Average)
+                    .restitution(0.0)
+                    .restitution_combine_rule(CoefficientCombineRule::Average)
+                    .build();
 
                 if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk.id) {
                     self.collider_set.remove(
@@ -217,7 +223,7 @@ impl Physics {
 
     pub fn tick(&mut self, state: &mut State) {
         if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
-            self.tick_character_controllers(entity);
+            self.tick_entities(entity);
 
             self.step();
 
@@ -227,99 +233,46 @@ impl Physics {
         self.update_chunk_colliders(state);
     }
 
-    fn tick_character_controllers(&mut self, entity: &mut Entity) {
+    fn tick_entities(&mut self, entity: &mut Entity) {
         let entity_controller = self.entity_controllers.get(&entity.id).unwrap();
-
-        let desired_translation = self.get_desired_translation(entity);
-        let effective_movement = self.get_effective_movement(entity, desired_translation);
-
-        let rigid_body = self
-            .rigid_body_set
-            .get(entity_controller.rigid_body_handle)
-            .unwrap();
-
-        let new_translation =
-            rigid_body.position().translation.vector + effective_movement.translation;
 
         let rigid_body = self
             .rigid_body_set
             .get_mut(entity_controller.rigid_body_handle)
             .unwrap();
 
-        rigid_body.set_next_kinematic_translation(new_translation);
-    }
-
-    fn get_desired_translation(&self, entity: &mut Entity) -> Vector3<f32> {
         let forward = entity.orientation * Vec3::Z;
         let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
         let right_xz = Vec3::Y.cross(forward_xz).normalize();
 
         let input_direction = entity.x_speed * right_xz + entity.z_speed * forward_xz;
 
-        entity.velocity.x = input_direction.x * DEFAULT_X_SPEED;
-        entity.velocity.z = input_direction.z * DEFAULT_Z_SPEED;
+        let mut velocity = *rigid_body.linvel();
+
+        velocity.x = input_direction.x * DEFAULT_X_SPEED;
+        velocity.z = input_direction.z * DEFAULT_Z_SPEED;
 
         match entity.jump_state.stage {
             JumpStage::Launch => {
-                entity.jump_state.stage = JumpStage::Ground;
-                entity.velocity.y = JUMP_LAUNCH_VELOCITY;
+                entity.jump_state.stage = JumpStage::Rise;
+                velocity.y = JUMP_LAUNCH_VELOCITY;
             }
             JumpStage::Rise => {
-                // entity.jump_state.timer += 1;
+                entity.jump_state.timer += 1;
 
-                // if entity.jump_state.timer < MAX_JUMP_TICKS {
-                //     entity.velocity.y = JUMP_HOLD_VELOCITY;
-                // } else {
-                //     entity.jump_state.stage = JumpStage::Ground;
-                // }
+                if entity.jump_state.timer < MAX_JUMP_TICKS {
+                    velocity.y = JUMP_LAUNCH_VELOCITY;
+                } else {
+                    entity.jump_state.stage = JumpStage::Ground;
+                }
             }
-            JumpStage::Fall => {}
-            _ => (),
+            JumpStage::Fall => {
+                entity.jump_state.stage = JumpStage::Ground;
+            }
+            JumpStage::Ground => {}
         }
 
-        let gravity = if entity.velocity.y > 0.0 {
-            JUMP_GRAVITY_DAMPING * GRAVITY_ACCELERATION
-        } else {
-            GRAVITY_ACCELERATION
-        };
-
-        entity.velocity.y -= gravity;
-
-        let desired_translation = FIXED_DT.as_secs_f32() * vector![entity.velocity.x, entity.velocity.y, entity.velocity.z];
-
-        desired_translation
-    }
-
-    fn get_effective_movement(
-        &self,
-        entity: &mut Entity,
-        desired_translation: Vector3<f32>,
-    ) -> EffectiveCharacterMovement {
-        let entity_controller = self.entity_controllers.get(&entity.id).unwrap();
-
-        let rigid_body = self
-            .rigid_body_set
-            .get(entity_controller.rigid_body_handle)
-            .unwrap();
-
-        let collider = self
-            .collider_set
-            .get(entity_controller.collider_handle)
-            .unwrap();
-
-        let effective_movement = entity_controller.character_controller.move_shape(
-            self.integration_parameters.dt,
-            &self.rigid_body_set,
-            &self.collider_set,
-            &self.query_pipeline,
-            collider.shape(),
-            &rigid_body.position(),
-            desired_translation.cast::<Real>(),
-            QueryFilter::new().exclude_rigid_body(entity_controller.rigid_body_handle),
-            |_| {},
-        );
-
-        effective_movement
+        rigid_body.set_linvel(velocity, true);
     }
 
     pub fn step(&mut self) {

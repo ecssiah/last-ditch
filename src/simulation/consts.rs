@@ -12,15 +12,20 @@ pub const FIXED_DT: Duration = Duration::from_nanos(1_000_000_000 / FIXED_TICK_R
 pub const SIMULATION_WAIT_DURATION: Duration = Duration::from_micros(500);
 pub const SETTLEMENT_PERIOD: u32 = 10;
 
-pub const GRAVITY_ACCELERATION: f32 = 1.0;
+pub const GRAVITY_ACCELERATION: f32 = -22.8;
 
-pub const DEFAULT_X_SPEED: f32 = 4.0;
-pub const DEFAULT_Z_SPEED: f32 = 4.0;
+pub const DEFAULT_X_SPEED: f32 = 7.0;
+pub const DEFAULT_Z_SPEED: f32 = 7.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 pub const MAX_JUMP_TICKS: u32 = 8;
-pub const JUMP_LAUNCH_VELOCITY: f32 = 12.0;
-pub const JUMP_HOLD_VELOCITY: f32 = 0.3;
-pub const JUMP_GRAVITY_DAMPING: f32 = 0.3;
+pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;
+pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
+pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
+
+pub const ENTITY_SIZE_X: f32 = 0.3;
+pub const ENTITY_SIZE_Y: f32 = 0.9;
+pub const ENTITY_SIZE_Z: f32 = 0.3;
+pub const ENTITY_BORDER_RADIUS: f32 = 0.001;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
