@@ -82,18 +82,20 @@ impl Simulation {
         while self.state.has_work() {
             self.actions.tick(&mut self.state);
 
-            match self.state.admin.mode {
-                admin::mode::Mode::Load => {
-                    self.state.settle();
-                    self.physics.tick(&mut self.state);
-                }
-                admin::Mode::Simulate => {
-                    self.state.tick();
-                    self.physics.tick(&mut self.state);
-                }
-                admin::Mode::Shutdown => {}
-                admin::Mode::Exit => {}
-            }
+            self.state.tick();
+            self.physics.tick(&mut self.state);
+
+            // match self.state.admin.mode {
+            //     admin::mode::Mode::Load => {
+            //         self.state.settle();
+            //         self.physics.tick(&mut self.state);
+            //     }
+            //     admin::Mode::Simulate => {
+
+            //     }
+            //     admin::Mode::Shutdown => {}
+            //     admin::Mode::Exit => {}
+            // }
 
             self.tick_observation();
         }

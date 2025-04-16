@@ -1,5 +1,5 @@
 [
-    RenderBlock(
+    GPUBlock(
         kind: Engraved1,
         atlas_coordinates: {
             XpYoZo: (0, 0),
@@ -10,7 +10,7 @@
             XoYoZn: (0, 0),
         },
     ),
-    RenderBlock(
+    GPUBlock(
         kind: Engraved2,
         atlas_coordinates: {
             XpYoZo: (1, 0),
@@ -21,7 +21,7 @@
             XoYoZn: (1, 0),
         },
     ),
-    RenderBlock(
+    GPUBlock(
         kind: Stone1,
         atlas_coordinates: {
             XpYoZo: (0, 1),
@@ -32,7 +32,7 @@
             XoYoZn: (0, 1),
         },
     ),
-    RenderBlock(
+    GPUBlock(
         kind: Stone2,
         atlas_coordinates: {
             XpYoZo: (1, 1),

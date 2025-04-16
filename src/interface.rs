@@ -1,14 +1,20 @@
 //! The Interface module manages user interaction with the Simulation. This includes
 //! both presentation and input management.
 
-pub mod chunk;
 pub mod consts;
+pub mod gpu_block;
+pub mod gpu_chunk;
 pub mod input;
 pub mod render;
 
 use crate::{
     include_assets,
-    interface::{consts::*, input::Input, render::Textures},
+    interface::{
+        consts::*,
+        gpu_chunk::{gpu_vertex::GPUVertex, GPUChunk, GPUMesh},
+        input::Input,
+        render::Textures,
+    },
     simulation::{self, USER_VIEW_OFFSET},
 };
 use glam::{Mat4, Vec3};
@@ -52,7 +58,7 @@ pub struct Interface {
     texture_sampler_bind_group: wgpu::BindGroup,
     textures: Textures,
     chunk_pipeline: wgpu::RenderPipeline,
-    chunks: HashMap<simulation::chunk::ID, chunk::Chunk>,
+    gpu_chunks: HashMap<simulation::chunk::ID, GPUChunk>,
 }
 
 impl Interface {
@@ -192,7 +198,7 @@ impl Interface {
             ..Default::default()
         };
 
-        let chunks = HashMap::new();
+        let gpu_chunks = HashMap::new();
 
         let delta_time = Duration::ZERO;
         let render_instant = Instant::now();
@@ -216,7 +222,7 @@ impl Interface {
             view_projection_bind_group,
             texture_sampler_bind_group,
             chunk_pipeline,
-            chunks,
+            gpu_chunks,
             textures,
         };
 
@@ -271,12 +277,12 @@ impl Interface {
 
     fn update_view(&mut self, view: &simulation::observation::view::View) {
         if let Some(entity_view) = view.population_view.entity_views.get(&view.entity_id) {
+            self.update_render_alpha(&view.time_view);
+
             self.update_entity_view(&entity_view);
 
             self.update_population_view(&view.population_view);
             self.update_world_view(&view.world_view);
-
-            self.update_render_alpha(&view.time_view);
         }
     }
 
@@ -291,7 +297,7 @@ impl Interface {
     }
 
     fn update_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
-        self.chunks.clear();
+        self.gpu_chunks.clear();
 
         for (chunk_id, chunk_view) in &world_view.chunk_views {
             let mut vertices = Vec::new();
@@ -304,7 +310,7 @@ impl Interface {
                 }
 
                 let face_vertices = face.vertices();
-                let render_block = RENDER_BLOCKS.get(&face.kind).unwrap();
+                let render_block = GPU_BLOCKS.get(&face.kind).unwrap();
                 let atlas_coordinates =
                     render_block.atlas_coordinates.get(&face.direction).unwrap();
 
@@ -314,7 +320,7 @@ impl Interface {
                     .get_uv_coords(atlas_coordinates[0], atlas_coordinates[1]);
 
                 for (index, vertex) in face_vertices.iter().enumerate() {
-                    vertices.push(chunk::Vertex {
+                    vertices.push(GPUVertex {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
                         uv: uvs[index].to_array(),
@@ -332,13 +338,13 @@ impl Interface {
                 index_offset += 4;
             }
 
-            let chunk = chunk::Chunk {
+            let chunk = GPUChunk {
                 id: *chunk_id,
                 tick: chunk_view.tick,
-                mesh: chunk::Mesh::new(&self.device, vertices, indices),
+                gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
             };
 
-            self.chunks.insert(*chunk_id, chunk);
+            self.gpu_chunks.insert(*chunk_id, chunk);
         }
     }
 
@@ -401,12 +407,16 @@ impl Interface {
         render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
         render_pass.set_bind_group(1, &self.texture_sampler_bind_group, &[]);
 
-        for chunk in self.chunks.values() {
-            if chunk.mesh.index_count > 0 {
-                render_pass.set_vertex_buffer(0, chunk.mesh.vertex_buffer.slice(..));
-                render_pass
-                    .set_index_buffer(chunk.mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-                render_pass.draw_indexed(0..chunk.mesh.index_count, 0, 0..1);
+        for gpu_chunk in self.gpu_chunks.values() {
+            if gpu_chunk.gpu_mesh.index_count > 0 {
+                render_pass.set_vertex_buffer(0, gpu_chunk.gpu_mesh.vertex_buffer.slice(..));
+
+                render_pass.set_index_buffer(
+                    gpu_chunk.gpu_mesh.index_buffer.slice(..),
+                    wgpu::IndexFormat::Uint32,
+                );
+
+                render_pass.draw_indexed(0..gpu_chunk.gpu_mesh.index_count, 0, 0..1);
             }
         }
 
@@ -427,6 +437,8 @@ impl Interface {
 
         let render_alpha = (now - time_view.simulation_instant).as_secs_f32();
         self.render_alpha = render_alpha.clamp(0.0, 1.0);
+
+        log::info!("{:?}", time_view);
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -455,7 +467,7 @@ impl Interface {
             vertex: wgpu::VertexState {
                 module: shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[chunk::Vertex::desc()],
+                buffers: &[GPUVertex::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {

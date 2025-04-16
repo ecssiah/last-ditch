@@ -3,7 +3,7 @@ use crate::simulation::{
 };
 use std::collections::HashMap;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PopulationView {
     pub tick: Tick,
     pub entity_views: HashMap<entity::ID, EntityView>,

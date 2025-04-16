@@ -1,4 +1,4 @@
-use crate::{include_assets, interface::render::RenderBlock, simulation::block};
+use crate::{include_assets, interface::gpu_block::GPUBlock, simulation};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
@@ -17,11 +17,11 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-const RENDER_BLOCKS_CONFIG: &str = include_assets!("config/interface/render_blocks.ron");
+const GPU_BLOCKS_CONFIG: &str = include_assets!("config/interface/render_blocks.ron");
 
-pub static RENDER_BLOCKS: Lazy<HashMap<block::Kind, RenderBlock>> = Lazy::new(|| {
-    let list: Vec<RenderBlock> =
-        ron::from_str::<Vec<RenderBlock>>(RENDER_BLOCKS_CONFIG).expect("Failed to parse Blocks");
+pub static GPU_BLOCKS: Lazy<HashMap<simulation::block::Kind, GPUBlock>> = Lazy::new(|| {
+    let list: Vec<GPUBlock> =
+        ron::from_str::<Vec<GPUBlock>>(GPU_BLOCKS_CONFIG).expect("Failed to parse Blocks");
 
     list.into_iter().map(|block| (block.kind, block)).collect()
 });

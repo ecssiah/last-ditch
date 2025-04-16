@@ -1,7 +1,7 @@
 use crate::simulation::{population::entity, time::Tick};
 use glam::{Quat, Vec3};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct EntityView {
     pub id: entity::ID,
 

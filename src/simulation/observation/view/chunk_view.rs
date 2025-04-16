@@ -1,7 +1,7 @@
 use crate::simulation::{chunk, time::Tick};
 use glam::IVec3;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChunkView {
     pub id: chunk::ID,
     pub tick: Tick,

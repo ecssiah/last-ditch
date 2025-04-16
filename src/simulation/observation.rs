@@ -3,7 +3,7 @@ pub mod repository;
 pub mod view;
 
 use crate::simulation::{
-    admin::{self, Admin},
+    admin::Admin,
     chunk,
     observation::{
         repository::Repository,
@@ -137,14 +137,7 @@ impl Observation {
     }
 
     pub fn tick(&mut self, state: &State) {
-        match state.admin.mode {
-            admin::Mode::Load => {}
-            admin::Mode::Simulate => {
-                self.update_view(&entity::ID::USER_ENTITY1, &state);
-            }
-            admin::Mode::Shutdown => {}
-            admin::Mode::Exit => {}
-        }
+        self.update_view(&entity::ID::USER_ENTITY1, &state);
     }
 
     pub fn get_view(&self, entity_id: &entity::ID) -> Option<View> {
@@ -186,8 +179,8 @@ impl Observation {
 
     fn update_time_view(&self, time: &Time, time_view: &TimeView) -> TimeView {
         TimeView {
-            simulation_instant: time.simulation_instant,
-            next_simulation_instant: time_view.next_simulation_instant,
+            simulation_instant: time_view.simulation_instant,
+            next_simulation_instant: time.simulation_instant,
         }
     }
 

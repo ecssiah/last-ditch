@@ -43,19 +43,19 @@ pub const USER_VIEW_OFFSET: f32 = 0.3;
 
 pub const AMBIENT_LIGHT_LEVEL: [f32; 3] = [0.3, 0.8, 1.0];
 
-const BLOCK_CONFIG: &str = include_assets!("config/simulation/blocks.ron");
-const STRUCTURE_CONFIG: &str = include_assets!("config/simulation/structures.ron");
+const BLOCKS_CONFIG: &str = include_assets!("config/simulation/blocks.ron");
+const STRUCTURES_CONFIG: &str = include_assets!("config/simulation/structures.ron");
 
 pub static BLOCKS: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
     let list: Vec<block::Block> =
-        ron::from_str::<Vec<block::Block>>(BLOCK_CONFIG).expect("Failed to parse Blocks");
+        ron::from_str::<Vec<block::Block>>(BLOCKS_CONFIG).expect("Failed to parse Blocks");
 
     list.into_iter().map(|block| (block.kind, block)).collect()
 });
 
 pub static STRUCTURES: Lazy<HashMap<structure::Kind, structure::Structure>> = Lazy::new(|| {
     let list: Vec<structure::Structure> =
-        ron::from_str(STRUCTURE_CONFIG).expect("Failed to parse Structures");
+        ron::from_str(STRUCTURES_CONFIG).expect("Failed to parse Structures");
 
     list.into_iter()
         .map(|structure| (structure.kind, structure))

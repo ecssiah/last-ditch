@@ -2,14 +2,14 @@ use bytemuck::{Pod, Zeroable};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
-pub struct Vertex {
+pub struct GPUVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
     pub uv: [f32; 2],
     pub light: f32,
 }
 
-impl Vertex {
+impl GPUVertex {
     const ATTRIBS: [wgpu::VertexAttribute; 4] = wgpu::vertex_attr_array![
         0 => Float32x3,
         1 => Float32x3,
@@ -19,7 +19,7 @@ impl Vertex {
 
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            array_stride: std::mem::size_of::<GPUVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &Self::ATTRIBS,
         }

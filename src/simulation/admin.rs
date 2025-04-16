@@ -14,7 +14,7 @@ impl Admin {
     pub fn new() -> Admin {
         let admin = Admin {
             seed: DEFAULT_SEED,
-            mode: Mode::Load,
+            mode: Mode::Simulate,
             settlement_tick: 0,
         };
 
