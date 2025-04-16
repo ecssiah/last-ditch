@@ -286,6 +286,15 @@ impl Interface {
         }
     }
 
+    fn update_render_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
+        let now = Instant::now();
+        self.delta_time = now - self.render_instant;
+        self.render_instant = now;
+
+        let render_alpha = (now - time_view.simulation_instant).as_secs_f32();
+        self.render_alpha = render_alpha.clamp(0.0, 1.0);
+    }
+
     fn update_entity_view(&mut self, entity_view: &simulation::observation::view::EntityView) {
         self.update_view_projection(entity_view);
     }
@@ -338,13 +347,15 @@ impl Interface {
                 index_offset += 4;
             }
 
+            let chunk_id = *chunk_id;
+
             let chunk = GPUChunk {
-                id: *chunk_id,
+                chunk_id,
                 tick: chunk_view.tick,
                 gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
             };
 
-            self.gpu_chunks.insert(*chunk_id, chunk);
+            self.gpu_chunks.insert(chunk_id, chunk);
         }
     }
 
@@ -428,17 +439,6 @@ impl Interface {
         surface_texture.present();
 
         self.window.request_redraw();
-    }
-
-    fn update_render_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
-        let now = Instant::now();
-        self.delta_time = now - self.render_instant;
-        self.render_instant = now;
-
-        let render_alpha = (now - time_view.simulation_instant).as_secs_f32();
-        self.render_alpha = render_alpha.clamp(0.0, 1.0);
-
-        log::info!("{:?}", time_view);
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {

@@ -1,4 +1,10 @@
-use crate::simulation::{admin::{Admin, Mode}, population::Population, time::Time, world::World, SETTLEMENT_PERIOD};
+use crate::simulation::{
+    admin::{Admin, Mode},
+    population::Population,
+    time::Time,
+    world::World,
+    SETTLEMENT_PERIOD,
+};
 
 pub struct State {
     pub admin: Admin,

@@ -13,7 +13,7 @@ use crate::simulation::{
     Chunk,
 };
 use glam::Vec3;
-use nalgebra::{ArrayStorage, Const, Matrix, Unit};
+use nalgebra::Unit;
 use rapier3d::{
     control::{CharacterLength, EffectiveCharacterMovement, KinematicCharacterController},
     na::{vector, Vector3},
@@ -170,8 +170,8 @@ impl Physics {
 
         let character_controller = KinematicCharacterController {
             up: Vector::y_axis(),
-            offset: CharacterLength::Relative(0.02),
-            snap_to_ground: Some(CharacterLength::Relative(0.3)),
+            offset: CharacterLength::Absolute(0.1),
+            snap_to_ground: Some(CharacterLength::Absolute(0.05)),
             autostep: None,
             ..Default::default()
         };
@@ -249,10 +249,7 @@ impl Physics {
         rigid_body.set_next_kinematic_translation(new_translation);
     }
 
-    fn get_desired_translation(
-        &self,
-        entity: &mut Entity,
-    ) -> Matrix<f32, Const<3>, Const<1>, ArrayStorage<f32, 3, 1>> {
+    fn get_desired_translation(&self, entity: &mut Entity) -> Vector3<f32> {
         let forward = entity.orientation * Vec3::Z;
         let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
         let right_xz = Vec3::Y.cross(forward_xz).normalize();
@@ -264,28 +261,31 @@ impl Physics {
 
         match entity.jump_state.stage {
             JumpStage::Launch => {
-                entity.jump_state.stage = JumpStage::Rise;
+                entity.jump_state.stage = JumpStage::Ground;
                 entity.velocity.y = JUMP_LAUNCH_VELOCITY;
             }
             JumpStage::Rise => {
-                entity.jump_state.timer += 1;
+                // entity.jump_state.timer += 1;
 
-                if entity.jump_state.timer < MAX_JUMP_TICKS {
-                    entity.velocity.y = JUMP_HOLD_VELOCITY;
-                } else {
-                    entity.jump_state.stage = JumpStage::Fall;
-                }
+                // if entity.jump_state.timer < MAX_JUMP_TICKS {
+                //     entity.velocity.y = JUMP_HOLD_VELOCITY;
+                // } else {
+                //     entity.jump_state.stage = JumpStage::Ground;
+                // }
             }
-            JumpStage::Fall => {
-                entity.jump_state.stage = JumpStage::Ground;
-                entity.velocity.y = 0.5 * entity.velocity.y;
-            }
+            JumpStage::Fall => {}
             _ => (),
         }
 
-        entity.velocity.y = entity.velocity.y - GRAVITY_ACCELERATION;
+        let gravity = if entity.velocity.y > 0.0 {
+            JUMP_GRAVITY_DAMPING * GRAVITY_ACCELERATION
+        } else {
+            GRAVITY_ACCELERATION
+        };
 
-        let desired_translation = vector![entity.velocity.x, entity.velocity.y, entity.velocity.z];
+        entity.velocity.y -= gravity;
+
+        let desired_translation = FIXED_DT.as_secs_f32() * vector![entity.velocity.x, entity.velocity.y, entity.velocity.z];
 
         desired_translation
     }
@@ -293,7 +293,7 @@ impl Physics {
     fn get_effective_movement(
         &self,
         entity: &mut Entity,
-        desired_translation: Matrix<f32, Const<3>, Const<1>, ArrayStorage<f32, 3, 1>>,
+        desired_translation: Vector3<f32>,
     ) -> EffectiveCharacterMovement {
         let entity_controller = self.entity_controllers.get(&entity.id).unwrap();
 
@@ -301,6 +301,7 @@ impl Physics {
             .rigid_body_set
             .get(entity_controller.rigid_body_handle)
             .unwrap();
+
         let collider = self
             .collider_set
             .get(entity_controller.collider_handle)

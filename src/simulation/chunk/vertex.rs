@@ -8,5 +8,4 @@ pub struct Vertex {
     pub light: f32,
 }
 
-impl Vertex {
-}
+impl Vertex {}

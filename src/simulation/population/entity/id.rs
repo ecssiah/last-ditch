@@ -7,7 +7,7 @@ pub struct ID(pub usize);
 
 impl ID {
     pub const SYSTEM_ENTITY: ID = ID(0);
-    
+
     pub const USER_ENTITY1: ID = ID(1);
     pub const USER_ENTITY2: ID = ID(2);
     pub const USER_ENTITY3: ID = ID(3);
