@@ -20,7 +20,7 @@ use crate::{
         input::Input,
         render::Textures,
     },
-    simulation::{self, observation::view::entity_view, USER_VIEW_OFFSET},
+    simulation::{self, USER_VIEW_OFFSET},
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -29,7 +29,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedSender;
-use wgpu::{util::DeviceExt, Adapter, Device, Instance, PipelineCompilationOptions, Queue};
+use wgpu::{util::DeviceExt, Adapter, CommandEncoder, Device, Instance, PipelineCompilationOptions, Queue, TextureView};
 use winit::{
     event::{DeviceEvent, WindowEvent},
     event_loop::ActiveEventLoop,
@@ -478,6 +478,20 @@ impl Interface {
             .texture
             .create_view(&self.surface_texture_view_descriptor);
 
+        let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
+
+        self.render_chunks(&mut encoder, &texture_view, &depth_texture_view);
+        self.render_entities(&mut encoder, &texture_view, &depth_texture_view);
+
+        self.queue.submit([encoder.finish()]);
+        self.window.pre_present_notify();
+
+        surface_texture.present();
+
+        self.window.request_redraw();
+    }
+
+    fn render_chunks(&mut self, encoder: &mut CommandEncoder, texture_view: &TextureView, depth_texture_view: &TextureView) {
         let chunk_render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: &texture_view,
             resolve_target: None,
@@ -492,8 +506,6 @@ impl Interface {
             },
         });
 
-        let depth_texture_view = Self::create_depth_texture(&self.device, &self.surface_config);
-
         let chunk_depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
             view: &depth_texture_view,
             depth_ops: Some(wgpu::Operations {
@@ -501,15 +513,6 @@ impl Interface {
                 store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
-        });
-
-        let entity_render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
-            view: &texture_view,
-            resolve_target: None,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,
-                store: wgpu::StoreOp::Store,
-            },
         });
 
         let mut chunk_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -538,6 +541,17 @@ impl Interface {
         }
 
         drop(chunk_render_pass);
+    }
+
+    fn render_entities(&mut self, encoder: &mut CommandEncoder, texture_view: &TextureView, _depth_texture_view: &TextureView) {
+        let entity_render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+            view: &texture_view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: wgpu::StoreOp::Store,
+            },
+        });
 
         if self.gpu_entities.len() > 0 {
             let mut entity_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -558,13 +572,6 @@ impl Interface {
 
             drop(entity_render_pass);
         }
-
-        self.queue.submit([encoder.finish()]);
-        self.window.pre_present_notify();
-
-        surface_texture.present();
-
-        self.window.request_redraw();
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
