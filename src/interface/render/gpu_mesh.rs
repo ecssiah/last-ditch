@@ -1,4 +1,4 @@
-use crate::interface::gpu_chunk::gpu_vertex::GPUVertex;
+use crate::interface::render::GPUVertex;
 use wgpu::util::DeviceExt;
 
 #[derive(Debug)]

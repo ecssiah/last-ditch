@@ -3,9 +3,6 @@
 
 pub mod camera;
 pub mod consts;
-pub mod gpu_block;
-pub mod gpu_chunk;
-pub mod gpu_entity;
 pub mod input;
 pub mod render;
 
@@ -13,10 +10,11 @@ use crate::{
     interface::{
         camera::Camera,
         consts::*,
-        gpu_chunk::{gpu_vertex::GPUVertex, GPUChunk, GPUMesh},
-        gpu_entity::GPUEntity,
         input::Input,
-        render::{ChunkRenderer, EntityRenderer, Textures},
+        render::{
+            gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRenderer, EntityRenderer, GPUMesh,
+            GPUVertex, Textures,
+        },
     },
     simulation::{self},
 };
@@ -47,7 +45,6 @@ pub struct Interface {
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     camera: Camera,
-    texture_sampler_bind_group: wgpu::BindGroup,
     chunk_renderer: ChunkRenderer,
     entity_renderer: EntityRenderer,
 }
@@ -88,7 +85,7 @@ impl Interface {
 
         let camera = Camera::new(&device);
 
-        let mut textures = Textures::new();
+        let mut textures = Textures::new(&device);
 
         pollster::block_on(textures.load_texture_atlas(
             &device,
@@ -97,45 +94,7 @@ impl Interface {
             "atlas",
         ));
 
-        let texture_sampler_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Texture and Sampler Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                ],
-            });
-
-        let (_, atlas_texture_view, atlas_sampler) = textures.texture_map.get("atlas").unwrap();
-
-        let texture_sampler_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Texture and Sampler Bind Group"),
-            layout: &texture_sampler_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&atlas_texture_view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&atlas_sampler),
-                },
-            ],
-        });
+        textures.generate_texture_sampler_bind_group(&device);
 
         let delta_time = Duration::ZERO;
         let render_instant = Instant::now();
@@ -145,7 +104,7 @@ impl Interface {
             &device,
             &surface_format,
             &camera.uniform_bind_group_layout,
-            &texture_sampler_bind_group_layout,
+            &textures.texture_sampler_bind_group_layout,
         );
 
         let entity_renderer = EntityRenderer::new(&device, &surface_format);
@@ -164,7 +123,6 @@ impl Interface {
             surface,
             surface_config,
             surface_texture_view_descriptor,
-            texture_sampler_bind_group,
             camera,
             textures,
             chunk_renderer,
@@ -344,13 +302,16 @@ impl Interface {
 
         let depth_texture_view = Textures::create_depth_texture(&self.device, &self.surface_config);
 
-        self.chunk_renderer.render(
-            &mut encoder,
-            &texture_view,
-            &depth_texture_view,
-            &self.camera.view_projection_bind_group,
-            &self.texture_sampler_bind_group,
-        );
+        if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
+            self.chunk_renderer.render(
+                &mut encoder,
+                &texture_view,
+                &depth_texture_view,
+                &self.camera.view_projection_bind_group,
+                texture_sampler_bind_group,
+            );
+        }
+
         self.entity_renderer
             .render(&mut encoder, &texture_view, &depth_texture_view);
 

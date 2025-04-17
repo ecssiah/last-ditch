@@ -1,6 +1,6 @@
 use crate::{
     include_assets,
-    interface::{gpu_chunk::gpu_vertex::GPUVertex, gpu_entity::GPUEntity},
+    interface::render::{GPUEntity, GPUVertex},
 };
 use wgpu::{
     util::DeviceExt, CommandEncoder, Device, PipelineCompilationOptions, TextureFormat, TextureView,

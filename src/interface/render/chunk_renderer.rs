@@ -2,7 +2,7 @@ use crate::{
     include_assets,
     interface::{
         consts::WINDOW_CLEAR_COLOR,
-        gpu_chunk::{gpu_vertex::GPUVertex, GPUChunk},
+        render::{GPUChunk, GPUVertex},
     },
 };
 use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};

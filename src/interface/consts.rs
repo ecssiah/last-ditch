@@ -1,4 +1,4 @@
-use crate::{include_assets, interface::gpu_block::GPUBlock, simulation};
+use crate::{include_assets, interface::render::gpu_block::GPUBlock, simulation};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
