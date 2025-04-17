@@ -180,14 +180,10 @@ impl Interface {
     }
 
     fn update_view(&mut self, view: &simulation::observation::view::View) {
-        if let Some(judge_view) = view.population_view.judge_view.as_ref() {
-            self.update_alpha(&view.time_view);
-
-            self.update_judge_view(&judge_view);
-
-            self.update_population_view(&view.population_view);
-            self.update_world_view(&view.world_view);
-        }
+        self.update_alpha(&view.time_view);
+        self.update_judge_view(&view.population_view);
+        self.update_agent_views(&view.population_view);
+        self.update_world_view(&view.world_view);
     }
 
     fn update_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
@@ -199,11 +195,16 @@ impl Interface {
         self.alpha = alpha.clamp(0.0, 1.0);
     }
 
-    fn update_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
-        self.camera.update(&self.queue, self.alpha, judge_view);
+    fn update_judge_view(
+        &mut self,
+        population_view: &simulation::observation::view::PopulationView,
+    ) {
+        if let Some(judge_view) = population_view.judge_view.as_ref() {
+            self.camera.update(&self.queue, self.alpha, &judge_view);
+        }
     }
 
-    fn update_population_view(
+    fn update_agent_views(
         &mut self,
         population_view: &simulation::observation::view::PopulationView,
     ) {
