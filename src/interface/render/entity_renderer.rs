@@ -26,8 +26,20 @@ impl EntityRenderer {
         let entity_rectangle_vertices = Self::generate_rectangle();
         let entity_vertices = [entity_sphere_vertices, entity_rectangle_vertices].concat();
 
-        let (vertex_buffer, instance_buffer, render_pipeline) =
-            Self::setup(device, surface_format, &shader_module, &entity_vertices);
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Entity Vertex Buffer"),
+            contents: bytemuck::cast_slice(&entity_vertices),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Entity Instance Buffer"),
+            size: 0,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let render_pipeline = Self::create_render_pipeline(device, surface_format, &shader_module);
 
         let gpu_entities = Vec::new();
 
@@ -43,25 +55,11 @@ impl EntityRenderer {
         entity_renderer
     }
 
-    pub fn setup(
+    pub fn create_render_pipeline(
         device: &Device,
         surface_format: &TextureFormat,
         shader_module: &wgpu::ShaderModule,
-        entity_vertices: &Vec<GPUVertex>,
-    ) -> (wgpu::Buffer, wgpu::Buffer, wgpu::RenderPipeline) {
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Entity Vertex Buffer"),
-            contents: bytemuck::cast_slice(entity_vertices),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Entity Instance Buffer"),
-            size: 0,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
+    ) -> wgpu::RenderPipeline {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Entity Render Pipeline Layout"),
@@ -95,7 +93,7 @@ impl EntityRenderer {
             cache: None,
         });
 
-        (vertex_buffer, instance_buffer, render_pipeline)
+        render_pipeline
     }
 
     pub fn render(

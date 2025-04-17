@@ -1,6 +1,7 @@
 //! The Interface module manages user interaction with the Simulation. This includes
 //! both presentation and input management.
 
+pub mod camera;
 pub mod consts;
 pub mod gpu_block;
 pub mod gpu_chunk;
@@ -10,34 +11,25 @@ pub mod render;
 
 use crate::{
     interface::{
+        camera::Camera,
         consts::*,
         gpu_chunk::{gpu_vertex::GPUVertex, GPUChunk, GPUMesh},
         gpu_entity::GPUEntity,
         input::Input,
         render::{ChunkRenderer, EntityRenderer, Textures},
     },
-    simulation::{self, USER_VIEW_OFFSET},
+    simulation::{self},
 };
-use glam::{Mat4, Vec3};
 use std::{
     sync::{Arc, RwLock},
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedSender;
-use wgpu::{BindGroup, BindGroupLayout, Device};
 use winit::{
     event::{DeviceEvent, WindowEvent},
     event_loop::ActiveEventLoop,
     window::Window,
 };
-
-#[rustfmt::skip]
-const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.5,
-    0.0, 0.0, 0.0, 1.0,
-]);
 
 pub struct Interface {
     delta_time: Duration,
@@ -54,8 +46,7 @@ pub struct Interface {
     surface_config: wgpu::SurfaceConfiguration,
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
-    view_projection_buffer: wgpu::Buffer,
-    view_projection_bind_group: wgpu::BindGroup,
+    camera: Camera,
     texture_sampler_bind_group: wgpu::BindGroup,
     chunk_renderer: ChunkRenderer,
     entity_renderer: EntityRenderer,
@@ -94,6 +85,8 @@ impl Interface {
         };
 
         surface.configure(&device, &surface_config);
+
+        let camera = Camera::new(&device);
 
         let mut textures = Textures::new();
 
@@ -144,9 +137,6 @@ impl Interface {
             ],
         });
 
-        let (uniform_bind_group_layout, view_projection_buffer, view_projection_bind_group) =
-            Self::setup_view_projection_uniform(&device);
-
         let delta_time = Duration::ZERO;
         let render_instant = Instant::now();
         let render_alpha = 0.0;
@@ -154,9 +144,10 @@ impl Interface {
         let chunk_renderer = ChunkRenderer::new(
             &device,
             &surface_format,
-            &uniform_bind_group_layout,
+            &camera.uniform_bind_group_layout,
             &texture_sampler_bind_group_layout,
         );
+
         let entity_renderer = EntityRenderer::new(&device, &surface_format);
 
         let interface = Self {
@@ -173,9 +164,8 @@ impl Interface {
             surface,
             surface_config,
             surface_texture_view_descriptor,
-            view_projection_buffer,
-            view_projection_bind_group,
             texture_sampler_bind_group,
+            camera,
             textures,
             chunk_renderer,
             entity_renderer,
@@ -184,47 +174,6 @@ impl Interface {
         log::info!("Interface Initialized");
 
         interface
-    }
-
-    pub fn setup_view_projection_uniform(
-        device: &Device,
-    ) -> (BindGroupLayout, wgpu::Buffer, BindGroup) {
-        let uniform_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Uniform Bind Group Layout"),
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-            });
-
-        let view_projection_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("View Projection Buffer"),
-            size: std::mem::size_of::<[[f32; 4]; 4]>() as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
-        let view_projection_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("View Projection Bind Group"),
-            layout: &uniform_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: view_projection_buffer.as_entire_binding(),
-            }],
-        });
-
-        (
-            uniform_bind_group_layout,
-            view_projection_buffer,
-            view_projection_bind_group,
-        )
     }
 
     fn check_active(
@@ -290,7 +239,8 @@ impl Interface {
     }
 
     fn update_entity_view(&mut self, entity_view: &simulation::observation::view::EntityView) {
-        self.update_view_projection(entity_view);
+        self.camera
+            .update(&self.queue, self.render_alpha, entity_view);
     }
 
     fn update_population_view(
@@ -380,16 +330,6 @@ impl Interface {
         }
     }
 
-    fn update_view_projection(&mut self, entity_view: &simulation::observation::view::EntityView) {
-        let view_projection_matrix = self.create_view_projection_matrix(entity_view);
-
-        self.queue.write_buffer(
-            &self.view_projection_buffer,
-            0,
-            bytemuck::cast_slice(&view_projection_matrix),
-        );
-    }
-
     pub fn handle_redraw_requested(&mut self) {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
@@ -408,7 +348,7 @@ impl Interface {
             &mut encoder,
             &texture_view,
             &depth_texture_view,
-            &self.view_projection_bind_group,
+            &self.camera.view_projection_bind_group,
             &self.texture_sampler_bind_group,
         );
         self.entity_renderer
@@ -434,33 +374,5 @@ impl Interface {
 
     pub fn handle_device_event(&mut self, event: &DeviceEvent) {
         self.input.handle_device_event(&event);
-    }
-
-    fn create_view_projection_matrix(
-        &self,
-        entity_view: &simulation::observation::view::EntityView,
-    ) -> [[f32; 4]; 4] {
-        let entity_position_interpolated = entity_view
-            .position
-            .lerp(entity_view.next_position, self.render_alpha);
-        let entity_orientation_interpolated = entity_view
-            .orientation
-            .lerp(entity_view.next_orientation, self.render_alpha);
-
-        let opengl_projection =
-            Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
-        let projection = OPENGL_TO_WGPU_MATRIX * opengl_projection;
-
-        let forward = entity_orientation_interpolated * Vec3::Z;
-        let up = entity_orientation_interpolated * Vec3::Y;
-
-        let eye = entity_position_interpolated + USER_VIEW_OFFSET * up;
-        let target = eye + forward;
-
-        let view = Mat4::look_at_rh(eye, target, up);
-
-        let view_projection = projection * view;
-
-        view_projection.to_cols_array_2d()
     }
 }

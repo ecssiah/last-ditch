@@ -8,6 +8,7 @@ use crate::{
 use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};
 
 pub struct ChunkRenderer {
+    pub shader_module: wgpu::ShaderModule,
     pub gpu_chunks: Vec<GPUChunk>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
@@ -19,16 +20,23 @@ impl ChunkRenderer {
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
         texture_sampler_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> ChunkRenderer {
+        let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Chunk Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
+        });
+
         let gpu_chunks = Vec::new();
 
-        let render_pipeline = Self::setup(
+        let render_pipeline = Self::create_render_pipeline(
             device,
             surface_format,
+            &shader_module,
             uniform_bind_group_layout,
             texture_sampler_bind_group_layout,
         );
 
         let chunk_renderer = ChunkRenderer {
+            shader_module,
             gpu_chunks,
             render_pipeline,
         };
@@ -36,18 +44,14 @@ impl ChunkRenderer {
         chunk_renderer
     }
 
-    pub fn setup(
+    pub fn create_render_pipeline(
         device: &Device,
         surface_format: &TextureFormat,
+        shader_module: &wgpu::ShaderModule,
         uniform_bind_group_layout: &BindGroupLayout,
         texture_sampler_bind_group_layout: &BindGroupLayout,
     ) -> wgpu::RenderPipeline {
-        let chunk_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Chunk Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
-        });
-
-        let chunk_pipeline_layout =
+        let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Chunk Pipeline Layout"),
                 bind_group_layouts: &[
@@ -57,14 +61,14 @@ impl ChunkRenderer {
                 push_constant_ranges: &[],
             });
 
-        let chunk_pipeline = Self::create_chunk_render_pipeline(
+        let render_pipeline = Self::create_chunk_render_pipeline(
             &device,
-            &chunk_pipeline_layout,
-            &chunk_shader,
+            &render_pipeline_layout,
+            &shader_module,
             surface_format,
         );
 
-        chunk_pipeline
+        render_pipeline
     }
 
     fn create_chunk_render_pipeline(
