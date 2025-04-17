@@ -7,19 +7,19 @@ use crate::{
 };
 use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};
 
-pub struct ChunkRenderer {
+pub struct ChunkRender {
     pub shader_module: wgpu::ShaderModule,
     pub gpu_chunks: Vec<GPUChunk>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl ChunkRenderer {
+impl ChunkRender {
     pub fn new(
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
         texture_sampler_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> ChunkRenderer {
+    ) -> ChunkRender {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Chunk Shader"),
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
@@ -35,7 +35,7 @@ impl ChunkRenderer {
             texture_sampler_bind_group_layout,
         );
 
-        let chunk_renderer = ChunkRenderer {
+        let chunk_renderer = ChunkRender {
             shader_module,
             gpu_chunks,
             render_pipeline,
@@ -156,7 +156,7 @@ impl ChunkRenderer {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Chunk Render Pass"),
             color_attachments: &[render_pass_color_attachment],
-            depth_stencil_attachment: depth_stencil_attachment,
+            depth_stencil_attachment,
             timestamp_writes: None,
             occlusion_query_set: None,
         });

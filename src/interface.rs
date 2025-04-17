@@ -12,7 +12,7 @@ use crate::{
         consts::*,
         input::Input,
         render::{
-            gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRenderer, EntityRenderer, GPUMesh,
+            gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRender, EntityRender, GPUMesh,
             GPUVertex, Textures,
         },
     },
@@ -32,7 +32,7 @@ use winit::{
 pub struct Interface {
     delta_time: Duration,
     render_instant: Instant,
-    render_alpha: f32,
+    alpha: f32,
     action_tx: UnboundedSender<simulation::dispatch::Action>,
     observation_lock: Arc<RwLock<simulation::observation::Observation>>,
     window: Arc<Window>,
@@ -45,8 +45,8 @@ pub struct Interface {
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     camera: Camera,
-    chunk_renderer: ChunkRenderer,
-    entity_renderer: EntityRenderer,
+    chunk_renderer: ChunkRender,
+    entity_renderer: EntityRender,
 }
 
 impl Interface {
@@ -59,6 +59,10 @@ impl Interface {
         device: wgpu::Device,
         queue: wgpu::Queue,
     ) -> Self {
+        let delta_time = Duration::ZERO;
+        let render_instant = Instant::now();
+        let alpha = 0.0;
+
         let input = Input::new(action_tx.clone());
 
         let size = window.inner_size();
@@ -66,10 +70,12 @@ impl Interface {
         let surface = instance.create_surface(Arc::clone(&window)).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
         let surface_format = surface_capabilities.formats[0];
+
         let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
             format: Some(surface_format.add_srgb_suffix()),
             ..Default::default()
         };
+
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -83,8 +89,6 @@ impl Interface {
 
         surface.configure(&device, &surface_config);
 
-        let camera = Camera::new(&device);
-
         let mut textures = Textures::new(&device);
 
         pollster::block_on(textures.load_texture_atlas(
@@ -96,23 +100,22 @@ impl Interface {
 
         textures.generate_texture_sampler_bind_group(&device);
 
-        let delta_time = Duration::ZERO;
-        let render_instant = Instant::now();
-        let render_alpha = 0.0;
+        let camera = Camera::new(&device);
 
-        let chunk_renderer = ChunkRenderer::new(
+        let chunk_renderer = ChunkRender::new(
             &device,
             &surface_format,
             &camera.uniform_bind_group_layout,
             &textures.texture_sampler_bind_group_layout,
         );
 
-        let entity_renderer = EntityRenderer::new(&device, &surface_format);
+        let entity_renderer =
+            EntityRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
 
         let interface = Self {
             delta_time,
             render_instant,
-            render_alpha,
+            alpha,
             action_tx,
             observation_lock,
             window,
@@ -178,7 +181,7 @@ impl Interface {
 
     fn update_view(&mut self, view: &simulation::observation::view::View) {
         if let Some(entity_view) = view.population_view.entity_views.get(&view.entity_id) {
-            self.update_render_alpha(&view.time_view);
+            self.update_alpha(&view.time_view);
 
             self.update_entity_view(&entity_view);
 
@@ -187,18 +190,17 @@ impl Interface {
         }
     }
 
-    fn update_render_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
+    fn update_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
         let now = Instant::now();
         self.delta_time = now - self.render_instant;
         self.render_instant = now;
 
-        let render_alpha = (now - time_view.simulation_instant).as_secs_f32();
-        self.render_alpha = render_alpha.clamp(0.0, 1.0);
+        let alpha = (now - time_view.simulation_instant).as_secs_f32();
+        self.alpha = alpha.clamp(0.0, 1.0);
     }
 
     fn update_entity_view(&mut self, entity_view: &simulation::observation::view::EntityView) {
-        self.camera
-            .update(&self.queue, self.render_alpha, entity_view);
+        self.camera.update(&self.queue, self.alpha, entity_view);
     }
 
     fn update_population_view(
@@ -312,8 +314,12 @@ impl Interface {
             );
         }
 
-        self.entity_renderer
-            .render(&mut encoder, &texture_view, &depth_texture_view);
+        self.entity_renderer.render(
+            &mut encoder,
+            &texture_view,
+            &depth_texture_view,
+            &self.camera.view_projection_bind_group,
+        );
 
         self.queue.submit([encoder.finish()]);
         self.window.pre_present_notify();

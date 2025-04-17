@@ -46,7 +46,7 @@ impl Population {
 
             let position = Vec3::new(
                 rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
-                3.0,
+                2.0,
                 rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
             );
 

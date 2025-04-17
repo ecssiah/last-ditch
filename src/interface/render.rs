@@ -1,5 +1,5 @@
-pub mod chunk_renderer;
-pub mod entity_renderer;
+pub mod chunk_render;
+pub mod entity_render;
 pub mod gpu_block;
 pub mod gpu_chunk;
 pub mod gpu_entity;
@@ -8,8 +8,8 @@ pub mod gpu_vertex;
 pub mod texture_atlas;
 pub mod textures;
 
-pub use chunk_renderer::ChunkRenderer;
-pub use entity_renderer::EntityRenderer;
+pub use chunk_render::ChunkRender;
+pub use entity_render::EntityRender;
 pub use gpu_block::GPUBlock;
 pub use gpu_chunk::GPUChunk;
 pub use gpu_entity::GPUEntity;
