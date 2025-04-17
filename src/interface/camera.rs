@@ -64,9 +64,9 @@ impl Camera {
         &mut self,
         queue: &wgpu::Queue,
         alpha: f32,
-        entity_view: &simulation::observation::view::EntityView,
+        judge_view: &simulation::observation::view::JudgeView,
     ) {
-        let view_projection_matrix = Self::create_view_projection_matrix(alpha, entity_view);
+        let view_projection_matrix = Self::create_view_projection_matrix(alpha, judge_view);
 
         queue.write_buffer(
             &self.view_projection_buffer,
@@ -77,14 +77,14 @@ impl Camera {
 
     fn create_view_projection_matrix(
         alpha: f32,
-        entity_view: &simulation::observation::view::EntityView,
+        judge_view: &simulation::observation::view::JudgeView,
     ) -> [[f32; 4]; 4] {
-        let entity_position_interpolated = entity_view
+        let entity_position_interpolated = judge_view
             .position
-            .lerp(entity_view.next_position, alpha);
-        let entity_orientation_interpolated = entity_view
+            .lerp(judge_view.next_position, alpha);
+        let entity_orientation_interpolated = judge_view
             .orientation
-            .lerp(entity_view.next_orientation, alpha);
+            .lerp(judge_view.next_orientation, alpha);
 
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);

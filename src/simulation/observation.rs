@@ -7,7 +7,10 @@ use crate::simulation::{
     chunk,
     observation::{
         repository::Repository,
-        view::{AdminView, ChunkView, EntityView, PopulationView, TimeView, View, WorldView},
+        view::{
+            AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View,
+            WorldView,
+        },
     },
     population::{entity, Entity, Population},
     state::State,
@@ -31,25 +34,22 @@ impl Observation {
         observation
     }
 
-    pub fn generate_view(&self, entity_id: &entity::ID, state: &State) {
-        if let Some(entity) = state.population.get(entity_id) {
+    pub fn generate_view(&self, state: &State) {
+        if let Some(judge) = state.population.get_judge() {
             let admin_view = self.generate_admin_view(&state.admin);
-
             let time_view = self.generate_time_view(&state.time);
-
-            let population_view = self.generate_population_view(&entity, &state.population);
-
-            let world_view = self.generate_world_view(&entity, &state.world);
+            let population_view = self.generate_population_view(&state.population);
+            let world_view = self.generate_world_view(&judge, &state.world);
 
             let next_view = View {
-                entity_id: entity.id,
+                entity_id: judge.id,
                 admin_view,
                 time_view,
                 population_view,
                 world_view,
             };
 
-            self.repository.set(&entity.id, next_view);
+            self.repository.set(&judge.id, next_view);
         }
     }
 
@@ -64,33 +64,40 @@ impl Observation {
         }
     }
 
-    fn generate_population_view(
-        &self,
-        _entity: &Entity,
-        population: &Population,
-    ) -> PopulationView {
-        let population_view = PopulationView {
+    fn generate_population_view(&self, population: &Population) -> PopulationView {
+        let judge_view = population.get_judge().map(|judge| JudgeView {
+            id: judge.id,
+            tick: judge.tick,
+            position: judge.position,
+            orientation: judge.orientation,
+            next_tick: judge.tick,
+            next_position: judge.position,
+            next_orientation: judge.orientation,
+        });
+
+        let agent_views = population
+            .agents
+            .iter()
+            .map(|(entity_id, entity)| {
+                let entity_view = AgentView {
+                    id: entity.id,
+                    tick: entity.tick,
+                    position: entity.position,
+                    orientation: entity.orientation,
+                    next_tick: entity.tick,
+                    next_position: entity.position,
+                    next_orientation: entity.orientation,
+                };
+
+                (*entity_id, entity_view)
+            })
+            .collect();
+
+        PopulationView {
             tick: population.tick,
-            entity_views: population
-                .entities
-                .iter()
-                .map(|(entity_id, entity)| {
-                    let entity_view = EntityView {
-                        id: entity.id,
-                        tick: entity.tick,
-                        position: entity.position,
-                        orientation: entity.orientation,
-                        next_tick: entity.tick,
-                        next_position: entity.position,
-                        next_orientation: entity.orientation,
-                    };
-
-                    (*entity_id, entity_view)
-                })
-                .collect(),
-        };
-
-        population_view
+            judge_view,
+            agent_views,
+        }
     }
 
     fn generate_world_view(&self, entity: &Entity, world: &World) -> WorldView {
@@ -137,7 +144,7 @@ impl Observation {
     }
 
     pub fn tick(&mut self, state: &State) {
-        self.update_view(&entity::ID::USER_ENTITY1, &state);
+        self.update_view(&state);
     }
 
     pub fn get_view(&self, entity_id: &entity::ID) -> Option<View> {
@@ -148,28 +155,25 @@ impl Observation {
         }
     }
 
-    fn update_view(&self, entity_id: &entity::ID, state: &State) {
-        if let Some(entity) = state.population.get(entity_id) {
-            let view = self.repository.get(&entity_id).unwrap();
+    fn update_view(&self, state: &State) {
+        if let Some(judge) = state.population.get_judge() {
+            let view = self.repository.get(&judge.id).unwrap();
 
             let admin_view = self.update_admin_view(&state.admin);
-
             let time_view = self.update_time_view(&state.time, &view.time_view);
-
             let population_view =
-                self.update_population_view(&entity, &state.population, &view.population_view);
-
-            let world_view = self.update_world_view(&entity, &state.world, &view.world_view);
+                self.update_population_view(&state.population, &view.population_view);
+            let world_view = self.update_world_view(&judge, &state.world, &view.world_view);
 
             let next_view = View {
-                entity_id: entity.id,
+                entity_id: judge.id,
                 admin_view,
                 time_view,
                 population_view,
                 world_view,
             };
 
-            self.repository.set(&entity.id, next_view);
+            self.repository.set(&judge.id, next_view);
         }
     }
 
@@ -186,35 +190,48 @@ impl Observation {
 
     fn update_population_view(
         &self,
-        _entity: &Entity,
         population: &Population,
         population_view: &PopulationView,
     ) -> PopulationView {
-        let next_population_view = PopulationView {
+        let mut next_population_view = PopulationView {
             tick: population.tick,
-            entity_views: population
-                .entities
-                .iter()
-                .filter_map(|(entity_id, entity)| {
-                    population_view
-                        .entity_views
-                        .get(entity_id)
-                        .map(|entity_view| {
-                            let entity_view = EntityView {
-                                id: entity.id,
-                                tick: entity_view.tick,
-                                position: entity_view.position,
-                                orientation: entity_view.orientation,
-                                next_tick: entity.tick,
-                                next_position: entity.position,
-                                next_orientation: entity.orientation,
-                            };
-
-                            (*entity_id, entity_view)
-                        })
-                })
-                .collect(),
+            judge_view: None,
+            agent_views: HashMap::new(),
         };
+
+        if let Some(judge) = population.get_judge() {
+            next_population_view.judge_view =
+                population_view
+                    .judge_view
+                    .as_ref()
+                    .map(|judge_view| JudgeView {
+                        id: judge.id,
+                        tick: judge_view.tick,
+                        position: judge_view.position,
+                        orientation: judge_view.orientation,
+                        next_tick: judge.tick,
+                        next_position: judge.position,
+                        next_orientation: judge.orientation,
+                    });
+        }
+
+        for agent in population.all_agents() {
+            if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
+                let next_agent_view = AgentView {
+                    id: agent.id,
+                    tick: agent_view.tick,
+                    position: agent_view.position,
+                    orientation: agent_view.orientation,
+                    next_tick: agent.tick,
+                    next_position: agent.position,
+                    next_orientation: agent.orientation,
+                };
+
+                next_population_view
+                    .agent_views
+                    .insert(agent.id, next_agent_view);
+            }
+        }
 
         next_population_view
     }

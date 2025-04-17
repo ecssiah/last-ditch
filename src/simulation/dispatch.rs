@@ -9,7 +9,6 @@ pub use entity_action::MovementAction;
 pub use world_action::WorldAction;
 
 use crate::simulation::admin;
-use crate::simulation::population::entity;
 use crate::simulation::population::entity::JumpStage;
 use crate::simulation::state::State;
 use glam::Quat;
@@ -47,24 +46,24 @@ impl Dispatch {
     }
 
     fn handle_movement_action(&mut self, state: &mut State, movement_actions: &MovementAction) {
-        if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
-            entity.z_speed = movement_actions.direction.z;
-            entity.x_speed = movement_actions.direction.x;
+        if let Some(judge) = state.population.get_judge_mut() {
+            judge.z_speed = movement_actions.direction.z;
+            judge.x_speed = movement_actions.direction.x;
 
             if movement_actions.rotation.length_squared() > 1e-6 {
-                entity.look_x_axis -= movement_actions.rotation.x;
-                entity.look_y_axis += movement_actions.rotation.y;
+                judge.look_x_axis -= movement_actions.rotation.x;
+                judge.look_y_axis += movement_actions.rotation.y;
 
                 let limit = 89.0_f32.to_radians();
 
-                entity.look_x_axis = entity.look_x_axis.clamp(-limit, limit);
+                judge.look_x_axis = judge.look_x_axis.clamp(-limit, limit);
 
-                let y_axis_quat = Quat::from_rotation_y(entity.look_y_axis);
-                let x_axis_quat = Quat::from_rotation_x(entity.look_x_axis);
+                let y_axis_quat = Quat::from_rotation_y(judge.look_y_axis);
+                let x_axis_quat = Quat::from_rotation_x(judge.look_x_axis);
 
                 let target_rotation = y_axis_quat * x_axis_quat;
 
-                entity.orientation = entity.orientation.slerp(target_rotation, 0.3);
+                judge.orientation = judge.orientation.slerp(target_rotation, 0.3);
             }
         }
     }
@@ -72,14 +71,14 @@ impl Dispatch {
     fn handle_jump_action(&mut self, state: &mut State, jump_action: &JumpAction) {
         match jump_action {
             JumpAction::Start => {
-                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
-                    entity.jump_state.stage = JumpStage::Launch;
-                    entity.jump_state.timer = 0;
+                if let Some(judge) = state.population.get_judge_mut() {
+                    judge.jump_state.stage = JumpStage::Launch;
+                    judge.jump_state.timer = 0;
                 }
             }
             JumpAction::End => {
-                if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
-                    entity.jump_state.stage = JumpStage::Fall;
+                if let Some(judge) = state.population.get_judge_mut() {
+                    judge.jump_state.stage = JumpStage::Fall;
                 }
             }
         }

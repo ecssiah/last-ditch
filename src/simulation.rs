@@ -18,7 +18,7 @@ pub use block::Block;
 pub use chunk::Chunk;
 pub use consts::*;
 
-use crate::simulation::{dispatch::Dispatch, observation::Observation, population::entity};
+use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use physics::Physics;
 use state::State;
@@ -69,7 +69,7 @@ impl Simulation {
     fn generate_view(&self) {
         let observation = self.observation_lock.read().unwrap();
 
-        observation.generate_view(&entity::ID::USER_ENTITY1, &self.state);
+        observation.generate_view(&self.state);
     }
 
     pub fn get_observation_arc(&self) -> Arc<RwLock<Observation>> {

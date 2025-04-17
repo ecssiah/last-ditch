@@ -82,7 +82,8 @@ impl Physics {
 
     pub fn generate(&mut self, state: &State) {
         self.generate_boundaries();
-        self.generate_entities(state);
+        self.generate_judge(state);
+        self.generate_agents(state);
     }
 
     pub fn generate_boundaries(&mut self) {
@@ -108,41 +109,47 @@ impl Physics {
         }
     }
 
-    pub fn generate_entities(&mut self, state: &State) {
-        for entity in state.population.all() {
-            self.add_entity(entity);
+    fn generate_judge(&mut self, state: &State) {
+        if let Some(judge) = state.population.get_judge() {
+            self.add_entity(judge);
+        }
+    }
+
+    fn generate_agents(&mut self, state: &State) {
+        for agent in state.population.all_agents() {
+            self.add_entity(agent);
         }
     }
 
     fn update_chunk_colliders(&mut self, state: &State) {
-        let entity = state.population.get(&entity::ID::USER_ENTITY1).unwrap();
-
-        let current_grid_position = World::grid_position_at(entity.position).unwrap();
-        let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-
-        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
-
-        let current_loaded_chunks: Vec<chunk::ID> =
-            self.chunk_collider_handles.keys().cloned().collect();
-
-        for chunk_id in current_loaded_chunks {
-            if !visible_chunk_ids.contains(&chunk_id) {
-                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
-                    self.collider_set.remove(
-                        old_handle,
-                        &mut self.island_manager,
-                        &mut self.rigid_body_set,
-                        true,
-                    );
+        if let Some(judge) = state.population.get_judge() {
+            let current_grid_position = World::grid_position_at(judge.position).unwrap();
+            let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+    
+            let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
+    
+            let current_loaded_chunks: Vec<chunk::ID> =
+                self.chunk_collider_handles.keys().cloned().collect();
+    
+            for chunk_id in current_loaded_chunks {
+                if !visible_chunk_ids.contains(&chunk_id) {
+                    if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
+                        self.collider_set.remove(
+                            old_handle,
+                            &mut self.island_manager,
+                            &mut self.rigid_body_set,
+                            true,
+                        );
+                    }
                 }
             }
-        }
-
-        for &chunk_id in visible_chunk_ids.iter() {
-            if !self.chunk_collider_handles.contains_key(&chunk_id) {
-                if let Some(chunk) = state.world.get_chunk(chunk_id) {
-                    if chunk.mesh.faces.len() > 0 {
-                        self.add_chunk_collider(chunk);
+    
+            for &chunk_id in visible_chunk_ids.iter() {
+                if !self.chunk_collider_handles.contains_key(&chunk_id) {
+                    if let Some(chunk) = state.world.get_chunk(chunk_id) {
+                        if chunk.mesh.faces.len() > 0 {
+                            self.add_chunk_collider(chunk);
+                        }
                     }
                 }
             }
@@ -220,57 +227,66 @@ impl Physics {
     }
 
     pub fn tick(&mut self, state: &mut State) {
-        if let Some(entity) = state.population.get_mut(&entity::ID::USER_ENTITY1) {
-            self.tick_entities(entity);
+        self.tick_entities(state);
 
-            self.step();
+        self.step();
 
-            self.sync_entities(entity);
-        }
+        self.sync_entities(state);
 
         self.update_chunk_colliders(state);
     }
 
-    fn tick_entities(&mut self, entity: &mut Entity) {
-        let entity_controller = self.entity_controllers.get(&entity.id).unwrap();
+    fn tick_entities(&mut self, state: &mut State) {
+        self.tick_judge(state);
+        self.tick_agents(state);
+    }
 
-        let rigid_body = self
-            .rigid_body_set
-            .get_mut(entity_controller.rigid_body_handle)
-            .unwrap();
+    fn tick_judge(&mut self, state: &mut State) {
+        if let Some(judge) = state.population.get_judge_mut() {
+            let entity_controller = self.entity_controllers.get(&judge.id).unwrap();
 
-        let forward = entity.orientation * Vec3::Z;
-        let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
-        let right_xz = Vec3::Y.cross(forward_xz).normalize();
-
-        let input_direction = entity.x_speed * right_xz + entity.z_speed * forward_xz;
-
-        let mut velocity = *rigid_body.linvel();
-
-        velocity.x = input_direction.x * DEFAULT_X_SPEED;
-        velocity.z = input_direction.z * DEFAULT_Z_SPEED;
-
-        match entity.jump_state.stage {
-            JumpStage::Launch => {
-                entity.jump_state.stage = JumpStage::Rise;
-                velocity.y = JUMP_LAUNCH_VELOCITY;
-            }
-            JumpStage::Rise => {
-                entity.jump_state.timer += 1;
-
-                if entity.jump_state.timer < MAX_JUMP_TICKS {
+            let rigid_body = self
+                .rigid_body_set
+                .get_mut(entity_controller.rigid_body_handle)
+                .unwrap();
+    
+            let forward = judge.orientation * Vec3::Z;
+            let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
+            let right_xz = Vec3::Y.cross(forward_xz).normalize();
+    
+            let input_direction = judge.x_speed * right_xz + judge.z_speed * forward_xz;
+    
+            let mut velocity = *rigid_body.linvel();
+    
+            velocity.x = input_direction.x * DEFAULT_X_SPEED;
+            velocity.z = input_direction.z * DEFAULT_Z_SPEED;
+    
+            match judge.jump_state.stage {
+                JumpStage::Launch => {
+                    judge.jump_state.stage = JumpStage::Rise;
                     velocity.y = JUMP_LAUNCH_VELOCITY;
-                } else {
-                    entity.jump_state.stage = JumpStage::Ground;
                 }
+                JumpStage::Rise => {
+                    judge.jump_state.timer += 1;
+    
+                    if judge.jump_state.timer < MAX_JUMP_TICKS {
+                        velocity.y = JUMP_LAUNCH_VELOCITY;
+                    } else {
+                        judge.jump_state.stage = JumpStage::Ground;
+                    }
+                }
+                JumpStage::Fall => {
+                    judge.jump_state.stage = JumpStage::Ground;
+                }
+                JumpStage::Ground => {}
             }
-            JumpStage::Fall => {
-                entity.jump_state.stage = JumpStage::Ground;
-            }
-            JumpStage::Ground => {}
+    
+            rigid_body.set_linvel(velocity, true);
         }
+    }
 
-        rigid_body.set_linvel(velocity, true);
+    fn tick_agents(&mut self, _state: &mut State) {
+
     }
 
     pub fn step(&mut self) {
@@ -291,32 +307,43 @@ impl Physics {
         );
     }
 
-    pub fn sync_entities(&self, entity: &mut Entity) {
-        let Some(entity_controller) = self.entity_controllers.get(&entity.id) else {
-            return;
-        };
+    pub fn sync_entities(&self, state: &mut State) {
+        self.sync_judge(state);
+        self.sync_agents(state);
+    }
 
-        let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
-            return;
-        };
+    fn sync_judge(&self, state: &mut State) {
+        if let Some(judge) = state.population.get_judge_mut() {
+            let Some(entity_controller) = self.entity_controllers.get(&judge.id) else {
+                return;
+            };
 
-        let rigid_body_position = rigid_body.position();
+            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+                return;
+            };
 
-        let translation = rigid_body_position.translation.vector;
-        let next_position = Vec3::new(translation.x, translation.y, translation.z);
+            let rigid_body_position = rigid_body.position();
 
-        let current_grid_position = World::grid_position_at(entity.position).unwrap();
-        let next_grid_position = World::grid_position_at(next_position).unwrap();
+            let translation = rigid_body_position.translation.vector;
+            let next_position = Vec3::new(translation.x, translation.y, translation.z);
 
-        entity.position = next_position;
+            let current_grid_position = World::grid_position_at(judge.position).unwrap();
+            let next_grid_position = World::grid_position_at(next_position).unwrap();
 
-        if current_grid_position == next_grid_position {
-            entity.chunk_update = false;
-        } else {
-            let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-            let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+            judge.position = next_position;
 
-            entity.chunk_update = next_chunk_id != current_chunk_id;
+            if current_grid_position == next_grid_position {
+                judge.chunk_update = false;
+            } else {
+                let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+                let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+
+                judge.chunk_update = next_chunk_id != current_chunk_id;
+            }
         }
+    }
+
+    fn sync_agents(&self, _state: &mut State) {
+
     }
 }

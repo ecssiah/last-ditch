@@ -180,10 +180,10 @@ impl Interface {
     }
 
     fn update_view(&mut self, view: &simulation::observation::view::View) {
-        if let Some(entity_view) = view.population_view.entity_views.get(&view.entity_id) {
+        if let Some(judge_view) = view.population_view.judge_view.as_ref() {
             self.update_alpha(&view.time_view);
 
-            self.update_entity_view(&entity_view);
+            self.update_judge_view(&judge_view);
 
             self.update_population_view(&view.population_view);
             self.update_world_view(&view.world_view);
@@ -199,8 +199,8 @@ impl Interface {
         self.alpha = alpha.clamp(0.0, 1.0);
     }
 
-    fn update_entity_view(&mut self, entity_view: &simulation::observation::view::EntityView) {
-        self.camera.update(&self.queue, self.alpha, entity_view);
+    fn update_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
+        self.camera.update(&self.queue, self.alpha, judge_view);
     }
 
     fn update_population_view(
@@ -208,7 +208,7 @@ impl Interface {
         population_view: &simulation::observation::view::PopulationView,
     ) {
         self.entity_renderer.gpu_entities = population_view
-            .entity_views
+            .agent_views
             .iter()
             .map(|entity_view| GPUEntity {
                 position: entity_view.1.position.to_array(),
@@ -216,7 +216,7 @@ impl Interface {
             })
             .collect();
 
-        let required_size = (population_view.entity_views.len() * std::mem::size_of::<GPUEntity>())
+        let required_size = (population_view.agent_views.len() * std::mem::size_of::<GPUEntity>())
             as wgpu::BufferAddress;
 
         if self.entity_renderer.instance_buffer.size() < required_size {
