@@ -22,6 +22,8 @@ pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;
 pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
 pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
 
+pub const AGENT_INITIAL_POPULATION: usize = 8;
+
 pub const ENTITY_SIZE_X: f32 = 0.3;
 pub const ENTITY_SIZE_Y: f32 = 0.9;
 pub const ENTITY_SIZE_Z: f32 = 0.3;

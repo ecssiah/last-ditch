@@ -128,7 +128,7 @@ impl World {
     }
 
     fn generate_ground(&mut self) {
-        let world_boundary = WORLD_BOUNDARY as isize;
+        let world_boundary = WORLD_BOUNDARY as isize - CHUNK_SIZE as isize;
 
         for x in -world_boundary..=world_boundary {
             for z in -world_boundary..=world_boundary {

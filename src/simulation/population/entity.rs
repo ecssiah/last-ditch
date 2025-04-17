@@ -1,7 +1,9 @@
 pub mod id;
+pub mod kind;
 pub mod jump_state;
 
 pub use id::ID;
+pub use kind::Kind;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
@@ -13,6 +15,7 @@ pub struct Entity {
     pub id: entity::ID,
     pub tick: Tick,
     pub name: &'static str,
+    pub kind: Kind,
     pub position: Vec3,
     pub velocity: Vec3,
     pub chunk_update: bool,
@@ -30,6 +33,7 @@ impl Entity {
             id: entity_id,
             tick: Tick::ZERO,
             name: "",
+            kind: Kind::Agent,
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             chunk_update: false,

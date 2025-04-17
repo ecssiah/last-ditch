@@ -4,6 +4,7 @@
 pub mod consts;
 pub mod gpu_block;
 pub mod gpu_chunk;
+pub mod gpu_entity;
 pub mod input;
 pub mod render;
 
@@ -11,11 +12,15 @@ use crate::{
     include_assets,
     interface::{
         consts::*,
-        gpu_chunk::{gpu_vertex::GPUVertex, GPUChunk, GPUMesh},
+        gpu_chunk::{
+            gpu_vertex::{self, GPUVertex},
+            GPUChunk, GPUMesh,
+        },
+        gpu_entity::GPUEntity,
         input::Input,
         render::Textures,
     },
-    simulation::{self, USER_VIEW_OFFSET},
+    simulation::{self, observation::view::entity_view, USER_VIEW_OFFSET},
 };
 use glam::{Mat4, Vec3};
 use std::{
@@ -24,7 +29,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedSender;
-use wgpu::{Adapter, Device, Instance, Queue};
+use wgpu::{util::DeviceExt, Adapter, Device, Instance, PipelineCompilationOptions, Queue};
 use winit::{
     event::{DeviceEvent, WindowEvent},
     event_loop::ActiveEventLoop,
@@ -59,6 +64,11 @@ pub struct Interface {
     textures: Textures,
     chunk_pipeline: wgpu::RenderPipeline,
     gpu_chunks: HashMap<simulation::chunk::ID, GPUChunk>,
+    entity_vertex_buffer: wgpu::Buffer,
+    entity_instance_buffer: wgpu::Buffer,
+    gpu_entity_vertices: Vec<gpu_vertex::GPUVertex>,
+    gpu_entities: Vec<gpu_entity::GPUEntity>,
+    entity_pipeline: wgpu::RenderPipeline,
 }
 
 impl Interface {
@@ -198,7 +208,63 @@ impl Interface {
             ..Default::default()
         };
 
+        let entity_sphere_vertices = Self::generate_sphere(8, 8);
+        let entity_rectangle_vertices = Self::generate_rectangle();
+        let gpu_entity_vertices = [entity_sphere_vertices, entity_rectangle_vertices].concat();
+
+        let entity_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Entity Vertex Buffer"),
+            contents: bytemuck::cast_slice(&gpu_entity_vertices),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let entity_instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Entity Instance Buffer"),
+            size: 0,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let entity_render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Entity Render Pipeline Layout"),
+                bind_group_layouts: &[],
+                push_constant_ranges: &[],
+            });
+
+        let entity_shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Entity Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/entity.wgsl").into()),
+        });
+
+        let entity_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Entity Render Pipeline"),
+            layout: Some(&entity_render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &entity_shader_module,
+                entry_point: Some("vs_main"),
+                buffers: &[GPUVertex::desc(), GPUEntity::desc()],
+                compilation_options: PipelineCompilationOptions::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &entity_shader_module,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: surface_format,
+                    blend: Some(wgpu::BlendState::REPLACE),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: PipelineCompilationOptions::default(),
+            }),
+            primitive: wgpu::PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState::default(),
+            multiview: None,
+            cache: None,
+        });
+
         let gpu_chunks = HashMap::new();
+        let gpu_entities = Vec::new();
 
         let delta_time = Duration::ZERO;
         let render_instant = Instant::now();
@@ -223,6 +289,11 @@ impl Interface {
             texture_sampler_bind_group,
             chunk_pipeline,
             gpu_chunks,
+            gpu_entities,
+            gpu_entity_vertices,
+            entity_vertex_buffer,
+            entity_instance_buffer,
+            entity_pipeline,
             textures,
         };
 
@@ -301,8 +372,34 @@ impl Interface {
 
     fn update_population_view(
         &mut self,
-        _population_view: &simulation::observation::view::PopulationView,
+        population_view: &simulation::observation::view::PopulationView,
     ) {
+        self.gpu_entities = population_view
+            .entity_views
+            .iter()
+            .map(|entity_view| GPUEntity {
+                position: entity_view.1.position.to_array(),
+                height: 1.8,
+            })
+            .collect();
+
+        let required_size = (population_view.entity_views.len() * std::mem::size_of::<GPUEntity>())
+            as wgpu::BufferAddress;
+
+        if self.entity_instance_buffer.size() < required_size {
+            self.entity_instance_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("Entity Instance Buffer"),
+                size: required_size,
+                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            });
+        }
+
+        self.queue.write_buffer(
+            &self.entity_instance_buffer,
+            0,
+            bytemuck::cast_slice(&self.gpu_entities),
+        );
     }
 
     fn update_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
@@ -406,7 +503,16 @@ impl Interface {
             stencil_ops: None,
         });
 
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        let entity_render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+            view: &texture_view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: wgpu::StoreOp::Store,
+            },
+        });
+
+        let mut chunk_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Chunk Render Pass"),
             color_attachments: &[chunk_render_pass_color_attachment],
             depth_stencil_attachment: chunk_depth_stencil_attachment,
@@ -414,24 +520,44 @@ impl Interface {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&self.chunk_pipeline);
-        render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
-        render_pass.set_bind_group(1, &self.texture_sampler_bind_group, &[]);
+        chunk_render_pass.set_pipeline(&self.chunk_pipeline);
+        chunk_render_pass.set_bind_group(0, &self.view_projection_bind_group, &[]);
+        chunk_render_pass.set_bind_group(1, &self.texture_sampler_bind_group, &[]);
 
         for gpu_chunk in self.gpu_chunks.values() {
             if gpu_chunk.gpu_mesh.index_count > 0 {
-                render_pass.set_vertex_buffer(0, gpu_chunk.gpu_mesh.vertex_buffer.slice(..));
+                chunk_render_pass.set_vertex_buffer(0, gpu_chunk.gpu_mesh.vertex_buffer.slice(..));
 
-                render_pass.set_index_buffer(
+                chunk_render_pass.set_index_buffer(
                     gpu_chunk.gpu_mesh.index_buffer.slice(..),
                     wgpu::IndexFormat::Uint32,
                 );
 
-                render_pass.draw_indexed(0..gpu_chunk.gpu_mesh.index_count, 0, 0..1);
+                chunk_render_pass.draw_indexed(0..gpu_chunk.gpu_mesh.index_count, 0, 0..1);
             }
         }
 
-        drop(render_pass);
+        drop(chunk_render_pass);
+
+        if self.gpu_entities.len() > 0 {
+            let mut entity_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Entity Render Pass"),
+                color_attachments: &[entity_render_pass_color_attachment],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+
+            entity_render_pass.set_pipeline(&self.entity_pipeline);
+            entity_render_pass.set_vertex_buffer(0, self.entity_vertex_buffer.slice(..));
+            entity_render_pass.set_vertex_buffer(1, self.entity_instance_buffer.slice(..));
+            entity_render_pass.draw(
+                0..(self.gpu_entity_vertices.len() as u32),
+                0..(self.gpu_entities.len() as u32),
+            );
+
+            drop(entity_render_pass);
+        }
 
         self.queue.submit([encoder.finish()]);
         self.window.pre_present_notify();
@@ -526,6 +652,109 @@ impl Interface {
         });
 
         depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
+    }
+
+    fn generate_sphere(latitude_bands: u32, longitude_bands: u32) -> Vec<GPUVertex> {
+        let mut vertices = Vec::new();
+
+        for lat in 0..latitude_bands {
+            let theta1 = (lat as f32) * std::f32::consts::PI / latitude_bands as f32;
+            let theta2 = (lat as f32 + 1.0) * std::f32::consts::PI / latitude_bands as f32;
+
+            for lon in 0..longitude_bands {
+                let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
+                let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
+
+                let p1 = Self::spherical_to_cartesian(theta1, phi1);
+                let p2 = Self::spherical_to_cartesian(theta2, phi1);
+                let p3 = Self::spherical_to_cartesian(theta2, phi2);
+                let p4 = Self::spherical_to_cartesian(theta1, phi2);
+
+                vertices.push(GPUVertex {
+                    position: p1,
+                    normal: p1,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(GPUVertex {
+                    position: p2,
+                    normal: p2,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(GPUVertex {
+                    position: p3,
+                    normal: p3,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+
+                vertices.push(GPUVertex {
+                    position: p1,
+                    normal: p1,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(GPUVertex {
+                    position: p3,
+                    normal: p3,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(GPUVertex {
+                    position: p4,
+                    normal: p4,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+            }
+        }
+
+        vertices
+    }
+
+    fn spherical_to_cartesian(theta: f32, phi: f32) -> [f32; 3] {
+        let x = phi.sin() * theta.sin();
+        let y = theta.cos();
+        let z = phi.cos() * theta.sin();
+        [x, y, z]
+    }
+
+    fn generate_rectangle() -> Vec<GPUVertex> {
+        let normal = [0.0, 0.0, 1.0]; // Facing forward
+        let light = 1.0;
+
+        // Define UV coordinates for the rectangle
+        let uvs = [
+            [0.0, 0.0], // Bottom-left
+            [1.0, 0.0], // Bottom-right
+            [1.0, 1.0], // Top-right
+            [0.0, 1.0], // Top-left
+        ];
+
+        // Define positions for two triangles forming the rectangle
+        let positions = [
+            // First triangle
+            [-0.5, -0.5, 0.0], // Bottom-left
+            [0.5, -0.5, 0.0],  // Bottom-right
+            [0.5, 0.5, 0.0],   // Top-right
+            // Second triangle
+            [-0.5, -0.5, 0.0], // Bottom-left
+            [0.5, 0.5, 0.0],   // Top-right
+            [-0.5, 0.5, 0.0],  // Top-left
+        ];
+
+        // Map positions and UVs to GPUVertex instances
+        positions
+            .iter()
+            .enumerate()
+            .map(|(i, &pos)| GPUVertex {
+                position: pos,
+                normal,
+                uv: uvs[i % 4],
+                light,
+            })
+            .collect()
     }
 
     fn create_view_projection_matrix(
