@@ -13,11 +13,9 @@ use crate::simulation::{
     Chunk,
 };
 use glam::Vec3;
-use nalgebra::{Unit, UnitQuaternion};
+use nalgebra::Unit;
 use rapier3d::{
-    control::{CharacterLength, EffectiveCharacterMovement, KinematicCharacterController},
     na::{vector, Vector3},
-    parry::query::ShapeCastOptions,
     pipeline::{PhysicsPipeline, QueryPipeline},
     prelude::*,
 };
