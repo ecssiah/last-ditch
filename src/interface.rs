@@ -186,7 +186,7 @@ impl Interface {
         self.delta_time = now - self.render_instant;
         self.render_instant = now;
 
-        let alpha = (now - time_view.simulation_instant).as_secs_f32();
+        let alpha = (now - time_view.simulation_instant.0).as_secs_f32();
         self.alpha = alpha.clamp(0.0, 1.0);
     }
 
@@ -208,7 +208,7 @@ impl Interface {
             .iter()
             .map(|(_, agent_view)| {
                 let gpu_entity = GPUEntity {
-                    position: agent_view.position.to_array(),
+                    position: agent_view.position.0.to_array(),
                     height: 1.8,
                 };
 
@@ -244,7 +244,7 @@ impl Interface {
             let mut indices = Vec::new();
             let mut index_offset = 0;
 
-            for face in &chunk_view.mesh.faces {
+            for face in &chunk_view.mesh.0.faces {
                 if face.kind == simulation::block::Kind::Air {
                     continue;
                 }
@@ -282,7 +282,7 @@ impl Interface {
 
             let chunk = GPUChunk {
                 chunk_id,
-                tick: chunk_view.tick,
+                tick: chunk_view.tick.0,
                 gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
             };
 

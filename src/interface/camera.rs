@@ -79,21 +79,20 @@ impl Camera {
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) -> [[f32; 4]; 4] {
-        let entity_position_interpolated = judge_view
-            .position
-            .lerp(judge_view.next_position, alpha);
-        let entity_orientation_interpolated = judge_view
+        let judge_position = judge_view.position.0.lerp(judge_view.position.1, alpha);
+        let judge_orientation = judge_view
             .orientation
-            .lerp(judge_view.next_orientation, alpha);
+            .0
+            .lerp(judge_view.orientation.1, alpha);
 
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = Self::OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
-        let forward = entity_orientation_interpolated * Vec3::Z;
-        let up = entity_orientation_interpolated * Vec3::Y;
+        let forward = judge_orientation * Vec3::Z;
+        let up = judge_orientation * Vec3::Y;
 
-        let eye = entity_position_interpolated + simulation::consts::USER_VIEW_OFFSET * up;
+        let eye = judge_position + simulation::consts::USER_VIEW_OFFSET * up;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

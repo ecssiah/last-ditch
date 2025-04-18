@@ -8,8 +8,7 @@ use crate::simulation::{
     observation::{
         repository::Repository,
         view::{
-            AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View,
-            WorldView,
+            AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
     },
     population::{entity, Entity, Population},
@@ -19,15 +18,15 @@ use crate::simulation::{
     Chunk, USER_VIEW_RADIUS,
 };
 use glam::IVec3;
-use std::{collections::HashMap, sync::{Arc, RwLock}};
+use std::{collections::HashMap, sync::Arc};
 
 pub struct Observation {
-    repository: Arc<RwLock<repository::Repository>>,
+    repository: Arc<repository::Repository>,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let repository = Arc::new(RwLock::new(Repository::new()));
+        let repository = Arc::new(Repository::new());
 
         let observation = Self { repository };
 
@@ -49,9 +48,7 @@ impl Observation {
                 world_view,
             };
 
-            let repository = self.repository.write().unwrap();
-            
-            repository.set(&judge.id, next_view);
+            self.repository.set(&judge.id, next_view);
         }
     }
 
@@ -61,37 +58,30 @@ impl Observation {
 
     fn generate_time_view(&self, time: &Time) -> TimeView {
         TimeView {
-            simulation_instant: time.simulation_instant,
-            next_simulation_instant: time.simulation_instant,
+            simulation_instant: (time.simulation_instant, time.simulation_instant),
         }
     }
 
     fn generate_population_view(&self, population: &Population) -> PopulationView {
         let judge_view = population.get_judge().map(|judge| JudgeView {
             id: judge.id,
-            tick: judge.tick,
-            position: judge.position,
-            orientation: judge.orientation,
-            next_tick: judge.tick,
-            next_position: judge.position,
-            next_orientation: judge.orientation,
+            tick: (judge.tick, judge.tick),
+            position: (judge.position, judge.position),
+            orientation: (judge.orientation, judge.orientation),
         });
 
         let agent_views = population
             .agents
             .iter()
-            .map(|(entity_id, entity)| {
-                let entity_view = AgentView {
-                    id: entity.id,
-                    tick: entity.tick,
-                    position: entity.position,
-                    orientation: entity.orientation,
-                    next_tick: entity.tick,
-                    next_position: entity.position,
-                    next_orientation: entity.orientation,
+            .map(|(agent_id, agent)| {
+                let agent_view = AgentView {
+                    id: *agent_id,
+                    tick: (agent.tick, agent.tick),
+                    position: (agent.position, agent.position),
+                    orientation: (agent.orientation, agent.orientation),
                 };
 
-                (*entity_id, entity_view)
+                (*agent_id, agent_view)
             })
             .collect();
 
@@ -137,9 +127,9 @@ impl Observation {
     fn generate_chunk_view(&self, chunk: &chunk::Chunk) -> ChunkView {
         let chunk_view = ChunkView {
             id: chunk.id,
-            tick: chunk.tick,
-            position: chunk.position,
-            mesh: chunk.mesh.clone(),
+            tick: (chunk.tick, chunk.tick),
+            position: (chunk.position, chunk.position),
+            mesh: (chunk.mesh.clone(), chunk.mesh.clone()),
         };
 
         chunk_view
@@ -150,22 +140,12 @@ impl Observation {
     }
 
     pub fn get_view(&self, entity_id: &entity::ID) -> Option<View> {
-        let repository = self.repository.read().unwrap();
-
-        if let Some(view) = repository.get(&entity_id) {
-            Some((*view).clone())
-        } else {
-            None
-        }
+        self.repository.get(entity_id).map(|view| (*view).clone())
     }
 
     fn update_view(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
-            let view = {
-                let repository = self.repository.read().unwrap();
-
-                repository.get(&judge.id)           
-            };
+            let view = self.repository.get(&judge.id);
 
             if let Some(view) = view {
                 let admin_view = self.update_admin_view(&state.admin);
@@ -173,7 +153,7 @@ impl Observation {
                 let population_view =
                     self.update_population_view(&state.population, &view.population_view);
                 let world_view = self.update_world_view(&judge, &state.world, &view.world_view);
-    
+
                 let next_view = View {
                     entity_id: judge.id,
                     admin_view,
@@ -181,10 +161,8 @@ impl Observation {
                     population_view,
                     world_view,
                 };
-    
-                let repository = self.repository.write().unwrap();
 
-                repository.set(&judge.id, next_view);
+                self.repository.set(&judge.id, next_view);
             }
         }
     }
@@ -195,8 +173,7 @@ impl Observation {
 
     fn update_time_view(&self, time: &Time, time_view: &TimeView) -> TimeView {
         TimeView {
-            simulation_instant: time_view.simulation_instant,
-            next_simulation_instant: time.simulation_instant,
+            simulation_instant: (time.simulation_instant, time_view.simulation_instant.0),
         }
     }
 
@@ -218,12 +195,9 @@ impl Observation {
                     .as_ref()
                     .map(|judge_view| JudgeView {
                         id: judge.id,
-                        tick: judge_view.tick,
-                        position: judge_view.position,
-                        orientation: judge_view.orientation,
-                        next_tick: judge.tick,
-                        next_position: judge.position,
-                        next_orientation: judge.orientation,
+                        tick: (judge.tick, judge_view.tick.0),
+                        position: (judge.position, judge_view.position.0),
+                        orientation: (judge.orientation, judge_view.orientation.0),
                     });
         }
 
@@ -231,12 +205,9 @@ impl Observation {
             if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
-                    tick: agent_view.tick,
-                    position: agent_view.position,
-                    orientation: agent_view.orientation,
-                    next_tick: agent.tick,
-                    next_position: agent.position,
-                    next_orientation: agent.orientation,
+                    tick: (agent.tick, agent_view.tick.0),
+                    position: (agent.position, agent_view.position.0),
+                    orientation: (agent.orientation, agent_view.orientation.0),
                 };
 
                 next_population_view
@@ -295,28 +266,28 @@ impl Observation {
         _world: &World,
         world_view: &WorldView,
     ) -> ChunkView {
-        let chunk_view;
+        let next_chunk_view;
 
-        if let Some(old_chunk_view) = world_view.chunk_views.get(&chunk.id) {
-            if old_chunk_view.tick < chunk.tick {
-                chunk_view = ChunkView {
+        if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {
+            if chunk_view.tick.0 < chunk.tick {
+                next_chunk_view = ChunkView {
                     id: chunk.id,
-                    tick: chunk.tick,
-                    position: chunk.position,
-                    mesh: chunk.mesh.clone(),
+                    tick: (chunk.tick, chunk_view.tick.0),
+                    position: (chunk.position, chunk_view.position.0),
+                    mesh: (chunk.mesh.clone(), chunk_view.mesh.0.clone()),
                 };
             } else {
-                chunk_view = old_chunk_view.clone();
+                next_chunk_view = chunk_view.clone();
             }
         } else {
-            chunk_view = ChunkView {
+            next_chunk_view = ChunkView {
                 id: chunk.id,
-                tick: chunk.tick,
-                position: chunk.position,
-                mesh: chunk.mesh.clone(),
+                tick: (chunk.tick, chunk.tick),
+                position: (chunk.position, chunk.position),
+                mesh: (chunk.mesh.clone(), chunk.mesh.clone()),
             };
         }
 
-        chunk_view
+        next_chunk_view
     }
 }
