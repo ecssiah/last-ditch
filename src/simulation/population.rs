@@ -1,10 +1,9 @@
 pub mod entity;
 
 pub use entity::Entity;
-use glam::Vec3;
-use rand::{Rng, SeedableRng};
 
-use crate::simulation::{time::Tick, AGENT_INITIAL_POPULATION, DEFAULT_SEED, WORLD_BOUNDARY};
+use crate::simulation::time::Tick;
+use glam::Vec3;
 use std::collections::HashMap;
 
 pub struct Population {
@@ -33,23 +32,27 @@ impl Population {
         let mut judge = Entity::new(entity::ID::USER_ENTITY1);
 
         judge.kind = entity::Kind::Judge;
-        judge.set_position(10.0, 2.0, 10.0);
+        judge.set_position(10.0, 2.0, 0.0);
         judge.set_rotation(0.0, 0.0);
 
         self.judge = Some(judge);
     }
 
     fn generate_agents(&mut self) {
-        let mut rng = rand_pcg::Pcg32::seed_from_u64(DEFAULT_SEED);
-
-        for _ in 0..AGENT_INITIAL_POPULATION {
+        for x in -2..=2 {
             let mut agent = Entity::new(entity::ID::allocate());
 
-            let position = Vec3::new(
-                rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
-                40.0,
-                rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
-            );
+            let position = Vec3::new((6 * x) as f32, 32.0, -10.0);
+
+            agent.kind = entity::Kind::Agent;
+            agent.set_position(position.x, position.y, position.z);
+            agent.set_rotation(0.0, 0.0);
+
+            self.agents.insert(agent.id, agent);
+
+            let mut agent = Entity::new(entity::ID::allocate());
+
+            let position = Vec3::new((6 * x) as f32, 32.0, 10.0);
 
             agent.kind = entity::Kind::Agent;
             agent.set_position(position.x, position.y, position.z);

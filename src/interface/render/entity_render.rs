@@ -180,15 +180,15 @@ impl EntityRender {
                 let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
                 let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
 
-                let p1 = 0.5 * Self::spherical_to_cartesian(theta1, phi1);
-                let p2 = 0.5 * Self::spherical_to_cartesian(theta2, phi1);
-                let p3 = 0.5 * Self::spherical_to_cartesian(theta2, phi2);
-                let p4 = 0.5 * Self::spherical_to_cartesian(theta1, phi2);
+                let p1 = 0.26 * Self::spherical_to_cartesian(theta1, phi1);
+                let p2 = 0.26 * Self::spherical_to_cartesian(theta2, phi1);
+                let p3 = 0.26 * Self::spherical_to_cartesian(theta2, phi2);
+                let p4 = 0.26 * Self::spherical_to_cartesian(theta1, phi2);
 
-                let p1 = [p1.x, p1.y + 1.8, p1.z];
-                let p2 = [p2.x, p2.y + 1.8, p2.z];
-                let p3 = [p3.x, p3.y + 1.8, p3.z];
-                let p4 = [p4.x, p4.y + 1.8, p4.z];
+                let p1 = [p1.x, p1.y + 0.9, p1.z];
+                let p2 = [p2.x, p2.y + 0.9, p2.z];
+                let p3 = [p3.x, p3.y + 0.9, p3.z];
+                let p4 = [p4.x, p4.y + 0.9, p4.z];
 
                 vertices.push(GPUVertex {
                     position: p1,
@@ -244,10 +244,10 @@ impl EntityRender {
     fn generate_body_vertices() -> Vec<GPUVertex> {
         let light = 1.0;
 
-        let top_half_width = 0.3;
-        let bottom_half_width = 0.15;
-        let half_depth = 0.3;
-        let half_height = 0.9;
+        let top_half_width = 0.18;
+        let bottom_half_width = 0.1;
+        let half_depth = 0.18;
+        let half_height = 0.5;
 
         let normals = [
             [0.0, 0.0, 1.0],  // front
