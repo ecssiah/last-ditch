@@ -19,22 +19,22 @@ use crate::simulation::{
     Chunk, USER_VIEW_RADIUS,
 };
 use glam::IVec3;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 pub struct Observation {
-    repository: repository::Repository,
+    repository: Arc<RwLock<repository::Repository>>,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let repository = Repository::new();
+        let repository = Arc::new(RwLock::new(Repository::new()));
 
         let observation = Self { repository };
 
         observation
     }
 
-    pub fn generate_view(&self, state: &State) {
+    pub fn generate(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
             let admin_view = self.generate_admin_view(&state.admin);
             let time_view = self.generate_time_view(&state.time);
@@ -49,7 +49,9 @@ impl Observation {
                 world_view,
             };
 
-            self.repository.set(&judge.id, next_view);
+            let repository = self.repository.write().unwrap();
+            
+            repository.set(&judge.id, next_view);
         }
     }
 
@@ -143,12 +145,14 @@ impl Observation {
         chunk_view
     }
 
-    pub fn tick(&mut self, state: &State) {
+    pub fn tick(&self, state: &State) {
         self.update_view(&state);
     }
 
     pub fn get_view(&self, entity_id: &entity::ID) -> Option<View> {
-        if let Some(view) = self.repository.get(&entity_id) {
+        let repository = self.repository.read().unwrap();
+
+        if let Some(view) = repository.get(&entity_id) {
             Some((*view).clone())
         } else {
             None
@@ -157,23 +161,31 @@ impl Observation {
 
     fn update_view(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
-            let view = self.repository.get(&judge.id).unwrap();
+            let view = {
+                let repository = self.repository.read().unwrap();
 
-            let admin_view = self.update_admin_view(&state.admin);
-            let time_view = self.update_time_view(&state.time, &view.time_view);
-            let population_view =
-                self.update_population_view(&state.population, &view.population_view);
-            let world_view = self.update_world_view(&judge, &state.world, &view.world_view);
-
-            let next_view = View {
-                entity_id: judge.id,
-                admin_view,
-                time_view,
-                population_view,
-                world_view,
+                repository.get(&judge.id)           
             };
 
-            self.repository.set(&judge.id, next_view);
+            if let Some(view) = view {
+                let admin_view = self.update_admin_view(&state.admin);
+                let time_view = self.update_time_view(&state.time, &view.time_view);
+                let population_view =
+                    self.update_population_view(&state.population, &view.population_view);
+                let world_view = self.update_world_view(&judge, &state.world, &view.world_view);
+    
+                let next_view = View {
+                    entity_id: judge.id,
+                    admin_view,
+                    time_view,
+                    population_view,
+                    world_view,
+                };
+    
+                let repository = self.repository.write().unwrap();
+
+                repository.set(&judge.id, next_view);
+            }
         }
     }
 

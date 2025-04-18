@@ -72,7 +72,7 @@ impl ApplicationHandler for App {
 
         let mut simulation = Box::new(Simulation::new(action_rx));
 
-        let observation_lock = simulation.get_observation_arc();
+        let observation = simulation.get_observation();
 
         let simulation_thread = thread::spawn(move || {
             simulation.run();
@@ -80,7 +80,7 @@ impl ApplicationHandler for App {
 
         let interface = Interface::new(
             action_tx,
-            Arc::clone(&observation_lock),
+            Arc::clone(&observation),
             Arc::clone(&window),
             instance,
             adapter,

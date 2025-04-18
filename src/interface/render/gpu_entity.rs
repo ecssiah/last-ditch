@@ -1,5 +1,5 @@
 #[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GPUEntity {
     pub position: [f32; 3],
     pub height: f32,

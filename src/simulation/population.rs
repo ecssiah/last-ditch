@@ -47,7 +47,7 @@ impl Population {
 
             let position = Vec3::new(
                 rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
-                2.0,
+                40.0,
                 rng.gen_range(-(WORLD_BOUNDARY as f32)..=(WORLD_BOUNDARY as f32)),
             );
 
@@ -73,6 +73,10 @@ impl Population {
 
     pub fn all_agents(&self) -> impl Iterator<Item = &Entity> {
         self.agents.values()
+    }
+
+    pub fn all_agents_mut(&mut self) -> impl Iterator<Item = &mut Entity> {
+        self.agents.values_mut()
     }
 
     pub fn get_agent(&self, entity_id: &entity::ID) -> Option<&Entity> {

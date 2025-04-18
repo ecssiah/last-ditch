@@ -22,17 +22,14 @@ use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use physics::Physics;
 use state::State;
-use std::{
-    sync::{Arc, RwLock},
-    thread,
-};
+use std::{sync::Arc, thread};
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
     actions: Dispatch,
     state: State,
     physics: Physics,
-    observation_lock: Arc<RwLock<Observation>>,
+    observation: Arc<Observation>,
 }
 
 impl Simulation {
@@ -41,13 +38,13 @@ impl Simulation {
         let state = State::new();
         let physics = Physics::new();
 
-        let observation_lock = Arc::new(RwLock::new(Observation::new()));
+        let observation = Arc::new(Observation::new());
 
         let simulation = Self {
             actions,
             state,
             physics,
-            observation_lock,
+            observation,
         };
 
         log::info!("Simulation Initialized");
@@ -58,22 +55,15 @@ impl Simulation {
     pub fn run(&mut self) {
         self.state.generate();
         self.physics.generate(&self.state);
-
-        self.generate_view();
+        self.observation.generate(&self.state);
 
         loop {
             self.update();
         }
     }
 
-    fn generate_view(&self) {
-        let observation = self.observation_lock.read().unwrap();
-
-        observation.generate_view(&self.state);
-    }
-
-    pub fn get_observation_arc(&self) -> Arc<RwLock<Observation>> {
-        Arc::clone(&self.observation_lock)
+    pub fn get_observation(&self) -> Arc<Observation> {
+        Arc::clone(&self.observation)
     }
 
     fn update(&mut self) {
@@ -85,15 +75,9 @@ impl Simulation {
             self.state.tick();
             self.physics.tick(&mut self.state);
 
-            self.tick_observation();
+            self.observation.tick(&self.state);
         }
 
         thread::sleep(SIMULATION_WAIT_DURATION);
-    }
-
-    fn tick_observation(&mut self) {
-        let mut observation = self.observation_lock.write().unwrap();
-
-        observation.tick(&self.state);
     }
 }

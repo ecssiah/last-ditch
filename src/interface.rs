@@ -19,7 +19,7 @@ use crate::{
     simulation::{self},
 };
 use std::{
-    sync::{Arc, RwLock},
+    sync::Arc,
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::UnboundedSender;
@@ -34,7 +34,7 @@ pub struct Interface {
     render_instant: Instant,
     alpha: f32,
     action_tx: UnboundedSender<simulation::dispatch::Action>,
-    observation_lock: Arc<RwLock<simulation::observation::Observation>>,
+    observation: Arc<simulation::observation::Observation>,
     window: Arc<Window>,
     input: Input,
     device: wgpu::Device,
@@ -52,7 +52,7 @@ pub struct Interface {
 impl Interface {
     pub fn new(
         action_tx: UnboundedSender<simulation::dispatch::Action>,
-        observation_lock: Arc<RwLock<simulation::observation::Observation>>,
+        observation: Arc<simulation::observation::Observation>,
         window: Arc<Window>,
         instance: wgpu::Instance,
         adapter: wgpu::Adapter,
@@ -117,7 +117,7 @@ impl Interface {
             render_instant,
             alpha,
             action_tx,
-            observation_lock,
+            observation,
             window,
             input,
             device,
@@ -162,7 +162,10 @@ impl Interface {
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        if let Some(view) = self.get_view(&simulation::population::entity::ID::USER_ENTITY1) {
+        if let Some(view) = self
+            .observation
+            .get_view(&simulation::population::entity::ID::USER_ENTITY1)
+        {
             self.check_active(event_loop, &view);
             self.send_movement_actions();
 
@@ -170,17 +173,9 @@ impl Interface {
         }
     }
 
-    fn get_view(
-        &self,
-        entity_id: &simulation::population::entity::ID,
-    ) -> Option<simulation::observation::view::View> {
-        let observation = self.observation_lock.read().unwrap();
-
-        observation.get_view(entity_id)
-    }
-
     fn update_view(&mut self, view: &simulation::observation::view::View) {
         self.update_alpha(&view.time_view);
+
         self.update_judge_view(&view.population_view);
         self.update_agent_views(&view.population_view);
         self.update_world_view(&view.world_view);
@@ -200,7 +195,7 @@ impl Interface {
         population_view: &simulation::observation::view::PopulationView,
     ) {
         if let Some(judge_view) = population_view.judge_view.as_ref() {
-            self.camera.update(&self.queue, self.alpha, &judge_view);
+            self.camera.update(&self.queue, self.alpha, judge_view);
         }
     }
 
@@ -211,9 +206,13 @@ impl Interface {
         self.entity_renderer.gpu_entities = population_view
             .agent_views
             .iter()
-            .map(|entity_view| GPUEntity {
-                position: entity_view.1.position.to_array(),
-                height: 1.8,
+            .map(|(_, agent_view)| {
+                let gpu_entity = GPUEntity {
+                    position: agent_view.position.to_array(),
+                    height: 1.8,
+                };
+
+                gpu_entity
             })
             .collect();
 

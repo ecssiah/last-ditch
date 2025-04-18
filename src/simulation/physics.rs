@@ -228,9 +228,9 @@ impl Physics {
 
     pub fn tick(&mut self, state: &mut State) {
         self.tick_entities(state);
-
+        
         self.step();
-
+        
         self.sync_entities(state);
 
         self.update_chunk_colliders(state);
@@ -343,7 +343,34 @@ impl Physics {
         }
     }
 
-    fn sync_agents(&self, _state: &mut State) {
+    fn sync_agents(&self, state: &mut State) {
+        for agent in state.population.all_agents_mut() {
+            let Some(entity_controller) = self.entity_controllers.get(&agent.id) else {
+                return;
+            };
 
+            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+                return;
+            };
+
+            let rigid_body_position = rigid_body.position();
+
+            let translation = rigid_body_position.translation.vector;
+            let next_position = Vec3::new(translation.x, translation.y, translation.z);
+
+            let current_grid_position = World::grid_position_at(agent.position).unwrap();
+            let next_grid_position = World::grid_position_at(next_position).unwrap();
+
+            agent.position = next_position;
+
+            if current_grid_position == next_grid_position {
+                agent.chunk_update = false;
+            } else {
+                let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+                let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+
+                agent.chunk_update = next_chunk_id != current_chunk_id;
+            }
+        }
     }
 }
