@@ -5,9 +5,7 @@ pub use agent::Agent;
 pub use judge::Judge;
 use rand::Rng;
 
-use crate::simulation::{
-    block::Direction, time::Tick, world::World, consts::*,
-};
+use crate::simulation::{block::Direction, consts::*, time::Tick, world::World};
 use glam::{IVec3, Vec3};
 use std::collections::HashMap;
 
@@ -98,7 +96,13 @@ impl Population {
                                 world.get_block(target_position + IVec3::new(0, 2, 0))
                             {
                                 if !air_block2.solid {
-                                    agent.target = target_position.as_vec3();
+                                    if let Some(air_block3) =
+                                        world.get_block(target_position + IVec3::new(0, 3, 0))
+                                    {
+                                        if !air_block3.solid {
+                                            agent.target = target_position.as_vec3();
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -27,6 +27,8 @@ impl World {
     pub fn generate(&mut self) {
         self.generate_ground();
 
+        self.set_block_kind(0, 6, 0, &block::Kind::Stone2);
+
         self.set_cube(
             IVec3::new(-8, 1, -8),
             IVec3::new(8, 1, 8),
