@@ -147,20 +147,19 @@ impl Physics {
         }
     }
 
-    fn generate_agents(&mut self, _state: &State) {
-
-    }
+    fn generate_agents(&mut self, _state: &State) {}
 
     fn update_chunk_colliders(&mut self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
             let current_grid_position = World::grid_position_at(judge.position).unwrap();
             let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-    
-            let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
-    
+
+            let visible_chunk_ids =
+                World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
+
             let current_loaded_chunks: Vec<chunk::ID> =
                 self.chunk_collider_handles.keys().cloned().collect();
-    
+
             for chunk_id in current_loaded_chunks {
                 if !visible_chunk_ids.contains(&chunk_id) {
                     if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
@@ -173,7 +172,7 @@ impl Physics {
                     }
                 }
             }
-    
+
             for &chunk_id in visible_chunk_ids.iter() {
                 if !self.chunk_collider_handles.contains_key(&chunk_id) {
                     if let Some(chunk) = state.world.get_chunk(chunk_id) {
@@ -258,9 +257,9 @@ impl Physics {
 
     pub fn tick(&mut self, state: &mut State) {
         self.tick_entities(state);
-        
+
         self.step();
-        
+
         self.sync_entities(state);
 
         self.update_chunk_colliders(state);
@@ -279,18 +278,18 @@ impl Physics {
                 .rigid_body_set
                 .get_mut(entity_controller.rigid_body_handle)
                 .unwrap();
-    
+
             let forward = judge.orientation * Vec3::Z;
             let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
             let right_xz = Vec3::Y.cross(forward_xz).normalize();
-    
+
             let input_direction = judge.x_speed * right_xz + judge.z_speed * forward_xz;
-    
+
             let mut velocity = *rigid_body.linvel();
-    
+
             velocity.x = input_direction.x * DEFAULT_X_SPEED;
             velocity.z = input_direction.z * DEFAULT_Z_SPEED;
-    
+
             match judge.jump_state.stage {
                 JumpStage::Launch => {
                     judge.jump_state.stage = JumpStage::Rise;
@@ -298,7 +297,7 @@ impl Physics {
                 }
                 JumpStage::Rise => {
                     judge.jump_state.timer += 1;
-    
+
                     if judge.jump_state.timer < MAX_JUMP_TICKS {
                         velocity.y = JUMP_LAUNCH_VELOCITY;
                     } else {
@@ -310,14 +309,12 @@ impl Physics {
                 }
                 JumpStage::Ground => {}
             }
-    
+
             rigid_body.set_linvel(velocity, true);
         }
     }
 
-    fn tick_agents(&mut self, _state: &mut State) {
-
-    }
+    fn tick_agents(&mut self, _state: &mut State) {}
 
     pub fn step(&mut self) {
         self.pipeline.step(
@@ -348,7 +345,8 @@ impl Physics {
                 return;
             };
 
-            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle)
+            else {
                 return;
             };
 
@@ -379,7 +377,8 @@ impl Physics {
                 return;
             };
 
-            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
+            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle)
+            else {
                 return;
             };
 

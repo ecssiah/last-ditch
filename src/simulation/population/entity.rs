@@ -1,11 +1,11 @@
 pub mod id;
-pub mod kind;
 pub mod jump_state;
+pub mod kind;
 
 pub use id::ID;
-pub use kind::Kind;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
+pub use kind::Kind;
 
 use crate::simulation::{population::entity, time::Tick};
 use glam::{Quat, Vec3};

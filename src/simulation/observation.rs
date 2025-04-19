@@ -225,12 +225,7 @@ impl Observation {
         next_population_view
     }
 
-    fn apply_world_view(
-        &self,
-        judge: &Entity,
-        world_view: &WorldView,
-        world: &World,
-    ) -> WorldView {
+    fn apply_world_view(&self, judge: &Entity, world_view: &WorldView, world: &World) -> WorldView {
         if !judge.chunk_update {
             return world_view.clone();
         }
@@ -266,11 +261,7 @@ impl Observation {
         next_world_view
     }
 
-    fn update_chunk_view(
-        &self,
-        world_view: &WorldView,
-        chunk: &chunk::Chunk,
-    ) -> ChunkView {
+    fn update_chunk_view(&self, world_view: &WorldView, chunk: &chunk::Chunk) -> ChunkView {
         let next_chunk_view;
 
         if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {

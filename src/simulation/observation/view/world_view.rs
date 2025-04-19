@@ -1,4 +1,8 @@
-use crate::simulation::{chunk, observation::{state_pair::StatePair, view::chunk_view::ChunkView}, time::Tick};
+use crate::simulation::{
+    chunk,
+    observation::{state_pair::StatePair, view::chunk_view::ChunkView},
+    time::Tick,
+};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
