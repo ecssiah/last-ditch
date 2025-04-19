@@ -9,9 +9,10 @@ use glam::Vec3;
 pub struct Agent {
     pub id: ID,
     pub tick: Tick,
-    pub name: &'static str,
+    pub name: String,
     pub position: Vec3,
     pub target: Vec3,
+    pub speed: f32,
 }
 
 impl Agent {
@@ -19,9 +20,10 @@ impl Agent {
         let agent = Self {
             id: agent_id,
             tick: Tick::ZERO,
-            name: "",
+            name: "TEST AGENT NAME".to_string(),
             position: Vec3::ZERO,
             target: Vec3::ZERO,
+            speed: 1.0,
         };
 
         agent

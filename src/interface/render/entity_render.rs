@@ -185,10 +185,10 @@ impl EntityRender {
                 let p3 = 0.26 * Self::spherical_to_cartesian(theta2, phi2);
                 let p4 = 0.26 * Self::spherical_to_cartesian(theta1, phi2);
 
-                let p1 = [p1.x, p1.y + 0.9, p1.z];
-                let p2 = [p2.x, p2.y + 0.9, p2.z];
-                let p3 = [p3.x, p3.y + 0.9, p3.z];
-                let p4 = [p4.x, p4.y + 0.9, p4.z];
+                let p1 = [p1.x, p1.y + 1.9, p1.z];
+                let p2 = [p2.x, p2.y + 1.9, p2.z];
+                let p3 = [p3.x, p3.y + 1.9, p3.z];
+                let p4 = [p4.x, p4.y + 1.9, p4.z];
 
                 vertices.push(GPUVertex {
                     position: p1,
@@ -246,11 +246,8 @@ impl EntityRender {
     }
 
     fn generate_body_vertices() -> Vec<GPUVertex> {
-        let light = 1.0;
-
         let top_half_width = 0.18;
-        let bottom_half_width = 0.1;
-        let half_depth = 0.18;
+        let bottom_half_width = 0.08;
         let half_height = 0.5;
 
         let normals = [
@@ -265,57 +262,57 @@ impl EntityRender {
         let faces = vec![
             // front face
             [
-                [-bottom_half_width, -half_height, half_depth],
-                [bottom_half_width, -half_height, half_depth],
-                [top_half_width, half_height, half_depth],
-                [top_half_width, half_height, half_depth],
-                [-top_half_width, half_height, half_depth],
-                [-bottom_half_width, -half_height, half_depth],
+                [-bottom_half_width, -half_height + 1.0, top_half_width],
+                [bottom_half_width, -half_height + 1.0, top_half_width],
+                [top_half_width, half_height + 1.0, top_half_width],
+                [top_half_width, half_height + 1.0, top_half_width],
+                [-top_half_width, half_height + 1.0, top_half_width],
+                [-bottom_half_width, -half_height + 1.0, top_half_width],
             ],
             // back face
             [
-                [bottom_half_width, -half_height, -half_depth],
-                [-bottom_half_width, -half_height, -half_depth],
-                [-top_half_width, half_height, -half_depth],
-                [-top_half_width, half_height, -half_depth],
-                [top_half_width, half_height, -half_depth],
-                [bottom_half_width, -half_height, -half_depth],
+                [bottom_half_width, -half_height + 1.0, -top_half_width],
+                [-bottom_half_width, -half_height + 1.0, -top_half_width],
+                [-top_half_width, half_height + 1.0, -top_half_width],
+                [-top_half_width, half_height + 1.0, -top_half_width],
+                [top_half_width, half_height + 1.0, -top_half_width],
+                [bottom_half_width, -half_height + 1.0, -top_half_width],
             ],
             // right face
             [
-                [bottom_half_width, -half_height, half_depth],
-                [bottom_half_width, -half_height, -half_depth],
-                [top_half_width, half_height, -half_depth],
-                [top_half_width, half_height, -half_depth],
-                [top_half_width, half_height, half_depth],
-                [bottom_half_width, -half_height, half_depth],
+                [bottom_half_width, -half_height + 1.0, top_half_width],
+                [bottom_half_width, -half_height + 1.0, -top_half_width],
+                [top_half_width, half_height + 1.0, -top_half_width],
+                [top_half_width, half_height + 1.0, -top_half_width],
+                [top_half_width, half_height + 1.0, top_half_width],
+                [bottom_half_width, -half_height + 1.0, top_half_width],
             ],
             // left face
             [
-                [-bottom_half_width, -half_height, -half_depth],
-                [-bottom_half_width, -half_height, half_depth],
-                [-top_half_width, half_height, half_depth],
-                [-top_half_width, half_height, half_depth],
-                [-top_half_width, half_height, -half_depth],
-                [-bottom_half_width, -half_height, -half_depth],
+                [-bottom_half_width, -half_height + 1.0, -top_half_width],
+                [-bottom_half_width, -half_height + 1.0, top_half_width],
+                [-top_half_width, half_height + 1.0, top_half_width],
+                [-top_half_width, half_height + 1.0, top_half_width],
+                [-top_half_width, half_height + 1.0, -top_half_width],
+                [-bottom_half_width, -half_height + 1.0, -top_half_width],
             ],
             // top face
             [
-                [-top_half_width, half_height, half_depth],
-                [top_half_width, half_height, half_depth],
-                [top_half_width, half_height, -half_depth],
-                [top_half_width, half_height, -half_depth],
-                [-top_half_width, half_height, -half_depth],
-                [-top_half_width, half_height, half_depth],
+                [-top_half_width, half_height + 1.0, top_half_width],
+                [top_half_width, half_height + 1.0, top_half_width],
+                [top_half_width, half_height + 1.0, -top_half_width],
+                [top_half_width, half_height + 1.0, -top_half_width],
+                [-top_half_width, half_height + 1.0, -top_half_width],
+                [-top_half_width, half_height + 1.0, top_half_width],
             ],
             // bottom face
             [
-                [-bottom_half_width, -half_height, -half_depth],
-                [bottom_half_width, -half_height, -half_depth],
-                [bottom_half_width, -half_height, half_depth],
-                [bottom_half_width, -half_height, half_depth],
-                [-bottom_half_width, -half_height, half_depth],
-                [-bottom_half_width, -half_height, -half_depth],
+                [-bottom_half_width, -half_height + 1.0, -top_half_width],
+                [bottom_half_width, -half_height + 1.0, -top_half_width],
+                [bottom_half_width, -half_height + 1.0, top_half_width],
+                [bottom_half_width, -half_height + 1.0, top_half_width],
+                [-bottom_half_width, -half_height + 1.0, top_half_width],
+                [-bottom_half_width, -half_height + 1.0, -top_half_width],
             ],
         ];
 
@@ -329,7 +326,7 @@ impl EntityRender {
                     position,
                     normal,
                     uv: [0.0, 0.0],
-                    light,
+                    light: 1.0,
                 });
             }
         }

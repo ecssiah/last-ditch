@@ -23,7 +23,7 @@ pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
 pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
 
 pub const JUDGE_VIEW_RADIUS: usize = 4;
-pub const AGENT_INITIAL_POPULATION: usize = 8;
+pub const AGENT_INITIAL_POPULATION: usize = 64;
 
 pub const ENTITY_SIZE_X: f32 = 0.4;
 pub const ENTITY_SIZE_Y: f32 = 0.9;

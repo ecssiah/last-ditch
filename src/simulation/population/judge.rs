@@ -12,7 +12,7 @@ use glam::{Quat, Vec3};
 pub struct Judge {
     pub id: ID,
     pub tick: Tick,
-    pub name: &'static str,
+    pub name: String,
     pub position: Vec3,
     pub velocity: Vec3,
     pub chunk_update: bool,
@@ -29,7 +29,7 @@ impl Judge {
         let judge = Self {
             id: judge_id,
             tick: Tick::ZERO,
-            name: "",
+            name: "TEST JUDGE NAME".to_string(),
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             chunk_update: false,

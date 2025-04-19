@@ -569,7 +569,7 @@ impl World {
     }
 
     pub fn grid_position_at(position: Vec3) -> Option<IVec3> {
-        let grid_position = position.as_ivec3();
+        let grid_position = (position + Vec3::splat(0.5)).floor().as_ivec3();
 
         if Self::on_map(grid_position) {
             Some(grid_position)

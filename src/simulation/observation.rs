@@ -36,6 +36,16 @@ impl Observation {
         observation
     }
 
+    pub fn tick(&self, state: &State) {
+        self.update_view(&state);
+    }
+
+    pub fn get_view(&self) -> View {
+        let view = self.repository.get();
+
+        (*view).clone()
+    }
+
     pub fn generate(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
             let admin_view = self.generate_admin_view(&state.admin);
@@ -138,16 +148,6 @@ impl Observation {
         chunk_view
     }
 
-    pub fn tick(&self, state: &State) {
-        self.update_view(&state);
-    }
-
-    pub fn get_view(&self) -> View {
-        let view = self.repository.get();
-
-        (*view).clone()
-    }
-
     fn update_view(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
             let view = self.repository.get();
@@ -156,7 +156,7 @@ impl Observation {
             let time_view = self.update_time_view(&view.time_view, &state.time);
             let population_view =
                 self.update_population_view(&view.population_view, &state.population);
-            let world_view = self.apply_world_view(&judge, &view.world_view, &state.world);
+            let world_view = self.update_world_view(&judge, &view.world_view, &state.world);
 
             let next_view = View {
                 judge_id: judge.id,
@@ -225,7 +225,7 @@ impl Observation {
         next_population_view
     }
 
-    fn apply_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
+    fn update_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
         if !judge.chunk_update {
             return world_view.clone();
         }

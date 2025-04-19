@@ -3,9 +3,10 @@ pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
+use rand::{Rng, SeedableRng};
 
-use crate::simulation::{time::Tick, world::World};
-use glam::Vec3;
+use crate::simulation::{block::Direction, time::Tick, world::World, AGENT_INITIAL_POPULATION, DEFAULT_SEED, FIXED_DT};
+use glam::{IVec3, Vec3};
 use std::collections::HashMap;
 
 pub struct Population {
@@ -40,43 +41,73 @@ impl Population {
     }
 
     fn generate_agents(&mut self) {
-        for x in -2..=2 {
+        for _ in 0..AGENT_INITIAL_POPULATION {
             let mut agent = Agent::new(agent::ID::allocate());
 
-            let position = Vec3::new((6 * x) as f32, 1.0, -18.0);
+            let position = Vec3::new(0.0, 2.0, 0.0);
 
-            agent.set_position(position.x, position.y, position.z);
-
-            self.agents.insert(agent.id, agent);
-
-            let mut agent = Agent::new(agent::ID::allocate());
-
-            let position = Vec3::new((6 * x) as f32, 1.0, 18.0);
-
-            agent.set_position(position.x, position.y, position.z);
-
-            self.agents.insert(agent.id, agent);
-
-            let mut agent = Agent::new(agent::ID::allocate());
-
-            let position = Vec3::new(-18.0, 1.0, (6 * x) as f32);
-
-            agent.set_position(position.x, position.y, position.z);
-
-            self.agents.insert(agent.id, agent);
-
-            let mut agent = Agent::new(agent::ID::allocate());
-
-            let position = Vec3::new(18.0, 1.0, (6 * x) as f32);
-
-            agent.set_position(position.x, position.y, position.z);
+            agent.position = position;
+            agent.target = position;
 
             self.agents.insert(agent.id, agent);
         }
     }
 
-    pub fn tick(&mut self, tick: &Tick, _world: &World) {
+    pub fn tick(&mut self, tick: &Tick, world: &World) {
         self.tick = *tick;
+
+        self.tick_agents(world);
+    }
+
+    fn tick_agents(&mut self, world: &World) {
+        for agent in self.agents.values_mut() {
+            let path = agent.target - agent.position;
+
+            if path.length_squared() > 1e-3 {
+                agent.position += agent.speed * FIXED_DT.as_secs_f32() * path.normalize();
+            } else {
+                Self::find_target(agent, world);
+            }
+        }
+    }
+
+    fn find_target(agent: &mut Agent, world: &World) {
+        let seed = agent.id.0 as u64;
+        let mut rng = rand_pcg::Pcg32::new(seed, u64::from(world.tick));
+
+        let direction_index = rng.gen_range(0..4);
+        let direction = Direction::cardinal()[direction_index];
+
+        let dy = rng.gen_range(-1..=1);
+
+        let delta = match direction {
+            Direction::XpYoZo => IVec3::new(1, dy, 0),
+            Direction::XnYoZo => IVec3::new(-1, dy, 0),
+            Direction::XoYoZp => IVec3::new(0, dy, 1),
+            Direction::XoYoZn => IVec3::new(0, dy, -1),
+            _ => IVec3::ZERO,
+        };
+
+        if let Some(grid_position) = World::grid_position_at(agent.position) {
+            let target_position = grid_position + delta;
+
+            if let Some(block) = world.get_block(target_position) {
+                if block.solid {
+                    if let Some(air_block1) = world.get_block(target_position + IVec3::new(0, 1, 0))
+                    {
+                        if !air_block1.solid {
+                            if let Some(air_block2) =
+                                world.get_block(target_position + IVec3::new(0, 2, 0))
+                            {
+                                if !air_block2.solid {
+                                    agent.target = target_position.as_vec3();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn get_judge(&self) -> Option<&Judge> {
