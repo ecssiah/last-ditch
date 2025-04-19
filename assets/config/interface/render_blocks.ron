@@ -43,4 +43,26 @@
             XoYoZn: (1, 1),
         },
     ),
+    GPUBlock(
+        kind: Polished1,
+        atlas_coordinates: {
+            XpYoZo: (0, 2),
+            XnYoZo: (0, 2),
+            XoYpZo: (0, 2),
+            XoYnZo: (0, 2),
+            XoYoZp: (0, 2),
+            XoYoZn: (0, 2),
+        },
+    ),
+    GPUBlock(
+        kind: Polished2,
+        atlas_coordinates: {
+            XpYoZo: (1, 2),
+            XnYoZo: (1, 2),
+            XoYpZo: (1, 2),
+            XoYnZo: (1, 2),
+            XoYoZp: (1, 2),
+            XoYoZn: (1, 2),
+        },
+    ),
 ]

@@ -80,8 +80,8 @@ impl ApplicationHandler for App {
 
         let interface = Interface::new(
             action_tx,
-            Arc::clone(&observation),
-            Arc::clone(&window),
+            observation.clone(),
+            window.clone(),
             instance,
             adapter,
             device,

@@ -152,10 +152,10 @@ impl Observation {
 
             if let Some(view) = view {
                 let admin_view = self.update_admin_view(&state.admin);
-                let time_view = self.update_time_view(&state.time, &view.time_view);
+                let time_view = self.update_time_view(&view.time_view, &state.time);
                 let population_view =
-                    self.update_population_view(&state.population, &view.population_view);
-                let world_view = self.apply_world_view(&judge, &state.world, &view.world_view);
+                    self.update_population_view(&view.population_view, &state.population);
+                let world_view = self.apply_world_view(&judge, &view.world_view, &state.world);
 
                 let next_view = View {
                     entity_id: judge.id,
@@ -174,7 +174,7 @@ impl Observation {
         AdminView { mode: admin.mode }
     }
 
-    fn update_time_view(&self, time: &Time, time_view: &TimeView) -> TimeView {
+    fn update_time_view(&self, time_view: &TimeView, time: &Time) -> TimeView {
         TimeView {
             instant: StatePair::new(time_view.instant.current, time.instant),
         }
@@ -182,8 +182,8 @@ impl Observation {
 
     fn update_population_view(
         &self,
-        population: &Population,
         population_view: &PopulationView,
+        population: &Population,
     ) -> PopulationView {
         let mut next_population_view = PopulationView {
             tick: StatePair::new(population_view.tick.current, population.tick),
@@ -227,11 +227,11 @@ impl Observation {
 
     fn apply_world_view(
         &self,
-        entity: &Entity,
-        world: &World,
+        judge: &Entity,
         world_view: &WorldView,
+        world: &World,
     ) -> WorldView {
-        if !entity.chunk_update {
+        if !judge.chunk_update {
             return world_view.clone();
         }
 
@@ -240,7 +240,7 @@ impl Observation {
             chunk_views: HashMap::new(),
         };
 
-        let grid_position = World::grid_position_at(entity.position).unwrap();
+        let grid_position = World::grid_position_at(judge.position).unwrap();
         let chunk_position = Chunk::position_at(grid_position).unwrap();
 
         let x_range = (chunk_position.x - USER_VIEW_RADIUS)..=(chunk_position.x + USER_VIEW_RADIUS);
@@ -254,7 +254,7 @@ impl Observation {
 
                     if let Some(chunk_id) = Chunk::id_at(chunk_position) {
                         if let Some(chunk) = world.get_chunk(chunk_id) {
-                            let chunk_view = self.update_chunk_view(chunk, world, world_view);
+                            let chunk_view = self.update_chunk_view(world_view, chunk);
 
                             next_world_view.chunk_views.insert(chunk.id, chunk_view);
                         }
@@ -268,9 +268,8 @@ impl Observation {
 
     fn update_chunk_view(
         &self,
-        chunk: &chunk::Chunk,
-        _world: &World,
         world_view: &WorldView,
+        chunk: &chunk::Chunk,
     ) -> ChunkView {
         let next_chunk_view;
 

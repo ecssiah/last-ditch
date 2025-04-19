@@ -2,7 +2,7 @@ pub mod entity;
 
 pub use entity::Entity;
 
-use crate::simulation::time::Tick;
+use crate::simulation::{time::Tick, world::World};
 use glam::Vec3;
 use std::collections::HashMap;
 
@@ -42,7 +42,7 @@ impl Population {
         for x in -2..=2 {
             let mut agent = Entity::new(entity::ID::allocate());
 
-            let position = Vec3::new((6 * x) as f32, 32.0, -10.0);
+            let position = Vec3::new((6 * x) as f32, 0.0, -10.0);
 
             agent.kind = entity::Kind::Agent;
             agent.set_position(position.x, position.y, position.z);
@@ -52,7 +52,7 @@ impl Population {
 
             let mut agent = Entity::new(entity::ID::allocate());
 
-            let position = Vec3::new((6 * x) as f32, 32.0, 10.0);
+            let position = Vec3::new((6 * x) as f32, 0.0, 10.0);
 
             agent.kind = entity::Kind::Agent;
             agent.set_position(position.x, position.y, position.z);
@@ -62,7 +62,7 @@ impl Population {
         }
     }
 
-    pub fn tick(&mut self, tick: &Tick) {
+    pub fn tick(&mut self, tick: &Tick, world: &World) {
         self.tick = *tick;
     }
 

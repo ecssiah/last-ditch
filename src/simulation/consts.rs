@@ -25,9 +25,9 @@ pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
 pub const JUDGE_VIEW_RADIUS: usize = 4;
 pub const AGENT_INITIAL_POPULATION: usize = 8;
 
-pub const ENTITY_SIZE_X: f32 = 0.3;
+pub const ENTITY_SIZE_X: f32 = 0.4;
 pub const ENTITY_SIZE_Y: f32 = 0.9;
-pub const ENTITY_SIZE_Z: f32 = 0.3;
+pub const ENTITY_SIZE_Z: f32 = 0.4;
 pub const ENTITY_BORDER_RADIUS: f32 = 0.001;
 
 pub const BLOCK_RADIUS: f32 = 0.5;

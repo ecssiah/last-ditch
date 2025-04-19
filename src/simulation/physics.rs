@@ -111,14 +111,44 @@ impl Physics {
 
     fn generate_judge(&mut self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
-            self.add_entity(judge);
+            let position = vector![judge.position.x, judge.position.y, judge.position.z];
+
+            let rigid_body = RigidBodyBuilder::dynamic()
+                .ccd_enabled(true)
+                .linear_damping(0.1)
+                .lock_rotations()
+                .translation(position)
+                .build();
+
+            let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
+
+            let collider = ColliderBuilder::cuboid(ENTITY_SIZE_X, ENTITY_SIZE_Y, ENTITY_SIZE_Z)
+                .mass(50.0)
+                .contact_skin(0.02)
+                .friction(0.0)
+                .friction_combine_rule(CoefficientCombineRule::Average)
+                .restitution(0.0)
+                .restitution_combine_rule(CoefficientCombineRule::Average)
+                .build();
+
+            let collider_handle = self.collider_set.insert_with_parent(
+                collider,
+                rigid_body_handle,
+                &mut self.rigid_body_set,
+            );
+
+            let entity_controller = EntityController {
+                entity_id: judge.id,
+                rigid_body_handle,
+                collider_handle,
+            };
+
+            self.entity_controllers.insert(judge.id, entity_controller);
         }
     }
 
-    fn generate_agents(&mut self, state: &State) {
-        for agent in state.population.all_agents() {
-            self.add_entity(agent);
-        }
+    fn generate_agents(&mut self, _state: &State) {
+
     }
 
     fn update_chunk_colliders(&mut self, state: &State) {

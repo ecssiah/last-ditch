@@ -68,7 +68,7 @@ impl Interface {
 
         let size = window.inner_size();
 
-        let surface = instance.create_surface(Arc::clone(&window)).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
         let surface_format = surface_capabilities.formats[0];
 

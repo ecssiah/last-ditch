@@ -63,7 +63,7 @@ impl Simulation {
     }
 
     pub fn get_observation(&self) -> Arc<Observation> {
-        Arc::clone(&self.observation)
+        self.observation.clone()
     }
 
     fn update(&mut self) {

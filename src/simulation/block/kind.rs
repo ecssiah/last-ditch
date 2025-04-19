@@ -7,4 +7,6 @@ pub enum Kind {
     Engraved2,
     Stone1,
     Stone2,
+    Polished1,
+    Polished2,
 }

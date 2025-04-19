@@ -28,69 +28,81 @@ impl World {
         self.generate_ground();
 
         self.set_cube(
-            IVec3::new(15, 4, 15),
-            IVec3::new(17, 6, 17),
-            &block::Kind::Engraved2,
-        );
-
-        self.set_cube(
-            IVec3::new(-17, 4, 15),
-            IVec3::new(-15, 6, 17),
-            &block::Kind::Engraved2,
-        );
-
-        self.set_cube(
-            IVec3::new(15, 4, -17),
-            IVec3::new(17, 6, -15),
-            &block::Kind::Engraved2,
-        );
-
-        self.set_cube(
-            IVec3::new(-17, 4, -17),
-            IVec3::new(-15, 6, -15),
-            &block::Kind::Engraved2,
-        );
-
-        self.set_cube(
-            IVec3::new(-6, 5, -6),
-            IVec3::new(6, 5, 6),
+            IVec3::new(-8, 1, -8),
+            IVec3::new(8, 1, 8),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(-3, 5, -3),
-            IVec3::new(3, 5, 3),
+            IVec3::new(-7, 2, -7),
+            IVec3::new(7, 2, 7),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-6, 8, -6),
+            IVec3::new(6, 8, 6),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5, 9, -5),
+            IVec3::new(5, 9, 5),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-3, 8, -3),
+            IVec3::new(3, 8, 3),
             &block::Kind::Air,
         );
 
         self.set_cube(
-            IVec3::new(-5, 6, -5),
-            IVec3::new(5, 6, 5),
-            &block::Kind::Stone1,
-        );
-
-        self.set_cube(
             IVec3::new(5, 1, 5),
-            IVec3::new(5, 5, 5),
+            IVec3::new(5, 7, 5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(-5, 1, 5),
-            IVec3::new(-5, 5, 5),
+            IVec3::new(-5, 7, 5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(5, 1, -5),
-            IVec3::new(5, 5, -5),
+            IVec3::new(5, 7, -5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(-5, 1, -5),
-            IVec3::new(-5, 5, -5),
+            IVec3::new(-5, 7, -5),
             &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(17, 5, 17),
+            IVec3::new(19, 7, 19),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(-19, 5, 17),
+            IVec3::new(-17, 7, 19),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(17, 5, -19),
+            IVec3::new(19, 7, -17),
+            &block::Kind::Engraved2,
+        );
+
+        self.set_cube(
+            IVec3::new(-19, 5, -19),
+            IVec3::new(-17, 7, -17),
+            &block::Kind::Engraved2,
         );
 
         self.update_chunk_meshes();
@@ -135,9 +147,9 @@ impl World {
                 let chunk_position = Chunk::position_at(IVec3::new(x as i32, 0, z as i32)).unwrap();
 
                 let kind = if (chunk_position.x + chunk_position.z) % 2 == 0 {
-                    &block::Kind::Stone1
+                    &block::Kind::Polished1
                 } else {
-                    &block::Kind::Stone2
+                    &block::Kind::Polished2
                 };
 
                 self.set_block_kind(x as i32, 0, z as i32, kind);

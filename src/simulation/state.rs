@@ -52,7 +52,7 @@ impl State {
         let tick = &self.time.tick;
 
         self.world.tick(tick);
-        self.population.tick(tick);
+        self.population.tick(tick, &self.world);
 
         self.time.tick();
     }

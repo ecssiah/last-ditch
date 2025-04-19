@@ -29,4 +29,16 @@
         opacity: 1.0,
         emittance: 0,
     ),
+    Block(
+        kind: Polished1,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Polished2,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
 ]

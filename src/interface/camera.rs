@@ -83,6 +83,7 @@ impl Camera {
             .position
             .current
             .lerp(judge_view.position.next, alpha);
+
         let judge_orientation = judge_view
             .orientation
             .current
@@ -95,11 +96,10 @@ impl Camera {
         let forward = judge_orientation * Vec3::Z;
         let up = judge_orientation * Vec3::Y;
 
-        let eye = judge_position + simulation::consts::USER_VIEW_OFFSET * up;
+        let eye = judge_position + simulation::consts::USER_VIEW_OFFSET * up + 0.2 * forward;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);
-
         let view_projection = projection * view;
 
         view_projection.to_cols_array_2d()
