@@ -8,14 +8,14 @@ use std::time::{Duration, Instant};
 pub struct Time {
     pub tick: Tick,
     pub work_time: Duration,
-    pub simulation_instant: Instant,
+    pub instant: Instant,
 }
 
 impl Time {
     pub fn new() -> Time {
         let time = Time {
             tick: Tick::ZERO,
-            simulation_instant: Instant::now(),
+            instant: Instant::now(),
             work_time: Duration::ZERO,
         };
 
@@ -28,8 +28,8 @@ impl Time {
 
     pub fn calculate_work(&mut self) {
         let now = Instant::now();
-        let frame_time = now.duration_since(self.simulation_instant);
-        self.simulation_instant = now;
+        let frame_time = now.duration_since(self.instant);
+        self.instant = now;
 
         self.work_time += frame_time;
     }

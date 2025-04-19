@@ -196,12 +196,14 @@ impl EntityRender {
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
+
                 vertices.push(GPUVertex {
                     position: p2,
                     normal: p2,
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
+
                 vertices.push(GPUVertex {
                     position: p3,
                     normal: p3,
@@ -215,12 +217,14 @@ impl EntityRender {
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
+                
                 vertices.push(GPUVertex {
                     position: p3,
                     normal: p3,
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
+                
                 vertices.push(GPUVertex {
                     position: p4,
                     normal: p4,

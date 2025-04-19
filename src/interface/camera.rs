@@ -79,11 +79,14 @@ impl Camera {
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) -> [[f32; 4]; 4] {
-        let judge_position = judge_view.position.0.lerp(judge_view.position.1, alpha);
+        let judge_position = judge_view
+            .position
+            .current
+            .lerp(judge_view.position.next, alpha);
         let judge_orientation = judge_view
             .orientation
-            .0
-            .lerp(judge_view.orientation.1, alpha);
+            .current
+            .lerp(judge_view.orientation.next, alpha);
 
         let opengl_projection =
             Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);

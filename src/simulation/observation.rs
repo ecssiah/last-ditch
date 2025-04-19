@@ -1,12 +1,15 @@
 pub mod buffer;
 pub mod repository;
+pub mod state_pair;
 pub mod view;
 
 use crate::simulation::{
     admin::Admin,
     chunk,
+    consts::*,
     observation::{
         repository::Repository,
+        state_pair::StatePair,
         view::{
             AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
@@ -15,7 +18,7 @@ use crate::simulation::{
     state::State,
     time::Time,
     world::World,
-    Chunk, USER_VIEW_RADIUS,
+    Chunk,
 };
 use glam::IVec3;
 use std::{collections::HashMap, sync::Arc};
@@ -58,35 +61,35 @@ impl Observation {
 
     fn generate_time_view(&self, time: &Time) -> TimeView {
         TimeView {
-            simulation_instant: (time.simulation_instant, time.simulation_instant),
+            instant: StatePair::new(time.instant, time.instant),
         }
     }
 
     fn generate_population_view(&self, population: &Population) -> PopulationView {
         let judge_view = population.get_judge().map(|judge| JudgeView {
             id: judge.id,
-            tick: (judge.tick, judge.tick),
-            position: (judge.position, judge.position),
-            orientation: (judge.orientation, judge.orientation),
+            tick: StatePair::new(judge.tick, judge.tick),
+            position: StatePair::new(judge.position, judge.position),
+            orientation: StatePair::new(judge.orientation, judge.orientation),
         });
 
         let agent_views = population
             .agents
-            .iter()
-            .map(|(agent_id, agent)| {
+            .values()
+            .map(|agent| {
                 let agent_view = AgentView {
-                    id: *agent_id,
-                    tick: (agent.tick, agent.tick),
-                    position: (agent.position, agent.position),
-                    orientation: (agent.orientation, agent.orientation),
+                    id: agent.id,
+                    tick: StatePair::new(agent.tick, agent.tick),
+                    position: StatePair::new(agent.position, agent.position),
+                    orientation: StatePair::new(agent.orientation, agent.orientation),
                 };
 
-                (*agent_id, agent_view)
+                (agent.id, agent_view)
             })
             .collect();
 
         PopulationView {
-            tick: population.tick,
+            tick: StatePair::new(population.tick, population.tick),
             judge_view,
             agent_views,
         }
@@ -94,7 +97,7 @@ impl Observation {
 
     fn generate_world_view(&self, entity: &Entity, world: &World) -> WorldView {
         let mut world_view = WorldView {
-            tick: entity.tick,
+            tick: StatePair::new(entity.tick, entity.tick),
             chunk_views: HashMap::new(),
         };
 
@@ -127,9 +130,9 @@ impl Observation {
     fn generate_chunk_view(&self, chunk: &chunk::Chunk) -> ChunkView {
         let chunk_view = ChunkView {
             id: chunk.id,
-            tick: (chunk.tick, chunk.tick),
-            position: (chunk.position, chunk.position),
-            mesh: (chunk.mesh.clone(), chunk.mesh.clone()),
+            tick: StatePair::new(chunk.tick, chunk.tick),
+            position: StatePair::new(chunk.position, chunk.position),
+            mesh: StatePair::new(chunk.mesh.clone(), chunk.mesh.clone()),
         };
 
         chunk_view
@@ -152,7 +155,7 @@ impl Observation {
                 let time_view = self.update_time_view(&state.time, &view.time_view);
                 let population_view =
                     self.update_population_view(&state.population, &view.population_view);
-                let world_view = self.update_world_view(&judge, &state.world, &view.world_view);
+                let world_view = self.apply_world_view(&judge, &state.world, &view.world_view);
 
                 let next_view = View {
                     entity_id: judge.id,
@@ -173,7 +176,7 @@ impl Observation {
 
     fn update_time_view(&self, time: &Time, time_view: &TimeView) -> TimeView {
         TimeView {
-            simulation_instant: (time.simulation_instant, time_view.simulation_instant.0),
+            instant: StatePair::new(time_view.instant.current, time.instant),
         }
     }
 
@@ -183,7 +186,7 @@ impl Observation {
         population_view: &PopulationView,
     ) -> PopulationView {
         let mut next_population_view = PopulationView {
-            tick: population.tick,
+            tick: StatePair::new(population_view.tick.current, population.tick),
             judge_view: None,
             agent_views: HashMap::new(),
         };
@@ -195,9 +198,12 @@ impl Observation {
                     .as_ref()
                     .map(|judge_view| JudgeView {
                         id: judge.id,
-                        tick: (judge.tick, judge_view.tick.0),
-                        position: (judge.position, judge_view.position.0),
-                        orientation: (judge.orientation, judge_view.orientation.0),
+                        tick: StatePair::new(judge_view.tick.current, judge.tick),
+                        position: StatePair::new(judge_view.position.current, judge.position),
+                        orientation: StatePair::new(
+                            judge_view.orientation.current,
+                            judge.orientation,
+                        ),
                     });
         }
 
@@ -205,9 +211,9 @@ impl Observation {
             if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
-                    tick: (agent.tick, agent_view.tick.0),
-                    position: (agent.position, agent_view.position.0),
-                    orientation: (agent.orientation, agent_view.orientation.0),
+                    tick: StatePair::new(agent_view.tick.current, agent.tick),
+                    position: StatePair::new(agent_view.position.current, agent.position),
+                    orientation: StatePair::new(agent_view.orientation.current, agent.orientation),
                 };
 
                 next_population_view
@@ -219,7 +225,7 @@ impl Observation {
         next_population_view
     }
 
-    fn update_world_view(
+    fn apply_world_view(
         &self,
         entity: &Entity,
         world: &World,
@@ -230,7 +236,7 @@ impl Observation {
         }
 
         let mut next_world_view = WorldView {
-            tick: entity.tick,
+            tick: StatePair::new(world_view.tick.current, world.tick),
             chunk_views: HashMap::new(),
         };
 
@@ -269,12 +275,12 @@ impl Observation {
         let next_chunk_view;
 
         if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {
-            if chunk_view.tick.0 < chunk.tick {
+            if chunk_view.tick.current < chunk.tick {
                 next_chunk_view = ChunkView {
                     id: chunk.id,
-                    tick: (chunk.tick, chunk_view.tick.0),
-                    position: (chunk.position, chunk_view.position.0),
-                    mesh: (chunk.mesh.clone(), chunk_view.mesh.0.clone()),
+                    tick: StatePair::new(chunk_view.tick.current, chunk.tick),
+                    position: StatePair::new(chunk_view.position.current, chunk.position),
+                    mesh: StatePair::new(chunk_view.mesh.current.clone(), chunk.mesh.clone()),
                 };
             } else {
                 next_chunk_view = chunk_view.clone();
@@ -282,9 +288,9 @@ impl Observation {
         } else {
             next_chunk_view = ChunkView {
                 id: chunk.id,
-                tick: (chunk.tick, chunk.tick),
-                position: (chunk.position, chunk.position),
-                mesh: (chunk.mesh.clone(), chunk.mesh.clone()),
+                tick: StatePair::new(chunk.tick, chunk.tick),
+                position: StatePair::new(chunk.position, chunk.position),
+                mesh: StatePair::new(chunk.mesh.clone(), chunk.mesh.clone()),
             };
         }
 

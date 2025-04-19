@@ -19,6 +19,7 @@ use crate::{
     simulation::{self},
 };
 use std::{
+    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -162,53 +163,58 @@ impl Interface {
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        if let Some(view) = self
-            .observation
-            .get_view(&simulation::population::entity::ID::USER_ENTITY1)
-        {
+        let judge_id = &simulation::population::entity::ID::USER_ENTITY1;
+
+        if let Some(view) = self.observation.get_view(judge_id) {
             self.check_active(event_loop, &view);
+
             self.send_movement_actions();
 
-            self.update_view(&view);
+            self.apply_view(&view);
         }
     }
 
-    fn update_view(&mut self, view: &simulation::observation::view::View) {
-        self.update_alpha(&view.time_view);
-
-        self.update_judge_view(&view.population_view);
-        self.update_agent_views(&view.population_view);
-        self.update_world_view(&view.world_view);
+    fn apply_view(&mut self, view: &simulation::observation::view::View) {
+        self.apply_time_view(&view.time_view);
+        self.apply_population_view(&view.population_view);
+        self.apply_world_view(&view.world_view);
     }
 
-    fn update_alpha(&mut self, time_view: &simulation::observation::view::TimeView) {
+    fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
         let now = Instant::now();
         self.delta_time = now - self.render_instant;
         self.render_instant = now;
 
-        let alpha = (now - time_view.simulation_instant.0).as_secs_f32();
+        let alpha = (now - time_view.instant.current).as_secs_f32();
         self.alpha = alpha.clamp(0.0, 1.0);
     }
 
-    fn update_judge_view(
+    fn apply_population_view(
         &mut self,
         population_view: &simulation::observation::view::PopulationView,
     ) {
-        if let Some(judge_view) = population_view.judge_view.as_ref() {
+        self.apply_judge_view(population_view.judge_view.as_ref());
+        self.apply_agent_views(&population_view.agent_views);
+    }
+
+    fn apply_judge_view(&mut self, judge_view: Option<&simulation::observation::view::JudgeView>) {
+        if let Some(judge_view) = judge_view.as_ref() {
             self.camera.update(&self.queue, self.alpha, judge_view);
         }
     }
 
-    fn update_agent_views(
+    fn apply_agent_views(
         &mut self,
-        population_view: &simulation::observation::view::PopulationView,
+        agent_views: &HashMap<
+            simulation::population::entity::ID,
+            simulation::observation::view::AgentView,
+        >,
     ) {
-        self.entity_renderer.gpu_entities = population_view
-            .agent_views
+        self.entity_renderer.gpu_entities = agent_views
             .iter()
             .map(|(_, agent_view)| {
                 let gpu_entity = GPUEntity {
-                    position: agent_view.position.0.to_array(),
+                    position: agent_view.position.next.to_array(),
                     height: 1.8,
                 };
 
@@ -216,8 +222,8 @@ impl Interface {
             })
             .collect();
 
-        let required_size = (population_view.agent_views.len() * std::mem::size_of::<GPUEntity>())
-            as wgpu::BufferAddress;
+        let required_size =
+            (agent_views.len() * std::mem::size_of::<GPUEntity>()) as wgpu::BufferAddress;
 
         if self.entity_renderer.instance_buffer.size() < required_size {
             self.entity_renderer.instance_buffer =
@@ -236,7 +242,7 @@ impl Interface {
         );
     }
 
-    fn update_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
+    fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
         self.chunk_renderer.gpu_chunks.clear();
 
         for (chunk_id, chunk_view) in &world_view.chunk_views {
@@ -244,7 +250,7 @@ impl Interface {
             let mut indices = Vec::new();
             let mut index_offset = 0;
 
-            for face in &chunk_view.mesh.0.faces {
+            for face in &chunk_view.mesh.next.faces {
                 if face.kind == simulation::block::Kind::Air {
                     continue;
                 }
@@ -282,7 +288,7 @@ impl Interface {
 
             let chunk = GPUChunk {
                 chunk_id,
-                tick: chunk_view.tick.0,
+                tick: chunk_view.tick.next,
                 gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
             };
 
