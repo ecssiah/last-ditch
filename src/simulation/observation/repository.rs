@@ -1,35 +1,28 @@
-use crate::simulation::{
-    observation::{buffer::Buffer, view::View},
-    population::entity,
-};
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use crate::simulation::observation::{buffer::Buffer, view::View};
+use std::sync::{Arc, RwLock};
 
 pub struct Repository {
-    buffers: RwLock<HashMap<entity::ID, Buffer>>,
+    buffer_lock: RwLock<Buffer>,
 }
 
 impl Repository {
     pub fn new() -> Self {
+        let view = View::new();
+
         Self {
-            buffers: RwLock::new(HashMap::new()),
+            buffer_lock: RwLock::new(Buffer::new(view)),
         }
     }
 
-    pub fn get(&self, entity_id: &entity::ID) -> Option<Arc<View>> {
-        let buffers = self.buffers.read().unwrap();
+    pub fn get(&self) -> Arc<View> {
+        let buffer = self.buffer_lock.read().unwrap();
 
-        buffers.get(entity_id).map(|buffer| buffer.get())
+        buffer.get()
     }
 
-    pub fn set(&self, entity_id: &entity::ID, view: View) {
-        let mut buffers = self.buffers.write().unwrap();
+    pub fn set(&self, view: View) {
+        let mut buffer = self.buffer_lock.write().unwrap();
 
-        buffers
-            .entry(*entity_id)
-            .and_modify(|buffer| buffer.update(view.clone()))
-            .or_insert_with(|| Buffer::new(view));
+        buffer.update(view.clone())
     }
 }

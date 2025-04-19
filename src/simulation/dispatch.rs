@@ -9,7 +9,7 @@ pub use entity_action::MovementAction;
 pub use world_action::WorldAction;
 
 use crate::simulation::admin;
-use crate::simulation::population::entity::JumpStage;
+use crate::simulation::population::judge::JumpStage;
 use crate::simulation::state::State;
 use glam::Quat;
 use tokio::sync::mpsc::UnboundedReceiver;

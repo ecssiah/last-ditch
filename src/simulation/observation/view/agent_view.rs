@@ -1,11 +1,11 @@
-use crate::simulation::{observation::state_pair::StatePair, population::entity, time::Tick};
-use glam::{Quat, Vec3};
+use crate::simulation::{observation::state_pair::StatePair, population::agent, time::Tick};
+use glam::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct AgentView {
-    pub id: entity::ID,
+    pub id: agent::ID,
 
     pub tick: StatePair<Tick>,
     pub position: StatePair<Vec3>,
-    pub orientation: StatePair<Quat>,
+    pub target: StatePair<Vec3>,
 }

@@ -1,21 +1,18 @@
 pub mod id;
 pub mod jump_state;
-pub mod kind;
 
 pub use id::ID;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
-pub use kind::Kind;
 
-use crate::simulation::{population::entity, time::Tick};
+use crate::simulation::time::Tick;
 use glam::{Quat, Vec3};
 
 #[derive(Clone)]
-pub struct Entity {
-    pub id: entity::ID,
+pub struct Judge {
+    pub id: ID,
     pub tick: Tick,
     pub name: &'static str,
-    pub kind: Kind,
     pub position: Vec3,
     pub velocity: Vec3,
     pub chunk_update: bool,
@@ -27,13 +24,12 @@ pub struct Entity {
     pub jump_state: JumpState,
 }
 
-impl Entity {
-    pub fn new(entity_id: id::ID) -> Entity {
-        let entity = Self {
-            id: entity_id,
+impl Judge {
+    pub fn new(judge_id: ID) -> Judge {
+        let judge = Self {
+            id: judge_id,
             tick: Tick::ZERO,
             name: "",
-            kind: Kind::Agent,
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             chunk_update: false,
@@ -48,7 +44,7 @@ impl Entity {
             },
         };
 
-        entity
+        judge
     }
 
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {

@@ -1,12 +1,12 @@
-pub mod entity_controller;
+pub mod judge_controller;
 
 use crate::simulation::{
     self, chunk,
     consts::*,
-    physics::entity_controller::EntityController,
+    physics::judge_controller::JudgeController,
     population::{
-        entity::{self, JumpStage},
-        Entity,
+        judge::{self, JumpStage},
+        Judge,
     },
     state::State,
     world::World,
@@ -35,7 +35,7 @@ pub struct Physics {
     pub rigid_body_set: RigidBodySet,
     pub collider_set: ColliderSet,
     pub chunk_collider_handles: HashMap<chunk::ID, ColliderHandle>,
-    pub entity_controllers: HashMap<entity::ID, EntityController>,
+    pub judge_controllers: HashMap<judge::ID, JudgeController>,
 }
 
 impl Physics {
@@ -58,7 +58,7 @@ impl Physics {
         let rigid_body_set = RigidBodySet::new();
         let collider_set = ColliderSet::new();
         let chunk_collider_handles = HashMap::new();
-        let entity_controllers = HashMap::new();
+        let judge_controllers = HashMap::new();
 
         let physics = Self {
             gravity,
@@ -74,7 +74,7 @@ impl Physics {
             rigid_body_set,
             collider_set,
             chunk_collider_handles,
-            entity_controllers,
+            judge_controllers,
         };
 
         physics
@@ -137,13 +137,13 @@ impl Physics {
                 &mut self.rigid_body_set,
             );
 
-            let entity_controller = EntityController {
-                entity_id: judge.id,
+            let judge_controller = JudgeController {
+                judge_id: judge.id,
                 rigid_body_handle,
                 collider_handle,
             };
 
-            self.entity_controllers.insert(judge.id, entity_controller);
+            self.judge_controllers.insert(judge.id, judge_controller);
         }
     }
 
@@ -185,8 +185,8 @@ impl Physics {
         }
     }
 
-    pub fn add_entity(&mut self, entity: &Entity) {
-        let position = vector![entity.position.x, entity.position.y, entity.position.z];
+    pub fn add_judge(&mut self, judge: &Judge) {
+        let position = vector![judge.position.x, judge.position.y, judge.position.z];
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .ccd_enabled(true)
@@ -212,13 +212,13 @@ impl Physics {
             &mut self.rigid_body_set,
         );
 
-        let entity_controller = EntityController {
-            entity_id: entity.id,
+        let judge_controller = JudgeController {
+            judge_id: judge.id,
             rigid_body_handle,
             collider_handle,
         };
 
-        self.entity_controllers.insert(entity.id, entity_controller);
+        self.judge_controllers.insert(judge.id, judge_controller);
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
@@ -256,27 +256,23 @@ impl Physics {
     }
 
     pub fn tick(&mut self, state: &mut State) {
-        self.tick_entities(state);
+        self.tick_judge(state);
+        self.tick_agents(state);
 
         self.step();
 
-        self.sync_entities(state);
+        self.sync_judge(state);
 
         self.update_chunk_colliders(state);
     }
 
-    fn tick_entities(&mut self, state: &mut State) {
-        self.tick_judge(state);
-        self.tick_agents(state);
-    }
-
     fn tick_judge(&mut self, state: &mut State) {
         if let Some(judge) = state.population.get_judge_mut() {
-            let entity_controller = self.entity_controllers.get(&judge.id).unwrap();
+            let judge_controller = self.judge_controllers.get(&judge.id).unwrap();
 
             let rigid_body = self
                 .rigid_body_set
-                .get_mut(entity_controller.rigid_body_handle)
+                .get_mut(judge_controller.rigid_body_handle)
                 .unwrap();
 
             let forward = judge.orientation * Vec3::Z;
@@ -334,14 +330,9 @@ impl Physics {
         );
     }
 
-    pub fn sync_entities(&self, state: &mut State) {
-        self.sync_judge(state);
-        self.sync_agents(state);
-    }
-
     fn sync_judge(&self, state: &mut State) {
         if let Some(judge) = state.population.get_judge_mut() {
-            let Some(entity_controller) = self.entity_controllers.get(&judge.id) else {
+            let Some(entity_controller) = self.judge_controllers.get(&judge.id) else {
                 return;
             };
 
@@ -367,38 +358,6 @@ impl Physics {
                 let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
 
                 judge.chunk_update = next_chunk_id != current_chunk_id;
-            }
-        }
-    }
-
-    fn sync_agents(&self, state: &mut State) {
-        for agent in state.population.all_agents_mut() {
-            let Some(entity_controller) = self.entity_controllers.get(&agent.id) else {
-                return;
-            };
-
-            let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle)
-            else {
-                return;
-            };
-
-            let rigid_body_position = rigid_body.position();
-
-            let translation = rigid_body_position.translation.vector;
-            let next_position = Vec3::new(translation.x, translation.y, translation.z);
-
-            let current_grid_position = World::grid_position_at(agent.position).unwrap();
-            let next_grid_position = World::grid_position_at(next_position).unwrap();
-
-            agent.position = next_position;
-
-            if current_grid_position == next_grid_position {
-                agent.chunk_update = false;
-            } else {
-                let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-                let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
-
-                agent.chunk_update = next_chunk_id != current_chunk_id;
             }
         }
     }

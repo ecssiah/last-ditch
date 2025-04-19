@@ -163,15 +163,13 @@ impl Interface {
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        let judge_id = &simulation::population::entity::ID::USER_ENTITY1;
+        let view = self.observation.get_view();
 
-        if let Some(view) = self.observation.get_view(judge_id) {
-            self.check_active(event_loop, &view);
+        self.check_active(event_loop, &view);
 
-            self.send_movement_actions();
+        self.send_movement_actions();
 
-            self.apply_view(&view);
-        }
+        self.apply_view(&view);
     }
 
     fn apply_view(&mut self, view: &simulation::observation::view::View) {
@@ -206,7 +204,7 @@ impl Interface {
     fn apply_agent_views(
         &mut self,
         agent_views: &HashMap<
-            simulation::population::entity::ID,
+            simulation::population::agent::ID,
             simulation::observation::view::AgentView,
         >,
     ) {

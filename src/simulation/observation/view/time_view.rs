@@ -5,3 +5,16 @@ use std::time::Instant;
 pub struct TimeView {
     pub instant: StatePair<Instant>,
 }
+
+impl TimeView {
+    pub fn new() -> TimeView {
+        let time_view = TimeView {
+            instant: StatePair {
+                current: Instant::now(),
+                next: Instant::now(),
+            },
+        };
+
+        time_view
+    }
+}

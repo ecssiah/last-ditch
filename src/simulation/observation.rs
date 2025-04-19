@@ -14,7 +14,7 @@ use crate::simulation::{
             AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
     },
-    population::{entity, Entity, Population},
+    population::{Judge, Population},
     state::State,
     time::Time,
     world::World,
@@ -44,14 +44,14 @@ impl Observation {
             let world_view = self.generate_world_view(&judge, &state.world);
 
             let next_view = View {
-                entity_id: judge.id,
+                judge_id: judge.id,
                 admin_view,
                 time_view,
                 population_view,
                 world_view,
             };
 
-            self.repository.set(&judge.id, next_view);
+            self.repository.set(next_view);
         }
     }
 
@@ -81,7 +81,7 @@ impl Observation {
                     id: agent.id,
                     tick: StatePair::new(agent.tick, agent.tick),
                     position: StatePair::new(agent.position, agent.position),
-                    orientation: StatePair::new(agent.orientation, agent.orientation),
+                    target: StatePair::new(agent.position, agent.position),
                 };
 
                 (agent.id, agent_view)
@@ -95,13 +95,13 @@ impl Observation {
         }
     }
 
-    fn generate_world_view(&self, entity: &Entity, world: &World) -> WorldView {
+    fn generate_world_view(&self, judge: &Judge, world: &World) -> WorldView {
         let mut world_view = WorldView {
-            tick: StatePair::new(entity.tick, entity.tick),
+            tick: StatePair::new(judge.tick, judge.tick),
             chunk_views: HashMap::new(),
         };
 
-        let grid_position = World::grid_position_at(entity.position).unwrap();
+        let grid_position = World::grid_position_at(judge.position).unwrap();
         let chunk_position = Chunk::position_at(grid_position).unwrap();
 
         let x_range = (chunk_position.x - USER_VIEW_RADIUS)..=(chunk_position.x + USER_VIEW_RADIUS);
@@ -142,31 +142,31 @@ impl Observation {
         self.update_view(&state);
     }
 
-    pub fn get_view(&self, entity_id: &entity::ID) -> Option<View> {
-        self.repository.get(entity_id).map(|view| (*view).clone())
+    pub fn get_view(&self) -> View {
+        let view = self.repository.get();
+
+        (*view).clone()
     }
 
     fn update_view(&self, state: &State) {
         if let Some(judge) = state.population.get_judge() {
-            let view = self.repository.get(&judge.id);
+            let view = self.repository.get();
 
-            if let Some(view) = view {
-                let admin_view = self.update_admin_view(&state.admin);
-                let time_view = self.update_time_view(&view.time_view, &state.time);
-                let population_view =
-                    self.update_population_view(&view.population_view, &state.population);
-                let world_view = self.apply_world_view(&judge, &view.world_view, &state.world);
+            let admin_view = self.update_admin_view(&state.admin);
+            let time_view = self.update_time_view(&view.time_view, &state.time);
+            let population_view =
+                self.update_population_view(&view.population_view, &state.population);
+            let world_view = self.apply_world_view(&judge, &view.world_view, &state.world);
 
-                let next_view = View {
-                    entity_id: judge.id,
-                    admin_view,
-                    time_view,
-                    population_view,
-                    world_view,
-                };
+            let next_view = View {
+                judge_id: judge.id,
+                admin_view,
+                time_view,
+                population_view,
+                world_view,
+            };
 
-                self.repository.set(&judge.id, next_view);
-            }
+            self.repository.set(next_view);
         }
     }
 
@@ -213,7 +213,7 @@ impl Observation {
                     id: agent.id,
                     tick: StatePair::new(agent_view.tick.current, agent.tick),
                     position: StatePair::new(agent_view.position.current, agent.position),
-                    orientation: StatePair::new(agent_view.orientation.current, agent.orientation),
+                    target: StatePair::new(agent_view.target.current, agent.target),
                 };
 
                 next_population_view
@@ -225,7 +225,7 @@ impl Observation {
         next_population_view
     }
 
-    fn apply_world_view(&self, judge: &Entity, world_view: &WorldView, world: &World) -> WorldView {
+    fn apply_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
         if !judge.chunk_update {
             return world_view.clone();
         }
