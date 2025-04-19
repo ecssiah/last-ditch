@@ -17,7 +17,7 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-const GPU_BLOCKS_CONFIG: &str = include_assets!("config/interface/render_blocks.ron");
+const GPU_BLOCKS_CONFIG: &str = include_assets!("config/interface/gpu_blocks.ron");
 
 pub static GPU_BLOCKS: Lazy<HashMap<simulation::block::Kind, GPUBlock>> = Lazy::new(|| {
     let list: Vec<GPUBlock> =

@@ -42,7 +42,7 @@ impl Population {
         for x in -2..=2 {
             let mut agent = Entity::new(entity::ID::allocate());
 
-            let position = Vec3::new((6 * x) as f32, 0.0, -10.0);
+            let position = Vec3::new((6 * x) as f32, 1.0, -18.0);
 
             agent.kind = entity::Kind::Agent;
             agent.set_position(position.x, position.y, position.z);
@@ -52,7 +52,27 @@ impl Population {
 
             let mut agent = Entity::new(entity::ID::allocate());
 
-            let position = Vec3::new((6 * x) as f32, 0.0, 10.0);
+            let position = Vec3::new((6 * x) as f32, 1.0, 18.0);
+
+            agent.kind = entity::Kind::Agent;
+            agent.set_position(position.x, position.y, position.z);
+            agent.set_rotation(0.0, 0.0);
+
+            self.agents.insert(agent.id, agent);
+
+            let mut agent = Entity::new(entity::ID::allocate());
+
+            let position = Vec3::new(-18.0, 1.0, (6 * x) as f32);
+
+            agent.kind = entity::Kind::Agent;
+            agent.set_position(position.x, position.y, position.z);
+            agent.set_rotation(0.0, 0.0);
+
+            self.agents.insert(agent.id, agent);
+
+            let mut agent = Entity::new(entity::ID::allocate());
+
+            let position = Vec3::new(18.0, 1.0, (6 * x) as f32);
 
             agent.kind = entity::Kind::Agent;
             agent.set_position(position.x, position.y, position.z);

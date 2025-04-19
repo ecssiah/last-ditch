@@ -52,8 +52,8 @@ impl World {
         );
 
         self.set_cube(
-            IVec3::new(-3, 8, -3),
-            IVec3::new(3, 8, 3),
+            IVec3::new(-4, 8, -4),
+            IVec3::new(4, 8, 4),
             &block::Kind::Air,
         );
 
