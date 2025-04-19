@@ -47,22 +47,22 @@ impl Observation {
     }
 
     pub fn generate(&self, state: &State) {
-        if let Some(judge) = state.population.get_judge() {
-            let admin_view = self.generate_admin_view(&state.admin);
-            let time_view = self.generate_time_view(&state.time);
-            let population_view = self.generate_population_view(&state.population);
-            let world_view = self.generate_world_view(&judge, &state.world);
+        let judge = state.population.get_judge();
 
-            let next_view = View {
-                judge_id: judge.id,
-                admin_view,
-                time_view,
-                population_view,
-                world_view,
-            };
+        let admin_view = self.generate_admin_view(&state.admin);
+        let time_view = self.generate_time_view(&state.time);
+        let population_view = self.generate_population_view(&state.population);
+        let world_view = self.generate_world_view(&judge, &state.world);
 
-            self.repository.set(next_view);
-        }
+        let next_view = View {
+            judge_id: judge.id,
+            admin_view,
+            time_view,
+            population_view,
+            world_view,
+        };
+
+        self.repository.set(next_view);
     }
 
     fn generate_admin_view(&self, admin: &Admin) -> AdminView {
@@ -76,25 +76,33 @@ impl Observation {
     }
 
     fn generate_population_view(&self, population: &Population) -> PopulationView {
-        let judge_view = population.get_judge().map(|judge| JudgeView {
+        let judge = population.get_judge();
+
+        let judge_view = JudgeView {
             id: judge.id,
             tick: StatePair::new(judge.tick, judge.tick),
             position: StatePair::new(judge.position, judge.position),
             orientation: StatePair::new(judge.orientation, judge.orientation),
-        });
+        };
 
         let agent_views = population
             .agents
             .values()
-            .map(|agent| {
-                let agent_view = AgentView {
-                    id: agent.id,
-                    tick: StatePair::new(agent.tick, agent.tick),
-                    position: StatePair::new(agent.position, agent.position),
-                    target: StatePair::new(agent.position, agent.position),
-                };
+            .filter_map(|agent| {
+                let judge_distance = (agent.position - judge_view.position.current).length();
 
-                (agent.id, agent_view)
+                if judge_distance < USER_VIEW_RADIUS as f32 {
+                    let agent_view = AgentView {
+                        id: agent.id,
+                        tick: StatePair::new(agent.tick, agent.tick),
+                        position: StatePair::new(agent.position, agent.position),
+                        target: StatePair::new(agent.position, agent.position),
+                    };
+
+                    Some((agent.id, agent_view))
+                } else {
+                    None
+                }
             })
             .collect();
 
@@ -149,25 +157,24 @@ impl Observation {
     }
 
     fn update_view(&self, state: &State) {
-        if let Some(judge) = state.population.get_judge() {
-            let view = self.repository.get();
+        let judge = state.population.get_judge();
 
-            let admin_view = self.update_admin_view(&state.admin);
-            let time_view = self.update_time_view(&view.time_view, &state.time);
-            let population_view =
-                self.update_population_view(&view.population_view, &state.population);
-            let world_view = self.update_world_view(&judge, &view.world_view, &state.world);
+        let view = self.repository.get();
 
-            let next_view = View {
-                judge_id: judge.id,
-                admin_view,
-                time_view,
-                population_view,
-                world_view,
-            };
+        let admin_view = self.update_admin_view(&state.admin);
+        let time_view = self.update_time_view(&view.time_view, &state.time);
+        let population_view = self.update_population_view(&view.population_view, &state.population);
+        let world_view = self.update_world_view(&judge, &view.world_view, &state.world);
 
-            self.repository.set(next_view);
-        }
+        let next_view = View {
+            judge_id: judge.id,
+            admin_view,
+            time_view,
+            population_view,
+            world_view,
+        };
+
+        self.repository.set(next_view);
     }
 
     fn update_admin_view(&self, admin: &Admin) -> AdminView {
@@ -185,35 +192,50 @@ impl Observation {
         population_view: &PopulationView,
         population: &Population,
     ) -> PopulationView {
+        let judge = population.get_judge();
+
         let mut next_population_view = PopulationView {
             tick: StatePair::new(population_view.tick.current, population.tick),
-            judge_view: None,
+            judge_view: JudgeView {
+                id: judge.id,
+                tick: StatePair::new(population_view.judge_view.tick.current, judge.tick),
+                position: StatePair::new(
+                    population_view.judge_view.position.current,
+                    judge.position,
+                ),
+                orientation: StatePair::new(
+                    population_view.judge_view.orientation.current,
+                    judge.orientation,
+                ),
+            },
             agent_views: HashMap::new(),
         };
 
-        if let Some(judge) = population.get_judge() {
-            next_population_view.judge_view =
-                population_view
-                    .judge_view
-                    .as_ref()
-                    .map(|judge_view| JudgeView {
-                        id: judge.id,
-                        tick: StatePair::new(judge_view.tick.current, judge.tick),
-                        position: StatePair::new(judge_view.position.current, judge.position),
-                        orientation: StatePair::new(
-                            judge_view.orientation.current,
-                            judge.orientation,
-                        ),
-                    });
-        }
-
         for agent in population.all_agents() {
+            let judge_distance =
+                (agent.position - population.judge.position).length();
+
+            if judge_distance > (USER_VIEW_RADIUS * CHUNK_SIZE as i32 + CHUNK_RADIUS as i32) as f32 {
+                continue;
+            }
+
             if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
                     tick: StatePair::new(agent_view.tick.current, agent.tick),
                     position: StatePair::new(agent_view.position.current, agent.position),
                     target: StatePair::new(agent_view.target.current, agent.target),
+                };
+
+                next_population_view
+                    .agent_views
+                    .insert(agent.id, next_agent_view);
+            } else {
+                let next_agent_view = AgentView {
+                    id: agent.id,
+                    tick: StatePair::new(agent.tick, agent.tick),
+                    position: StatePair::new(agent.position, agent.position),
+                    target: StatePair::new(agent.target, agent.target),
                 };
 
                 next_population_view

@@ -46,40 +46,38 @@ impl Dispatch {
     }
 
     fn handle_movement_action(&mut self, state: &mut State, movement_actions: &MovementAction) {
-        if let Some(judge) = state.population.get_judge_mut() {
-            judge.z_speed = movement_actions.direction.z;
-            judge.x_speed = movement_actions.direction.x;
+        let judge = state.population.get_judge_mut();
 
-            if movement_actions.rotation.length_squared() > 1e-6 {
-                judge.look_x_axis -= movement_actions.rotation.x;
-                judge.look_y_axis += movement_actions.rotation.y;
+        judge.z_speed = movement_actions.direction.z;
+        judge.x_speed = movement_actions.direction.x;
 
-                let limit = 89.0_f32.to_radians();
+        if movement_actions.rotation.length_squared() > 1e-6 {
+            judge.look_x_axis -= movement_actions.rotation.x;
+            judge.look_y_axis += movement_actions.rotation.y;
 
-                judge.look_x_axis = judge.look_x_axis.clamp(-limit, limit);
+            let limit = 89.0_f32.to_radians();
 
-                let y_axis_quat = Quat::from_rotation_y(judge.look_y_axis);
-                let x_axis_quat = Quat::from_rotation_x(judge.look_x_axis);
+            judge.look_x_axis = judge.look_x_axis.clamp(-limit, limit);
 
-                let target_rotation = y_axis_quat * x_axis_quat;
+            let y_axis_quat = Quat::from_rotation_y(judge.look_y_axis);
+            let x_axis_quat = Quat::from_rotation_x(judge.look_x_axis);
 
-                judge.orientation = judge.orientation.slerp(target_rotation, 0.3);
-            }
+            let target_rotation = y_axis_quat * x_axis_quat;
+
+            judge.orientation = judge.orientation.slerp(target_rotation, 0.3);
         }
     }
 
     fn handle_jump_action(&mut self, state: &mut State, jump_action: &JumpAction) {
         match jump_action {
             JumpAction::Start => {
-                if let Some(judge) = state.population.get_judge_mut() {
-                    judge.jump_state.stage = JumpStage::Launch;
-                    judge.jump_state.timer = 0;
-                }
+                let judge = state.population.get_judge_mut();
+                judge.jump_state.stage = JumpStage::Launch;
+                judge.jump_state.timer = 0;
             }
             JumpAction::End => {
-                if let Some(judge) = state.population.get_judge_mut() {
-                    judge.jump_state.stage = JumpStage::Fall;
-                }
+                let judge = state.population.get_judge_mut();
+                judge.jump_state.stage = JumpStage::Fall;
             }
         }
     }

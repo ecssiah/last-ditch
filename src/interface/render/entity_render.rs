@@ -190,44 +190,48 @@ impl EntityRender {
                 let p3 = [p3.x, p3.y + 1.9, p3.z];
                 let p4 = [p4.x, p4.y + 1.9, p4.z];
 
+                let u = Vec3::from(p2) - Vec3::from(p1);
+                let v = Vec3::from(p3) - Vec3::from(p1);
+                let normal = u.cross(v).normalize();
+
                 vertices.push(GPUVertex {
                     position: p1,
-                    normal: p1,
+                    normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-
                 vertices.push(GPUVertex {
                     position: p2,
-                    normal: p2,
+                    normal: normal.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(GPUVertex {
+                    position: p3,
+                    normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
 
-                vertices.push(GPUVertex {
-                    position: p3,
-                    normal: p3,
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
+                let u = Vec3::from(p3) - Vec3::from(p1);
+                let v = Vec3::from(p4) - Vec3::from(p1);
+                let normal = u.cross(v).normalize();
 
                 vertices.push(GPUVertex {
                     position: p1,
-                    normal: p1,
+                    normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-
                 vertices.push(GPUVertex {
                     position: p3,
-                    normal: p3,
+                    normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-
                 vertices.push(GPUVertex {
                     position: p4,
-                    normal: p4,
+                    normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });

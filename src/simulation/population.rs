@@ -3,15 +3,17 @@ pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
-use crate::simulation::{block::Direction, time::Tick, world::World, AGENT_INITIAL_POPULATION, DEFAULT_SEED, FIXED_DT};
+use crate::simulation::{
+    block::Direction, time::Tick, world::World, consts::*,
+};
 use glam::{IVec3, Vec3};
 use std::collections::HashMap;
 
 pub struct Population {
     pub tick: Tick,
-    pub judge: Option<Judge>,
+    pub judge: Judge,
     pub agents: HashMap<agent::ID, Agent>,
 }
 
@@ -19,7 +21,7 @@ impl Population {
     pub fn new() -> Population {
         let population = Population {
             tick: Tick::ZERO,
-            judge: None,
+            judge: Judge::new(judge::ID::allocate()),
             agents: HashMap::new(),
         };
 
@@ -32,12 +34,8 @@ impl Population {
     }
 
     fn generate_judge(&mut self) {
-        let mut judge = Judge::new(judge::ID::allocate());
-
-        judge.set_position(10.0, 2.0, 0.0);
-        judge.set_rotation(0.0, 0.0);
-
-        self.judge = Some(judge);
+        self.judge.set_position(18.0, 20.0, 18.0);
+        self.judge.set_rotation(0.0, 0.0 * std::f32::consts::PI);
     }
 
     fn generate_agents(&mut self) {
@@ -110,12 +108,12 @@ impl Population {
         }
     }
 
-    pub fn get_judge(&self) -> Option<&Judge> {
-        self.judge.as_ref()
+    pub fn get_judge(&self) -> &Judge {
+        &self.judge
     }
 
-    pub fn get_judge_mut(&mut self) -> Option<&mut Judge> {
-        self.judge.as_mut()
+    pub fn get_judge_mut(&mut self) -> &mut Judge {
+        &mut self.judge
     }
 
     pub fn all_agents(&self) -> impl Iterator<Item = &Agent> {

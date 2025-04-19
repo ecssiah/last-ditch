@@ -191,14 +191,12 @@ impl Interface {
         &mut self,
         population_view: &simulation::observation::view::PopulationView,
     ) {
-        self.apply_judge_view(population_view.judge_view.as_ref());
+        self.apply_judge_view(&population_view.judge_view);
         self.apply_agent_views(&population_view.agent_views);
     }
 
-    fn apply_judge_view(&mut self, judge_view: Option<&simulation::observation::view::JudgeView>) {
-        if let Some(judge_view) = judge_view.as_ref() {
-            self.camera.update(&self.queue, self.alpha, judge_view);
-        }
+    fn apply_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
+        self.camera.update(&self.queue, self.alpha, judge_view);
     }
 
     fn apply_agent_views(

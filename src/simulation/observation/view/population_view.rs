@@ -11,7 +11,7 @@ use std::collections::HashMap;
 #[derive(Clone, Debug)]
 pub struct PopulationView {
     pub tick: StatePair<Tick>,
-    pub judge_view: Option<JudgeView>,
+    pub judge_view: JudgeView,
     pub agent_views: HashMap<agent::ID, AgentView>,
 }
 
@@ -22,7 +22,7 @@ impl PopulationView {
                 current: Tick::ZERO,
                 next: Tick::ZERO,
             },
-            judge_view: None,
+            judge_view: JudgeView::new(),
             agent_views: HashMap::new(),
         };
 
