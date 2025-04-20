@@ -28,6 +28,8 @@ impl World {
         self.generate_ground();
 
         self.set_block_kind(0, 6, 0, &block::Kind::Stone2);
+        self.set_block_kind(2, 6, 0, &block::Kind::Stone1);
+        self.set_block_kind(0, 6, 2, &block::Kind::Stone2);
 
         self.set_cube(
             IVec3::new(-8, 1, -8),
@@ -195,7 +197,7 @@ impl World {
     }
 
     pub fn get_chunk_at(&self, grid_position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = Chunk::id_at_grid(grid_position)?;
+        let chunk_id = World::id_at_grid(grid_position)?;
 
         let chunk = self.get_chunk(chunk_id);
 
@@ -539,9 +541,12 @@ impl World {
     }
 
     pub fn on_map(grid_position: IVec3) -> bool {
-        let in_x_range = grid_position.x.abs() <= WORLD_BOUNDARY as i32;
-        let in_y_range = grid_position.y.abs() <= WORLD_BOUNDARY as i32;
-        let in_z_range = grid_position.z.abs() <= WORLD_BOUNDARY as i32;
+        let chunk_coords = grid_position
+            .map(|coord| (coord + WORLD_BOUNDARY as i32).div_euclid(CHUNK_SIZE as i32));
+
+        let in_x_range = chunk_coords.x >= 0 && chunk_coords.x < WORLD_SIZE as i32;
+        let in_y_range = chunk_coords.y >= 0 && chunk_coords.y < WORLD_SIZE as i32;
+        let in_z_range = chunk_coords.z >= 0 && chunk_coords.z < WORLD_SIZE as i32;
 
         in_x_range && in_y_range && in_z_range
     }
@@ -561,8 +566,52 @@ impl World {
         base_is_solid && clear_above
     }
 
+    pub fn id_at(chunk_position: IVec3) -> Option<chunk::ID> {
+        if !Self::on_map(chunk_position * CHUNK_SIZE as i32) {
+            return None;
+        }
+
+        let x = chunk_position.x + WORLD_RADIUS as i32;
+        let y = chunk_position.y + WORLD_RADIUS as i32;
+        let z = chunk_position.z + WORLD_RADIUS as i32;
+
+        if x < 0 || y < 0 || z < 0 {
+            return None;
+        }
+
+        let x = x as usize;
+        let y = y as usize;
+        let z = z as usize;
+
+        if x >= WORLD_SIZE || y >= WORLD_SIZE || z >= WORLD_SIZE {
+            return None;
+        }
+
+        let id = z * WORLD_AREA + y * WORLD_SIZE + x;
+        
+        Some(chunk::ID(id))
+    }
+
+    pub fn id_at_grid(grid_position: IVec3) -> Option<chunk::ID> {
+        if !Self::on_map(grid_position) {
+            return None;
+        }
+
+        let chunk_coords = grid_position.map(|coord| {
+            let coord = coord + WORLD_BOUNDARY as i32;
+            coord.div_euclid(CHUNK_SIZE as i32)
+        });
+
+        let x = chunk_coords.x as usize;
+        let y = chunk_coords.y as usize;
+        let z = chunk_coords.z as usize;
+
+        let chunk_id = z * WORLD_AREA + y * WORLD_SIZE + x;
+        Some(chunk::ID(chunk_id))
+    }
+
     pub fn ids_at(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
-        let chunk_id = Chunk::id_at_grid(grid_position)?;
+        let chunk_id = World::id_at_grid(grid_position)?;
         let block_id = Block::id_at_grid(grid_position)?;
 
         Some((chunk_id, block_id))
@@ -595,8 +644,9 @@ impl World {
         }
     }
 
-    pub fn visible_chunk_ids(chunk_id: chunk::ID, radius: i32) -> Vec<chunk::ID> {
-        let chunk_count_estimate = ((2 * radius + 1).pow(3)) as usize;
+    pub fn visible_chunk_ids(chunk_id: chunk::ID) -> Vec<chunk::ID> {
+        let radius = JUDGE_VIEW_RADIUS as i32;
+        let chunk_count_estimate = ((2 * JUDGE_VIEW_RADIUS + 1).pow(3)) as usize;
         let mut chunk_ids = Vec::with_capacity(chunk_count_estimate);
 
         if let Some(chunk_position) = Chunk::position(chunk_id) {
@@ -608,7 +658,7 @@ impl World {
                         if distance <= radius {
                             let visible_chunk_position = chunk_position + IVec3::new(x, y, z);
 
-                            if let Some(visible_chunk_id) = Chunk::id_at(visible_chunk_position) {
+                            if let Some(visible_chunk_id) = World::id_at(visible_chunk_position) {
                                 chunk_ids.push(visible_chunk_id);
                             }
                         }

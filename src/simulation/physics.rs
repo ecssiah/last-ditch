@@ -10,7 +10,6 @@ use crate::simulation::{
     },
     state::State,
     world::World,
-    Chunk,
 };
 use glam::Vec3;
 use nalgebra::Unit;
@@ -152,10 +151,9 @@ impl Physics {
         let judge = state.population.get_judge();
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
-        let current_chunk_id = Chunk::id_at_grid(grid_position).unwrap();
+        let current_chunk_id = World::id_at_grid(grid_position).unwrap();
 
-        let visible_chunk_ids =
-            World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
+        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id);
 
         let current_loaded_chunks: Vec<chunk::ID> =
             self.chunk_collider_handles.keys().cloned().collect();
@@ -336,8 +334,7 @@ impl Physics {
             return;
         };
 
-        let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle)
-        else {
+        let Some(rigid_body) = self.rigid_body_set.get(entity_controller.rigid_body_handle) else {
             return;
         };
 
@@ -354,8 +351,8 @@ impl Physics {
         if current_grid_position == next_grid_position {
             judge.chunk_update = false;
         } else {
-            let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
-            let next_chunk_id = Chunk::id_at_grid(next_grid_position).unwrap();
+            let current_chunk_id = World::id_at_grid(current_grid_position).unwrap();
+            let next_chunk_id = World::id_at_grid(next_grid_position).unwrap();
 
             judge.chunk_update = next_chunk_id != current_chunk_id;
         }

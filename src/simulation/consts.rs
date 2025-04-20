@@ -47,8 +47,9 @@ pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
 pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
-pub const USER_VIEW_RADIUS: i32 = 4;
-pub const USER_VIEW_OFFSET: f32 = 1.6;
+pub const JUDGE_CAMERA_HEIGHT: f32 = 1.6;
+pub const WORLD_VIEW_RADIUS: i32 = 6;
+pub const POPULATION_VIEW_RADIUS: f32 = (CHUNK_SIZE as i32 * (WORLD_VIEW_RADIUS - 2)) as f32;
 
 pub const AMBIENT_LIGHT_LEVEL: [f32; 3] = [0.3, 0.8, 1.0];
 

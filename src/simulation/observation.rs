@@ -91,7 +91,7 @@ impl Observation {
             .filter_map(|agent| {
                 let judge_distance = (agent.position - judge_view.position.current).length();
 
-                if judge_distance < USER_VIEW_RADIUS as f32 {
+                if judge_distance < WORLD_VIEW_RADIUS as f32 {
                     let agent_view = AgentView {
                         id: agent.id,
                         tick: StatePair::new(agent.tick, agent.tick),
@@ -122,16 +122,19 @@ impl Observation {
         let grid_position = World::grid_position_at(judge.position).unwrap();
         let chunk_position = Chunk::position_at(grid_position).unwrap();
 
-        let x_range = (chunk_position.x - USER_VIEW_RADIUS)..=(chunk_position.x + USER_VIEW_RADIUS);
-        let y_range = (chunk_position.y - USER_VIEW_RADIUS)..=(chunk_position.y + USER_VIEW_RADIUS);
-        let z_range = (chunk_position.z - USER_VIEW_RADIUS)..=(chunk_position.z + USER_VIEW_RADIUS);
+        let x_range =
+            (chunk_position.x - WORLD_VIEW_RADIUS)..=(chunk_position.x + WORLD_VIEW_RADIUS);
+        let y_range =
+            (chunk_position.y - WORLD_VIEW_RADIUS)..=(chunk_position.y + WORLD_VIEW_RADIUS);
+        let z_range =
+            (chunk_position.z - WORLD_VIEW_RADIUS)..=(chunk_position.z + WORLD_VIEW_RADIUS);
 
         for x in x_range {
             for y in y_range.clone() {
                 for z in z_range.clone() {
                     let chunk_position = IVec3::new(x, y, z);
 
-                    if let Some(chunk_id) = Chunk::id_at(chunk_position) {
+                    if let Some(chunk_id) = World::id_at(chunk_position) {
                         if let Some(chunk) = world.get_chunk(chunk_id) {
                             let chunk_view = self.generate_chunk_view(chunk);
 
@@ -214,8 +217,7 @@ impl Observation {
         for agent in population.all_agents() {
             let judge_distance = (agent.position - population.judge.position).length();
 
-            if judge_distance > (USER_VIEW_RADIUS * CHUNK_SIZE as i32 + CHUNK_RADIUS as i32) as f32
-            {
+            if judge_distance > POPULATION_VIEW_RADIUS {
                 continue;
             }
 
@@ -258,13 +260,13 @@ impl Observation {
         };
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
-        let current_chunk_id = Chunk::id_at_grid(grid_position).unwrap();
+        let current_chunk_id = World::id_at_grid(grid_position).unwrap();
 
-        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
+        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id);
 
         for chunk_id in visible_chunk_ids {
             if let Some(chunk) = world.get_chunk(chunk_id) {
-                let chunk_view = self.update_chunk_view(world_view, chunk);
+                let chunk_view = self.update_chunk_view(chunk, world_view);
 
                 next_world_view.chunk_views.insert(chunk.id, chunk_view);
             }
@@ -273,7 +275,7 @@ impl Observation {
         next_world_view
     }
 
-    fn update_chunk_view(&self, world_view: &WorldView, chunk: &chunk::Chunk) -> ChunkView {
+    fn update_chunk_view(&self, chunk: &chunk::Chunk, world_view: &WorldView) -> ChunkView {
         let next_chunk_view;
 
         if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {

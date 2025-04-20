@@ -32,7 +32,7 @@ fn test_chunk_id_at() {
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Chunk::id_at_grid(grid_position);
+        let chunk_id = World::id_at_grid(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,

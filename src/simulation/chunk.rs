@@ -55,42 +55,6 @@ impl Chunk {
         in_x_range && in_y_range && in_z_range
     }
 
-    pub fn id_at(position: IVec3) -> Option<chunk::ID> {
-        if Self::on_map(position) {
-            let position_shift = position + IVec3::splat(WORLD_RADIUS as i32);
-
-            let chunk_id = position_shift.x
-                + position_shift.y * WORLD_SIZE as i32
-                + position_shift.z * WORLD_AREA as i32;
-
-            let chunk_id = chunk::ID(chunk_id as usize);
-
-            Some(chunk_id)
-        } else {
-            None
-        }
-    }
-
-    pub fn id_at_grid(grid_position: IVec3) -> Option<chunk::ID> {
-        if World::on_map(grid_position) {
-            let chunk_position = grid_position.map(|coordinate| {
-                let coordinate = coordinate + WORLD_BOUNDARY as i32;
-
-                coordinate.div_euclid(CHUNK_SIZE as i32)
-            });
-
-            let chunk_id = chunk_position.x
-                + chunk_position.y * WORLD_SIZE as i32
-                + chunk_position.z * WORLD_AREA as i32;
-
-            let chunk_id = chunk::ID(chunk_id as usize);
-
-            Some(chunk_id)
-        } else {
-            None
-        }
-    }
-
     pub fn position(chunk_id: chunk::ID) -> Option<IVec3> {
         if chunk::ID::valid(chunk_id) {
             let chunk_id: usize = chunk_id.into();
@@ -108,7 +72,7 @@ impl Chunk {
     }
 
     pub fn position_at(grid_position: IVec3) -> Option<IVec3> {
-        let chunk_id = Self::id_at_grid(grid_position)?;
+        let chunk_id = World::id_at_grid(grid_position)?;
         let position = Self::position(chunk_id)?;
 
         Some(position)
