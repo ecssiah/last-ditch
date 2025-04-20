@@ -12,8 +12,8 @@ use crate::{
         consts::*,
         input::Input,
         render::{
-            gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRender, EntityRender, GPUMesh,
-            GPUVertex, Textures,
+            fog_render::FogRender, gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRender,
+            EntityRender, GPUMesh, GPUVertex, Textures,
         },
     },
     simulation::{self},
@@ -46,8 +46,9 @@ pub struct Interface {
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     camera: Camera,
-    chunk_renderer: ChunkRender,
-    entity_renderer: EntityRender,
+    fog_render: FogRender,
+    chunk_render: ChunkRender,
+    entity_render: EntityRender,
 }
 
 impl Interface {
@@ -103,15 +104,22 @@ impl Interface {
 
         let camera = Camera::new(&device);
 
-        let chunk_renderer = ChunkRender::new(
+        let fog_render = FogRender::new(&device);
+
+        let chunk_render = ChunkRender::new(
             &device,
             &surface_format,
+            &fog_render.uniform_bind_group_layout,
             &camera.uniform_bind_group_layout,
             &textures.texture_sampler_bind_group_layout,
         );
 
-        let entity_renderer =
-            EntityRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
+        let entity_render = EntityRender::new(
+            &device,
+            &surface_format,
+            &fog_render.uniform_bind_group_layout,
+            &camera.uniform_bind_group_layout,
+        );
 
         let interface = Self {
             delta_time,
@@ -129,8 +137,9 @@ impl Interface {
             surface_texture_view_descriptor,
             camera,
             textures,
-            chunk_renderer,
-            entity_renderer,
+            fog_render,
+            chunk_render,
+            entity_render,
         };
 
         log::info!("Interface Initialized");
@@ -206,7 +215,7 @@ impl Interface {
             simulation::observation::view::AgentView,
         >,
     ) {
-        self.entity_renderer.gpu_entities = agent_views
+        self.entity_render.gpu_entities = agent_views
             .iter()
             .map(|(_, agent_view)| {
                 let gpu_entity = GPUEntity {
@@ -221,8 +230,8 @@ impl Interface {
         let required_size =
             (agent_views.len() * std::mem::size_of::<GPUEntity>()) as wgpu::BufferAddress;
 
-        if self.entity_renderer.instance_buffer.size() < required_size {
-            self.entity_renderer.instance_buffer =
+        if self.entity_render.instance_buffer.size() < required_size {
+            self.entity_render.instance_buffer =
                 self.device.create_buffer(&wgpu::BufferDescriptor {
                     label: Some("Entity Instance Buffer"),
                     size: required_size,
@@ -232,14 +241,14 @@ impl Interface {
         }
 
         self.queue.write_buffer(
-            &self.entity_renderer.instance_buffer,
+            &self.entity_render.instance_buffer,
             0,
-            bytemuck::cast_slice(&self.entity_renderer.gpu_entities),
+            bytemuck::cast_slice(&self.entity_render.gpu_entities),
         );
     }
 
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
-        self.chunk_renderer.gpu_chunks.clear();
+        self.chunk_render.gpu_chunks.clear();
 
         for (chunk_id, chunk_view) in &world_view.chunk_views {
             let mut vertices = Vec::new();
@@ -288,7 +297,7 @@ impl Interface {
                 gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
             };
 
-            self.chunk_renderer.gpu_chunks.push(chunk);
+            self.chunk_render.gpu_chunks.push(chunk);
         }
     }
 
@@ -307,19 +316,21 @@ impl Interface {
         let depth_texture_view = Textures::create_depth_texture(&self.device, &self.surface_config);
 
         if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
-            self.chunk_renderer.render(
+            self.chunk_render.render(
                 &mut encoder,
                 &texture_view,
                 &depth_texture_view,
+                &self.fog_render.uniform_bind_group,
                 &self.camera.view_projection_bind_group,
                 texture_sampler_bind_group,
             );
         }
 
-        self.entity_renderer.render(
+        self.entity_render.render(
             &mut encoder,
             &texture_view,
             &depth_texture_view,
+            &self.fog_render.uniform_bind_group,
             &self.camera.view_projection_bind_group,
         );
 

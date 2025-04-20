@@ -1,5 +1,7 @@
 pub mod chunk_render;
 pub mod entity_render;
+pub mod fog;
+pub mod fog_render;
 pub mod gpu_block;
 pub mod gpu_chunk;
 pub mod gpu_entity;

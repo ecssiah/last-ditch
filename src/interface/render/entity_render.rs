@@ -21,7 +21,8 @@ impl EntityRender {
     pub fn new(
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
-        uniform_bind_group_layout: &wgpu::BindGroupLayout,
+        fog_uniform_bind_group_layout: &wgpu::BindGroupLayout,
+        camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> EntityRender {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Entity Shader"),
@@ -49,7 +50,8 @@ impl EntityRender {
             device,
             surface_format,
             &shader_module,
-            uniform_bind_group_layout,
+            fog_uniform_bind_group_layout,
+            camera_uniform_bind_group_layout,
         );
 
         let gpu_entities = Vec::new();
@@ -70,12 +72,16 @@ impl EntityRender {
         device: &Device,
         surface_format: &TextureFormat,
         shader_module: &wgpu::ShaderModule,
-        uniform_bind_group_layout: &BindGroupLayout,
+        fog_uniform_bind_group_layout: &BindGroupLayout,
+        camera_uniform_bind_group_layout: &BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Entity Render Pipeline Layout"),
-                bind_group_layouts: &[uniform_bind_group_layout],
+                bind_group_layouts: &[
+                    fog_uniform_bind_group_layout,
+                    camera_uniform_bind_group_layout,
+                ],
                 push_constant_ranges: &[],
             });
 
@@ -127,6 +133,7 @@ impl EntityRender {
         encoder: &mut CommandEncoder,
         texture_view: &TextureView,
         depth_texture_view: &TextureView,
+        fog_bind_group: &wgpu::BindGroup,
         view_projection_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -157,7 +164,8 @@ impl EntityRender {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, view_projection_bind_group, &[]);
+            render_pass.set_bind_group(0, fog_bind_group, &[]);
+            render_pass.set_bind_group(1, view_projection_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.draw(
@@ -273,57 +281,201 @@ impl EntityRender {
         let faces = vec![
             // front face
             [
-                [-bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [top_half_width, half_height + vertical_offset, top_half_width],
-                [top_half_width, half_height + vertical_offset, top_half_width],
-                [-top_half_width, half_height + vertical_offset, top_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, bottom_half_width],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
             ],
             // back face
             [
-                [bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [-top_half_width, half_height + vertical_offset, -top_half_width],
-                [-top_half_width, half_height + vertical_offset, -top_half_width],
-                [top_half_width, half_height + vertical_offset, -top_half_width],
-                [bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
             ],
             // right face
             [
-                [bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [top_half_width, half_height + vertical_offset, -top_half_width],
-                [top_half_width, half_height + vertical_offset, -top_half_width],
-                [top_half_width, half_height + vertical_offset, top_half_width],
-                [bottom_half_width, -half_height + vertical_offset, bottom_half_width],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
             ],
             // left face
             [
-                [-bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [-top_half_width, half_height + vertical_offset, top_half_width],
-                [-top_half_width, half_height + vertical_offset, top_half_width],
-                [-top_half_width, half_height + vertical_offset, -top_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
             ],
             // top face
             [
-                [-top_half_width, half_height + vertical_offset, top_half_width],
-                [top_half_width, half_height + vertical_offset, top_half_width],
-                [-top_half_width, half_height + vertical_offset, -top_half_width],
-                [top_half_width, half_height + vertical_offset, top_half_width],
-                [top_half_width, half_height + vertical_offset, -top_half_width],
-                [-top_half_width, half_height + vertical_offset, -top_half_width],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    top_half_width,
+                ],
+                [
+                    top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
+                [
+                    -top_half_width,
+                    half_height + vertical_offset,
+                    -top_half_width,
+                ],
             ],
             // bottom face
             [
-                [-bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
-                [bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, bottom_half_width],
-                [-bottom_half_width, -half_height + vertical_offset, -bottom_half_width],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    bottom_half_width,
+                ],
+                [
+                    -bottom_half_width,
+                    -half_height + vertical_offset,
+                    -bottom_half_width,
+                ],
             ],
         ];
 
