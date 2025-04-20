@@ -3,7 +3,7 @@ pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
-use rand::Rng;
+use rand::{Rng, SeedableRng};
 
 use crate::simulation::{block::Direction, consts::*, time::Tick, world::World};
 use glam::{IVec3, Vec3};
@@ -11,6 +11,7 @@ use std::collections::HashMap;
 
 pub struct Population {
     pub tick: Tick,
+    pub rand_pcg: rand_pcg::Pcg32,
     pub judge: Judge,
     pub agents: HashMap<agent::ID, Agent>,
 }
@@ -19,6 +20,7 @@ impl Population {
     pub fn new() -> Population {
         let population = Population {
             tick: Tick::ZERO,
+            rand_pcg: rand_pcg::Pcg32::seed_from_u64(DEFAULT_SEED),
             judge: Judge::new(judge::ID::allocate()),
             agents: HashMap::new(),
         };
@@ -62,19 +64,16 @@ impl Population {
             if path.length_squared() > 1e-3 {
                 agent.position += agent.speed * FIXED_DT.as_secs_f32() * path.normalize();
             } else {
-                Self::find_target(agent, world);
+                Self::find_target(&mut self.rand_pcg, agent, world);
             }
         }
     }
 
-    fn find_target(agent: &mut Agent, world: &World) {
-        let seed = agent.id.0 as u64;
-        let mut rng = rand_pcg::Pcg32::new(seed, u64::from(world.tick));
-
-        let direction_index = rng.gen_range(0..4);
+    fn find_target(rand_pcg: &mut rand_pcg::Pcg32, agent: &mut Agent, world: &World) {
+        let direction_index = rand_pcg.gen_range(0..4);
         let direction = Direction::cardinal()[direction_index];
 
-        let dy = rng.gen_range(-1..=1);
+        let dy = rand_pcg.gen_range(-1..=1);
 
         let delta = match direction {
             Direction::XpYoZo => IVec3::new(1, dy, 0),
@@ -87,27 +86,8 @@ impl Population {
         if let Some(grid_position) = World::grid_position_at(agent.position) {
             let target_position = grid_position + delta;
 
-            if let Some(block) = world.get_block(target_position) {
-                if block.solid {
-                    if let Some(air_block1) = world.get_block(target_position + IVec3::new(0, 1, 0))
-                    {
-                        if !air_block1.solid {
-                            if let Some(air_block2) =
-                                world.get_block(target_position + IVec3::new(0, 2, 0))
-                            {
-                                if !air_block2.solid {
-                                    if let Some(air_block3) =
-                                        world.get_block(target_position + IVec3::new(0, 3, 0))
-                                    {
-                                        if !air_block3.solid {
-                                            agent.target = target_position.as_vec3();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if world.is_clear(target_position, 3) {
+                agent.target = target_position.as_vec3();
             }
         }
     }

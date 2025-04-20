@@ -151,8 +151,8 @@ impl Physics {
     fn update_chunk_colliders(&mut self, state: &State) {
         let judge = state.population.get_judge();
 
-        let current_grid_position = World::grid_position_at(judge.position).unwrap();
-        let current_chunk_id = Chunk::id_at_grid(current_grid_position).unwrap();
+        let grid_position = World::grid_position_at(judge.position).unwrap();
+        let current_chunk_id = Chunk::id_at_grid(grid_position).unwrap();
 
         let visible_chunk_ids =
             World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);

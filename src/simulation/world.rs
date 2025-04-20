@@ -546,6 +546,21 @@ impl World {
         in_x_range && in_y_range && in_z_range
     }
 
+    pub fn is_clear(&self, grid_position: IVec3, height: i32) -> bool {
+        let base_is_solid = self
+            .get_block(grid_position)
+            .map(|block| block.solid)
+            .unwrap_or(false);
+
+        let clear_above = (1..=height).all(|level| {
+            self.get_block(grid_position + level * IVec3::Y)
+                .map(|block| !block.solid)
+                .unwrap_or(false)
+        });
+
+        base_is_solid && clear_above
+    }
+
     pub fn ids_at(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
         let chunk_id = Chunk::id_at_grid(grid_position)?;
         let block_id = Block::id_at_grid(grid_position)?;

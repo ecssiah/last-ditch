@@ -212,10 +212,10 @@ impl Observation {
         };
 
         for agent in population.all_agents() {
-            let judge_distance =
-                (agent.position - population.judge.position).length();
+            let judge_distance = (agent.position - population.judge.position).length();
 
-            if judge_distance > (USER_VIEW_RADIUS * CHUNK_SIZE as i32 + CHUNK_RADIUS as i32) as f32 {
+            if judge_distance > (USER_VIEW_RADIUS * CHUNK_SIZE as i32 + CHUNK_RADIUS as i32) as f32
+            {
                 continue;
             }
 
@@ -258,25 +258,15 @@ impl Observation {
         };
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
-        let chunk_position = Chunk::position_at(grid_position).unwrap();
+        let current_chunk_id = Chunk::id_at_grid(grid_position).unwrap();
 
-        let x_range = (chunk_position.x - USER_VIEW_RADIUS)..=(chunk_position.x + USER_VIEW_RADIUS);
-        let y_range = (chunk_position.y - USER_VIEW_RADIUS)..=(chunk_position.y + USER_VIEW_RADIUS);
-        let z_range = (chunk_position.z - USER_VIEW_RADIUS)..=(chunk_position.z + USER_VIEW_RADIUS);
+        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id, USER_VIEW_RADIUS as i32);
 
-        for x in x_range {
-            for y in y_range.clone() {
-                for z in z_range.clone() {
-                    let chunk_position = IVec3::new(x, y, z);
+        for chunk_id in visible_chunk_ids {
+            if let Some(chunk) = world.get_chunk(chunk_id) {
+                let chunk_view = self.update_chunk_view(world_view, chunk);
 
-                    if let Some(chunk_id) = Chunk::id_at(chunk_position) {
-                        if let Some(chunk) = world.get_chunk(chunk_id) {
-                            let chunk_view = self.update_chunk_view(world_view, chunk);
-
-                            next_world_view.chunk_views.insert(chunk.id, chunk_view);
-                        }
-                    }
-                }
+                next_world_view.chunk_views.insert(chunk.id, chunk_view);
             }
         }
 
