@@ -7,15 +7,7 @@ pub mod input;
 pub mod render;
 
 use crate::{
-    interface::{
-        camera::Camera,
-        consts::*,
-        input::Input,
-        render::{
-            entity_instance_data::EntityInstanceData, fog::Fog, gpu_chunk::GPUChunk, ChunkRender,
-            EntityRender, GPUMesh, Textures, VertexData,
-        },
-    },
+    interface::{camera::Camera, consts::*, input::Input, render::Render},
     simulation::{self},
 };
 use std::{
@@ -32,7 +24,7 @@ use winit::{
 
 pub struct Interface {
     delta_time: Duration,
-    render_instant: Instant,
+    instant: Instant,
     alpha: f32,
     action_tx: UnboundedSender<simulation::dispatch::Action>,
     observation: Arc<simulation::observation::Observation>,
@@ -40,15 +32,8 @@ pub struct Interface {
     input: Input,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    size: winit::dpi::PhysicalSize<u32>,
-    surface: wgpu::Surface<'static>,
-    surface_config: wgpu::SurfaceConfiguration,
-    surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
-    textures: Textures,
+    render: Render,
     camera: Camera,
-    fog: Fog,
-    chunk_render: ChunkRender,
-    entity_render: EntityRender,
 }
 
 impl Interface {
@@ -62,68 +47,23 @@ impl Interface {
         queue: wgpu::Queue,
     ) -> Self {
         let delta_time = Duration::ZERO;
-        let render_instant = Instant::now();
+        let instant = Instant::now();
         let alpha = 0.0;
 
         let input = Input::new(action_tx.clone());
-
-        let size = window.inner_size();
-
-        let surface = instance.create_surface(window.clone()).unwrap();
-        let surface_capabilities = surface.get_capabilities(&adapter);
-        let surface_format = surface_capabilities.formats[0];
-
-        let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
-            format: Some(surface_format.add_srgb_suffix()),
-            ..Default::default()
-        };
-
-        let surface_config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface_format,
-            view_formats: vec![surface_format],
-            alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
-            width: size.width,
-            height: size.height,
-            desired_maximum_frame_latency: 2,
-            present_mode: wgpu::PresentMode::AutoVsync,
-        };
-
-        surface.configure(&device, &surface_config);
-
-        let mut textures = Textures::new(&device);
-
-        pollster::block_on(textures.load_texture_atlas(
+        let camera = Camera::new(&device);
+        let render = Render::new(
             &device,
             &queue,
-            &"assets/textures/atlas.png".to_string(),
-            "atlas",
-        ));
-
-        textures.generate_texture_sampler_bind_group(&device);
-
-        let camera = Camera::new(&device);
-
-        let fog = Fog::new(&device);
-
-        let chunk_render = ChunkRender::new(
-            &device,
-            &surface_format,
-            &fog.uniform_bind_group_layout,
-            &camera.uniform_bind_group_layout,
-            &textures.texture_sampler_bind_group_layout,
-        );
-
-        let entity_render = EntityRender::new(
-            &device,
-            &surface_format,
-            &fog.uniform_bind_group_layout,
-            &camera.uniform_bind_group_layout,
+            window.clone(),
+            &instance,
+            &adapter,
+            &camera,
         );
 
         let interface = Self {
             delta_time,
-            render_instant,
+            instant,
             alpha,
             action_tx,
             observation,
@@ -131,15 +71,8 @@ impl Interface {
             input,
             device,
             queue,
-            size,
-            surface,
-            surface_config,
-            surface_texture_view_descriptor,
             camera,
-            textures,
-            fog,
-            chunk_render,
-            entity_render,
+            render,
         };
 
         log::info!("Interface Initialized");
@@ -166,9 +99,7 @@ impl Interface {
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
-
-        self.surface.configure(&self.device, &self.surface_config);
+        self.render.resize(&self.device, new_size);
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
@@ -189,8 +120,8 @@ impl Interface {
 
     fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
         let now = Instant::now();
-        self.delta_time = now - self.render_instant;
-        self.render_instant = now;
+        self.delta_time = now - self.instant;
+        self.instant = now;
 
         let alpha = (now - time_view.instant.current).as_secs_f32();
         self.alpha = alpha.clamp(0.0, 1.0);
@@ -215,131 +146,17 @@ impl Interface {
             simulation::observation::view::AgentView,
         >,
     ) {
-        self.entity_render.gpu_entities = agent_views
-            .iter()
-            .map(|(_, agent_view)| {
-                let entity_instance_data = EntityInstanceData {
-                    position: agent_view.position.next.to_array(),
-                    height: 1.8,
-                };
-
-                entity_instance_data
-            })
-            .collect();
-
-        let required_size =
-            (agent_views.len() * std::mem::size_of::<EntityInstanceData>()) as wgpu::BufferAddress;
-
-        if self.entity_render.instance_buffer.size() < required_size {
-            self.entity_render.instance_buffer =
-                self.device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some("Entity Instance Buffer"),
-                    size: required_size,
-                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                    mapped_at_creation: false,
-                });
-        }
-
-        self.queue.write_buffer(
-            &self.entity_render.instance_buffer,
-            0,
-            bytemuck::cast_slice(&self.entity_render.gpu_entities),
-        );
+        self.render
+            .prepare_agent_views(&self.device, &self.queue, agent_views);
     }
 
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
-        self.chunk_render.gpu_chunks.clear();
-
-        for (chunk_id, chunk_view) in &world_view.chunk_views {
-            let mut vertices = Vec::new();
-            let mut indices = Vec::new();
-            let mut index_offset = 0;
-
-            for face in &chunk_view.mesh.next.faces {
-                if face.kind == simulation::block::Kind::Air {
-                    continue;
-                }
-
-                let face_vertices = face.vertices();
-                let render_block = GPU_BLOCKS.get(&face.kind).unwrap();
-                let atlas_coordinates =
-                    render_block.atlas_coordinates.get(&face.direction).unwrap();
-
-                let uvs = self
-                    .textures
-                    .texture_atlas
-                    .get_uv_coords(atlas_coordinates[0], atlas_coordinates[1]);
-
-                for (index, vertex) in face_vertices.iter().enumerate() {
-                    vertices.push(VertexData {
-                        position: vertex.to_array(),
-                        normal: face.normal().as_vec3().to_array(),
-                        uv: uvs[index].to_array(),
-                        light: face.light[index],
-                    });
-                }
-
-                indices.push(index_offset + 0);
-                indices.push(index_offset + 1);
-                indices.push(index_offset + 2);
-                indices.push(index_offset + 0);
-                indices.push(index_offset + 2);
-                indices.push(index_offset + 3);
-
-                index_offset += 4;
-            }
-
-            let chunk_id = *chunk_id;
-
-            let chunk = GPUChunk {
-                chunk_id,
-                tick: chunk_view.tick.next,
-                gpu_mesh: GPUMesh::new(&self.device, vertices, indices),
-            };
-
-            self.chunk_render.gpu_chunks.push(chunk);
-        }
+        self.render.prepare_world_view(&self.device, world_view);
     }
 
     pub fn handle_redraw_requested(&mut self) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-
-        let surface_texture = self
-            .surface
-            .get_current_texture()
-            .expect("failed to acquire next swapchain texture");
-
-        let texture_view = surface_texture
-            .texture
-            .create_view(&self.surface_texture_view_descriptor);
-
-        let depth_texture_view = Textures::create_depth_texture(&self.device, &self.surface_config);
-
-        if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
-            self.chunk_render.render(
-                &mut encoder,
-                &texture_view,
-                &depth_texture_view,
-                &self.fog.uniform_bind_group,
-                &self.camera.uniform_bind_group,
-                texture_sampler_bind_group,
-            );
-        }
-
-        self.entity_render.render(
-            &mut encoder,
-            &texture_view,
-            &depth_texture_view,
-            &self.fog.uniform_bind_group,
-            &self.camera.uniform_bind_group,
-        );
-
-        self.queue.submit([encoder.finish()]);
-        self.window.pre_present_notify();
-
-        surface_texture.present();
-
-        self.window.request_redraw();
+        self.render
+            .redraw(&self.device, &self.queue, self.window.clone(), &self.camera);
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
