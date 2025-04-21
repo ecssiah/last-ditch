@@ -1,6 +1,6 @@
 use crate::{
     include_assets,
-    interface::render::{GPUEntity, GPUVertex},
+    interface::render::{EntityInstanceData, VertexData},
 };
 use glam::Vec3;
 use wgpu::{
@@ -12,8 +12,8 @@ pub struct EntityRender {
     pub shader_module: wgpu::ShaderModule,
     pub vertex_buffer: wgpu::Buffer,
     pub instance_buffer: wgpu::Buffer,
-    pub entity_vertices: Vec<GPUVertex>,
-    pub gpu_entities: Vec<GPUEntity>,
+    pub entity_vertices: Vec<VertexData>,
+    pub gpu_entities: Vec<EntityInstanceData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -91,7 +91,7 @@ impl EntityRender {
             vertex: wgpu::VertexState {
                 module: &shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[GPUVertex::desc(), GPUEntity::desc()],
+                buffers: &[VertexData::desc(), EntityInstanceData::desc()],
                 compilation_options: PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -134,7 +134,7 @@ impl EntityRender {
         texture_view: &TextureView,
         depth_texture_view: &TextureView,
         fog_bind_group: &wgpu::BindGroup,
-        view_projection_bind_group: &wgpu::BindGroup,
+        camera_data_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: &texture_view,
@@ -164,10 +164,13 @@ impl EntityRender {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+
             render_pass.set_bind_group(0, fog_bind_group, &[]);
-            render_pass.set_bind_group(1, view_projection_bind_group, &[]);
+            render_pass.set_bind_group(1, camera_data_bind_group, &[]);
+
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+
             render_pass.draw(
                 0..(self.entity_vertices.len() as u32),
                 0..(self.gpu_entities.len() as u32),
@@ -177,7 +180,7 @@ impl EntityRender {
         }
     }
 
-    fn generate_head_vertices(latitude_bands: u32, longitude_bands: u32) -> Vec<GPUVertex> {
+    fn generate_head_vertices(latitude_bands: u32, longitude_bands: u32) -> Vec<VertexData> {
         let vertical_offset = 2.8;
 
         let mut vertices = Vec::new();
@@ -204,19 +207,19 @@ impl EntityRender {
                 let v = Vec3::from(p3) - Vec3::from(p1);
                 let normal = u.cross(v).normalize();
 
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p1,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p2,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p3,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
@@ -227,19 +230,19 @@ impl EntityRender {
                 let v = Vec3::from(p4) - Vec3::from(p1);
                 let normal = u.cross(v).normalize();
 
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p1,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p3,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position: p4,
                     normal: normal.into(),
                     uv: [0.0, 0.0],
@@ -259,7 +262,7 @@ impl EntityRender {
         Vec3::new(x, y, z)
     }
 
-    fn generate_body_vertices() -> Vec<GPUVertex> {
+    fn generate_body_vertices() -> Vec<VertexData> {
         let height = 1.6;
         let vertical_offset = 1.5;
         let top_width = 0.56;
@@ -485,7 +488,7 @@ impl EntityRender {
             let normal = normals[i];
 
             for &position in face {
-                vertices.push(GPUVertex {
+                vertices.push(VertexData {
                     position,
                     normal,
                     uv: [0.0, 0.0],

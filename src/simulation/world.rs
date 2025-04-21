@@ -588,7 +588,7 @@ impl World {
         }
 
         let id = z * WORLD_AREA + y * WORLD_SIZE + x;
-        
+
         Some(chunk::ID(id))
     }
 

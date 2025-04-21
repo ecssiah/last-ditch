@@ -14,9 +14,18 @@ impl JudgeView {
     pub fn new() -> JudgeView {
         let judge_view = JudgeView {
             id: judge::ID(0),
-            tick: StatePair { current: Tick::ZERO, next: Tick::ZERO },
-            position: StatePair { current: Vec3::ZERO, next: Vec3::ZERO },
-            orientation: StatePair { current: Quat::IDENTITY, next: Quat::IDENTITY },
+            tick: StatePair {
+                current: Tick::ZERO,
+                next: Tick::ZERO,
+            },
+            position: StatePair {
+                current: Vec3::ZERO,
+                next: Vec3::ZERO,
+            },
+            orientation: StatePair {
+                current: Quat::IDENTITY,
+                next: Quat::IDENTITY,
+            },
         };
 
         judge_view

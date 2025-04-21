@@ -1,6 +1,6 @@
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct GPUFog {
+pub struct FogUniformData {
     pub color: [f32; 3],
     pub _padding0: f32,
     pub start: f32,

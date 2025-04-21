@@ -2,7 +2,7 @@ use crate::{
     include_assets,
     interface::{
         consts::WINDOW_CLEAR_COLOR,
-        render::{GPUChunk, GPUVertex},
+        render::{GPUChunk, VertexData},
     },
 };
 use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};
@@ -87,7 +87,7 @@ impl ChunkRender {
             vertex: wgpu::VertexState {
                 module: shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[GPUVertex::desc()],
+                buffers: &[VertexData::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -132,7 +132,7 @@ impl ChunkRender {
         texture_view: &TextureView,
         depth_texture_view: &TextureView,
         fog_bind_group: &wgpu::BindGroup,
-        view_projection_bind_group: &wgpu::BindGroup,
+        camera_bind_group: &wgpu::BindGroup,
         texture_sampler_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -167,8 +167,9 @@ impl ChunkRender {
         });
 
         render_pass.set_pipeline(&self.render_pipeline);
+
         render_pass.set_bind_group(0, fog_bind_group, &[]);
-        render_pass.set_bind_group(1, view_projection_bind_group, &[]);
+        render_pass.set_bind_group(1, camera_bind_group, &[]);
         render_pass.set_bind_group(2, texture_sampler_bind_group, &[]);
 
         for gpu_chunk in self.gpu_chunks.iter() {

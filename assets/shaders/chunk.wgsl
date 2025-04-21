@@ -1,20 +1,19 @@
-struct GPUFog {
+struct FogUniformData {
     color: vec3<f32>,
     start: f32,
     end: f32,
 };
 
 @group(0) @binding(0) 
-var<uniform> gpu_fog: GPUFog;
+var<uniform> fog_uniform_data: FogUniformData;
 
-struct GPUCamera {
+struct CameraUniformData {
     view_projection_matrix: mat4x4<f32>,
     camera_position: vec3<f32>,
-    _padding: f32, // keep 16-byte alignment
 };
 
 @group(1) @binding(0) 
-var<uniform> gpu_camera: GPUCamera;
+var<uniform> camera_uniform_data: CameraUniformData;
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -33,7 +32,7 @@ struct VertexOutput {
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
-    output.Position = gpu_camera.view_projection_matrix * vec4<f32>(input.position, 1.0);
+    output.Position = camera_uniform_data.view_projection_matrix * vec4<f32>(input.position, 1.0);
     output.uv = input.uv;
     output.light = input.light;
     output.world_position = input.position;
@@ -61,10 +60,12 @@ fn fs_main(input: FragmentInput) -> FragmentOutput {
     let sampled_color = textureSample(atlas, atlas_sampler, input.uv).rgb;
     let lit_color = sampled_color * input.light;
 
-    let distance = length(input.world_position - gpu_camera.camera_position);    
-    let fog_factor = clamp((gpu_fog.end - distance) / (gpu_fog.end - gpu_fog.start), 0.0, 1.0);
-    let final_color = mix(gpu_fog.color, lit_color, fog_factor);
+    let distance = length(input.world_position - camera_uniform_data.camera_position);    
+    let fog_factor = clamp((fog_uniform_data.end - distance) / (fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0);
+
+    let final_color = mix(fog_uniform_data.color, lit_color, fog_factor);
 
     output.color = vec4<f32>(final_color, 1.0);
+    
     return output;
 }

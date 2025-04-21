@@ -1,27 +1,26 @@
+use crate::interface::render::fog_uniform_data::FogUniformData;
 use wgpu::util::DeviceExt;
 
-use crate::interface::render::gpu_fog::GPUFog;
-
-pub struct FogRender {
-    pub gpu_fog: GPUFog,
-    pub buffer: wgpu::Buffer,
+pub struct Fog {
+    pub fog_uniform_data: FogUniformData,
+    pub uniform_buffer: wgpu::Buffer,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_bind_group: wgpu::BindGroup,
 }
 
-impl FogRender {
-    pub fn new(device: &wgpu::Device) -> FogRender {
-        let gpu_fog = GPUFog {
+impl Fog {
+    pub fn new(device: &wgpu::Device) -> Fog {
+        let fog_uniform_data = FogUniformData {
             color: [0.5, 0.5, 0.5],
             _padding0: 0.0,
-            start: 52.0,
-            end: 120.0,
+            start: 60.0,
+            end: 180.0,
             _padding1: [0.0, 0.0],
         };
 
-        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Fog Uniform Buffer"),
-            contents: bytemuck::bytes_of(&gpu_fog),
+            contents: bytemuck::bytes_of(&fog_uniform_data),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
@@ -44,18 +43,18 @@ impl FogRender {
             layout: &uniform_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: buffer.as_entire_binding(),
+                resource: uniform_buffer.as_entire_binding(),
             }],
             label: Some("Fog Bind Group"),
         });
 
-        let fog_render = FogRender {
-            gpu_fog,
-            buffer,
+        let fog = Fog {
+            fog_uniform_data,
+            uniform_buffer,
             uniform_bind_group_layout,
             uniform_bind_group,
         };
 
-        fog_render
+        fog
     }
 }

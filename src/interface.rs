@@ -12,8 +12,8 @@ use crate::{
         consts::*,
         input::Input,
         render::{
-            fog_render::FogRender, gpu_chunk::GPUChunk, gpu_entity::GPUEntity, ChunkRender,
-            EntityRender, GPUMesh, GPUVertex, Textures,
+            entity_instance_data::EntityInstanceData, fog::Fog, gpu_chunk::GPUChunk, ChunkRender,
+            EntityRender, GPUMesh, Textures, VertexData,
         },
     },
     simulation::{self},
@@ -46,7 +46,7 @@ pub struct Interface {
     surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     camera: Camera,
-    fog_render: FogRender,
+    fog: Fog,
     chunk_render: ChunkRender,
     entity_render: EntityRender,
 }
@@ -104,12 +104,12 @@ impl Interface {
 
         let camera = Camera::new(&device);
 
-        let fog_render = FogRender::new(&device);
+        let fog = Fog::new(&device);
 
         let chunk_render = ChunkRender::new(
             &device,
             &surface_format,
-            &fog_render.uniform_bind_group_layout,
+            &fog.uniform_bind_group_layout,
             &camera.uniform_bind_group_layout,
             &textures.texture_sampler_bind_group_layout,
         );
@@ -117,7 +117,7 @@ impl Interface {
         let entity_render = EntityRender::new(
             &device,
             &surface_format,
-            &fog_render.uniform_bind_group_layout,
+            &fog.uniform_bind_group_layout,
             &camera.uniform_bind_group_layout,
         );
 
@@ -137,7 +137,7 @@ impl Interface {
             surface_texture_view_descriptor,
             camera,
             textures,
-            fog_render,
+            fog,
             chunk_render,
             entity_render,
         };
@@ -218,17 +218,17 @@ impl Interface {
         self.entity_render.gpu_entities = agent_views
             .iter()
             .map(|(_, agent_view)| {
-                let gpu_entity = GPUEntity {
+                let entity_instance_data = EntityInstanceData {
                     position: agent_view.position.next.to_array(),
                     height: 1.8,
                 };
 
-                gpu_entity
+                entity_instance_data
             })
             .collect();
 
         let required_size =
-            (agent_views.len() * std::mem::size_of::<GPUEntity>()) as wgpu::BufferAddress;
+            (agent_views.len() * std::mem::size_of::<EntityInstanceData>()) as wgpu::BufferAddress;
 
         if self.entity_render.instance_buffer.size() < required_size {
             self.entity_render.instance_buffer =
@@ -271,7 +271,7 @@ impl Interface {
                     .get_uv_coords(atlas_coordinates[0], atlas_coordinates[1]);
 
                 for (index, vertex) in face_vertices.iter().enumerate() {
-                    vertices.push(GPUVertex {
+                    vertices.push(VertexData {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
                         uv: uvs[index].to_array(),
@@ -320,8 +320,8 @@ impl Interface {
                 &mut encoder,
                 &texture_view,
                 &depth_texture_view,
-                &self.fog_render.uniform_bind_group,
-                &self.camera.view_projection_bind_group,
+                &self.fog.uniform_bind_group,
+                &self.camera.uniform_bind_group,
                 texture_sampler_bind_group,
             );
         }
@@ -330,8 +330,8 @@ impl Interface {
             &mut encoder,
             &texture_view,
             &depth_texture_view,
-            &self.fog_render.uniform_bind_group,
-            &self.camera.view_projection_bind_group,
+            &self.fog.uniform_bind_group,
+            &self.camera.uniform_bind_group,
         );
 
         self.queue.submit([encoder.finish()]);

@@ -1,13 +1,13 @@
 use crate::{
-    interface::{consts::*, render::gpu_camera::GPUCamera},
+    interface::{consts::*, render::camera_uniform_data::CameraUniformData},
     simulation::{self},
 };
 use glam::{Mat4, Vec3};
 
 pub struct Camera {
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
-    pub view_projection_buffer: wgpu::Buffer,
-    pub view_projection_bind_group: wgpu::BindGroup,
+    pub uniform_buffer: wgpu::Buffer,
+    pub uniform_bind_group: wgpu::BindGroup,
 }
 
 impl Camera {
@@ -35,26 +35,26 @@ impl Camera {
                 }],
             });
 
-        let view_projection_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("View Projection Buffer"),
-            size: std::mem::size_of::<GPUCamera>() as wgpu::BufferAddress,
+            size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
-        let view_projection_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("View Projection Bind Group"),
             layout: &uniform_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: view_projection_buffer.as_entire_binding(),
+                resource: uniform_buffer.as_entire_binding(),
             }],
         });
 
         let camera = Camera {
             uniform_bind_group_layout,
-            view_projection_buffer,
-            view_projection_bind_group,
+            uniform_buffer,
+            uniform_bind_group,
         };
 
         camera
@@ -66,19 +66,19 @@ impl Camera {
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) {
-        let view_projection_matrix = Self::create_view_projection_matrix(alpha, judge_view);
+        let view_projection_matrix = Self::create_gpu_camera(alpha, judge_view);
 
         queue.write_buffer(
-            &self.view_projection_buffer,
+            &self.uniform_buffer,
             0,
             bytemuck::cast_slice(&[view_projection_matrix]),
         );
     }
 
-    fn create_view_projection_matrix(
+    fn create_gpu_camera(
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
-    ) -> GPUCamera {
+    ) -> CameraUniformData {
         let judge_position = judge_view
             .position
             .current
@@ -102,7 +102,7 @@ impl Camera {
         let view = Mat4::look_at_rh(eye, target, up);
         let view_projection = projection * view;
 
-        GPUCamera {
+        CameraUniformData {
             view_projection_matrix: view_projection.to_cols_array_2d(),
             camera_position: eye.to_array(),
             _padding: 0.0,
