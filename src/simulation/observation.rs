@@ -71,6 +71,7 @@ impl Observation {
 
     fn generate_time_view(&self, time: &Time) -> TimeView {
         TimeView {
+            tick: StatePair::new(time.tick, time.tick),
             instant: StatePair::new(time.instant, time.instant),
         }
     }
@@ -186,7 +187,8 @@ impl Observation {
 
     fn update_time_view(&self, time_view: &TimeView, time: &Time) -> TimeView {
         TimeView {
-            instant: StatePair::new(time_view.instant.current, time.instant),
+            tick: StatePair::new(time_view.tick.next, time.tick),
+            instant: StatePair::new(time_view.instant.next, time.instant),
         }
     }
 
@@ -198,16 +200,16 @@ impl Observation {
         let judge = population.get_judge();
 
         let mut next_population_view = PopulationView {
-            tick: StatePair::new(population_view.tick.current, population.tick),
+            tick: StatePair::new(population_view.tick.next, population.tick),
             judge_view: JudgeView {
                 id: judge.id,
-                tick: StatePair::new(population_view.judge_view.tick.current, judge.tick),
+                tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
                 position: StatePair::new(
-                    population_view.judge_view.position.current,
+                    population_view.judge_view.position.next,
                     judge.position,
                 ),
                 orientation: StatePair::new(
-                    population_view.judge_view.orientation.current,
+                    population_view.judge_view.orientation.next,
                     judge.orientation,
                 ),
             },
@@ -224,9 +226,9 @@ impl Observation {
             if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
-                    tick: StatePair::new(agent_view.tick.current, agent.tick),
-                    position: StatePair::new(agent_view.position.current, agent.position),
-                    target: StatePair::new(agent_view.target.current, agent.target),
+                    tick: StatePair::new(agent_view.tick.next, agent.tick),
+                    position: StatePair::new(agent_view.position.next, agent.position),
+                    target: StatePair::new(agent_view.target.next, agent.target),
                 };
 
                 next_population_view
@@ -279,12 +281,12 @@ impl Observation {
         let next_chunk_view;
 
         if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {
-            if chunk_view.tick.current < chunk.tick {
+            if chunk_view.tick.next < chunk.tick {
                 next_chunk_view = ChunkView {
                     id: chunk.id,
-                    tick: StatePair::new(chunk_view.tick.current, chunk.tick),
-                    position: StatePair::new(chunk_view.position.current, chunk.position),
-                    mesh: StatePair::new(chunk_view.mesh.current.clone(), chunk.mesh.clone()),
+                    tick: StatePair::new(chunk_view.tick.next, chunk.tick),
+                    position: StatePair::new(chunk_view.position.next, chunk.position),
+                    mesh: StatePair::new(chunk_view.mesh.next.clone(), chunk.mesh.clone()),
                 };
             } else {
                 next_chunk_view = chunk_view.clone();

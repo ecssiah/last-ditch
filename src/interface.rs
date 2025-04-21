@@ -23,14 +23,14 @@ use winit::{
 };
 
 pub struct Interface {
-    delta_time: Duration,
+    dt: Duration,
     instant: Instant,
     alpha: f32,
     action_tx: UnboundedSender<simulation::dispatch::Action>,
-    observation: Arc<simulation::observation::Observation>,
     window: Arc<Window>,
-    input: Input,
     device: wgpu::Device,
+    observation: Arc<simulation::observation::Observation>,
+    input: Input,
     queue: wgpu::Queue,
     render: Render,
     camera: Camera,
@@ -46,7 +46,7 @@ impl Interface {
         device: wgpu::Device,
         queue: wgpu::Queue,
     ) -> Self {
-        let delta_time = Duration::ZERO;
+        let dt = Duration::ZERO;
         let instant = Instant::now();
         let alpha = 0.0;
 
@@ -62,14 +62,14 @@ impl Interface {
         );
 
         let interface = Self {
-            delta_time,
+            dt,
             instant,
             alpha,
             action_tx,
             observation,
             window,
-            input,
             device,
+            input,
             queue,
             camera,
             render,
@@ -120,11 +120,13 @@ impl Interface {
 
     fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
         let now = Instant::now();
-        self.delta_time = now - self.instant;
+        self.dt = now - self.instant;
         self.instant = now;
 
         let alpha = (now - time_view.instant.current).as_secs_f32();
         self.alpha = alpha.clamp(0.0, 1.0);
+
+        log::info!("{:?}", time_view);
     }
 
     fn apply_population_view(
