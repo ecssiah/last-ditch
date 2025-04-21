@@ -1,9 +1,9 @@
 use wgpu::util::DeviceExt;
 
-use crate::interface::render::fog::Fog;
+use crate::interface::render::gpu_fog::GPUFog;
 
 pub struct FogRender {
-    pub fog: Fog,
+    pub gpu_fog: GPUFog,
     pub buffer: wgpu::Buffer,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_bind_group: wgpu::BindGroup,
@@ -11,17 +11,17 @@ pub struct FogRender {
 
 impl FogRender {
     pub fn new(device: &wgpu::Device) -> FogRender {
-        let fog = Fog {
+        let gpu_fog = GPUFog {
             color: [0.5, 0.5, 0.5],
             _padding0: 0.0,
-            start: 20.0,
-            end: 100.0,
+            start: 52.0,
+            end: 120.0,
             _padding1: [0.0, 0.0],
         };
 
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Fog Uniform Buffer"),
-            contents: bytemuck::bytes_of(&fog),
+            contents: bytemuck::bytes_of(&gpu_fog),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
@@ -50,7 +50,7 @@ impl FogRender {
         });
 
         let fog_render = FogRender {
-            fog,
+            gpu_fog,
             buffer,
             uniform_bind_group_layout,
             uniform_bind_group,

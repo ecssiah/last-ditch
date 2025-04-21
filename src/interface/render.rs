@@ -1,6 +1,6 @@
 pub mod chunk_render;
 pub mod entity_render;
-pub mod fog;
+pub mod gpu_fog;
 pub mod fog_render;
 pub mod gpu_block;
 pub mod gpu_chunk;
@@ -9,6 +9,7 @@ pub mod gpu_mesh;
 pub mod gpu_vertex;
 pub mod texture_atlas;
 pub mod textures;
+pub mod gpu_camera;
 
 pub use chunk_render::ChunkRender;
 pub use entity_render::EntityRender;

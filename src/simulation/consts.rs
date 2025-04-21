@@ -22,7 +22,7 @@ pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;
 pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
 pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
 
-pub const JUDGE_VIEW_RADIUS: usize = 4;
+pub const JUDGE_VIEW_RADIUS: usize = 12;
 pub const AGENT_INITIAL_POPULATION: usize = 64;
 
 pub const ENTITY_SIZE_X: f32 = 0.4;
@@ -48,7 +48,7 @@ pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub const JUDGE_CAMERA_HEIGHT: f32 = 1.6;
-pub const WORLD_VIEW_RADIUS: i32 = 6;
+pub const WORLD_VIEW_RADIUS: i32 = 12;
 pub const POPULATION_VIEW_RADIUS: f32 = (CHUNK_SIZE as i32 * (WORLD_VIEW_RADIUS - 2)) as f32;
 
 pub const AMBIENT_LIGHT_LEVEL: [f32; 3] = [0.3, 0.8, 1.0];
