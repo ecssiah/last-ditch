@@ -80,42 +80,56 @@ impl Interface {
         interface
     }
 
-    fn check_active(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        view: &simulation::observation::view::View,
-    ) {
-        if view.admin_view.mode == simulation::admin::Mode::Exit {
-            event_loop.exit();
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
+        self.input.handle_window_event(&event);
+
+        match event {
+            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
+            WindowEvent::Resized(size) => self.handle_resized(*size),
+            _ => (),
         }
     }
 
-    fn send_movement_actions(&mut self) {
-        let movement_actions = self.input.get_movement_actions();
-        let entity_action = simulation::dispatch::EntityAction::Movement(movement_actions);
-        let action = simulation::dispatch::Action::Agent(entity_action);
-
-        self.action_tx.send(action).unwrap();
-    }
-
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.render.resize(&self.device, new_size);
+    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
+        self.input.handle_device_event(&event);
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let view = self.observation.get_view();
 
-        self.check_active(event_loop, &view);
+        self.apply_view(&view, event_loop);
 
         self.send_movement_actions();
-
-        self.apply_view(&view);
     }
 
-    fn apply_view(&mut self, view: &simulation::observation::view::View) {
+    fn handle_redraw_requested(&mut self) {
+        self.render
+            .redraw(&self.device, &self.queue, self.window.clone(), &self.camera);
+    }
+
+    fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        self.render.resize(&self.device, new_size);
+    }
+
+    fn apply_view(
+        &mut self,
+        view: &simulation::observation::view::View,
+        event_loop: &ActiveEventLoop,
+    ) {
+        self.apply_admin_view(&view.admin_view, event_loop);
         self.apply_time_view(&view.time_view);
         self.apply_population_view(&view.population_view);
         self.apply_world_view(&view.world_view);
+    }
+
+    fn apply_admin_view(
+        &mut self,
+        admin_view: &simulation::observation::view::AdminView,
+        event_loop: &ActiveEventLoop,
+    ) {
+        if admin_view.mode == simulation::admin::Mode::Exit {
+            event_loop.exit();
+        }
     }
 
     fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
@@ -125,8 +139,6 @@ impl Interface {
 
         let alpha = (now - time_view.instant.current).as_secs_f32();
         self.alpha = alpha.clamp(0.0, 1.0);
-
-        log::info!("{:?}", time_view);
     }
 
     fn apply_population_view(
@@ -156,22 +168,11 @@ impl Interface {
         self.render.prepare_world_view(&self.device, world_view);
     }
 
-    pub fn handle_redraw_requested(&mut self) {
-        self.render
-            .redraw(&self.device, &self.queue, self.window.clone(), &self.camera);
-    }
+    fn send_movement_actions(&mut self) {
+        let movement_actions = self.input.get_movement_actions();
+        let entity_action = simulation::dispatch::EntityAction::Movement(movement_actions);
+        let action = simulation::dispatch::Action::Agent(entity_action);
 
-    pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        self.input.handle_window_event(&event);
-
-        match event {
-            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
-            WindowEvent::Resized(size) => self.resize(*size),
-            _ => (),
-        }
-    }
-
-    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        self.input.handle_device_event(&event);
+        self.action_tx.send(action).unwrap();
     }
 }
