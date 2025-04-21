@@ -133,12 +133,12 @@ impl Interface {
     }
 
     fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
-        let now = Instant::now();
-        self.dt = now - self.instant;
-        self.instant = now;
+        self.dt = self.instant.elapsed();
+        self.instant = Instant::now();
 
-        let alpha = (now - time_view.instant.current).as_secs_f32();
-        self.alpha = alpha.clamp(0.0, 1.0);
+        let alpha = self.instant.duration_since(time_view.instant.current);
+
+        self.alpha = alpha.as_secs_f32().clamp(0.0, 1.0);
     }
 
     fn apply_population_view(

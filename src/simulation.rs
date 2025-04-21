@@ -26,7 +26,7 @@ use std::{sync::Arc, thread};
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    actions: Dispatch,
+    dispatch: Dispatch,
     state: State,
     physics: Physics,
     observation: Arc<Observation>,
@@ -34,14 +34,14 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let actions = Dispatch::new(action_rx);
+        let dispatch = Dispatch::new(action_rx);
         let state = State::new();
         let physics = Physics::new();
 
         let observation = Arc::new(Observation::new());
 
         let simulation = Self {
-            actions,
+            dispatch,
             state,
             physics,
             observation,
@@ -55,7 +55,6 @@ impl Simulation {
     pub fn run(&mut self) {
         self.state.generate();
         self.physics.generate(&self.state);
-        self.observation.generate(&self.state);
 
         loop {
             self.update();
@@ -70,7 +69,7 @@ impl Simulation {
         self.state.calculate_work();
 
         while self.state.has_work() {
-            self.actions.tick(&mut self.state);
+            self.dispatch.tick(&mut self.state);
 
             self.state.tick();
             self.physics.tick(&mut self.state);

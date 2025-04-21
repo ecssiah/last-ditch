@@ -20,9 +20,9 @@ pub struct Dispatch {
 
 impl Dispatch {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Dispatch {
-        let actions = Dispatch { action_rx };
+        let dispatch = Dispatch { action_rx };
 
-        actions
+        dispatch
     }
 
     pub fn tick(&mut self, state: &mut State) {
@@ -72,11 +72,13 @@ impl Dispatch {
         match jump_action {
             JumpAction::Start => {
                 let judge = state.population.get_judge_mut();
+
                 judge.jump_state.stage = JumpStage::Launch;
                 judge.jump_state.timer = 0;
             }
             JumpAction::End => {
                 let judge = state.population.get_judge_mut();
+
                 judge.jump_state.stage = JumpStage::Fall;
             }
         }

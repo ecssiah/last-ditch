@@ -7,8 +7,8 @@ use std::time::{Duration, Instant};
 
 pub struct Time {
     pub tick: Tick,
-    pub work_time: Duration,
     pub instant: Instant,
+    work_time: Duration,
 }
 
 impl Time {

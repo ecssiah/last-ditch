@@ -532,11 +532,11 @@ impl World {
 
     fn calculate_vertex_light(edge1: bool, edge2: bool, corner: bool) -> f32 {
         if edge1 && edge2 {
-            AMBIENT_LIGHT_LEVEL[0]
+            AMBIENT_LIGHT_LEVELS[0]
         } else if corner || edge1 || edge2 {
-            AMBIENT_LIGHT_LEVEL[1]
+            AMBIENT_LIGHT_LEVELS[1]
         } else {
-            AMBIENT_LIGHT_LEVEL[2]
+            AMBIENT_LIGHT_LEVELS[2]
         }
     }
 

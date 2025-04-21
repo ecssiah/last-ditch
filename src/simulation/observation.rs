@@ -18,9 +18,7 @@ use crate::simulation::{
     state::State,
     time::Time,
     world::World,
-    Chunk,
 };
-use glam::IVec3;
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Observation {
@@ -44,120 +42,6 @@ impl Observation {
         let view = self.repository.get();
 
         (*view).clone()
-    }
-
-    pub fn generate(&self, state: &State) {
-        let judge = state.population.get_judge();
-
-        let admin_view = self.generate_admin_view(&state.admin);
-        let time_view = self.generate_time_view(&state.time);
-        let population_view = self.generate_population_view(&state.population);
-        let world_view = self.generate_world_view(&judge, &state.world);
-
-        let next_view = View {
-            judge_id: judge.id,
-            admin_view,
-            time_view,
-            population_view,
-            world_view,
-        };
-
-        self.repository.set(next_view);
-    }
-
-    fn generate_admin_view(&self, admin: &Admin) -> AdminView {
-        AdminView { mode: admin.mode }
-    }
-
-    fn generate_time_view(&self, time: &Time) -> TimeView {
-        TimeView {
-            tick: StatePair::new(time.tick, time.tick),
-            instant: StatePair::new(time.instant, time.instant),
-        }
-    }
-
-    fn generate_population_view(&self, population: &Population) -> PopulationView {
-        let judge = population.get_judge();
-
-        let judge_view = JudgeView {
-            id: judge.id,
-            tick: StatePair::new(judge.tick, judge.tick),
-            position: StatePair::new(judge.position, judge.position),
-            orientation: StatePair::new(judge.orientation, judge.orientation),
-        };
-
-        let agent_views = population
-            .agents
-            .values()
-            .filter_map(|agent| {
-                let judge_distance = (agent.position - judge_view.position.current).length();
-
-                if judge_distance < WORLD_VIEW_RADIUS as f32 {
-                    let agent_view = AgentView {
-                        id: agent.id,
-                        tick: StatePair::new(agent.tick, agent.tick),
-                        position: StatePair::new(agent.position, agent.position),
-                        target: StatePair::new(agent.position, agent.position),
-                    };
-
-                    Some((agent.id, agent_view))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        PopulationView {
-            tick: StatePair::new(population.tick, population.tick),
-            judge_view,
-            agent_views,
-        }
-    }
-
-    fn generate_world_view(&self, judge: &Judge, world: &World) -> WorldView {
-        let mut world_view = WorldView {
-            tick: StatePair::new(judge.tick, judge.tick),
-            chunk_views: HashMap::new(),
-        };
-
-        let grid_position = World::grid_position_at(judge.position).unwrap();
-        let chunk_position = Chunk::position_at(grid_position).unwrap();
-
-        let x_range =
-            (chunk_position.x - WORLD_VIEW_RADIUS)..=(chunk_position.x + WORLD_VIEW_RADIUS);
-        let y_range =
-            (chunk_position.y - WORLD_VIEW_RADIUS)..=(chunk_position.y + WORLD_VIEW_RADIUS);
-        let z_range =
-            (chunk_position.z - WORLD_VIEW_RADIUS)..=(chunk_position.z + WORLD_VIEW_RADIUS);
-
-        for x in x_range {
-            for y in y_range.clone() {
-                for z in z_range.clone() {
-                    let chunk_position = IVec3::new(x, y, z);
-
-                    if let Some(chunk_id) = World::id_at(chunk_position) {
-                        if let Some(chunk) = world.get_chunk(chunk_id) {
-                            let chunk_view = self.generate_chunk_view(chunk);
-
-                            world_view.chunk_views.insert(chunk.id, chunk_view);
-                        }
-                    }
-                }
-            }
-        }
-
-        world_view
-    }
-
-    fn generate_chunk_view(&self, chunk: &chunk::Chunk) -> ChunkView {
-        let chunk_view = ChunkView {
-            id: chunk.id,
-            tick: StatePair::new(chunk.tick, chunk.tick),
-            position: StatePair::new(chunk.position, chunk.position),
-            mesh: StatePair::new(chunk.mesh.clone(), chunk.mesh.clone()),
-        };
-
-        chunk_view
     }
 
     fn update_view(&self, state: &State) {
@@ -204,10 +88,7 @@ impl Observation {
             judge_view: JudgeView {
                 id: judge.id,
                 tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
-                position: StatePair::new(
-                    population_view.judge_view.position.next,
-                    judge.position,
-                ),
+                position: StatePair::new(population_view.judge_view.position.next, judge.position),
                 orientation: StatePair::new(
                     population_view.judge_view.orientation.next,
                     judge.orientation,
