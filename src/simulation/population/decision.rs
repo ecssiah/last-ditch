@@ -87,8 +87,6 @@ impl Decision {
 
         let target_position = grid_position + delta;
 
-        println!("{:?}", target_position);
-
         if world.is_clear(target_position, 3) {
             Some(target_position)
         } else {

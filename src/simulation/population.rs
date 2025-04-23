@@ -4,9 +4,9 @@ pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 
-use crate::simulation::{consts::*, time::Tick, world::World};
+use crate::simulation::{consts::*, population::agent::Kind, time::Tick, world::World};
 use glam::Vec3;
 use std::collections::HashMap;
 
@@ -35,11 +35,15 @@ impl Population {
     }
 
     fn generate_judge(&mut self) {
-        self.judge.set_position(18.0, 20.0, 18.0);
+        println!("Generating Judge");
+
+        self.judge.set_position(18.0, 12.0, 0.0);
         self.judge.set_rotation(0.0, 0.0 * std::f32::consts::PI);
     }
 
     fn generate_agents(&mut self) {
+        println!("Generating Agents");
+
         for _ in 0..AGENT_INITIAL_POPULATION {
             let mut agent = Agent::new(agent::ID::allocate());
 
@@ -47,6 +51,12 @@ impl Population {
 
             agent.position = position;
             agent.target = position;
+
+            let mut rng = rand_pcg::Pcg32::from_entropy();
+            let choice = rng.gen_range(0..4);
+
+            agent.kind = Kind::all()[choice].clone();
+            agent.height = rng.gen_range(0.4..1.0);
 
             self.agents.insert(agent.id, agent);
         }

@@ -107,6 +107,8 @@ impl Observation {
             if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
+                    kind: agent.kind.clone(),
+                    height: agent.height,
                     tick: StatePair::new(agent_view.tick.next, agent.tick),
                     position: StatePair::new(agent_view.position.next, agent.position),
                     target: StatePair::new(agent_view.target.next, agent.target),
@@ -118,6 +120,8 @@ impl Observation {
             } else {
                 let next_agent_view = AgentView {
                     id: agent.id,
+                    kind: agent.kind.clone(),
+                    height: agent.height,
                     tick: StatePair::new(agent.tick, agent.tick),
                     position: StatePair::new(agent.position, agent.position),
                     target: StatePair::new(agent.target, agent.target),

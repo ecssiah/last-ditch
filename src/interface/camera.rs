@@ -96,7 +96,7 @@ impl Camera {
         let forward = judge_orientation * Vec3::Z;
         let up = judge_orientation * Vec3::Y;
 
-        let eye = judge_position + simulation::consts::JUDGE_CAMERA_HEIGHT * up + 0.2 * forward;
+        let eye = judge_position + simulation::consts::JUDGE_CAMERA_HEIGHT * up;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);

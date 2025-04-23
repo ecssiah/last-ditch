@@ -1,8 +1,9 @@
 use crate::{
     include_assets,
-    interface::render::{EntityInstanceData, VertexData},
+    interface::render::{AgentInstanceData, VertexData},
 };
 use glam::Vec3;
+use rand::{Rng, SeedableRng};
 use wgpu::{
     util::DeviceExt, BindGroupLayout, CommandEncoder, Device, PipelineCompilationOptions,
     TextureFormat, TextureView,
@@ -13,7 +14,7 @@ pub struct EntityRender {
     pub vertex_buffer: wgpu::Buffer,
     pub instance_buffer: wgpu::Buffer,
     pub entity_vertices: Vec<VertexData>,
-    pub gpu_entities: Vec<EntityInstanceData>,
+    pub gpu_entities: Vec<AgentInstanceData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -25,8 +26,8 @@ impl EntityRender {
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> EntityRender {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Entity Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/entity.wgsl").into()),
+            label: Some("Agent Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
         });
 
         let entity_sphere_vertices = Self::generate_head_vertices(8, 8);
@@ -34,7 +35,7 @@ impl EntityRender {
         let entity_vertices = [entity_sphere_vertices, entity_rectangle_vertices].concat();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Entity Vertex Buffer"),
+            label: Some("Agent Vertex Buffer"),
             contents: bytemuck::cast_slice(&entity_vertices),
             usage: wgpu::BufferUsages::VERTEX,
         });
@@ -91,7 +92,7 @@ impl EntityRender {
             vertex: wgpu::VertexState {
                 module: &shader_module,
                 entry_point: Some("vs_main"),
-                buffers: &[VertexData::desc(), EntityInstanceData::desc()],
+                buffers: &[VertexData::desc(), AgentInstanceData::desc()],
                 compilation_options: PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -118,7 +119,11 @@ impl EntityRender {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2,
+                    slope_scale: 1.0,
+                    clamp: 0.0,
+                },
             }),
             multisample: wgpu::MultisampleState::default(),
             multiview: None,

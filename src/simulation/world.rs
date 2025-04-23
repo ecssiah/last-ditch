@@ -25,11 +25,11 @@ impl World {
     }
 
     pub fn generate(&mut self) {
+        println!("Generating Ground");
+
         self.generate_ground();
 
-        self.set_block_kind(0, 6, 0, &block::Kind::Stone2);
-        self.set_block_kind(2, 6, 0, &block::Kind::Stone1);
-        self.set_block_kind(0, 6, 2, &block::Kind::Stone2);
+        println!("Generating Structures");
 
         self.set_cube(
             IVec3::new(-8, 1, -8),
@@ -86,28 +86,36 @@ impl World {
         );
 
         self.set_cube(
-            IVec3::new(17, 5, 17),
-            IVec3::new(19, 7, 19),
-            &block::Kind::Engraved2,
+            IVec3::new(18, 1, 18),
+            IVec3::new(18, 2, 18),
+            &block::Kind::Polished1,
         );
 
-        self.set_cube(
-            IVec3::new(-19, 5, 17),
-            IVec3::new(-17, 7, 19),
-            &block::Kind::Engraved2,
-        );
+        self.set_block_kind(18, 3, 18, &block::Kind::Icon1);
 
         self.set_cube(
-            IVec3::new(17, 5, -19),
-            IVec3::new(19, 7, -17),
-            &block::Kind::Engraved2,
+            IVec3::new(-18, 1, 18),
+            IVec3::new(-18, 2, 18),
+            &block::Kind::Polished1,
         );
 
+        self.set_block_kind(-18, 3, 18, &block::Kind::Icon2);
+
         self.set_cube(
-            IVec3::new(-19, 5, -19),
-            IVec3::new(-17, 7, -17),
-            &block::Kind::Engraved2,
+            IVec3::new(18, 1, -18),
+            IVec3::new(18, 2, -18),
+            &block::Kind::Polished1,
         );
+
+        self.set_block_kind(18, 3, -18, &block::Kind::Icon3);
+
+        self.set_cube(
+            IVec3::new(-18, 1, -18),
+            IVec3::new(-18, 2, -18),
+            &block::Kind::Polished1,
+        );
+
+        self.set_block_kind(-18, 3, -18, &block::Kind::Icon4);
 
         self.update_chunk_meshes();
     }
@@ -147,16 +155,23 @@ impl World {
         let world_boundary = WORLD_BOUNDARY as isize - CHUNK_SIZE as isize;
 
         for x in -world_boundary..=world_boundary {
-            for z in -world_boundary..=world_boundary {
-                let chunk_position = Chunk::position_at(IVec3::new(x as i32, 0, z as i32)).unwrap();
+            for y in -world_boundary..=0 {
+                for z in -world_boundary..=world_boundary {
+                    let x = x as i32;
+                    let y = y as i32;
+                    let z = z as i32;
 
-                let kind = if (chunk_position.x + chunk_position.z) % 2 == 0 {
-                    &block::Kind::Polished1
-                } else {
-                    &block::Kind::Polished2
-                };
+                    let chunk_position = Chunk::position_at(IVec3::new(x, y, z)).unwrap();
 
-                self.set_block_kind(x as i32, 0, z as i32, kind);
+                    let kind = if (chunk_position.x + chunk_position.y + chunk_position.z) % 2 == 0
+                    {
+                        &block::Kind::Polished1
+                    } else {
+                        &block::Kind::Polished2
+                    };
+
+                    self.set_block_kind(x, y, z, kind);
+                }
             }
         }
     }

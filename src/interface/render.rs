@@ -1,7 +1,7 @@
+pub mod agent_instance_data;
+pub mod agent_render;
 pub mod camera_uniform_data;
 pub mod chunk_render;
-pub mod entity_instance_data;
-pub mod entity_render;
 pub mod fog;
 pub mod fog_uniform_data;
 pub mod gpu_block;
@@ -13,9 +13,9 @@ pub mod vertex_data;
 
 use std::{collections::HashMap, sync::Arc};
 
+pub use agent_instance_data::AgentInstanceData;
+pub use agent_render::EntityRender;
 pub use chunk_render::ChunkRender;
-pub use entity_instance_data::EntityInstanceData;
-pub use entity_render::EntityRender;
 pub use gpu_block::GPUBlock;
 pub use gpu_chunk::GPUChunk;
 pub use gpu_mesh::GPUMesh;
@@ -126,21 +126,22 @@ impl Render {
         self.entity_render.gpu_entities = agent_views
             .iter()
             .map(|(_, agent_view)| {
-                let entity_instance_data = EntityInstanceData {
+                let agent_instance_data = AgentInstanceData {
                     position: agent_view.position.next.to_array(),
-                    height: 1.8,
+                    height: agent_view.height,
+                    color: agent_view.kind.color(),
                 };
 
-                entity_instance_data
+                agent_instance_data
             })
             .collect();
 
         let required_size =
-            (agent_views.len() * std::mem::size_of::<EntityInstanceData>()) as wgpu::BufferAddress;
+            (agent_views.len() * std::mem::size_of::<AgentInstanceData>()) as wgpu::BufferAddress;
 
         if self.entity_render.instance_buffer.size() < required_size {
             self.entity_render.instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("Entity Instance Buffer"),
+                label: Some("Agent Instance Buffer"),
                 size: required_size,
                 usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,

@@ -41,4 +41,28 @@
         opacity: 1.0,
         emittance: 0,
     ),
+    Block(
+        kind: Icon1,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Icon2,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Icon3,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: Icon4,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
 ]

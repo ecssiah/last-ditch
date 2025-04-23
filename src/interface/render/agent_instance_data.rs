@@ -1,19 +1,21 @@
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct EntityInstanceData {
+pub struct AgentInstanceData {
     pub position: [f32; 3],
     pub height: f32,
+    pub color: [f32; 4],
 }
 
-impl EntityInstanceData {
-    const ATTRIBS: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![
-        4 => Float32x3,
-        5 => Float32,
+impl AgentInstanceData {
+    const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
+        5 => Float32x3,
+        6 => Float32,
+        7 => Float32x4,
     ];
 
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<EntityInstanceData>() as wgpu::BufferAddress,
+            array_stride: std::mem::size_of::<AgentInstanceData>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &Self::ATTRIBS,
         }
