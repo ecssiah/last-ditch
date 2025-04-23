@@ -16,7 +16,11 @@ use crate::{
     interface::{consts::*, Interface},
     simulation::Simulation,
 };
-use std::{sync::Arc, thread};
+use std::{
+    sync::Arc,
+    thread,
+    time::{Duration, Instant},
+};
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler,
@@ -30,6 +34,7 @@ use winit::{
 struct App {
     interface: Option<Interface>,
     simulation_thread: Option<thread::JoinHandle<()>>,
+    last_frame_time: Option<Instant>,
 }
 
 impl ApplicationHandler for App {
@@ -95,9 +100,30 @@ impl ApplicationHandler for App {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        let interface = self.interface.as_mut().unwrap();
+        const FRAME_DURATION: std::time::Duration =
+            std::time::Duration::from_micros(1_000_000 / 30);
 
+        let now = Instant::now();
+
+        let next_frame_time = match self.last_frame_time {
+            Some(last) => last + FRAME_DURATION,
+            None => now + FRAME_DURATION,
+        };
+
+        self.last_frame_time = Some(now);
+
+        let interface = self.interface.as_mut().unwrap();
         interface.handle_about_to_wait(event_loop);
+
+        let now = Instant::now();
+
+        let delay = if next_frame_time > now {
+            next_frame_time - now
+        } else {
+            Duration::ZERO
+        };
+
+        event_loop.set_control_flow(ControlFlow::WaitUntil(now + delay));
     }
 
     fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {

@@ -1,9 +1,9 @@
 use crate::simulation::{
     admin::{Admin, Mode},
+    consts::*,
     population::Population,
     time::Time,
     world::World,
-    SETTLEMENT_PERIOD,
 };
 
 pub struct State {
@@ -43,7 +43,7 @@ impl State {
 
         self.tick();
 
-        if self.admin.settlement_tick > SETTLEMENT_PERIOD {
+        if self.admin.settlement_tick > SIMULATION_SETTLEMENT_PERIOD {
             self.admin.mode = Mode::Simulate;
         }
     }

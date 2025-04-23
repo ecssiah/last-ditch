@@ -5,9 +5,11 @@ pub use id::ID;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
+use crate::simulation::chunk;
 use crate::simulation::dispatch::JumpAction;
 use crate::simulation::dispatch::MovementAction;
 use crate::simulation::time::Tick;
+use crate::simulation::JUDGE_VIEW_X_LIMIT;
 use glam::{Quat, Vec3};
 
 #[derive(Clone)]
@@ -15,13 +17,12 @@ pub struct Judge {
     pub id: ID,
     pub tick: Tick,
     pub name: String,
+    pub chunk_id: chunk::ID,
+    pub chunk_update: bool,
     pub position: Vec3,
     pub velocity: Vec3,
-    pub chunk_update: bool,
-    pub z_speed: f32,
-    pub x_speed: f32,
-    pub look_x_axis: f32,
-    pub look_y_axis: f32,
+    pub speed: Vec3,
+    pub look: Vec3,
     pub orientation: Quat,
     pub jump_state: JumpState,
 }
@@ -32,13 +33,12 @@ impl Judge {
             id: judge_id,
             tick: Tick::ZERO,
             name: "TEST JUDGE NAME".to_string(),
-            position: Vec3::ZERO,
-            velocity: Vec3::ZERO,
+            chunk_id: chunk::ID(0),
             chunk_update: false,
-            z_speed: 0.0,
-            x_speed: 0.0,
-            look_x_axis: 0.0,
-            look_y_axis: 0.0,
+            position: Vec3::ZERO,
+            speed: Vec3::ZERO,
+            velocity: Vec3::ZERO,
+            look: Vec3::ZERO,
             orientation: Quat::default(),
             jump_state: JumpState {
                 stage: JumpStage::Ground,
@@ -58,34 +58,29 @@ impl Judge {
     }
 
     pub fn set_rotation(&mut self, x_axis: f32, y_axis: f32) {
-        let x_axis = x_axis.to_radians();
-        let y_axis = y_axis.to_radians();
+        self.look.x = x_axis.to_radians();
+        self.look.x = self.look.x.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-        let limit = 89.0_f32.to_radians();
+        self.look.y = y_axis.to_radians();
 
-        self.look_x_axis = x_axis.clamp(-limit, limit);
-        self.look_y_axis = y_axis;
-
-        let y_axis_quat = Quat::from_rotation_y(self.look_y_axis);
-        let x_axis_quat = Quat::from_rotation_x(self.look_x_axis);
+        let x_axis_quat = Quat::from_rotation_x(self.look.x);
+        let y_axis_quat = Quat::from_rotation_y(self.look.y);
 
         self.orientation = y_axis_quat * x_axis_quat;
     }
 
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
-        self.z_speed = movement_action.direction.z;
-        self.x_speed = movement_action.direction.x;
+        self.speed.x = movement_action.direction.x;
+        self.speed.z = movement_action.direction.z;
 
         if movement_action.rotation.length_squared() > 1e-6 {
-            self.look_x_axis -= movement_action.rotation.x;
-            self.look_y_axis += movement_action.rotation.y;
+            self.look.x -= movement_action.rotation.x;
+            self.look.y += movement_action.rotation.y;
 
-            let limit = 89.0_f32.to_radians();
+            self.look.x = self.look.x.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-            self.look_x_axis = self.look_x_axis.clamp(-limit, limit);
-
-            let y_axis_quat = Quat::from_rotation_y(self.look_y_axis);
-            let x_axis_quat = Quat::from_rotation_x(self.look_x_axis);
+            let x_axis_quat = Quat::from_rotation_x(self.look.x);
+            let y_axis_quat = Quat::from_rotation_y(self.look.y);
 
             let target_rotation = y_axis_quat * x_axis_quat;
 

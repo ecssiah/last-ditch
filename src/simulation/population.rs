@@ -1,12 +1,13 @@
 pub mod agent;
+pub mod decision;
 pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 
-use crate::simulation::{block::Direction, consts::*, time::Tick, world::World};
-use glam::{IVec3, Vec3};
+use crate::simulation::{consts::*, time::Tick, world::World};
+use glam::Vec3;
 use std::collections::HashMap;
 
 pub struct Population {
@@ -59,36 +60,7 @@ impl Population {
 
     fn tick_agents(&mut self, world: &World) {
         for agent in self.agents.values_mut() {
-            let path = agent.target - agent.position;
-
-            if path.length_squared() > 1e-3 {
-                agent.position += agent.speed * FIXED_DT.as_secs_f32() * path.normalize();
-            } else {
-                Self::find_target(&mut self.rand_pcg, agent, world);
-            }
-        }
-    }
-
-    fn find_target(rand_pcg: &mut rand_pcg::Pcg32, agent: &mut Agent, world: &World) {
-        let direction_index = rand_pcg.gen_range(0..4);
-        let direction = Direction::cardinal()[direction_index];
-
-        let dy = rand_pcg.gen_range(-1..=1);
-
-        let delta = match direction {
-            Direction::XpYoZo => IVec3::new(1, dy, 0),
-            Direction::XnYoZo => IVec3::new(-1, dy, 0),
-            Direction::XoYoZp => IVec3::new(0, dy, 1),
-            Direction::XoYoZn => IVec3::new(0, dy, -1),
-            _ => IVec3::ZERO,
-        };
-
-        if let Some(grid_position) = World::grid_position_at(agent.position) {
-            let target_position = grid_position + delta;
-
-            if world.is_clear(target_position, 3) {
-                agent.target = target_position.as_vec3();
-            }
+            agent.tick(world);
         }
     }
 

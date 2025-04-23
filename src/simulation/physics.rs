@@ -1,7 +1,9 @@
 pub mod judge_controller;
 
 use crate::simulation::{
-    self, chunk,
+    self,
+    block::Direction,
+    chunk,
     consts::*,
     physics::judge_controller::JudgeController,
     population::{
@@ -82,7 +84,6 @@ impl Physics {
     pub fn generate(&mut self, state: &State) {
         self.generate_boundaries();
         self.generate_judge(state);
-        self.generate_agents(state);
     }
 
     pub fn generate_boundaries(&mut self) {
@@ -110,13 +111,12 @@ impl Physics {
 
     fn generate_judge(&mut self, state: &State) {
         let judge = state.population.get_judge();
-        let position = vector![judge.position.x, judge.position.y, judge.position.z];
+        let judge_position = vector![judge.position.x, judge.position.y, judge.position.z];
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .ccd_enabled(true)
-            .linear_damping(0.1)
             .lock_rotations()
-            .translation(position)
+            .translation(judge_position)
             .build();
 
         let rigid_body_handle = self.rigid_body_set.insert(rigid_body);
@@ -145,34 +145,24 @@ impl Physics {
         self.judge_controllers.insert(judge.id, judge_controller);
     }
 
-    fn generate_agents(&mut self, _state: &State) {}
-
     fn update_chunk_colliders(&mut self, state: &State) {
         let judge = state.population.get_judge();
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
-        let current_chunk_id = World::id_at_grid(grid_position).unwrap();
 
-        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id);
-
-        let current_loaded_chunks: Vec<chunk::ID> =
-            self.chunk_collider_handles.keys().cloned().collect();
-
-        for chunk_id in current_loaded_chunks {
-            if !visible_chunk_ids.contains(&chunk_id) {
-                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk_id) {
-                    self.collider_set.remove(
-                        old_handle,
-                        &mut self.island_manager,
-                        &mut self.rigid_body_set,
-                        true,
-                    );
-                }
-            }
+        for handle in self.chunk_collider_handles.values() {
+            self.collider_set.remove(
+                *handle,
+                &mut self.island_manager,
+                &mut self.rigid_body_set,
+                true,
+            );
         }
 
-        for &chunk_id in visible_chunk_ids.iter() {
-            if !self.chunk_collider_handles.contains_key(&chunk_id) {
+        for offset in Direction::face_offsets() {
+            let chunk_position = grid_position + offset;
+
+            if let Some(chunk_id) = World::id_at_grid(chunk_position) {
                 if let Some(chunk) = state.world.get_chunk(chunk_id) {
                     if chunk.mesh.faces.len() > 0 {
                         self.add_chunk_collider(chunk);
@@ -274,10 +264,11 @@ impl Physics {
             .unwrap();
 
         let forward = judge.orientation * Vec3::Z;
-        let forward_xz = Vec3::new(forward.x, 0.0, forward.z).normalize();
-        let right_xz = Vec3::Y.cross(forward_xz).normalize();
 
-        let input_direction = judge.x_speed * right_xz + judge.z_speed * forward_xz;
+        let forward_xz_plane = Vec3::new(forward.x, 0.0, forward.z).normalize();
+        let right_xz_plane = Vec3::Y.cross(forward_xz_plane).normalize();
+
+        let input_direction = judge.speed.x * right_xz_plane + judge.speed.z * forward_xz_plane;
 
         let mut velocity = *rigid_body.linvel();
 
@@ -354,6 +345,7 @@ impl Physics {
             let current_chunk_id = World::id_at_grid(current_grid_position).unwrap();
             let next_chunk_id = World::id_at_grid(next_grid_position).unwrap();
 
+            judge.chunk_id = next_chunk_id;
             judge.chunk_update = next_chunk_id != current_chunk_id;
         }
     }

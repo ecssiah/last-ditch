@@ -2,7 +2,7 @@ use crate::{include_assets, interface::render::gpu_block::GPUBlock, simulation};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
-pub const FULLSCREEN: bool = true;
+pub const FULLSCREEN: bool = false;
 
 pub const WINDOW_TITLE: &str = "Last Ditch";
 pub const WINDOW_WIDTH: u32 = 2560;
@@ -20,8 +20,11 @@ pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 const GPU_BLOCKS_CONFIG: &str = include_assets!("config/interface/gpu_blocks.ron");
 
 pub static GPU_BLOCKS: Lazy<HashMap<simulation::block::Kind, GPUBlock>> = Lazy::new(|| {
-    let list: Vec<GPUBlock> =
+    let gpu_blocks: Vec<GPUBlock> =
         ron::from_str::<Vec<GPUBlock>>(GPU_BLOCKS_CONFIG).expect("Failed to parse Blocks");
 
-    list.into_iter().map(|block| (block.kind, block)).collect()
+    gpu_blocks
+        .into_iter()
+        .map(|block| (block.kind, block))
+        .collect()
 });

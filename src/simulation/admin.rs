@@ -2,7 +2,7 @@ pub mod mode;
 
 pub use mode::Mode;
 
-use crate::simulation::{DEFAULT_SEED, SETTLEMENT_PERIOD};
+use crate::simulation::consts::*;
 
 pub struct Admin {
     pub seed: u64,
@@ -22,6 +22,6 @@ impl Admin {
     }
 
     pub fn is_settling(&self) -> bool {
-        self.settlement_tick < SETTLEMENT_PERIOD
+        self.settlement_tick < SIMULATION_SETTLEMENT_PERIOD
     }
 }

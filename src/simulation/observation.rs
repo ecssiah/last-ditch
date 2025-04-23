@@ -98,9 +98,9 @@ impl Observation {
         };
 
         for agent in population.all_agents() {
-            let judge_distance = (agent.position - population.judge.position).length();
+            let judge_distance_squared = (agent.position - population.judge.position).length_squared();
 
-            if judge_distance > POPULATION_VIEW_RADIUS {
+            if judge_distance_squared > POPULATION_VIEW_RADIUS_SQUARED {
                 continue;
             }
 
