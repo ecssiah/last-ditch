@@ -13,8 +13,8 @@ impl Fog {
         let fog_uniform_data = FogUniformData {
             color: [0.5, 0.5, 0.5],
             _padding0: 0.0,
-            start: 60.0,
-            end: 180.0,
+            start: 100.0,
+            end: 200.0,
             _padding1: [0.0, 0.0],
         };
 

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::dispatch::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
@@ -24,13 +26,13 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
-    action_tx: UnboundedSender<Action>,
+    action_tx: Arc<UnboundedSender<Action>>,
     key_inputs: KeyInputs,
     mouse_inputs: MouseInputs,
 }
 
 impl Input {
-    pub fn new(action_tx: UnboundedSender<Action>) -> Self {
+    pub fn new(action_tx: Arc<UnboundedSender<Action>>) -> Self {
         let key_inputs = KeyInputs {
             key_w: 0.0,
             key_a: 0.0,

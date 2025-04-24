@@ -10,8 +10,11 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
-bitflags = { version = "2.4.0", features = ["serde"]}
+bitflags = { version = "2.4.0", features = ["serde"] }
 bytemuck = { version = "1.14", features = ["derive"] }
+egui = "0.31.1"
+egui-winit = "0.31.1"
+egui-wgpu = "0.31.1"
 env_logger = "0.11.6"
 flexi_logger = "0.27"
 glam = "0.29.0"

@@ -2,7 +2,7 @@ use crate::simulation::{
     block::{self, Direction, Face},
     chunk,
     consts::*,
-    structure,
+    population, structure,
     time::Tick,
     Block, Chunk, BLOCKS,
 };
@@ -32,90 +32,15 @@ impl World {
         println!("Generating Structures");
 
         self.set_cube(
-            IVec3::new(-8, 1, -8),
-            IVec3::new(8, 1, 8),
-            &block::Kind::Stone1,
+            IVec3::new(0, 0, 0),
+            IVec3::new(0, 6, 0),
+            &block::Kind::Origin,
         );
 
-        self.set_cube(
-            IVec3::new(-7, 2, -7),
-            IVec3::new(7, 2, 7),
-            &block::Kind::Stone1,
-        );
-
-        self.set_cube(
-            IVec3::new(-6, 8, -6),
-            IVec3::new(6, 8, 6),
-            &block::Kind::Stone1,
-        );
-
-        self.set_cube(
-            IVec3::new(-5, 9, -5),
-            IVec3::new(5, 9, 5),
-            &block::Kind::Stone1,
-        );
-
-        self.set_cube(
-            IVec3::new(-4, 8, -4),
-            IVec3::new(4, 8, 4),
-            &block::Kind::Air,
-        );
-
-        self.set_cube(
-            IVec3::new(5, 1, 5),
-            IVec3::new(5, 7, 5),
-            &block::Kind::Engraved1,
-        );
-
-        self.set_cube(
-            IVec3::new(-5, 1, 5),
-            IVec3::new(-5, 7, 5),
-            &block::Kind::Engraved1,
-        );
-
-        self.set_cube(
-            IVec3::new(5, 1, -5),
-            IVec3::new(5, 7, -5),
-            &block::Kind::Engraved1,
-        );
-
-        self.set_cube(
-            IVec3::new(-5, 1, -5),
-            IVec3::new(-5, 7, -5),
-            &block::Kind::Engraved1,
-        );
-
-        self.set_cube(
-            IVec3::new(18, 1, 18),
-            IVec3::new(18, 2, 18),
-            &block::Kind::Polished1,
-        );
-
-        self.set_block_kind(18, 3, 18, &block::Kind::Icon1);
-
-        self.set_cube(
-            IVec3::new(-18, 1, 18),
-            IVec3::new(-18, 2, 18),
-            &block::Kind::Polished1,
-        );
-
-        self.set_block_kind(-18, 3, 18, &block::Kind::Icon2);
-
-        self.set_cube(
-            IVec3::new(18, 1, -18),
-            IVec3::new(18, 2, -18),
-            &block::Kind::Polished1,
-        );
-
-        self.set_block_kind(18, 3, -18, &block::Kind::Icon3);
-
-        self.set_cube(
-            IVec3::new(-18, 1, -18),
-            IVec3::new(-18, 2, -18),
-            &block::Kind::Polished1,
-        );
-
-        self.set_block_kind(-18, 3, -18, &block::Kind::Icon4);
+        self.generate_temple(&population::agent::Kind::Eagle);
+        self.generate_temple(&population::agent::Kind::Lion);
+        self.generate_temple(&population::agent::Kind::Horse);
+        self.generate_temple(&population::agent::Kind::Wolf);
 
         self.update_chunk_meshes();
     }
@@ -155,7 +80,7 @@ impl World {
         let world_boundary = WORLD_BOUNDARY as isize - CHUNK_SIZE as isize;
 
         for x in -world_boundary..=world_boundary {
-            for y in -world_boundary..=0 {
+            for y in -1..=0 {
                 for z in -world_boundary..=world_boundary {
                     let x = x as i32;
                     let y = y as i32;
@@ -174,6 +99,76 @@ impl World {
                 }
             }
         }
+    }
+
+    fn generate_temple(&mut self, kind: &population::agent::Kind) {
+        let home_position = kind.home();
+
+        let x = home_position.x;
+        let y = home_position.y - 2;
+        let z = home_position.z;
+
+        self.set_cube(
+            IVec3::new(-8 + x, 0 + y, -8 + z),
+            IVec3::new(8 + x, 0 + y, 8 + z),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-7 + x, 1 + y, -7 + z),
+            IVec3::new(7 + x, 1 + y, 7 + z),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-6 + x, 7 + y, -6 + z),
+            IVec3::new(6 + x, 7 + y, 6 + z),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5 + x, 8 + y, -5 + z),
+            IVec3::new(5 + x, 8 + y, 5 + z),
+            &block::Kind::Stone1,
+        );
+
+        self.set_cube(
+            IVec3::new(-4 + x, 7 + y, -4 + z),
+            IVec3::new(4 + x, 7 + y, 4 + z),
+            &block::Kind::Air,
+        );
+
+        self.set_cube(
+            IVec3::new(5 + x, 0 + y, 5 + z),
+            IVec3::new(5 + x, 6 + y, 5 + z),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5 + x, 0 + y, 5 + z),
+            IVec3::new(-5 + x, 6 + y, 5 + z),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(5 + x, 0 + y, -5 + z),
+            IVec3::new(5 + x, 6 + y, -5 + z),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(-5 + x, 0 + y, -5 + z),
+            IVec3::new(-5 + x, 6 + y, -5 + z),
+            &block::Kind::Engraved1,
+        );
+
+        self.set_cube(
+            IVec3::new(0 + x, 2 + y, 0 + z),
+            IVec3::new(0 + x, 3 + y, 0 + z),
+            &block::Kind::Polished1,
+        );
+
+        self.set_block_kind(0 + x, 4 + y, 0 + z, kind.icon());
     }
 
     fn _generate_structure(&mut self, x: i32, y: i32, z: i32, structure_kind: &structure::Kind) {

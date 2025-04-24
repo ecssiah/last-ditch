@@ -61,6 +61,8 @@ impl Agent {
                 self.plan = self.decision.plan(&Goal::Idle, self, world);
             } else {
                 self.plan = self.decision.plan(&Goal::Wander, self, world);
+                
+                log::info!("{:?}", self.plan);
             }
         }
 

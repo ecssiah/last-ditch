@@ -16,7 +16,7 @@ var<uniform> camera_uniform_data: CameraUniformData;
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
-    @location(5) instance_pos: vec3<f32>,
+    @location(5) instance_position: vec3<f32>,
     @location(6) instance_height: f32,
     @location(7) instance_color: vec4<f32>,
     @builtin(vertex_index) vertex_index: u32,
@@ -33,8 +33,16 @@ struct VertexOutput {
 fn vs_main(input: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
-    let scaled_position = vec3<f32>(input.position.x, input.position.y * input.instance_height, input.position.z);
-    let world_position = scaled_position + input.instance_pos;
+    let scale = input.instance_height / 1.0;
+
+    let scaled_position = vec3<f32>(
+        scale * input.position.x, 
+        (scale * input.position.y) + 0.5, 
+        scale * input.position.z
+    );
+
+    let world_position = scaled_position + input.instance_position;
+    
     out.position = camera_uniform_data.view_projection_matrix * vec4<f32>(world_position, 1.0);
     out.normal = input.normal;
     out.world_position = world_position;
@@ -45,7 +53,13 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-    let brightness = clamp(input.normal.y * 0.5 + 0.5, 0.0, 1.5);
+    let vertical_brightness = clamp(input.normal.y * 0.5 + 0.5, 0.0, 1.5);
+
+    let direction_factor = abs(input.normal.z) - abs(input.normal.x);
+
+    let direction_adjustment = clamp(direction_factor * 0.1, -0.05, 0.05);
+    let brightness = vertical_brightness + direction_adjustment;
+
     let base_color = input.instance_color.rgb * brightness;
 
     let distance = length(input.world_position - camera_uniform_data.camera_position);

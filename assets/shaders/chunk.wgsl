@@ -60,10 +60,14 @@ fn fs_main(input: FragmentInput) -> FragmentOutput {
     let sampled_color = textureSample(atlas, atlas_sampler, input.uv).rgb;
     let lit_color = sampled_color * input.light;
 
-    let distance = length(input.world_position - camera_uniform_data.camera_position);    
-    let fog_factor = clamp((fog_uniform_data.end - distance) / (fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0);
+    let distance = length(input.world_position - camera_uniform_data.camera_position);
+    let fog_factor = select(
+        1.0,
+        clamp((fog_uniform_data.end - distance) / max(0.001, fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0),
+        distance > fog_uniform_data.start
+    );
 
-    let final_color = mix(fog_uniform_data.color, lit_color, fog_factor);
+    let final_color = mix(lit_color, fog_uniform_data.color, 1.0 - fog_factor);
 
     output.color = vec4<f32>(final_color, 1.0);
     

@@ -3,7 +3,6 @@ use crate::{
     interface::render::{AgentInstanceData, VertexData},
 };
 use glam::Vec3;
-use rand::{Rng, SeedableRng};
 use wgpu::{
     util::DeviceExt, BindGroupLayout, CommandEncoder, Device, PipelineCompilationOptions,
     TextureFormat, TextureView,
@@ -30,9 +29,7 @@ impl EntityRender {
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
         });
 
-        let entity_sphere_vertices = Self::generate_head_vertices(8, 8);
-        let entity_rectangle_vertices = Self::generate_body_vertices();
-        let entity_vertices = [entity_sphere_vertices, entity_rectangle_vertices].concat();
+        let entity_vertices = Self::generate_vertices();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Agent Vertex Buffer"),
@@ -185,28 +182,36 @@ impl EntityRender {
         }
     }
 
-    fn generate_head_vertices(latitude_bands: u32, longitude_bands: u32) -> Vec<VertexData> {
-        let vertical_offset = 2.8;
+    fn generate_vertices() -> Vec<VertexData> {
+        let head_scale = 0.32;
+        let head_height = 1.8;
+        let head_bands = 8;
+
+        let body_height = 1.4;
+        let body_top_width = 0.56;
+        let body_bottom_width = 0.20;
+        let body_top_half_width = body_top_width / 2.0;
+        let body_bottom_half_width = body_bottom_width / 2.0;
 
         let mut vertices = Vec::new();
 
-        for lat in 0..latitude_bands {
-            let theta1 = (lat as f32) * std::f32::consts::PI / latitude_bands as f32;
-            let theta2 = (lat as f32 + 1.0) * std::f32::consts::PI / latitude_bands as f32;
+        for lat in 0..head_bands {
+            let theta1 = (lat as f32) * std::f32::consts::PI / head_bands as f32;
+            let theta2 = (lat as f32 + 1.0) * std::f32::consts::PI / head_bands as f32;
 
-            for lon in 0..longitude_bands {
-                let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
-                let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
+            for lon in 0..head_bands {
+                let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / head_bands as f32;
+                let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / head_bands as f32;
 
-                let p1 = 0.34 * Self::spherical_to_cartesian(theta1, phi1);
-                let p2 = 0.34 * Self::spherical_to_cartesian(theta2, phi1);
-                let p3 = 0.34 * Self::spherical_to_cartesian(theta2, phi2);
-                let p4 = 0.34 * Self::spherical_to_cartesian(theta1, phi2);
+                let p1 = head_scale * Self::spherical_to_cartesian(theta1, phi1);
+                let p2 = head_scale * Self::spherical_to_cartesian(theta2, phi1);
+                let p3 = head_scale * Self::spherical_to_cartesian(theta2, phi2);
+                let p4 = head_scale * Self::spherical_to_cartesian(theta1, phi2);
 
-                let p1 = [p1.x, p1.y + vertical_offset, p1.z];
-                let p2 = [p2.x, p2.y + vertical_offset, p2.z];
-                let p3 = [p3.x, p3.y + vertical_offset, p3.z];
-                let p4 = [p4.x, p4.y + vertical_offset, p4.z];
+                let p1 = [p1.x, p1.y + head_height, p1.z];
+                let p2 = [p2.x, p2.y + head_height, p2.z];
+                let p3 = [p3.x, p3.y + head_height, p3.z];
+                let p4 = [p4.x, p4.y + head_height, p4.z];
 
                 let u = Vec3::from(p2) - Vec3::from(p1);
                 let v = Vec3::from(p3) - Vec3::from(p1);
@@ -256,27 +261,6 @@ impl EntityRender {
             }
         }
 
-        vertices
-    }
-
-    fn spherical_to_cartesian(theta: f32, phi: f32) -> Vec3 {
-        let x = phi.sin() * theta.sin();
-        let y = theta.cos();
-        let z = phi.cos() * theta.sin();
-
-        Vec3::new(x, y, z)
-    }
-
-    fn generate_body_vertices() -> Vec<VertexData> {
-        let height = 1.6;
-        let vertical_offset = 1.5;
-        let top_width = 0.56;
-        let bottom_width = 0.20;
-
-        let top_half_width = top_width / 2.0;
-        let bottom_half_width = bottom_width / 2.0;
-        let half_height = height / 2.0;
-
         let normals = [
             [0.0, 0.0, 1.0],  // front
             [0.0, 0.0, -1.0], // back
@@ -286,208 +270,207 @@ impl EntityRender {
             [0.0, -1.0, 0.0], // bottom
         ];
 
+        #[rustfmt::skip]
         let faces = vec![
             // front face
             [
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
             ],
             // back face
             [
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
             ],
             // right face
             [
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
             ],
             // left face
             [
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
             ],
             // top face
             [
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    body_top_half_width,
                 ],
                 [
-                    top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
                 [
-                    -top_half_width,
-                    half_height + vertical_offset,
-                    -top_half_width,
+                    -body_top_half_width,
+                    body_height,
+                    -body_top_half_width,
                 ],
             ],
             // bottom face
             [
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    body_bottom_half_width,
                 ],
                 [
-                    -bottom_half_width,
-                    -half_height + vertical_offset,
-                    -bottom_half_width,
+                    -body_bottom_half_width,
+                    0.0,
+                    -body_bottom_half_width,
                 ],
             ],
         ];
-
-        let mut vertices = Vec::new();
 
         for (i, face) in faces.iter().enumerate() {
             let normal = normals[i];
@@ -503,5 +486,13 @@ impl EntityRender {
         }
 
         vertices
+    }
+
+    fn spherical_to_cartesian(theta: f32, phi: f32) -> Vec3 {
+        let x = phi.sin() * theta.sin();
+        let y = theta.cos();
+        let z = phi.cos() * theta.sin();
+
+        Vec3::new(x, y, z)
     }
 }

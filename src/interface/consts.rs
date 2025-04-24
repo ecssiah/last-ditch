@@ -4,6 +4,8 @@ use std::collections::HashMap;
 
 pub const FULLSCREEN: bool = false;
 
+pub const FRAME_DURATION: std::time::Duration = std::time::Duration::from_micros(1_000_000 / 30);
+
 pub const WINDOW_TITLE: &str = "Last Ditch";
 pub const WINDOW_WIDTH: u32 = 2560;
 pub const WINDOW_HEIGHT: u32 = 1440;

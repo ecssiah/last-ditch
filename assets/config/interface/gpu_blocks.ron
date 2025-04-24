@@ -66,6 +66,17 @@
         },
     ),
     GPUBlock(
+        kind: Origin,
+        atlas_coordinates: {
+            XpYoZo: (0, 4),
+            XnYoZo: (0, 4),
+            XoYpZo: (0, 4),
+            XoYnZo: (0, 4),
+            XoYoZp: (0, 4),
+            XoYoZn: (0, 4),
+        },
+    ),
+    GPUBlock(
         kind: Icon1,
         atlas_coordinates: {
             XpYoZo: (0, 3),

@@ -42,6 +42,12 @@
         emittance: 0,
     ),
     Block(
+        kind: Origin,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
         kind: Icon1,
         solid: true,
         opacity: 1.0,

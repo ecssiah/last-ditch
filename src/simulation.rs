@@ -23,7 +23,7 @@ use dispatch::Action;
 use physics::Physics;
 use state::State;
 use std::{sync::Arc, thread};
-use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
     dispatch: Dispatch,
@@ -33,8 +33,8 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let dispatch = Dispatch::new(action_rx);
+    pub fn new() -> Self {
+        let dispatch = Dispatch::new();
         let state = State::new();
         let physics = Physics::new();
 
@@ -63,6 +63,10 @@ impl Simulation {
 
     pub fn get_observation(&self) -> Arc<Observation> {
         self.observation.clone()
+    }
+
+    pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
+        self.dispatch.get_action_tx()
     }
 
     fn update(&mut self) {

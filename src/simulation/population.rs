@@ -6,8 +6,12 @@ pub use agent::Agent;
 pub use judge::Judge;
 use rand::{Rng, SeedableRng};
 
-use crate::simulation::{consts::*, population::agent::Kind, time::Tick, world::World};
-use glam::Vec3;
+use crate::simulation::{
+    consts::*,
+    population::{self},
+    time::Tick,
+    world::World,
+};
 use std::collections::HashMap;
 
 pub struct Population {
@@ -44,21 +48,23 @@ impl Population {
     fn generate_agents(&mut self) {
         println!("Generating Agents");
 
-        for _ in 0..AGENT_INITIAL_POPULATION {
-            let mut agent = Agent::new(agent::ID::allocate());
+        for kind in population::agent::Kind::all() {
+            for _ in 0..AGENT_INITIAL_POPULATION {
+                let mut agent = Agent::new(agent::ID::allocate());
 
-            let position = Vec3::new(0.0, 2.0, 0.0);
+                let mut position = kind.home().as_vec3();
+                position.x -= 2.0;
 
-            agent.position = position;
-            agent.target = position;
+                agent.position = position;
+                agent.target = position;
 
-            let mut rng = rand_pcg::Pcg32::from_entropy();
-            let choice = rng.gen_range(0..4);
+                let mut rng = rand_pcg::Pcg32::from_entropy();
 
-            agent.kind = Kind::all()[choice].clone();
-            agent.height = rng.gen_range(0.4..1.0);
+                agent.kind = kind.clone();
+                agent.height = rng.gen_range(0.7..1.3);
 
-            self.agents.insert(agent.id, agent);
+                self.agents.insert(agent.id, agent);
+            }
         }
     }
 

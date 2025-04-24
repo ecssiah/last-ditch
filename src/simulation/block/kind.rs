@@ -9,6 +9,7 @@ pub enum Kind {
     Stone2,
     Polished1,
     Polished2,
+    Origin,
     Icon1,
     Icon2,
     Icon3,

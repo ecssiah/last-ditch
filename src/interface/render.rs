@@ -29,10 +29,10 @@ use crate::{
 };
 
 pub struct Render {
-    size: winit::dpi::PhysicalSize<u32>,
-    surface: wgpu::Surface<'static>,
-    surface_config: wgpu::SurfaceConfiguration,
-    surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
+    // size: winit::dpi::PhysicalSize<u32>,
+    // surface: wgpu::Surface<'static>,
+    // surface_config: wgpu::SurfaceConfiguration,
+    // surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     fog: Fog,
     chunk_render: ChunkRender,
@@ -46,31 +46,32 @@ impl Render {
         window: Arc<winit::window::Window>,
         instance: &wgpu::Instance,
         adapter: &wgpu::Adapter,
+        surface_format: &wgpu::TextureFormat,
         camera: &Camera,
     ) -> Render {
-        let size = window.inner_size();
+        // let size = window.inner_size();
 
-        let surface = instance.create_surface(window.clone()).unwrap();
-        let surface_capabilities = surface.get_capabilities(adapter);
-        let surface_format = surface_capabilities.formats[0];
+        // let surface = instance.create_surface(window.clone()).unwrap();
+        // let surface_capabilities = surface.get_capabilities(adapter);
+        // let surface_format = surface_capabilities.formats[0];
 
-        let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
-            format: Some(surface_format.add_srgb_suffix()),
-            ..Default::default()
-        };
+        // let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
+        //     format: Some(surface_format.add_srgb_suffix()),
+        //     ..Default::default()
+        // };
 
-        let surface_config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface_format,
-            view_formats: vec![surface_format],
-            alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
-            width: size.width,
-            height: size.height,
-            desired_maximum_frame_latency: 2,
-            present_mode: wgpu::PresentMode::AutoVsync,
-        };
+        // let surface_config = wgpu::SurfaceConfiguration {
+        //     usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        //     format: surface_format,
+        //     view_formats: vec![surface_format],
+        //     alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
+        //     width: size.width,
+        //     height: size.height,
+        //     desired_maximum_frame_latency: 2,
+        //     present_mode: wgpu::PresentMode::AutoVsync,
+        // };
 
-        surface.configure(&device, &surface_config);
+        // surface.configure(&device, &surface_config);
 
         let mut textures = Textures::new(&device);
 
@@ -101,10 +102,6 @@ impl Render {
         );
 
         let render = Render {
-            size,
-            surface,
-            surface_config,
-            surface_texture_view_descriptor,
             textures,
             fog,
             chunk_render,
@@ -213,36 +210,26 @@ impl Render {
         }
     }
 
-    pub fn resize(&mut self, device: &wgpu::Device, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
+    // pub fn resize(&mut self, device: &wgpu::Device, new_size: winit::dpi::PhysicalSize<u32>) {
+    //     self.size = new_size;
 
-        self.surface.configure(device, &self.surface_config);
-    }
+    //     self.surface.configure(device, &self.surface_config);
+    // }
 
-    pub fn redraw(
+    pub fn update(
         &mut self,
+        encoder: &mut wgpu::CommandEncoder,
         device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        window: Arc<winit::window::Window>,
+        surface_config: &wgpu::SurfaceConfiguration,
+        texture_view: &wgpu::TextureView,
         camera: &Camera,
     ) {
-        let mut encoder = device.create_command_encoder(&Default::default());
-
-        let surface_texture = self
-            .surface
-            .get_current_texture()
-            .expect("failed to acquire next swapchain texture");
-
-        let texture_view = surface_texture
-            .texture
-            .create_view(&self.surface_texture_view_descriptor);
-
-        let depth_texture_view = Textures::create_depth_texture(device, &self.surface_config);
+        let depth_texture_view = Textures::create_depth_texture(device, &surface_config);
 
         if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
             self.chunk_render.render(
-                &mut encoder,
-                &texture_view,
+                encoder,
+                texture_view,
                 &depth_texture_view,
                 &self.fog.uniform_bind_group,
                 &camera.uniform_bind_group,
@@ -251,18 +238,11 @@ impl Render {
         }
 
         self.entity_render.render(
-            &mut encoder,
-            &texture_view,
+            encoder,
+            texture_view,
             &depth_texture_view,
             &self.fog.uniform_bind_group,
             &camera.uniform_bind_group,
         );
-
-        queue.submit([encoder.finish()]);
-        window.pre_present_notify();
-
-        surface_texture.present();
-
-        window.request_redraw();
     }
 }

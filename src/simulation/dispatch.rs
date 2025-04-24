@@ -8,19 +8,34 @@ pub use entity_action::JumpAction;
 pub use entity_action::MovementAction;
 pub use world_action::WorldAction;
 
+use std::sync::Arc;
+use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::mpsc::UnboundedSender;
 use crate::simulation::admin;
 use crate::simulation::state::State;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Dispatch {
+    action_tx: Arc<UnboundedSender<Action>>,
     action_rx: UnboundedReceiver<Action>,
 }
 
 impl Dispatch {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Dispatch {
-        let dispatch = Dispatch { action_rx };
+    pub fn new() -> Dispatch {
+        let (action_tx, action_rx) = unbounded_channel();
+
+        let action_tx = Arc::new(action_tx);
+
+        let dispatch = Dispatch {
+            action_tx,
+            action_rx,
+        };
 
         dispatch
+    }
+
+    pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
+        self.action_tx.clone()
     }
 
     pub fn tick(&mut self, state: &mut State) {

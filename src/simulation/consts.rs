@@ -22,7 +22,7 @@ pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;
 pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
 pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
 
-pub const AGENT_INITIAL_POPULATION: usize = 128;
+pub const AGENT_INITIAL_POPULATION: usize = 16;
 
 pub const ENTITY_SIZE_X: f32 = 0.4;
 pub const ENTITY_SIZE_Y: f32 = 1.4;
@@ -39,7 +39,7 @@ pub const CHUNK_SIZE: usize = 2 * CHUNK_RADIUS + 1;
 pub const CHUNK_AREA: usize = CHUNK_SIZE * CHUNK_SIZE;
 pub const CHUNK_VOLUME: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-pub const WORLD_RADIUS: usize = 2;
+pub const WORLD_RADIUS: usize = 4;
 pub const WORLD_SIZE: usize = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: usize = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
