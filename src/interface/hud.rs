@@ -1,4 +1,5 @@
-use egui::{FontId, FullOutput, ViewportId};
+use egui::{FontId, FullOutput, Ui, ViewportId};
+use glam::Vec2;
 use std::sync::Arc;
 
 pub struct HUD {
@@ -40,25 +41,9 @@ impl HUD {
         let raw_input = self.state.take_egui_input(window);
 
         let full_output: FullOutput = self.context.run(raw_input, |context| {
-            egui::Area::new(egui::Id::new(0))
-                .fixed_pos([10.0, 10.0])
-                .show(context, |ui| {
-                    ui.painter().text(
-                        egui::pos2(9.0, 11.0),
-                        egui::Align2::LEFT_TOP,
-                        "Last Ditch",
-                        FontId::proportional(26.0),
-                        egui::Color32::BLACK,
-                    );
-
-                    ui.painter().text(
-                        egui::pos2(10.0, 10.0),
-                        egui::Align2::LEFT_TOP,
-                        "Last Ditch",
-                        FontId::proportional(26.0),
-                        egui::Color32::WHITE,
-                    );
-                });
+            egui::Area::new(egui::Id::new(0)).show(context, |ui| {
+                Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), "Last Ditch".to_string());
+            });
         });
 
         let paint_jobs = self
@@ -98,5 +83,23 @@ impl HUD {
             &paint_jobs,
             &screen_descriptor,
         )
+    }
+
+    fn draw_hud_text(ui: &mut Ui, position: Vec2, text: String) {
+        ui.painter().text(
+            egui::pos2(position.x - 1.0, position.y + 1.0),
+            egui::Align2::LEFT_TOP,
+            text.clone(),
+            FontId::proportional(22.0),
+            egui::Color32::BLACK,
+        );
+
+        ui.painter().text(
+            egui::pos2(position.x, position.y),
+            egui::Align2::LEFT_TOP,
+            text,
+            FontId::proportional(22.0),
+            egui::Color32::WHITE,
+        );
     }
 }
