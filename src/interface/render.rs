@@ -11,7 +11,7 @@ pub mod texture_atlas;
 pub mod textures;
 pub mod vertex_data;
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 pub use agent_instance_data::AgentInstanceData;
 pub use agent_render::EntityRender;
@@ -43,36 +43,9 @@ impl Render {
     pub fn new(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        window: Arc<winit::window::Window>,
-        instance: &wgpu::Instance,
-        adapter: &wgpu::Adapter,
         surface_format: &wgpu::TextureFormat,
         camera: &Camera,
     ) -> Render {
-        // let size = window.inner_size();
-
-        // let surface = instance.create_surface(window.clone()).unwrap();
-        // let surface_capabilities = surface.get_capabilities(adapter);
-        // let surface_format = surface_capabilities.formats[0];
-
-        // let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
-        //     format: Some(surface_format.add_srgb_suffix()),
-        //     ..Default::default()
-        // };
-
-        // let surface_config = wgpu::SurfaceConfiguration {
-        //     usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        //     format: surface_format,
-        //     view_formats: vec![surface_format],
-        //     alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
-        //     width: size.width,
-        //     height: size.height,
-        //     desired_maximum_frame_latency: 2,
-        //     present_mode: wgpu::PresentMode::AutoVsync,
-        // };
-
-        // surface.configure(&device, &surface_config);
-
         let mut textures = Textures::new(&device);
 
         pollster::block_on(textures.load_texture_atlas(

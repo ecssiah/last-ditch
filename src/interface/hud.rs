@@ -1,4 +1,4 @@
-use egui::{CentralPanel, FontId, FullOutput, RichText, ViewportId};
+use egui::{FontId, FullOutput, ViewportId};
 use std::sync::Arc;
 
 pub struct HUD {

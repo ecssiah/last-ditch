@@ -120,9 +120,6 @@ impl Interface {
         let render = Render::new(
             &device,
             &queue,
-            window.clone(),
-            &instance,
-            &adapter,
             &surface_format,
             &camera,
         );
