@@ -182,7 +182,7 @@ impl Input {
         state: &ElementState,
         button: &MouseButton,
     ) {
-        println!("{:?} {:?}", state, button);
+        log::info!("{:?} {:?}", state, button);
     }
 
     pub fn handle_mouse_wheel(
@@ -191,7 +191,7 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
     ) {
-        println!("{:?} {:?}", delta, phase);
+        log::info!("{:?} {:?}", delta, phase);
     }
 
     pub fn handle_mouse_motion(&mut self, dx: f64, dy: f64) {

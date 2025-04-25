@@ -22,7 +22,7 @@ use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use physics::Physics;
 use state::State;
-use std::{sync::Arc, thread};
+use std::{sync::Arc, thread, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
@@ -56,8 +56,27 @@ impl Simulation {
         self.state.generate();
         self.physics.generate(&self.state);
 
+        self.state.admin.mode = admin::Mode::Simulate;
+
+        log::info!("Simulation Beginning...");
+
         loop {
-            self.update();
+            let start = Instant::now();
+
+            self.dispatch.tick(&mut self.state);
+
+            self.state.tick();
+            self.physics.tick(&mut self.state);
+
+            self.observation.tick(&self.state);
+
+            let elapsed = start.elapsed();
+
+            if elapsed < SIMULATION_TICK_RATE {
+                std::thread::sleep(SIMULATION_TICK_RATE - elapsed);
+            } else {
+                log::warn!("Simulation tick overran: {:?}", elapsed);
+            }
         }
     }
 
@@ -72,14 +91,7 @@ impl Simulation {
     fn update(&mut self) {
         self.state.calculate_work();
 
-        while self.state.has_work() {
-            self.dispatch.tick(&mut self.state);
-
-            self.state.tick();
-            self.physics.tick(&mut self.state);
-
-            self.observation.tick(&self.state);
-        }
+        while self.state.has_work() {}
 
         thread::sleep(SIMULATION_WAIT_DURATION);
     }

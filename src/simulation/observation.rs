@@ -66,7 +66,10 @@ impl Observation {
     }
 
     fn update_admin_view(&self, admin: &Admin) -> AdminView {
-        AdminView { mode: admin.mode }
+        AdminView {
+            mode: admin.mode,
+            message: admin.message.clone(),
+        }
     }
 
     fn update_time_view(&self, time_view: &TimeView, time: &Time) -> TimeView {
@@ -98,7 +101,8 @@ impl Observation {
         };
 
         for agent in population.all_agents() {
-            let judge_distance_squared = (agent.position - population.judge.position).length_squared();
+            let judge_distance_squared =
+                (agent.position - population.judge.position).length_squared();
 
             if judge_distance_squared > POPULATION_VIEW_RADIUS_SQUARED {
                 continue;

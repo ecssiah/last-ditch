@@ -1,11 +1,23 @@
+pub mod load_data;
+pub mod mode;
+pub mod simulate_data;
+
+pub use mode::Mode;
+
 use egui::{FontId, FullOutput, Ui, ViewportId};
 use glam::Vec2;
 use std::sync::Arc;
+
+use crate::{
+    interface::hud::{load_data::LoadData, simulate_data::SimulateData},
+    simulation::{self, observation::view::admin_view},
+};
 
 pub struct HUD {
     context: egui::Context,
     state: egui_winit::State,
     renderer: egui_wgpu::Renderer,
+    mode: Mode,
 }
 
 impl HUD {
@@ -21,10 +33,15 @@ impl HUD {
 
         let renderer = egui_wgpu::Renderer::new(device, surface_format, None, 1, false);
 
+        let mode = Mode::Load(LoadData {
+            message: "No Message".to_string(),
+        });
+
         let hud = HUD {
             context,
             state,
             renderer,
+            mode,
         };
 
         hud
@@ -40,10 +57,9 @@ impl HUD {
     ) {
         let raw_input = self.state.take_egui_input(window);
 
-        let full_output: FullOutput = self.context.run(raw_input, |context| {
-            egui::Area::new(egui::Id::new(0)).show(context, |ui| {
-                Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), "Last Ditch".to_string());
-            });
+        let full_output: FullOutput = self.context.run(raw_input, |context| match &self.mode {
+            Mode::Load(data) => self.draw_load(context, data),
+            Mode::Simulate(data) => self.draw_simulate(context, data),
         });
 
         let paint_jobs = self
@@ -84,6 +100,20 @@ impl HUD {
             &screen_descriptor,
         )
     }
+
+    pub fn prepare_load(&mut self, admin_view: &simulation::observation::view::AdminView) {
+        if let Mode::Load(data) = &mut self.mode {
+            data.message = admin_view.message.clone();
+        }
+    }
+
+    fn draw_load(&self, context: &egui::Context, data: &LoadData) {
+        egui::Area::new(egui::Id::new(0)).show(context, |ui| {
+            Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), data.message.to_owned());
+        });
+    }
+
+    fn draw_simulate(&self, _context: &egui::Context, data: &SimulateData) {}
 
     fn draw_hud_text(ui: &mut Ui, position: Vec2, text: String) {
         ui.painter().text(

@@ -82,6 +82,8 @@ impl Physics {
     }
 
     pub fn generate(&mut self, state: &State) {
+        log::info!("Generating Physics");
+
         self.generate_boundaries();
         self.generate_judge(state);
     }

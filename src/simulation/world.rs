@@ -25,11 +25,11 @@ impl World {
     }
 
     pub fn generate(&mut self) {
-        println!("Generating Ground");
+        log::info!("Generating Ground");
 
         self.generate_ground();
 
-        println!("Generating Structures");
+        log::info!("Generating Structures");
 
         self.set_cube(
             IVec3::new(0, 0, 0),

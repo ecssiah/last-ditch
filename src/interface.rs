@@ -95,10 +95,16 @@ impl Interface {
 
         let surface = instance.create_surface(window.clone()).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
-        let surface_format = surface_capabilities.formats[0];
+
+        let surface_format = surface_capabilities
+            .formats
+            .iter()
+            .copied()
+            .find(|f| *f == wgpu::TextureFormat::Bgra8Unorm)
+            .unwrap_or(surface_capabilities.formats[0]);
 
         let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
-            format: Some(surface_format.add_srgb_suffix()),
+            format: Some(surface_format),
             ..Default::default()
         };
 
@@ -117,12 +123,7 @@ impl Interface {
 
         let camera = Camera::new(&device);
 
-        let render = Render::new(
-            &device,
-            &queue,
-            &surface_format,
-            &camera,
-        );
+        let render = Render::new(&device, &queue, &surface_format, &camera);
 
         let hud = HUD::new(&device, window.clone(), surface_format);
 
@@ -177,10 +178,7 @@ impl Interface {
 
         self.last_frame_instant = Some(now);
 
-        let view = self.observation.get_view();
-
-        self.apply_view(&view, event_loop);
-        self.send_movement_actions();
+        self.update(event_loop);
 
         let now = Instant::now();
 
@@ -191,6 +189,30 @@ impl Interface {
         };
 
         event_loop.set_control_flow(ControlFlow::WaitUntil(now + delay));
+
+        self.window.request_redraw();
+    }
+
+    fn update(&mut self, event_loop: &ActiveEventLoop) {
+        let view = self.observation.get_view();
+
+        match view.admin_view.mode {
+            simulation::admin::Mode::Load => {
+                self.apply_admin_view(&view.admin_view);
+            }
+            simulation::admin::Mode::Simulate => {
+                self.apply_admin_view(&view.admin_view);
+                self.apply_time_view(&view.time_view);
+                self.apply_population_view(&view.population_view);
+                self.apply_world_view(&view.world_view);
+
+                self.send_movement_actions();
+            }
+            simulation::admin::Mode::Shutdown => {}
+            simulation::admin::Mode::Exit => {
+                event_loop.exit();
+            }
+        }
     }
 
     fn handle_redraw_requested(&mut self) {
@@ -225,8 +247,6 @@ impl Interface {
         self.window.pre_present_notify();
 
         surface_texture.present();
-
-        self.window.request_redraw();
     }
 
     fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -235,25 +255,11 @@ impl Interface {
         self.surface.configure(&self.device, &self.surface_config);
     }
 
-    fn apply_view(
-        &mut self,
-        view: &simulation::observation::view::View,
-        event_loop: &ActiveEventLoop,
-    ) {
-        self.apply_admin_view(&view.admin_view, event_loop);
-        self.apply_time_view(&view.time_view);
-        self.apply_population_view(&view.population_view);
-        self.apply_world_view(&view.world_view);
-    }
-
     fn apply_admin_view(
         &mut self,
         admin_view: &simulation::observation::view::AdminView,
-        event_loop: &ActiveEventLoop,
     ) {
-        if admin_view.mode == simulation::admin::Mode::Exit {
-            event_loop.exit();
-        }
+        self.hud.prepare_load(admin_view);
     }
 
     fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {

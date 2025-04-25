@@ -9,6 +9,7 @@ pub const DEFAULT_SEED: u64 = 128;
 
 pub const FIXED_TICK_RATE: u32 = 30;
 pub const FIXED_DT: Duration = Duration::from_nanos(1_000_000_000 / FIXED_TICK_RATE as u64);
+pub const SIMULATION_TICK_RATE: Duration = Duration::from_millis(33);
 pub const SIMULATION_WAIT_DURATION: Duration = Duration::from_micros(500);
 pub const SIMULATION_SETTLEMENT_PERIOD: u32 = 10;
 
