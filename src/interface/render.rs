@@ -129,7 +129,7 @@ impl Render {
             let mut index_offset = 0;
 
             for face in &chunk_view.geometry.next.face_list {
-                if face.kind == simulation::block::Kind::Air {
+                if face.kind == simulation::world::block::Kind::Air {
                     continue;
                 }
 

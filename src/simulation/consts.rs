@@ -1,4 +1,4 @@
-use crate::{include_assets, simulation::block};
+use crate::{include_assets, simulation::world::block};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, time::Duration};
 

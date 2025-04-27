@@ -1,5 +1,5 @@
 use crate::simulation::{
-    block::{self, Direction},
+    world::{block, grid},
     BLOCK_RADIUS,
 };
 use nalgebra::Point3;
@@ -42,7 +42,7 @@ impl Geometry {
         let mut vertex_list = Vec::new();
         let mut index_list = Vec::new();
 
-        for direction in block::Direction::faces() {
+        for direction in grid::Direction::faces() {
             let mut grid: HashSet<(i32, i32, i32)> = HashSet::new();
 
             let direction_faces = self
@@ -59,7 +59,7 @@ impl Geometry {
                 let mut height = 1;
 
                 match direction {
-                    Direction::XoYoZp | Direction::XoYoZn => {
+                    grid::Direction::XoYoZp | grid::Direction::XoYoZn => {
                         while grid.contains(&(x + width, y, z)) {
                             width += 1;
                         }
@@ -83,8 +83,8 @@ impl Geometry {
 
                         let zf = z as f32
                             + match direction {
-                                Direction::XoYoZp => BLOCK_RADIUS,
-                                Direction::XoYoZn => -BLOCK_RADIUS,
+                                grid::Direction::XoYoZp => BLOCK_RADIUS,
+                                grid::Direction::XoYoZn => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 
@@ -101,7 +101,7 @@ impl Geometry {
                         index_list.push([start_index + 0, start_index + 1, start_index + 2]);
                         index_list.push([start_index + 2, start_index + 3, start_index + 0]);
                     }
-                    Direction::XpYoZo | Direction::XnYoZo => {
+                    grid::Direction::XpYoZo | grid::Direction::XnYoZo => {
                         while grid.contains(&(x, y + width, z)) {
                             width += 1;
                         }
@@ -125,8 +125,8 @@ impl Geometry {
 
                         let xf = x as f32
                             + match direction {
-                                Direction::XpYoZo => BLOCK_RADIUS,
-                                Direction::XnYoZo => -BLOCK_RADIUS,
+                                grid::Direction::XpYoZo => BLOCK_RADIUS,
+                                grid::Direction::XnYoZo => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 
@@ -143,7 +143,7 @@ impl Geometry {
                         index_list.push([start_index, start_index + 1, start_index + 2]);
                         index_list.push([start_index, start_index + 2, start_index + 3]);
                     }
-                    Direction::XoYpZo | Direction::XoYnZo => {
+                    grid::Direction::XoYpZo | grid::Direction::XoYnZo => {
                         while grid.contains(&(x + width, y, z)) {
                             width += 1;
                         }
@@ -167,8 +167,8 @@ impl Geometry {
 
                         let yf = y as f32
                             + match direction {
-                                Direction::XoYpZo => BLOCK_RADIUS,
-                                Direction::XoYnZo => -BLOCK_RADIUS,
+                                grid::Direction::XoYpZo => BLOCK_RADIUS,
+                                grid::Direction::XoYnZo => -BLOCK_RADIUS,
                                 _ => 0.0,
                             };
 

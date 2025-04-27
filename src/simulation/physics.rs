@@ -1,9 +1,6 @@
 pub mod judge_controller;
 
 use crate::simulation::{
-    self,
-    block::Direction,
-    chunk,
     consts::*,
     physics::judge_controller::JudgeController,
     population::{
@@ -11,7 +8,10 @@ use crate::simulation::{
         Judge,
     },
     state::State,
-    world::World,
+    world::{
+        chunk,
+        grid::{self, Grid},
+    },
 };
 use glam::Vec3;
 use nalgebra::Unit;
@@ -150,7 +150,7 @@ impl Physics {
     fn update_chunk_colliders(&mut self, state: &State) {
         let judge = state.population.get_judge();
 
-        let grid_position = World::grid_position_at(judge.position).unwrap();
+        let grid_position = Grid::world_to_grid(judge.position).unwrap();
 
         for handle in self.chunk_collider_handle_map.values() {
             self.collider_set.remove(
@@ -161,10 +161,10 @@ impl Physics {
             );
         }
 
-        for offset in Direction::face_offsets() {
+        for offset in grid::Direction::face_offsets() {
             let chunk_position = grid_position + offset;
 
-            if let Some(chunk_id) = World::id_at_grid(chunk_position) {
+            if let Some(chunk_id) = Grid::get_chunk_id(chunk_position) {
                 if let Some(chunk) = state.world.get_chunk(chunk_id) {
                     if chunk.geometry.face_list.len() > 0 {
                         self.add_chunk_collider(chunk);
@@ -210,7 +210,7 @@ impl Physics {
         self.judge_controller_map.insert(judge.id, judge_controller);
     }
 
-    pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
+    pub fn add_chunk_collider(&mut self, chunk: &chunk::Chunk) {
         let (points, triangle_indices) = chunk.geometry.optimized_vertices_and_indices();
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
@@ -246,7 +246,7 @@ impl Physics {
 
     pub fn tick(&mut self, state: &mut State) {
         self.tick_judge(state);
-        self.tick_agents(state);
+        self.tick_agent_map(state);
 
         self.step();
 
@@ -300,7 +300,7 @@ impl Physics {
         rigid_body.set_linvel(velocity, true);
     }
 
-    fn tick_agents(&mut self, _state: &mut State) {}
+    fn tick_agent_map(&mut self, _state: &mut State) {}
 
     pub fn step(&mut self) {
         self.pipeline.step(
@@ -336,16 +336,16 @@ impl Physics {
         let translation = rigid_body_position.translation.vector;
         let next_position = Vec3::new(translation.x, translation.y, translation.z);
 
-        let current_grid_position = World::grid_position_at(judge.position).unwrap();
-        let next_grid_position = World::grid_position_at(next_position).unwrap();
+        let current_grid_position = Grid::world_to_grid(judge.position).unwrap();
+        let next_grid_position = Grid::world_to_grid(next_position).unwrap();
 
         judge.position = next_position;
 
         if current_grid_position == next_grid_position {
             judge.chunk_update = false;
         } else {
-            let current_chunk_id = World::id_at_grid(current_grid_position).unwrap();
-            let next_chunk_id = World::id_at_grid(next_grid_position).unwrap();
+            let current_chunk_id = Grid::get_chunk_id(current_grid_position).unwrap();
+            let next_chunk_id = Grid::get_chunk_id(next_grid_position).unwrap();
 
             judge.chunk_id = next_chunk_id;
             judge.chunk_update = next_chunk_id != current_chunk_id;

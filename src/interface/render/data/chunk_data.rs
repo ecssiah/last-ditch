@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub struct ChunkData {
-    pub chunk_id: simulation::chunk::ID,
+    pub chunk_id: simulation::world::chunk::ID,
     pub tick: simulation::time::Tick,
     pub mesh_data: MeshData,
 }

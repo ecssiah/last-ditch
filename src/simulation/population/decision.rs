@@ -4,7 +4,14 @@ pub mod step;
 pub use goal::Goal;
 pub use step::Step;
 
-use crate::simulation::{block::Direction, consts::*, population::Agent, world::World};
+use crate::simulation::{
+    consts::*,
+    population::Agent,
+    world::{
+        grid::{self, Grid},
+        World,
+    },
+};
 use glam::IVec3;
 use rand::{Rng, SeedableRng};
 
@@ -52,7 +59,7 @@ impl Decision {
     fn plan_wander(&self, agent: &Agent, world: &World) -> Vec<Step> {
         let mut plan = Vec::new();
 
-        if let Some(grid_position) = World::grid_position_at(agent.position) {
+        if let Some(grid_position) = Grid::world_to_grid(agent.position) {
             for _ in 0..10 {
                 if let Some(next_grid_position) = Self::find_target(&grid_position, world) {
                     let step = Step::Move(next_grid_position);
@@ -73,15 +80,15 @@ impl Decision {
         let mut rng = rand_pcg::Pcg32::from_entropy();
 
         let direction_index = rng.gen_range(0..4);
-        let direction = Direction::cardinal()[direction_index];
+        let direction = grid::Direction::cardinal()[direction_index];
 
         let dy = rng.gen_range(-1..=1);
 
         let delta = match direction {
-            Direction::XpYoZo => IVec3::new(1, dy, 0),
-            Direction::XnYoZo => IVec3::new(-1, dy, 0),
-            Direction::XoYoZp => IVec3::new(0, dy, 1),
-            Direction::XoYoZn => IVec3::new(0, dy, -1),
+            grid::Direction::XpYoZo => IVec3::new(1, dy, 0),
+            grid::Direction::XnYoZo => IVec3::new(-1, dy, 0),
+            grid::Direction::XoYoZp => IVec3::new(0, dy, 1),
+            grid::Direction::XoYoZn => IVec3::new(0, dy, -1),
             _ => IVec3::ZERO,
         };
 

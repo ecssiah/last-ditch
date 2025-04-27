@@ -1,7 +1,7 @@
 use crate::simulation::{
-    chunk,
     observation::{state_pair::StatePair, view::chunk_view::ChunkView},
     time::Tick,
+    world::chunk,
 };
 use std::collections::HashMap;
 

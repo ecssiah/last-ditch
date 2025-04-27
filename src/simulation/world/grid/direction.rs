@@ -95,7 +95,7 @@ impl Direction {
         Direction::XpYpZp,
     ];
 
-    pub fn all() -> [Direction; 27] {
+    pub fn get_list() -> [Direction; 27] {
         Self::ALL
     }
 

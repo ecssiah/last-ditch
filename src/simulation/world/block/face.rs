@@ -1,5 +1,5 @@
 use crate::simulation::{
-    block::{Direction, Kind},
+    world::{block, grid},
     BLOCK_RADIUS,
 };
 use glam::{IVec3, Vec3, Vec4};
@@ -7,13 +7,13 @@ use glam::{IVec3, Vec3, Vec4};
 #[derive(Clone, Debug)]
 pub struct Face {
     pub position: IVec3,
-    pub direction: Direction,
-    pub kind: Kind,
+    pub direction: grid::Direction,
+    pub kind: block::Kind,
     pub light: Vec4,
 }
 
 impl Face {
-    pub fn new(position: IVec3, direction: Direction, kind: Kind) -> Face {
+    pub fn new(position: IVec3, direction: grid::Direction, kind: block::Kind) -> Face {
         let face = Face {
             position,
             direction,
@@ -42,36 +42,36 @@ impl Face {
 
     pub fn normal(&self) -> IVec3 {
         match self.direction {
-            Direction::XpYoZo => IVec3::new(1, 0, 0),
-            Direction::XnYoZo => IVec3::new(-1, 0, 0),
-            Direction::XoYpZo => IVec3::new(0, 1, 0),
-            Direction::XoYnZo => IVec3::new(0, -1, 0),
-            Direction::XoYoZp => IVec3::new(0, 0, 1),
-            Direction::XoYoZn => IVec3::new(0, 0, -1),
+            grid::Direction::XpYoZo => IVec3::new(1, 0, 0),
+            grid::Direction::XnYoZo => IVec3::new(-1, 0, 0),
+            grid::Direction::XoYpZo => IVec3::new(0, 1, 0),
+            grid::Direction::XoYnZo => IVec3::new(0, -1, 0),
+            grid::Direction::XoYoZp => IVec3::new(0, 0, 1),
+            grid::Direction::XoYoZn => IVec3::new(0, 0, -1),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
     pub fn up(&self) -> IVec3 {
         match self.direction {
-            Direction::XpYoZo => IVec3::new(0, 1, 0),
-            Direction::XnYoZo => IVec3::new(0, 1, 0),
-            Direction::XoYpZo => IVec3::new(0, 0, 1),
-            Direction::XoYnZo => IVec3::new(0, 0, 1),
-            Direction::XoYoZp => IVec3::new(0, 1, 0),
-            Direction::XoYoZn => IVec3::new(0, 1, 0),
+            grid::Direction::XpYoZo => IVec3::new(0, 1, 0),
+            grid::Direction::XnYoZo => IVec3::new(0, 1, 0),
+            grid::Direction::XoYpZo => IVec3::new(0, 0, 1),
+            grid::Direction::XoYnZo => IVec3::new(0, 0, 1),
+            grid::Direction::XoYoZp => IVec3::new(0, 1, 0),
+            grid::Direction::XoYoZn => IVec3::new(0, 1, 0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
 
     pub fn right(&self) -> IVec3 {
         match self.direction {
-            Direction::XpYoZo => IVec3::new(0, 0, -1),
-            Direction::XnYoZo => IVec3::new(0, 0, 1),
-            Direction::XoYpZo => IVec3::new(-1, 0, 0),
-            Direction::XoYnZo => IVec3::new(1, 0, 0),
-            Direction::XoYoZp => IVec3::new(1, 0, 0),
-            Direction::XoYoZn => IVec3::new(-1, 0, 0),
+            grid::Direction::XpYoZo => IVec3::new(0, 0, -1),
+            grid::Direction::XnYoZo => IVec3::new(0, 0, 1),
+            grid::Direction::XoYpZo => IVec3::new(-1, 0, 0),
+            grid::Direction::XoYnZo => IVec3::new(1, 0, 0),
+            grid::Direction::XoYoZp => IVec3::new(1, 0, 0),
+            grid::Direction::XoYoZn => IVec3::new(-1, 0, 0),
             _ => panic!("Invalid Face: {:?}", self),
         }
     }
@@ -81,7 +81,7 @@ impl Face {
 
         if same_direction {
             match self.direction {
-                Direction::XpYoZo | Direction::XnYoZo => {
+                grid::Direction::XpYoZo | grid::Direction::XnYoZo => {
                     let same_z = self.position.z == face.position.z;
                     let y_connected = (self.position.y - face.position.y).abs() == 1;
                     let same_y = self.position.y == face.position.y;
@@ -89,7 +89,7 @@ impl Face {
 
                     (same_z && y_connected) || (same_y && z_connected)
                 }
-                Direction::XoYpZo | Direction::XoYnZo => {
+                grid::Direction::XoYpZo | grid::Direction::XoYnZo => {
                     let same_x = self.position.x == face.position.x;
                     let z_connected = (self.position.z - face.position.z).abs() == 1;
                     let same_z = self.position.z == face.position.z;
@@ -97,7 +97,7 @@ impl Face {
 
                     (same_x && z_connected) || (same_z && x_connected)
                 }
-                Direction::XoYoZp | Direction::XoYoZn => {
+                grid::Direction::XoYoZp | grid::Direction::XoYoZn => {
                     let same_x = self.position.x == face.position.x;
                     let y_connected = (self.position.y - face.position.y).abs() == 1;
                     let same_y = self.position.y == face.position.y;

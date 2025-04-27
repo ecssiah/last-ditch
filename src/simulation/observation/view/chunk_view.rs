@@ -1,4 +1,4 @@
-use crate::simulation::{chunk, observation::state_pair::StatePair, time::Tick};
+use crate::simulation::{observation::state_pair::StatePair, time::Tick, world::chunk};
 use glam::IVec3;
 
 #[derive(Clone, Debug)]

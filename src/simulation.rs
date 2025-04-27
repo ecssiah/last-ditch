@@ -2,8 +2,6 @@
 //! the core civilizational garden.
 
 pub mod admin;
-pub mod block;
-pub mod chunk;
 pub mod consts;
 pub mod dispatch;
 pub mod observation;
@@ -13,8 +11,6 @@ pub mod state;
 pub mod time;
 pub mod world;
 
-pub use block::Block;
-pub use chunk::Chunk;
 pub use consts::*;
 
 use crate::simulation::{dispatch::Dispatch, observation::Observation};

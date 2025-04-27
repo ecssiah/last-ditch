@@ -1,6 +1,5 @@
+use crate::simulation::world::block;
 use glam::IVec3;
-
-use crate::simulation::block;
 
 #[derive(Clone, Debug)]
 pub enum Kind {
@@ -11,7 +10,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn all() -> [Kind; 4] {
+    pub fn get_list() -> [Kind; 4] {
         [Kind::Lion, Kind::Eagle, Kind::Wolf, Kind::Horse]
     }
 

@@ -21,12 +21,14 @@ pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
 const BLOCK_DATA_MAP_CONFIG: &str = include_assets!("config/interface/block_data_map_config.ron");
 
-pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::block::Kind, BlockData>> = Lazy::new(|| {
-    let block_data_list: Vec<BlockData> = ron::from_str::<Vec<BlockData>>(BLOCK_DATA_MAP_CONFIG)
-        .expect("Failed to parse block_data_map.ron");
+pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::world::block::Kind, BlockData>> =
+    Lazy::new(|| {
+        let block_data_list: Vec<BlockData> =
+            ron::from_str::<Vec<BlockData>>(BLOCK_DATA_MAP_CONFIG)
+                .expect("Failed to parse block_data_map.ron");
 
-    block_data_list
-        .into_iter()
-        .map(|block_data| (block_data.kind, block_data))
-        .collect()
-});
+        block_data_list
+            .into_iter()
+            .map(|block_data| (block_data.kind, block_data))
+            .collect()
+    });

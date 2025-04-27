@@ -5,11 +5,12 @@ pub use id::ID;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
-use crate::simulation::chunk;
-use crate::simulation::dispatch::JumpAction;
-use crate::simulation::dispatch::MovementAction;
-use crate::simulation::time::Tick;
-use crate::simulation::JUDGE_VIEW_X_LIMIT;
+use crate::simulation::{
+    consts::*,
+    dispatch::{JumpAction, MovementAction},
+    time::Tick,
+    world::chunk,
+};
 use glam::{Quat, Vec3};
 
 #[derive(Clone)]

@@ -4,6 +4,6 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 pub struct BlockData {
-    pub kind: simulation::block::Kind,
-    pub tile_position_map: HashMap<simulation::block::Direction, [u32; 2]>,
+    pub kind: simulation::world::block::Kind,
+    pub tile_position_map: HashMap<simulation::world::grid::Direction, [u32; 2]>,
 }

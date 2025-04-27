@@ -48,7 +48,7 @@ impl Population {
     fn generate_agents(&mut self) {
         log::info!("Generating Agents");
 
-        for kind in population::agent::Kind::all() {
+        for kind in population::agent::Kind::get_list() {
             for _ in 0..AGENT_INITIAL_POPULATION {
                 let mut agent = Agent::new(agent::ID::allocate());
 
@@ -71,10 +71,10 @@ impl Population {
     pub fn tick(&mut self, tick: &Tick, world: &World) {
         self.tick = *tick;
 
-        self.tick_agents(world);
+        self.tick_agent_map(world);
     }
 
-    fn tick_agents(&mut self, world: &World) {
+    fn tick_agent_map(&mut self, world: &World) {
         for agent in self.agent_map.values_mut() {
             agent.tick(world);
         }
