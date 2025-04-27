@@ -10,7 +10,7 @@ impl From<ID> for usize {
 }
 
 impl ID {
-    pub fn valid(block_id: ID) -> bool {
+    pub fn is_valid(block_id: ID) -> bool {
         (0..CHUNK_VOLUME).contains(&block_id.into())
     }
 }

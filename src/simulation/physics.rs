@@ -10,7 +10,7 @@ use crate::simulation::{
     state::State,
     world::{
         chunk,
-        grid::{self, Grid},
+        grid::{self},
     },
 };
 use glam::Vec3;
@@ -150,7 +150,7 @@ impl Physics {
     fn update_chunk_colliders(&mut self, state: &State) {
         let judge = state.population.get_judge();
 
-        let grid_position = Grid::world_to_grid(judge.position).unwrap();
+        let grid_position = grid::world_to_grid(judge.position).unwrap();
 
         for handle in self.chunk_collider_handle_map.values() {
             self.collider_set.remove(
@@ -164,7 +164,7 @@ impl Physics {
         for offset in grid::Direction::face_offsets() {
             let chunk_position = grid_position + offset;
 
-            if let Some(chunk_id) = Grid::get_chunk_id(chunk_position) {
+            if let Some(chunk_id) = grid::get_chunk_id(chunk_position) {
                 if let Some(chunk) = state.world.get_chunk(chunk_id) {
                     if chunk.geometry.face_list.len() > 0 {
                         self.add_chunk_collider(chunk);
@@ -336,16 +336,16 @@ impl Physics {
         let translation = rigid_body_position.translation.vector;
         let next_position = Vec3::new(translation.x, translation.y, translation.z);
 
-        let current_grid_position = Grid::world_to_grid(judge.position).unwrap();
-        let next_grid_position = Grid::world_to_grid(next_position).unwrap();
+        let current_grid_position = grid::world_to_grid(judge.position).unwrap();
+        let next_grid_position = grid::world_to_grid(next_position).unwrap();
 
         judge.position = next_position;
 
         if current_grid_position == next_grid_position {
             judge.chunk_update = false;
         } else {
-            let current_chunk_id = Grid::get_chunk_id(current_grid_position).unwrap();
-            let next_chunk_id = Grid::get_chunk_id(next_grid_position).unwrap();
+            let current_chunk_id = grid::get_chunk_id(current_grid_position).unwrap();
+            let next_chunk_id = grid::get_chunk_id(next_grid_position).unwrap();
 
             judge.chunk_id = next_chunk_id;
             judge.chunk_update = next_chunk_id != current_chunk_id;

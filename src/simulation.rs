@@ -59,10 +59,8 @@ impl Simulation {
             let start = Instant::now();
 
             self.dispatch.tick(&mut self.state);
-
             self.state.tick();
             self.physics.tick(&mut self.state);
-
             self.observation.tick(&self.state);
 
             let elapsed = start.elapsed();

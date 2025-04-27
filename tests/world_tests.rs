@@ -1,7 +1,7 @@
 use glam::IVec3;
 use last_ditch::simulation::{
     consts::*,
-    world::{block, chunk, grid::Grid},
+    world::{block, chunk, grid},
 };
 
 #[test]
@@ -35,7 +35,7 @@ fn test_get_chunk_id() {
     ];
 
     for (grid_position, expected_chunk_id) in test_cases {
-        let chunk_id = Grid::get_chunk_id(grid_position);
+        let chunk_id = grid::get_chunk_id(grid_position);
 
         assert_eq!(
             chunk_id, expected_chunk_id,
@@ -76,7 +76,7 @@ fn test_get_block_id() {
     ];
 
     for (grid_position, expected_block_id) in test_cases {
-        let block_id = Grid::get_block_id(grid_position);
+        let block_id = grid::get_block_id(grid_position);
 
         assert_eq!(
             block_id, expected_block_id,
@@ -123,7 +123,7 @@ fn test_get_grid_position() {
         let chunk_id = chunk::ID(chunk_id);
         let block_id = block::ID(block_id);
 
-        let grid_position = Grid::get_grid_position(chunk_id, block_id).unwrap();
+        let grid_position = grid::get_grid_position(chunk_id, block_id).unwrap();
 
         assert_eq!(
             grid_position, expected_grid_position,

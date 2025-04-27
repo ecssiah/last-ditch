@@ -16,7 +16,7 @@ use crate::simulation::{
     population::{Judge, Population},
     state::State,
     time::Time,
-    world::{chunk, grid::Grid, World},
+    world::{chunk, grid, World},
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -149,8 +149,8 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let grid_position = Grid::world_to_grid(judge.position).unwrap();
-        let current_chunk_id = Grid::get_chunk_id(grid_position).unwrap();
+        let grid_position = grid::world_to_grid(judge.position).unwrap();
+        let current_chunk_id = grid::get_chunk_id(grid_position).unwrap();
 
         let visible_chunk_id_list = World::get_visible_chunk_id_list(current_chunk_id);
 

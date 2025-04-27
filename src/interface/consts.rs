@@ -25,7 +25,7 @@ pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::world::block::Kind, BlockDat
     Lazy::new(|| {
         let block_data_list: Vec<BlockData> =
             ron::from_str::<Vec<BlockData>>(BLOCK_DATA_MAP_CONFIG)
-                .expect("Failed to parse block_data_map.ron");
+                .expect("Failed to parse BlockData");
 
         block_data_list
             .into_iter()

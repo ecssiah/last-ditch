@@ -1,7 +1,7 @@
 [
     BlockData(
         kind: Engraved1,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (0, 0),
             XnYoZo: (0, 0),
             XoYpZo: (0, 0),
@@ -12,7 +12,7 @@
     ),
     BlockData(
         kind: Engraved2,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (1, 0),
             XnYoZo: (1, 0),
             XoYpZo: (1, 0),
@@ -23,7 +23,7 @@
     ),
     BlockData(
         kind: Stone1,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (0, 1),
             XnYoZo: (0, 1),
             XoYpZo: (0, 1),
@@ -34,7 +34,7 @@
     ),
     BlockData(
         kind: Stone2,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (1, 1),
             XnYoZo: (1, 1),
             XoYpZo: (1, 1),
@@ -45,7 +45,7 @@
     ),
     BlockData(
         kind: Polished1,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (0, 2),
             XnYoZo: (0, 2),
             XoYpZo: (0, 2),
@@ -56,7 +56,7 @@
     ),
     BlockData(
         kind: Polished2,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (1, 2),
             XnYoZo: (1, 2),
             XoYpZo: (1, 2),
@@ -67,7 +67,7 @@
     ),
     BlockData(
         kind: Origin,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (0, 4),
             XnYoZo: (0, 4),
             XoYpZo: (0, 4),
@@ -78,7 +78,7 @@
     ),
     BlockData(
         kind: Icon1,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (0, 3),
             XnYoZo: (0, 3),
             XoYpZo: (0, 3),
@@ -89,7 +89,7 @@
     ),
     BlockData(
         kind: Icon2,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (1, 3),
             XnYoZo: (1, 3),
             XoYpZo: (1, 3),
@@ -100,7 +100,7 @@
     ),
     BlockData(
         kind: Icon3,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (2, 3),
             XnYoZo: (2, 3),
             XoYpZo: (2, 3),
@@ -111,7 +111,7 @@
     ),
     BlockData(
         kind: Icon4,
-        tile_position: {
+        tile_position_map: {
             XpYoZo: (3, 3),
             XnYoZo: (3, 3),
             XoYpZo: (3, 3),

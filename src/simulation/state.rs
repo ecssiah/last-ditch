@@ -25,27 +25,9 @@ impl State {
         state
     }
 
-    pub fn calculate_work(&mut self) {
-        self.time.calculate_work();
-    }
-
-    pub fn has_work(&self) -> bool {
-        self.time.has_work()
-    }
-
     pub fn generate(&mut self) {
         self.world.generate();
         self.population.generate();
-    }
-
-    pub fn settle(&mut self) {
-        self.admin.settlement_tick += 1;
-
-        self.tick();
-
-        if self.admin.settlement_tick > SIMULATION_SETTLEMENT_PERIOD {
-            self.admin.mode = Mode::Simulate;
-        }
     }
 
     pub fn tick(&mut self) {

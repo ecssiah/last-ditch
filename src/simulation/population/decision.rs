@@ -7,10 +7,7 @@ pub use step::Step;
 use crate::simulation::{
     consts::*,
     population::Agent,
-    world::{
-        grid::{self, Grid},
-        World,
-    },
+    world::{grid, World},
 };
 use glam::IVec3;
 use rand::{Rng, SeedableRng};
@@ -59,7 +56,7 @@ impl Decision {
     fn plan_wander(&self, agent: &Agent, world: &World) -> Vec<Step> {
         let mut plan = Vec::new();
 
-        if let Some(grid_position) = Grid::world_to_grid(agent.position) {
+        if let Some(grid_position) = grid::world_to_grid(agent.position) {
             for _ in 0..10 {
                 if let Some(next_grid_position) = Self::find_target(&grid_position, world) {
                     let step = Step::Move(next_grid_position);
