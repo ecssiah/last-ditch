@@ -1,14 +1,14 @@
-use crate::interface::render::VertexData;
+use crate::interface::render::data::VertexData;
 use wgpu::util::DeviceExt;
 
 #[derive(Debug)]
-pub struct GPUMesh {
+pub struct MeshData {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub index_count: u32,
 }
 
-impl GPUMesh {
+impl MeshData {
     pub fn new(device: &wgpu::Device, vertices: Vec<VertexData>, indices: Vec<u32>) -> Self {
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Interface Chunk Vertex Buffer"),

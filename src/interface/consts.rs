@@ -1,4 +1,4 @@
-use crate::{include_assets, interface::render::gpu_block::GPUBlock, simulation};
+use crate::{include_assets, interface::render::data::BlockData, simulation};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
@@ -19,14 +19,14 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-const GPU_BLOCKS_CONFIG: &str = include_assets!("config/interface/gpu_blocks.ron");
+const BLOCK_DATA_MAP_CONFIG: &str = include_assets!("config/interface/block_data_map_config.ron");
 
-pub static GPU_BLOCKS: Lazy<HashMap<simulation::block::Kind, GPUBlock>> = Lazy::new(|| {
-    let gpu_blocks: Vec<GPUBlock> =
-        ron::from_str::<Vec<GPUBlock>>(GPU_BLOCKS_CONFIG).expect("Failed to parse Blocks");
+pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::block::Kind, BlockData>> = Lazy::new(|| {
+    let block_data_list: Vec<BlockData> = ron::from_str::<Vec<BlockData>>(BLOCK_DATA_MAP_CONFIG)
+        .expect("Failed to parse block_data_map.ron");
 
-    gpu_blocks
+    block_data_list
         .into_iter()
-        .map(|block| (block.kind, block))
+        .map(|block_data| (block_data.kind, block_data))
         .collect()
 });

@@ -1,7 +1,4 @@
-use crate::{
-    include_assets,
-    simulation::{block, structure},
-};
+use crate::{include_assets, simulation::block};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, time::Duration};
 
@@ -54,26 +51,14 @@ pub const POPULATION_VIEW_RADIUS_SQUARED: f32 = POPULATION_VIEW_RADIUS * POPULAT
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
 
-const BLOCKS_CONFIG: &str = include_assets!("config/simulation/blocks.ron");
+const BLOCK_MAP_CONFIG: &str = include_assets!("config/simulation/block_map_config.ron");
 
-pub static BLOCKS: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
-    let blocks: Vec<block::Block> =
-        ron::from_str::<Vec<block::Block>>(BLOCKS_CONFIG).expect("Failed to parse Blocks");
+pub static BLOCK_MAP: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
+    let block_list: Vec<block::Block> = ron::from_str::<Vec<block::Block>>(BLOCK_MAP_CONFIG)
+        .expect("Failed to parse block_map_config.ron");
 
-    blocks
+    block_list
         .into_iter()
         .map(|block| (block.kind, block))
-        .collect()
-});
-
-const STRUCTURES_CONFIG: &str = include_assets!("config/simulation/structures.ron");
-
-pub static STRUCTURES: Lazy<HashMap<structure::Kind, structure::Structure>> = Lazy::new(|| {
-    let structures: Vec<structure::Structure> =
-        ron::from_str(STRUCTURES_CONFIG).expect("Failed to parse Structures");
-
-    structures
-        .into_iter()
-        .map(|structure| (structure.kind, structure))
         .collect()
 });

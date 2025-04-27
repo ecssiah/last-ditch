@@ -1,7 +1,7 @@
 [
-    GPUBlock(
+    BlockData(
         kind: Engraved1,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (0, 0),
             XnYoZo: (0, 0),
             XoYpZo: (0, 0),
@@ -10,9 +10,9 @@
             XoYoZn: (0, 0),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Engraved2,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (1, 0),
             XnYoZo: (1, 0),
             XoYpZo: (1, 0),
@@ -21,9 +21,9 @@
             XoYoZn: (1, 0),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Stone1,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (0, 1),
             XnYoZo: (0, 1),
             XoYpZo: (0, 1),
@@ -32,9 +32,9 @@
             XoYoZn: (0, 1),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Stone2,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (1, 1),
             XnYoZo: (1, 1),
             XoYpZo: (1, 1),
@@ -43,9 +43,9 @@
             XoYoZn: (1, 1),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Polished1,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (0, 2),
             XnYoZo: (0, 2),
             XoYpZo: (0, 2),
@@ -54,9 +54,9 @@
             XoYoZn: (0, 2),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Polished2,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (1, 2),
             XnYoZo: (1, 2),
             XoYpZo: (1, 2),
@@ -65,9 +65,9 @@
             XoYoZn: (1, 2),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Origin,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (0, 4),
             XnYoZo: (0, 4),
             XoYpZo: (0, 4),
@@ -76,9 +76,9 @@
             XoYoZn: (0, 4),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Icon1,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (0, 3),
             XnYoZo: (0, 3),
             XoYpZo: (0, 3),
@@ -87,9 +87,9 @@
             XoYoZn: (0, 3),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Icon2,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (1, 3),
             XnYoZo: (1, 3),
             XoYpZo: (1, 3),
@@ -98,9 +98,9 @@
             XoYoZn: (1, 3),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Icon3,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (2, 3),
             XnYoZo: (2, 3),
             XoYpZo: (2, 3),
@@ -109,9 +109,9 @@
             XoYoZn: (2, 3),
         },
     ),
-    GPUBlock(
+    BlockData(
         kind: Icon4,
-        atlas_coordinates: {
+        tile_position: {
             XpYoZo: (3, 3),
             XnYoZo: (3, 3),
             XoYpZo: (3, 3),

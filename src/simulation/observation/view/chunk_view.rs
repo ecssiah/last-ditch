@@ -6,5 +6,5 @@ pub struct ChunkView {
     pub id: chunk::ID,
     pub tick: StatePair<Tick>,
     pub position: StatePair<IVec3>,
-    pub mesh: StatePair<chunk::Mesh>,
+    pub geometry: StatePair<chunk::Geometry>,
 }

@@ -1,17 +1,15 @@
-pub mod load_data;
+pub mod data;
 pub mod mode;
-pub mod simulate_data;
 
 pub use mode::Mode;
 
+use crate::{
+    interface::hud::data::{LoadData, SimulateData},
+    simulation::{self},
+};
 use egui::{FontId, FullOutput, Ui, ViewportId};
 use glam::Vec2;
 use std::sync::Arc;
-
-use crate::{
-    interface::hud::{load_data::LoadData, simulate_data::SimulateData},
-    simulation::{self, observation::view::admin_view},
-};
 
 pub struct HUD {
     context: egui::Context,
@@ -113,7 +111,7 @@ impl HUD {
         });
     }
 
-    fn draw_simulate(&self, _context: &egui::Context, data: &SimulateData) {}
+    fn draw_simulate(&self, _context: &egui::Context, _data: &SimulateData) {}
 
     fn draw_hud_text(ui: &mut Ui, position: Vec2, text: String) {
         ui.painter().text(

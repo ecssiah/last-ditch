@@ -97,10 +97,10 @@ impl Observation {
                     judge.orientation,
                 ),
             },
-            agent_views: HashMap::new(),
+            agent_view_map: HashMap::new(),
         };
 
-        for agent in population.all_agents() {
+        for agent in population.get_agent_map() {
             let judge_distance_squared =
                 (agent.position - population.judge.position).length_squared();
 
@@ -108,7 +108,7 @@ impl Observation {
                 continue;
             }
 
-            if let Some(agent_view) = population_view.agent_views.get(&agent.id) {
+            if let Some(agent_view) = population_view.agent_view_map.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
                     kind: agent.kind.clone(),
@@ -119,7 +119,7 @@ impl Observation {
                 };
 
                 next_population_view
-                    .agent_views
+                    .agent_view_map
                     .insert(agent.id, next_agent_view);
             } else {
                 let next_agent_view = AgentView {
@@ -132,7 +132,7 @@ impl Observation {
                 };
 
                 next_population_view
-                    .agent_views
+                    .agent_view_map
                     .insert(agent.id, next_agent_view);
             }
         }
@@ -147,19 +147,19 @@ impl Observation {
 
         let mut next_world_view = WorldView {
             tick: StatePair::new(world_view.tick.current, world.tick),
-            chunk_views: HashMap::new(),
+            chunk_view_map: HashMap::new(),
         };
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
         let current_chunk_id = World::id_at_grid(grid_position).unwrap();
 
-        let visible_chunk_ids = World::visible_chunk_ids(current_chunk_id);
+        let visible_chunk_id_list = World::get_visible_chunk_id_list(current_chunk_id);
 
-        for chunk_id in visible_chunk_ids {
+        for chunk_id in visible_chunk_id_list {
             if let Some(chunk) = world.get_chunk(chunk_id) {
                 let chunk_view = self.update_chunk_view(chunk, world_view);
 
-                next_world_view.chunk_views.insert(chunk.id, chunk_view);
+                next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
             }
         }
 
@@ -169,13 +169,16 @@ impl Observation {
     fn update_chunk_view(&self, chunk: &chunk::Chunk, world_view: &WorldView) -> ChunkView {
         let next_chunk_view;
 
-        if let Some(chunk_view) = world_view.chunk_views.get(&chunk.id) {
+        if let Some(chunk_view) = world_view.chunk_view_map.get(&chunk.id) {
             if chunk_view.tick.next < chunk.tick {
                 next_chunk_view = ChunkView {
                     id: chunk.id,
                     tick: StatePair::new(chunk_view.tick.next, chunk.tick),
                     position: StatePair::new(chunk_view.position.next, chunk.position),
-                    mesh: StatePair::new(chunk_view.mesh.next.clone(), chunk.mesh.clone()),
+                    geometry: StatePair::new(
+                        chunk_view.geometry.next.clone(),
+                        chunk.geometry.clone(),
+                    ),
                 };
             } else {
                 next_chunk_view = chunk_view.clone();
@@ -185,7 +188,7 @@ impl Observation {
                 id: chunk.id,
                 tick: StatePair::new(chunk.tick, chunk.tick),
                 position: StatePair::new(chunk.position, chunk.position),
-                mesh: StatePair::new(chunk.mesh.clone(), chunk.mesh.clone()),
+                geometry: StatePair::new(chunk.geometry.clone(), chunk.geometry.clone()),
             };
         }
 

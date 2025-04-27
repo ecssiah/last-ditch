@@ -1,42 +1,33 @@
-pub mod agent_instance_data;
 pub mod agent_render;
-pub mod camera_uniform_data;
 pub mod chunk_render;
+pub mod data;
 pub mod fog;
-pub mod fog_uniform_data;
-pub mod gpu_block;
-pub mod gpu_chunk;
-pub mod gpu_mesh;
 pub mod texture_atlas;
 pub mod textures;
-pub mod vertex_data;
 
-use std::collections::HashMap;
-
-pub use agent_instance_data::AgentInstanceData;
-pub use agent_render::EntityRender;
+pub use agent_render::AgentRender;
 pub use chunk_render::ChunkRender;
-pub use gpu_block::GPUBlock;
-pub use gpu_chunk::GPUChunk;
-pub use gpu_mesh::GPUMesh;
 pub use texture_atlas::TextureAtlas;
 pub use textures::Textures;
-pub use vertex_data::VertexData;
 
 use crate::{
-    interface::{camera::Camera, consts::GPU_BLOCKS, render::fog::Fog},
+    interface::{
+        camera::Camera,
+        consts::BLOCK_DATA_MAP,
+        render::{
+            data::{AgentInstanceData, ChunkData, MeshData, VertexData},
+            fog::Fog,
+        },
+    },
     simulation,
 };
+use std::collections::HashMap;
 
 pub struct Render {
-    // size: winit::dpi::PhysicalSize<u32>,
-    // surface: wgpu::Surface<'static>,
-    // surface_config: wgpu::SurfaceConfiguration,
-    // surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     textures: Textures,
     fog: Fog,
     chunk_render: ChunkRender,
-    entity_render: EntityRender,
+    agent_render: AgentRender,
 }
 
 impl Render {
@@ -67,7 +58,7 @@ impl Render {
             &textures.texture_sampler_bind_group_layout,
         );
 
-        let entity_render = EntityRender::new(
+        let agent_render = AgentRender::new(
             &device,
             &surface_format,
             &fog.uniform_bind_group_layout,
@@ -78,22 +69,22 @@ impl Render {
             textures,
             fog,
             chunk_render,
-            entity_render,
+            agent_render,
         };
 
         render
     }
 
-    pub fn prepare_agent_views(
+    pub fn prepare_agent_view_map(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        agent_views: &HashMap<
+        agent_view_map: &HashMap<
             simulation::population::agent::ID,
             simulation::observation::view::AgentView,
         >,
     ) {
-        self.entity_render.gpu_entities = agent_views
+        self.agent_render.instance_data_list = agent_view_map
             .iter()
             .map(|(_, agent_view)| {
                 let agent_instance_data = AgentInstanceData {
@@ -106,11 +97,11 @@ impl Render {
             })
             .collect();
 
-        let required_size =
-            (agent_views.len() * std::mem::size_of::<AgentInstanceData>()) as wgpu::BufferAddress;
+        let required_size = (agent_view_map.len() * std::mem::size_of::<AgentInstanceData>())
+            as wgpu::BufferAddress;
 
-        if self.entity_render.instance_buffer.size() < required_size {
-            self.entity_render.instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        if self.agent_render.instance_buffer.size() < required_size {
+            self.agent_render.instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Agent Instance Buffer"),
                 size: required_size,
                 usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
@@ -119,9 +110,9 @@ impl Render {
         }
 
         queue.write_buffer(
-            &self.entity_render.instance_buffer,
+            &self.agent_render.instance_buffer,
             0,
-            bytemuck::cast_slice(&self.entity_render.gpu_entities),
+            bytemuck::cast_slice(&self.agent_render.instance_data_list),
         );
     }
 
@@ -130,56 +121,55 @@ impl Render {
         device: &wgpu::Device,
         world_view: &simulation::observation::view::WorldView,
     ) {
-        self.chunk_render.gpu_chunks.clear();
+        self.chunk_render.chunk_data_list.clear();
 
-        for (chunk_id, chunk_view) in &world_view.chunk_views {
-            let mut vertices = Vec::new();
-            let mut indices = Vec::new();
+        for (chunk_id, chunk_view) in &world_view.chunk_view_map {
+            let mut vertex_list = Vec::new();
+            let mut index_list = Vec::new();
             let mut index_offset = 0;
 
-            for face in &chunk_view.mesh.next.faces {
+            for face in &chunk_view.geometry.next.face_list {
                 if face.kind == simulation::block::Kind::Air {
                     continue;
                 }
 
-                let face_vertices = face.vertices();
-                let render_block = GPU_BLOCKS.get(&face.kind).unwrap();
-                let atlas_coordinates =
-                    render_block.atlas_coordinates.get(&face.direction).unwrap();
+                let face_vertex_list = face.vertices();
+                let block_data = BLOCK_DATA_MAP.get(&face.kind).unwrap();
+                let tile_position = block_data.tile_position_map.get(&face.direction).unwrap();
 
-                let uvs = self
+                let uv_coordinates = self
                     .textures
                     .texture_atlas
-                    .get_uv_coords(atlas_coordinates[0], atlas_coordinates[1]);
+                    .get_uv_coords(tile_position[0], tile_position[1]);
 
-                for (index, vertex) in face_vertices.iter().enumerate() {
-                    vertices.push(VertexData {
+                for (index, vertex) in face_vertex_list.iter().enumerate() {
+                    vertex_list.push(VertexData {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
-                        uv: uvs[index].to_array(),
+                        uv: uv_coordinates[index].to_array(),
                         light: face.light[index],
                     });
                 }
 
-                indices.push(index_offset + 0);
-                indices.push(index_offset + 1);
-                indices.push(index_offset + 2);
-                indices.push(index_offset + 0);
-                indices.push(index_offset + 2);
-                indices.push(index_offset + 3);
+                index_list.push(index_offset + 0);
+                index_list.push(index_offset + 1);
+                index_list.push(index_offset + 2);
+                index_list.push(index_offset + 0);
+                index_list.push(index_offset + 2);
+                index_list.push(index_offset + 3);
 
                 index_offset += 4;
             }
 
             let chunk_id = *chunk_id;
 
-            let chunk = GPUChunk {
+            let chunk = ChunkData {
                 chunk_id,
                 tick: chunk_view.tick.next,
-                gpu_mesh: GPUMesh::new(device, vertices, indices),
+                mesh_data: MeshData::new(device, vertex_list, index_list),
             };
 
-            self.chunk_render.gpu_chunks.push(chunk);
+            self.chunk_render.chunk_data_list.push(chunk);
         }
     }
 
@@ -210,7 +200,7 @@ impl Render {
             );
         }
 
-        self.entity_render.render(
+        self.agent_render.render(
             encoder,
             texture_view,
             &depth_texture_view,

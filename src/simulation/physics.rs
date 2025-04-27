@@ -35,8 +35,8 @@ pub struct Physics {
     pub query_pipeline: QueryPipeline,
     pub rigid_body_set: RigidBodySet,
     pub collider_set: ColliderSet,
-    pub chunk_collider_handles: HashMap<chunk::ID, ColliderHandle>,
-    pub judge_controllers: HashMap<judge::ID, JudgeController>,
+    pub chunk_collider_handle_map: HashMap<chunk::ID, ColliderHandle>,
+    pub judge_controller_map: HashMap<judge::ID, JudgeController>,
 }
 
 impl Physics {
@@ -58,8 +58,8 @@ impl Physics {
         let query_pipeline = QueryPipeline::new();
         let rigid_body_set = RigidBodySet::new();
         let collider_set = ColliderSet::new();
-        let chunk_collider_handles = HashMap::new();
-        let judge_controllers = HashMap::new();
+        let chunk_collider_handle_map = HashMap::new();
+        let judge_controller_map = HashMap::new();
 
         let physics = Self {
             gravity,
@@ -74,8 +74,8 @@ impl Physics {
             query_pipeline,
             rigid_body_set,
             collider_set,
-            chunk_collider_handles,
-            judge_controllers,
+            chunk_collider_handle_map,
+            judge_controller_map,
         };
 
         physics
@@ -144,7 +144,7 @@ impl Physics {
             collider_handle,
         };
 
-        self.judge_controllers.insert(judge.id, judge_controller);
+        self.judge_controller_map.insert(judge.id, judge_controller);
     }
 
     fn update_chunk_colliders(&mut self, state: &State) {
@@ -152,7 +152,7 @@ impl Physics {
 
         let grid_position = World::grid_position_at(judge.position).unwrap();
 
-        for handle in self.chunk_collider_handles.values() {
+        for handle in self.chunk_collider_handle_map.values() {
             self.collider_set.remove(
                 *handle,
                 &mut self.island_manager,
@@ -166,7 +166,7 @@ impl Physics {
 
             if let Some(chunk_id) = World::id_at_grid(chunk_position) {
                 if let Some(chunk) = state.world.get_chunk(chunk_id) {
-                    if chunk.mesh.faces.len() > 0 {
+                    if chunk.geometry.face_list.len() > 0 {
                         self.add_chunk_collider(chunk);
                     }
                 }
@@ -207,11 +207,11 @@ impl Physics {
             collider_handle,
         };
 
-        self.judge_controllers.insert(judge.id, judge_controller);
+        self.judge_controller_map.insert(judge.id, judge_controller);
     }
 
     pub fn add_chunk_collider(&mut self, chunk: &simulation::chunk::Chunk) {
-        let (points, triangle_indices) = chunk.mesh.optimized_vertices_and_indices();
+        let (points, triangle_indices) = chunk.geometry.optimized_vertices_and_indices();
 
         match ColliderBuilder::trimesh(points, triangle_indices) {
             Ok(builder) => {
@@ -222,7 +222,7 @@ impl Physics {
                     .restitution_combine_rule(CoefficientCombineRule::Average)
                     .build();
 
-                if let Some(old_handle) = self.chunk_collider_handles.remove(&chunk.id) {
+                if let Some(old_handle) = self.chunk_collider_handle_map.remove(&chunk.id) {
                     self.collider_set.remove(
                         old_handle,
                         &mut self.island_manager,
@@ -232,7 +232,7 @@ impl Physics {
                 }
 
                 let handle = self.collider_set.insert(collider);
-                self.chunk_collider_handles.insert(chunk.id, handle);
+                self.chunk_collider_handle_map.insert(chunk.id, handle);
             }
             Err(err) => {
                 log::warn!(
@@ -258,7 +258,7 @@ impl Physics {
     fn tick_judge(&mut self, state: &mut State) {
         let judge = state.population.get_judge_mut();
 
-        let judge_controller = self.judge_controllers.get(&judge.id).unwrap();
+        let judge_controller = self.judge_controller_map.get(&judge.id).unwrap();
 
         let rigid_body = self
             .rigid_body_set
@@ -323,7 +323,7 @@ impl Physics {
     fn sync_judge(&self, state: &mut State) {
         let judge = state.population.get_judge_mut();
 
-        let Some(entity_controller) = self.judge_controllers.get(&judge.id) else {
+        let Some(entity_controller) = self.judge_controller_map.get(&judge.id) else {
             return;
         };
 

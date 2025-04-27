@@ -1,5 +1,5 @@
 use crate::{
-    interface::{consts::*, render::camera_uniform_data::CameraUniformData},
+    interface::{consts::*, render::data::CameraUniformData},
     simulation::{self},
 };
 use glam::{Mat4, Vec3};

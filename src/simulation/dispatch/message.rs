@@ -1,3 +1,1 @@
-pub enum Message {
-    
-}
+pub enum Message {}

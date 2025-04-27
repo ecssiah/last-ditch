@@ -1,10 +1,10 @@
 use crate::{
-    interface::render::GPUMesh,
+    interface::render::data::MeshData,
     simulation::{self},
 };
 
-pub struct GPUChunk {
+pub struct ChunkData {
     pub chunk_id: simulation::chunk::ID,
     pub tick: simulation::time::Tick,
-    pub gpu_mesh: GPUMesh,
+    pub mesh_data: MeshData,
 }

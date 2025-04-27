@@ -77,8 +77,7 @@ impl Dispatch {
         }
 
         while let Ok(message) = self.message_rx.try_recv() {
-            match message {
-            }
+            match message {}
         }
     }
 

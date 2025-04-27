@@ -1,4 +1,4 @@
-use crate::interface::hud::{load_data::LoadData, simulate_data::SimulateData};
+use crate::interface::hud::data::{LoadData, SimulateData};
 
 pub enum Mode {
     Load(LoadData),

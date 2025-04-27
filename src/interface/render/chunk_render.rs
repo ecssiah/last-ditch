@@ -2,14 +2,14 @@ use crate::{
     include_assets,
     interface::{
         consts::WINDOW_CLEAR_COLOR,
-        render::{GPUChunk, VertexData},
+        render::data::{ChunkData, VertexData},
     },
 };
 use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};
 
 pub struct ChunkRender {
     pub shader_module: wgpu::ShaderModule,
-    pub gpu_chunks: Vec<GPUChunk>,
+    pub chunk_data_list: Vec<ChunkData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -26,7 +26,7 @@ impl ChunkRender {
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
         });
 
-        let gpu_chunks = Vec::new();
+        let chunk_data_list = Vec::new();
 
         let render_pipeline = Self::create_render_pipeline(
             device,
@@ -39,7 +39,7 @@ impl ChunkRender {
 
         let chunk_renderer = ChunkRender {
             shader_module,
-            gpu_chunks,
+            chunk_data_list,
             render_pipeline,
         };
 
@@ -172,16 +172,16 @@ impl ChunkRender {
         render_pass.set_bind_group(1, camera_bind_group, &[]);
         render_pass.set_bind_group(2, texture_sampler_bind_group, &[]);
 
-        for gpu_chunk in self.gpu_chunks.iter() {
-            if gpu_chunk.gpu_mesh.index_count > 0 {
-                render_pass.set_vertex_buffer(0, gpu_chunk.gpu_mesh.vertex_buffer.slice(..));
+        for gpu_chunk in self.chunk_data_list.iter() {
+            if gpu_chunk.mesh_data.index_count > 0 {
+                render_pass.set_vertex_buffer(0, gpu_chunk.mesh_data.vertex_buffer.slice(..));
 
                 render_pass.set_index_buffer(
-                    gpu_chunk.gpu_mesh.index_buffer.slice(..),
+                    gpu_chunk.mesh_data.index_buffer.slice(..),
                     wgpu::IndexFormat::Uint32,
                 );
 
-                render_pass.draw_indexed(0..gpu_chunk.gpu_mesh.index_count, 0, 0..1);
+                render_pass.draw_indexed(0..gpu_chunk.mesh_data.index_count, 0, 0..1);
             }
         }
 

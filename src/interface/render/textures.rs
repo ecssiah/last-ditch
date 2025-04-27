@@ -1,11 +1,11 @@
-use crate::interface::render::TextureAtlas;
+use crate::interface::render::{data::TextureData, TextureAtlas};
 use std::collections::HashMap;
 
 pub struct Textures {
     pub texture_atlas: TextureAtlas,
     pub texture_sampler_bind_group_layout: wgpu::BindGroupLayout,
     pub texture_sampler_bind_group: Option<wgpu::BindGroup>,
-    pub texture_map: HashMap<String, (wgpu::Texture, wgpu::TextureView, wgpu::Sampler)>,
+    pub texture_map: HashMap<String, TextureData>,
 }
 
 impl Textures {
@@ -44,7 +44,7 @@ impl Textures {
     }
 
     pub fn generate_texture_sampler_bind_group(&mut self, device: &wgpu::Device) {
-        let (_, atlas_texture_view, atlas_sampler) = self.texture_map.get("atlas").unwrap();
+        let atlas_texture_data = self.texture_map.get("atlas").unwrap();
 
         let texture_sampler_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("Texture and Sampler Bind Group"),
@@ -52,11 +52,11 @@ impl Textures {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&atlas_texture_view),
+                    resource: wgpu::BindingResource::TextureView(&atlas_texture_data.view),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&atlas_sampler),
+                    resource: wgpu::BindingResource::Sampler(&atlas_texture_data.sampler),
                 },
             ],
         });
@@ -145,7 +145,12 @@ impl Textures {
             ..Default::default()
         });
 
-        self.texture_map
-            .insert(label.to_string(), (texture, view, sampler));
+        let texture_data = TextureData {
+            texture,
+            view,
+            sampler,
+        };
+
+        self.texture_map.insert(label.to_string(), texture_data);
     }
 }

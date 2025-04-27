@@ -18,7 +18,7 @@ pub struct Population {
     pub tick: Tick,
     pub rand_pcg: rand_pcg::Pcg32,
     pub judge: Judge,
-    pub agents: HashMap<agent::ID, Agent>,
+    pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
@@ -27,7 +27,7 @@ impl Population {
             tick: Tick::ZERO,
             rand_pcg: rand_pcg::Pcg32::seed_from_u64(DEFAULT_SEED),
             judge: Judge::new(judge::ID::allocate()),
-            agents: HashMap::new(),
+            agent_map: HashMap::new(),
         };
 
         population
@@ -63,7 +63,7 @@ impl Population {
                 agent.kind = kind.clone();
                 agent.height = rng.gen_range(0.7..1.3);
 
-                self.agents.insert(agent.id, agent);
+                self.agent_map.insert(agent.id, agent);
             }
         }
     }
@@ -75,7 +75,7 @@ impl Population {
     }
 
     fn tick_agents(&mut self, world: &World) {
-        for agent in self.agents.values_mut() {
+        for agent in self.agent_map.values_mut() {
             agent.tick(world);
         }
     }
@@ -88,19 +88,19 @@ impl Population {
         &mut self.judge
     }
 
-    pub fn all_agents(&self) -> impl Iterator<Item = &Agent> {
-        self.agents.values()
+    pub fn get_agent_map(&self) -> impl Iterator<Item = &Agent> {
+        self.agent_map.values()
     }
 
-    pub fn all_agents_mut(&mut self) -> impl Iterator<Item = &mut Agent> {
-        self.agents.values_mut()
+    pub fn get_agent_map_mut(&mut self) -> impl Iterator<Item = &mut Agent> {
+        self.agent_map.values_mut()
     }
 
     pub fn get_agent(&self, agent_id: &agent::ID) -> Option<&Agent> {
-        self.agents.get(agent_id)
+        self.agent_map.get(agent_id)
     }
 
     pub fn get_agent_mut(&mut self, agent_id: &agent::ID) -> Option<&mut Agent> {
-        self.agents.get_mut(agent_id)
+        self.agent_map.get_mut(agent_id)
     }
 }

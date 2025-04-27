@@ -6,9 +6,12 @@ pub mod consts;
 pub mod hud;
 pub mod input;
 pub mod render;
+pub mod wgpu_state;
 
 use crate::{
-    interface::{camera::Camera, consts::*, hud::HUD, input::Input, render::Render},
+    interface::{
+        camera::Camera, consts::*, hud::HUD, input::Input, render::Render, wgpu_state::WGPUState,
+    },
     simulation::{self},
 };
 use std::{
@@ -21,30 +24,24 @@ use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow},
-    window::{Fullscreen, Window, WindowAttributes},
+    window::{Fullscreen, WindowAttributes},
 };
 
-pub struct Interface {
+pub struct Interface<'window> {
     dt: Duration,
     instant: Instant,
-    last_frame_instant: Option<Instant>,
+    last_instant: Instant,
     alpha: f32,
+    wgpu_state: WGPUState<'window>,
     action_tx: Arc<UnboundedSender<simulation::dispatch::Action>>,
-    window: Arc<Window>,
-    device: wgpu::Device,
-    size: winit::dpi::PhysicalSize<u32>,
-    surface: wgpu::Surface<'static>,
-    surface_config: wgpu::SurfaceConfiguration,
-    surface_texture_view_descriptor: wgpu::TextureViewDescriptor<'static>,
     observation: Arc<simulation::observation::Observation>,
     input: Input,
-    queue: wgpu::Queue,
     render: Render,
     hud: HUD,
     camera: Camera,
 }
 
-impl Interface {
+impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: Arc<UnboundedSender<simulation::dispatch::Action>>,
@@ -52,10 +49,8 @@ impl Interface {
     ) -> Self {
         let dt = Duration::ZERO;
         let instant = Instant::now();
-        let last_frame_instant = None;
+        let last_instant = Instant::now();
         let alpha = 0.0;
-
-        let input = Input::new(action_tx.clone());
 
         let monitor = event_loop
             .primary_monitor()
@@ -121,33 +116,47 @@ impl Interface {
 
         surface.configure(&device, &surface_config);
 
-        let camera = Camera::new(&device);
-
-        let render = Render::new(&device, &queue, &surface_format, &camera);
-
-        let hud = HUD::new(&device, window.clone(), surface_format);
-
-        let interface = Self {
-            dt,
-            instant,
-            last_frame_instant,
-            alpha,
-            action_tx,
-            observation,
-            window: window.clone(),
+        let wgpu_state = WGPUState {
+            window,
             device,
+            queue,
             size,
             surface,
             surface_config,
             surface_texture_view_descriptor,
+        };
+
+        let input = Input::new(action_tx.clone());
+        let camera = Camera::new(&wgpu_state.device);
+
+        let render = Render::new(
+            &wgpu_state.device,
+            &wgpu_state.queue,
+            &surface_format,
+            &camera,
+        );
+
+        let hud = HUD::new(
+            &wgpu_state.device,
+            wgpu_state.window.clone(),
+            surface_format,
+        );
+
+        wgpu_state.window.request_redraw();
+
+        let interface = Self {
+            dt,
+            instant,
+            last_instant,
+            alpha,
+            action_tx,
+            observation,
+            wgpu_state,
             input,
-            queue,
             camera,
             render,
             hud,
         };
-
-        window.request_redraw();
 
         log::info!("Interface Initialized");
 
@@ -169,28 +178,19 @@ impl Interface {
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        let now = Instant::now();
-
-        let next_frame_time = match self.last_frame_instant {
-            Some(last) => last + FRAME_DURATION,
-            None => now + FRAME_DURATION,
-        };
-
-        self.last_frame_instant = Some(now);
+        let instant = Instant::now();
+        let next_instant = self.last_instant + FRAME_DURATION;
+        self.last_instant = instant;
 
         self.update(event_loop);
 
-        let now = Instant::now();
+        let instant = Instant::now();
 
-        let delay = if next_frame_time > now {
-            next_frame_time - now
-        } else {
-            Duration::ZERO
+        if next_instant > instant {
+            event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        event_loop.set_control_flow(ControlFlow::WaitUntil(now + delay));
-
-        self.window.request_redraw();
+        self.wgpu_state.window.request_redraw();
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
@@ -216,49 +216,52 @@ impl Interface {
     }
 
     fn handle_redraw_requested(&mut self) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .wgpu_state
+            .device
+            .create_command_encoder(&Default::default());
 
         let surface_texture = self
+            .wgpu_state
             .surface
             .get_current_texture()
             .expect("failed to acquire next swapchain texture");
 
         let texture_view = surface_texture
             .texture
-            .create_view(&self.surface_texture_view_descriptor);
+            .create_view(&self.wgpu_state.surface_texture_view_descriptor);
 
         self.render.update(
             &mut encoder,
-            &self.device,
-            &self.surface_config,
+            &self.wgpu_state.device,
+            &self.wgpu_state.surface_config,
             &texture_view,
             &self.camera,
         );
 
         self.hud.update(
             &mut encoder,
-            &self.window,
-            &self.device,
-            &self.queue,
+            &self.wgpu_state.window,
+            &self.wgpu_state.device,
+            &self.wgpu_state.queue,
             &texture_view,
         );
 
-        self.queue.submit([encoder.finish()]);
-        self.window.pre_present_notify();
+        self.wgpu_state.queue.submit([encoder.finish()]);
+        self.wgpu_state.window.pre_present_notify();
 
         surface_texture.present();
     }
 
     fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
+        self.wgpu_state.size = new_size;
 
-        self.surface.configure(&self.device, &self.surface_config);
+        self.wgpu_state
+            .surface
+            .configure(&self.wgpu_state.device, &self.wgpu_state.surface_config);
     }
 
-    fn apply_admin_view(
-        &mut self,
-        admin_view: &simulation::observation::view::AdminView,
-    ) {
+    fn apply_admin_view(&mut self, admin_view: &simulation::observation::view::AdminView) {
         self.hud.prepare_load(admin_view);
     }
 
@@ -276,26 +279,31 @@ impl Interface {
         population_view: &simulation::observation::view::PopulationView,
     ) {
         self.apply_judge_view(&population_view.judge_view);
-        self.apply_agent_views(&population_view.agent_views);
+        self.apply_agent_view_map(&population_view.agent_view_map);
     }
 
     fn apply_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
-        self.camera.update(&self.queue, self.alpha, judge_view);
+        self.camera
+            .update(&self.wgpu_state.queue, self.alpha, judge_view);
     }
 
-    fn apply_agent_views(
+    fn apply_agent_view_map(
         &mut self,
-        agent_views: &HashMap<
+        agent_view_map: &HashMap<
             simulation::population::agent::ID,
             simulation::observation::view::AgentView,
         >,
     ) {
-        self.render
-            .prepare_agent_views(&self.device, &self.queue, agent_views);
+        self.render.prepare_agent_view_map(
+            &self.wgpu_state.device,
+            &self.wgpu_state.queue,
+            agent_view_map,
+        );
     }
 
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
-        self.render.prepare_world_view(&self.device, world_view);
+        self.render
+            .prepare_world_view(&self.wgpu_state.device, world_view);
     }
 
     fn send_movement_actions(&mut self) {

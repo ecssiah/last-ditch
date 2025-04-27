@@ -8,7 +8,7 @@ use std::collections::HashMap;
 #[derive(Clone, Debug)]
 pub struct WorldView {
     pub tick: StatePair<Tick>,
-    pub chunk_views: HashMap<chunk::ID, ChunkView>,
+    pub chunk_view_map: HashMap<chunk::ID, ChunkView>,
 }
 
 impl WorldView {
@@ -18,7 +18,7 @@ impl WorldView {
                 current: Tick::ZERO,
                 next: Tick::ZERO,
             },
-            chunk_views: HashMap::new(),
+            chunk_view_map: HashMap::new(),
         };
 
         world_view

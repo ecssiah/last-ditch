@@ -10,7 +10,6 @@ pub mod observation;
 pub mod physics;
 pub mod population;
 pub mod state;
-pub mod structure;
 pub mod time;
 pub mod world;
 
@@ -22,7 +21,7 @@ use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use physics::Physics;
 use state::State;
-use std::{sync::Arc, thread, time::Instant};
+use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
@@ -58,7 +57,7 @@ impl Simulation {
 
         self.state.admin.mode = admin::Mode::Simulate;
 
-        log::info!("Simulation Beginning...");
+        log::info!("Simulation Run");
 
         loop {
             let start = Instant::now();
@@ -86,13 +85,5 @@ impl Simulation {
 
     pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
         self.dispatch.get_action_tx()
-    }
-
-    fn update(&mut self) {
-        self.state.calculate_work();
-
-        while self.state.has_work() {}
-
-        thread::sleep(SIMULATION_WAIT_DURATION);
     }
 }

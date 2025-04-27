@@ -22,23 +22,21 @@ use winit::{
 };
 
 #[derive(Default)]
-struct App {
-    interface: Option<Interface>,
+struct App<'window> {
+    interface: Option<Interface<'window>>,
     simulation_thread: Option<thread::JoinHandle<()>>,
 }
 
-impl ApplicationHandler for App {
+impl<'window> ApplicationHandler for App<'window> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let mut simulation = Box::new(Simulation::new());
 
         let observation = simulation.get_observation();
         let action_tx = simulation.get_action_tx();
 
-        let simulation_thread = thread::spawn(move || {
-            simulation.run();
-        });
+        let interface = Interface::new(event_loop, action_tx, observation);
 
-        let interface = Interface::new(event_loop, action_tx, observation.clone());
+        let simulation_thread = thread::spawn(move || simulation.run());
 
         self.simulation_thread = Some(simulation_thread);
         self.interface = Some(interface);

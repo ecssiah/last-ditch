@@ -1,4 +1,4 @@
-use crate::interface::render::fog_uniform_data::FogUniformData;
+use crate::interface::render::data::FogUniformData;
 use wgpu::util::DeviceExt;
 
 pub struct Fog {

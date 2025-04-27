@@ -1,6 +1,6 @@
 use crate::{
     include_assets,
-    interface::render::{AgentInstanceData, VertexData},
+    interface::render::data::{AgentInstanceData, VertexData},
 };
 use glam::Vec3;
 use wgpu::{
@@ -8,32 +8,32 @@ use wgpu::{
     TextureFormat, TextureView,
 };
 
-pub struct EntityRender {
+pub struct AgentRender {
     pub shader_module: wgpu::ShaderModule,
+    pub vertex_data_list: Vec<VertexData>,
+    pub instance_data_list: Vec<AgentInstanceData>,
     pub vertex_buffer: wgpu::Buffer,
     pub instance_buffer: wgpu::Buffer,
-    pub entity_vertices: Vec<VertexData>,
-    pub gpu_entities: Vec<AgentInstanceData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl EntityRender {
+impl AgentRender {
     pub fn new(
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
         fog_uniform_bind_group_layout: &wgpu::BindGroupLayout,
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> EntityRender {
+    ) -> AgentRender {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Agent Shader"),
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
         });
 
-        let entity_vertices = Self::generate_vertices();
+        let vertex_data_list = Self::generate_agent_vertex_datas();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Agent Vertex Buffer"),
-            contents: bytemuck::cast_slice(&entity_vertices),
+            contents: bytemuck::cast_slice(&vertex_data_list),
             usage: wgpu::BufferUsages::VERTEX,
         });
 
@@ -52,18 +52,18 @@ impl EntityRender {
             camera_uniform_bind_group_layout,
         );
 
-        let gpu_entities = Vec::new();
+        let instance_data_list = Vec::new();
 
-        let entity_renderer = EntityRender {
+        let agent_render = AgentRender {
             shader_module,
-            entity_vertices,
+            vertex_data_list,
+            instance_data_list,
             vertex_buffer,
             instance_buffer,
-            gpu_entities,
             render_pipeline,
         };
 
-        entity_renderer
+        agent_render
     }
 
     pub fn create_render_pipeline(
@@ -147,7 +147,7 @@ impl EntityRender {
             },
         });
 
-        if self.gpu_entities.len() > 0 {
+        if self.instance_data_list.len() > 0 {
             let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
@@ -174,15 +174,15 @@ impl EntityRender {
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 
             render_pass.draw(
-                0..(self.entity_vertices.len() as u32),
-                0..(self.gpu_entities.len() as u32),
+                0..(self.vertex_data_list.len() as u32),
+                0..(self.instance_data_list.len() as u32),
             );
 
             drop(render_pass);
         }
     }
 
-    fn generate_vertices() -> Vec<VertexData> {
+    fn generate_agent_vertex_datas() -> Vec<VertexData> {
         let head_scale = 0.32;
         let head_height = 1.8;
         let head_bands = 8;
