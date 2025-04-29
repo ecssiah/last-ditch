@@ -554,10 +554,11 @@ impl World {
                         if distance <= radius {
                             let visible_chunk_position = chunk_position + IVec3::new(x, y, z);
 
-                            if let Some(visible_chunk_id) =
-                                grid::get_chunk_id(visible_chunk_position)
+                            if let Some(grid_position) = grid::chunk_to_grid(visible_chunk_position)
                             {
-                                visible_chunk_id_list.push(visible_chunk_id);
+                                if let Some(visible_chunk_id) = grid::get_chunk_id(grid_position) {
+                                    visible_chunk_id_list.push(visible_chunk_id);
+                                }
                             }
                         }
                     }

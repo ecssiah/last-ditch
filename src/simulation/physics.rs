@@ -44,7 +44,7 @@ impl Physics {
         let gravity = vector![0.0, GRAVITY_ACCELERATION, 0.0];
 
         let integration_parameters = IntegrationParameters {
-            dt: FIXED_DT.as_secs_f32(),
+            dt: SIMULATION_TICK_DURATION.as_secs_f32(),
             ..Default::default()
         };
 

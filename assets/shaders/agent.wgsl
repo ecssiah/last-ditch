@@ -64,8 +64,19 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
 
     let distance = length(input.world_position - camera_uniform_data.camera_position);
     let fog_factor = clamp((fog_uniform_data.end - distance) / (fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0);
-    
-    let final_color = mix(fog_uniform_data.color, base_color, fog_factor);
+    let fog_color = srgb_to_linear(fog_uniform_data.color);
 
-    return vec4<f32>(final_color, 1.0);
+    let final_color = mix(fog_color, base_color, fog_factor);
+
+    let gamma_corrected_color = linear_to_srgb(final_color);
+
+    return vec4<f32>(gamma_corrected_color, 1.0);
+}
+
+fn linear_to_srgb(color: vec3<f32>) -> vec3<f32> {
+    return pow(color, vec3<f32>(1.0 / 2.2));
+}
+
+fn srgb_to_linear(color: vec3<f32>) -> vec3<f32> {
+    return pow(color, vec3<f32>(2.2));
 }

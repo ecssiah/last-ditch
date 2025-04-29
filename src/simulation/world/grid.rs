@@ -30,9 +30,10 @@ pub fn world_to_grid(world_position: Vec3) -> Option<IVec3> {
 
 pub fn grid_to_chunk(grid_position: IVec3) -> Option<IVec3> {
     if is_valid(grid_position) {
-        let shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
+        let grid_position_shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
 
-        let chunk_position = shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
+        let chunk_position =
+            grid_position_shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
 
         Some(chunk_position - IVec3::splat(WORLD_RADIUS as i32))
     } else {
@@ -42,12 +43,13 @@ pub fn grid_to_chunk(grid_position: IVec3) -> Option<IVec3> {
 
 pub fn grid_to_block(grid_position: IVec3) -> Option<IVec3> {
     if is_valid(grid_position) {
-        let shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
+        let grid_position_shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
 
-        let chunk_position = shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
+        let chunk_position =
+            grid_position_shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
         let chunk_center = chunk_position * CHUNK_SIZE as i32;
 
-        let block_position = shifted - chunk_center;
+        let block_position = grid_position_shifted - chunk_center;
         let block_position = block_position - IVec3::splat(CHUNK_RADIUS as i32);
 
         Some(block_position)

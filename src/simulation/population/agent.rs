@@ -8,7 +8,7 @@ use crate::simulation::{
     population::decision::{Decision, Goal, Step},
     time::Tick,
     world::World,
-    FIXED_DT,
+    SIMULATION_TICK_DURATION,
 };
 use glam::Vec3;
 use rand::{Rng, SeedableRng};
@@ -71,7 +71,8 @@ impl Agent {
                         let path = target_position.as_vec3() - self.position;
 
                         if path.length_squared() > 1e-2 {
-                            self.position += self.speed * FIXED_DT.as_secs_f32() * path.normalize();
+                            self.position +=
+                                self.speed * SIMULATION_TICK_DURATION.as_secs_f32() * path.normalize();
                         } else {
                             self.step_index += 1;
                         }

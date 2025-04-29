@@ -179,7 +179,7 @@ impl<'window> Interface<'window> {
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let instant = Instant::now();
-        let next_instant = self.last_instant + FRAME_DURATION;
+        let next_instant = self.last_instant + INTERFACE_FRAME_DURATION;
         self.last_instant = instant;
 
         self.update(event_loop);

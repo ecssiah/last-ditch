@@ -66,10 +66,21 @@ fn fs_main(input: FragmentInput) -> FragmentOutput {
         clamp((fog_uniform_data.end - distance) / max(0.001, fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0),
         distance > fog_uniform_data.start
     );
+    let fog_color = srgb_to_linear(fog_uniform_data.color);
 
-    let final_color = mix(lit_color, fog_uniform_data.color, 1.0 - fog_factor);
+    let final_color = mix(lit_color, fog_color, 1.0 - fog_factor);
+    
+    let gamma_corrected_color = linear_to_srgb(final_color);
 
-    output.color = vec4<f32>(final_color, 1.0);
+    output.color = vec4<f32>(gamma_corrected_color, 1.0);
     
     return output;
+}
+
+fn linear_to_srgb(color: vec3<f32>) -> vec3<f32> {
+    return pow(color, vec3<f32>(1.0 / 2.2));
+}
+
+fn srgb_to_linear(color: vec3<f32>) -> vec3<f32> {
+    return pow(color, vec3<f32>(2.2));
 }

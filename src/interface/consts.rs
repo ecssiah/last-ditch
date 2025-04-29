@@ -1,10 +1,12 @@
 use crate::{include_assets, interface::render::data::BlockData, simulation};
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 pub const FULLSCREEN: bool = false;
 
-pub const FRAME_DURATION: std::time::Duration = std::time::Duration::from_micros(1_000_000 / 30);
+pub const INTERFACE_FRAME_FREQUENCY: u64 = 60;
+pub const INTERFACE_FRAME_DURATION: Duration =
+    Duration::from_nanos(1_000_000_000 / INTERFACE_FRAME_FREQUENCY);
 
 pub const WINDOW_TITLE: &str = "Last Ditch";
 pub const WINDOW_WIDTH: u32 = 2560;
@@ -19,7 +21,7 @@ pub const FAR_PLANE: f32 = 100.0;
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
 
-const BLOCK_DATA_MAP_CONFIG: &str = include_assets!("config/interface/block_data_map_config.ron");
+const BLOCK_DATA_MAP_CONFIG: &str = include_assets!("config/interface/block_data_map.ron");
 
 pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::world::block::Kind, BlockData>> =
     Lazy::new(|| {

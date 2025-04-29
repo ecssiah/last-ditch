@@ -4,11 +4,9 @@ use std::{collections::HashMap, time::Duration};
 
 pub const DEFAULT_SEED: u64 = 128;
 
-pub const FIXED_TICK_RATE: u32 = 30;
-pub const FIXED_DT: Duration = Duration::from_nanos(1_000_000_000 / FIXED_TICK_RATE as u64);
-pub const SIMULATION_TICK_RATE: Duration = Duration::from_millis(33);
-pub const SIMULATION_WAIT_DURATION: Duration = Duration::from_micros(500);
-pub const SIMULATION_SETTLEMENT_PERIOD: u32 = 10;
+pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
+pub const SIMULATION_TICK_DURATION: Duration =
+    Duration::from_nanos(1_000_000_000 / SIMULATION_TICK_FREQUENCY);
 
 pub const GRAVITY_ACCELERATION: f32 = -22.8;
 
@@ -51,7 +49,7 @@ pub const POPULATION_VIEW_RADIUS_SQUARED: f32 = POPULATION_VIEW_RADIUS * POPULAT
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
 
-const BLOCK_MAP_CONFIG: &str = include_assets!("config/simulation/block_map_config.ron");
+const BLOCK_MAP_CONFIG: &str = include_assets!("config/simulation/block_map.ron");
 
 pub static BLOCK_MAP: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
     let block_list: Vec<block::Block> = ron::from_str::<Vec<block::Block>>(BLOCK_MAP_CONFIG)

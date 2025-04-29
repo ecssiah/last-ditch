@@ -22,8 +22,4 @@ impl Admin {
 
         admin
     }
-
-    pub fn is_settling(&self) -> bool {
-        self.settlement_tick < SIMULATION_SETTLEMENT_PERIOD
-    }
 }

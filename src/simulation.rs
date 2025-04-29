@@ -17,7 +17,7 @@ use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use physics::Physics;
 use state::State;
-use std::{sync::Arc, time::Instant};
+use std::{sync::Arc, time::{Duration, Instant}};
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
@@ -55,20 +55,32 @@ impl Simulation {
 
         log::info!("Simulation Run");
 
+        let mut next_tick = Instant::now();
+
         loop {
-            let start = Instant::now();
+            let now = Instant::now();
 
-            self.dispatch.tick(&mut self.state);
-            self.state.tick();
-            self.physics.tick(&mut self.state);
-            self.observation.tick(&self.state);
+            while now >= next_tick {
+                self.dispatch.tick(&mut self.state);
+                self.state.tick();
+                self.physics.tick(&mut self.state);
+                self.observation.tick(&self.state);
 
-            let elapsed = start.elapsed();
+                next_tick += SIMULATION_TICK_DURATION;
+            }
 
-            if elapsed < SIMULATION_TICK_RATE {
-                std::thread::sleep(SIMULATION_TICK_RATE - elapsed);
-            } else {
-                log::warn!("Simulation tick overran: {:?}", elapsed);
+            let now = Instant::now();
+            
+            if next_tick > now {
+                let time_until_next = next_tick - now;
+    
+                if time_until_next > Duration::from_millis(2) {
+                    std::thread::sleep(time_until_next - Duration::from_millis(1));
+                }
+    
+                while Instant::now() < next_tick {
+                    std::hint::spin_loop();
+                }
             }
         }
     }

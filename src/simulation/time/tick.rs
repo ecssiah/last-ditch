@@ -1,6 +1,4 @@
-use crate::simulation::FIXED_TICK_RATE;
 use std::ops::{Add, AddAssign};
-use std::time::Duration;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Tick(u64);
@@ -32,18 +30,5 @@ impl From<Tick> for u32 {
 impl From<Tick> for u64 {
     fn from(tick: Tick) -> Self {
         tick.0
-    }
-}
-
-impl From<Tick> for Duration {
-    fn from(tick: Tick) -> Self {
-        Duration::from_nanos((1_000_000_000 / FIXED_TICK_RATE as u64) * tick.0)
-    }
-}
-
-impl From<Duration> for Tick {
-    fn from(duration: Duration) -> Self {
-        let nanos_per_tick = 1_000_000_000 / FIXED_TICK_RATE as u64;
-        Tick(duration.as_nanos() as u64 / nanos_per_tick)
     }
 }
