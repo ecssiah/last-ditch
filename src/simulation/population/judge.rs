@@ -5,6 +5,7 @@ pub use id::ID;
 pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
+use crate::simulation::physics::bounding_box::BoundingBox;
 use crate::simulation::{
     consts::*,
     dispatch::{JumpAction, MovementAction},
@@ -22,6 +23,8 @@ pub struct Judge {
     pub chunk_update: bool,
     pub position: Vec3,
     pub velocity: Vec3,
+    pub size: Vec3,
+    pub bounding_box: BoundingBox,
     pub speed: Vec3,
     pub look: Vec3,
     pub orientation: Quat,
@@ -39,6 +42,8 @@ impl Judge {
             position: Vec3::ZERO,
             speed: Vec3::ZERO,
             velocity: Vec3::ZERO,
+            size: Vec3::new(0.6, 1.6, 0.6),
+            bounding_box: BoundingBox::new(Vec3::ZERO, Vec3::new(0.6, 1.6, 0.6)),
             look: Vec3::ZERO,
             orientation: Quat::default(),
             jump_state: JumpState {
@@ -52,6 +57,7 @@ impl Judge {
 
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
         self.position = Vec3::new(x, y, z);
+        self.bounding_box = BoundingBox::new(self.position, self.size);
     }
 
     pub fn set_velocity(&mut self, x: f32, y: f32, z: f32) {

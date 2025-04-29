@@ -15,15 +15,16 @@ pub use consts::*;
 
 use crate::simulation::{dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
-use physics::Physics;
 use state::State;
-use std::{sync::Arc, time::{Duration, Instant}};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
     dispatch: Dispatch,
     state: State,
-    physics: Physics,
     observation: Arc<Observation>,
 }
 
@@ -31,14 +32,11 @@ impl Simulation {
     pub fn new() -> Self {
         let dispatch = Dispatch::new();
         let state = State::new();
-        let physics = Physics::new();
-
         let observation = Arc::new(Observation::new());
 
         let simulation = Self {
             dispatch,
             state,
-            physics,
             observation,
         };
 
@@ -49,9 +47,6 @@ impl Simulation {
 
     pub fn run(&mut self) {
         self.state.generate();
-        self.physics.generate(&self.state);
-
-        self.state.admin.mode = admin::Mode::Simulate;
 
         log::info!("Simulation Run");
 
@@ -63,21 +58,20 @@ impl Simulation {
             while now >= next_tick {
                 self.dispatch.tick(&mut self.state);
                 self.state.tick();
-                self.physics.tick(&mut self.state);
                 self.observation.tick(&self.state);
 
                 next_tick += SIMULATION_TICK_DURATION;
             }
 
             let now = Instant::now();
-            
+
             if next_tick > now {
                 let time_until_next = next_tick - now;
-    
+
                 if time_until_next > Duration::from_millis(2) {
                     std::thread::sleep(time_until_next - Duration::from_millis(1));
                 }
-    
+
                 while Instant::now() < next_tick {
                     std::hint::spin_loop();
                 }

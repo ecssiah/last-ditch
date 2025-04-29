@@ -7,7 +7,7 @@ pub use id::ID;
 use crate::simulation::{
     consts::*,
     time::Tick,
-    world::{block, chunk},
+    world::{block, chunk, grid},
     BLOCK_MAP,
 };
 use glam::IVec3;
@@ -20,8 +20,10 @@ pub struct Chunk {
     pub geometry: chunk::Geometry,
     pub kind_list: Vec<block::Kind>,
     pub block_list: Box<[usize; CHUNK_VOLUME]>,
-    pub meta_list: Box<[block::Meta; CHUNK_VOLUME]>,
     pub light_list: Box<[block::Light; CHUNK_VOLUME]>,
+    pub direction_list: Box<[grid::Direction; CHUNK_VOLUME]>,
+    pub visibility_list: Box<[Vec<grid::Direction>; CHUNK_VOLUME]>,
+    pub neighbor_list: Box<[Vec<grid::Direction>; CHUNK_VOLUME]>,
 }
 
 impl Chunk {
@@ -36,17 +38,5 @@ impl Chunk {
         } else {
             None
         }
-    }
-
-    pub fn get_meta(&self, block_id: block::ID) -> Option<&block::Meta> {
-        let meta = self.meta_list.get(usize::from(block_id))?;
-
-        Some(meta)
-    }
-
-    pub fn get_meta_mut(&mut self, block_id: block::ID) -> Option<&mut block::Meta> {
-        let meta = self.meta_list.get_mut(usize::from(block_id))?;
-
-        Some(meta)
     }
 }

@@ -1,6 +1,6 @@
 use crate::simulation::{
-    admin::{Admin, Mode},
-    consts::*,
+    admin::{self, Admin},
+    physics::Physics,
     population::Population,
     time::Time,
     world::World,
@@ -9,6 +9,7 @@ use crate::simulation::{
 pub struct State {
     pub admin: Admin,
     pub time: Time,
+    pub physics: Physics,
     pub world: World,
     pub population: Population,
 }
@@ -18,6 +19,7 @@ impl State {
         let state = State {
             admin: Admin::new(),
             time: Time::new(),
+            physics: Physics::new(),
             world: World::new(),
             population: Population::new(),
         };
@@ -28,6 +30,8 @@ impl State {
     pub fn generate(&mut self) {
         self.world.generate();
         self.population.generate();
+
+        self.admin.mode = admin::Mode::Simulate;
     }
 
     pub fn tick(&mut self) {
@@ -35,6 +39,7 @@ impl State {
 
         self.world.tick(tick);
         self.population.tick(tick, &self.world);
+        self.physics.tick(&self.world, &mut self.population);
 
         self.time.tick();
     }
