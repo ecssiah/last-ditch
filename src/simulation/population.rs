@@ -42,7 +42,7 @@ impl Population {
         log::info!("Generating Judge");
 
         self.judge.set_position(18.0, 12.0, 0.0);
-        self.judge.set_rotation(0.0, 0.0 * std::f32::consts::PI);
+        self.judge.set_rotation(0.0, 0.0);
     }
 
     fn generate_agents(&mut self) {

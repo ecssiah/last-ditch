@@ -18,7 +18,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Dispatch {
-    runtime: tokio::runtime::Runtime,
+    pub runtime: tokio::runtime::Runtime,
     message_tx: Arc<UnboundedSender<Message>>,
     message_rx: UnboundedReceiver<Message>,
     action_tx: Arc<UnboundedSender<Action>>,

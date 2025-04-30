@@ -1,9 +1,7 @@
-use crate::simulation::{
-    consts::*, physics::bounding_box::BoundingBox, population::Population, world::World,
-};
-use glam::{IVec3, Vec3};
+use crate::simulation::{consts::*, physics::aabb::AABB, population::Population, world::World};
+use glam::Vec3;
 
-pub mod bounding_box;
+pub mod aabb;
 pub mod judge_controller;
 
 pub struct Physics {
@@ -24,85 +22,143 @@ impl Physics {
         self.resolve(world, population);
     }
 
-    fn integrate(&mut self, world: &World, population: &mut Population) {
-        let dt = SIMULATION_TICK_DURATION.as_secs_f32();
+    fn integrate(&mut self, _world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
-        judge.velocity += dt * self.gravity;
+        let initial_velocity = judge.velocity;
+        let acceleration = self.gravity;
+        let delta_time = SIMULATION_TICK_IN_SECONDS;
 
-        let offset = dt * judge.velocity;
-        let center = judge.bounding_box.center() + offset;
+        let displacement = initial_velocity * delta_time + 0.5 * acceleration * delta_time.powi(2);
+        judge.velocity = initial_velocity + acceleration * delta_time;
 
-        judge.bounding_box = BoundingBox::new(center, judge.size);
+        let aabb_center = judge.aabb.center() + displacement;
+        judge.aabb = AABB::new(aabb_center, judge.size);
     }
 
-    fn resolve(&mut self, world: &World, population: &mut Population) {
+    fn resolve(&self, world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
-        let bounding_box = &mut judge.bounding_box;
-        let mut velocity = judge.velocity;
+        {
+            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
 
-        let collisions = self.collides_with_world(bounding_box, world);
+            for block_aabb in collisions {
+                if judge.aabb.min.y < block_aabb.max.y && judge.aabb.max.y > block_aabb.min.y {
+                    if judge.velocity.y < 0.0
+                        && judge.aabb.min.y < block_aabb.max.y
+                        && judge.aabb.max.y > block_aabb.max.y
+                    {
+                        judge.velocity.y = 0.0;
 
-        for block_pos in collisions {
-            if bounding_box.min.y < (block_pos.y as f32 + 1.0)
-                && bounding_box.max.y > (block_pos.y as f32)
-            {
-                if velocity.y < 0.0 {
-                    bounding_box.min.y = block_pos.y as f32 + 1.0;
-                    bounding_box.max.y = bounding_box.min.y + judge.size.y;
-                    velocity.y = 0.0;
-                } else if velocity.y > 0.0 {
-                    bounding_box.max.y = block_pos.y as f32;
-                    bounding_box.min.y = bounding_box.max.y - judge.size.y;
-                    velocity.y = 0.0;
-                }
-            }
+                        judge.aabb.min.y = block_aabb.max.y + COLLISION_EPSILON;
+                        judge.aabb.max.y = judge.aabb.min.y + judge.size.y;
+                    } else if judge.velocity.y > 0.0
+                        && judge.aabb.max.y > block_aabb.min.y
+                        && judge.aabb.min.y < block_aabb.min.y
+                    {
+                        judge.velocity.y = 0.0;
 
-            if bounding_box.min.x < (block_pos.x as f32 + 1.0)
-                && bounding_box.max.x > (block_pos.x as f32)
-            {
-                if velocity.x < 0.0 {
-                    bounding_box.min.x = block_pos.x as f32 + 1.0;
-                    bounding_box.max.x = bounding_box.min.x + judge.size.x;
-                    velocity.x = 0.0;
-                } else if velocity.x > 0.0 {
-                    bounding_box.max.x = block_pos.x as f32;
-                    bounding_box.min.x = bounding_box.max.x - judge.size.x;
-                    velocity.x = 0.0;
-                }
-            }
-
-            if bounding_box.min.z < (block_pos.z as f32 + 1.0)
-                && bounding_box.max.z > (block_pos.z as f32)
-            {
-                if velocity.z < 0.0 {
-                    bounding_box.min.z = block_pos.z as f32 + 1.0;
-                    bounding_box.max.z = bounding_box.min.z + judge.size.z;
-                    velocity.z = 0.0;
-                } else if velocity.z > 0.0 {
-                    bounding_box.max.z = block_pos.z as f32;
-                    bounding_box.min.z = bounding_box.max.z - judge.size.z;
-                    velocity.z = 0.0;
+                        judge.aabb.max.y = block_aabb.min.y - COLLISION_EPSILON;
+                        judge.aabb.min.y = judge.aabb.max.y - judge.size.y;
+                    }
                 }
             }
         }
 
-        judge.velocity = velocity;
-        judge.position = bounding_box.center() - Vec3::Y * (judge.size.y * 0.5);
+        {
+            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+
+            for block_aabb in collisions {
+                if judge.aabb.min.x < block_aabb.max.x && judge.aabb.max.x > block_aabb.min.x {
+                    if judge.velocity.x < 0.0
+                        && judge.aabb.min.x < block_aabb.max.x
+                        && judge.aabb.max.x > block_aabb.max.x
+                    {
+                        judge.velocity.x = 0.0;
+
+                        judge.aabb.min.x = block_aabb.max.x + COLLISION_EPSILON;
+                        judge.aabb.max.x = judge.aabb.min.x + judge.size.x;
+                    } else if judge.velocity.x > 0.0
+                        && judge.aabb.max.x > block_aabb.min.x
+                        && judge.aabb.min.x < block_aabb.min.x
+                    {
+                        judge.velocity.x = 0.0;
+
+                        judge.aabb.max.x = block_aabb.min.x - COLLISION_EPSILON;
+                        judge.aabb.min.x = judge.aabb.max.x - judge.size.x;
+                    }
+                }
+            }
+        }
+
+        {
+            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+
+            for block_aabb in collisions {
+                if judge.aabb.min.z < block_aabb.max.z && judge.aabb.max.z > block_aabb.min.z {
+                    if judge.velocity.z < 0.0
+                        && judge.aabb.min.z < block_aabb.max.z
+                        && judge.aabb.max.z > block_aabb.max.z
+                    {
+                        judge.velocity.z = 0.0;
+
+                        judge.aabb.min.z = block_aabb.max.z + COLLISION_EPSILON;
+                        judge.aabb.max.z = judge.aabb.min.z + judge.size.z;
+                    } else if judge.velocity.z > 0.0
+                        && judge.aabb.max.z > block_aabb.min.z
+                        && judge.aabb.min.z < block_aabb.min.z
+                    {
+                        judge.velocity.z = 0.0;
+
+                        judge.aabb.max.z = block_aabb.min.z - COLLISION_EPSILON;
+                        judge.aabb.min.z = judge.aabb.max.z - judge.size.z;
+                    }
+                }
+            }
+        }
+
+        judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);
     }
 
-    fn collides_with_world(&self, aabb: &BoundingBox, world: &World) -> Vec<IVec3> {
+    fn get_solid_collisions(aabb: &AABB, world: &World) -> Vec<AABB> {
         let mut collisions = Vec::new();
+        let block_size = Vec3::splat(BLOCK_SIZE);
 
-        for block_pos in aabb.blocks_overlapping() {
-            if let Some(block) = world.get_block(block_pos) {
+        for block_aabb in Self::get_overlapping_aabb_list(aabb) {
+            let block_position = block_aabb.center();
+
+            if let Some(block) = world.get_block(block_position.as_ivec3()) {
                 if block.solid {
-                    collisions.push(block_pos);
+                    let block_aabb = AABB::new(block_position, block_size);
+
+                    collisions.push(block_aabb);
                 }
             }
         }
 
         collisions
+    }
+
+    fn get_overlapping_aabb_list(target: &AABB) -> Vec<AABB> {
+        let min = target.min.floor().as_ivec3();
+        let max = target.max.floor().as_ivec3();
+
+        let block_radius = Vec3::splat(BLOCK_RADIUS);
+        let block_size = Vec3::splat(BLOCK_SIZE);
+
+        let mut aabb_list = Vec::new();
+
+        for x in min.x..=max.x {
+            for y in min.y..=max.y {
+                for z in min.z..=max.z {
+                    let center = Vec3::new(x as f32, y as f32, z as f32) + block_radius;
+                    let block_aabb = AABB::new(center, block_size);
+
+                    aabb_list.push(block_aabb);
+                }
+            }
+        }
+
+        aabb_list
     }
 }
