@@ -173,12 +173,6 @@ impl Render {
         }
     }
 
-    // pub fn resize(&mut self, device: &wgpu::Device, new_size: winit::dpi::PhysicalSize<u32>) {
-    //     self.size = new_size;
-
-    //     self.surface.configure(device, &self.surface_config);
-    // }
-
     pub fn update(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,

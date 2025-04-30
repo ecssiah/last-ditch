@@ -1,4 +1,9 @@
-use crate::simulation::{consts::*, physics::aabb::AABB, population::Population, world::World};
+use crate::simulation::{
+    consts::*,
+    physics::aabb::AABB,
+    population::{Judge, Population},
+    world::{grid, World},
+};
 use glam::Vec3;
 
 pub mod aabb;
@@ -39,23 +44,30 @@ impl Physics {
     fn resolve(&self, world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
-        {
-            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+        Self::resolve_y_collisions(judge, world);
+        Self::resolve_x_collisions(judge, world);
+        Self::resolve_z_collisions(judge, world);
 
-            for block_aabb in collisions {
-                if judge.aabb.min.y < block_aabb.max.y && judge.aabb.max.y > block_aabb.min.y {
-                    if judge.velocity.y < 0.0
-                        && judge.aabb.min.y < block_aabb.max.y
-                        && judge.aabb.max.y > block_aabb.max.y
-                    {
+        Self::sync_judge(judge);
+    }
+
+    fn resolve_y_collisions(judge: &mut Judge, world: &World) {
+        let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+
+        for block_aabb in collisions {
+            let judge_not_below_of_block = judge.aabb.min.y < block_aabb.max.y;
+            let judge_not_above_of_block = judge.aabb.max.y > block_aabb.min.y;
+
+            if judge_not_below_of_block && judge_not_above_of_block {
+                if judge.velocity.y < 0.0 {
+                    if judge_not_below_of_block && judge.aabb.max.y > block_aabb.max.y {
                         judge.velocity.y = 0.0;
 
                         judge.aabb.min.y = block_aabb.max.y + COLLISION_EPSILON;
                         judge.aabb.max.y = judge.aabb.min.y + judge.size.y;
-                    } else if judge.velocity.y > 0.0
-                        && judge.aabb.max.y > block_aabb.min.y
-                        && judge.aabb.min.y < block_aabb.min.y
-                    {
+                    }
+                } else if judge.velocity.y > 0.0 {
+                    if judge_not_above_of_block && judge.aabb.min.y < block_aabb.min.y {
                         judge.velocity.y = 0.0;
 
                         judge.aabb.max.y = block_aabb.min.y - COLLISION_EPSILON;
@@ -64,24 +76,25 @@ impl Physics {
                 }
             }
         }
+    }
 
-        {
-            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+    fn resolve_x_collisions(judge: &mut Judge, world: &World) {
+        let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
 
-            for block_aabb in collisions {
-                if judge.aabb.min.x < block_aabb.max.x && judge.aabb.max.x > block_aabb.min.x {
-                    if judge.velocity.x < 0.0
-                        && judge.aabb.min.x < block_aabb.max.x
-                        && judge.aabb.max.x > block_aabb.max.x
-                    {
+        for block_aabb in collisions {
+            let judge_not_right_of_block = judge.aabb.min.x < block_aabb.max.x;
+            let judge_not_left_of_block = judge.aabb.max.x > block_aabb.min.x;
+
+            if judge_not_left_of_block && judge_not_right_of_block {
+                if judge.velocity.x < 0.0 {
+                    if judge_not_left_of_block && judge.aabb.max.x > block_aabb.max.x {
                         judge.velocity.x = 0.0;
 
                         judge.aabb.min.x = block_aabb.max.x + COLLISION_EPSILON;
                         judge.aabb.max.x = judge.aabb.min.x + judge.size.x;
-                    } else if judge.velocity.x > 0.0
-                        && judge.aabb.max.x > block_aabb.min.x
-                        && judge.aabb.min.x < block_aabb.min.x
-                    {
+                    }
+                } else if judge.velocity.x > 0.0 {
+                    if judge_not_right_of_block && judge.aabb.min.x < block_aabb.min.x {
                         judge.velocity.x = 0.0;
 
                         judge.aabb.max.x = block_aabb.min.x - COLLISION_EPSILON;
@@ -90,24 +103,25 @@ impl Physics {
                 }
             }
         }
+    }
 
-        {
-            let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
+    fn resolve_z_collisions(judge: &mut Judge, world: &World) {
+        let collisions = Self::get_solid_collisions(&mut judge.aabb, world);
 
-            for block_aabb in collisions {
-                if judge.aabb.min.z < block_aabb.max.z && judge.aabb.max.z > block_aabb.min.z {
-                    if judge.velocity.z < 0.0
-                        && judge.aabb.min.z < block_aabb.max.z
-                        && judge.aabb.max.z > block_aabb.max.z
-                    {
+        for block_aabb in collisions {
+            let judge_not_front_of_block = judge.aabb.min.z < block_aabb.max.z;
+            let judge_not_behind_of_block = judge.aabb.max.z > block_aabb.min.z;
+
+            if judge_not_front_of_block && judge_not_behind_of_block {
+                if judge.velocity.z < 0.0 {
+                    if judge_not_front_of_block && judge.aabb.max.z > block_aabb.max.z {
                         judge.velocity.z = 0.0;
 
                         judge.aabb.min.z = block_aabb.max.z + COLLISION_EPSILON;
                         judge.aabb.max.z = judge.aabb.min.z + judge.size.z;
-                    } else if judge.velocity.z > 0.0
-                        && judge.aabb.max.z > block_aabb.min.z
-                        && judge.aabb.min.z < block_aabb.min.z
-                    {
+                    }
+                } else if judge.velocity.z > 0.0 {
+                    if judge_not_behind_of_block && judge.aabb.min.z < block_aabb.min.z {
                         judge.velocity.z = 0.0;
 
                         judge.aabb.max.z = block_aabb.min.z - COLLISION_EPSILON;
@@ -115,6 +129,15 @@ impl Physics {
                     }
                 }
             }
+        }
+    }
+
+    fn sync_judge(judge: &mut Judge) {
+        let grid_position = grid::world_to_grid(judge.position).unwrap();
+        let chunk_id = grid::get_chunk_id(grid_position).unwrap();
+
+        if chunk_id != judge.chunk_id {
+            judge.chunk_update = true;
         }
 
         judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);

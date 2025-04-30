@@ -40,8 +40,8 @@ impl Judge {
             chunk_update: false,
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
-            size: Vec3::new(0.6, 1.6, 0.6),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 1.6, 0.6)),
+            size: Vec3::new(0.6, 2.1, 0.6),
+            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 2.1, 0.6)),
             look: Vec3::ZERO,
             orientation: Quat::default(),
             jump_state: JumpState {
@@ -122,6 +122,8 @@ impl Judge {
             JumpAction::Start => {
                 self.jump_state.stage = JumpStage::Launch;
                 self.jump_state.timer = 0;
+
+                self.velocity.y = JUMP_LAUNCH_VELOCITY;
             }
             JumpAction::End => {
                 self.jump_state.stage = JumpStage::Fall;
