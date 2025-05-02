@@ -4,6 +4,7 @@ pub use mode::Mode;
 
 use crate::simulation::consts::*;
 
+#[derive(Debug)]
 pub struct Admin {
     pub seed: u64,
     pub mode: Mode,
@@ -16,7 +17,7 @@ impl Admin {
         let admin = Admin {
             seed: DEFAULT_SEED,
             mode: Mode::Load,
-            message: String::new(),
+            message: String::from("Loading World"),
             settlement_tick: 0,
         };
 

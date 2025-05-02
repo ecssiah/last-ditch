@@ -269,9 +269,14 @@ impl<'window> Interface<'window> {
         self.dt = self.instant.elapsed();
         self.instant = Instant::now();
 
-        let alpha = self.instant.duration_since(time_view.instant.current);
+        let now = self.instant;
+        let current = time_view.instant.current;
+        let next = time_view.instant.next;
 
-        self.alpha = alpha.as_secs_f32().clamp(0.0, 1.0);
+        let total_duration = next.duration_since(current).as_secs_f32();
+        let elapsed_since_current = now.duration_since(current).as_secs_f32();
+
+        self.alpha = (elapsed_since_current / total_duration).clamp(0.0, 1.0);
     }
 
     fn apply_population_view(

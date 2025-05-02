@@ -32,6 +32,7 @@ impl State {
         self.population.generate();
 
         self.admin.mode = admin::Mode::Simulate;
+        self.admin.message = String::from("Last Ditch 1.0");
     }
 
     pub fn tick(&mut self) {

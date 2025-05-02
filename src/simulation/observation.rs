@@ -51,7 +51,7 @@ impl Observation {
         let admin_view = self.update_admin_view(&state.admin);
         let time_view = self.update_time_view(&view.time_view, &state.time);
         let population_view = self.update_population_view(&view.population_view, &state.population);
-        let world_view = self.update_world_view(&judge, &view.world_view, &state.world);
+        let world_view = self.update_world_view(judge, &view.world_view, &state.world);
 
         let next_view = View {
             judge_id: judge.id,
@@ -145,7 +145,7 @@ impl Observation {
         }
 
         let mut next_world_view = WorldView {
-            tick: StatePair::new(world_view.tick.current, world.tick),
+            tick: StatePair::new(world_view.tick.next, world.tick),
             chunk_view_map: HashMap::new(),
         };
 

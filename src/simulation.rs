@@ -46,6 +46,8 @@ impl Simulation {
     }
 
     pub fn run(&mut self) {
+        self.observation.tick(&self.state);
+
         self.state.generate();
 
         log::info!("Simulation Run");
@@ -57,7 +59,9 @@ impl Simulation {
 
             while now >= next_tick {
                 self.dispatch.tick(&mut self.state);
+
                 self.state.tick();
+
                 self.observation.tick(&self.state);
 
                 next_tick += SIMULATION_TICK_DURATION;
