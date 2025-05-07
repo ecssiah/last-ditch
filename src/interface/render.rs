@@ -129,7 +129,7 @@ impl Render {
             let mut index_offset = 0;
 
             for face in &chunk_view.geometry.next.face_list {
-                if face.kind == simulation::world::block::Kind::Air {
+                if face.kind == simulation::world::block::Kind::Empty {
                     continue;
                 }
 
@@ -146,7 +146,7 @@ impl Render {
                     vertex_list.push(VertexData {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
-                        uv: uv_coordinates[index].to_array(),
+                        uv: uv_coordinates[index],
                         light: face.light[index],
                     });
                 }

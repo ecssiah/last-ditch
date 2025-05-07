@@ -1,6 +1,6 @@
 [
     Block(
-        kind: Air,
+        kind: Empty,
         solid: false,
         opacity: 0.0,
         emittance: 0,

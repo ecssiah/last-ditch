@@ -57,7 +57,7 @@ impl World {
                 updated: false,
                 position: chunk_position,
                 geometry: chunk::Geometry::new(),
-                kind_list: Vec::from([block::Kind::Air]),
+                kind_list: Vec::from([block::Kind::Empty]),
                 block_list: Box::new([0; CHUNK_VOLUME]),
                 direction_list: Box::new([grid::Direction::XoYoZo; CHUNK_VOLUME]),
                 light_list: Box::new(core::array::from_fn(|_| block::Light::new())),
@@ -134,7 +134,7 @@ impl World {
         self.set_cube(
             IVec3::new(-4 + x, 7 + y, -4 + z),
             IVec3::new(4 + x, 7 + y, 4 + z),
-            &block::Kind::Air,
+            &block::Kind::Empty,
         );
 
         self.set_cube(
@@ -306,7 +306,7 @@ impl World {
             HashMap::new();
 
         if let Some(block) = self.get_block(grid_position) {
-            if block.kind != block::Kind::Air {
+            if block.kind != block::Kind::Empty {
                 let visibility_list = self.compute_visibility_list(grid_position);
 
                 visibility_updates_map
@@ -321,7 +321,7 @@ impl World {
 
             if let Some((chunk_id, block_id)) = grid::get_ids(neighbor_grid_position) {
                 if let Some(block) = self.get_block(neighbor_grid_position) {
-                    if block.kind != block::Kind::Air {
+                    if block.kind != block::Kind::Empty {
                         let visibility_list = self.compute_visibility_list(neighbor_grid_position);
 
                         visibility_updates_map
@@ -350,7 +350,7 @@ impl World {
                 let block = self.get_block(neighbor_grid_position);
 
                 block
-                    .filter(|block| block.kind == block::Kind::Air)
+                    .filter(|block| block.kind == block::Kind::Empty)
                     .map(|_| direction)
             })
             .collect();

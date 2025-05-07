@@ -47,36 +47,33 @@ impl Simulation {
 
     pub fn run(&mut self) {
         self.observation.tick(&self.state);
-
         self.state.generate();
 
         log::info!("Simulation Run");
 
-        let mut next_tick = Instant::now();
+        let mut next_instant = Instant::now();
 
         loop {
             let now = Instant::now();
 
-            while now >= next_tick {
+            while now >= next_instant {
                 self.dispatch.tick(&mut self.state);
-
                 self.state.tick();
-
                 self.observation.tick(&self.state);
 
-                next_tick += SIMULATION_TICK_DURATION;
+                next_instant += SIMULATION_TICK_DURATION;
             }
 
             let now = Instant::now();
 
-            if next_tick > now {
-                let time_until_next = next_tick - now;
+            if next_instant > now {
+                let remaining_duration = next_instant - now;
 
-                if time_until_next > Duration::from_millis(2) {
-                    std::thread::sleep(time_until_next - Duration::from_millis(1));
+                if remaining_duration > Duration::from_millis(2) {
+                    std::thread::sleep(remaining_duration - Duration::from_millis(1));
                 }
 
-                while Instant::now() < next_tick {
+                while Instant::now() < next_instant {
                     std::hint::spin_loop();
                 }
             }

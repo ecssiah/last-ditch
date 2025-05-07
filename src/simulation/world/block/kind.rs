@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
-    Air,
+    Empty,
     Engraved1,
     Engraved2,
     Stone1,
