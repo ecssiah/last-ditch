@@ -10,10 +10,7 @@ pub struct TimeView {
 impl TimeView {
     pub fn new() -> TimeView {
         let time_view = TimeView {
-            tick: StatePair {
-                current: Tick::ZERO,
-                next: Tick::ZERO,
-            },
+            tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             instant: StatePair {
                 current: Instant::now(),
                 next: Instant::now(),

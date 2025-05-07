@@ -14,10 +14,7 @@ pub struct WorldView {
 impl WorldView {
     pub fn new() -> WorldView {
         let world_view = WorldView {
-            tick: StatePair {
-                current: Tick::ZERO,
-                next: Tick::ZERO,
-            },
+            tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             chunk_view_map: HashMap::new(),
         };
 

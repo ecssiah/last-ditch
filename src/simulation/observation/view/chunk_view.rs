@@ -3,8 +3,8 @@ use glam::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct ChunkView {
-    pub id: chunk::ID,
     pub tick: StatePair<Tick>,
+    pub id: chunk::ID,
     pub position: StatePair<IVec3>,
     pub geometry: StatePair<chunk::Geometry>,
 }

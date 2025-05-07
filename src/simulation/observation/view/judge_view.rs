@@ -3,9 +3,8 @@ use glam::{Quat, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct JudgeView {
-    pub id: judge::ID,
-
     pub tick: StatePair<Tick>,
+    pub id: judge::ID,
     pub position: StatePair<Vec3>,
     pub orientation: StatePair<Quat>,
 }
@@ -13,11 +12,8 @@ pub struct JudgeView {
 impl JudgeView {
     pub fn new() -> JudgeView {
         let judge_view = JudgeView {
+            tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             id: judge::ID(0),
-            tick: StatePair {
-                current: Tick::ZERO,
-                next: Tick::ZERO,
-            },
             position: StatePair {
                 current: Vec3::ZERO,
                 next: Vec3::ZERO,

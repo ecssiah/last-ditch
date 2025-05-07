@@ -48,7 +48,7 @@ impl Observation {
 
         let view = self.repository.get();
 
-        let admin_view = self.update_admin_view(&state.admin);
+        let admin_view = self.update_admin_view(&view.admin_view, &state.admin);
         let time_view = self.update_time_view(&view.time_view, &state.time);
         let population_view = self.update_population_view(&view.population_view, &state.population);
         let world_view = self.update_world_view(judge, &view.world_view, &state.world);
@@ -64,8 +64,9 @@ impl Observation {
         self.repository.set(next_view);
     }
 
-    fn update_admin_view(&self, admin: &Admin) -> AdminView {
+    fn update_admin_view(&self, admin_view: &AdminView, admin: &Admin) -> AdminView {
         AdminView {
+            tick: StatePair::new(admin_view.tick.next, admin.tick),
             mode: admin.mode,
             message: admin.message.clone(),
         }
