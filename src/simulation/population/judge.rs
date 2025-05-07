@@ -40,8 +40,8 @@ impl Judge {
             chunk_update: false,
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
-            size: Vec3::new(0.6, 2.1, 0.6),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 2.1, 0.6)),
+            size: Vec3::new(0.8, 2.1, 0.8),
+            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.1, 0.8)),
             look: Vec3::ZERO,
             orientation: Quat::default(),
             jump_state: JumpState {

@@ -93,10 +93,10 @@ impl Camera {
             Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = Self::OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
+        let eye = judge_position + Vec3::Y * judge_view.size.current.y;
+
         let forward = judge_orientation * Vec3::Z;
         let up = judge_orientation * Vec3::Y;
-
-        let eye = judge_position + simulation::consts::JUDGE_CAMERA_HEIGHT * up;
         let target = eye + forward;
 
         let view = Mat4::look_at_rh(eye, target, up);
