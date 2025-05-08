@@ -55,7 +55,14 @@ impl Judge {
 
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
         self.position = Vec3::new(x, y, z);
-        self.aabb = AABB::new(self.position, self.size);
+        self.aabb = AABB::new(self.position + Vec3::Y * (self.size.y * 0.5), self.size);
+    }
+
+    pub fn set_aabb(&mut self, x: f32, y: f32, z: f32) {
+        let aabb_center = Vec3::new(x, y, z);
+
+        self.position = aabb_center - Vec3::Y * (self.size.y * 0.5);
+        self.aabb = AABB::new(aabb_center, self.size);
     }
 
     pub fn set_velocity(&mut self, x: f32, y: f32, z: f32) {

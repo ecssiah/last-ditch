@@ -151,6 +151,9 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
+        log::info!("View: {:?}", judge.position);
+        log::info!("Grid: {:?}", grid::world_to_grid(judge.position));
+
         let grid_position = grid::world_to_grid(judge.position).unwrap();
         let current_chunk_id = grid::get_chunk_id(grid_position).unwrap();
 
