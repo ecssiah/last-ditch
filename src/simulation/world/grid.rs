@@ -84,6 +84,13 @@ pub fn get_chunk_id(grid_position: IVec3) -> Option<chunk::ID> {
     }
 }
 
+pub fn get_chunk_id_at(world_position: Vec3) -> Option<chunk::ID> {
+    let grid_position = world_to_grid(world_position)?;
+    let chunk_id = get_chunk_id(grid_position)?;
+
+    Some(chunk_id)
+}
+
 pub fn get_chunk_position(chunk_id: chunk::ID) -> Option<IVec3> {
     if chunk::ID::is_valid(chunk_id) {
         let chunk_id: usize = chunk_id.into();

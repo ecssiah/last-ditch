@@ -43,7 +43,7 @@ impl Physics {
 
     fn resolve(&self, world: &World, population: &mut Population) {
         let judge_aabb = population.judge.aabb.clone();
-        let synced_aabb = Self::resolve_aabb(&judge_aabb, world);
+        let synced_aabb = Self::resolve_aabb(&judge_aabb, &population.judge.velocity, world);
 
         population.judge.set_aabb(
             synced_aabb.center().x,
@@ -54,51 +54,19 @@ impl Physics {
         Self::sync_judge(&mut population.judge);
     }
 
-    fn resolve_aabb(aabb: &AABB, world: &World) -> AABB {
-        let mut synced_aabb = aabb.clone();
-        let collisions = Self::get_solid_collisions(&aabb, world);
-
-        for block_aabb in collisions {
-            let dx1 = block_aabb.max.x - synced_aabb.min.x;
-            let dx2 = block_aabb.min.x - synced_aabb.max.x;
-            let dy1 = block_aabb.max.y - synced_aabb.min.y;
-            let dy2 = block_aabb.min.y - synced_aabb.max.y;
-            let dz1 = block_aabb.max.z - synced_aabb.min.z;
-            let dz2 = block_aabb.min.z - synced_aabb.max.z;
-
-            let overlap_x = if dx1.abs() < dx2.abs() { dx1 } else { dx2 };
-            let overlap_y = if dy1.abs() < dy2.abs() { dy1 } else { dy2 };
-            let overlap_z = if dz1.abs() < dz2.abs() { dz1 } else { dz2 };
-
-            let min_overlap = [overlap_x, overlap_y, overlap_z]
-                .into_iter()
-                .min_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
-                .unwrap();
-
-            if min_overlap == overlap_x {
-                synced_aabb.min.x += overlap_x;
-                synced_aabb.max.x += overlap_x;
-            } else if min_overlap == overlap_y {
-                synced_aabb.min.y += overlap_y;
-                synced_aabb.max.y += overlap_y;
-            } else {
-                synced_aabb.min.z += overlap_z;
-                synced_aabb.max.z += overlap_z;
-            }
-        }
+    fn resolve_aabb(aabb: &AABB, velocity: &Vec3, world: &World) -> AABB {
+        let synced_aabb = aabb.clone();
 
         synced_aabb
     }
 
     fn sync_judge(judge: &mut Judge) {
-        if let Some(grid_position) = grid::world_to_grid(judge.aabb.center()) {
-            if let Some(chunk_id) = grid::get_chunk_id(grid_position) {
-                if chunk_id != judge.chunk_id {
-                    judge.chunk_update = true;
-                }
-
-                judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);
+        if let Some(chunk_id) = grid::get_chunk_id_at(judge.aabb.center()) {
+            if chunk_id != judge.chunk_id {
+                judge.chunk_update = true;
             }
+
+            judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);
         } else {
             judge.chunk_update = true;
             judge.set_position(0.0, 10.0, 0.0);
