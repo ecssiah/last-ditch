@@ -6,6 +6,7 @@ pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
 use crate::simulation::physics::aabb::AABB;
+use crate::simulation::physics::dynamic::Dynamic;
 use crate::simulation::{
     consts::*,
     dispatch::{JumpAction, MovementAction},
@@ -136,5 +137,15 @@ impl Judge {
                 self.jump_state.stage = JumpStage::Fall;
             }
         }
+    }
+}
+
+impl Dynamic for Judge {
+    fn aabb(&self) -> AABB {
+        self.aabb.clone()
+    }
+
+    fn aabb_mut(&mut self) -> &mut AABB {
+        &mut self.aabb
     }
 }

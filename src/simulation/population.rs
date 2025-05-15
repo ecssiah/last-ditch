@@ -41,7 +41,7 @@ impl Population {
     fn generate_judge(&mut self) {
         log::info!("Generating Judge");
 
-        self.judge.set_position(18.0, 12.0, 0.0);
+        self.judge.set_position(18.0, 2.0, 0.0);
         self.judge.set_rotation(0.0, 0.0);
     }
 

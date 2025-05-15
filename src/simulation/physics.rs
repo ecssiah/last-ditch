@@ -1,12 +1,13 @@
 use crate::simulation::{
     consts::*,
-    physics::aabb::AABB,
+    physics::{aabb::AABB, dynamic::Dynamic},
     population::{Judge, Population},
     world::{grid, World},
 };
 use glam::Vec3;
 
 pub mod aabb;
+pub mod dynamic;
 pub mod judge_controller;
 
 pub struct Physics {
@@ -31,7 +32,7 @@ impl Physics {
         let judge = &mut population.judge;
 
         let initial_velocity = judge.velocity;
-        let acceleration = self.gravity;
+        let acceleration = 0.0;
         let delta_time = SIMULATION_TICK_IN_SECONDS;
 
         let displacement = initial_velocity * delta_time + 0.5 * acceleration * delta_time.powi(2);
@@ -42,8 +43,7 @@ impl Physics {
     }
 
     fn resolve(&self, world: &World, population: &mut Population) {
-        let judge_aabb = population.judge.aabb.clone();
-        let synced_aabb = Self::resolve_aabb(&judge_aabb, &population.judge.velocity, world);
+        let synced_aabb = Self::resolve_dynamic(&population.judge, world);
 
         population.judge.set_aabb(
             synced_aabb.center().x,
@@ -54,18 +54,15 @@ impl Physics {
         Self::sync_judge(&mut population.judge);
     }
 
-    fn resolve_aabb(aabb: &AABB, velocity: &Vec3, world: &World) -> AABB {
-        let synced_aabb = aabb.clone();
+    fn resolve_dynamic<T: Dynamic>(dynamic_entity: &T, world: &World) -> AABB {
+        let aabb = dynamic_entity.aabb();
 
-        synced_aabb
+        aabb
     }
 
     fn sync_judge(judge: &mut Judge) {
         if let Some(chunk_id) = grid::get_chunk_id_at(judge.aabb.center()) {
-            if chunk_id != judge.chunk_id {
-                judge.chunk_update = true;
-            }
-
+            judge.chunk_update = chunk_id != judge.chunk_id;
             judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);
         } else {
             judge.chunk_update = true;
