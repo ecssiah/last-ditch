@@ -43,19 +43,26 @@ impl Physics {
     }
 
     fn resolve_dynamic<T: Dynamic>(world: &World, dynamic_entity: &mut T, displacement: &Vec3) {
-        
+        for axis in [grid::Axis::X, grid::Axis::Z, grid::Axis::Y] {
+            let axis_displacement = displacement[axis as usize];
+
+            
+        }
     }
 
     fn sync_dynamic<T: Dynamic>(dynamic_entity: &mut T) {
-        if let Some(chunk_id) = grid::get_chunk_id_at(dynamic_entity.aabb().position()) {
-            dynamic_entity.set_chunk_update(chunk_id != dynamic_entity.chunk_id());
-            dynamic_entity.set_position(
-                dynamic_entity.aabb().position() - Vec3::Y * (dynamic_entity.size().y * 0.5),
-            );
-        } else {
-            dynamic_entity.set_chunk_update(true);
-            dynamic_entity.set_position(Vec3::new(0.0, 10.0, 0.0));
-        }
+        let (chunk_update, position) =
+            if let Some(chunk_id) = grid::get_chunk_id_at(dynamic_entity.aabb().position()) {
+                (
+                    chunk_id != dynamic_entity.chunk_id(),
+                    dynamic_entity.aabb().position() - Vec3::Y * (dynamic_entity.size().y * 0.5),
+                )
+            } else {
+                (true, Vec3::new(0.0, 10.0, 0.0))
+            };
+
+        dynamic_entity.set_chunk_update(chunk_update);
+        dynamic_entity.set_position(position);
     }
 
     fn get_solid_collisions(aabb: &AABB, world: &World) -> Vec<AABB> {

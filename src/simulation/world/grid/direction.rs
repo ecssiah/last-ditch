@@ -50,6 +50,13 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
+    const AXES: [Direction; 3] = [
+        Direction::XpYoZo,
+        Direction::XoYpZo,
+        Direction::XoYoZp,
+    ];
+
+    #[rustfmt::skip]
     const CARDINAL: [Direction; 4] = [
         Direction::XpYoZo,
         Direction::XnYoZo,
@@ -97,6 +104,10 @@ impl Direction {
 
     pub fn get_list() -> [Direction; 27] {
         Self::ALL
+    }
+
+    pub fn axes() -> [Direction; 3] {
+        Self::AXES
     }
 
     pub fn cardinal() -> [Direction; 4] {

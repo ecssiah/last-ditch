@@ -1,5 +1,7 @@
+pub mod axis;
 pub mod direction;
 
+pub use axis::Axis;
 pub use direction::Direction;
 
 use crate::simulation::{
