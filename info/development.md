@@ -4,7 +4,7 @@
 
 ### Physics
 
-#### Collision Algorithm
+#### Dynamic Entity Collision Algorithm
 1. **Physics AABB and Velocity**  
 The dynamic agent has a world-space AABB and a velocity vector. All physics and collision resolution is applied to this AABB.
 

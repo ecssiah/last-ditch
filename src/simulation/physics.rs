@@ -25,10 +25,9 @@ impl Physics {
 
     pub fn tick(&mut self, world: &World, population: &mut Population) {
         self.integrate(world, population);
-        self.resolve(world, population);
     }
 
-    fn integrate(&mut self, _world: &World, population: &mut Population) {
+    fn integrate(&mut self, world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
         let initial_velocity = judge.velocity;
@@ -36,37 +35,26 @@ impl Physics {
         let delta_time = SIMULATION_TICK_IN_SECONDS;
 
         let displacement = initial_velocity * delta_time + 0.5 * acceleration * delta_time.powi(2);
+
         judge.velocity = initial_velocity + acceleration * delta_time;
 
-        let aabb_center = judge.aabb.center() + displacement;
-        judge.aabb = AABB::new(aabb_center, judge.size);
+        Self::resolve_dynamic(world, &mut population.judge, &displacement);
+        Self::sync_dynamic(&mut population.judge);
     }
 
-    fn resolve(&self, world: &World, population: &mut Population) {
-        let synced_aabb = Self::resolve_dynamic(&population.judge, world);
-
-        population.judge.set_aabb(
-            synced_aabb.center().x,
-            synced_aabb.center().y,
-            synced_aabb.center().z,
-        );
-
-        Self::sync_judge(&mut population.judge);
+    fn resolve_dynamic<T: Dynamic>(world: &World, dynamic_entity: &mut T, displacement: &Vec3) {
+        
     }
 
-    fn resolve_dynamic<T: Dynamic>(dynamic_entity: &T, world: &World) -> AABB {
-        let aabb = dynamic_entity.aabb();
-
-        aabb
-    }
-
-    fn sync_judge(judge: &mut Judge) {
-        if let Some(chunk_id) = grid::get_chunk_id_at(judge.aabb.center()) {
-            judge.chunk_update = chunk_id != judge.chunk_id;
-            judge.position = judge.aabb.center() - Vec3::Y * (judge.size.y * 0.5);
+    fn sync_dynamic<T: Dynamic>(dynamic_entity: &mut T) {
+        if let Some(chunk_id) = grid::get_chunk_id_at(dynamic_entity.aabb().position()) {
+            dynamic_entity.set_chunk_update(chunk_id != dynamic_entity.chunk_id());
+            dynamic_entity.set_position(
+                dynamic_entity.aabb().position() - Vec3::Y * (dynamic_entity.size().y * 0.5),
+            );
         } else {
-            judge.chunk_update = true;
-            judge.set_position(0.0, 10.0, 0.0);
+            dynamic_entity.set_chunk_update(true);
+            dynamic_entity.set_position(Vec3::new(0.0, 10.0, 0.0));
         }
     }
 

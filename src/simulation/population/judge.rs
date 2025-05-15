@@ -141,6 +141,30 @@ impl Judge {
 }
 
 impl Dynamic for Judge {
+    fn chunk_id(&self) -> chunk::ID {
+        self.chunk_id
+    }
+
+    fn chunk_update(&self) -> bool {
+        self.chunk_update
+    }
+
+    fn set_chunk_update(&mut self, chunk_update: bool) {
+        self.chunk_update = chunk_update;
+    }
+
+    fn position(&self) -> Vec3 {
+        self.position
+    }
+
+    fn set_position(&mut self, position: Vec3) {
+        self.position = position;
+    }
+
+    fn size(&self) -> Vec3 {
+        self.size
+    }
+
     fn aabb(&self) -> AABB {
         self.aabb.clone()
     }
