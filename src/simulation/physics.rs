@@ -54,7 +54,7 @@ impl Physics {
             let axis_index = axis as usize;
             let axis_displacement = displacement[axis_index];
 
-            aabb.set_center(aabb.center() + axis_displacement);
+            aabb.set_center(aabb.center() + axis_displacement * axis.unit());
 
             let mut overlap = 0.0;
             let solid_block_aabbs: Vec<AABB> = Self::get_solid_collisions(&aabb, world);
@@ -90,6 +90,9 @@ impl Physics {
                 aabb.set_center(aabb.center() + overlap * axis.unit());
             }
         }
+
+        log::info!("Displace: {:?}", displacement);
+        log::info!("Velocity: {:?}\n", velocity);
 
         dynamic_object.set_aabb(aabb);
         dynamic_object.set_velocity(velocity);
