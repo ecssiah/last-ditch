@@ -120,4 +120,48 @@
             XoYoZn: (3, 3),
         },
     ),
+    BlockData(
+        kind: North,
+        tile_position_map: {
+            XpYoZo: (0, 5),
+            XnYoZo: (0, 5),
+            XoYpZo: (0, 5),
+            XoYnZo: (0, 5),
+            XoYoZp: (0, 5),
+            XoYoZn: (0, 5),
+        },
+    ),
+    BlockData(
+        kind: West,
+        tile_position_map: {
+            XpYoZo: (1, 5),
+            XnYoZo: (1, 5),
+            XoYpZo: (1, 5),
+            XoYnZo: (1, 5),
+            XoYoZp: (1, 5),
+            XoYoZn: (1, 5),
+        },
+    ),
+    BlockData(
+        kind: South,
+        tile_position_map: {
+            XpYoZo: (2, 5),
+            XnYoZo: (2, 5),
+            XoYpZo: (2, 5),
+            XoYnZo: (2, 5),
+            XoYoZp: (2, 5),
+            XoYoZn: (2, 5),
+        },
+    ),
+    BlockData(
+        kind: East,
+        tile_position_map: {
+            XpYoZo: (3, 5),
+            XnYoZo: (3, 5),
+            XoYpZo: (3, 5),
+            XoYnZo: (3, 5),
+            XoYoZp: (3, 5),
+            XoYoZn: (3, 5),
+        },
+    ),
 ]

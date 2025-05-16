@@ -71,4 +71,28 @@
         opacity: 1.0,
         emittance: 0,
     ),
+    Block(
+        kind: North,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: West,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: South,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: East,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
 ]

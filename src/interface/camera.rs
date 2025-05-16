@@ -90,7 +90,7 @@ impl Camera {
             .lerp(judge_view.orientation.next, alpha);
 
         let opengl_projection =
-            Mat4::perspective_rh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+            Mat4::perspective_lh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
         let projection = Self::OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
         let eye = judge_position + Vec3::Y * judge_view.size.current.y;
@@ -99,7 +99,7 @@ impl Camera {
         let up = judge_orientation * Vec3::Y;
         let target = eye + forward;
 
-        let view = Mat4::look_at_rh(eye, target, up);
+        let view = Mat4::look_at_lh(eye, target, up);
         let view_projection = projection * view;
 
         CameraUniformData {

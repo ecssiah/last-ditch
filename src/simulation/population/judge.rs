@@ -94,7 +94,7 @@ impl Judge {
 
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
         if movement_action.rotation.length_squared() > 1e-6 {
-            self.look.x -= movement_action.rotation.x;
+            self.look.x += movement_action.rotation.x;
             self.look.x = self.look.x.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
             self.look.y += movement_action.rotation.y;
 

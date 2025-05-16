@@ -91,9 +91,6 @@ impl Physics {
             }
         }
 
-        log::info!("Displace: {:?}", displacement);
-        log::info!("Velocity: {:?}\n", velocity);
-
         dynamic_object.set_aabb(aabb);
         dynamic_object.set_velocity(velocity);
     }

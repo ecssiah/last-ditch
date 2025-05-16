@@ -29,8 +29,28 @@ impl World {
         log::info!("Generating Structures");
 
         self.set_cube(
+            IVec3::new(0, 7, 0),
+            IVec3::new(0, 7, 4),
+            &block::Kind::North,
+        );
+
+        self.set_cube(
+            IVec3::new(-4, 7, 0),
+            IVec3::new(0, 7, 0),
+            &block::Kind::West,
+        );
+
+        self.set_cube(
+            IVec3::new(0, 7, -4),
+            IVec3::new(0, 7, 0),
+            &block::Kind::South,
+        );
+
+        self.set_cube(IVec3::new(0, 7, 0), IVec3::new(4, 7, 0), &block::Kind::East);
+
+        self.set_cube(
             IVec3::new(0, 0, 0),
-            IVec3::new(0, 6, 0),
+            IVec3::new(0, 7, 0),
             &block::Kind::Origin,
         );
 

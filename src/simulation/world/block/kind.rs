@@ -14,4 +14,8 @@ pub enum Kind {
     Icon2,
     Icon3,
     Icon4,
+    North,
+    West,
+    South,
+    East,
 }

@@ -1,4 +1,4 @@
-use crate::interface::render::data::FogUniformData;
+use crate::interface::{consts::WINDOW_CLEAR_COLOR, render::data::FogUniformData};
 use wgpu::util::DeviceExt;
 
 pub struct Fog {
@@ -11,7 +11,11 @@ pub struct Fog {
 impl Fog {
     pub fn new(device: &wgpu::Device) -> Fog {
         let fog_uniform_data = FogUniformData {
-            color: [0.5, 0.5, 0.5],
+            color: [
+                WINDOW_CLEAR_COLOR[0] as f32,
+                WINDOW_CLEAR_COLOR[1] as f32,
+                WINDOW_CLEAR_COLOR[2] as f32,
+            ],
             _padding0: 0.0,
             start: 100.0,
             end: 200.0,
