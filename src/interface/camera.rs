@@ -11,14 +11,6 @@ pub struct Camera {
 }
 
 impl Camera {
-    #[rustfmt::skip]
-    const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
-        1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 0.5, 0.5,
-        0.0, 0.0, 0.0, 1.0,
-    ]);
-
     pub fn new(device: &wgpu::Device) -> Camera {
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -89,9 +81,8 @@ impl Camera {
             .current
             .lerp(judge_view.orientation.next, alpha);
 
-        let opengl_projection =
+        let projection =
             Mat4::perspective_lh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
-        let projection = Self::OPENGL_TO_WGPU_MATRIX * opengl_projection;
 
         let eye = judge_position + Vec3::Y * judge_view.size.current.y;
 
