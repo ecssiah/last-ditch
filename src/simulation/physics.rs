@@ -56,19 +56,18 @@ impl Physics {
 
             aabb.set_center(aabb.center() + axis_displacement * axis.unit());
 
-            let mut overlap = 0.0;
             let solid_block_aabbs: Vec<AABB> = Self::get_solid_collisions(&aabb, world);
 
             for block_aabb in solid_block_aabbs {
                 let block_overlap = {
-                    let a_min = aabb.min[axis_index];
-                    let a_max = aabb.max[axis_index];
+                    let dynamic_min = aabb.min[axis_index];
+                    let dynamic_max = aabb.max[axis_index];
                     let block_min = block_aabb.min[axis_index];
                     let block_max = block_aabb.max[axis_index];
 
-                    if a_max > block_min && a_min < block_max {
-                        let push_positive = block_max - a_min;
-                        let push_negative = a_max - block_min;
+                    if dynamic_max > block_min && dynamic_min < block_max {
+                        let push_positive = block_max - dynamic_min;
+                        let push_negative = dynamic_max - block_min;
 
                         if push_positive < push_negative {
                             push_positive
@@ -80,14 +79,10 @@ impl Physics {
                     }
                 };
 
-                if block_overlap > overlap {
+                if block_overlap.abs() > EPSILON_COLLISION {
                     velocity[axis_index] = 0.0;
-                    overlap = block_overlap;
+                    aabb.set_center(aabb.center() + block_overlap * axis.unit());
                 }
-            }
-
-            if overlap.abs() > EPSILON_COLLISION {
-                aabb.set_center(aabb.center() + overlap * axis.unit());
             }
         }
 

@@ -5,7 +5,9 @@ pub use axis::Axis;
 pub use direction::Direction;
 
 use crate::simulation::{
-    consts::*, physics::aabb::AABB, world::{block, chunk, grid}
+    consts::*,
+    physics::aabb::AABB,
+    world::{block, chunk, grid},
 };
 use glam::{IVec3, Vec3};
 
@@ -152,12 +154,12 @@ pub fn get_grid_position(chunk_id: chunk::ID, block_id: block::ID) -> Option<IVe
     Some(grid_position)
 }
 
-pub fn get_overlapping_aabb_list(target: &AABB) -> Vec<AABB> {
+pub fn get_overlapping_aabb_list(aabb: &AABB) -> Vec<AABB> {
     let mut aabb_list = Vec::new();
-    
-    let min = target.min.round().as_ivec3();
-    let max = target.max.round().as_ivec3();
-    
+
+    let min = aabb.min.round().as_ivec3();
+    let max = aabb.max.round().as_ivec3();
+
     let size = Vec3::splat(BLOCK_SIZE);
 
     for x in min.x..=max.x {
