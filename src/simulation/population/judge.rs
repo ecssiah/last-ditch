@@ -6,7 +6,7 @@ pub use jump_state::JumpStage;
 pub use jump_state::JumpState;
 
 use crate::simulation::physics::aabb::AABB;
-use crate::simulation::physics::dynamic::Dynamic;
+use crate::simulation::physics::dynamic_object::DynamicObject;
 use crate::simulation::{
     consts::*,
     dispatch::{JumpAction, MovementAction},
@@ -140,7 +140,7 @@ impl Judge {
     }
 }
 
-impl Dynamic for Judge {
+impl DynamicObject for Judge {
     fn chunk_id(&self) -> chunk::ID {
         self.chunk_id
     }
@@ -161,6 +161,14 @@ impl Dynamic for Judge {
         self.position = position;
     }
 
+    fn velocity(&self) -> Vec3 {
+        self.velocity
+    }
+
+    fn set_velocity(&mut self, velocity: Vec3) {
+        self.velocity = velocity;
+    }
+
     fn size(&self) -> Vec3 {
         self.size
     }
@@ -169,7 +177,7 @@ impl Dynamic for Judge {
         self.aabb.clone()
     }
 
-    fn aabb_mut(&mut self) -> &mut AABB {
-        &mut self.aabb
+    fn set_aabb(&mut self, aabb: AABB) {
+        self.aabb = aabb;
     }
 }

@@ -10,7 +10,7 @@ pub const SIMULATION_TICK_DURATION: Duration =
 pub const SIMULATION_TICK_IN_SECONDS: f32 = SIMULATION_TICK_DURATION.as_secs_f32();
 
 pub const GRAVITY_ACCELERATION: f32 = 9.8;
-pub const COLLISION_EPSILON: f32 = 0.001;
+pub const EPSILON_COLLISION: f32 = 0.001;
 
 pub const DEFAULT_X_SPEED: f32 = 7.0;
 pub const DEFAULT_Z_SPEED: f32 = 7.0;

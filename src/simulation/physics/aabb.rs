@@ -7,32 +7,34 @@ pub struct AABB {
 }
 
 impl AABB {
-    pub fn new(position: Vec3, size: Vec3) -> Self {
-        let xz_radius = size.xz() * 0.5;
-
-        let min = Vec3::new(
-            position.x - xz_radius.x,
-            position.y,
-            position.z - xz_radius.y,
-        );
-        let max = Vec3::new(
-            position.x + xz_radius.x,
-            position.y + size.y,
-            position.z + xz_radius.y,
-        );
+    pub fn new(center: Vec3, size: Vec3) -> Self {
+        let half_size = size * 0.5;
+        let min = center - half_size;
+        let max = center + half_size;
 
         Self { min, max }
     }
 
-    pub fn center(&self) -> Vec3 {
-        (self.min + self.max) * 0.5
+    pub fn radius(&self) -> Vec3 {
+        self.size() * 0.5
     }
 
     pub fn size(&self) -> Vec3 {
         self.max - self.min
     }
 
-    pub fn position(&self) -> Vec3 {
+    pub fn center(&self) -> Vec3 {
+        (self.min + self.max) * 0.5
+    }
+
+    pub fn set_center(&mut self, center: Vec3) {
+        let radius = (self.max - self.min) * 0.5;
+
+        self.min = center - radius;
+        self.max = center + radius;
+    }
+
+    pub fn bottom_center(&self) -> Vec3 {
         Vec3::new(
             (self.min.x + self.max.x) * 0.5,
             self.min.y,
@@ -40,7 +42,7 @@ impl AABB {
         )
     }
 
-    pub fn set_position(&mut self, position: Vec3) {
+    pub fn set_bottom_center(&mut self, position: Vec3) {
         let size = self.size();
         let xz_radius = size.xz() * 0.5;
 
@@ -64,5 +66,14 @@ impl AABB {
             && self.max.y >= other.min.y
             && self.min.z <= other.max.z
             && self.max.z >= other.min.z
+    }
+
+    pub fn overlaps(&self, other: &AABB) -> bool {
+        self.min.x < other.max.x
+            && self.max.x > other.min.x
+            && self.min.y < other.max.y
+            && self.max.y > other.min.y
+            && self.min.z < other.max.z
+            && self.max.z > other.min.z
     }
 }
