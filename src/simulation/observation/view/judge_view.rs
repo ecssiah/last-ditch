@@ -7,7 +7,7 @@ pub struct JudgeView {
     pub id: judge::ID,
     pub size: StatePair<Vec3>,
     pub position: StatePair<Vec3>,
-    pub orientation: StatePair<Quat>,
+    pub quat: StatePair<Quat>,
 }
 
 impl JudgeView {
@@ -17,7 +17,7 @@ impl JudgeView {
             id: judge::ID(0),
             position: StatePair::new(Vec3::ZERO, Vec3::ZERO),
             size: StatePair::new(Vec3::ZERO, Vec3::ZERO),
-            orientation: StatePair::new(Quat::IDENTITY, Quat::IDENTITY),
+            quat: StatePair::new(Quat::IDENTITY, Quat::IDENTITY),
         };
 
         judge_view

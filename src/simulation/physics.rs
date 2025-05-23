@@ -31,11 +31,11 @@ impl Physics {
         let judge = &mut population.judge;
 
         let initial_velocity = judge.velocity;
-        let acceleration = self.gravity;
-        let delta_time = SIMULATION_TICK_IN_SECONDS;
+        let acceleration = 0.0; // self.gravity;
 
-        let displacement = initial_velocity * delta_time + 0.5 * acceleration * delta_time.powi(2);
-        let velocity = initial_velocity + acceleration * delta_time;
+        let displacement = initial_velocity * SIMULATION_TICK_IN_SECONDS
+            + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
+        let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
         Self::resolve_dynamic_object(judge, world, &velocity, &displacement);
         Self::sync_dynamic_object(judge);
@@ -48,44 +48,25 @@ impl Physics {
         displacement: &Vec3,
     ) {
         let mut aabb = dynamic_object.aabb();
-        let mut velocity = velocity_target.clone();
-
-        for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
-            let axis_index = axis as usize;
-            let axis_displacement = displacement[axis_index];
-
-            aabb.set_center(aabb.center() + axis_displacement * axis.unit());
-
-            let solid_block_aabbs: Vec<AABB> = Self::get_solid_collisions(&aabb, world);
-
-            for block_aabb in solid_block_aabbs {
-                let block_overlap = aabb.get_overlap(axis_index, &block_aabb);
-
-                if block_overlap.abs() > EPSILON_COLLISION {
-                    aabb.set_center(aabb.center() + block_overlap * axis.unit());
-
-                    velocity[axis_index] = 0.0;
-                }
-            }
-        }
+        aabb.set_bottom_center(aabb.bottom_center() + *displacement);
 
         dynamic_object.set_aabb(aabb);
-        dynamic_object.set_velocity(velocity);
+        dynamic_object.set_velocity(*velocity_target);
     }
 
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
-        if let Some(chunk_id) = grid::get_chunk_id_at(dynamic_object.aabb().bottom_center()) {
+        let position = dynamic_object.aabb().bottom_center();
+
+        if let Some(chunk_id) = grid::get_chunk_id_at_world_position(position) {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
-            let position = dynamic_object.aabb().bottom_center();
 
             dynamic_object.set_chunk_update(chunk_update);
             dynamic_object.set_position(position);
         } else {
             let chunk_update = true;
-            let position = Vec3::new(0.0, 10.0, 0.0);
 
             dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_position(position);
+            dynamic_object.set_position(Vec3::new(0.0, 10.0, 0.0));
         }
     }
 
