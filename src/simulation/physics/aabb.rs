@@ -1,6 +1,6 @@
 use glam::{Vec3, Vec3Swizzles};
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,
@@ -75,5 +75,42 @@ impl AABB {
             && self.max.y > other.min.y
             && self.min.z < other.max.z
             && self.max.z > other.min.z
+    }
+
+    pub fn get_overlap(&self, axis_index: usize, block_aabb: &AABB) -> f32 {
+        let min = self.min[axis_index];
+        let max = self.max[axis_index];
+        let block_min = block_aabb.min[axis_index];
+        let block_max = block_aabb.max[axis_index];
+
+        if max > block_min && min < block_max {
+            let push_positive = block_max - min;
+            let push_negative = max - block_min;
+
+            let center = (min + max) * 0.5;
+            let block_center = (block_min + block_max) * 0.5;
+
+            if center < block_center {
+                push_positive
+            } else {
+                -push_negative
+            }
+        } else {
+            0.0
+        }
+    }
+
+    pub fn approx_eq(&self, other: &AABB, epsilon: f32) -> bool {
+        self.min.abs_diff_eq(other.min, epsilon) &&
+        self.max.abs_diff_eq(other.max, epsilon)
+    }
+
+    pub fn approx_aabb_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
+        if list1.len() != list2.len() {
+            return false;
+        }
+
+        list1.iter().all(|a| list2.iter().any(|b| a.approx_eq(b, epsilon)))
+            && list2.iter().all(|b| list1.iter().any(|a| b.approx_eq(a, epsilon)))
     }
 }

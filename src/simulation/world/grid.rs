@@ -168,7 +168,9 @@ pub fn get_overlapping_aabb_list(aabb: &AABB) -> Vec<AABB> {
                 let block_position = Vec3::new(x as f32, y as f32, z as f32);
                 let block_aabb = AABB::new(block_position, size);
 
-                aabb_list.push(block_aabb);
+                if block_aabb.overlaps(aabb) {
+                    aabb_list.push(block_aabb);
+                }
             }
         }
     }
