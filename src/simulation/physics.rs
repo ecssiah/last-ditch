@@ -50,7 +50,7 @@ impl Physics {
         let mut aabb = dynamic_object.aabb();
         let mut velocity = velocity_target.clone();
 
-        for axis in [grid::Axis::X, grid::Axis::Z, grid::Axis::Y] {
+        for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
             let axis_index = axis as usize;
             let axis_displacement = displacement[axis_index];
 
@@ -63,7 +63,7 @@ impl Physics {
 
                 if block_overlap.abs() > EPSILON_COLLISION {
                     aabb.set_center(aabb.center() + block_overlap * axis.unit());
-                    
+
                     velocity[axis_index] = 0.0;
                 }
             }

@@ -1,6 +1,6 @@
 use glam::{Vec3, Vec3Swizzles};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,
@@ -101,8 +101,7 @@ impl AABB {
     }
 
     pub fn approx_eq(&self, other: &AABB, epsilon: f32) -> bool {
-        self.min.abs_diff_eq(other.min, epsilon) &&
-        self.max.abs_diff_eq(other.max, epsilon)
+        self.min.abs_diff_eq(other.min, epsilon) && self.max.abs_diff_eq(other.max, epsilon)
     }
 
     pub fn approx_aabb_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
@@ -110,7 +109,11 @@ impl AABB {
             return false;
         }
 
-        list1.iter().all(|a| list2.iter().any(|b| a.approx_eq(b, epsilon)))
-            && list2.iter().all(|b| list1.iter().any(|a| b.approx_eq(a, epsilon)))
+        list1
+            .iter()
+            .all(|aabb1| list2.iter().any(|aabb2| aabb1.approx_eq(aabb2, epsilon)))
+            && list2
+                .iter()
+                .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(aabb1, epsilon)))
     }
 }
