@@ -77,10 +77,10 @@ impl AABB {
             && self.max.z > other.min.z
     }
 
-    pub fn get_overlap(&self, axis_index: usize, block_aabb: &AABB) -> f32 {
+    pub fn overlap_axis(&self, axis_index: usize, block_aabb: &AABB) -> f32 {
         let min = self.min[axis_index];
         let max = self.max[axis_index];
-        
+
         let block_min = block_aabb.min[axis_index];
         let block_max = block_aabb.max[axis_index];
 

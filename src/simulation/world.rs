@@ -69,7 +69,7 @@ impl World {
     fn setup_chunks() -> [Chunk; WORLD_VOLUME] {
         let chunk_list: [Chunk; WORLD_VOLUME] = core::array::from_fn(|index| {
             let chunk_id = chunk::ID(index);
-            let chunk_position = grid::get_chunk_position(chunk_id).unwrap();
+            let chunk_position = grid::chunk_id_to_position(chunk_id).unwrap();
 
             Chunk {
                 id: chunk_id,
@@ -96,7 +96,7 @@ impl World {
     }
 
     fn generate_ground(&mut self) {
-        let ground_boundary = WORLD_BOUNDARY as isize - CHUNK_SIZE as isize;
+        let ground_boundary = GRID_BOUNDARY as isize - CHUNK_SIZE as isize;
 
         for x in -ground_boundary..=ground_boundary {
             for y in -1..=0 {
@@ -203,7 +203,7 @@ impl World {
     }
 
     pub fn get_chunk_at(&self, grid_position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = grid::get_chunk_id(grid_position)?;
+        let chunk_id = grid::grid_to_chunk_id(grid_position)?;
 
         let chunk = self.get_chunk(chunk_id);
 
@@ -211,7 +211,7 @@ impl World {
     }
 
     pub fn get_block(&self, grid_position: IVec3) -> Option<&block::Block> {
-        let (chunk_id, block_id) = grid::get_ids(grid_position)?;
+        let (chunk_id, block_id) = grid::grid_to_ids(grid_position)?;
 
         let chunk = self.get_chunk(chunk_id)?;
 
@@ -226,7 +226,7 @@ impl World {
     pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: &block::Kind) -> bool {
         let grid_position = IVec3::new(x, y, z);
 
-        if let Some((chunk_id, block_id)) = grid::get_ids(grid_position) {
+        if let Some((chunk_id, block_id)) = grid::grid_to_ids(grid_position) {
             self.update_kind_list(chunk_id, block_id, kind);
             self.update_neighbor_lists(grid_position);
             self.update_visibility_lists(chunk_id, block_id, grid_position);
@@ -277,7 +277,7 @@ impl World {
         for direction in grid::Direction::get_list() {
             let neighbor_grid_position = grid_position + direction.offset();
 
-            if let Some((chunk_id, block_id)) = grid::get_ids(neighbor_grid_position) {
+            if let Some((chunk_id, block_id)) = grid::grid_to_ids(neighbor_grid_position) {
                 let neighbor_list = self.compute_neighbor_list(neighbor_grid_position);
 
                 update_map
@@ -339,7 +339,7 @@ impl World {
         for offset in grid::Direction::face_offsets() {
             let neighbor_grid_position = grid_position + offset;
 
-            if let Some((chunk_id, block_id)) = grid::get_ids(neighbor_grid_position) {
+            if let Some((chunk_id, block_id)) = grid::grid_to_ids(neighbor_grid_position) {
                 if let Some(block) = self.get_block(neighbor_grid_position) {
                     if block.kind != block::Kind::Empty {
                         let visibility_list = self.compute_visibility_list(neighbor_grid_position);
@@ -408,7 +408,7 @@ impl World {
 
             if block.solid {
                 let visibility_list = &chunk.visibility_list[usize::from(block_id)];
-                let grid_position = grid::get_grid_position(chunk_id, block_id).unwrap();
+                let grid_position = grid::ids_to_grid(chunk_id, block_id).unwrap();
 
                 for direction in grid::Direction::faces() {
                     if visibility_list.contains(&direction) {
@@ -561,7 +561,7 @@ impl World {
 
         let mut visible_chunk_id_list = Vec::with_capacity(chunk_count_estimate);
 
-        if let Some(chunk_position) = grid::get_chunk_position(chunk_id) {
+        if let Some(chunk_position) = grid::chunk_id_to_position(chunk_id) {
             for x in -radius..=radius {
                 for y in -radius..=radius {
                     for z in -radius..=radius {
@@ -572,7 +572,7 @@ impl World {
 
                             if let Some(grid_position) = grid::chunk_to_grid(visible_chunk_position)
                             {
-                                if let Some(visible_chunk_id) = grid::get_chunk_id(grid_position) {
+                                if let Some(visible_chunk_id) = grid::grid_to_chunk_id(grid_position) {
                                     visible_chunk_id_list.push(visible_chunk_id);
                                 }
                             }

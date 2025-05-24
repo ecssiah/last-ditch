@@ -152,7 +152,7 @@ impl Observation {
         };
 
         let grid_position = grid::world_to_grid(judge.position).unwrap();
-        let current_chunk_id = grid::get_chunk_id(grid_position).unwrap();
+        let current_chunk_id = grid::grid_to_chunk_id(grid_position).unwrap();
 
         let visible_chunk_id_list = World::get_visible_chunk_id_list(current_chunk_id);
 

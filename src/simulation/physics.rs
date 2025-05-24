@@ -57,7 +57,7 @@ impl Physics {
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
         let position = dynamic_object.aabb().bottom_center();
 
-        if let Some(chunk_id) = grid::get_chunk_id_at_world_position(position) {
+        if let Some(chunk_id) = grid::grid_to_chunk_id_at(position) {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
 
             dynamic_object.set_chunk_update(chunk_update);
@@ -71,7 +71,7 @@ impl Physics {
     }
 
     fn _get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
-        grid::get_overlapping_aabb_list(target)
+        grid::overlapping_aabb_list(target)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();

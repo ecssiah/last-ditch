@@ -12,11 +12,11 @@ use crate::simulation::{
 use glam::{IVec3, Vec3};
 
 pub fn is_valid(grid_position: IVec3) -> bool {
-    let world_boundary = WORLD_BOUNDARY as i32;
+    let grid_boundary = GRID_BOUNDARY as i32;
 
-    let in_x_range = grid_position.x.abs() <= world_boundary;
-    let in_y_range = grid_position.y.abs() <= world_boundary;
-    let in_z_range = grid_position.z.abs() <= world_boundary;
+    let in_x_range = grid_position.x.abs() <= grid_boundary;
+    let in_y_range = grid_position.y.abs() <= grid_boundary;
+    let in_z_range = grid_position.z.abs() <= grid_boundary;
 
     in_x_range && in_y_range && in_z_range
 }
@@ -33,7 +33,7 @@ pub fn world_to_grid(world_position: Vec3) -> Option<IVec3> {
 
 pub fn grid_to_chunk(grid_position: IVec3) -> Option<IVec3> {
     if is_valid(grid_position) {
-        let grid_position_shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
+        let grid_position_shifted = grid_position + IVec3::splat(GRID_BOUNDARY as i32);
 
         let chunk_position =
             grid_position_shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
@@ -46,7 +46,7 @@ pub fn grid_to_chunk(grid_position: IVec3) -> Option<IVec3> {
 
 pub fn grid_to_block(grid_position: IVec3) -> Option<IVec3> {
     if is_valid(grid_position) {
-        let grid_position_shifted = grid_position + IVec3::splat(WORLD_BOUNDARY as i32);
+        let grid_position_shifted = grid_position + IVec3::splat(GRID_BOUNDARY as i32);
 
         let chunk_position =
             grid_position_shifted.map(|coordinate| coordinate.div_euclid(CHUNK_SIZE as i32));
@@ -62,7 +62,7 @@ pub fn grid_to_block(grid_position: IVec3) -> Option<IVec3> {
 }
 
 pub fn chunk_to_grid(chunk_position: IVec3) -> Option<IVec3> {
-    let grid_position = CHUNK_RADIUS as i32 * chunk_position;
+    let grid_position = CHUNK_SIZE as i32 * chunk_position;
 
     if grid::is_valid(grid_position) {
         Some(grid_position)
@@ -71,7 +71,7 @@ pub fn chunk_to_grid(chunk_position: IVec3) -> Option<IVec3> {
     }
 }
 
-pub fn get_chunk_id(grid_position: IVec3) -> Option<chunk::ID> {
+pub fn grid_to_chunk_id(grid_position: IVec3) -> Option<chunk::ID> {
     if is_valid(grid_position) {
         let chunk_position = grid_to_chunk(grid_position)?;
 
@@ -87,14 +87,14 @@ pub fn get_chunk_id(grid_position: IVec3) -> Option<chunk::ID> {
     }
 }
 
-pub fn get_chunk_id_at_world_position(world_position: Vec3) -> Option<chunk::ID> {
+pub fn grid_to_chunk_id_at(world_position: Vec3) -> Option<chunk::ID> {
     let grid_position = world_to_grid(world_position)?;
-    let chunk_id = get_chunk_id(grid_position)?;
+    let chunk_id = grid_to_chunk_id(grid_position)?;
 
     Some(chunk_id)
 }
 
-pub fn get_chunk_position(chunk_id: chunk::ID) -> Option<IVec3> {
+pub fn chunk_id_to_position(chunk_id: chunk::ID) -> Option<IVec3> {
     if chunk::ID::is_valid(chunk_id) {
         let chunk_id: usize = chunk_id.into();
 
@@ -110,7 +110,7 @@ pub fn get_chunk_position(chunk_id: chunk::ID) -> Option<IVec3> {
     }
 }
 
-pub fn get_block_id(grid_position: IVec3) -> Option<block::ID> {
+pub fn grid_to_block_id(grid_position: IVec3) -> Option<block::ID> {
     if is_valid(grid_position) {
         let block_position = grid_to_block(grid_position)?;
 
@@ -124,7 +124,7 @@ pub fn get_block_id(grid_position: IVec3) -> Option<block::ID> {
     }
 }
 
-pub fn get_block_position(block_id: block::ID) -> Option<IVec3> {
+pub fn block_id_to_position(block_id: block::ID) -> Option<IVec3> {
     if block::ID::is_valid(block_id) {
         let block_id: usize = block_id.into();
 
@@ -138,23 +138,23 @@ pub fn get_block_position(block_id: block::ID) -> Option<IVec3> {
     }
 }
 
-pub fn get_ids(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
-    let chunk_id = get_chunk_id(grid_position)?;
-    let block_id = get_block_id(grid_position)?;
+pub fn grid_to_ids(grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
+    let chunk_id = grid_to_chunk_id(grid_position)?;
+    let block_id = grid_to_block_id(grid_position)?;
 
     Some((chunk_id, block_id))
 }
 
-pub fn get_grid_position(chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
-    let chunk_position = get_chunk_position(chunk_id)?;
-    let block_position = get_block_position(block_id)?;
+pub fn ids_to_grid(chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
+    let chunk_position = chunk_id_to_position(chunk_id)?;
+    let block_position = block_id_to_position(block_id)?;
 
     let grid_position = CHUNK_SIZE as i32 * chunk_position + block_position;
 
     Some(grid_position)
 }
 
-pub fn get_overlapping_aabb_list(aabb: &AABB) -> Vec<AABB> {
+pub fn overlapping_aabb_list(aabb: &AABB) -> Vec<AABB> {
     let mut aabb_list = Vec::new();
 
     let min = aabb.min.round().as_ivec3();

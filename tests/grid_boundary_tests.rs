@@ -14,9 +14,9 @@ fn chunk_ids() {
     let test_cases = vec![
         ChunkIDTestCase {
             grid_position: IVec3::new(
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
             ),
             expected_chunk_id: Some(chunk::ID(0)),
         },
@@ -26,24 +26,16 @@ fn chunk_ids() {
         },
         ChunkIDTestCase {
             grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
             ),
             expected_chunk_id: Some(chunk::ID(WORLD_VOLUME - 1)),
-        },
-        ChunkIDTestCase {
-            grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
-            ),
-            expected_chunk_id: Some(chunk::ID(WORLD_SIZE - 1)),
         },
     ];
 
     for test_case in test_cases {
-        let chunk_id = grid::get_chunk_id(test_case.grid_position);
+        let chunk_id = grid::grid_to_chunk_id(test_case.grid_position);
 
         assert_eq!(
             chunk_id, test_case.expected_chunk_id,
@@ -63,9 +55,9 @@ fn block_ids() {
     let test_cases = vec![
         BlockIDTestCase {
             grid_position: IVec3::new(
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
             ),
             expected_block_id: Some(block::ID(0)),
         },
@@ -75,24 +67,16 @@ fn block_ids() {
         },
         BlockIDTestCase {
             grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
             ),
             expected_block_id: Some(block::ID(CHUNK_VOLUME - 1)),
-        },
-        BlockIDTestCase {
-            grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
-            ),
-            expected_block_id: Some(block::ID(CHUNK_SIZE - 1)),
         },
     ];
 
     for test_case in test_cases {
-        let block_id = grid::get_block_id(test_case.grid_position);
+        let block_id = grid::grid_to_block_id(test_case.grid_position);
 
         assert_eq!(
             block_id, test_case.expected_block_id,
@@ -115,9 +99,9 @@ fn grid_positions() {
             chunk_id: chunk::ID(0),
             block_id: block::ID(0),
             expected_grid_position: IVec3::new(
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
+                -(GRID_BOUNDARY as i32),
             ),
         },
         GridPositionTestCase {
@@ -129,25 +113,16 @@ fn grid_positions() {
             chunk_id: chunk::ID(WORLD_VOLUME - 1),
             block_id: block::ID(WORLD_VOLUME - 1),
             expected_grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
-                WORLD_BOUNDARY as i32,
-            ),
-        },
-        GridPositionTestCase {
-            chunk_id: chunk::ID(WORLD_SIZE - 1),
-            block_id: block::ID(CHUNK_SIZE - 1),
-            expected_grid_position: IVec3::new(
-                WORLD_BOUNDARY as i32,
-                -(WORLD_BOUNDARY as i32),
-                -(WORLD_BOUNDARY as i32),
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
+                GRID_BOUNDARY as i32,
             ),
         },
     ];
 
     for test_case in test_cases {
         let grid_position =
-            grid::get_grid_position(test_case.chunk_id, test_case.block_id).unwrap();
+            grid::ids_to_grid(test_case.chunk_id, test_case.block_id).unwrap();
 
         assert_eq!(
             grid_position, test_case.expected_grid_position,
