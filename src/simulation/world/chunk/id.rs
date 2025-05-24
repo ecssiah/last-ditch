@@ -1,4 +1,4 @@
-use crate::simulation::WORLD_VOLUME;
+use crate::simulation::CHUNK_ID_MAX;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ID(pub usize);
@@ -10,7 +10,9 @@ impl From<ID> for usize {
 }
 
 impl ID {
+    pub const MAX: Self = Self(CHUNK_ID_MAX);
+
     pub fn is_valid(chunk_id: ID) -> bool {
-        (0..WORLD_VOLUME).contains(&chunk_id.into())
+        (0..=CHUNK_ID_MAX).contains(&chunk_id.into())
     }
 }

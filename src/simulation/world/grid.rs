@@ -87,7 +87,7 @@ pub fn grid_to_chunk_id(grid_position: IVec3) -> Option<chunk::ID> {
     }
 }
 
-pub fn grid_to_chunk_id_at(world_position: Vec3) -> Option<chunk::ID> {
+pub fn world_to_chunk_id(world_position: Vec3) -> Option<chunk::ID> {
     let grid_position = world_to_grid(world_position)?;
     let chunk_id = grid_to_chunk_id(grid_position)?;
 

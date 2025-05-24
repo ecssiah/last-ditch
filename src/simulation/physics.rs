@@ -57,7 +57,7 @@ impl Physics {
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
         let position = dynamic_object.aabb().bottom_center();
 
-        if let Some(chunk_id) = grid::grid_to_chunk_id_at(position) {
+        if let Some(chunk_id) = grid::world_to_chunk_id(position) {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
 
             dynamic_object.set_chunk_update(chunk_update);

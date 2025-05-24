@@ -45,6 +45,9 @@ pub const WORLD_SIZE: usize = 2 * WORLD_RADIUS + 1;
 pub const WORLD_AREA: usize = WORLD_SIZE * WORLD_SIZE;
 pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
 
+pub const BLOCK_ID_MAX: usize = CHUNK_VOLUME - 1;
+pub const CHUNK_ID_MAX: usize = WORLD_VOLUME - 1;
+
 pub const GRID_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
 
 pub const JUDGE_CAMERA_HEIGHT: f32 = 1.3;

@@ -12,7 +12,7 @@ struct OverlappingAABBTestCase {
 }
 
 #[test]
-fn at_xo_yo_zo() {
+fn xo_yo_zo() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XoYoZo.offset().as_vec3() * 0.5,
@@ -29,7 +29,7 @@ fn at_xo_yo_zo() {
 }
 
 #[test]
-fn at_xp_yp_zp() {
+fn xp_yp_zp() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XpYpZp.offset().as_vec3() * 0.5,
@@ -55,7 +55,7 @@ fn at_xp_yp_zp() {
 }
 
 #[test]
-fn at_xp_yp_zn() {
+fn xp_yp_zn() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XpYpZn.offset().as_vec3() * 0.5,
@@ -81,7 +81,7 @@ fn at_xp_yp_zn() {
 }
 
 #[test]
-fn at_xp_yn_zp() {
+fn xp_yn_zp() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XpYnZp.offset().as_vec3() * 0.5,
@@ -107,7 +107,7 @@ fn at_xp_yn_zp() {
 }
 
 #[test]
-fn at_xp_yn_zn() {
+fn xp_yn_zn() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
@@ -133,7 +133,7 @@ fn at_xp_yn_zn() {
 }
 
 #[test]
-fn at_xn_yp_zp() {
+fn xn_yp_zp() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XnYpZp.offset().as_vec3() * 0.5,
@@ -159,7 +159,7 @@ fn at_xn_yp_zp() {
 }
 
 #[test]
-fn at_xn_yp_zn() {
+fn xn_yp_zn() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XnYpZn.offset().as_vec3() * 0.5,
@@ -185,7 +185,7 @@ fn at_xn_yp_zn() {
 }
 
 #[test]
-fn at_xn_yn_zp() {
+fn xn_yn_zp() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XnYnZp.offset().as_vec3() * 0.5,
@@ -211,7 +211,7 @@ fn at_xn_yn_zp() {
 }
 
 #[test]
-fn at_xn_yn_zn() {
+fn xn_yn_zn() {
     let test_case = OverlappingAABBTestCase {
         aabb: AABB::new(
             grid::Direction::XnYnZn.offset().as_vec3() * 0.5,
