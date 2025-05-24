@@ -117,4 +117,14 @@ impl AABB {
                 .iter()
                 .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(aabb1, epsilon)))
     }
+
+    pub fn sweep(aabb1: &AABB, aabb2: &AABB) -> AABB {
+        let min = aabb1.min.min(aabb2.min);
+        let max = aabb1.max.max(aabb2.max);
+
+        let center = (min + max) * 0.5;
+        let size = max - min;
+
+        AABB::new(center, size)
+    }
 }

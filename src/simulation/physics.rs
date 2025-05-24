@@ -31,7 +31,7 @@ impl Physics {
         let judge = &mut population.judge;
 
         let initial_velocity = judge.velocity;
-        let acceleration = 0.0; // self.gravity;
+        let acceleration = self.gravity;
 
         let displacement = initial_velocity * SIMULATION_TICK_IN_SECONDS
             + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
@@ -47,11 +47,7 @@ impl Physics {
         velocity_target: &Vec3,
         displacement: &Vec3,
     ) {
-        let mut aabb = dynamic_object.aabb();
-        aabb.set_bottom_center(aabb.bottom_center() + *displacement);
-
-        dynamic_object.set_aabb(aabb);
-        dynamic_object.set_velocity(*velocity_target);
+        
     }
 
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
