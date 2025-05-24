@@ -43,11 +43,108 @@ impl Physics {
 
     fn resolve_dynamic_object<T: DynamicObject>(
         dynamic_object: &mut T,
-        _world: &World,
+        world: &World,
         velocity_target: &Vec3,
         displacement: &Vec3,
     ) {
-        
+        let mut velocity = *velocity_target;
+        let mut aabb = dynamic_object.aabb();
+
+        {
+            let dx = displacement.x;
+            aabb.translate(Vec3::new(dx, 0.0, 0.0));
+
+            let collisions = Physics::get_solid_collisions(&aabb, world);
+
+            if !collisions.is_empty() {
+                aabb.translate(Vec3::new(-dx, 0.0, 0.0));
+
+                let step = dx.signum() * 0.01;
+                let mut resolved = false;
+
+                for i in 1..=100 {
+                    let try_dx = step * (i as f32);
+
+                    aabb.translate(Vec3::new(try_dx, 0.0, 0.0));
+
+                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
+                        resolved = true;
+                        break;
+                    }
+
+                    aabb.translate(Vec3::new(-try_dx, 0.0, 0.0));
+                }
+
+                if !resolved {
+                    velocity.x = 0.0;
+                }
+            }
+        }
+
+        {
+            let dy = displacement.y;
+            aabb.translate(Vec3::new(0.0, dy, 0.0));
+
+            let collisions = Physics::get_solid_collisions(&aabb, world);
+
+            if !collisions.is_empty() {
+                aabb.translate(Vec3::new(0.0, -dy, 0.0));
+
+                let step = dy.signum() * 0.01;
+                let mut resolved = false;
+
+                for i in 1..=100 {
+                    let try_dy = step * (i as f32);
+
+                    aabb.translate(Vec3::new(0.0, try_dy, 0.0));
+
+                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
+                        resolved = true;
+                        break;
+                    }
+
+                    aabb.translate(Vec3::new(0.0, -try_dy, 0.0));
+                }
+
+                if !resolved {
+                    velocity.y = 0.0;
+                }
+            }
+        }
+
+        {
+            let dz = displacement.z;
+            aabb.translate(Vec3::new(0.0, 0.0, dz));
+
+            let collisions = Physics::get_solid_collisions(&aabb, world);
+
+            if !collisions.is_empty() {
+                aabb.translate(Vec3::new(0.0, 0.0, -dz));
+
+                let step = dz.signum() * 0.01;
+                let mut resolved = false;
+
+                for i in 1..=100 {
+                    let try_dz = step * (i as f32);
+
+                    aabb.translate(Vec3::new(0.0, 0.0, try_dz));
+
+                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
+                        resolved = true;
+                        break;
+                    }
+
+                    aabb.translate(Vec3::new(0.0, 0.0, -try_dz));
+                }
+
+                if !resolved {
+                    velocity.z = 0.0;
+                }
+            }
+        }
+
+        dynamic_object.set_velocity(velocity);
+        dynamic_object.set_aabb(aabb);
     }
 
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
@@ -66,7 +163,7 @@ impl Physics {
         }
     }
 
-    fn _get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
+    fn get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
         grid::overlapping_aabb_list(target)
             .into_iter()
             .filter(|block_aabb| {

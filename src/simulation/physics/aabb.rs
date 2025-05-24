@@ -59,6 +59,11 @@ impl AABB {
         );
     }
 
+    pub fn translate(&mut self, displacement: Vec3) {
+        self.min += displacement;
+        self.max += displacement;
+    }
+
     pub fn intersects(&self, other: &AABB) -> bool {
         self.min.x <= other.max.x
             && self.max.x >= other.min.x
