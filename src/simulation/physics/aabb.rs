@@ -80,20 +80,21 @@ impl AABB {
     pub fn get_overlap(&self, axis_index: usize, block_aabb: &AABB) -> f32 {
         let min = self.min[axis_index];
         let max = self.max[axis_index];
+        
         let block_min = block_aabb.min[axis_index];
         let block_max = block_aabb.max[axis_index];
 
         if max > block_min && min < block_max {
-            let push_positive = block_max - min;
-            let push_negative = max - block_min;
+            let offset_positive = block_max - min;
+            let offset_negative = max - block_min;
 
             let center = (min + max) * 0.5;
             let block_center = (block_min + block_max) * 0.5;
 
             if center < block_center {
-                push_positive
+                offset_positive
             } else {
-                -push_negative
+                -offset_negative
             }
         } else {
             0.0
@@ -104,7 +105,7 @@ impl AABB {
         self.min.abs_diff_eq(other.min, epsilon) && self.max.abs_diff_eq(other.max, epsilon)
     }
 
-    pub fn approx_aabb_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
+    pub fn approx_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
         if list1.len() != list2.len() {
             return false;
         }

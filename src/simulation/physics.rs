@@ -43,7 +43,7 @@ impl Physics {
 
     fn resolve_dynamic_object<T: DynamicObject>(
         dynamic_object: &mut T,
-        world: &World,
+        _world: &World,
         velocity_target: &Vec3,
         displacement: &Vec3,
     ) {
@@ -70,7 +70,7 @@ impl Physics {
         }
     }
 
-    fn get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
+    fn _get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
         grid::get_overlapping_aabb_list(target)
             .into_iter()
             .filter(|block_aabb| {
