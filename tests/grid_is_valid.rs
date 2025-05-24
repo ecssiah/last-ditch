@@ -2,6 +2,7 @@ use glam::IVec3;
 use last_ditch::simulation::{world::grid, GRID_BOUNDARY};
 
 struct IsValidTestCase {
+    description: String,
     grid_position: IVec3,
     expected_is_valid: bool,
 }
@@ -9,6 +10,7 @@ struct IsValidTestCase {
 #[test]
 fn origin() {
     let test_cases = vec![IsValidTestCase {
+        description: String::from("Grid Position: (0, 0, 0)"),
         grid_position: IVec3::new(0, 0, 0),
         expected_is_valid: true,
     }];
@@ -18,8 +20,8 @@ fn origin() {
 
         assert_eq!(
             is_valid, test_case.expected_is_valid,
-            "Expected {:?} to be {:?}",
-            test_case.grid_position, test_case.expected_is_valid
+            "{:?}",
+            test_case.description
         );
     }
 }
@@ -27,12 +29,16 @@ fn origin() {
 #[test]
 fn boundaries() {
     struct IsValidTestCase {
+        description: String,
         grid_position: IVec3,
         expected_is_valid: bool,
     }
 
     let test_cases = vec![
         IsValidTestCase {
+            description: String::from(
+                "Grid Position: (GRID_BOUNDARY, GRID_BOUNDARY, GRID_BOUNDARY)",
+            ),
             grid_position: IVec3::new(
                 GRID_BOUNDARY as i32,
                 GRID_BOUNDARY as i32,
@@ -41,6 +47,9 @@ fn boundaries() {
             expected_is_valid: true,
         },
         IsValidTestCase {
+            description: String::from(
+                "Grid Position: (-GRID_BOUNDARY, -GRID_BOUNDARY, -GRID_BOUNDARY)",
+            ),
             grid_position: IVec3::new(
                 -(GRID_BOUNDARY as i32),
                 -(GRID_BOUNDARY as i32),
@@ -49,6 +58,9 @@ fn boundaries() {
             expected_is_valid: true,
         },
         IsValidTestCase {
+            description: String::from(
+                "Grid Position: (GRID_BOUNDARY + 1, GRID_BOUNDARY + 1, GRID_BOUNDARY + 1)",
+            ),
             grid_position: IVec3::new(
                 (GRID_BOUNDARY as i32) + 1,
                 (GRID_BOUNDARY as i32) + 1,
@@ -57,6 +69,9 @@ fn boundaries() {
             expected_is_valid: false,
         },
         IsValidTestCase {
+            description: String::from(
+                "Grid Position: (-GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1)",
+            ),
             grid_position: IVec3::new(
                 -(GRID_BOUNDARY as i32) - 1,
                 -(GRID_BOUNDARY as i32) - 1,
@@ -71,8 +86,8 @@ fn boundaries() {
 
         assert_eq!(
             is_valid, test_case.expected_is_valid,
-            "Expected {:?} to be {:?}",
-            test_case.grid_position, test_case.expected_is_valid
+            "{:?}",
+            test_case.description
         );
     }
 }

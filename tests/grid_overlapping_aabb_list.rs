@@ -7,6 +7,7 @@ use last_ditch::simulation::{
 use std::f32::EPSILON;
 
 struct OverlappingAABBTestCase {
+    description: String,
     aabb: AABB,
     expected_aabb_list: Vec<AABB>,
 }
@@ -14,6 +15,7 @@ struct OverlappingAABBTestCase {
 #[test]
 fn xo_yo_zo() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XoYoZo.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -31,6 +33,7 @@ fn xo_yo_zo() {
 #[test]
 fn xp_yp_zp() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XpYpZp.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -51,12 +54,13 @@ fn xp_yp_zp() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xp_yp_zn() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XpYpZn.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -77,12 +81,13 @@ fn xp_yp_zn() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xp_yn_zp() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XpYnZp.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -103,12 +108,13 @@ fn xp_yn_zp() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xp_yn_zn() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -129,12 +135,13 @@ fn xp_yn_zn() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xn_yp_zp() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XnYpZp.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -155,12 +162,13 @@ fn xn_yp_zp() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xn_yp_zn() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XnYpZn.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -181,12 +189,13 @@ fn xn_yp_zn() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xn_yn_zp() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XnYnZp.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -207,12 +216,13 @@ fn xn_yn_zp() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
 
 #[test]
 fn xn_yn_zn() {
     let test_case = OverlappingAABBTestCase {
+        description: String::from(""),
         aabb: AABB::new(
             grid::Direction::XnYnZn.offset().as_vec3() * 0.5,
             Vec3::splat(BLOCK_SIZE),
@@ -233,5 +243,5 @@ fn xn_yn_zn() {
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
-    assert!(is_equal, "AABB list does not match control");
+    assert!(is_equal, "{:?}", test_case.description);
 }
