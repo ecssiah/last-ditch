@@ -62,7 +62,7 @@ impl Physics {
                 let step = dx.signum() * 0.01;
                 let mut resolved = false;
 
-                for i in 1..=100 {
+                for i in 1..=MAX_RESOLVE_ITERATIONS {
                     let try_dx = step * (i as f32);
 
                     aabb.translate(Vec3::new(try_dx, 0.0, 0.0));
@@ -93,7 +93,7 @@ impl Physics {
                 let step = dy.signum() * 0.01;
                 let mut resolved = false;
 
-                for i in 1..=100 {
+                for i in 1..=MAX_RESOLVE_ITERATIONS {
                     let try_dy = step * (i as f32);
 
                     aabb.translate(Vec3::new(0.0, try_dy, 0.0));
@@ -124,7 +124,7 @@ impl Physics {
                 let step = dz.signum() * 0.01;
                 let mut resolved = false;
 
-                for i in 1..=100 {
+                for i in 1..=MAX_RESOLVE_ITERATIONS {
                     let try_dz = step * (i as f32);
 
                     aabb.translate(Vec3::new(0.0, 0.0, try_dz));

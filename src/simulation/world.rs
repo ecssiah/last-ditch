@@ -124,7 +124,7 @@ impl World {
         let home_position = kind.home();
 
         let x = home_position.x;
-        let y = home_position.y - 2;
+        let y = home_position.y - 1;
         let z = home_position.z;
 
         self.set_cube(
@@ -183,11 +183,11 @@ impl World {
 
         self.set_cube(
             IVec3::new(0 + x, 2 + y, 0 + z),
-            IVec3::new(0 + x, 3 + y, 0 + z),
+            IVec3::new(0 + x, 4 + y, 0 + z),
             &block::Kind::Polished1,
         );
 
-        self.set_block_kind(0 + x, 4 + y, 0 + z, kind.icon());
+        self.set_block_kind(0 + x, 5 + y, 0 + z, kind.icon());
     }
 
     pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {

@@ -34,10 +34,10 @@ impl Kind {
 
     pub fn home(&self) -> IVec3 {
         match self {
-            Kind::Lion => IVec3::new(34, 3, 34),
-            Kind::Eagle => IVec3::new(-34, 3, 34),
-            Kind::Wolf => IVec3::new(34, 3, -34),
-            Kind::Horse => IVec3::new(-34, 3, -34),
+            Kind::Lion => IVec3::new(34, 2, 34),
+            Kind::Eagle => IVec3::new(-34, 2, 34),
+            Kind::Wolf => IVec3::new(34, 2, -34),
+            Kind::Horse => IVec3::new(-34, 2, -34),
         }
     }
 }

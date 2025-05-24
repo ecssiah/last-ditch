@@ -3,13 +3,17 @@ pub mod decision;
 pub mod judge;
 
 pub use agent::Agent;
-use glam::Vec3;
 pub use judge::Judge;
-use rand::{Rng, SeedableRng};
 
 use crate::simulation::{
-    consts::*, physics::dynamic_object::DynamicObject, population::{self}, time::Tick, world::World
+    consts::*,
+    physics::dynamic_object::DynamicObject,
+    population::{self},
+    time::Tick,
+    world::World,
 };
+use glam::Vec3;
+use rand::{Rng, SeedableRng};
 use std::collections::HashMap;
 
 pub struct Population {
@@ -39,19 +43,22 @@ impl Population {
     fn generate_judge(&mut self) {
         log::info!("Generating Judge");
 
-        self.judge.set_position(Vec3::new(0.0, 2.0, 0.0));
-        self.judge.set_rotation(0.0, 0.0);
+        self.judge.set_position(Vec3::new(0.0, 2.0, 10.0));
+        self.judge.set_rotation(0.0, 180.0);
     }
 
     fn generate_agents(&mut self) {
         log::info!("Generating Agents");
+
+        let mut rng = rand::thread_rng();
 
         for kind in population::agent::Kind::get_list() {
             for _ in 0..AGENT_INITIAL_POPULATION {
                 let mut agent = Agent::new(agent::ID::allocate());
 
                 let mut position = kind.home().as_vec3();
-                position.x -= 2.0;
+                position.x += rng.gen_range(-3.0..=3.0);
+                position.z += rng.gen_range(-3.0..=3.0);
 
                 agent.position = position;
                 agent.target = position;
