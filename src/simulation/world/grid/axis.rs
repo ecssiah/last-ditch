@@ -8,6 +8,15 @@ pub enum Axis {
 }
 
 impl Axis {
+    pub fn from_usize(index: usize) -> Option<Self> {
+        match index {
+            0 => Some(Axis::X),
+            1 => Some(Axis::Y),
+            2 => Some(Axis::Z),
+            _ => None,
+        }
+    }
+
     pub fn unit(&self) -> Vec3 {
         match self {
             Axis::X => Vec3::new(1.0, 0.0, 0.0),

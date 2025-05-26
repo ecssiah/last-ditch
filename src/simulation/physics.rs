@@ -2,7 +2,10 @@ use crate::simulation::{
     consts::*,
     physics::{aabb::AABB, dynamic_object::DynamicObject},
     population::Population,
-    world::{grid, World},
+    world::{
+        grid::{self, Axis},
+        World,
+    },
 };
 use glam::Vec3;
 
@@ -41,6 +44,40 @@ impl Physics {
         Self::sync_dynamic_object(judge);
     }
 
+    fn resolve_axis(mut aabb: AABB, delta: f32, axis: Axis, world: &World) -> (AABB, f32) {
+        if delta.abs() < EPSILON_COLLISION {
+            return (aabb, 0.0);
+        }
+
+        let mut min = 0.0;
+        let mut max = delta;
+        let mut final_delta = 0.0;
+
+        for _ in 0..MAX_RESOLVE_ITERATIONS {
+            let mid = (min + max) * 0.5;
+
+            let mut test_aabb = aabb.clone();
+            test_aabb.translate(axis.unit() * mid);
+
+            if Physics::get_solid_collisions(&test_aabb, world).is_empty() {
+                final_delta = mid;
+                min = mid;
+            } else {
+                max = mid;
+            }
+        }
+
+        aabb.translate(axis.unit() * final_delta);
+
+        let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
+            0.0
+        } else {
+            final_delta
+        };
+
+        (aabb, adjusted_velocity)
+    }
+
     fn resolve_dynamic_object<T: DynamicObject>(
         dynamic_object: &mut T,
         world: &World,
@@ -50,98 +87,17 @@ impl Physics {
         let mut velocity = *velocity_target;
         let mut aabb = dynamic_object.aabb();
 
-        {
-            let dx = displacement.x;
-            aabb.translate(Vec3::new(dx, 0.0, 0.0));
+        let (aabb_x, resolved_dx) = Self::resolve_axis(aabb, displacement.x, Axis::X, world);
+        aabb = aabb_x;
+        velocity.x = resolved_dx / SIMULATION_TICK_IN_SECONDS;
 
-            let collisions = Physics::get_solid_collisions(&aabb, world);
+        let (aabb_y, resolved_dy) = Self::resolve_axis(aabb, displacement.y, Axis::Y, world);
+        aabb = aabb_y;
+        velocity.y = resolved_dy / SIMULATION_TICK_IN_SECONDS;
 
-            if !collisions.is_empty() {
-                aabb.translate(Vec3::new(-dx, 0.0, 0.0));
-
-                let step = dx.signum() * 0.01;
-                let mut resolved = false;
-
-                for i in 1..=MAX_RESOLVE_ITERATIONS {
-                    let try_dx = step * (i as f32);
-
-                    aabb.translate(Vec3::new(try_dx, 0.0, 0.0));
-
-                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
-                        resolved = true;
-                        break;
-                    }
-
-                    aabb.translate(Vec3::new(-try_dx, 0.0, 0.0));
-                }
-
-                if !resolved {
-                    velocity.x = 0.0;
-                }
-            }
-        }
-
-        {
-            let dy = displacement.y;
-            aabb.translate(Vec3::new(0.0, dy, 0.0));
-
-            let collisions = Physics::get_solid_collisions(&aabb, world);
-
-            if !collisions.is_empty() {
-                aabb.translate(Vec3::new(0.0, -dy, 0.0));
-
-                let step = dy.signum() * 0.01;
-                let mut resolved = false;
-
-                for i in 1..=MAX_RESOLVE_ITERATIONS {
-                    let try_dy = step * (i as f32);
-
-                    aabb.translate(Vec3::new(0.0, try_dy, 0.0));
-
-                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
-                        resolved = true;
-                        break;
-                    }
-
-                    aabb.translate(Vec3::new(0.0, -try_dy, 0.0));
-                }
-
-                if !resolved {
-                    velocity.y = 0.0;
-                }
-            }
-        }
-
-        {
-            let dz = displacement.z;
-            aabb.translate(Vec3::new(0.0, 0.0, dz));
-
-            let collisions = Physics::get_solid_collisions(&aabb, world);
-
-            if !collisions.is_empty() {
-                aabb.translate(Vec3::new(0.0, 0.0, -dz));
-
-                let step = dz.signum() * 0.01;
-                let mut resolved = false;
-
-                for i in 1..=MAX_RESOLVE_ITERATIONS {
-                    let try_dz = step * (i as f32);
-
-                    aabb.translate(Vec3::new(0.0, 0.0, try_dz));
-
-                    if Physics::get_solid_collisions(&aabb, world).is_empty() {
-                        resolved = true;
-                        break;
-                    }
-
-                    aabb.translate(Vec3::new(0.0, 0.0, -try_dz));
-                }
-
-                if !resolved {
-                    velocity.z = 0.0;
-                }
-            }
-        }
+        let (aabb_z, resolved_dz) = Self::resolve_axis(aabb, displacement.z, Axis::Z, world);
+        aabb = aabb_z;
+        velocity.z = resolved_dz / SIMULATION_TICK_IN_SECONDS;
 
         dynamic_object.set_velocity(velocity);
         dynamic_object.set_aabb(aabb);

@@ -57,8 +57,12 @@ impl Population {
                 let mut agent = Agent::new(agent::ID::allocate());
 
                 let mut position = kind.home().as_vec3();
-                position.x += rng.gen_range(-3.0..=3.0);
-                position.z += rng.gen_range(-3.0..=3.0);
+
+                let sign_x = if rng.gen_bool(0.5) { 1.0 } else { -1.0 };
+                let sign_z = if rng.gen_bool(0.5) { 1.0 } else { -1.0 };
+
+                position.x += sign_x * rng.gen_range(1.0..=4.0);
+                position.z += sign_z * rng.gen_range(1.0..=4.0);
 
                 agent.position = position;
                 agent.target = position;

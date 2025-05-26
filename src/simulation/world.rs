@@ -123,71 +123,130 @@ impl World {
     fn generate_temple(&mut self, kind: &agent::Kind) {
         let home_position = kind.home();
 
-        let x = home_position.x;
-        let y = home_position.y - 1;
-        let z = home_position.z;
+        self.set_block_kind(
+            home_position.x,
+            home_position.y + 4,
+            home_position.z,
+            kind.icon(),
+        );
 
         self.set_cube(
-            IVec3::new(-8 + x, 0 + y, -8 + z),
-            IVec3::new(8 + x, 0 + y, 8 + z),
+            IVec3::new(
+                home_position.x - 8,
+                home_position.y - 1,
+                home_position.z - 8,
+            ),
+            IVec3::new(
+                home_position.x + 8,
+                home_position.y - 1,
+                home_position.z + 8,
+            ),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(-7 + x, 1 + y, -7 + z),
-            IVec3::new(7 + x, 1 + y, 7 + z),
+            IVec3::new(home_position.x - 7, home_position.y, home_position.z - 7),
+            IVec3::new(home_position.x + 7, home_position.y, home_position.z + 7),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(-6 + x, 7 + y, -6 + z),
-            IVec3::new(6 + x, 7 + y, 6 + z),
+            IVec3::new(
+                home_position.x - 6,
+                home_position.y + 6,
+                home_position.z - 6,
+            ),
+            IVec3::new(
+                home_position.x + 6,
+                home_position.y + 6,
+                home_position.z + 6,
+            ),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(-5 + x, 8 + y, -5 + z),
-            IVec3::new(5 + x, 8 + y, 5 + z),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y + 7,
+                home_position.z - 5,
+            ),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y + 7,
+                home_position.z + 5,
+            ),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(-4 + x, 7 + y, -4 + z),
-            IVec3::new(4 + x, 7 + y, 4 + z),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y + 6,
+                home_position.z - 5,
+            ),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y + 6,
+                home_position.z + 5,
+            ),
             &block::Kind::Empty,
         );
 
         self.set_cube(
-            IVec3::new(5 + x, 0 + y, 5 + z),
-            IVec3::new(5 + x, 6 + y, 5 + z),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y - 1,
+                home_position.z + 5,
+            ),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y + 6,
+                home_position.z + 5,
+            ),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(-5 + x, 0 + y, 5 + z),
-            IVec3::new(-5 + x, 6 + y, 5 + z),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y - 1,
+                home_position.z + 5,
+            ),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y + 6,
+                home_position.z + 5,
+            ),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(5 + x, 0 + y, -5 + z),
-            IVec3::new(5 + x, 6 + y, -5 + z),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y - 1,
+                home_position.z - 5,
+            ),
+            IVec3::new(
+                home_position.x + 5,
+                home_position.y + 6,
+                home_position.z - 5,
+            ),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(-5 + x, 0 + y, -5 + z),
-            IVec3::new(-5 + x, 6 + y, -5 + z),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y - 1,
+                home_position.z - 5,
+            ),
+            IVec3::new(
+                home_position.x - 5,
+                home_position.y + 6,
+                home_position.z - 5,
+            ),
             &block::Kind::Engraved1,
         );
-
-        self.set_cube(
-            IVec3::new(0 + x, 2 + y, 0 + z),
-            IVec3::new(0 + x, 4 + y, 0 + z),
-            &block::Kind::Polished1,
-        );
-
-        self.set_block_kind(0 + x, 5 + y, 0 + z, kind.icon());
     }
 
     pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
@@ -572,7 +631,9 @@ impl World {
 
                             if let Some(grid_position) = grid::chunk_to_grid(visible_chunk_position)
                             {
-                                if let Some(visible_chunk_id) = grid::grid_to_chunk_id(grid_position) {
+                                if let Some(visible_chunk_id) =
+                                    grid::grid_to_chunk_id(grid_position)
+                                {
                                     visible_chunk_id_list.push(visible_chunk_id);
                                 }
                             }
