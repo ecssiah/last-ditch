@@ -55,7 +55,7 @@ impl Physics {
         let mut aabb = dynamic_object.aabb();
         let mut velocity = *velocity;
 
-        for axis in [Axis::X, Axis::Y, Axis::Z] {
+        for axis in [Axis::Y, Axis::X, Axis::Z] {
             let axis_index = axis as usize;
             let axis_delta = delta[axis_index];
 
@@ -82,7 +82,7 @@ impl Physics {
             let mid = (min + max) * 0.5;
             let test_aabb = aabb.translate(axis.unit() * mid);
 
-            if Physics::get_solid_collisions(&test_aabb, world).is_empty() {
+            if Self::get_solid_collisions(&test_aabb, world).is_empty() {
                 final_delta = mid;
                 min = mid;
             } else {
