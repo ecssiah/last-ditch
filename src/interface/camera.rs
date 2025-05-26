@@ -76,10 +76,7 @@ impl Camera {
             .current
             .lerp(judge_view.position.next, alpha);
 
-        let judge_quat = judge_view
-            .quat
-            .current
-            .lerp(judge_view.quat.next, alpha);
+        let judge_quat = judge_view.quat.current.lerp(judge_view.quat.next, alpha);
 
         let projection =
             Mat4::perspective_lh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);

@@ -22,11 +22,9 @@ pub struct Block {
     pub solid: bool,
 }
 
-impl Block {
-    pub fn get_aabb(x: i32, y: i32, z: i32) -> AABB {
-        AABB::new(
-            Vec3::new(x as f32, y as f32, z as f32),
-            Vec3::splat(BLOCK_SIZE),
-        )
-    }
+pub fn aabb(x: i32, y: i32, z: i32) -> AABB {
+    AABB::new(
+        Vec3::new(x as f32, y as f32, z as f32),
+        Vec3::splat(BLOCK_SIZE),
+    )
 }

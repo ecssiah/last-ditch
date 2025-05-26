@@ -10,7 +10,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn get_list() -> [Kind; 4] {
+    pub fn all() -> [Kind; 4] {
         [Kind::Lion, Kind::Eagle, Kind::Wolf, Kind::Horse]
     }
 

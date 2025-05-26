@@ -313,7 +313,7 @@ impl<'window> Interface<'window> {
 
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
-        
+
         let entity_action = simulation::dispatch::EntityAction::Movement(movement_actions);
         let action = simulation::dispatch::Action::Agent(entity_action);
 

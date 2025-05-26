@@ -103,13 +103,6 @@ impl World {
     fn generate_temple(&mut self, kind: &agent::Kind) {
         let home_position = kind.home();
 
-        self.set_block_kind(
-            home_position.x,
-            home_position.y + 4,
-            home_position.z,
-            kind.icon(),
-        );
-
         self.set_cube(
             IVec3::new(
                 home_position.x - 8,
@@ -227,6 +220,19 @@ impl World {
             ),
             &block::Kind::Engraved1,
         );
+
+        self.set_block_kind(
+            home_position.x,
+            home_position.y + 4,
+            home_position.z,
+            kind.icon(),
+        );
+
+        self.set_cube(
+            IVec3::new(home_position.x, home_position.y + 5, home_position.z),
+            IVec3::new(home_position.x, home_position.y + 6, home_position.z),
+            &block::Kind::Polished1,
+        );
     }
 
     pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
@@ -313,7 +319,7 @@ impl World {
         let mut update_map: HashMap<chunk::ID, Vec<(block::ID, Vec<grid::Direction>)>> =
             HashMap::new();
 
-        for direction in grid::Direction::get_list() {
+        for direction in grid::Direction::all() {
             let neighbor_grid_position = grid_position + direction.offset();
 
             if let Some((chunk_id, block_id)) = grid::grid_to_ids(neighbor_grid_position) {
@@ -338,7 +344,7 @@ impl World {
     fn compute_neighbor_list(&mut self, grid_position: IVec3) -> Vec<grid::Direction> {
         let mut neighbor_list = Vec::new();
 
-        for direction in grid::Direction::get_list() {
+        for direction in grid::Direction::all() {
             if direction == grid::Direction::XoYoZo {
                 continue;
             }

@@ -20,32 +20,32 @@ pub enum Direction {
 impl Direction {
     #[rustfmt::skip]
     const ALL: [Direction; 27] = [
-        Direction::XnYnZn, 
-        Direction::XoYnZn, 
+        Direction::XnYnZn,
+        Direction::XoYnZn,
         Direction::XpYnZn,
-        Direction::XnYoZn, 
-        Direction::XoYoZn, 
+        Direction::XnYoZn,
+        Direction::XoYoZn,
         Direction::XpYoZn,
-        Direction::XnYpZn, 
-        Direction::XoYpZn, 
+        Direction::XnYpZn,
+        Direction::XoYpZn,
         Direction::XpYpZn,
-        Direction::XnYnZo, 
-        Direction::XoYnZo, 
+        Direction::XnYnZo,
+        Direction::XoYnZo,
         Direction::XpYnZo,
-        Direction::XnYoZo, 
-        Direction::XoYoZo, 
+        Direction::XnYoZo,
+        Direction::XoYoZo,
         Direction::XpYoZo,
-        Direction::XnYpZo, 
-        Direction::XoYpZo, 
+        Direction::XnYpZo,
+        Direction::XoYpZo,
         Direction::XpYpZo,
-        Direction::XnYnZp, 
-        Direction::XoYnZp, 
+        Direction::XnYnZp,
+        Direction::XoYnZp,
         Direction::XpYnZp,
-        Direction::XnYoZp, 
-        Direction::XoYoZp, 
+        Direction::XnYoZp,
+        Direction::XoYoZp,
         Direction::XpYoZp,
-        Direction::XnYpZp, 
-        Direction::XoYpZp, 
+        Direction::XnYpZp,
+        Direction::XoYpZp,
         Direction::XpYpZp,
     ];
 
@@ -102,7 +102,7 @@ impl Direction {
         Direction::XpYpZp,
     ];
 
-    pub fn get_list() -> [Direction; 27] {
+    pub fn all() -> [Direction; 27] {
         Self::ALL
     }
 

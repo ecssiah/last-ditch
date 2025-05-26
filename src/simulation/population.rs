@@ -13,12 +13,11 @@ use crate::simulation::{
     world::World,
 };
 use glam::Vec3;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 use std::collections::HashMap;
 
 pub struct Population {
     pub tick: Tick,
-    pub rand_pcg: rand_pcg::Pcg32,
     pub judge: Judge,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
@@ -27,7 +26,6 @@ impl Population {
     pub fn new() -> Population {
         let population = Population {
             tick: Tick::ZERO,
-            rand_pcg: rand_pcg::Pcg32::seed_from_u64(DEFAULT_SEED),
             judge: Judge::new(judge::ID::allocate()),
             agent_map: HashMap::new(),
         };
@@ -43,8 +41,8 @@ impl Population {
     fn generate_judge(&mut self) {
         log::info!("Generating Judge");
 
-        self.judge.set_position(Vec3::new(0.0, 2.0, 10.0));
-        self.judge.set_rotation(0.0, 180.0);
+        self.judge.set_position(Vec3::new(0.0, 2.0, -10.0));
+        self.judge.set_rotation(0.0, 0.0);
     }
 
     fn generate_agents(&mut self) {
@@ -52,21 +50,15 @@ impl Population {
 
         let mut rng = rand::thread_rng();
 
-        for kind in population::agent::Kind::get_list() {
+        for kind in population::agent::Kind::all() {
             for _ in 0..AGENT_INITIAL_POPULATION {
+                let offset = Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
+                let position = kind.home().as_vec3() + offset;
+
                 let mut agent = Agent::new(agent::ID::allocate());
-
-                let mut position = kind.home().as_vec3();
-
-                let sign_x = if rng.gen_bool(0.5) { 1.0 } else { -1.0 };
-                let sign_z = if rng.gen_bool(0.5) { 1.0 } else { -1.0 };
-
-                position.x += sign_x * rng.gen_range(1.0..=4.0);
-                position.z += sign_z * rng.gen_range(1.0..=4.0);
 
                 agent.position = position;
                 agent.target = position;
-
                 agent.kind = kind.clone();
                 agent.height = rng.gen_range(0.7..1.3);
 
