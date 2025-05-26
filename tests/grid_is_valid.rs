@@ -1,5 +1,5 @@
 use glam::IVec3;
-use last_ditch::simulation::{world::grid, GRID_BOUNDARY};
+use last_ditch::simulation::{consts::*, world::grid};
 
 struct IsValidTestCase {
     description: String,

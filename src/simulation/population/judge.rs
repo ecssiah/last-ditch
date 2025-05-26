@@ -24,6 +24,7 @@ pub struct Judge {
     pub chunk_update: bool,
     pub position: Vec3,
     pub velocity: Vec3,
+    pub acceleration: Vec3,
     pub size: Vec3,
     pub aabb: AABB,
     pub look: Vec3,
@@ -41,6 +42,7 @@ impl Judge {
             chunk_update: false,
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
+            acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
             size: Vec3::new(0.8, 2.1, 0.8),
             aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.1, 0.8)),
             look: Vec3::ZERO,
@@ -149,6 +151,14 @@ impl DynamicObject for Judge {
 
     fn set_velocity(&mut self, velocity: Vec3) {
         self.velocity = velocity;
+    }
+
+    fn acceleration(&self) -> Vec3 {
+        self.acceleration
+    }
+
+    fn set_acceleration(&mut self, acceleration: Vec3) {
+        self.acceleration = acceleration;
     }
 
     fn size(&self) -> Vec3 {

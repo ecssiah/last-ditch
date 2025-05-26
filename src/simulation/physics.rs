@@ -27,45 +27,46 @@ impl Physics {
     }
 
     pub fn tick(&self, world: &World, population: &mut Population) {
-        self.integrate(world, population);
+        let judge = population.get_judge_mut();
 
-        Self::sync_dynamic_object(population.get_judge_mut());
+        let (delta, velocity) = Self::integrate_dynamic_object(judge);
+
+        Self::resolve_dynamic_object(judge, world, &delta, &velocity);
+        Self::sync_dynamic_object(judge);
     }
 
-    fn integrate(&self, world: &World, population: &mut Population) {
-        let judge = &mut population.judge;
+    fn integrate_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) -> (Vec3, Vec3) {
+        let initial_velocity = dynamic_object.velocity();
+        let acceleration = dynamic_object.acceleration();
 
-        let initial_velocity = judge.velocity;
-        let acceleration = self.gravity;
-
-        let displacement = initial_velocity * SIMULATION_TICK_IN_SECONDS
+        let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
             + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
-        Self::resolve_dynamic_object(judge, world, &velocity, &displacement);
+        (delta, velocity)
     }
 
     fn resolve_dynamic_object<T: DynamicObject>(
         dynamic_object: &mut T,
         world: &World,
-        velocity_target: &Vec3,
         displacement: &Vec3,
+        velocity: &Vec3,
     ) {
-        let mut velocity = *velocity_target;
         let mut aabb = dynamic_object.aabb();
+        let mut velocity = *velocity;
 
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             let axis_index = axis as usize;
+            let delta = displacement[axis_index];
 
-            let (resolved_aabb, step) =
-                Self::resolve_axis(aabb, displacement[axis_index], axis, world);
-            velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
+            let (resolved_aabb, step) = Self::resolve_axis(aabb, delta, axis, world);
 
             aabb = resolved_aabb;
+            velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
         }
 
-        dynamic_object.set_velocity(velocity);
         dynamic_object.set_aabb(aabb);
+        dynamic_object.set_velocity(velocity);
     }
 
     fn resolve_axis(aabb: AABB, delta: f32, axis: Axis, world: &World) -> (AABB, f32) {

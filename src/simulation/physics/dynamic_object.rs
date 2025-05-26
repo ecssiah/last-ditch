@@ -8,6 +8,9 @@ pub trait DynamicObject {
     fn velocity(&self) -> Vec3;
     fn set_velocity(&mut self, velocity: Vec3);
 
+    fn acceleration(&self) -> Vec3;
+    fn set_acceleration(&mut self, acceleration: Vec3);
+
     fn size(&self) -> Vec3;
 
     fn aabb(&self) -> AABB;

@@ -1,7 +1,6 @@
-use std::f32::EPSILON;
-
 use glam::Vec3;
 use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
+use std::f32::EPSILON;
 
 struct SweepTestCase {
     description: String,
