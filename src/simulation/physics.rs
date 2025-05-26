@@ -26,11 +26,13 @@ impl Physics {
         physics
     }
 
-    pub fn tick(&mut self, world: &World, population: &mut Population) {
+    pub fn tick(&self, world: &World, population: &mut Population) {
         self.integrate(world, population);
+
+        Self::sync_dynamic_object(population.get_judge_mut());
     }
 
-    fn integrate(&mut self, world: &World, population: &mut Population) {
+    fn integrate(&self, world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
         let initial_velocity = judge.velocity;
@@ -41,41 +43,6 @@ impl Physics {
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
         Self::resolve_dynamic_object(judge, world, &velocity, &displacement);
-        Self::sync_dynamic_object(judge);
-    }
-
-    fn resolve_axis(mut aabb: AABB, delta: f32, axis: Axis, world: &World) -> (AABB, f32) {
-        if delta.abs() < EPSILON_COLLISION {
-            return (aabb, 0.0);
-        }
-
-        let mut min = 0.0;
-        let mut max = delta;
-        let mut final_delta = 0.0;
-
-        for _ in 0..MAX_RESOLVE_ITERATIONS {
-            let mid = (min + max) * 0.5;
-
-            let mut test_aabb = aabb.clone();
-            test_aabb.translate(axis.unit() * mid);
-
-            if Physics::get_solid_collisions(&test_aabb, world).is_empty() {
-                final_delta = mid;
-                min = mid;
-            } else {
-                max = mid;
-            }
-        }
-
-        aabb.translate(axis.unit() * final_delta);
-
-        let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
-            0.0
-        } else {
-            final_delta
-        };
-
-        (aabb, adjusted_velocity)
     }
 
     fn resolve_dynamic_object<T: DynamicObject>(
@@ -87,20 +54,62 @@ impl Physics {
         let mut velocity = *velocity_target;
         let mut aabb = dynamic_object.aabb();
 
-        let (aabb_x, resolved_dx) = Self::resolve_axis(aabb, displacement.x, Axis::X, world);
-        aabb = aabb_x;
-        velocity.x = resolved_dx / SIMULATION_TICK_IN_SECONDS;
+        for axis in [Axis::X, Axis::Y, Axis::Z] {
+            let axis_index = axis as usize;
 
-        let (aabb_y, resolved_dy) = Self::resolve_axis(aabb, displacement.y, Axis::Y, world);
-        aabb = aabb_y;
-        velocity.y = resolved_dy / SIMULATION_TICK_IN_SECONDS;
+            let (resolved_aabb, step) =
+                Self::resolve_axis(aabb, displacement[axis_index], axis, world);
+            velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
 
-        let (aabb_z, resolved_dz) = Self::resolve_axis(aabb, displacement.z, Axis::Z, world);
-        aabb = aabb_z;
-        velocity.z = resolved_dz / SIMULATION_TICK_IN_SECONDS;
+            aabb = resolved_aabb;
+        }
 
         dynamic_object.set_velocity(velocity);
         dynamic_object.set_aabb(aabb);
+    }
+
+    fn resolve_axis(aabb: AABB, delta: f32, axis: Axis, world: &World) -> (AABB, f32) {
+        if delta.abs() < EPSILON_COLLISION {
+            return (aabb, 0.0);
+        }
+
+        let mut min = 0.0;
+        let mut max = delta;
+        let mut final_delta = 0.0;
+
+        for _ in 0..MAX_RESOLVE_ITERATIONS {
+            let mid = (min + max) * 0.5;
+
+            let test_aabb = aabb.translate(axis.unit() * mid);
+
+            if Physics::get_solid_collisions(&test_aabb, world).is_empty() {
+                final_delta = mid;
+                min = mid;
+            } else {
+                max = mid;
+            }
+        }
+
+        let adjusted_aabb = aabb.translate(axis.unit() * final_delta);
+
+        let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
+            0.0
+        } else {
+            final_delta
+        };
+
+        (adjusted_aabb, adjusted_velocity)
+    }
+
+    fn get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
+        grid::overlapping_aabb_list(target)
+            .into_iter()
+            .filter(|block_aabb| {
+                let block_position = block_aabb.center().as_ivec3();
+
+                world.get_block(block_position).map_or(false, |b| b.solid)
+            })
+            .collect()
     }
 
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
@@ -117,16 +126,5 @@ impl Physics {
             dynamic_object.set_chunk_update(chunk_update);
             dynamic_object.set_position(Vec3::new(0.0, 10.0, 0.0));
         }
-    }
-
-    fn get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
-        grid::overlapping_aabb_list(target)
-            .into_iter()
-            .filter(|block_aabb| {
-                let block_position = block_aabb.center().as_ivec3();
-
-                world.get_block(block_position).map_or(false, |b| b.solid)
-            })
-            .collect()
     }
 }

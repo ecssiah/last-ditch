@@ -28,10 +28,10 @@ impl TextureAtlas {
         let v_max = ((tile_y + block_size) * self.tile_size) as f32 / self.height as f32;
 
         [
-            [u_min, v_max],
             [u_max, v_max],
-            [u_max, v_min],
+            [u_min, v_max],
             [u_min, v_min],
+            [u_max, v_min],
         ]
     }
 }
