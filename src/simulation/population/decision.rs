@@ -5,16 +5,14 @@ pub use goal::Goal;
 pub use step::Step;
 
 use crate::simulation::{
-    consts::*,
     population::Agent,
     world::{grid, World},
 };
 use glam::IVec3;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
 #[derive(Clone)]
 pub struct Decision {
-    pub rng: rand_pcg::Pcg32,
     pub goal: Option<Goal>,
     pub plan: Vec<Step>,
     pub step: Option<Step>,
@@ -23,7 +21,6 @@ pub struct Decision {
 impl Decision {
     pub fn new() -> Decision {
         let decision = Decision {
-            rng: rand_pcg::Pcg32::seed_from_u64(DEFAULT_SEED),
             goal: None,
             plan: Vec::new(),
             step: None,
@@ -41,7 +38,7 @@ impl Decision {
     }
 
     fn plan_idle(&self) -> Vec<Step> {
-        let mut rng = rand_pcg::Pcg32::from_entropy();
+        let mut rng = rand::thread_rng();
 
         let mut plan = Vec::new();
         let wait_steps = rng.gen_range(28..48);
@@ -74,7 +71,7 @@ impl Decision {
     }
 
     fn find_target(grid_position: &IVec3, world: &World) -> Option<IVec3> {
-        let mut rng = rand_pcg::Pcg32::from_entropy();
+        let mut rng = rand::thread_rng();
 
         let direction_index = rng.gen_range(0..4);
         let direction = grid::Direction::cardinal()[direction_index];

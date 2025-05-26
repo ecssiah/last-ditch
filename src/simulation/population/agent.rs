@@ -11,7 +11,7 @@ use crate::simulation::{
     SIMULATION_TICK_DURATION,
 };
 use glam::Vec3;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
 #[derive(Clone)]
 pub struct Agent {
@@ -53,7 +53,7 @@ impl Agent {
 
     pub fn tick(&mut self, world: &World) {
         if self.plan.is_empty() {
-            let mut rng = rand_pcg::Pcg32::from_entropy();
+            let mut rng = rand::thread_rng();
 
             let flip = rng.gen_bool(0.5);
 

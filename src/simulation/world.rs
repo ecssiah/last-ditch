@@ -28,31 +28,11 @@ impl World {
 
         log::info!("Generating Structures");
 
-        self.set_cube(
-            IVec3::new(0, 7, 0),
-            IVec3::new(0, 7, 4),
-            &block::Kind::North,
-        );
-
-        self.set_cube(
-            IVec3::new(-4, 7, 0),
-            IVec3::new(0, 7, 0),
-            &block::Kind::West,
-        );
-
-        self.set_cube(
-            IVec3::new(0, 7, -4),
-            IVec3::new(0, 7, 0),
-            &block::Kind::South,
-        );
-
-        self.set_cube(IVec3::new(0, 7, 0), IVec3::new(4, 7, 0), &block::Kind::East);
-
-        self.set_cube(
-            IVec3::new(0, 0, 0),
-            IVec3::new(0, 7, 0),
-            &block::Kind::Origin,
-        );
+        self.set_block_kind(0, 0, 0, &block::Kind::Origin);
+        self.set_block_kind(0, 0, 4, &block::Kind::North);
+        self.set_block_kind(-4, 0, 0, &block::Kind::West);
+        self.set_block_kind(0, 0, -4, &block::Kind::South);
+        self.set_block_kind(4, 0, 0, &block::Kind::East);
 
         self.generate_temple(&agent::Kind::Eagle);
         self.generate_temple(&agent::Kind::Lion);

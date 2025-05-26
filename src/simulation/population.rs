@@ -67,8 +67,6 @@ impl Population {
                 agent.position = position;
                 agent.target = position;
 
-                let mut rng = rand_pcg::Pcg32::from_entropy();
-
                 agent.kind = kind.clone();
                 agent.height = rng.gen_range(0.7..1.3);
 
