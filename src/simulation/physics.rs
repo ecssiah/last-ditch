@@ -29,9 +29,9 @@ impl Physics {
     pub fn tick(&self, world: &World, population: &mut Population) {
         let judge = population.get_judge_mut();
 
-        let (delta, velocity) = Self::integrate_dynamic_object(judge);
+        let (velocity, delta) = Self::integrate_dynamic_object(judge);
 
-        Self::resolve_dynamic_object(judge, world, &delta, &velocity);
+        Self::resolve_dynamic_object(judge, world, &velocity, &delta);
         Self::sync_dynamic_object(judge);
     }
 
@@ -39,27 +39,27 @@ impl Physics {
         let initial_velocity = dynamic_object.velocity();
         let acceleration = dynamic_object.acceleration();
 
+        let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
         let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
             + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
-        let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
-        (delta, velocity)
+        (velocity, delta)
     }
 
     fn resolve_dynamic_object<T: DynamicObject>(
         dynamic_object: &mut T,
         world: &World,
-        displacement: &Vec3,
         velocity: &Vec3,
+        delta: &Vec3,
     ) {
         let mut aabb = dynamic_object.aabb();
         let mut velocity = *velocity;
 
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             let axis_index = axis as usize;
-            let delta = displacement[axis_index];
+            let axis_delta = delta[axis_index];
 
-            let (resolved_aabb, step) = Self::resolve_axis(aabb, delta, axis, world);
+            let (resolved_aabb, step) = Self::resolve_axis(aabb, world, axis, axis_delta);
 
             aabb = resolved_aabb;
             velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
@@ -69,7 +69,7 @@ impl Physics {
         dynamic_object.set_velocity(velocity);
     }
 
-    fn resolve_axis(aabb: AABB, delta: f32, axis: Axis, world: &World) -> (AABB, f32) {
+    fn resolve_axis(aabb: AABB, world: &World, axis: Axis, delta: f32) -> (AABB, f32) {
         if delta.abs() < EPSILON_COLLISION {
             return (aabb, 0.0);
         }
@@ -80,7 +80,6 @@ impl Physics {
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-
             let test_aabb = aabb.translate(axis.unit() * mid);
 
             if Physics::get_solid_collisions(&test_aabb, world).is_empty() {
