@@ -41,7 +41,7 @@ impl State {
         self.world.tick(tick);
         self.population.tick(tick, &self.world);
         self.physics.tick(&self.world, &mut self.population);
-
+        
         self.time.tick();
     }
 }
