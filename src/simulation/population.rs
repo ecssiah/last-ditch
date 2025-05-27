@@ -33,9 +33,9 @@ impl Population {
         population
     }
 
-    pub fn generate(&mut self) {
+    pub fn generate(&mut self, world: &World) {
         self.generate_judge();
-        self.generate_agents();
+        self.generate_agents(world);
     }
 
     fn generate_judge(&mut self) {
@@ -45,24 +45,29 @@ impl Population {
         self.judge.set_rotation(0.0, 0.0);
     }
 
-    fn generate_agents(&mut self) {
+    fn generate_agents(&mut self, world: &World) {
         log::info!("Generating Agents");
 
         let mut rng = rand::thread_rng();
 
         for kind in population::agent::Kind::all() {
-            for _ in 0..AGENT_INITIAL_POPULATION {
-                let offset = Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
-                let position = kind.home().as_vec3() + offset;
+            if let Some(flag_position) = world.get_flag(&kind) {
+                let flag_position = flag_position.as_vec3();
 
-                let mut agent = Agent::new(agent::ID::allocate());
+                for _ in 0..AGENT_INITIAL_POPULATION {
+                    let offset =
+                        Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
+                    let position = flag_position + offset;
 
-                agent.position = position;
-                agent.target = position;
-                agent.kind = kind.clone();
-                agent.height = rng.gen_range(0.7..1.3);
+                    let mut agent = Agent::new(agent::ID::allocate());
 
-                self.agent_map.insert(agent.id, agent);
+                    agent.position = position;
+                    agent.target = position;
+                    agent.kind = kind.clone();
+                    agent.height = rng.gen_range(0.7..1.3);
+
+                    self.agent_map.insert(agent.id, agent);
+                }
             }
         }
     }

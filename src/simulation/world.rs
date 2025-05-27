@@ -2,23 +2,44 @@ pub mod block;
 pub mod chunk;
 pub mod grid;
 
-use crate::simulation::{consts::*, population::agent, time::Tick, world::chunk::Chunk, BLOCK_MAP};
+use crate::simulation::{
+    consts::*,
+    population::agent::{self},
+    time::Tick,
+    world::chunk::Chunk,
+    BLOCK_MAP,
+};
 use glam::{IVec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
     pub tick: Tick,
     pub chunk_list: [Chunk; WORLD_VOLUME],
+    pub flags: HashMap<agent::kind::Kind, IVec3>,
 }
 
 impl World {
     pub fn new() -> World {
         let tick = Tick::ZERO;
         let chunk_list = Self::setup_chunks();
+        let flags = HashMap::from([
+            (agent::kind::Kind::Lion, IVec3::ZERO),
+            (agent::kind::Kind::Eagle, IVec3::ZERO),
+            (agent::kind::Kind::Horse, IVec3::ZERO),
+            (agent::kind::Kind::Wolf, IVec3::ZERO),
+        ]);
 
-        let world = Self { tick, chunk_list };
+        let world = Self {
+            tick,
+            chunk_list,
+            flags,
+        };
 
         world
+    }
+
+    pub fn get_flag(&self, kind: &agent::Kind) -> Option<IVec3> {
+        self.flags.get(kind).cloned()
     }
 
     pub fn generate(&mut self) {
@@ -34,10 +55,10 @@ impl World {
         self.set_block_kind(0, 0, -4, &block::Kind::South);
         self.set_block_kind(4, 0, 0, &block::Kind::East);
 
-        self.generate_temple(&agent::Kind::Eagle);
-        self.generate_temple(&agent::Kind::Lion);
-        self.generate_temple(&agent::Kind::Horse);
-        self.generate_temple(&agent::Kind::Wolf);
+        self.generate_temple(34, 2, 34, &agent::Kind::Eagle);
+        self.generate_temple(-34, 2, 34, &agent::Kind::Lion);
+        self.generate_temple(34, 2, -34, &agent::Kind::Horse);
+        self.generate_temple(-34, 2, -34, &agent::Kind::Wolf);
 
         self.update_chunk_meshes();
     }
@@ -100,137 +121,68 @@ impl World {
         }
     }
 
-    fn generate_temple(&mut self, kind: &agent::Kind) {
-        let home_position = kind.home();
+    fn generate_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
+        self.flags.insert(kind.clone(), IVec3::new(x, y, z));
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 8,
-                home_position.y - 1,
-                home_position.z - 8,
-            ),
-            IVec3::new(
-                home_position.x + 8,
-                home_position.y - 1,
-                home_position.z + 8,
-            ),
+            IVec3::new(x - 8, y - 1, z - 8),
+            IVec3::new(x + 8, y - 1, z + 8),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(home_position.x - 7, home_position.y, home_position.z - 7),
-            IVec3::new(home_position.x + 7, home_position.y, home_position.z + 7),
+            IVec3::new(x - 7, y, z - 7),
+            IVec3::new(x + 7, y, z + 7),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 6,
-                home_position.y + 6,
-                home_position.z - 6,
-            ),
-            IVec3::new(
-                home_position.x + 6,
-                home_position.y + 6,
-                home_position.z + 6,
-            ),
+            IVec3::new(x - 6, y + 6, z - 6),
+            IVec3::new(x + 6, y + 6, z + 6),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y + 7,
-                home_position.z - 5,
-            ),
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y + 7,
-                home_position.z + 5,
-            ),
+            IVec3::new(x - 5, y + 7, z - 5),
+            IVec3::new(x + 5, y + 7, z + 5),
             &block::Kind::Stone1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y + 6,
-                home_position.z - 5,
-            ),
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y + 6,
-                home_position.z + 5,
-            ),
+            IVec3::new(x - 5, y + 6, z - 5),
+            IVec3::new(x + 5, y + 6, z + 5),
             &block::Kind::Empty,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y - 1,
-                home_position.z + 5,
-            ),
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y + 6,
-                home_position.z + 5,
-            ),
+            IVec3::new(x + 5, y - 1, z + 5),
+            IVec3::new(x + 5, y + 6, z + 5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y - 1,
-                home_position.z + 5,
-            ),
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y + 6,
-                home_position.z + 5,
-            ),
+            IVec3::new(x - 5, y - 1, z + 5),
+            IVec3::new(x - 5, y + 6, z + 5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y - 1,
-                home_position.z - 5,
-            ),
-            IVec3::new(
-                home_position.x + 5,
-                home_position.y + 6,
-                home_position.z - 5,
-            ),
+            IVec3::new(x + 5, y - 1, z - 5),
+            IVec3::new(x + 5, y + 6, z - 5),
             &block::Kind::Engraved1,
         );
 
         self.set_cube(
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y - 1,
-                home_position.z - 5,
-            ),
-            IVec3::new(
-                home_position.x - 5,
-                home_position.y + 6,
-                home_position.z - 5,
-            ),
+            IVec3::new(x - 5, y - 1, z - 5),
+            IVec3::new(x - 5, y + 6, z - 5),
             &block::Kind::Engraved1,
         );
 
-        self.set_block_kind(
-            home_position.x,
-            home_position.y + 4,
-            home_position.z,
-            kind.icon(),
-        );
+        self.set_block_kind(x, y + 4, z, kind.icon());
 
         self.set_cube(
-            IVec3::new(home_position.x, home_position.y + 5, home_position.z),
-            IVec3::new(home_position.x, home_position.y + 6, home_position.z),
+            IVec3::new(x, y + 5, z),
+            IVec3::new(x, y + 6, z),
             &block::Kind::Polished1,
         );
     }

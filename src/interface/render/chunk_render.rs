@@ -46,35 +46,6 @@ impl ChunkRender {
         chunk_renderer
     }
 
-    pub fn create_render_pipeline(
-        device: &Device,
-        surface_format: &TextureFormat,
-        shader_module: &wgpu::ShaderModule,
-        fog_uniform_bind_group_layout: &BindGroupLayout,
-        camera_uniform_bind_group_layout: &BindGroupLayout,
-        texture_sampler_bind_group_layout: &BindGroupLayout,
-    ) -> wgpu::RenderPipeline {
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Chunk Pipeline Layout"),
-                bind_group_layouts: &[
-                    &fog_uniform_bind_group_layout,
-                    &camera_uniform_bind_group_layout,
-                    &texture_sampler_bind_group_layout,
-                ],
-                push_constant_ranges: &[],
-            });
-
-        let render_pipeline = Self::create_chunk_render_pipeline(
-            &device,
-            &render_pipeline_layout,
-            &shader_module,
-            surface_format,
-        );
-
-        render_pipeline
-    }
-
     fn create_chunk_render_pipeline(
         device: &wgpu::Device,
         layout: &wgpu::PipelineLayout,
@@ -124,6 +95,35 @@ impl ChunkRender {
             multiview: None,
             cache: None,
         })
+    }
+
+    pub fn create_render_pipeline(
+        device: &Device,
+        surface_format: &TextureFormat,
+        shader_module: &wgpu::ShaderModule,
+        fog_uniform_bind_group_layout: &BindGroupLayout,
+        camera_uniform_bind_group_layout: &BindGroupLayout,
+        texture_sampler_bind_group_layout: &BindGroupLayout,
+    ) -> wgpu::RenderPipeline {
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Chunk Pipeline Layout"),
+                bind_group_layouts: &[
+                    &fog_uniform_bind_group_layout,
+                    &camera_uniform_bind_group_layout,
+                    &texture_sampler_bind_group_layout,
+                ],
+                push_constant_ranges: &[],
+            });
+
+        let render_pipeline = Self::create_chunk_render_pipeline(
+            &device,
+            &render_pipeline_layout,
+            &shader_module,
+            surface_format,
+        );
+
+        render_pipeline
     }
 
     pub fn render(
