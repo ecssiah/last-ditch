@@ -93,7 +93,10 @@ impl Observation {
                 tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
                 position: StatePair::new(population_view.judge_view.position.next, judge.position),
                 size: StatePair::new(population_view.judge_view.size.next, judge.size),
-                quat: StatePair::new(population_view.judge_view.quat.next, judge.quat),
+                orientation: StatePair::new(
+                    population_view.judge_view.orientation.next,
+                    judge.orientation,
+                ),
             },
             agent_view_map: HashMap::new(),
         };

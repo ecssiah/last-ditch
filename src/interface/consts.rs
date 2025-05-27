@@ -1,6 +1,6 @@
 use crate::{include_assets, interface::render::data::BlockData, simulation};
 use once_cell::sync::Lazy;
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, f32::consts::PI, time::Duration};
 
 pub const FULLSCREEN: bool = false;
 
@@ -15,6 +15,7 @@ pub const WINDOW_ASPECT_RATIO: f32 = WINDOW_WIDTH as f32 / WINDOW_HEIGHT as f32;
 pub const WINDOW_CLEAR_COLOR: [f64; 4] = [0.8, 0.8, 0.8, 1.0];
 
 pub const FOV: f32 = 45.0;
+pub const FOV_RADIANS: f32 = FOV * PI / 180.0;
 pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 100.0;
 

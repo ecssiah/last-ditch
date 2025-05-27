@@ -76,15 +76,13 @@ impl Camera {
             .current
             .lerp(judge_view.position.next, alpha);
 
-        let judge_quat = judge_view.quat.current.lerp(judge_view.quat.next, alpha);
-
         let projection =
-            Mat4::perspective_lh(FOV.to_radians(), WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+            Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
         let eye = judge_position + Vec3::Y * judge_view.size.current.y;
 
-        let forward = judge_quat * Vec3::Z;
-        let up = judge_quat * Vec3::Y;
+        let forward = judge_view.orientation.current * Vec3::Z;
+        let up = judge_view.orientation.current * Vec3::Y;
         let target = eye + forward;
 
         let view = Mat4::look_at_lh(eye, target, up);

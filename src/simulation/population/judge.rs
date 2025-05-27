@@ -27,10 +27,9 @@ pub struct Judge {
     pub acceleration: Vec3,
     pub size: Vec3,
     pub aabb: AABB,
-    pub look: Vec3,
     pub yaw: f32,
     pub pitch: f32,
-    pub quat: Quat,
+    pub orientation: Quat,
     pub jump_state: JumpState,
 }
 
@@ -47,10 +46,9 @@ impl Judge {
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
             size: Vec3::new(0.8, 2.1, 0.8),
             aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.1, 0.8)),
-            look: Vec3::ZERO,
             yaw: 0.0,
             pitch: 0.0,
-            quat: Quat::default(),
+            orientation: Quat::default(),
             jump_state: JumpState {
                 stage: JumpStage::Ground,
                 timer: 0,
@@ -66,13 +64,13 @@ impl Judge {
         self.pitch = pitch.to_radians();
         self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-        self.quat = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
+        self.orientation = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
 
         let velocity_xz = Vec3::new(self.velocity.x, 0.0, self.velocity.z);
         let speed = velocity_xz.length();
 
         if speed > 1e-6 {
-            let forward = self.quat * Vec3::Z;
+            let forward = self.orientation * Vec3::Z;
             let new_velocity_xz = forward.normalize() * speed;
 
             self.velocity.x = new_velocity_xz.x;
@@ -87,7 +85,7 @@ impl Judge {
             self.pitch += movement_action.pitch;
             self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-            self.quat = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
+            self.orientation = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
         }
 
         let input_direction = movement_action.direction.normalize_or_zero();
