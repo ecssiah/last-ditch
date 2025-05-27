@@ -100,17 +100,15 @@ impl Input {
             self.key_inputs.key_w + self.key_inputs.key_s,
         );
 
-        let rotation = Vec3::new(
-            MOUSE_X_SENSITIVITY * self.mouse_inputs.delta.y,
-            MOUSE_Y_SENSITIVITY * self.mouse_inputs.delta.x,
-            0.0,
-        );
+        let pitch = MOUSE_X_SENSITIVITY * self.mouse_inputs.delta.y;
+        let yaw = MOUSE_Y_SENSITIVITY * self.mouse_inputs.delta.x;
 
         self.mouse_inputs.delta = Vec2::ZERO;
 
         let movement_actions = MovementAction {
             direction,
-            rotation,
+            pitch,
+            yaw,
         };
 
         movement_actions

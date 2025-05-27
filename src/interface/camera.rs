@@ -5,13 +5,20 @@ use crate::{
 use glam::{Mat4, Vec3};
 
 pub struct Camera {
-    pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_buffer: wgpu::Buffer,
+    pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_bind_group: wgpu::BindGroup,
 }
 
 impl Camera {
     pub fn new(device: &wgpu::Device) -> Camera {
+        let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("View Projection Buffer"),
+            size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("Uniform Bind Group Layout"),
@@ -27,13 +34,6 @@ impl Camera {
                 }],
             });
 
-        let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("View Projection Buffer"),
-            size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
         let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("View Projection Bind Group"),
             layout: &uniform_bind_group_layout,
@@ -44,8 +44,8 @@ impl Camera {
         });
 
         let camera = Camera {
-            uniform_bind_group_layout,
             uniform_buffer,
+            uniform_bind_group_layout,
             uniform_bind_group,
         };
 
@@ -58,16 +58,16 @@ impl Camera {
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) {
-        let view_projection_matrix = Self::create_gpu_camera(alpha, judge_view);
+        let camera_uniform_data = Self::generate_camera_uniform_data(alpha, judge_view);
 
         queue.write_buffer(
             &self.uniform_buffer,
             0,
-            bytemuck::cast_slice(&[view_projection_matrix]),
+            bytemuck::cast_slice(&[camera_uniform_data]),
         );
     }
 
-    fn create_gpu_camera(
+    fn generate_camera_uniform_data(
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) -> CameraUniformData {

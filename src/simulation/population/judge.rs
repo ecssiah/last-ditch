@@ -28,6 +28,8 @@ pub struct Judge {
     pub size: Vec3,
     pub aabb: AABB,
     pub look: Vec3,
+    pub yaw: f32,
+    pub pitch: f32,
     pub quat: Quat,
     pub jump_state: JumpState,
 }
@@ -46,6 +48,8 @@ impl Judge {
             size: Vec3::new(0.8, 2.1, 0.8),
             aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.1, 0.8)),
             look: Vec3::ZERO,
+            yaw: 0.0,
+            pitch: 0.0,
             quat: Quat::default(),
             jump_state: JumpState {
                 stage: JumpStage::Ground,
@@ -56,49 +60,43 @@ impl Judge {
         judge
     }
 
-    pub fn set_rotation(&mut self, x_axis: f32, y_axis: f32) {
-        self.look.x = x_axis.to_radians();
-        self.look.x = self.look.x.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
+    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
+        self.yaw = yaw.to_radians();
 
-        self.look.y = y_axis.to_radians();
+        self.pitch = pitch.to_radians();
+        self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-        let x_axis_quat = Quat::from_rotation_x(self.look.x);
-        let y_axis_quat = Quat::from_rotation_y(self.look.y);
+        self.quat = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
 
-        self.quat = y_axis_quat * x_axis_quat;
-
-        let flat_velocity = Vec3::new(self.velocity.x, 0.0, self.velocity.z);
-        let speed = flat_velocity.length();
+        let velocity_xz = Vec3::new(self.velocity.x, 0.0, self.velocity.z);
+        let speed = velocity_xz.length();
 
         if speed > 1e-6 {
             let forward = self.quat * Vec3::Z;
-            let new_flat_velocity = forward.normalize() * speed;
+            let new_velocity_xz = forward.normalize() * speed;
 
-            self.velocity.x = new_flat_velocity.x;
-            self.velocity.z = new_flat_velocity.z;
+            self.velocity.x = new_velocity_xz.x;
+            self.velocity.z = new_velocity_xz.z;
         }
     }
 
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
-        if movement_action.rotation.length_squared() > 1e-6 {
-            self.look.x += movement_action.rotation.x;
-            self.look.x = self.look.x.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
-            self.look.y += movement_action.rotation.y;
+        if movement_action.yaw.abs() > 1e-6 || movement_action.pitch.abs() > 1e-6 {
+            self.yaw += movement_action.yaw;
 
-            let x_axis_quat = Quat::from_rotation_x(self.look.x);
-            let y_axis_quat = Quat::from_rotation_y(self.look.y);
+            self.pitch += movement_action.pitch;
+            self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
 
-            let rotation_target = y_axis_quat * x_axis_quat;
-
-            self.quat = self.quat.slerp(rotation_target, 0.3);
+            self.quat = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
         }
 
         let input_direction = movement_action.direction.normalize_or_zero();
 
         if input_direction.length_squared() > 1e-6 {
-            let y_axis_quat = Quat::from_rotation_y(self.look.y);
+            let yaw_quat = Quat::from_rotation_y(self.yaw);
+
             let local_velocity = input_direction * Vec3::new(DEFAULT_X_SPEED, 0.0, DEFAULT_Z_SPEED);
-            let velocity = y_axis_quat * local_velocity;
+            let velocity = yaw_quat * local_velocity;
 
             self.velocity.x = velocity.x;
             self.velocity.z = velocity.z;
