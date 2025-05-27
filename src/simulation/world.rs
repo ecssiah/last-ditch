@@ -607,17 +607,19 @@ impl World {
         let mut visible_chunk_id_list = Vec::with_capacity(chunk_count_estimate);
 
         if let Some(chunk_position) = grid::chunk_id_to_position(chunk_id) {
-            for x in -radius..=radius {
-                for y in -radius..=radius {
-                    for z in -radius..=radius {
-                        let distance = x.abs() + y.abs() + z.abs();
+            for dx in -radius..=radius {
+                for dy in -radius..=radius {
+                    for dz in -radius..=radius {
+                        let offset = dx.abs() + dy.abs() + dz.abs();
 
-                        if distance <= radius {
-                            let visible_chunk_position = chunk_position + IVec3::new(x, y, z);
+                        if offset > radius {
+                            continue;
+                        }
 
-                            if let Some(visible_chunk_id) =
-                                grid::grid_to_chunk_id(visible_chunk_position)
-                            {
+                        let visible_chunk_position = chunk_position + IVec3::new(dx, dy, dz);
+
+                        if let Some(grid_position) = grid::chunk_to_grid(visible_chunk_position) {
+                            if let Some(visible_chunk_id) = grid::grid_to_chunk_id(grid_position) {
                                 visible_chunk_id_list.push(visible_chunk_id);
                             }
                         }
