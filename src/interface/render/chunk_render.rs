@@ -17,7 +17,6 @@ impl ChunkRender {
     pub fn new(
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
-        fog_uniform_bind_group_layout: &wgpu::BindGroupLayout,
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
         texture_sampler_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> ChunkRender {
@@ -32,7 +31,6 @@ impl ChunkRender {
             device,
             surface_format,
             &shader_module,
-            fog_uniform_bind_group_layout,
             camera_uniform_bind_group_layout,
             texture_sampler_bind_group_layout,
         );
@@ -101,7 +99,6 @@ impl ChunkRender {
         device: &Device,
         surface_format: &TextureFormat,
         shader_module: &wgpu::ShaderModule,
-        fog_uniform_bind_group_layout: &BindGroupLayout,
         camera_uniform_bind_group_layout: &BindGroupLayout,
         texture_sampler_bind_group_layout: &BindGroupLayout,
     ) -> wgpu::RenderPipeline {
@@ -109,7 +106,6 @@ impl ChunkRender {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Chunk Pipeline Layout"),
                 bind_group_layouts: &[
-                    &fog_uniform_bind_group_layout,
                     &camera_uniform_bind_group_layout,
                     &texture_sampler_bind_group_layout,
                 ],
@@ -131,7 +127,6 @@ impl ChunkRender {
         encoder: &mut CommandEncoder,
         texture_view: &TextureView,
         depth_texture_view: &TextureView,
-        fog_bind_group: &wgpu::BindGroup,
         camera_bind_group: &wgpu::BindGroup,
         texture_sampler_bind_group: &wgpu::BindGroup,
     ) {
@@ -168,9 +163,8 @@ impl ChunkRender {
 
         render_pass.set_pipeline(&self.render_pipeline);
 
-        render_pass.set_bind_group(0, fog_bind_group, &[]);
-        render_pass.set_bind_group(1, camera_bind_group, &[]);
-        render_pass.set_bind_group(2, texture_sampler_bind_group, &[]);
+        render_pass.set_bind_group(0, camera_bind_group, &[]);
+        render_pass.set_bind_group(1, texture_sampler_bind_group, &[]);
 
         for gpu_chunk in self.chunk_data_list.iter() {
             if gpu_chunk.mesh_data.index_count > 0 {

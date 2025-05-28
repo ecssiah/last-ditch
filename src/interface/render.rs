@@ -4,7 +4,6 @@
 pub mod agent_render;
 pub mod chunk_render;
 pub mod data;
-pub mod fog;
 pub mod texture_atlas;
 pub mod textures;
 
@@ -19,7 +18,6 @@ use crate::{
         consts::BLOCK_DATA_MAP,
         render::{
             data::{AgentInstanceData, ChunkData, MeshData, VertexData},
-            fog::Fog,
         },
     },
     simulation,
@@ -28,7 +26,6 @@ use std::collections::HashMap;
 
 pub struct Render {
     textures: Textures,
-    fog: Fog,
     chunk_render: ChunkRender,
     agent_render: AgentRender,
 }
@@ -51,12 +48,9 @@ impl Render {
 
         textures.setup_texture_sampler_bind_group(&device);
 
-        let fog = Fog::new(&device);
-
         let chunk_render = ChunkRender::new(
             &device,
             &surface_format,
-            &fog.uniform_bind_group_layout,
             &camera.uniform_bind_group_layout,
             &textures.texture_sampler_bind_group_layout,
         );
@@ -64,13 +58,11 @@ impl Render {
         let agent_render = AgentRender::new(
             &device,
             &surface_format,
-            &fog.uniform_bind_group_layout,
             &camera.uniform_bind_group_layout,
         );
 
         let render = Render {
             textures,
-            fog,
             chunk_render,
             agent_render,
         };
@@ -191,7 +183,6 @@ impl Render {
                 encoder,
                 texture_view,
                 &depth_texture_view,
-                &self.fog.uniform_bind_group,
                 &camera.uniform_bind_group,
                 texture_sampler_bind_group,
             );
@@ -201,7 +192,6 @@ impl Render {
             encoder,
             texture_view,
             &depth_texture_view,
-            &self.fog.uniform_bind_group,
             &camera.uniform_bind_group,
         );
     }

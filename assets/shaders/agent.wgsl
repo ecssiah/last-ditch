@@ -1,16 +1,9 @@
-struct FogUniformData {
-    color: vec3<f32>,
-    start: f32,
-    end: f32,
-};
-@group(0) @binding(0) var<uniform> fog_uniform_data: FogUniformData;
-
 struct CameraUniformData {
     view_projection_matrix: mat4x4<f32>,
     camera_position: vec3<f32>,
 };
 
-@group(1) @binding(0)
+@group(0) @binding(0)
 var<uniform> camera_uniform_data: CameraUniformData;
 
 struct VertexInput {
@@ -62,13 +55,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
 
     let base_color = input.instance_color.rgb * brightness;
 
-    let distance = length(input.world_position - camera_uniform_data.camera_position);
-    let fog_factor = clamp((fog_uniform_data.end - distance) / (fog_uniform_data.end - fog_uniform_data.start), 0.0, 1.0);
-    let fog_color = srgb_to_linear(fog_uniform_data.color);
-
-    let final_color = mix(fog_color, base_color, fog_factor);
-
-    let gamma_corrected_color = linear_to_srgb(final_color);
+    let gamma_corrected_color = linear_to_srgb(base_color);
 
     return vec4<f32>(gamma_corrected_color, 1.0);
 }

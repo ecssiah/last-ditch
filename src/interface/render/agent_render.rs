@@ -21,7 +21,6 @@ impl AgentRender {
     pub fn new(
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
-        fog_uniform_bind_group_layout: &wgpu::BindGroupLayout,
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> AgentRender {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -48,7 +47,6 @@ impl AgentRender {
             device,
             surface_format,
             &shader_module,
-            fog_uniform_bind_group_layout,
             camera_uniform_bind_group_layout,
         );
 
@@ -70,14 +68,12 @@ impl AgentRender {
         device: &Device,
         surface_format: &TextureFormat,
         shader_module: &wgpu::ShaderModule,
-        fog_uniform_bind_group_layout: &BindGroupLayout,
         camera_uniform_bind_group_layout: &BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Entity Render Pipeline Layout"),
                 bind_group_layouts: &[
-                    fog_uniform_bind_group_layout,
                     camera_uniform_bind_group_layout,
                 ],
                 push_constant_ranges: &[],
@@ -135,7 +131,6 @@ impl AgentRender {
         encoder: &mut CommandEncoder,
         texture_view: &TextureView,
         depth_texture_view: &TextureView,
-        fog_bind_group: &wgpu::BindGroup,
         camera_data_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -167,8 +162,7 @@ impl AgentRender {
 
             render_pass.set_pipeline(&self.render_pipeline);
 
-            render_pass.set_bind_group(0, fog_bind_group, &[]);
-            render_pass.set_bind_group(1, camera_data_bind_group, &[]);
+            render_pass.set_bind_group(0, camera_data_bind_group, &[]);
 
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
