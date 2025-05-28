@@ -58,25 +58,7 @@ impl Judge {
         judge
     }
 
-    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
-        self.yaw = yaw.to_radians();
 
-        self.pitch = pitch.to_radians();
-        self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
-
-        self.orientation = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
-
-        let velocity_xz = Vec3::new(self.velocity.x, 0.0, self.velocity.z);
-        let speed = velocity_xz.length();
-
-        if speed > 1e-6 {
-            let forward = self.orientation * Vec3::Z;
-            let new_velocity_xz = forward.normalize() * speed;
-
-            self.velocity.x = new_velocity_xz.x;
-            self.velocity.z = new_velocity_xz.z;
-        }
-    }
 
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
         if movement_action.yaw.abs() > 1e-6 || movement_action.pitch.abs() > 1e-6 {
@@ -159,6 +141,42 @@ impl DynamicObject for Judge {
 
     fn size(&self) -> Vec3 {
         self.size
+    }
+
+    fn pitch(&self) -> f32 {
+        self.pitch
+    }
+
+    fn set_pitch(&mut self, pitch: f32) {
+        self.pitch = pitch;
+    }
+
+    fn yaw(&self) -> f32 {
+        self.yaw
+    }
+
+    fn set_yaw(&mut self, yaw: f32) {
+        self.yaw = yaw;
+    }
+
+    fn set_rotation(&mut self, yaw: f32, pitch: f32) {
+        self.yaw = yaw.to_radians();
+
+        self.pitch = pitch.to_radians();
+        self.pitch = self.pitch.clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
+
+        self.orientation = Quat::from_rotation_y(self.yaw) * Quat::from_rotation_x(self.pitch);
+
+        let velocity_xz = Vec3::new(self.velocity.x, 0.0, self.velocity.z);
+        let speed = velocity_xz.length();
+
+        if speed > 1e-6 {
+            let forward = self.orientation * Vec3::Z;
+            let new_velocity_xz = forward.normalize() * speed;
+
+            self.velocity.x = new_velocity_xz.x;
+            self.velocity.z = new_velocity_xz.z;
+        }
     }
 
     fn aabb(&self) -> AABB {

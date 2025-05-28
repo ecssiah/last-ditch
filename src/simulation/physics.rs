@@ -125,6 +125,8 @@ impl Physics {
 
             dynamic_object.set_chunk_update(chunk_update);
             dynamic_object.set_position(0.0, 10.0, 0.0);
+            dynamic_object.set_velocity(0.0, 0.0, 0.0);
+            dynamic_object.set_rotation(0.0, 0.0);
         }
     }
 }

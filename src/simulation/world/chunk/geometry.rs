@@ -25,8 +25,8 @@ impl Geometry {
 
         for face in self.face_list.iter() {
             let face_vertex_list = face.vertices();
-
             let start_index = vertex_list.len() as u32;
+            
             for vertex in &face_vertex_list {
                 vertex_list.push(Point3::new(vertex.x, vertex.y, vertex.z));
             }

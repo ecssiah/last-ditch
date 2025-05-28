@@ -39,14 +39,14 @@ impl Population {
     }
 
     fn setup_judge(&mut self) {
-        log::info!("Generating Judge");
+        log::info!("Setup Judge");
 
         self.judge.set_position(0.0, 2.0, -10.0);
         self.judge.set_rotation(0.0, 0.0);
     }
 
     fn setup_agents(&mut self, world: &World) {
-        log::info!("Generating Agents");
+        log::info!("Setup Agents");
 
         let mut rng = rand::thread_rng();
 

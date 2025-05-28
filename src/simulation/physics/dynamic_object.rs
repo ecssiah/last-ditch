@@ -13,6 +13,14 @@ pub trait DynamicObject {
 
     fn size(&self) -> Vec3;
 
+    fn yaw(&self) -> f32;
+    fn pitch(&self) -> f32;
+
+    fn set_yaw(&mut self, yaw: f32);
+    fn set_pitch(&mut self, pitch: f32);
+
+    fn set_rotation(&mut self, yaw: f32, pitch: f32);
+
     fn aabb(&self) -> AABB;
     fn set_aabb(&mut self, aabb: AABB);
 

@@ -43,11 +43,11 @@ impl World {
     }
 
     pub fn setup(&mut self) {
-        log::info!("Generating Ground");
+        log::info!("Setup Ground");
 
         self.setup_ground();
 
-        log::info!("Generating Structures");
+        log::info!("Setup Structures");
 
         self.set_block_kind(0, 0, 0, &block::Kind::Origin);
         self.set_block_kind(0, 0, 4, &block::Kind::North);
@@ -55,10 +55,10 @@ impl World {
         self.set_block_kind(0, 0, -4, &block::Kind::South);
         self.set_block_kind(4, 0, 0, &block::Kind::East);
 
-        self.set_temple(0, 2, 34, &agent::Kind::Eagle);
-        self.set_temple(-34, 2, 0, &agent::Kind::Lion);
-        self.set_temple(0, 2, -34, &agent::Kind::Horse);
-        self.set_temple(34, 2, 0, &agent::Kind::Wolf);
+        self.setup_temple(0, 2, 34, &agent::Kind::Eagle);
+        self.setup_temple(-34, 2, 0, &agent::Kind::Lion);
+        self.setup_temple(0, 2, -34, &agent::Kind::Horse);
+        self.setup_temple(34, 2, 0, &agent::Kind::Wolf);
 
         self.update_chunk_meshes();
     }
@@ -121,7 +121,7 @@ impl World {
         }
     }
 
-    fn set_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
+    fn setup_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
         self.flags.insert(kind.clone(), IVec3::new(x, y, z));
 
         self.set_cube(
