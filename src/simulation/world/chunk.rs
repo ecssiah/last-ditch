@@ -25,10 +25,7 @@ pub struct Chunk {
     pub geometry: chunk::Geometry,
     pub kind_list: Vec<block::Kind>,
     pub block_list: Box<[usize; CHUNK_VOLUME]>,
-    pub light_list: Box<[block::Light; CHUNK_VOLUME]>,
-    pub direction_list: Box<[grid::Direction; CHUNK_VOLUME]>,
     pub visibility_list: Box<[Vec<grid::Direction>; CHUNK_VOLUME]>,
-    pub neighbor_list: Box<[Vec<grid::Direction>; CHUNK_VOLUME]>,
 }
 
 impl Chunk {

@@ -59,6 +59,8 @@ impl World {
         self.setup_temple(34, 0, 0, agent::Kind::Wolf);
 
         self.update_chunk_meshes();
+
+        for chunk_id in chunk::ID::all() {}
     }
 
     pub fn tick(&mut self, tick: &Tick) {
@@ -85,9 +87,6 @@ impl World {
                 geometry: chunk::Geometry::new(),
                 kind_list: Vec::from([block::Kind::Empty]),
                 block_list: Box::new([0; CHUNK_VOLUME]),
-                direction_list: Box::new([grid::Direction::XoYoZo; CHUNK_VOLUME]),
-                light_list: Box::new(core::array::from_fn(|_| block::Light::new())),
-                neighbor_list: Box::new(core::array::from_fn(|_| Vec::new())),
                 visibility_list: Box::new(core::array::from_fn(|_| Vec::new())),
             }
         });
@@ -127,6 +126,8 @@ impl World {
 
     fn setup_temple(&mut self, x: i32, y: i32, z: i32, kind: agent::Kind) {
         self.flags.insert(kind, IVec3::new(x, y + 2, z));
+
+        self.set_block_kind(x, y + 6, z, kind.icon());
 
         self.set_cube(
             IVec3::new(x - 8, y + 1, z - 8),
@@ -181,18 +182,10 @@ impl World {
             IVec3::new(x - 5, y + 8, z - 5),
             block::Kind::Engraved1,
         );
-
-        self.set_block_kind(x, y + 6, z, kind.icon());
-
-        self.set_cube(
-            IVec3::new(x, y + 7, z),
-            IVec3::new(x, y + 8, z),
-            block::Kind::Polished1,
-        );
     }
 
     fn update_chunk_meshes(&mut self) {
-        for chunk_id in (0..WORLD_VOLUME).map(chunk::ID) {
+        for chunk_id in chunk::ID::all() {
             self.update_chunk_geometry(chunk_id);
         }
     }
@@ -235,10 +228,7 @@ impl World {
 
         if let Some((chunk_id, block_id)) = grid::grid_to_ids(grid_position) {
             self.update_kind_list(chunk_id, block_id, kind);
-            self.update_neighbor_lists(grid_position);
             self.update_visibility_lists(chunk_id, block_id, grid_position);
-            self.update_light(chunk_id, block_id, grid_position);
-            self.update_graph(chunk_id, block_id, grid_position);
 
             self.mark_update(chunk_id);
 
@@ -282,52 +272,6 @@ impl World {
             .position(|target_kind| kind == *target_kind)?;
 
         Some(kind_id)
-    }
-
-    fn update_neighbor_lists(&mut self, grid_position: IVec3) {
-        let mut update_map: HashMap<chunk::ID, Vec<(block::ID, Vec<grid::Direction>)>> =
-            HashMap::new();
-
-        for direction in grid::Direction::all() {
-            let neighbor_grid_position = grid_position + direction.offset();
-
-            if let Some((chunk_id, block_id)) = grid::grid_to_ids(neighbor_grid_position) {
-                let neighbor_list = self.compute_neighbor_list(neighbor_grid_position);
-
-                update_map
-                    .entry(chunk_id)
-                    .or_insert_with(Vec::new)
-                    .push((block_id, neighbor_list));
-            }
-        }
-
-        for (chunk_id, update_list) in update_map {
-            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-                for (block_id, neighbor_list) in update_list {
-                    chunk.neighbor_list[usize::from(block_id)] = neighbor_list;
-                }
-            }
-        }
-    }
-
-    fn compute_neighbor_list(&mut self, grid_position: IVec3) -> Vec<grid::Direction> {
-        let mut neighbor_list = Vec::new();
-
-        for direction in grid::Direction::all() {
-            if direction == grid::Direction::XoYoZo {
-                continue;
-            }
-
-            let neighbor_grid_position = grid_position + direction.offset();
-
-            if let Some(block) = self.get_block(neighbor_grid_position) {
-                if block.solid {
-                    neighbor_list.push(direction);
-                }
-            }
-        }
-
-        neighbor_list
     }
 
     fn update_visibility_lists(
@@ -391,10 +335,6 @@ impl World {
 
         visibility_list
     }
-
-    fn update_light(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
-
-    fn update_graph(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
 
     fn update_chunk_geometry(&mut self, chunk_id: chunk::ID) {
         if let Some(chunk) = self.get_chunk(chunk_id) {

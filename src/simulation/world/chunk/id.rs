@@ -15,4 +15,8 @@ impl ID {
     pub fn is_valid(chunk_id: ID) -> bool {
         (0..=CHUNK_ID_MAX).contains(&usize::from(chunk_id))
     }
+
+    pub fn all() -> [Self; CHUNK_ID_MAX + 1] {
+        std::array::from_fn(|i| Self(i))
+    }
 }
