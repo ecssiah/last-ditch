@@ -17,8 +17,8 @@ impl Fog {
                 WINDOW_CLEAR_COLOR[2] as f32,
             ],
             _padding0: 0.0,
-            start: 100.0,
-            end: 200.0,
+            start: 1000.0,
+            end: 1000.0,
             _padding1: [0.0, 0.0],
         };
 
