@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod agent_render;
 pub mod chunk_render;
 pub mod data;

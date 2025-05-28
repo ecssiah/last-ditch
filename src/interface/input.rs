@@ -1,5 +1,7 @@
-use std::sync::Arc;
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
 
+use std::sync::Arc;
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::dispatch::{Action, EntityAction, JumpAction, MovementAction, WorldAction},

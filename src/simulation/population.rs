@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod agent;
 pub mod decision;
 pub mod judge;
@@ -51,7 +54,7 @@ impl Population {
         let mut rng = rand::thread_rng();
 
         for kind in population::agent::Kind::all() {
-            if let Some(flag_position) = world.get_flag(&kind) {
+            if let Some(flag_position) = world.get_flag(kind) {
                 let flag_position = flag_position.as_vec3();
 
                 for _ in 0..AGENT_INITIAL_POPULATION {
@@ -63,7 +66,7 @@ impl Population {
 
                     agent.position = position;
                     agent.target = position;
-                    agent.kind = kind.clone();
+                    agent.kind = kind;
                     agent.height = rng.gen_range(0.7..1.3);
 
                     self.agent_map.insert(agent.id, agent);

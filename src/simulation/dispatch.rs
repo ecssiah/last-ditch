@@ -1,6 +1,8 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod action;
 pub mod entity_action;
-pub mod message;
 pub mod world_action;
 
 pub use action::Action;
@@ -10,7 +12,6 @@ pub use entity_action::MovementAction;
 pub use world_action::WorldAction;
 
 use crate::simulation::admin;
-use crate::simulation::dispatch::message::Message;
 use crate::simulation::state::State;
 use std::sync::Arc;
 use tokio::sync::mpsc::unbounded_channel;
@@ -18,30 +19,16 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Dispatch {
-    pub runtime: tokio::runtime::Runtime,
-    message_tx: Arc<UnboundedSender<Message>>,
-    message_rx: UnboundedReceiver<Message>,
     action_tx: Arc<UnboundedSender<Action>>,
     action_rx: UnboundedReceiver<Action>,
 }
 
 impl Dispatch {
     pub fn new() -> Dispatch {
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-
-        let (message_tx, message_rx) = tokio::sync::mpsc::unbounded_channel();
-        let message_tx = Arc::new(message_tx);
-
         let (action_tx, action_rx) = unbounded_channel();
         let action_tx = Arc::new(action_tx);
 
         let dispatch = Dispatch {
-            runtime,
-            message_tx,
-            message_rx,
             action_tx,
             action_rx,
         };
@@ -51,14 +38,6 @@ impl Dispatch {
 
     pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
         self.action_tx.clone()
-    }
-
-    pub fn get_message_tx(&self) -> Arc<UnboundedSender<Message>> {
-        self.message_tx.clone()
-    }
-
-    pub fn get_message_rx(&self) -> &UnboundedReceiver<Message> {
-        &self.message_rx
     }
 
     pub fn tick(&mut self, state: &mut State) {
@@ -74,10 +53,6 @@ impl Dispatch {
                     self.handle_exit_action(state);
                 }
             }
-        }
-
-        while let Ok(message) = self.message_rx.try_recv() {
-            match message {}
         }
     }
 

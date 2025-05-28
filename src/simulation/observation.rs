@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod buffer;
 pub mod repository;
 pub mod state_pair;
@@ -112,7 +115,7 @@ impl Observation {
             if let Some(agent_view) = population_view.agent_view_map.get(&agent.id) {
                 let next_agent_view = AgentView {
                     id: agent.id,
-                    kind: agent.kind.clone(),
+                    kind: agent.kind,
                     height: agent.height,
                     tick: StatePair::new(agent_view.tick.next, agent.tick),
                     position: StatePair::new(agent_view.position.next, agent.position),
@@ -125,7 +128,7 @@ impl Observation {
             } else {
                 let next_agent_view = AgentView {
                     id: agent.id,
-                    kind: agent.kind.clone(),
+                    kind: agent.kind,
                     height: agent.height,
                     tick: StatePair::new(agent.tick, agent.tick),
                     position: StatePair::new(agent.position, agent.position),

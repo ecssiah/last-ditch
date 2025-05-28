@@ -96,11 +96,11 @@ pub fn world_to_chunk_id(world_position: Vec3) -> Option<chunk::ID> {
 
 pub fn chunk_id_to_position(chunk_id: chunk::ID) -> Option<IVec3> {
     if chunk::ID::is_valid(chunk_id) {
-        let chunk_id: usize = chunk_id.into();
+        let chunk_index = usize::from(chunk_id);
 
-        let x = (chunk_id % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let y = (chunk_id / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
-        let z = (chunk_id / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
+        let x = (chunk_index % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let y = (chunk_index / WORLD_SIZE % WORLD_SIZE) as i32 - WORLD_RADIUS as i32;
+        let z = (chunk_index / WORLD_AREA) as i32 - WORLD_RADIUS as i32;
 
         let local_position = IVec3::new(x, y, z);
 
@@ -126,7 +126,7 @@ pub fn grid_to_block_id(grid_position: IVec3) -> Option<block::ID> {
 
 pub fn block_id_to_position(block_id: block::ID) -> Option<IVec3> {
     if block::ID::is_valid(block_id) {
-        let block_id: usize = block_id.into();
+        let block_id = usize::from(block_id);
 
         let x = (block_id % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
         let y = (block_id / CHUNK_SIZE % CHUNK_SIZE) as i32 - CHUNK_RADIUS as i32;
@@ -154,7 +154,7 @@ pub fn ids_to_grid(chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
     Some(grid_position)
 }
 
-pub fn overlapping_aabb_list(aabb: &AABB) -> Vec<AABB> {
+pub fn overlapping_aabb_list(aabb: AABB) -> Vec<AABB> {
     let mut aabb_list = Vec::new();
 
     let min = aabb.min.round().as_ivec3();

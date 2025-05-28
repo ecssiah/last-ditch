@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 pub mod block;
 pub mod chunk;
 pub mod grid;
@@ -6,7 +9,7 @@ use crate::simulation::{
     consts::*,
     population::agent::{self},
     time::Tick,
-    world::chunk::Chunk,
+    world::chunk::{Chunk, Graph},
     BLOCK_MAP,
 };
 use glam::{IVec3, Vec4};
@@ -38,8 +41,8 @@ impl World {
         world
     }
 
-    pub fn get_flag(&self, kind: &agent::Kind) -> Option<IVec3> {
-        self.flags.get(kind).cloned()
+    pub fn get_flag(&self, kind: agent::Kind) -> Option<IVec3> {
+        self.flags.get(&kind).cloned()
     }
 
     pub fn setup(&mut self) {
@@ -49,22 +52,28 @@ impl World {
 
         log::info!("Setup Structures");
 
-        self.set_block_kind(0, 0, 0, &block::Kind::Origin);
-        self.set_block_kind(0, 0, 4, &block::Kind::North);
-        self.set_block_kind(-4, 0, 0, &block::Kind::West);
-        self.set_block_kind(0, 0, -4, &block::Kind::South);
-        self.set_block_kind(4, 0, 0, &block::Kind::East);
+        self.set_block_kind(0, 0, 0, block::Kind::Origin);
+        self.set_block_kind(0, 0, 4, block::Kind::North);
+        self.set_block_kind(-4, 0, 0, block::Kind::West);
+        self.set_block_kind(0, 0, -4, block::Kind::South);
+        self.set_block_kind(4, 0, 0, block::Kind::East);
 
-        self.setup_temple(0, 2, 34, &agent::Kind::Eagle);
-        self.setup_temple(-34, 2, 0, &agent::Kind::Lion);
-        self.setup_temple(0, 2, -34, &agent::Kind::Horse);
-        self.setup_temple(34, 2, 0, &agent::Kind::Wolf);
+        self.setup_temple(0, 2, 34, agent::Kind::Eagle);
+        self.setup_temple(-34, 2, 0, agent::Kind::Lion);
+        self.setup_temple(0, 2, -34, agent::Kind::Horse);
+        self.setup_temple(34, 2, 0, agent::Kind::Wolf);
 
         self.update_chunk_meshes();
     }
 
     pub fn tick(&mut self, tick: &Tick) {
         self.tick = *tick;
+    }
+
+    fn mark_update(&mut self, chunk_id: chunk::ID) {
+        if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+            chunk.updated = true;
+        }
     }
 
     fn setup_chunks() -> [Chunk; WORLD_VOLUME] {
@@ -77,6 +86,7 @@ impl World {
                 tick: Tick::ZERO,
                 updated: false,
                 position: chunk_position,
+                graph: Box::new(Graph::new()),
                 geometry: chunk::Geometry::new(),
                 kind_list: Vec::from([block::Kind::Empty]),
                 block_list: Box::new([0; CHUNK_VOLUME]),
@@ -102,80 +112,77 @@ impl World {
         for x in -ground_boundary..=ground_boundary {
             for y in -1..=0 {
                 for z in -ground_boundary..=ground_boundary {
-                    let x = x as i32;
-                    let y = y as i32;
-                    let z = z as i32;
-
-                    let chunk_position = grid::grid_to_chunk(IVec3::new(x, y, z)).unwrap();
+                    let grid_position = IVec3::new(x as i32, y as i32, z as i32);
+                    let chunk_position = grid::grid_to_chunk(grid_position).unwrap();
 
                     let kind = if (chunk_position.x + chunk_position.y + chunk_position.z) % 2 == 0
                     {
-                        &block::Kind::Polished1
+                        block::Kind::Polished1
                     } else {
-                        &block::Kind::Polished2
+                        block::Kind::Polished2
                     };
 
-                    self.set_block_kind(x, y, z, kind);
+                    self.set_block_kind(grid_position.x, grid_position.y, grid_position.z, kind);
                 }
             }
         }
     }
 
-    fn setup_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
-        self.flags.insert(kind.clone(), IVec3::new(x, y, z));
+    fn setup_temple(&mut self, x: i32, y: i32, z: i32, kind: agent::Kind) {
+        self.flags.insert(kind, IVec3::new(x, y, z));
 
         self.set_cube(
             IVec3::new(x - 8, y - 1, z - 8),
             IVec3::new(x + 8, y - 1, z + 8),
-            &block::Kind::Stone1,
+            block::Kind::Stone1,
         );
 
         self.set_cube(
             IVec3::new(x - 7, y, z - 7),
             IVec3::new(x + 7, y, z + 7),
-            &block::Kind::Stone1,
+            block::Kind::Stone1,
         );
 
         self.set_cube(
             IVec3::new(x - 6, y + 6, z - 6),
             IVec3::new(x + 6, y + 6, z + 6),
-            &block::Kind::Stone1,
+            block::Kind::Stone1,
         );
 
         self.set_cube(
             IVec3::new(x - 5, y + 7, z - 5),
             IVec3::new(x + 5, y + 7, z + 5),
-            &block::Kind::Stone1,
+            block::Kind::Stone1,
         );
 
         self.set_cube(
             IVec3::new(x - 5, y + 6, z - 5),
             IVec3::new(x + 5, y + 6, z + 5),
-            &block::Kind::Empty,
+            block::Kind::Empty,
         );
 
         self.set_cube(
             IVec3::new(x + 5, y - 1, z + 5),
             IVec3::new(x + 5, y + 6, z + 5),
-            &block::Kind::Engraved1,
+            block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(x - 5, y - 1, z + 5),
             IVec3::new(x - 5, y + 6, z + 5),
-            &block::Kind::Engraved1,
+            block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(x + 5, y - 1, z - 5),
             IVec3::new(x + 5, y + 6, z - 5),
-            &block::Kind::Engraved1,
+            block::Kind::Engraved1,
         );
 
         self.set_cube(
             IVec3::new(x - 5, y - 1, z - 5),
             IVec3::new(x - 5, y + 6, z - 5),
-            &block::Kind::Engraved1,
+            block::Kind::Engraved1,
         );
 
         self.set_block_kind(x, y + 4, z, kind.icon());
@@ -183,7 +190,7 @@ impl World {
         self.set_cube(
             IVec3::new(x, y + 5, z),
             IVec3::new(x, y + 6, z),
-            &block::Kind::Polished1,
+            block::Kind::Polished1,
         );
     }
 
@@ -220,7 +227,7 @@ impl World {
         Some(block)
     }
 
-    pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: &block::Kind) -> bool {
+    pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) -> bool {
         let grid_position = IVec3::new(x, y, z);
 
         if let Some((chunk_id, block_id)) = grid::grid_to_ids(grid_position) {
@@ -228,6 +235,7 @@ impl World {
             self.update_neighbor_lists(grid_position);
             self.update_visibility_lists(chunk_id, block_id, grid_position);
             self.update_light(chunk_id, block_id, grid_position);
+            self.update_graph(chunk_id, block_id, grid_position);
 
             self.mark_update(chunk_id);
 
@@ -237,7 +245,7 @@ impl World {
         }
     }
 
-    pub fn set_cube(&mut self, min: IVec3, max: IVec3, kind: &block::Kind) {
+    pub fn set_cube(&mut self, min: IVec3, max: IVec3, kind: block::Kind) {
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
@@ -247,22 +255,22 @@ impl World {
         }
     }
 
-    fn update_kind_list(&mut self, chunk_id: chunk::ID, block_id: block::ID, kind: &block::Kind) {
+    fn update_kind_list(&mut self, chunk_id: chunk::ID, block_id: block::ID, kind: block::Kind) {
         if let Some(chunk) = self.get_chunk_mut(chunk_id) {
             if let Some(kind_id) = Self::get_kind_id(chunk, kind) {
                 chunk.block_list[usize::from(block_id)] = kind_id;
             } else {
-                chunk.kind_list.push(kind.clone());
                 chunk.block_list[usize::from(block_id)] = chunk.kind_list.len() - 1;
+                chunk.kind_list.push(kind);
             }
         }
     }
 
-    fn get_kind_id(chunk: &Chunk, kind: &block::Kind) -> Option<usize> {
+    fn get_kind_id(chunk: &chunk::Chunk, kind: block::Kind) -> Option<usize> {
         let kind_id = chunk
             .kind_list
             .iter()
-            .position(|target_kind| kind == target_kind)?;
+            .position(|target_kind| kind == *target_kind)?;
 
         Some(kind_id)
     }
@@ -377,11 +385,7 @@ impl World {
 
     fn update_light(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
 
-    fn mark_update(&mut self, chunk_id: chunk::ID) {
-        if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-            chunk.updated = true;
-        }
-    }
+    fn update_graph(&mut self, _chunk_id: chunk::ID, _block_id: block::ID, _grid_position: IVec3) {}
 
     fn update_chunk_geometry(&mut self, chunk_id: chunk::ID) {
         if let Some(chunk) = self.get_chunk(chunk_id) {
@@ -544,7 +548,9 @@ impl World {
             .unwrap_or(false);
 
         let clear_above = (1..=height).all(|level| {
-            self.get_block(grid_position + level * IVec3::Y)
+            let vertical_grid_position = grid_position + level * IVec3::Y;
+
+            self.get_block(vertical_grid_position)
                 .map(|block| !block.solid)
                 .unwrap_or(false)
         });

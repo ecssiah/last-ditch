@@ -55,7 +55,7 @@ fn blocks_overlap_when_overlapping() {
     ];
 
     for test_case in test_cases {
-        let overlaps_result = aabb.overlaps(&test_case.aabb);
+        let overlaps_result = aabb.overlaps(test_case.aabb);
 
         assert_eq!(
             overlaps_result, test_case.expected_overlap_result,
@@ -113,7 +113,7 @@ fn blocks_do_not_overlap_when_intersecting() {
     ];
 
     for test_case in test_cases {
-        let overlaps_result = aabb.overlaps(&test_case.aabb);
+        let overlaps_result = aabb.overlaps(test_case.aabb);
 
         assert_eq!(
             overlaps_result, test_case.expected_overlap_result,
@@ -171,7 +171,7 @@ fn blocks_do_not_overlap_when_separated() {
     ];
 
     for test_case in test_cases {
-        let overlaps_result = aabb.intersects(&test_case.aabb);
+        let overlaps_result = aabb.intersects(test_case.aabb);
 
         assert_eq!(
             overlaps_result, test_case.expected_overlap_result,

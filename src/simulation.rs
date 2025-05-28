@@ -2,6 +2,7 @@
 //! the core civilizational garden.
 
 pub mod admin;
+pub mod compute;
 pub mod consts;
 pub mod dispatch;
 pub mod observation;
@@ -13,7 +14,7 @@ pub mod world;
 
 pub use consts::*;
 
-use crate::simulation::{dispatch::Dispatch, observation::Observation};
+use crate::simulation::{compute::Compute, dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use state::State;
 use std::{
@@ -23,6 +24,7 @@ use std::{
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
+    _compute: Compute,
     dispatch: Dispatch,
     state: State,
     observation: Arc<Observation>,
@@ -30,11 +32,13 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new() -> Self {
+        let compute = Compute::new();
         let dispatch = Dispatch::new();
         let state = State::new();
         let observation = Arc::new(Observation::new());
 
         let simulation = Self {
+            _compute: compute,
             dispatch,
             state,
             observation,

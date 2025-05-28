@@ -42,9 +42,9 @@ fn equal() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(&test_case.aabb1, &test_case.aabb2);
+        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
 
-        let is_equal = aabb.approx_eq(&test_case.expected_aabb, EPSILON);
+        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
 
         assert!(is_equal, "{:?}", test_case.description);
     }
@@ -101,9 +101,9 @@ fn x_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(&test_case.aabb1, &test_case.aabb2);
+        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
 
-        let is_equal = aabb.approx_eq(&test_case.expected_aabb, EPSILON);
+        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
 
         assert!(is_equal, "{:?}", test_case.description);
     }
@@ -151,9 +151,9 @@ fn y_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(&test_case.aabb1, &test_case.aabb2);
+        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
 
-        let is_equal = aabb.approx_eq(&test_case.expected_aabb, EPSILON);
+        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
 
         assert!(is_equal, "{:?}", test_case.description);
     }
@@ -201,9 +201,9 @@ fn z_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(&test_case.aabb1, &test_case.aabb2);
+        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
 
-        let is_equal = aabb.approx_eq(&test_case.expected_aabb, EPSILON);
+        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
 
         assert!(is_equal, "{:?}", test_case.description);
     }

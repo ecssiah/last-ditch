@@ -55,7 +55,7 @@ fn blocks_intersect_when_overlapping() {
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(&test_case.aabb);
+        let intersection_result = aabb.intersects(test_case.aabb);
 
         assert_eq!(
             intersection_result, test_case.expected_intersects_result,
@@ -113,7 +113,7 @@ fn blocks_intersect_when_intersecting() {
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(&test_case.aabb);
+        let intersection_result = aabb.intersects(test_case.aabb);
 
         assert_eq!(
             intersection_result, test_case.expected_intersects_result,
@@ -171,7 +171,7 @@ fn blocks_do_not_intersect_when_separated() {
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(&test_case.aabb);
+        let intersection_result = aabb.intersects(test_case.aabb);
 
         assert_eq!(
             intersection_result, test_case.expected_intersects_result,

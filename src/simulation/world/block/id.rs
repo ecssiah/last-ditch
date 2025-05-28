@@ -13,6 +13,6 @@ impl ID {
     pub const MAX: Self = Self(BLOCK_ID_MAX);
 
     pub fn is_valid(block_id: ID) -> bool {
-        (0..=BLOCK_ID_MAX).contains(&block_id.into())
+        (0..=BLOCK_ID_MAX).contains(&usize::from(block_id))
     }
 }

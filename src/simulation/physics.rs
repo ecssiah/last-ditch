@@ -1,3 +1,6 @@
+//! The Simulation module contains all of the logic required to generate and evolve
+//! the core civilizational garden.
+
 use crate::simulation::{
     consts::*,
     physics::{aabb::AABB, dynamic_object::DynamicObject},
@@ -11,7 +14,6 @@ use glam::Vec3;
 
 pub mod aabb;
 pub mod dynamic_object;
-pub mod judge_controller;
 
 pub struct Physics {
     pub gravity: Vec3,
@@ -82,7 +84,7 @@ impl Physics {
             let mid = (min + max) * 0.5;
             let test_aabb = aabb.translate(axis.unit() * mid);
 
-            if Self::get_solid_collisions(&test_aabb, world).is_empty() {
+            if Self::get_solid_collisions(test_aabb, world).is_empty() {
                 final_delta = mid;
                 min = mid;
             } else {
@@ -101,7 +103,7 @@ impl Physics {
         (adjusted_aabb, adjusted_velocity)
     }
 
-    fn get_solid_collisions(target: &AABB, world: &World) -> Vec<AABB> {
+    fn get_solid_collisions(target: AABB, world: &World) -> Vec<AABB> {
         grid::overlapping_aabb_list(target)
             .into_iter()
             .filter(|block_aabb| {

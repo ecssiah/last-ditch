@@ -23,7 +23,7 @@ fn xo_yo_zo() {
         expected_aabb_list: vec![block::aabb(0, 0, 0)],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -50,7 +50,7 @@ fn xp_yp_zp() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -77,7 +77,7 @@ fn xp_yp_zn() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -104,7 +104,7 @@ fn xp_yn_zp() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -131,7 +131,7 @@ fn xp_yn_zn() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -158,7 +158,7 @@ fn xn_yp_zp() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -185,7 +185,7 @@ fn xn_yp_zn() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -212,7 +212,7 @@ fn xn_yn_zp() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 
@@ -239,7 +239,7 @@ fn xn_yn_zn() {
         ],
     };
 
-    let aabb_list = grid::overlapping_aabb_list(&test_case.aabb);
+    let aabb_list = grid::overlapping_aabb_list(test_case.aabb);
 
     let is_equal = AABB::approx_set_eq(&aabb_list, &test_case.expected_aabb_list, EPSILON);
 

@@ -13,6 +13,6 @@ impl ID {
     pub const MAX: Self = Self(CHUNK_ID_MAX);
 
     pub fn is_valid(chunk_id: ID) -> bool {
-        (0..=CHUNK_ID_MAX).contains(&chunk_id.into())
+        (0..=CHUNK_ID_MAX).contains(&usize::from(chunk_id))
     }
 }

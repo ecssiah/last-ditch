@@ -69,7 +69,7 @@ fn approx_eq() {
     ];
 
     for test_case in test_cases {
-        let is_equal = test_case.aabb1.approx_eq(&test_case.aabb2, EPSILON);
+        let is_equal = test_case.aabb1.approx_eq(test_case.aabb2, EPSILON);
 
         assert_eq!(
             is_equal, test_case.expected_is_equal,

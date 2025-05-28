@@ -1,8 +1,12 @@
 pub mod geometry;
+pub mod graph;
 pub mod id;
+pub mod node;
 
 pub use geometry::Geometry;
+pub use graph::Graph;
 pub use id::ID;
+pub use node::Node;
 
 use crate::simulation::{
     consts::*,
@@ -17,6 +21,7 @@ pub struct Chunk {
     pub tick: Tick,
     pub updated: bool,
     pub position: IVec3,
+    pub graph: Box<Graph>,
     pub geometry: chunk::Geometry,
     pub kind_list: Vec<block::Kind>,
     pub block_list: Box<[usize; CHUNK_VOLUME]>,

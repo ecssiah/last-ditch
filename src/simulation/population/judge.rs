@@ -58,8 +58,6 @@ impl Judge {
         judge
     }
 
-
-
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
         if movement_action.yaw.abs() > 1e-6 || movement_action.pitch.abs() > 1e-6 {
             self.yaw += movement_action.yaw;

@@ -59,7 +59,7 @@ impl AABB {
         }
     }
 
-    pub fn intersects(&self, other: &AABB) -> bool {
+    pub fn intersects(&self, other: AABB) -> bool {
         self.min.x <= other.max.x
             && self.max.x >= other.min.x
             && self.min.y <= other.max.y
@@ -68,7 +68,7 @@ impl AABB {
             && self.max.z >= other.min.z
     }
 
-    pub fn overlaps(&self, other: &AABB) -> bool {
+    pub fn overlaps(&self, other: AABB) -> bool {
         self.min.x < other.max.x
             && self.max.x > other.min.x
             && self.min.y < other.max.y
@@ -77,7 +77,7 @@ impl AABB {
             && self.max.z > other.min.z
     }
 
-    pub fn overlap_axis(&self, axis_index: usize, block_aabb: &AABB) -> f32 {
+    pub fn overlap_axis(&self, axis_index: usize, block_aabb: AABB) -> f32 {
         let min = self.min[axis_index];
         let max = self.max[axis_index];
 
@@ -101,7 +101,7 @@ impl AABB {
         }
     }
 
-    pub fn approx_eq(&self, other: &AABB, epsilon: f32) -> bool {
+    pub fn approx_eq(&self, other: AABB, epsilon: f32) -> bool {
         self.min.abs_diff_eq(other.min, epsilon) && self.max.abs_diff_eq(other.max, epsilon)
     }
 
@@ -112,13 +112,13 @@ impl AABB {
 
         list1
             .iter()
-            .all(|aabb1| list2.iter().any(|aabb2| aabb1.approx_eq(aabb2, epsilon)))
+            .all(|aabb1| list2.iter().any(|aabb2| aabb1.approx_eq(*aabb2, epsilon)))
             && list2
                 .iter()
-                .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(aabb1, epsilon)))
+                .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(*aabb1, epsilon)))
     }
 
-    pub fn sweep(aabb1: &AABB, aabb2: &AABB) -> AABB {
+    pub fn sweep(aabb1: AABB, aabb2: AABB) -> AABB {
         let min = aabb1.min.min(aabb2.min);
         let max = aabb1.max.max(aabb2.max);
 

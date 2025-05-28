@@ -1,7 +1,7 @@
 use crate::simulation::world::block;
 use glam::IVec3;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Kind {
     Lion,
     Eagle,
@@ -23,12 +23,12 @@ impl Kind {
         }
     }
 
-    pub fn icon(&self) -> &block::Kind {
+    pub fn icon(&self) -> block::Kind {
         match self {
-            Kind::Lion => &block::Kind::Icon1,
-            Kind::Eagle => &block::Kind::Icon2,
-            Kind::Wolf => &block::Kind::Icon3,
-            Kind::Horse => &block::Kind::Icon4,
+            Kind::Lion => block::Kind::Icon1,
+            Kind::Eagle => block::Kind::Icon2,
+            Kind::Wolf => block::Kind::Icon3,
+            Kind::Horse => block::Kind::Icon4,
         }
     }
 
