@@ -29,7 +29,7 @@ impl AgentRender {
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
         });
 
-        let vertex_data_list = Self::generate_agent_vertex_datas();
+        let vertex_data_list = Self::setup_agent_vertex_datas();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Agent Vertex Buffer"),
@@ -182,7 +182,7 @@ impl AgentRender {
         }
     }
 
-    fn generate_agent_vertex_datas() -> Vec<VertexData> {
+    fn setup_agent_vertex_datas() -> Vec<VertexData> {
         let head_scale = 0.32;
         let head_height = 1.8;
         let head_bands = 8;

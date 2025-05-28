@@ -66,7 +66,7 @@ impl Physics {
         }
 
         dynamic_object.set_aabb(aabb);
-        dynamic_object.set_velocity(velocity);
+        dynamic_object.set_velocity(velocity.x, velocity.y, velocity.z);
     }
 
     fn resolve_axis(aabb: AABB, world: &World, axis: Axis, delta: f32) -> (AABB, f32) {
@@ -119,12 +119,12 @@ impl Physics {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
 
             dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_position(position);
+            dynamic_object.set_position(position.x, position.y, position.z);
         } else {
             let chunk_update = true;
 
             dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_position(Vec3::new(0.0, 10.0, 0.0));
+            dynamic_object.set_position(0.0, 10.0, 0.0);
         }
     }
 }

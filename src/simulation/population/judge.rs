@@ -136,25 +136,25 @@ impl DynamicObject for Judge {
         self.position
     }
 
-    fn set_position(&mut self, position: Vec3) {
-        self.position = position;
-        self.aabb.set_bottom_center(position);
+    fn set_position(&mut self, x: f32, y: f32, z: f32) {
+        self.position = Vec3::new(x, y, z);
+        self.aabb.set_bottom_center(x, y, z);
     }
 
     fn velocity(&self) -> Vec3 {
         self.velocity
     }
 
-    fn set_velocity(&mut self, velocity: Vec3) {
-        self.velocity = velocity;
+    fn set_velocity(&mut self, x: f32, y: f32, z: f32) {
+        self.velocity = Vec3::new(x, y, z);
     }
 
     fn acceleration(&self) -> Vec3 {
         self.acceleration
     }
 
-    fn set_acceleration(&mut self, acceleration: Vec3) {
-        self.acceleration = acceleration;
+    fn set_acceleration(&mut self, x: f32, y: f32, z: f32) {
+        self.acceleration = Vec3::new(x, y, z);
     }
 
     fn size(&self) -> Vec3 {

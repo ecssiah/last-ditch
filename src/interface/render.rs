@@ -46,7 +46,7 @@ impl Render {
             "atlas",
         ));
 
-        textures.generate_texture_sampler_bind_group(&device);
+        textures.setup_texture_sampler_bind_group(&device);
 
         let fog = Fog::new(&device);
 

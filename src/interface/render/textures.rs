@@ -43,7 +43,7 @@ impl Textures {
         textures
     }
 
-    pub fn generate_texture_sampler_bind_group(&mut self, device: &wgpu::Device) {
+    pub fn setup_texture_sampler_bind_group(&mut self, device: &wgpu::Device) {
         let atlas_texture_data = self.texture_map.get("atlas").unwrap();
 
         let texture_sampler_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {

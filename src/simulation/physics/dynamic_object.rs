@@ -3,13 +3,13 @@ use glam::Vec3;
 
 pub trait DynamicObject {
     fn position(&self) -> Vec3;
-    fn set_position(&mut self, position: Vec3);
+    fn set_position(&mut self, x: f32, y: f32, z: f32);
 
     fn velocity(&self) -> Vec3;
-    fn set_velocity(&mut self, velocity: Vec3);
+    fn set_velocity(&mut self, x: f32, y: f32, z: f32);
 
     fn acceleration(&self) -> Vec3;
-    fn set_acceleration(&mut self, acceleration: Vec3);
+    fn set_acceleration(&mut self, x: f32, y: f32, z: f32);
 
     fn size(&self) -> Vec3;
 

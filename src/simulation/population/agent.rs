@@ -47,10 +47,6 @@ impl Agent {
         agent
     }
 
-    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
-        self.position = Vec3::new(x, y, z);
-    }
-
     pub fn tick(&mut self, world: &World) {
         if self.plan.is_empty() {
             let mut rng = rand::thread_rng();

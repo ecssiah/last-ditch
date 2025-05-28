@@ -47,7 +47,7 @@ impl Simulation {
 
     pub fn run(&mut self) {
         self.observation.tick(&self.state);
-        self.state.generate();
+        self.state.setup();
 
         log::info!("Simulation Run");
 

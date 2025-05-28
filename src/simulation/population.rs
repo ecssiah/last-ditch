@@ -33,19 +33,19 @@ impl Population {
         population
     }
 
-    pub fn generate(&mut self, world: &World) {
-        self.generate_judge();
-        self.generate_agents(world);
+    pub fn setup(&mut self, world: &World) {
+        self.setup_judge();
+        self.setup_agents(world);
     }
 
-    fn generate_judge(&mut self) {
+    fn setup_judge(&mut self) {
         log::info!("Generating Judge");
 
-        self.judge.set_position(Vec3::new(0.0, 2.0, -10.0));
+        self.judge.set_position(0.0, 2.0, -10.0);
         self.judge.set_rotation(0.0, 0.0);
     }
 
-    fn generate_agents(&mut self, world: &World) {
+    fn setup_agents(&mut self, world: &World) {
         log::info!("Generating Agents");
 
         let mut rng = rand::thread_rng();

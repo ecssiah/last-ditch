@@ -58,7 +58,7 @@ impl Camera {
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) {
-        let camera_uniform_data = Self::generate_camera_uniform_data(alpha, judge_view);
+        let camera_uniform_data = Self::setup_camera_uniform_data(alpha, judge_view);
 
         queue.write_buffer(
             &self.uniform_buffer,
@@ -67,7 +67,7 @@ impl Camera {
         );
     }
 
-    fn generate_camera_uniform_data(
+    fn setup_camera_uniform_data(
         alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) -> CameraUniformData {

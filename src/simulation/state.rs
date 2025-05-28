@@ -27,9 +27,9 @@ impl State {
         state
     }
 
-    pub fn generate(&mut self) {
-        self.world.generate();
-        self.population.generate(&self.world);
+    pub fn setup(&mut self) {
+        self.world.setup();
+        self.population.setup(&self.world);
 
         self.admin.mode = admin::Mode::Simulate;
         self.admin.message = String::from("Last Ditch 1.0");

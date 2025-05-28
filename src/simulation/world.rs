@@ -42,10 +42,10 @@ impl World {
         self.flags.get(kind).cloned()
     }
 
-    pub fn generate(&mut self) {
+    pub fn setup(&mut self) {
         log::info!("Generating Ground");
 
-        self.generate_ground();
+        self.setup_ground();
 
         log::info!("Generating Structures");
 
@@ -55,10 +55,10 @@ impl World {
         self.set_block_kind(0, 0, -4, &block::Kind::South);
         self.set_block_kind(4, 0, 0, &block::Kind::East);
 
-        self.generate_temple(34, 2, 34, &agent::Kind::Eagle);
-        self.generate_temple(-34, 2, 34, &agent::Kind::Lion);
-        self.generate_temple(34, 2, -34, &agent::Kind::Horse);
-        self.generate_temple(-34, 2, -34, &agent::Kind::Wolf);
+        self.set_temple(0, 2, 34, &agent::Kind::Eagle);
+        self.set_temple(-34, 2, 0, &agent::Kind::Lion);
+        self.set_temple(0, 2, -34, &agent::Kind::Horse);
+        self.set_temple(34, 2, 0, &agent::Kind::Wolf);
 
         self.update_chunk_meshes();
     }
@@ -96,7 +96,7 @@ impl World {
         }
     }
 
-    fn generate_ground(&mut self) {
+    fn setup_ground(&mut self) {
         let ground_boundary = GRID_BOUNDARY as isize - CHUNK_SIZE as isize;
 
         for x in -ground_boundary..=ground_boundary {
@@ -121,7 +121,7 @@ impl World {
         }
     }
 
-    fn generate_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
+    fn set_temple(&mut self, x: i32, y: i32, z: i32, kind: &agent::Kind) {
         self.flags.insert(kind.clone(), IVec3::new(x, y, z));
 
         self.set_cube(
@@ -386,7 +386,7 @@ impl World {
     fn update_chunk_geometry(&mut self, chunk_id: chunk::ID) {
         if let Some(chunk) = self.get_chunk(chunk_id) {
             if chunk.updated {
-                let geometry = self.generate_chunk_geometry(chunk_id);
+                let geometry = self.setup_chunk_geometry(chunk_id);
 
                 if let Some(chunk) = self.get_chunk_mut(chunk_id) {
                     chunk.updated = false;
@@ -396,7 +396,7 @@ impl World {
         }
     }
 
-    fn generate_chunk_geometry(&self, chunk_id: chunk::ID) -> chunk::Geometry {
+    fn setup_chunk_geometry(&self, chunk_id: chunk::ID) -> chunk::Geometry {
         let mut face_list = Vec::new();
         let chunk = self.get_chunk(chunk_id).unwrap();
 
@@ -537,7 +537,7 @@ impl World {
         }
     }
 
-    pub fn is_clear(&self, grid_position: IVec3, height: i32) -> bool {
+    pub fn has_clearance(&self, grid_position: IVec3, height: i32) -> bool {
         let base_is_solid = self
             .get_block(grid_position)
             .map(|block| block.solid)
