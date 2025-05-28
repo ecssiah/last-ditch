@@ -15,4 +15,8 @@ impl ID {
     pub fn is_valid(block_id: ID) -> bool {
         (0..=BLOCK_ID_MAX).contains(&usize::from(block_id))
     }
+
+    pub fn all() -> [Self; BLOCK_ID_MAX + 1] {
+        std::array::from_fn(|i| Self(i))
+    }
 }

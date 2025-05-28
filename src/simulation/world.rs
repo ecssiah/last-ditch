@@ -58,9 +58,7 @@ impl World {
         self.setup_temple(0, 0, -34, agent::Kind::Horse);
         self.setup_temple(34, 0, 0, agent::Kind::Wolf);
 
-        self.update_chunk_meshes();
-
-        for chunk_id in chunk::ID::all() {}
+        self.update_chunks();
     }
 
     pub fn tick(&mut self, tick: &Tick) {
@@ -70,6 +68,16 @@ impl World {
     fn mark_update(&mut self, chunk_id: chunk::ID) {
         if let Some(chunk) = self.get_chunk_mut(chunk_id) {
             chunk.updated = true;
+        }
+    }
+
+    fn update_chunks(&mut self) {
+        for chunk in self.chunk_list.as_mut() {
+            if chunk.updated {
+                chunk.geometry = Self::update_chunk_geometry(chunk);
+
+                chunk.updated = false;
+            }
         }
     }
 
@@ -83,7 +91,7 @@ impl World {
                 tick: Tick::ZERO,
                 updated: false,
                 position: chunk_position,
-                graph: Box::new(chunk::Graph::new()),
+                graph: chunk::Graph::new(),
                 geometry: chunk::Geometry::new(),
                 kind_list: Vec::from([block::Kind::Empty]),
                 block_list: Box::new([0; CHUNK_VOLUME]),
@@ -184,12 +192,6 @@ impl World {
         );
     }
 
-    fn update_chunk_meshes(&mut self) {
-        for chunk_id in chunk::ID::all() {
-            self.update_chunk_geometry(chunk_id);
-        }
-    }
-
     pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
         let chunk = self.chunk_list.get(usize::from(chunk_id))?;
 
@@ -223,7 +225,7 @@ impl World {
         Some(block)
     }
 
-    pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) -> bool {
+    pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) {
         let grid_position = IVec3::new(x, y, z);
 
         if let Some((chunk_id, block_id)) = grid::grid_to_ids(grid_position) {
@@ -231,10 +233,6 @@ impl World {
             self.update_visibility_lists(chunk_id, block_id, grid_position);
 
             self.mark_update(chunk_id);
-
-            true
-        } else {
-            false
         }
     }
 
@@ -336,29 +334,29 @@ impl World {
         visibility_list
     }
 
-    fn update_chunk_geometry(&mut self, chunk_id: chunk::ID) {
-        if let Some(chunk) = self.get_chunk(chunk_id) {
-            if chunk.updated {
-                let geometry = self.setup_chunk_geometry(chunk_id);
+    fn update_chunk_graph(chunk: &chunk::Chunk) -> chunk::Graph {
+        let mut nodes = Vec::new();
+        let mut edges = Vec::new();
+        let mut connections = Vec::new();
 
-                if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-                    chunk.updated = false;
-                    chunk.geometry = geometry;
-                }
-            }
+        for block_id in block::ID::all() {}
+
+        chunk::Graph {
+            nodes,
+            edges,
+            connections,
         }
     }
 
-    fn setup_chunk_geometry(&self, chunk_id: chunk::ID) -> chunk::Geometry {
+    fn update_chunk_geometry(chunk: &chunk::Chunk) -> chunk::Geometry {
         let mut face_list = Vec::new();
-        let chunk = self.get_chunk(chunk_id).unwrap();
 
-        for block_id in (0..CHUNK_VOLUME).map(block::ID) {
+        for block_id in block::ID::all() {
             let block = chunk.get_block(block_id).unwrap();
 
             if block.solid {
                 let visibility_list = &chunk.visibility_list[usize::from(block_id)];
-                let grid_position = grid::ids_to_grid(chunk_id, block_id).unwrap();
+                let grid_position = grid::ids_to_grid(chunk.id, block_id).unwrap();
 
                 for direction in grid::Direction::faces() {
                     if visibility_list.contains(&direction) {

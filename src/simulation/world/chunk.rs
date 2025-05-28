@@ -1,8 +1,10 @@
+pub mod connection;
 pub mod geometry;
 pub mod graph;
 pub mod id;
 pub mod node;
 
+pub use connection::Connection;
 pub use geometry::Geometry;
 pub use graph::Graph;
 pub use id::ID;
@@ -21,7 +23,7 @@ pub struct Chunk {
     pub tick: Tick,
     pub updated: bool,
     pub position: IVec3,
-    pub graph: Box<Graph>,
+    pub graph: chunk::Graph,
     pub geometry: chunk::Geometry,
     pub kind_list: Vec<block::Kind>,
     pub block_list: Box<[usize; CHUNK_VOLUME]>,
