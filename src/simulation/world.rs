@@ -58,17 +58,7 @@ impl World {
         self.setup_temple(0, 0, -34, agent::Kind::Horse);
         self.setup_temple(34, 0, 0, agent::Kind::Wolf);
 
-        self.set_cube(
-            IVec3::new(-40, 20, -40),
-            IVec3::new(40, 20, 40),
-            block::Kind::Polished1,
-        );
-
-        self.set_cube(
-            IVec3::new(-34, 20, -34),
-            IVec3::new(34, 20, 34),
-            block::Kind::Empty,
-        );
+        self.setup_observation_deck();
 
         self.update_chunks();
     }
@@ -126,14 +116,6 @@ impl World {
         chunk_list
     }
 
-    fn setup_compass(&mut self) {
-        self.set_block_kind(0, 0, 0, block::Kind::Origin);
-        self.set_block_kind(0, 0, 4, block::Kind::North);
-        self.set_block_kind(-4, 0, 0, block::Kind::West);
-        self.set_block_kind(0, 0, -4, block::Kind::South);
-        self.set_block_kind(4, 0, 0, block::Kind::East);
-    }
-
     fn setup_ground(&mut self) {
         let ground_boundary = GRID_BOUNDARY as isize - CHUNK_SIZE as isize;
 
@@ -154,6 +136,14 @@ impl World {
                 }
             }
         }
+    }
+
+    fn setup_compass(&mut self) {
+        self.set_block_kind(0, 0, 0, block::Kind::Origin);
+        self.set_block_kind(0, 0, 4, block::Kind::North);
+        self.set_block_kind(-4, 0, 0, block::Kind::West);
+        self.set_block_kind(0, 0, -4, block::Kind::South);
+        self.set_block_kind(4, 0, 0, block::Kind::East);
     }
 
     fn setup_temple(&mut self, x: i32, y: i32, z: i32, kind: agent::Kind) {
@@ -213,6 +203,24 @@ impl World {
             IVec3::new(x - 5, y + 1, z - 5),
             IVec3::new(x - 5, y + 8, z - 5),
             block::Kind::Engraved1,
+        );
+    }
+
+    fn setup_observation_deck(&mut self) {
+        let inner_offset = 17 * 3 - 4;
+        let outer_offset = 17 * 3 + 3;
+        let height = 16;
+
+        self.set_cube(
+            IVec3::new(-outer_offset, height, -outer_offset),
+            IVec3::new(outer_offset, height, outer_offset),
+            block::Kind::Polished1,
+        );
+
+        self.set_cube(
+            IVec3::new(-inner_offset, height, -inner_offset),
+            IVec3::new(inner_offset, height, inner_offset),
+            block::Kind::Empty,
         );
     }
 
