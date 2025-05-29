@@ -7,6 +7,9 @@ pub struct Dimensions {
     pub chunk_size: i32,
     pub chunk_area: i32,
     pub chunk_volume: i32,
+    pub boundary: i32,
+    pub block_id_max: i32,
+    pub chunk_id_max: i32,
 }
 
 impl Dimensions {
@@ -19,6 +22,11 @@ impl Dimensions {
         let chunk_area = chunk_size * chunk_size;
         let chunk_volume = chunk_size * chunk_size * chunk_size;
 
+        let boundary = chunk_radius + radius * chunk_size;
+
+        let block_id_max = chunk_volume - 1;
+        let chunk_id_max = volume - 1;
+
         let dimensions = Dimensions {
             radius,
             size,
@@ -28,6 +36,9 @@ impl Dimensions {
             chunk_size,
             chunk_area,
             chunk_volume,
+            boundary,
+            block_id_max,
+            chunk_id_max,
         };
 
         dimensions
