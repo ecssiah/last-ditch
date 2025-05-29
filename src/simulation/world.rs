@@ -58,6 +58,18 @@ impl World {
         self.setup_temple(0, 0, -34, agent::Kind::Horse);
         self.setup_temple(34, 0, 0, agent::Kind::Wolf);
 
+        self.set_cube(
+            IVec3::new(-40, 20, -40),
+            IVec3::new(40, 20, 40),
+            block::Kind::Polished1,
+        );
+
+        self.set_cube(
+            IVec3::new(-34, 20, -34),
+            IVec3::new(34, 20, 34),
+            block::Kind::Empty,
+        );
+
         self.update_chunks();
     }
 
@@ -72,9 +84,21 @@ impl World {
     }
 
     fn update_chunks(&mut self) {
-        for chunk in self.chunk_list.as_mut() {
+        let mut chunk_updates = Vec::new();
+
+        for chunk in self.chunk_list.as_ref() {
             if chunk.updated {
-                chunk.geometry = Self::update_chunk_geometry(chunk);
+                let graph = Self::update_chunk_graph(chunk);
+                let geometry = Self::update_chunk_geometry(chunk);
+
+                chunk_updates.push((chunk.id, graph, geometry));
+            }
+        }
+
+        for (chunk_id, graph, geometry) in chunk_updates {
+            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+                chunk.graph = graph;
+                chunk.geometry = geometry;
 
                 chunk.updated = false;
             }

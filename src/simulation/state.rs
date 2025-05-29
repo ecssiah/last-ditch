@@ -6,7 +6,7 @@ use crate::simulation::{
     physics::Physics,
     population::Population,
     time::Time,
-    world::World,
+    world::World, PROJECT_TITLE, PROJECT_VERSION,
 };
 
 pub struct State {
@@ -35,7 +35,7 @@ impl State {
         self.population.setup(&self.world);
 
         self.admin.mode = admin::Mode::Simulate;
-        self.admin.message = String::from("Last Ditch 1.0");
+        self.admin.message = format!("{} {}", PROJECT_TITLE, PROJECT_VERSION);
     }
 
     pub fn tick(&mut self) {

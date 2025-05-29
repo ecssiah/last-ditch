@@ -7,6 +7,9 @@ use std::{collections::HashMap, time::Duration};
 
 pub const DEFAULT_SEED: u64 = 128;
 
+pub const PROJECT_TITLE: &str = "Last Ditch";
+pub const PROJECT_VERSION: &str = "0.1.0";
+
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =
     Duration::from_nanos(1_000_000_000 / SIMULATION_TICK_FREQUENCY);
