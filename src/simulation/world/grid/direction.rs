@@ -1,6 +1,8 @@
 use glam::IVec3;
 use serde::{Deserialize, Serialize};
 
+use crate::simulation::{WORLD_CARDINAL_COST, WORLD_CORNER_COST, WORLD_EDGE_COST};
+
 #[rustfmt::skip]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum Direction {
@@ -34,6 +36,36 @@ impl Direction {
         Direction::XpYnZo,
         Direction::XnYoZo,
         Direction::XoYoZo,
+        Direction::XpYoZo,
+        Direction::XnYpZo,
+        Direction::XoYpZo,
+        Direction::XpYpZo,
+        Direction::XnYnZp,
+        Direction::XoYnZp,
+        Direction::XpYnZp,
+        Direction::XnYoZp,
+        Direction::XoYoZp,
+        Direction::XpYoZp,
+        Direction::XnYpZp,
+        Direction::XoYpZp,
+        Direction::XpYpZp,
+    ];
+
+    #[rustfmt::skip]
+    const NEIGHBORS: [Direction; 26] = [
+        Direction::XnYnZn,
+        Direction::XoYnZn,
+        Direction::XpYnZn,
+        Direction::XnYoZn,
+        Direction::XoYoZn,
+        Direction::XpYoZn,
+        Direction::XnYpZn,
+        Direction::XoYpZn,
+        Direction::XpYpZn,
+        Direction::XnYnZo,
+        Direction::XoYnZo,
+        Direction::XpYnZo,
+        Direction::XnYoZo,
         Direction::XpYoZo,
         Direction::XnYpZo,
         Direction::XoYpZo,
@@ -106,6 +138,10 @@ impl Direction {
         Self::ALL
     }
 
+    pub fn neighbors() -> [Direction; 26] {
+        Self::NEIGHBORS
+    }
+
     pub fn axes() -> [Direction; 3] {
         Self::AXES
     }
@@ -156,6 +192,42 @@ impl Direction {
             Direction::XoYpZp => IVec3::new(0, 1, 1),
             Direction::XpYpZp => IVec3::new(1, 1, 1),
         }
+    }
+
+    pub fn cost(&self) -> f32 {
+        match self {
+            Direction::XnYnZn => WORLD_CORNER_COST,
+            Direction::XoYnZn => WORLD_EDGE_COST,
+            Direction::XpYnZn => WORLD_CORNER_COST,
+            Direction::XnYoZn => WORLD_EDGE_COST,
+            Direction::XoYoZn => WORLD_CARDINAL_COST,
+            Direction::XpYoZn => WORLD_EDGE_COST,
+            Direction::XnYpZn => WORLD_CORNER_COST,
+            Direction::XoYpZn => WORLD_EDGE_COST,
+            Direction::XpYpZn => WORLD_CORNER_COST,
+            Direction::XnYnZo => WORLD_EDGE_COST,
+            Direction::XoYnZo => WORLD_CARDINAL_COST,
+            Direction::XpYnZo => WORLD_EDGE_COST,
+            Direction::XnYoZo => WORLD_CARDINAL_COST,
+            Direction::XoYoZo => WORLD_CARDINAL_COST,
+            Direction::XpYoZo => WORLD_CARDINAL_COST,
+            Direction::XnYpZo => WORLD_EDGE_COST,
+            Direction::XoYpZo => WORLD_CARDINAL_COST,
+            Direction::XpYpZo => WORLD_EDGE_COST,
+            Direction::XnYnZp => WORLD_CORNER_COST,
+            Direction::XoYnZp => WORLD_EDGE_COST,
+            Direction::XpYnZp => WORLD_CORNER_COST,
+            Direction::XnYoZp => WORLD_EDGE_COST,
+            Direction::XoYoZp => WORLD_CARDINAL_COST,
+            Direction::XpYoZp => WORLD_EDGE_COST,
+            Direction::XnYpZp => WORLD_CORNER_COST,
+            Direction::XoYpZp => WORLD_EDGE_COST,
+            Direction::XpYpZp => WORLD_CORNER_COST,
+        }
+    }
+
+    pub fn neighbor_offsets() -> [IVec3; 26] {
+        Self::NEIGHBORS.map(|neighbor| neighbor.offset())
     }
 
     pub fn face_offsets() -> [IVec3; 6] {

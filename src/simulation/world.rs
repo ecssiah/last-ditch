@@ -78,7 +78,7 @@ impl World {
 
         for chunk in self.chunk_list.as_ref() {
             if chunk.updated {
-                let graph = Self::update_chunk_graph(chunk);
+                let graph = self.update_chunk_graph(chunk);
                 let geometry = Self::update_chunk_geometry(chunk);
 
                 chunk_updates.push((chunk.id, graph, geometry));
@@ -366,17 +366,62 @@ impl World {
         visibility_list
     }
 
-    fn update_chunk_graph(chunk: &chunk::Chunk) -> chunk::Graph {
-        let mut nodes = Vec::new();
-        let mut edges = Vec::new();
-        let mut connections = Vec::new();
+    fn update_chunk_graph(&self, chunk: &chunk::Chunk) -> chunk::Graph {
+        let mut node_list = Vec::<chunk::Node>::new();
+        let mut position_index_map = HashMap::<IVec3, usize>::new();
 
-        for block_id in block::ID::all() {}
+        for block_id in block::ID::all() {
+            if let Some(block) = chunk.get_block(block_id) {
+                if !block.solid {
+                    if let Some(grid_position) = grid::ids_to_grid(chunk.id, block_id) {
+                        let index = node_list.len();
+                        let clearance = self.get_clearance(grid_position);
+
+                        let node = chunk::Node {
+                            grid_position,
+                            clearance,
+                        };
+
+                        position_index_map.insert(node.grid_position, index);
+                        node_list.push(node);
+                    }
+                }
+            }
+        }
+
+        let mut edge_list = Vec::<chunk::Edge>::new();
+
+        for (index, node) in node_list.iter().enumerate() {
+            for neighbor_direction in grid::Direction::neighbors() {
+                if neighbor_direction == grid::Direction::XoYpZo {
+                    continue;
+                }
+
+                if neighbor_direction == grid::Direction::XoYnZo {
+                    continue;
+                }
+
+                let offset = neighbor_direction.offset();
+                let neighbor_grid_position = node.grid_position + offset;
+
+                if let Some(&neighbor_index) = position_index_map.get(&neighbor_grid_position) {
+                    let edge = chunk::Edge {
+                        source: index,
+                        target: neighbor_index,
+                        cost: neighbor_direction.cost(),
+                    };
+
+                    edge_list.push(edge);
+                }
+            }
+        }
+
+        let connection_list = Vec::<chunk::Connection>::new();
 
         chunk::Graph {
-            nodes,
-            edges,
-            connections,
+            node_list,
+            edge_list,
+            connection_list,
         }
     }
 
@@ -535,6 +580,37 @@ impl World {
         });
 
         base_is_solid && clear_above
+    }
+
+    pub fn get_clearance(&self, grid_position: IVec3) -> usize {
+        let base_is_solid = self
+            .get_block(grid_position)
+            .map(|block| block.solid)
+            .unwrap_or(false);
+
+        if base_is_solid {
+            let mut clearance = 1;
+            const MAX_CHECK: i32 = 4;
+
+            for level in 1..=MAX_CHECK {
+                let vertical_grid_position = grid_position + IVec3::Y * level;
+
+                let is_clear = self
+                    .get_block(vertical_grid_position)
+                    .map(|block| block.solid)
+                    .unwrap_or(false);
+
+                if is_clear {
+                    clearance += 1;
+                } else {
+                    break;
+                }
+            }
+
+            clearance
+        } else {
+            0
+        }
     }
 
     pub fn get_visible_chunk_id_list(chunk_id: chunk::ID) -> Vec<chunk::ID> {

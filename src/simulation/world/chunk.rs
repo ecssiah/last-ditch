@@ -1,10 +1,12 @@
 pub mod connection;
+pub mod edge;
 pub mod geometry;
 pub mod graph;
 pub mod id;
 pub mod node;
 
 pub use connection::Connection;
+pub use edge::Edge;
 pub use geometry::Geometry;
 pub use graph::Graph;
 pub use id::ID;
