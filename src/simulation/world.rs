@@ -3,7 +3,10 @@
 
 pub mod block;
 pub mod chunk;
+pub mod dimensions;
 pub mod grid;
+
+pub use dimensions::Dimensions;
 
 use crate::simulation::{
     consts::*,
@@ -16,13 +19,15 @@ use std::collections::HashMap;
 
 pub struct World {
     pub tick: Tick,
+    pub dimensions: Dimensions,
     pub chunk_list: [chunk::Chunk; WORLD_VOLUME],
     pub flags: HashMap<agent::Kind, IVec3>,
 }
 
 impl World {
-    pub fn new() -> World {
+    pub fn new(radius: i32, chunk_radius: i32) -> World {
         let tick = Tick::ZERO;
+        let dimensions = Dimensions::new(radius, chunk_radius);
         let chunk_list = Self::setup_chunks();
         let flags = HashMap::from([
             (agent::Kind::Lion, IVec3::ZERO),
@@ -33,6 +38,7 @@ impl World {
 
         let world = Self {
             tick,
+            dimensions,
             chunk_list,
             flags,
         };

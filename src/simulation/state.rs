@@ -6,7 +6,8 @@ use crate::simulation::{
     physics::Physics,
     population::Population,
     time::Time,
-    world::World, PROJECT_TITLE, PROJECT_VERSION,
+    world::World,
+    CHUNK_RADIUS, PROJECT_TITLE, PROJECT_VERSION, WORLD_RADIUS,
 };
 
 pub struct State {
@@ -23,7 +24,7 @@ impl State {
             admin: Admin::new(),
             time: Time::new(),
             physics: Physics::new(),
-            world: World::new(),
+            world: World::new(WORLD_RADIUS as i32, CHUNK_RADIUS as i32),
             population: Population::new(),
         };
 
@@ -44,7 +45,7 @@ impl State {
         self.world.tick(tick);
         self.population.tick(tick, &self.world);
         self.physics.tick(&self.world, &mut self.population);
-        
+
         self.time.tick();
     }
 }
