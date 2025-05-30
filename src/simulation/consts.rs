@@ -36,35 +36,23 @@ pub const ENTITY_SIZE_Y: f32 = 1.4;
 pub const ENTITY_SIZE_Z: f32 = 0.4;
 pub const ENTITY_BORDER_RADIUS: f32 = 0.001;
 
+pub const WORLD_CARDINAL_COST: f32 = 1.0;
+pub const WORLD_EDGE_COST: f32 = 1.4142135;
+pub const WORLD_CORNER_COST: f32 = 1.7320508;
+
+pub const WORLD_RADIUS: usize = 4;
+pub const CHUNK_RADIUS: usize = 8;
+
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const CHUNK_RADIUS: usize = 8;
-pub const CHUNK_SIZE: usize = 2 * CHUNK_RADIUS + 1;
-pub const CHUNK_AREA: usize = CHUNK_SIZE * CHUNK_SIZE;
-pub const CHUNK_VOLUME: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-
-pub const WORLD_RADIUS: usize = 4;
-pub const WORLD_SIZE: usize = 2 * WORLD_RADIUS + 1;
-pub const WORLD_AREA: usize = WORLD_SIZE * WORLD_SIZE;
-pub const WORLD_VOLUME: usize = WORLD_SIZE * WORLD_SIZE * WORLD_SIZE;
-
-pub const WORLD_CARDINAL_COST: f32 = 1.0;
-pub const WORLD_EDGE_COST: f32 = 1.4142135;
-pub const WORLD_CORNER_COST: f32 = 1.7320508;
-
-pub const BLOCK_ID_MAX: usize = CHUNK_VOLUME - 1;
-pub const CHUNK_ID_MAX: usize = WORLD_VOLUME - 1;
-
-pub const GRID_BOUNDARY: usize = CHUNK_RADIUS + WORLD_RADIUS * CHUNK_SIZE;
-
 pub const JUDGE_CAMERA_HEIGHT: f32 = 1.3;
 pub const JUDGE_VIEW_RADIUS: i32 = 12;
 pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
 
-pub const POPULATION_VIEW_RADIUS: f32 = (CHUNK_SIZE as i32 * (JUDGE_VIEW_RADIUS - 2)) as f32;
+pub const POPULATION_VIEW_RADIUS: f32 = 10.0;
 pub const POPULATION_VIEW_RADIUS_SQUARED: f32 = POPULATION_VIEW_RADIUS * POPULATION_VIEW_RADIUS;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];

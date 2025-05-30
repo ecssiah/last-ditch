@@ -53,7 +53,7 @@ impl Decision {
     fn plan_wander(&self, agent: &Agent, world: &World) -> Vec<Step> {
         let mut plan = Vec::new();
 
-        if let Some(grid_position) = grid::world_to_grid(agent.position) {
+        if let Some(grid_position) = world.grid.world_to_grid(agent.position) {
             for _ in 0..10 {
                 if let Some(next_grid_position) = Self::find_target(&grid_position, agent, world) {
                     let step = Step::Move(next_grid_position);

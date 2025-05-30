@@ -3,11 +3,11 @@
 
 use crate::simulation::{
     admin::{self, Admin},
+    consts::*,
     physics::Physics,
     population::Population,
     time::Time,
     world::World,
-    CHUNK_RADIUS, PROJECT_TITLE, PROJECT_VERSION, WORLD_RADIUS,
 };
 
 pub struct State {
@@ -24,7 +24,7 @@ impl State {
             admin: Admin::new(),
             time: Time::new(),
             physics: Physics::new(),
-            world: World::new(WORLD_RADIUS as i32, CHUNK_RADIUS as i32),
+            world: World::new(WORLD_RADIUS as u32, CHUNK_RADIUS as u32),
             population: Population::new(),
         };
 

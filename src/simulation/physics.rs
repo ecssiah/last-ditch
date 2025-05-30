@@ -5,10 +5,7 @@ use crate::simulation::{
     consts::*,
     physics::{aabb::AABB, dynamic_object::DynamicObject},
     population::Population,
-    world::{
-        grid::{self, Axis},
-        World,
-    },
+    world::{grid::Axis, World},
 };
 use glam::Vec3;
 
@@ -34,7 +31,7 @@ impl Physics {
         let (velocity, delta) = Self::integrate_dynamic_object(judge);
 
         Self::resolve_dynamic_object(judge, world, &velocity, &delta);
-        Self::sync_dynamic_object(judge);
+        Self::sync_dynamic_object(judge, world);
     }
 
     fn integrate_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) -> (Vec3, Vec3) {
@@ -104,20 +101,24 @@ impl Physics {
     }
 
     fn get_solid_collisions(target: AABB, world: &World) -> Vec<AABB> {
-        grid::overlapping_aabb_list(target)
+        world
+            .grid
+            .overlapping_aabb_list(target)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();
 
-                world.get_block(block_position).map_or(false, |b| b.solid)
+                world
+                    .get_block_at(block_position)
+                    .map_or(false, |b| b.solid)
             })
             .collect()
     }
 
-    fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) {
+    fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T, world: &World) {
         let position = dynamic_object.aabb().bottom_center();
 
-        if let Some(chunk_id) = grid::world_to_chunk_id(position) {
+        if let Some(chunk_id) = world.grid.world_to_chunk_id(position) {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
 
             dynamic_object.set_chunk_update(chunk_update);
