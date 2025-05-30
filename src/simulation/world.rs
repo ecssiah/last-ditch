@@ -55,6 +55,14 @@ impl World {
     }
 
     pub fn setup(&mut self) {
+        if TESTING {
+            self.setup_test_world();
+        } else {
+            self.setup_main_world();
+        }
+    }
+
+    pub fn setup_main_world(&mut self) {
         log::info!("Setup Ground");
 
         self.setup_ground();
@@ -69,6 +77,56 @@ impl World {
         self.setup_temple(34, 0, 0, agent::Kind::Wolf);
 
         self.setup_observation_deck();
+
+        self.update_chunks();
+    }
+
+    pub fn setup_test_world(&mut self) {
+        let chunk_radius = self.grid.chunk_radius as i32;
+        // let chunk_size = self.grid.chunk_size as i32;
+
+        let boundary = self.grid.boundary as i32;
+
+        self.set_cube(
+            IVec3::new(-boundary, -boundary, -boundary),
+            IVec3::new(boundary, boundary, boundary),
+            block::Kind::Polished1,
+        );
+
+        self.set_block_kind(0, -chunk_radius, 1, block::Kind::North);
+        self.set_block_kind(-1, -chunk_radius, 0, block::Kind::West);
+        self.set_block_kind(0, -chunk_radius, -1, block::Kind::South);
+        self.set_block_kind(1, -chunk_radius, 0, block::Kind::East);
+
+        let chunk_center_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
+        // let chunk_north_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
+        // let chunk_south_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
+        // let chunk_east_grid_position = self.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
+        let chunk_west_grid_position = self.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
+        // let chunk_up_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 1, 0)).unwrap();
+        // let chunk_down_grid_position = self.grid.chunk_to_grid(IVec3::new(0, -1, 0)).unwrap();
+
+        self.set_cube(
+            chunk_center_grid_position
+                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
+            chunk_center_grid_position
+                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_center_grid_position + IVec3::new(0, -chunk_radius + 1, 0),
+            chunk_west_grid_position + IVec3::new(0, -chunk_radius + 3, 0),
+            block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_west_grid_position
+                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
+            chunk_west_grid_position
+                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            block::Kind::Empty,
+        );
 
         self.update_chunks();
     }

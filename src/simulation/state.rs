@@ -24,11 +24,19 @@ impl State {
             admin: Admin::new(),
             time: Time::new(),
             physics: Physics::new(),
-            world: World::new(WORLD_RADIUS as u32, CHUNK_RADIUS as u32),
+            world: Self::setup_world(),
             population: Population::new(),
         };
 
         state
+    }
+
+    fn setup_world() -> World {
+        if TESTING {
+            World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32)
+        } else {
+            World::new(WORLD_RADIUS as u32, CHUNK_RADIUS as u32)
+        }
     }
 
     pub fn setup(&mut self) {
