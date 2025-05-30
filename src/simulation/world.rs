@@ -90,13 +90,13 @@ impl World {
         self.set_cube(
             IVec3::new(-boundary, -boundary, -boundary),
             IVec3::new(boundary, boundary, boundary),
-            block::Kind::Polished2,
+            block::Kind::Polished1,
         );
 
         let chunk_center_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
         let chunk_north_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
         // let chunk_south_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
-        // let chunk_east_grid_position = self.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
+        let chunk_east_grid_position = self.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
         let chunk_west_grid_position = self.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
         // let chunk_up_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 1, 0)).unwrap();
         // let chunk_down_grid_position = self.grid.chunk_to_grid(IVec3::new(0, -1, 0)).unwrap();
@@ -180,6 +180,44 @@ impl World {
             chunk_north_grid_position.x + 2,
             chunk_north_grid_position.y - chunk_radius + 5,
             chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
+        );
+
+        self.set_cube(
+            chunk_center_grid_position + IVec3::new(0, -chunk_radius + 1, 0),
+            chunk_east_grid_position + IVec3::new(0, -chunk_radius + 3, 0),
+            block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_east_grid_position
+                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
+            chunk_east_grid_position
+                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_east_grid_position + IVec3::new(0, -chunk_radius + 1, 0),
+            chunk_east_grid_position + IVec3::new(0, -2, 0),
+            block::Kind::Origin,
+        );
+
+        self.set_cube(
+            chunk_east_grid_position + IVec3::new(0, -chunk_radius + 1, 1),
+            chunk_east_grid_position + IVec3::new(0, -1, 1),
+            block::Kind::Origin,
+        );
+
+        self.set_cube(
+            chunk_east_grid_position + IVec3::new(0, -chunk_radius + 1, 2),
+            chunk_east_grid_position + IVec3::new(0, 0, 2),
+            block::Kind::Origin,
+        );
+
+        self.set_cube(
+            chunk_east_grid_position + IVec3::new(2, -chunk_radius + 1, -2),
+            chunk_east_grid_position + IVec3::new(2, -1, -2),
             block::Kind::Origin,
         );
 
@@ -505,11 +543,13 @@ impl World {
                     if let Some(grid_position) = self.grid.ids_to_grid(chunk.id, block_id) {
                         let index = node_list.len();
                         let clearance = self.get_clearance(grid_position);
+                        let edge_list = Vec::new();
 
                         if clearance > 0 {
                             let node = chunk::Node {
                                 grid_position,
                                 clearance,
+                                edge_list,
                             };
 
                             position_index_map.insert(node.grid_position, index);
@@ -520,9 +560,7 @@ impl World {
             }
         }
 
-        let mut edge_list = Vec::<chunk::Edge>::new();
-
-        for (index, node) in node_list.iter().enumerate() {
+        for node in node_list.iter_mut() {
             for neighbor_direction in grid::Direction::neighbors() {
                 if neighbor_direction == grid::Direction::XoYpZo {
                     continue;
@@ -537,12 +575,11 @@ impl World {
 
                 if let Some(&neighbor_index) = position_index_map.get(&neighbor_grid_position) {
                     let edge = chunk::Edge {
-                        source: index,
                         target: neighbor_index,
                         cost: neighbor_direction.cost(),
                     };
 
-                    edge_list.push(edge);
+                    node.edge_list.push(edge);
                 }
             }
         }
@@ -551,7 +588,6 @@ impl World {
 
         chunk::Graph {
             node_list,
-            edge_list,
             connection_list,
         }
     }
