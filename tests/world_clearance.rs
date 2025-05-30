@@ -1,7 +1,6 @@
 use glam::IVec3;
 use last_ditch::simulation::{
-    world::{block, World},
-    MAXIMUM_CLEARANCE_CHECK,
+    world::World, MAXIMUM_CLEARANCE_CHECK, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
 
 struct HasClearanceTestCase {
@@ -13,50 +12,82 @@ struct HasClearanceTestCase {
 
 #[test]
 fn has_clearance() {
-    let test_world = setup_test_world();
+    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    test_world.setup_test_world();
+
+    let chunk_radius = test_world.grid.chunk_radius as i32;
+    let chunk_north_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
 
     let test_cases = vec![
         HasClearanceTestCase {
-            description: String::from("height 1 at (0, 0, 0)"),
-            grid_position: IVec3::new(0, 0, 0),
+            description: String::from("clearance max"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z,
+            ),
+            height: MAXIMUM_CLEARANCE_CHECK,
+            expected_has_clearance: true,
+        },
+        HasClearanceTestCase {
+            description: String::from("clearance 0"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x - 2,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
+            height: 0,
+            expected_has_clearance: true,
+        },
+        HasClearanceTestCase {
+            description: String::from("not clearance 1"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x - 2,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
+            height: 1,
+            expected_has_clearance: false,
+        },
+        HasClearanceTestCase {
+            description: String::from("clearance 1"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x - 1,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             height: 1,
             expected_has_clearance: true,
         },
         HasClearanceTestCase {
-            description: String::from("height 2 at (0, 0, 0)"),
-            grid_position: IVec3::new(0, 0, 0),
-            height: 2,
-            expected_has_clearance: false,
-        },
-        HasClearanceTestCase {
-            description: String::from("height 2 at (2, 0, 0)"),
-            grid_position: IVec3::new(2, 0, 0),
+            description: String::from("clearance 2"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             height: 2,
             expected_has_clearance: true,
         },
         HasClearanceTestCase {
-            description: String::from("height 3 at (2, 0, 0)"),
-            grid_position: IVec3::new(2, 0, 0),
-            height: 3,
-            expected_has_clearance: false,
-        },
-        HasClearanceTestCase {
-            description: String::from("height 3 at (4, 0, 0)"),
-            grid_position: IVec3::new(4, 0, 0),
+            description: String::from("clearance 3"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x + 1,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             height: 3,
             expected_has_clearance: true,
         },
         HasClearanceTestCase {
-            description: String::from("height 4 at (4, 0, 0)"),
-            grid_position: IVec3::new(4, 0, 0),
+            description: String::from("clearance max"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x + 2,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             height: 4,
-            expected_has_clearance: false,
-        },
-        HasClearanceTestCase {
-            description: String::from("no clearance at vertical boundary"),
-            grid_position: IVec3::new(0, test_world.grid.boundary as i32, 0),
-            height: 4,
-            expected_has_clearance: false,
+            expected_has_clearance: true,
         },
     ];
 
@@ -79,33 +110,57 @@ struct GetClearanceTestCase {
 
 #[test]
 fn get_clearance() {
-    let test_world = setup_test_world();
+    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    test_world.setup_test_world();
+
+    let chunk_radius = test_world.grid.chunk_radius as i32;
+    let chunk_north_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
 
     let test_cases = vec![
         GetClearanceTestCase {
-            description: String::from("clearance 1 at (0, 0, 0)"),
-            grid_position: IVec3::new(0, 0, 0),
+            description: String::from("clearance 1"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x - 2,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
+            expected_clearance: 0,
+        },
+        GetClearanceTestCase {
+            description: String::from("clearance 2"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x - 1,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             expected_clearance: 1,
         },
         GetClearanceTestCase {
-            description: String::from("clearance 2 at (2, 0, 0)"),
-            grid_position: IVec3::new(2, 0, 0),
+            description: String::from("clearance 3"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             expected_clearance: 2,
         },
         GetClearanceTestCase {
-            description: String::from("clearance 3 at (4, 0, 0)"),
-            grid_position: IVec3::new(4, 0, 0),
+            description: String::from("clearance 4"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x + 1,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
             expected_clearance: 3,
         },
         GetClearanceTestCase {
-            description: String::from("maximum clearance check at (6, 0, 0)"),
-            grid_position: IVec3::new(6, 0, 0),
-            expected_clearance: MAXIMUM_CLEARANCE_CHECK,
-        },
-        GetClearanceTestCase {
-            description: String::from("clearance check that passes boundary"),
-            grid_position: IVec3::new(2, test_world.grid.boundary as i32 - 1, 0),
-            expected_clearance: 1,
+            description: String::from("clearance max"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x + 2,
+                chunk_north_grid_position.y - chunk_radius,
+                chunk_north_grid_position.z + 2,
+            ),
+            expected_clearance: 4,
         },
     ];
 
@@ -118,37 +173,4 @@ fn get_clearance() {
             test_case.description
         );
     }
-}
-
-fn setup_test_world() -> World {
-    let mut test_world = World::new(1, 2);
-
-    test_world.set_block_kind(0, 0, 0, block::Kind::Polished1);
-    test_world.set_block_kind(0, 2, 0, block::Kind::Polished1);
-
-    test_world.set_block_kind(2, 0, 0, block::Kind::Polished1);
-    test_world.set_block_kind(2, 3, 0, block::Kind::Polished1);
-
-    test_world.set_block_kind(4, 0, 0, block::Kind::Polished1);
-    test_world.set_block_kind(4, 4, 0, block::Kind::Polished1);
-
-    test_world.set_block_kind(6, 0, 0, block::Kind::Polished1);
-
-    test_world.set_block_kind(
-        0,
-        test_world.grid.boundary as i32,
-        0,
-        block::Kind::Polished1,
-    );
-
-    test_world.set_block_kind(
-        2,
-        test_world.grid.boundary as i32 - 1,
-        0,
-        block::Kind::Polished1,
-    );
-
-    test_world.update_chunks();
-
-    test_world
 }

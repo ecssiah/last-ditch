@@ -99,7 +99,7 @@ impl World {
         self.set_block_kind(1, -chunk_radius, 0, block::Kind::East);
 
         let chunk_center_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
-        // let chunk_north_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
+        let chunk_north_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
         // let chunk_south_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
         // let chunk_east_grid_position = self.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
         let chunk_west_grid_position = self.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
@@ -126,6 +126,55 @@ impl World {
             chunk_west_grid_position
                 + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_center_grid_position + IVec3::new(0, -chunk_radius + 1, 0),
+            chunk_north_grid_position + IVec3::new(0, -chunk_radius + 3, 0),
+            block::Kind::Empty,
+        );
+
+        self.set_cube(
+            chunk_north_grid_position
+                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
+            chunk_north_grid_position
+                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        self.set_block_kind(
+            chunk_north_grid_position.x - 2,
+            chunk_north_grid_position.y - chunk_radius + 1,
+            chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
+        );
+
+        self.set_block_kind(
+            chunk_north_grid_position.x - 1,
+            chunk_north_grid_position.y - chunk_radius + 2,
+            chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
+        );
+
+        self.set_block_kind(
+            chunk_north_grid_position.x,
+            chunk_north_grid_position.y - chunk_radius + 3,
+            chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
+        );
+
+        self.set_block_kind(
+            chunk_north_grid_position.x + 1,
+            chunk_north_grid_position.y - chunk_radius + 4,
+            chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
+        );
+
+        self.set_block_kind(
+            chunk_north_grid_position.x + 2,
+            chunk_north_grid_position.y - chunk_radius + 5,
+            chunk_north_grid_position.z + 2,
+            block::Kind::Origin,
         );
 
         self.update_chunks();
