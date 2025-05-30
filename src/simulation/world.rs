@@ -12,7 +12,7 @@ use crate::simulation::{
     BLOCK_MAP,
 };
 use glam::{IVec3, Vec4};
-use std::{collections::HashMap, iter};
+use std::collections::HashMap;
 
 pub struct World {
     pub tick: Tick,
@@ -83,7 +83,7 @@ impl World {
         }
     }
 
-    fn update_chunks(&mut self) {
+    pub fn update_chunks(&mut self) {
         let mut chunk_updates = Vec::new();
 
         for chunk in &self.chunk_list {
@@ -119,7 +119,7 @@ impl World {
                     graph: chunk::Graph::new(),
                     geometry: chunk::Geometry::new(),
                     kind_list: Vec::from([block::Kind::Empty]),
-                    block_list: iter::repeat(0).take(grid.chunk_volume as usize).collect(),
+                    block_list: (0..grid.chunk_volume).map(|_| 0).collect(),
                     visibility_list: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
                 }
             })
@@ -388,18 +388,20 @@ impl World {
 
         for block_id in self.block_ids() {
             if let Some(block) = self.get_block(chunk.id, block_id) {
-                if !block.solid {
+                if block.solid {
                     if let Some(grid_position) = self.grid.ids_to_grid(chunk.id, block_id) {
                         let index = node_list.len();
                         let clearance = self.get_clearance(grid_position);
 
-                        let node = chunk::Node {
-                            grid_position,
-                            clearance,
-                        };
+                        if clearance > 0 {
+                            let node = chunk::Node {
+                                grid_position,
+                                clearance,
+                            };
 
-                        position_index_map.insert(node.grid_position, index);
-                        node_list.push(node);
+                            position_index_map.insert(node.grid_position, index);
+                            node_list.push(node);
+                        }
                     }
                 }
             }
@@ -605,15 +607,14 @@ impl World {
             .unwrap_or(false);
 
         if base_is_solid {
-            let mut clearance = 1;
-            const MAX_CHECK: i32 = 4;
+            let mut clearance = 0;
 
-            for level in 1..=MAX_CHECK {
+            for level in 1..=MAXIMUM_CLEARANCE_CHECK {
                 let vertical_grid_position = grid_position + IVec3::Y * level;
 
                 let is_clear = self
                     .get_block_at(vertical_grid_position)
-                    .map(|block| block.solid)
+                    .map(|block| !block.solid)
                     .unwrap_or(false);
 
                 if is_clear {
