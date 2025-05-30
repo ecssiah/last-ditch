@@ -90,13 +90,8 @@ impl World {
         self.set_cube(
             IVec3::new(-boundary, -boundary, -boundary),
             IVec3::new(boundary, boundary, boundary),
-            block::Kind::Polished1,
+            block::Kind::Polished2,
         );
-
-        self.set_block_kind(0, -chunk_radius, 1, block::Kind::North);
-        self.set_block_kind(-1, -chunk_radius, 0, block::Kind::West);
-        self.set_block_kind(0, -chunk_radius, -1, block::Kind::South);
-        self.set_block_kind(1, -chunk_radius, 0, block::Kind::East);
 
         let chunk_center_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
         let chunk_north_grid_position = self.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
@@ -107,12 +102,23 @@ impl World {
         // let chunk_down_grid_position = self.grid.chunk_to_grid(IVec3::new(0, -1, 0)).unwrap();
 
         self.set_cube(
+            chunk_center_grid_position + IVec3::new(-chunk_radius, -chunk_radius, -chunk_radius),
+            chunk_center_grid_position + IVec3::new(chunk_radius, chunk_radius, chunk_radius),
+            block::Kind::Polished1,
+        );
+
+        self.set_cube(
             chunk_center_grid_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
             chunk_center_grid_position
                 + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
+
+        self.set_block_kind(0, -chunk_radius, 1, block::Kind::North);
+        self.set_block_kind(-1, -chunk_radius, 0, block::Kind::West);
+        self.set_block_kind(0, -chunk_radius, -1, block::Kind::South);
+        self.set_block_kind(1, -chunk_radius, 0, block::Kind::East);
 
         self.set_cube(
             chunk_center_grid_position + IVec3::new(0, -chunk_radius + 1, 0),

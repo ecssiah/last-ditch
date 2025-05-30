@@ -44,8 +44,13 @@ impl Population {
     fn setup_judge(&mut self) {
         log::info!("Setup Judge");
 
-        self.judge.set_position(0.0, -1.0, 0.0);
-        self.judge.set_rotation(0.0, 0.0);
+        if TESTING {
+            self.judge.set_position(0.0, 0.0, 0.0);
+            self.judge.set_rotation(0.0, 0.0);
+        } else {
+            self.judge.set_position(0.0, 2.0, 0.0);
+            self.judge.set_rotation(0.0, 0.0);
+        }
     }
 
     fn setup_agents(&mut self, world: &World) {

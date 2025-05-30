@@ -11,7 +11,7 @@ fn graph_validation() {
 
     assert_eq!(
         chunk_center.graph.node_list.len(),
-        26,
+        27,
         "Center chunk incorrect node count"
     );
 

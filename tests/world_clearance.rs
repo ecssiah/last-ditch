@@ -30,6 +30,16 @@ fn has_clearance() {
             expected_has_clearance: true,
         },
         HasClearanceTestCase {
+            description: String::from("empty block has no clearance"),
+            grid_position: IVec3::new(
+                chunk_north_grid_position.x,
+                chunk_north_grid_position.y,
+                chunk_north_grid_position.z,
+            ),
+            height: 1,
+            expected_has_clearance: false,
+        },
+        HasClearanceTestCase {
             description: String::from("clearance 0"),
             grid_position: IVec3::new(
                 chunk_north_grid_position.x - 2,
