@@ -102,6 +102,11 @@ fn get_clearance() {
             grid_position: IVec3::new(6, 0, 0),
             expected_clearance: MAXIMUM_CLEARANCE_CHECK,
         },
+        GetClearanceTestCase {
+            description: String::from("clearance check that passes boundary"),
+            grid_position: IVec3::new(2, test_world.grid.boundary as i32 - 1, 0),
+            expected_clearance: 1,
+        },
     ];
 
     for test_case in test_cases {
@@ -132,6 +137,13 @@ fn setup_test_world() -> World {
     test_world.set_block_kind(
         0,
         test_world.grid.boundary as i32,
+        0,
+        block::Kind::Polished1,
+    );
+
+    test_world.set_block_kind(
+        2,
+        test_world.grid.boundary as i32 - 1,
         0,
         block::Kind::Polished1,
     );
