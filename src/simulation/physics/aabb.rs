@@ -1,6 +1,6 @@
 use glam::{Vec3, Vec3Swizzles};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,

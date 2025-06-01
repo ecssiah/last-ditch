@@ -11,7 +11,7 @@ pub trait DynamicObject {
     fn acceleration(&self) -> Vec3;
     fn set_acceleration(&mut self, x: f32, y: f32, z: f32);
 
-    fn size(&self) -> Vec3;
+    fn height(&self) -> f32;
 
     fn yaw(&self) -> f32;
     fn pitch(&self) -> f32;

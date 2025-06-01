@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign};
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Tick(u64);
 
 impl Tick {

@@ -76,7 +76,7 @@ impl Population {
                     agent.position = position;
                     agent.target = position;
                     agent.kind = kind;
-                    agent.height = rng.gen_range(1.2..2.8);
+                    agent.height = rng.gen_range(1.2..=2.2);
 
                     self.agent_map.insert(agent.id, agent);
                 }

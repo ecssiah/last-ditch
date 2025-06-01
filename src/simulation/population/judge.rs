@@ -25,7 +25,6 @@ pub struct Judge {
     pub position: Vec3,
     pub velocity: Vec3,
     pub acceleration: Vec3,
-    pub size: Vec3,
     pub aabb: AABB,
     pub yaw: f32,
     pub pitch: f32,
@@ -35,8 +34,6 @@ pub struct Judge {
 
 impl Judge {
     pub fn new(judge_id: ID) -> Judge {
-
-
         let judge = Self {
             id: judge_id,
             tick: Tick::ZERO,
@@ -46,8 +43,7 @@ impl Judge {
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
-            size: Vec3::new(0.8, 2.8, 0.8),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.8, 0.8)),
+            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.2, 0.8)),
             yaw: 0.0,
             pitch: 0.0,
             orientation: Quat::default(),
@@ -139,8 +135,8 @@ impl DynamicObject for Judge {
         self.acceleration = Vec3::new(x, y, z);
     }
 
-    fn size(&self) -> Vec3 {
-        self.size
+    fn height(&self) -> f32 {
+        self.aabb.max.y - self.aabb.min.y
     }
 
     fn pitch(&self) -> f32 {

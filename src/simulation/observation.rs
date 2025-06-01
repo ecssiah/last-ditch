@@ -94,8 +94,8 @@ impl Observation {
             judge_view: JudgeView {
                 id: judge.id,
                 tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
+                aabb: StatePair::new(population_view.judge_view.aabb.next, judge.aabb),
                 position: StatePair::new(population_view.judge_view.position.next, judge.position),
-                size: StatePair::new(population_view.judge_view.size.next, judge.size),
                 orientation: StatePair::new(
                     population_view.judge_view.orientation.next,
                     judge.orientation,
