@@ -65,6 +65,22 @@ impl Grid {
         in_x_range && in_y_range && in_z_range
     }
 
+    pub fn on_boundary(&self, grid_position: IVec3) -> bool {
+        let on_x_boundary = grid_position.x.abs() as u32 == self.boundary;
+        let on_y_boundary = grid_position.y.abs() as u32 == self.boundary;
+        let on_z_boundary = grid_position.z.abs() as u32 == self.boundary;
+
+        on_x_boundary || on_y_boundary || on_z_boundary
+    }
+
+    pub fn on_chunk_boundary(&self, grid_position: IVec3) -> bool {
+        let on_x_boundary = grid_position.x.abs() as u32 == self.chunk_radius;
+        let on_y_boundary = grid_position.y.abs() as u32 == self.chunk_radius;
+        let on_z_boundary = grid_position.z.abs() as u32 == self.chunk_radius;
+
+        on_x_boundary || on_y_boundary || on_z_boundary
+    }
+
     pub fn is_valid_chunk_id(&self, chunk_id: chunk::ID) -> bool {
         (0..=self.chunk_id_max).contains(&u32::from(chunk_id))
     }
@@ -216,6 +232,32 @@ impl Grid {
         } else {
             None
         }
+    }
+
+    pub fn intermediate_positions(source: IVec3, target: IVec3) -> Vec<IVec3> {
+        let delta = target - source;
+
+        let mut intermediates = Vec::new();
+
+        let axes = [
+            (IVec3::X, delta.x),
+            (IVec3::Y, delta.y),
+            (IVec3::Z, delta.z),
+        ];
+
+        for i in 0..3 {
+            for j in (i + 1)..3 {
+                let a = axes[i];
+                let b = axes[j];
+
+                if a.1 != 0 && b.1 != 0 {
+                    let offset = a.0 * a.1 + b.0 * b.1;
+                    intermediates.push(source + offset);
+                }
+            }
+        }
+
+        intermediates
     }
 
     pub fn overlapping_aabb_list(&self, aabb: AABB) -> Vec<AABB> {

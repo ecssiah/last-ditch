@@ -370,19 +370,44 @@ impl World {
     }
 
     fn setup_observation_deck(&mut self) {
-        let inner_offset = 17 * 3 - 4;
-        let outer_offset = 17 * 3 + 3;
+        let center = 17 * 3;
         let height = 16;
 
+        let chunk_radius = self.grid.chunk_radius as i32;
+
         self.set_cube(
-            IVec3::new(-outer_offset, height, -outer_offset),
-            IVec3::new(outer_offset, height, outer_offset),
+            IVec3::new(-center + 1, height, -center + 1),
+            IVec3::new(-center - 1, 0, -center - 1),
+            block::Kind::Polished2,
+        );
+
+        self.set_cube(
+            IVec3::new(center + 1, height, -center + 1),
+            IVec3::new(center - 1, 0, -center - 1),
+            block::Kind::Polished2,
+        );
+
+        self.set_cube(
+            IVec3::new(-center + 1, height, center + 1),
+            IVec3::new(-center - 1, 0, center - 1),
+            block::Kind::Polished2,
+        );
+
+        self.set_cube(
+            IVec3::new(center + 1, height, center + 1),
+            IVec3::new(center - 1, 0, center - 1),
+            block::Kind::Polished2,
+        );
+
+        self.set_cube(
+            IVec3::new(-center - chunk_radius, height, -center - chunk_radius),
+            IVec3::new(center + chunk_radius, height, center + chunk_radius),
             block::Kind::Polished1,
         );
 
         self.set_cube(
-            IVec3::new(-inner_offset, height, -inner_offset),
-            IVec3::new(inner_offset, height, inner_offset),
+            IVec3::new(-center + chunk_radius + 1 , height, -center + chunk_radius + 1),
+            IVec3::new(center - chunk_radius - 1, height, center - chunk_radius - 1),
             block::Kind::Empty,
         );
     }
@@ -545,7 +570,7 @@ impl World {
                         let clearance = self.get_clearance(grid_position);
                         let edge_list = Vec::new();
 
-                        if clearance > 0 {
+                        if clearance > 1 {
                             let node = chunk::Node {
                                 grid_position,
                                 clearance,
@@ -560,7 +585,11 @@ impl World {
             }
         }
 
+        let mut connection_list = Vec::<chunk::Connection>::new();
+
         for node in node_list.iter_mut() {
+            let on_chunk_boundary = self.grid.on_chunk_boundary(node.grid_position);
+
             for neighbor_direction in grid::Direction::neighbors() {
                 if neighbor_direction == grid::Direction::XoYpZo {
                     continue;
@@ -580,11 +609,42 @@ impl World {
                     };
 
                     node.edge_list.push(edge);
+                } else if on_chunk_boundary {
+                    let mut passable = true;
+                    let connection_clearance = self.get_clearance(neighbor_grid_position);
+
+                    if neighbor_direction.is_corner() {
+                        let intermediate_grid_positions = grid::Grid::intermediate_positions(
+                            node.grid_position,
+                            neighbor_grid_position,
+                        );
+
+                        for intermediate_grid_position in intermediate_grid_positions {
+                            let intermediate_clearance =
+                                self.get_clearance(intermediate_grid_position);
+
+                            if intermediate_clearance <= 1 {
+                                passable = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if passable {
+                        let connection = chunk::Connection {
+                            chunk_id: self.grid.grid_to_chunk_id(neighbor_grid_position).unwrap(),
+                            direction: neighbor_direction,
+                            clearance: connection_clearance.min(node.clearance) as u32,
+                            group_id: 0,
+                            source: node.grid_position,
+                            target: neighbor_grid_position,
+                        };
+
+                        connection_list.push(connection);
+                    }
                 }
             }
         }
-
-        let connection_list = Vec::<chunk::Connection>::new();
 
         chunk::Graph {
             node_list,

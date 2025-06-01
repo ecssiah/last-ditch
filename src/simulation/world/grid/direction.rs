@@ -134,6 +134,50 @@ impl Direction {
         Direction::XpYpZp,
     ];
 
+    pub fn is_face(&self) -> bool {
+        matches!(
+            self,
+            Direction::XpYoZo
+                | Direction::XnYoZo
+                | Direction::XoYpZo
+                | Direction::XoYnZo
+                | Direction::XoYoZp
+                | Direction::XoYoZn
+        )
+    }
+
+    pub fn is_edge(&self) -> bool {
+        matches!(
+            self,
+            Direction::XoYnZn
+                | Direction::XnYoZn
+                | Direction::XpYoZn
+                | Direction::XoYpZn
+                | Direction::XnYnZo
+                | Direction::XpYnZo
+                | Direction::XnYpZo
+                | Direction::XpYpZo
+                | Direction::XoYnZp
+                | Direction::XnYoZp
+                | Direction::XpYoZp
+                | Direction::XoYpZp
+        )
+    }
+
+    pub fn is_corner(&self) -> bool {
+        matches!(
+            self,
+            Direction::XnYnZn
+                | Direction::XpYnZn
+                | Direction::XnYpZn
+                | Direction::XpYpZn
+                | Direction::XnYnZp
+                | Direction::XpYnZp
+                | Direction::XnYpZp
+                | Direction::XpYpZp
+        )
+    }
+
     pub fn all() -> [Direction; 27] {
         Self::ALL
     }
