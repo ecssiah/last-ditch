@@ -370,10 +370,10 @@ impl World {
     }
 
     fn setup_observation_deck(&mut self) {
-        let center = 17 * 3;
-        let height = 16;
-
         let chunk_radius = self.grid.chunk_radius as i32;
+
+        let height = 16;
+        let center = 17 * 3;
 
         self.set_cube(
             IVec3::new(-center + 1, height, -center + 1),
@@ -605,6 +605,10 @@ impl World {
 
                 let offset = neighbor_direction.offset();
                 let neighbor_grid_position = node.grid_position + offset;
+
+                if !self.grid.is_valid_grid_position(neighbor_grid_position) {
+                    continue;
+                }
 
                 if let Some(&neighbor_index) = position_index_map.get(&neighbor_grid_position) {
                     let edge = chunk::Edge {
