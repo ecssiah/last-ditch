@@ -1,10 +1,14 @@
 use glam::IVec3;
-use last_ditch::simulation::{world::World, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS};
+use last_ditch::simulation::{
+    world::{builder, World},
+    TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
+};
 
 #[test]
 fn node_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
-    test_world.setup_test_world();
+
+    builder::TestWorld::setup(&mut test_world);
 
     let chunk_center_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
     let chunk_center = test_world.get_chunk_at(chunk_center_grid_position).unwrap();
@@ -46,7 +50,8 @@ fn node_count_validation() {
 #[test]
 fn edge_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
-    test_world.setup_test_world();
+
+    builder::TestWorld::setup(&mut test_world);
 
     let chunk_east_grid_position = test_world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
     let chunk_east = test_world.get_chunk_at(chunk_east_grid_position).unwrap();
@@ -73,7 +78,8 @@ fn edge_count_validation() {
 #[test]
 fn edge_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
-    test_world.setup_test_world();
+
+    builder::TestWorld::setup(&mut test_world);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
 
