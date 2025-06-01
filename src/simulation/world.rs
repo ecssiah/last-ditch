@@ -406,7 +406,11 @@ impl World {
         );
 
         self.set_cube(
-            IVec3::new(-center + chunk_radius + 1 , height, -center + chunk_radius + 1),
+            IVec3::new(
+                -center + chunk_radius + 1,
+                height,
+                -center + chunk_radius + 1,
+            ),
             IVec3::new(center - chunk_radius - 1, height, center - chunk_radius - 1),
             block::Kind::Empty,
         );
