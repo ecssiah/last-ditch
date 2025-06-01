@@ -2,13 +2,13 @@
 //! the core civilizational garden.
 
 pub mod action;
-pub mod entity_action;
+pub mod agent_action;
 pub mod world_action;
 
 pub use action::Action;
-pub use entity_action::EntityAction;
-pub use entity_action::JumpAction;
-pub use entity_action::MovementAction;
+pub use agent_action::AgentAction;
+pub use agent_action::JumpAction;
+pub use agent_action::MovementAction;
 pub use world_action::WorldAction;
 
 use crate::simulation::admin;
@@ -43,10 +43,10 @@ impl Dispatch {
     pub fn tick(&mut self, state: &mut State) {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
-                Action::Agent(EntityAction::Movement(movement_actions)) => {
+                Action::Agent(AgentAction::Movement(movement_actions)) => {
                     self.handle_movement_action(state, &movement_actions);
                 }
-                Action::Agent(EntityAction::Jump(jump_action)) => {
+                Action::Agent(AgentAction::Jump(jump_action)) => {
                     self.handle_jump_action(state, &jump_action);
                 }
                 Action::World(WorldAction::Exit) => {

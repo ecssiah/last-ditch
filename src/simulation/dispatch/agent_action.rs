@@ -14,7 +14,7 @@ pub enum JumpAction {
 }
 
 #[derive(Debug)]
-pub enum EntityAction {
+pub enum AgentAction {
     Movement(MovementAction),
     Jump(JumpAction),
 }

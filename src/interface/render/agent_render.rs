@@ -73,9 +73,7 @@ impl AgentRender {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Entity Render Pipeline Layout"),
-                bind_group_layouts: &[
-                    camera_uniform_bind_group_layout,
-                ],
+                bind_group_layouts: &[camera_uniform_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -177,83 +175,22 @@ impl AgentRender {
     }
 
     fn setup_agent_vertex_datas() -> Vec<VertexData> {
-        let head_scale = 0.32;
-        let head_height = 1.8;
-        let head_bands = 8;
+        let head_bands = 6;
+        let head_radius = 0.16;
+        let head_height = 0.84;
 
-        let body_height = 1.4;
-        let body_top_width = 0.56;
-        let body_bottom_width = 0.20;
+        let body_height = 0.62;
+        let body_top_width = 0.24;
+        let body_bottom_width = 0.10;
         let body_top_half_width = body_top_width / 2.0;
         let body_bottom_half_width = body_bottom_width / 2.0;
 
-        let mut vertices = Vec::new();
-
-        for lat in 0..head_bands {
-            let theta1 = (lat as f32) * std::f32::consts::PI / head_bands as f32;
-            let theta2 = (lat as f32 + 1.0) * std::f32::consts::PI / head_bands as f32;
-
-            for lon in 0..head_bands {
-                let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / head_bands as f32;
-                let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / head_bands as f32;
-
-                let p1 = head_scale * Self::spherical_to_cartesian(theta1, phi1);
-                let p2 = head_scale * Self::spherical_to_cartesian(theta2, phi1);
-                let p3 = head_scale * Self::spherical_to_cartesian(theta2, phi2);
-                let p4 = head_scale * Self::spherical_to_cartesian(theta1, phi2);
-
-                let p1 = [p1.x, p1.y + head_height, p1.z];
-                let p2 = [p2.x, p2.y + head_height, p2.z];
-                let p3 = [p3.x, p3.y + head_height, p3.z];
-                let p4 = [p4.x, p4.y + head_height, p4.z];
-
-                let u = Vec3::from(p2) - Vec3::from(p1);
-                let v = Vec3::from(p3) - Vec3::from(p1);
-                let normal = u.cross(v).normalize();
-
-                vertices.push(VertexData {
-                    position: p1,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-                vertices.push(VertexData {
-                    position: p2,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-                vertices.push(VertexData {
-                    position: p3,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-
-                let u = Vec3::from(p3) - Vec3::from(p1);
-                let v = Vec3::from(p4) - Vec3::from(p1);
-                let normal = u.cross(v).normalize();
-
-                vertices.push(VertexData {
-                    position: p1,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-                vertices.push(VertexData {
-                    position: p3,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-                vertices.push(VertexData {
-                    position: p4,
-                    normal: normal.into(),
-                    uv: [0.0, 0.0],
-                    light: 1.0,
-                });
-            }
-        }
+        let mut vertices = Self::generate_uv_sphere(
+            Vec3::new(0.0, head_height, 0.0),
+            head_radius,
+            head_bands,
+            head_bands,
+        );
 
         let normals = [
             [0.0, 0.0, 1.0],  // front
@@ -473,6 +410,72 @@ impl AgentRender {
                 vertices.push(VertexData {
                     position,
                     normal,
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+            }
+        }
+
+        vertices
+    }
+
+    fn generate_uv_sphere(
+        center: Vec3,
+        radius: f32,
+        latitude_bands: usize,
+        longitude_bands: usize,
+    ) -> Vec<VertexData> {
+        let mut vertices = Vec::new();
+
+        for lat in 0..latitude_bands {
+            let theta1 = (lat as f32) * std::f32::consts::PI / latitude_bands as f32;
+            let theta2 = (lat as f32 + 1.0) * std::f32::consts::PI / latitude_bands as f32;
+
+            for lon in 0..longitude_bands {
+                let phi1 = (lon as f32) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
+                let phi2 = (lon as f32 + 1.0) * 2.0 * std::f32::consts::PI / longitude_bands as f32;
+
+                let p1 = center + radius * Self::spherical_to_cartesian(theta1, phi1);
+                let p2 = center + radius * Self::spherical_to_cartesian(theta2, phi1);
+                let p3 = center + radius * Self::spherical_to_cartesian(theta2, phi2);
+                let p4 = center + radius * Self::spherical_to_cartesian(theta1, phi2);
+
+                let normal1 = (p2 - p1).cross(p3 - p1).normalize();
+                vertices.push(VertexData {
+                    position: p1.into(),
+                    normal: normal1.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(VertexData {
+                    position: p2.into(),
+                    normal: normal1.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(VertexData {
+                    position: p3.into(),
+                    normal: normal1.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+
+                let normal2 = (p3 - p1).cross(p4 - p1).normalize();
+                vertices.push(VertexData {
+                    position: p1.into(),
+                    normal: normal2.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(VertexData {
+                    position: p3.into(),
+                    normal: normal2.into(),
+                    uv: [0.0, 0.0],
+                    light: 1.0,
+                });
+                vertices.push(VertexData {
+                    position: p4.into(),
+                    normal: normal2.into(),
                     uv: [0.0, 0.0],
                     light: 1.0,
                 });

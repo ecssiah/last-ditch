@@ -35,6 +35,8 @@ pub struct Judge {
 
 impl Judge {
     pub fn new(judge_id: ID) -> Judge {
+
+
         let judge = Self {
             id: judge_id,
             tick: Tick::ZERO,
@@ -44,8 +46,8 @@ impl Judge {
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
-            size: Vec3::new(0.8, 2.1, 0.8),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.1, 0.8)),
+            size: Vec3::new(0.8, 2.8, 0.8),
+            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.8, 0.8)),
             yaw: 0.0,
             pitch: 0.0,
             orientation: Quat::default(),

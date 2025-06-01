@@ -314,8 +314,8 @@ impl<'window> Interface<'window> {
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
 
-        let entity_action = simulation::dispatch::EntityAction::Movement(movement_actions);
-        let action = simulation::dispatch::Action::Agent(entity_action);
+        let agent_action = simulation::dispatch::AgentAction::Movement(movement_actions);
+        let action = simulation::dispatch::Action::Agent(agent_action);
 
         self.action_tx.send(action).unwrap();
     }

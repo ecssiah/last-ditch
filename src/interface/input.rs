@@ -4,7 +4,7 @@
 use std::sync::Arc;
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
-    simulation::dispatch::{Action, EntityAction, JumpAction, MovementAction, WorldAction},
+    simulation::dispatch::{Action, AgentAction, JumpAction, MovementAction, WorldAction},
 };
 use glam::{Vec2, Vec3};
 use tokio::sync::mpsc::UnboundedSender;
@@ -160,14 +160,14 @@ impl Input {
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
                     let jump_action = JumpAction::Start;
-                    let entity_action = EntityAction::Jump(jump_action);
-                    let action = Action::Agent(entity_action);
+                    let agent_action = AgentAction::Jump(jump_action);
+                    let action = Action::Agent(agent_action);
 
                     self.action_tx.send(action).unwrap();
                 } else if key_event.state == ElementState::Released {
                     let jump_action = JumpAction::End;
-                    let entity_action = EntityAction::Jump(jump_action);
-                    let action = Action::Agent(entity_action);
+                    let agent_action = AgentAction::Jump(jump_action);
+                    let action = Action::Agent(agent_action);
 
                     self.action_tx.send(action).unwrap();
                 }

@@ -1,7 +1,7 @@
-use crate::simulation::dispatch::{EntityAction, WorldAction};
+use crate::simulation::dispatch::{AgentAction, WorldAction};
 
 #[derive(Debug)]
 pub enum Action {
     World(WorldAction),
-    Agent(EntityAction),
+    Agent(AgentAction),
 }

@@ -45,7 +45,7 @@ impl Population {
         log::info!("Setup Judge");
 
         if TESTING {
-            self.judge.set_position(0.0, 0.0, 0.0);
+            self.judge.set_position(0.0, -2.0, 0.0);
             self.judge.set_rotation(0.0, 0.0);
         } else {
             self.judge.set_position(0.0, 2.0, 0.0);
@@ -76,7 +76,7 @@ impl Population {
                     agent.position = position;
                     agent.target = position;
                     agent.kind = kind;
-                    agent.height = rng.gen_range(0.7..1.3);
+                    agent.height = rng.gen_range(1.2..2.8);
 
                     self.agent_map.insert(agent.id, agent);
                 }

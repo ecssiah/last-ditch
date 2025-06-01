@@ -30,11 +30,11 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
     let scaled_position = vec3<f32>(
         scale * input.position.x, 
-        (scale * input.position.y) + 0.5, 
+        scale * input.position.y, 
         scale * input.position.z
     );
 
-    let world_position = scaled_position + input.instance_position;
+    let world_position = scaled_position + input.instance_position + vec3<f32>(0.0, 0.5, 0.0);
     
     out.position = camera_uniform_data.view_projection_matrix * vec4<f32>(world_position, 1.0);
     out.normal = input.normal;
