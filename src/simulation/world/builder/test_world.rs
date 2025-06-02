@@ -41,16 +41,16 @@ impl TestWorld {
         let chunk_radius = world.grid.chunk_radius as i32;
 
         let chunk_center_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
-        let chunk_south_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
         let chunk_north_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
-        let chunk_west_grid_position = world.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
+        let chunk_south_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
         let chunk_east_grid_position = world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
+        let chunk_west_grid_position = world.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
 
         world.set_cube(
             chunk_center_grid_position
                 + IVec3::new(-chunk_radius, -chunk_radius + 1, -chunk_radius),
             chunk_center_grid_position
-                + IVec3::new(chunk_radius, chunk_radius, chunk_radius),
+                + IVec3::new(chunk_radius, chunk_radius - 1, chunk_radius),
             block::Kind::Empty,
         );
 

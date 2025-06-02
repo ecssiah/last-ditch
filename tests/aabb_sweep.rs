@@ -9,11 +9,21 @@ struct SweepTestCase {
     expected_aabb: AABB,
 }
 
+impl SweepTestCase {
+    pub fn check(&self) {
+        let aabb = AABB::sweep(self.aabb1, self.aabb2);
+
+        let is_equal = aabb.approx_eq(self.expected_aabb, EPSILON);
+
+        assert!(is_equal, "{:?}", self.description);
+    }
+}
+
 #[test]
 fn equal() {
     let test_cases = vec![
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -22,7 +32,7 @@ fn equal() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (-1, -1, -1) to block at (-1, -1, -1)"),
+            description: "Sweep block at (-1, -1, -1) to block at (-1, -1, -1)".to_string(),
             aabb1: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -31,7 +41,7 @@ fn equal() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (1, 1, 1) to block at (1, 1, 1)"),
+            description: "Sweep block at (1, 1, 1) to block at (1, 1, 1)".to_string(),
             aabb1: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -42,11 +52,7 @@ fn equal() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
-
-        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
-
-        assert!(is_equal, "{:?}", test_case.description);
+        test_case.check();
     }
 }
 
@@ -54,7 +60,7 @@ fn equal() {
 fn x_axis() {
     let test_cases = vec![
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -63,7 +69,7 @@ fn x_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0.5, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0.5, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -72,7 +78,7 @@ fn x_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (1, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (1, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -81,7 +87,7 @@ fn x_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (2.0, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (2.0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(2.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -90,7 +96,7 @@ fn x_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (-1, 0, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (-1, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -101,11 +107,7 @@ fn x_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
-
-        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
-
-        assert!(is_equal, "{:?}", test_case.description);
+        test_case.check();
     }
 }
 
@@ -113,7 +115,7 @@ fn x_axis() {
 fn y_axis() {
     let test_cases = vec![
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0.5, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0.5, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -122,7 +124,7 @@ fn y_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 1, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -131,7 +133,7 @@ fn y_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 1, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 2.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -140,7 +142,7 @@ fn y_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, -1, 0)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, -1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -151,11 +153,7 @@ fn y_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
-
-        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
-
-        assert!(is_equal, "{:?}", test_case.description);
+        test_case.check();
     }
 }
 
@@ -163,7 +161,7 @@ fn y_axis() {
 fn z_axis() {
     let test_cases = vec![
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, 0.5)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, 0.5)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -172,7 +170,7 @@ fn z_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, 1)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, 1)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -181,7 +179,7 @@ fn z_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, 2)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, 2)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 2.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -190,7 +188,7 @@ fn z_axis() {
             ),
         },
         SweepTestCase {
-            description: String::from("Sweep block at (0, 0, 0) to block at (0, 0, -1)"),
+            description: "Sweep block at (0, 0, 0) to block at (0, 0, -1)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             expected_aabb: AABB::new(
@@ -201,10 +199,6 @@ fn z_axis() {
     ];
 
     for test_case in test_cases {
-        let aabb = AABB::sweep(test_case.aabb1, test_case.aabb2);
-
-        let is_equal = aabb.approx_eq(test_case.expected_aabb, EPSILON);
-
-        assert!(is_equal, "{:?}", test_case.description);
+        test_case.check();
     }
 }

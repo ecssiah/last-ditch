@@ -1,13 +1,20 @@
-use std::f32::EPSILON;
-
 use glam::Vec3;
 use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
+use std::f32::EPSILON;
 
 struct ApproxSetEqTestCase {
     description: String,
     aabb_list1: Vec<AABB>,
     aabb_list2: Vec<AABB>,
     expected_is_equal: bool,
+}
+
+impl ApproxSetEqTestCase {
+    pub fn check(&self) {
+        let is_equal = AABB::approx_set_eq(&self.aabb_list1, &self.aabb_list2, EPSILON);
+
+        assert_eq!(is_equal, self.expected_is_equal, "{:?}", self.description);
+    }
 }
 
 #[test]
@@ -104,12 +111,6 @@ fn approx_set_eq() {
     ];
 
     for test_case in test_cases {
-        let is_equal = AABB::approx_set_eq(&test_case.aabb_list1, &test_case.aabb_list2, EPSILON);
-
-        assert_eq!(
-            is_equal, test_case.expected_is_equal,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check();
     }
 }

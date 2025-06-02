@@ -9,12 +9,22 @@ struct ApproxEqTestCase {
     expected_is_equal: bool,
 }
 
+impl ApproxEqTestCase {
+    pub fn check(&self) {
+        let is_equal = self.aabb1.approx_eq(self.aabb2, EPSILON);
+
+        assert_eq!(is_equal, self.expected_is_equal, "{:?}", self.description);
+    }
+}
+
 #[test]
 fn approx_eq() {
+    let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE));
+
     let test_cases = vec![
         ApproxEqTestCase {
             description: String::from("Equivalent AABBs"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 0.0),
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
@@ -22,8 +32,8 @@ fn approx_eq() {
             expected_is_equal: true,
         },
         ApproxEqTestCase {
-            description: String::from("AABBs that differ only by 2.0 * EPSILON in center.x"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "AABBs that differ only by 2.0 * EPSILON in center.x".to_string(),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(2.0 * EPSILON, 0.0, 0.0),
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
@@ -31,8 +41,8 @@ fn approx_eq() {
             expected_is_equal: false,
         },
         ApproxEqTestCase {
-            description: String::from("AABBs that differ only by 2.0 * EPSILON in center.y"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "AABBs that differ only by 2.0 * EPSILON in center.y".to_string(),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 2.0 * EPSILON, 0.0),
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
@@ -40,8 +50,8 @@ fn approx_eq() {
             expected_is_equal: false,
         },
         ApproxEqTestCase {
-            description: String::from("AABBs that differ only by 2.0 * EPSILON in center.z"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "AABBs that differ only by 2.0 * EPSILON in center.z".to_string(),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 2.0 * EPSILON),
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
@@ -49,8 +59,8 @@ fn approx_eq() {
             expected_is_equal: false,
         },
         ApproxEqTestCase {
-            description: String::from("AABBs that differ only by 4.0 * EPSILON in size.x"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "AABBs that differ only by 4.0 * EPSILON in size.x".to_string(),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 0.0),
                 Vec3::new(BLOCK_SIZE + 4.0 * EPSILON, BLOCK_SIZE, BLOCK_SIZE),
@@ -58,8 +68,8 @@ fn approx_eq() {
             expected_is_equal: false,
         },
         ApproxEqTestCase {
-            description: String::from("AABBs that differ only by -4.0 * EPSILON in size.x"),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "AABBs that differ only by -4.0 * EPSILON in size.x".to_string(),
+            aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 0.0),
                 Vec3::new(BLOCK_SIZE - 4.0 * EPSILON, BLOCK_SIZE, BLOCK_SIZE),
@@ -69,12 +79,6 @@ fn approx_eq() {
     ];
 
     for test_case in test_cases {
-        let is_equal = test_case.aabb1.approx_eq(test_case.aabb2, EPSILON);
-
-        assert_eq!(
-            is_equal, test_case.expected_is_equal,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check();
     }
 }

@@ -3,8 +3,21 @@ use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 
 struct IntersectsAABBTestCase {
     description: String,
-    aabb: AABB,
+    aabb1: AABB,
+    aabb2: AABB,
     expected_intersects_result: bool,
+}
+
+impl IntersectsAABBTestCase {
+    pub fn check(&self) {
+        let intersection_result = self.aabb1.intersects(self.aabb2);
+
+        assert_eq!(
+            intersection_result, self.expected_intersects_result,
+            "{:?}",
+            self.description
+        );
+    }
 }
 
 #[test]
@@ -13,55 +26,57 @@ fn blocks_intersect_when_overlapping() {
 
     let test_cases = vec![
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.5, 0.5, 0.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.5, 0.5, 0.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-0.5, -0.5, -0.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-0.5, -0.5, -0.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(test_case.aabb);
-
-        assert_eq!(
-            intersection_result, test_case.expected_intersects_result,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check();
     }
 }
 
@@ -71,55 +86,57 @@ fn blocks_intersect_when_intersecting() {
 
     let test_cases = vec![
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: true,
         },
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(test_case.aabb);
-
-        assert_eq!(
-            intersection_result, test_case.expected_intersects_result,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check();
     }
 }
 
@@ -129,54 +146,56 @@ fn blocks_do_not_intersect_when_separated() {
 
     let test_cases = vec![
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, -1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, -1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, 1.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(0.0, 0.0, -1.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(1.5, 1.5, 1.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(1.5, 1.5, 1.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
         IntersectsAABBTestCase {
-            description: String::from(""),
-            aabb: AABB::new(Vec3::new(-1.5, -1.5, -1.5), Vec3::splat(BLOCK_SIZE)),
+            description: "".to_string(),
+            aabb1: aabb,
+            aabb2: AABB::new(Vec3::new(-1.5, -1.5, -1.5), Vec3::splat(BLOCK_SIZE)),
             expected_intersects_result: false,
         },
     ];
 
     for test_case in test_cases {
-        let intersection_result = aabb.intersects(test_case.aabb);
-
-        assert_eq!(
-            intersection_result, test_case.expected_intersects_result,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check();
     }
 }

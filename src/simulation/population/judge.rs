@@ -43,7 +43,7 @@ impl Judge {
             position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.8, 2.2, 0.8)),
+            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 2.2, 0.6)),
             yaw: 0.0,
             pitch: 0.0,
             orientation: Quat::default(),
