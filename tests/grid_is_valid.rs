@@ -1,5 +1,5 @@
 use glam::IVec3;
-use last_ditch::simulation::world::World;
+use last_ditch::simulation::{world::World, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS};
 
 struct IsValidTestCase {
     description: String,
@@ -9,7 +9,7 @@ struct IsValidTestCase {
 
 #[test]
 fn origin() {
-    let test_world = World::new(1, 2);
+    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
     let test_cases = vec![IsValidTestCase {
         description: String::from("Grid Position: (0, 0, 0)"),
@@ -30,7 +30,7 @@ fn origin() {
 
 #[test]
 fn boundaries() {
-    let test_world = World::new(1, 2);
+    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as i32;
 

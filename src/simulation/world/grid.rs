@@ -7,9 +7,64 @@ pub use direction::Direction;
 use crate::simulation::{
     consts::*,
     physics::aabb::AABB,
-    world::{block, chunk, grid},
+    world::{block, chunk},
 };
 use glam::{IVec3, Vec3};
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
+static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|| {
+    HashMap::from([
+        (
+            IVec3::new(1, 1, 1),
+            [IVec3::new(1, 1, 0), IVec3::new(0, 1, 1)],
+        ),
+        (
+            IVec3::new(-1, 1, 1),
+            [IVec3::new(-1, 1, 0), IVec3::new(0, 1, 1)],
+        ),
+        (
+            IVec3::new(1, 1, -1),
+            [IVec3::new(1, 1, 0), IVec3::new(0, 1, -1)],
+        ),
+        (
+            IVec3::new(-1, 1, -1),
+            [IVec3::new(-1, 1, 0), IVec3::new(0, 1, -1)],
+        ),
+        (
+            IVec3::new(1, 0, 1),
+            [IVec3::new(1, 0, 0), IVec3::new(0, 0, 1)],
+        ),
+        (
+            IVec3::new(-1, 0, 1),
+            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, 1)],
+        ),
+        (
+            IVec3::new(1, 0, -1),
+            [IVec3::new(1, 0, 0), IVec3::new(0, 0, -1)],
+        ),
+        (
+            IVec3::new(-1, 0, -1),
+            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, -1)],
+        ),
+        (
+            IVec3::new(1, -1, 1),
+            [IVec3::new(1, 0, 0), IVec3::new(0, 0, 1)],
+        ),
+        (
+            IVec3::new(-1, -1, 1),
+            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, 1)],
+        ),
+        (
+            IVec3::new(1, -1, -1),
+            [IVec3::new(1, 0, 0), IVec3::new(0, 0, -1)],
+        ),
+        (
+            IVec3::new(-1, -1, -1),
+            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, -1)],
+        ),
+    ])
+});
 
 pub struct Grid {
     pub radius: u32,
@@ -234,65 +289,13 @@ impl Grid {
         }
     }
 
-    /*
-        Input: (+1, +1, +1)
-        Output: (+1, +1, +0), (+0, +1, +1)
-
-        Input: (-1, +1, +1)
-        Output: (-1, +1, +0), (+0, +1, +1)
-
-        Input: (+1, +1, -1)
-        Output: (+1, +1, +0), (+0, +1, -1)
-
-        Input: (-1, +1, -1)
-        Output: (-1, +1, +0), (+0, +1, -1)
-
-
-        Input: (+1, +0, +1)
-        Output: (+1, +0, +0), (+0, +0, +1)
-
-        Input: (-1, +0, +1)
-        Output: (-1, +0, +0), (+0, +0, +1)
-
-        Input: (+1, +0, -1)
-        Output: (+1, +0, +0), (+0, +0, -1)
-
-        Input: (-1, +0, -1)
-        Output: (-1, +0, +0), (+0, +0, -1)
-
-
-        Input: (+1, -1, +1)
-        Output: (+1, -1, +0), (+0, -1, +1)
-
-        Input: (-1, -1, +1)
-        Output: (-1, -1, +0), (+0, -1, +1)
-
-        Input: (+1, -1, -1)
-        Output: (+1, -1, +0), (+0, -1, -1)
-
-        Input: (-1, -1, -1)
-        Output: (-1, -1, +0), (+0, -1, -1)
-    */
-
     pub fn intermediate_positions(source: IVec3, target: IVec3) -> Vec<IVec3> {
         let delta = target - source;
-        let mut results = Vec::new();
 
-        for axis in [grid::Axis::X, grid::Axis::Y, grid::Axis::Z] {
-            let mut offset = IVec3::new(delta.x, delta.y, delta.z);
-
-            match axis {
-                grid::Axis::X => offset.x = 0,
-                grid::Axis::Y => offset.y = 0,
-                grid::Axis::Z => offset.z = 0,
-            }
-
-            if offset != IVec3::ZERO {
-                results.push(source + offset);
-            }
-        }
-
-        results
+        INTERMEDIATE_POSITION_MAP
+            .get(&delta)
+            .map(|[offset1, offset2]| vec![source + *offset1, source + *offset2])
+            .unwrap_or_default()
     }
 
     pub fn overlapping_aabb_list(&self, aabb: AABB) -> Vec<AABB> {
