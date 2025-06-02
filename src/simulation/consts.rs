@@ -38,7 +38,7 @@ pub const ENTITY_SIZE_Y: f32 = 1.4;
 pub const ENTITY_SIZE_Z: f32 = 0.4;
 pub const ENTITY_BORDER_RADIUS: f32 = 0.001;
 
-pub const WORLD_CARDINAL_COST: f32 = 1.0;
+pub const WORLD_FACE_COST: f32 = 1.0;
 pub const WORLD_EDGE_COST: f32 = 1.4142135;
 pub const WORLD_CORNER_COST: f32 = 1.7320508;
 

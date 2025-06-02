@@ -1,8 +1,9 @@
 use glam::IVec3;
 use last_ditch::simulation::{
+    consts::*,
     world::{builder, World},
-    TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
+use std::f32::EPSILON;
 
 struct NodeCountTestCase {
     description: String,
@@ -110,19 +111,19 @@ fn edge_count_validation() {
 
     let test_cases = vec![
         EdgeCountValidationTestCase {
-            description: "".to_string(),
+            description: "Edge Count: (-1, -3, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(-1, -3, 0),
             expected_edge_count: 6,
         },
         EdgeCountValidationTestCase {
-            description: "".to_string(),
+            description: "Edge Count: (1, -3, -1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(1, -3, -1),
             expected_edge_count: 2,
         },
         EdgeCountValidationTestCase {
-            description: "".to_string(),
+            description: "Edge Count: (1, -3, 1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(1, -3, 1),
             expected_edge_count: 4,
@@ -139,7 +140,7 @@ struct EdgeValidationTestCase {
     chunk_position: IVec3,
     block_position1: IVec3,
     block_position2: IVec3,
-    expected_is_some_edge: bool,
+    expected_cost: Option<f32>,
 }
 
 impl EdgeValidationTestCase {
@@ -158,24 +159,35 @@ impl EdgeValidationTestCase {
             .iter()
             .find(|edge| edge.target == node_index2);
 
-        assert_eq!(
-            edge12.is_some(),
-            self.expected_is_some_edge,
-            "{:?}",
-            self.description
-        );
-
         let edge21 = chunk.graph.node_list[node_index2]
             .edge_list
             .iter()
             .find(|edge| edge.target == node_index1);
 
-        assert_eq!(
-            edge21.is_some(),
-            self.expected_is_some_edge,
-            "{:?}",
-            self.description
-        );
+        if self.expected_cost.is_some() {
+            assert!(edge12.is_some(), "{:?}", self.description);
+            assert!(edge21.is_some(), "{:?}", self.description);
+
+            let expected_cost = self.expected_cost.unwrap();
+            
+            let edge12_cost = edge12.unwrap().cost;
+            let edge21_cost = edge21.unwrap().cost;
+
+            assert!(
+                (edge12_cost - expected_cost).abs() < EPSILON,
+                "{:?}",
+                self.description
+            );
+
+            assert!(
+                (edge21_cost - expected_cost).abs() < EPSILON,
+                "{:?}",
+                self.description
+            );
+        } else {
+            assert!(edge12.is_none(), "{:?}", self.description);
+            assert!(edge21.is_none(), "{:?}", self.description);
+        }
     }
 }
 
@@ -191,21 +203,21 @@ fn edge_validation() {
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(0, -2, 0),
             block_position2: IVec3::new(-1, -3, 0),
-            expected_is_some_edge: true,
+            expected_cost: Some(WORLD_EDGE_COST),
         },
         EdgeValidationTestCase {
             description: "Edge: (0, -2, 0) - (1, -3, -1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(0, -2, 0),
             block_position2: IVec3::new(1, -3, -1),
-            expected_is_some_edge: false,
+            expected_cost: None,
         },
         EdgeValidationTestCase {
             description: "Edge: (1, -3, 1) - (2, -2, 2)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(1, -3, 1),
             block_position2: IVec3::new(2, -2, 2),
-            expected_is_some_edge: true,
+            expected_cost: Some(WORLD_CORNER_COST),
         },
     ];
 

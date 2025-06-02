@@ -1,7 +1,7 @@
 use glam::IVec3;
 use serde::{Deserialize, Serialize};
 
-use crate::simulation::{WORLD_CARDINAL_COST, WORLD_CORNER_COST, WORLD_EDGE_COST};
+use crate::simulation::{WORLD_FACE_COST, WORLD_CORNER_COST, WORLD_EDGE_COST};
 
 #[rustfmt::skip]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
@@ -256,25 +256,25 @@ impl Direction {
             Direction::XoYnZn => WORLD_EDGE_COST,
             Direction::XpYnZn => WORLD_CORNER_COST,
             Direction::XnYoZn => WORLD_EDGE_COST,
-            Direction::XoYoZn => WORLD_CARDINAL_COST,
+            Direction::XoYoZn => WORLD_FACE_COST,
             Direction::XpYoZn => WORLD_EDGE_COST,
             Direction::XnYpZn => WORLD_CORNER_COST,
             Direction::XoYpZn => WORLD_EDGE_COST,
             Direction::XpYpZn => WORLD_CORNER_COST,
             Direction::XnYnZo => WORLD_EDGE_COST,
-            Direction::XoYnZo => WORLD_CARDINAL_COST,
+            Direction::XoYnZo => WORLD_FACE_COST,
             Direction::XpYnZo => WORLD_EDGE_COST,
-            Direction::XnYoZo => WORLD_CARDINAL_COST,
-            Direction::XoYoZo => WORLD_CARDINAL_COST,
-            Direction::XpYoZo => WORLD_CARDINAL_COST,
+            Direction::XnYoZo => WORLD_FACE_COST,
+            Direction::XoYoZo => WORLD_FACE_COST,
+            Direction::XpYoZo => WORLD_FACE_COST,
             Direction::XnYpZo => WORLD_EDGE_COST,
-            Direction::XoYpZo => WORLD_CARDINAL_COST,
+            Direction::XoYpZo => WORLD_FACE_COST,
             Direction::XpYpZo => WORLD_EDGE_COST,
             Direction::XnYnZp => WORLD_CORNER_COST,
             Direction::XoYnZp => WORLD_EDGE_COST,
             Direction::XpYnZp => WORLD_CORNER_COST,
             Direction::XnYoZp => WORLD_EDGE_COST,
-            Direction::XoYoZp => WORLD_CARDINAL_COST,
+            Direction::XoYoZp => WORLD_FACE_COST,
             Direction::XpYoZp => WORLD_EDGE_COST,
             Direction::XnYpZp => WORLD_CORNER_COST,
             Direction::XoYpZp => WORLD_EDGE_COST,
