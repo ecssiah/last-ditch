@@ -21,7 +21,8 @@ use glam::IVec3;
 pub struct Chunk {
     pub id: chunk::ID,
     pub tick: Tick,
-    pub updated: bool,
+    pub graph_updated: bool,
+    pub boundary_updated: bool,
     pub position: IVec3,
     pub graph: chunk::Graph,
     pub geometry: chunk::Geometry,

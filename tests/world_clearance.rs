@@ -38,7 +38,7 @@ fn has_clearance() {
             description: String::from("clearance max"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(0, -3, 0),
-            height: MAXIMUM_CLEARANCE_CHECK,
+            height: MAXIMUM_CLEARANCE as i32,
             expected_has_clearance: true,
         },
         HasClearanceTestCase {
