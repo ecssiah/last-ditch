@@ -15,9 +15,10 @@ impl NodeCountTestCase {
         let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let chunk = world.get_chunk_at(grid_position).unwrap();
 
+        let node_count = chunk.graph.node_list.len();
+
         assert_eq!(
-            chunk.graph.node_list.len(),
-            self.expected_node_count,
+            node_count, self.expected_node_count,
             "{:?}",
             self.description
         );
@@ -73,41 +74,109 @@ fn node_count_validation() {
     }
 }
 
+struct EdgeCountValidationTestCase {
+    description: String,
+    chunk_position: IVec3,
+    block_position: IVec3,
+    expected_edge_count: usize,
+}
+
+impl EdgeCountValidationTestCase {
+    pub fn check(&self, world: &World) {
+        let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
+        let chunk = world.get_chunk_at(grid_position).unwrap();
+
+        let node_index = chunk
+            .graph
+            .get_node_index(grid_position + self.block_position)
+            .unwrap();
+
+        let node = &chunk.graph.node_list[node_index];
+        let edge_count = node.edge_list.len();
+
+        assert_eq!(
+            edge_count, self.expected_edge_count,
+            "{:?}",
+            self.description
+        );
+    }
+}
+
 #[test]
 fn edge_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
-    let chunk_east_grid_position = test_world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
-    let chunk_east = test_world.get_chunk_at(chunk_east_grid_position).unwrap();
+    let test_cases = vec![
+        EdgeCountValidationTestCase {
+            description: "".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position: IVec3::new(-1, -3, 0),
+            expected_edge_count: 6,
+        },
+        EdgeCountValidationTestCase {
+            description: "".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position: IVec3::new(1, -3, -1),
+            expected_edge_count: 2,
+        },
+        EdgeCountValidationTestCase {
+            description: "".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position: IVec3::new(1, -3, 1),
+            expected_edge_count: 4,
+        },
+    ];
 
-    let test_node_index1 = chunk_east
-        .graph
-        .get_node_index(chunk_east_grid_position + IVec3::new(-1, -3, 0))
-        .unwrap();
+    for test_case in test_cases {
+        test_case.check(&test_world);
+    }
+}
 
-    let test_node1 = &chunk_east.graph.node_list[test_node_index1];
+struct EdgeValidationTestCase {
+    description: String,
+    chunk_position: IVec3,
+    block_position1: IVec3,
+    block_position2: IVec3,
+    expected_is_some_edge: bool,
+}
 
-    assert_eq!(test_node1.edge_list.len(), 6, "Edge count at (-1, -3, 0)");
+impl EdgeValidationTestCase {
+    pub fn check(&self, world: &World) {
+        let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
+        let chunk = world.get_chunk_at(grid_position).unwrap();
 
-    let test_node_index2 = chunk_east
-        .graph
-        .get_node_index(chunk_east_grid_position + IVec3::new(1, -3, -1))
-        .unwrap();
+        let node1_grid_position = grid_position + self.block_position1;
+        let node2_grid_position = grid_position + self.block_position2;
 
-    let test_node2 = &chunk_east.graph.node_list[test_node_index2];
+        let node_index1 = chunk.graph.get_node_index(node1_grid_position).unwrap();
+        let node_index2 = chunk.graph.get_node_index(node2_grid_position).unwrap();
 
-    assert_eq!(test_node2.edge_list.len(), 2, "Edge count at (1, -3, -1)");
+        let edge12 = chunk.graph.node_list[node_index1]
+            .edge_list
+            .iter()
+            .find(|edge| edge.target == node_index2);
 
-    let test_node_index3 = chunk_east
-        .graph
-        .get_node_index(chunk_east_grid_position + IVec3::new(1, -3, 1))
-        .unwrap();
+        assert_eq!(
+            edge12.is_some(),
+            self.expected_is_some_edge,
+            "{:?}",
+            self.description
+        );
 
-    let test_node3 = &chunk_east.graph.node_list[test_node_index3];
+        let edge21 = chunk.graph.node_list[node_index2]
+            .edge_list
+            .iter()
+            .find(|edge| edge.target == node_index1);
 
-    assert_eq!(test_node3.edge_list.len(), 4, "Edge count at (1, -3, 1)");
+        assert_eq!(
+            edge21.is_some(),
+            self.expected_is_some_edge,
+            "{:?}",
+            self.description
+        );
+    }
 }
 
 #[test]
@@ -116,72 +185,31 @@ fn edge_validation() {
 
     builder::TestWorld::build(&mut test_world);
 
-    let chunk_east_grid_position = test_world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
-    let chunk_east = test_world.get_chunk_at(chunk_east_grid_position).unwrap();
+    let test_cases = vec![
+        EdgeValidationTestCase {
+            description: "Edge: (0, -2, 0) - (-1, -3, 0)".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position1: IVec3::new(0, -2, 0),
+            block_position2: IVec3::new(-1, -3, 0),
+            expected_is_some_edge: true,
+        },
+        EdgeValidationTestCase {
+            description: "Edge: (0, -2, 0) - (1, -3, -1)".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position1: IVec3::new(0, -2, 0),
+            block_position2: IVec3::new(1, -3, -1),
+            expected_is_some_edge: false,
+        },
+        EdgeValidationTestCase {
+            description: "Edge: (1, -3, 1) - (2, -2, 2)".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            block_position1: IVec3::new(1, -3, 1),
+            block_position2: IVec3::new(2, -2, 2),
+            expected_is_some_edge: true,
+        },
+    ];
 
-    let test_node1_grid_position = chunk_east_grid_position + IVec3::new(0, -2, 0);
-    let test_node2_grid_position = chunk_east_grid_position + IVec3::new(-1, -3, 0);
-    let test_node3_grid_position = chunk_east_grid_position + IVec3::new(1, -3, -1);
-    let test_node4_grid_position = chunk_east_grid_position + IVec3::new(1, -3, 1);
-    let test_node5_grid_position = chunk_east_grid_position + IVec3::new(2, -2, 2);
-
-    let test_node_index1 = chunk_east
-        .graph
-        .get_node_index(test_node1_grid_position)
-        .unwrap();
-
-    let test_node_index2 = chunk_east
-        .graph
-        .get_node_index(test_node2_grid_position)
-        .unwrap();
-
-    let edge12 = chunk_east.graph.node_list[test_node_index1]
-        .edge_list
-        .iter()
-        .find(|edge| edge.target == test_node_index2);
-
-    assert!(edge12.is_some(), "Edge between (0, -2, 0) and (-1, -3, 0)");
-
-    let edge21 = chunk_east.graph.node_list[test_node_index2]
-        .edge_list
-        .iter()
-        .find(|edge| edge.target == test_node_index1);
-
-    assert!(edge21.is_some(), "Edge between (-1, -3, 0) and (0, -2, 0)");
-
-    let test_node_index3 = chunk_east
-        .graph
-        .get_node_index(test_node3_grid_position)
-        .unwrap();
-
-    let edge13 = chunk_east.graph.node_list[test_node_index1]
-        .edge_list
-        .iter()
-        .find(|edge| edge.target == test_node_index3);
-
-    assert!(edge13.is_none(), "Edge between (0, -2, 0) and (1, -3, -1)");
-
-    let test_node_index4 = chunk_east
-        .graph
-        .get_node_index(test_node4_grid_position)
-        .unwrap();
-
-    let test_node_index5 = chunk_east
-        .graph
-        .get_node_index(test_node5_grid_position)
-        .unwrap();
-
-    let edge45 = chunk_east.graph.node_list[test_node_index4]
-        .edge_list
-        .iter()
-        .find(|edge| edge.target == test_node_index5);
-
-    assert!(edge45.is_some(), "Edge between (1, -3, 1) and (2, -2, 2)");
-
-    let edge54 = chunk_east.graph.node_list[test_node_index5]
-        .edge_list
-        .iter()
-        .find(|edge| edge.target == test_node_index4);
-
-    assert!(edge54.is_some(), "Edge between (2, -2, 2) and (1, -3, 1)");
+    for test_case in test_cases {
+        test_case.check(&test_world);
+    }
 }

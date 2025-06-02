@@ -11,6 +11,18 @@ struct HasClearanceTestCase {
     expected_has_clearance: bool,
 }
 
+impl HasClearanceTestCase {
+    pub fn check(&self, world: &World) {
+        let has_clearance = world.has_clearance(self.grid_position, self.height);
+
+        assert_eq!(
+            has_clearance, self.expected_has_clearance,
+            "{:?}",
+            self.description
+        );
+    }
+}
+
 #[test]
 fn has_clearance() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
@@ -104,13 +116,7 @@ fn has_clearance() {
     ];
 
     for test_case in test_cases {
-        let has_clearance = test_world.has_clearance(test_case.grid_position, test_case.height);
-
-        assert_eq!(
-            has_clearance, test_case.expected_has_clearance,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check(&test_world);
     }
 }
 
@@ -118,6 +124,14 @@ struct GetClearanceTestCase {
     description: String,
     grid_position: IVec3,
     expected_clearance: i32,
+}
+
+impl GetClearanceTestCase {
+    pub fn check(&self, world: &World) {
+        let clearance = world.get_clearance(self.grid_position) as i32;
+
+        assert_eq!(clearance, self.expected_clearance, "{:?}", self.description);
+    }
 }
 
 #[test]
@@ -178,12 +192,6 @@ fn get_clearance() {
     ];
 
     for test_case in test_cases {
-        let clearance = test_world.get_clearance(test_case.grid_position) as i32;
-
-        assert_eq!(
-            clearance, test_case.expected_clearance,
-            "{:?}",
-            test_case.description
-        );
+        test_case.check(&test_world);
     }
 }
