@@ -48,9 +48,9 @@ impl TestWorld {
 
         world.set_cube(
             chunk_center_grid_position
-                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius),
+                + IVec3::new(-chunk_radius, -chunk_radius + 1, -chunk_radius),
             chunk_center_grid_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+                + IVec3::new(chunk_radius, chunk_radius, chunk_radius),
             block::Kind::Empty,
         );
 
@@ -210,7 +210,7 @@ impl TestWorld {
             chunk_south_transition_grid_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius),
             chunk_south_transition_grid_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius),
+                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
 

@@ -9,7 +9,9 @@ struct IntermediatePositionsTestCase {
 }
 
 impl IntermediatePositionsTestCase {
-    pub fn check(&self, intermediate_positions: Vec<IVec3>) {
+    pub fn check(&self) {
+        let intermediate_positions = grid::Grid::intermediate_positions(self.source, self.target);
+
         assert_eq!(
             intermediate_positions, self.expected_intermediate_positions,
             "{:?}",
@@ -48,9 +50,6 @@ fn intermediate_positions() {
     ];
 
     for test_case in test_cases {
-        let intermediate_positions =
-            grid::Grid::intermediate_positions(test_case.source, test_case.target);
-
-        test_case.check(intermediate_positions);
+        test_case.check();
     }
 }

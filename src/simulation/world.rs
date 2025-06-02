@@ -166,6 +166,28 @@ impl World {
         }
     }
 
+    pub fn set_box(&mut self, point1: IVec3, point2: IVec3, kind: block::Kind) {
+        let min = point1.min(point2);
+        let max = point1.max(point2);
+
+        for x in min.x..=max.x {
+            for y in min.y..=max.y {
+                for z in min.z..=max.z {
+                    let on_boundary = x == min.x
+                        || x == max.x
+                        || y == min.y
+                        || y == max.y
+                        || z == min.z
+                        || z == max.z;
+
+                    if on_boundary {
+                        self.set_block_kind(x, y, z, kind);
+                    }
+                }
+            }
+        }
+    }
+
     pub fn set_cube(&mut self, point1: IVec3, point2: IVec3, kind: block::Kind) {
         let min = point1.min(point2);
         let max = point1.max(point2);

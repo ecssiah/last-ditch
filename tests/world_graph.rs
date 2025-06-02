@@ -4,47 +4,73 @@ use last_ditch::simulation::{
     TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
 
+struct NodeCountTestCase {
+    description: String,
+    chunk_position: IVec3,
+    expected_node_count: usize,
+}
+
+impl NodeCountTestCase {
+    pub fn check(&self, world: &World) {
+        let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
+        let chunk = world.get_chunk_at(grid_position).unwrap();
+
+        assert_eq!(
+            chunk.graph.node_list.len(),
+            self.expected_node_count,
+            "{:?}",
+            self.description
+        );
+    }
+}
+
 #[test]
 fn node_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
-    let chunk_center_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
-    let chunk_center = test_world.get_chunk_at(chunk_center_grid_position).unwrap();
+    let test_cases = vec![
+        NodeCountTestCase {
+            description: "(0, 0, 0)".to_string(),
+            chunk_position: IVec3::new(0, 0, 0),
+            expected_node_count: 49,
+        },
+        NodeCountTestCase {
+            description: "(1, 0, 0)".to_string(),
+            chunk_position: IVec3::new(1, 0, 0),
+            expected_node_count: 26,
+        },
+        NodeCountTestCase {
+            description: "(-1, 0, 0)".to_string(),
+            chunk_position: IVec3::new(-1, 0, 0),
+            expected_node_count: 26,
+        },
+        NodeCountTestCase {
+            description: "(0, 1, 0)".to_string(),
+            chunk_position: IVec3::new(0, 1, 0),
+            expected_node_count: 0,
+        },
+        NodeCountTestCase {
+            description: "(0, -1, 0)".to_string(),
+            chunk_position: IVec3::new(0, -1, 0),
+            expected_node_count: 0,
+        },
+        NodeCountTestCase {
+            description: "(0, 0, 1)".to_string(),
+            chunk_position: IVec3::new(0, 0, 1),
+            expected_node_count: 27,
+        },
+        NodeCountTestCase {
+            description: "(0, 0, -1)".to_string(),
+            chunk_position: IVec3::new(0, 0, -1),
+            expected_node_count: 31,
+        },
+    ];
 
-    assert_eq!(
-        chunk_center.graph.node_list.len(),
-        33,
-        "Center chunk incorrect node count"
-    );
-
-    let chunk_west_grid_position = test_world.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
-    let chunk_west = test_world.get_chunk_at(chunk_west_grid_position).unwrap();
-
-    assert_eq!(
-        chunk_west.graph.node_list.len(),
-        26,
-        "West chunk incorrect node count"
-    );
-
-    let chunk_east_grid_position = test_world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
-    let chunk_east = test_world.get_chunk_at(chunk_east_grid_position).unwrap();
-
-    assert_eq!(
-        chunk_east.graph.node_list.len(),
-        26,
-        "East Chunk incorrect node count"
-    );
-
-    let chunk_up_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 1, 0)).unwrap();
-    let chunk_up = test_world.get_chunk_at(chunk_up_grid_position).unwrap();
-
-    assert_eq!(
-        chunk_up.graph.node_list.len(),
-        0,
-        "Vertical Chunk incorrect node count"
-    );
+    for test_case in test_cases {
+        test_case.check(&test_world);
+    }
 }
 
 #[test]
