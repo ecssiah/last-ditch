@@ -7,7 +7,7 @@ pub use direction::Direction;
 use crate::simulation::{
     consts::*,
     physics::aabb::AABB,
-    world::{block, chunk},
+    world::{block, chunk, grid},
 };
 use glam::{IVec3, Vec3};
 
@@ -234,30 +234,65 @@ impl Grid {
         }
     }
 
+    /*
+        Input: (+1, +1, +1)
+        Output: (+1, +1, +0), (+0, +1, +1)
+
+        Input: (-1, +1, +1)
+        Output: (-1, +1, +0), (+0, +1, +1)
+
+        Input: (+1, +1, -1)
+        Output: (+1, +1, +0), (+0, +1, -1)
+
+        Input: (-1, +1, -1)
+        Output: (-1, +1, +0), (+0, +1, -1)
+
+
+        Input: (+1, +0, +1)
+        Output: (+1, +0, +0), (+0, +0, +1)
+
+        Input: (-1, +0, +1)
+        Output: (-1, +0, +0), (+0, +0, +1)
+
+        Input: (+1, +0, -1)
+        Output: (+1, +0, +0), (+0, +0, -1)
+
+        Input: (-1, +0, -1)
+        Output: (-1, +0, +0), (+0, +0, -1)
+
+
+        Input: (+1, -1, +1)
+        Output: (+1, -1, +0), (+0, -1, +1)
+
+        Input: (-1, -1, +1)
+        Output: (-1, -1, +0), (+0, -1, +1)
+
+        Input: (+1, -1, -1)
+        Output: (+1, -1, +0), (+0, -1, -1)
+
+        Input: (-1, -1, -1)
+        Output: (-1, -1, +0), (+0, -1, -1)
+    */
+
     pub fn intermediate_positions(source: IVec3, target: IVec3) -> Vec<IVec3> {
         let delta = target - source;
+        let mut results = Vec::new();
 
-        let mut intermediates = Vec::new();
+        for axis in [grid::Axis::X, grid::Axis::Y, grid::Axis::Z] {
+            let mut offset = IVec3::new(delta.x, delta.y, delta.z);
 
-        let axes = [
-            (IVec3::X, delta.x),
-            (IVec3::Y, delta.y),
-            (IVec3::Z, delta.z),
-        ];
+            match axis {
+                grid::Axis::X => offset.x = 0,
+                grid::Axis::Y => offset.y = 0,
+                grid::Axis::Z => offset.z = 0,
+            }
 
-        for i in 0..3 {
-            for j in (i + 1)..3 {
-                let a = axes[i];
-                let b = axes[j];
-
-                if a.1 != 0 && b.1 != 0 {
-                    let offset = a.0 * a.1 + b.0 * b.1;
-                    intermediates.push(source + offset);
-                }
+            if offset != IVec3::ZERO {
+                results.push(source + offset);
             }
         }
 
-        intermediates
+        results
     }
 
     pub fn overlapping_aabb_list(&self, aabb: AABB) -> Vec<AABB> {

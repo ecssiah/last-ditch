@@ -42,7 +42,25 @@
         emittance: 0,
     ),
     Block(
-        kind: Origin,
+        kind: MagentaStone,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: PurpleStone,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: TealStone,
+        solid: true,
+        opacity: 1.0,
+        emittance: 0,
+    ),
+    Block(
+        kind: CrimsonStone,
         solid: true,
         opacity: 1.0,
         emittance: 0,

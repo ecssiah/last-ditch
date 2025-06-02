@@ -5,7 +5,6 @@ pub mod block;
 pub mod builder;
 pub mod chunk;
 pub mod grid;
-pub mod test_world;
 
 use crate::simulation::{
     consts::*,
@@ -58,9 +57,9 @@ impl World {
 
     pub fn setup(&mut self) {
         if TESTING {
-            builder::TestWorld::setup(self)
+            builder::TestWorld::build(self)
         } else {
-            builder::MainWorld::setup(self);
+            builder::MainWorld::build(self);
         }
     }
 
@@ -298,11 +297,8 @@ impl World {
             let on_chunk_boundary = self.grid.on_chunk_boundary(node.grid_position);
 
             for neighbor_direction in grid::Direction::neighbors() {
-                if neighbor_direction == grid::Direction::XoYpZo {
-                    continue;
-                }
-
-                if neighbor_direction == grid::Direction::XoYnZo {
+                if [grid::Direction::XoYpZo, grid::Direction::XoYnZo].contains(&neighbor_direction)
+                {
                     continue;
                 }
 
@@ -314,17 +310,38 @@ impl World {
                 }
 
                 if let Some(&neighbor_index) = position_index_map.get(&neighbor_grid_position) {
-                    let edge = chunk::Edge {
-                        target: neighbor_index,
-                        cost: neighbor_direction.cost(),
-                    };
+                    let mut passable = true;
 
-                    node.edge_list.push(edge);
+                    if neighbor_direction.is_diagonal() {
+                        let intermediate_grid_positions = grid::Grid::intermediate_positions(
+                            node.grid_position,
+                            neighbor_grid_position,
+                        );
+
+                        for intermediate_grid_position in intermediate_grid_positions {
+                            let intermediate_clearance =
+                                self.get_clearance(intermediate_grid_position);
+
+                            if intermediate_clearance <= 1 {
+                                passable = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if passable {
+                        let edge = chunk::Edge {
+                            target: neighbor_index,
+                            cost: neighbor_direction.cost(),
+                        };
+
+                        node.edge_list.push(edge);
+                    }
                 } else if on_chunk_boundary {
                     let mut passable = true;
                     let connection_clearance = self.get_clearance(neighbor_grid_position);
 
-                    if neighbor_direction.is_corner() {
+                    if neighbor_direction.is_diagonal() {
                         let intermediate_grid_positions = grid::Grid::intermediate_positions(
                             node.grid_position,
                             neighbor_grid_position,

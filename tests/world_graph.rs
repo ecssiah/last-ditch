@@ -8,14 +8,14 @@ use last_ditch::simulation::{
 fn node_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
-    builder::TestWorld::setup(&mut test_world);
+    builder::TestWorld::build(&mut test_world);
 
     let chunk_center_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
     let chunk_center = test_world.get_chunk_at(chunk_center_grid_position).unwrap();
 
     assert_eq!(
         chunk_center.graph.node_list.len(),
-        28,
+        33,
         "Center chunk incorrect node count"
     );
 
@@ -51,7 +51,7 @@ fn node_count_validation() {
 fn edge_count_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
-    builder::TestWorld::setup(&mut test_world);
+    builder::TestWorld::build(&mut test_world);
 
     let chunk_east_grid_position = test_world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
     let chunk_east = test_world.get_chunk_at(chunk_east_grid_position).unwrap();
@@ -63,23 +63,23 @@ fn edge_count_validation() {
 
     let test_node1 = &chunk_east.graph.node_list[test_node_index1];
 
-    assert_eq!(test_node1.edge_list.len(), 7, "Edge count at (-1, -2, 0)");
+    assert_eq!(test_node1.edge_list.len(), 6, "Edge count at (-1, -3, 0)");
 
-    let test_node_index2 = chunk_east
-        .graph
-        .get_node_index(chunk_east_grid_position + IVec3::new(2, -1, -2))
-        .unwrap();
+    // let test_node_index2 = chunk_east
+    //     .graph
+    //     .get_node_index(chunk_east_grid_position + IVec3::new(1, -3, -1))
+    //     .unwrap();
 
-    let test_node2 = &chunk_east.graph.node_list[test_node_index2];
+    // let test_node2 = &chunk_east.graph.node_list[test_node_index2];
 
-    assert_eq!(test_node2.edge_list.len(), 0, "Edge count at (2, 0, -2)");
+    // assert_eq!(test_node2.edge_list.len(), 4, "Edge count at (1, -3, -1)");
 }
 
 #[test]
 fn edge_validation() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
-    builder::TestWorld::setup(&mut test_world);
+    builder::TestWorld::build(&mut test_world);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
 

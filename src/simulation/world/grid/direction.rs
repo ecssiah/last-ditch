@@ -134,48 +134,56 @@ impl Direction {
         Direction::XpYpZp,
     ];
 
+    #[rustfmt::skip]
+    const DIAGONALS: [Direction; 12] = [
+        Direction::XnYoZn,
+        Direction::XpYoZn,
+        Direction::XnYoZp,
+        Direction::XpYoZp,
+        Direction::XnYnZn,
+        Direction::XpYnZn,
+        Direction::XnYpZn,
+        Direction::XpYpZn,
+        Direction::XnYnZp,
+        Direction::XpYnZp,
+        Direction::XnYpZp,
+        Direction::XpYpZp,
+    ];
+
     pub fn is_face(&self) -> bool {
-        matches!(
-            self,
-            Direction::XpYoZo
-                | Direction::XnYoZo
-                | Direction::XoYpZo
-                | Direction::XoYnZo
-                | Direction::XoYoZp
-                | Direction::XoYoZn
-        )
+        let offset = self.offset();
+
+        [offset.x, offset.y, offset.z]
+            .iter()
+            .filter(|&&v| v != 0)
+            .count()
+            == 1
     }
 
     pub fn is_edge(&self) -> bool {
-        matches!(
-            self,
-            Direction::XoYnZn
-                | Direction::XnYoZn
-                | Direction::XpYoZn
-                | Direction::XoYpZn
-                | Direction::XnYnZo
-                | Direction::XpYnZo
-                | Direction::XnYpZo
-                | Direction::XpYpZo
-                | Direction::XoYnZp
-                | Direction::XnYoZp
-                | Direction::XpYoZp
-                | Direction::XoYpZp
-        )
+        let offset = self.offset();
+
+        [offset.x, offset.y, offset.z]
+            .iter()
+            .filter(|&&v| v != 0)
+            .count()
+            == 2
     }
 
     pub fn is_corner(&self) -> bool {
-        matches!(
-            self,
-            Direction::XnYnZn
-                | Direction::XpYnZn
-                | Direction::XnYpZn
-                | Direction::XpYpZn
-                | Direction::XnYnZp
-                | Direction::XpYnZp
-                | Direction::XnYpZp
-                | Direction::XpYpZp
-        )
+        let offset = self.offset();
+
+        [offset.x, offset.y, offset.z]
+            .iter()
+            .filter(|&&v| v != 0)
+            .count()
+            == 3
+    }
+
+    pub fn is_diagonal(&self) -> bool {
+        let offset = self.offset();
+
+        offset.x != 0 && offset.z != 0
     }
 
     pub fn all() -> [Direction; 27] {
@@ -204,6 +212,10 @@ impl Direction {
 
     pub fn corners() -> [Direction; 8] {
         Self::CORNERS
+    }
+
+    pub fn diagonals() -> [Direction; 12] {
+        Self::DIAGONALS
     }
 
     pub fn offset(&self) -> IVec3 {

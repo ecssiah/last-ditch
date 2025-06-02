@@ -7,26 +7,26 @@ use glam::IVec3;
 pub struct MainWorld {}
 
 impl MainWorld {
-    pub fn setup(world: &mut World) {
+    pub fn build(world: &mut World) {
         log::info!("Setup Ground");
 
-        Self::setup_ground(world);
+        Self::build_ground(world);
 
         log::info!("Setup Structures");
 
-        Self::setup_compass(world);
+        Self::build_compass(world);
 
-        Self::setup_temple(world, 0, 0, 34, agent::Kind::Eagle);
-        Self::setup_temple(world, -34, 0, 0, agent::Kind::Lion);
-        Self::setup_temple(world, 0, 0, -34, agent::Kind::Horse);
-        Self::setup_temple(world, 34, 0, 0, agent::Kind::Wolf);
+        Self::build_temple(world, 0, 0, 34, agent::Kind::Eagle);
+        Self::build_temple(world, -34, 0, 0, agent::Kind::Lion);
+        Self::build_temple(world, 0, 0, -34, agent::Kind::Horse);
+        Self::build_temple(world, 34, 0, 0, agent::Kind::Wolf);
 
-        Self::setup_observation_deck(world);
+        Self::build_observation_deck(world);
 
         world.update_chunks();
     }
 
-    fn setup_ground(world: &mut World) {
+    fn build_ground(world: &mut World) {
         let ground_boundary = (world.grid.boundary - world.grid.chunk_size) as isize;
 
         for x in -ground_boundary..=ground_boundary {
@@ -48,15 +48,15 @@ impl MainWorld {
         }
     }
 
-    fn setup_compass(world: &mut World) {
-        world.set_block_kind(0, 0, 0, block::Kind::Origin);
+    fn build_compass(world: &mut World) {
+        world.set_block_kind(0, 0, 0, block::Kind::TealStone);
         world.set_block_kind(0, 0, 4, block::Kind::North);
         world.set_block_kind(-4, 0, 0, block::Kind::West);
         world.set_block_kind(0, 0, -4, block::Kind::South);
         world.set_block_kind(4, 0, 0, block::Kind::East);
     }
 
-    fn setup_temple(world: &mut World, x: i32, y: i32, z: i32, kind: agent::Kind) {
+    fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: agent::Kind) {
         world.flags.insert(kind, IVec3::new(x, y + 2, z));
 
         world.set_block_kind(x, y + 6, z, kind.icon());
@@ -116,7 +116,7 @@ impl MainWorld {
         );
     }
 
-    fn setup_observation_deck(world: &mut World) {
+    fn build_observation_deck(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
         let chunk_size = world.grid.chunk_size as i32;
 

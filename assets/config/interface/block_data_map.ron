@@ -66,7 +66,7 @@
         },
     ),
     BlockData(
-        kind: Origin,
+        kind: MagentaStone,
         tile_position_map: {
             XpYoZo: (0, 4),
             XnYoZo: (0, 4),
@@ -74,6 +74,39 @@
             XoYnZo: (0, 4),
             XoYoZp: (0, 4),
             XoYoZn: (0, 4),
+        },
+    ),
+    BlockData(
+        kind: PurpleStone,
+        tile_position_map: {
+            XpYoZo: (1, 4),
+            XnYoZo: (1, 4),
+            XoYpZo: (1, 4),
+            XoYnZo: (1, 4),
+            XoYoZp: (1, 4),
+            XoYoZn: (1, 4),
+        },
+    ),
+    BlockData(
+        kind: TealStone,
+        tile_position_map: {
+            XpYoZo: (2, 4),
+            XnYoZo: (2, 4),
+            XoYpZo: (2, 4),
+            XoYnZo: (2, 4),
+            XoYoZp: (2, 4),
+            XoYoZn: (2, 4),
+        },
+    ),
+    BlockData(
+        kind: CrimsonStone,
+        tile_position_map: {
+            XpYoZo: (3, 4),
+            XnYoZo: (3, 4),
+            XoYpZo: (3, 4),
+            XoYnZo: (3, 4),
+            XoYoZp: (3, 4),
+            XoYoZn: (3, 4),
         },
     ),
     BlockData(

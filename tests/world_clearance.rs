@@ -1,6 +1,7 @@
 use glam::IVec3;
 use last_ditch::simulation::{
-    world::{builder, World}, MAXIMUM_CLEARANCE_CHECK, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
+    world::{builder, World},
+    MAXIMUM_CLEARANCE_CHECK, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
 
 struct HasClearanceTestCase {
@@ -14,7 +15,7 @@ struct HasClearanceTestCase {
 fn has_clearance() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
-    builder::TestWorld::setup(& mut test_world);
+    builder::TestWorld::build(&mut test_world);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
     let chunk_north_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
@@ -123,7 +124,7 @@ struct GetClearanceTestCase {
 fn get_clearance() {
     let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
 
-    builder::TestWorld::setup(&mut test_world);
+    builder::TestWorld::build(&mut test_world);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
     let chunk_north_grid_position = test_world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
