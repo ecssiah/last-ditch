@@ -20,13 +20,9 @@ impl Graph {
         self.node_map.insert(grid_position, node)
     }
 
-    pub fn add_edge(&mut self, grid_position: IVec3, edge: chunk::Edge) -> bool {
+    pub fn add_edge(&mut self, grid_position: IVec3, edge: chunk::Edge) {
         if let Some(node) = self.node_map.get_mut(&grid_position) {
             node.edge_list.push(edge);
-
-            true
-        } else {
-            false
         }
     }
 

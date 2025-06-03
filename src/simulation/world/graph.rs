@@ -30,7 +30,9 @@ impl Graph {
 
     pub fn add_edge(&mut self, chunk_position: IVec3, edge: world::Edge) {
         if let Some(node) = self.node_map.get_mut(&chunk_position) {
-            node.edge_list.push(edge);
+            if !node.edge_list.contains(&edge) {
+                node.edge_list.push(edge);
+            }
         }
     }
 

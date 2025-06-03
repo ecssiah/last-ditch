@@ -23,8 +23,8 @@ pub const MAX_RESOLVE_ITERATIONS: usize = 40;
 pub const GRAVITY_ACCELERATION: f32 = 16.0;
 pub const EPSILON_COLLISION: f32 = 0.001;
 
-pub const DEFAULT_X_SPEED: f32 = 11.0;
-pub const DEFAULT_Z_SPEED: f32 = 11.0;
+pub const DEFAULT_X_SPEED: f32 = 8.0;
+pub const DEFAULT_Z_SPEED: f32 = 9.0;
 pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
 pub const MAX_JUMP_TICKS: u32 = 8;
 pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;

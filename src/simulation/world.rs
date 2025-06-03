@@ -169,36 +169,25 @@ impl World {
         visited: &mut HashSet<IVec3>,
     ) {
         if visited.insert(grid_position) {
-            for dx in [-1, 1] {
-                for dy in -1..=1 {
-                    for dz in [-1, 1] {
-                        let neighbor_grid_position = grid_position + IVec3::new(dx, dy, dz);
+            for direction in grid::Direction::traversable_list() {
+                let neighbor_grid_position = grid_position + direction.offset();
 
-                        if let Some(neighbor_chunk_id) =
-                            self.grid.grid_to_chunk_id(neighbor_grid_position)
-                        {
-                            if neighbor_chunk_id != chunk.id {
-                                if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
-                                    let clearance = self.get_clearance(grid_position);
-                                    let neighbor_clearance =
-                                        self.get_clearance(neighbor_grid_position);
+                if let Some(neighbor_chunk_id) = self.grid.grid_to_chunk_id(neighbor_grid_position)
+                {
+                    if neighbor_chunk_id != chunk.id {
+                        if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
+                            let clearance = self.get_clearance(grid_position);
+                            let neighbor_clearance = self.get_clearance(neighbor_grid_position);
+                            let cost = direction.cost();
 
-                                    let cost = if dy == 0 {
-                                        WORLD_FACE_COST
-                                    } else {
-                                        WORLD_EDGE_COST
-                                    };
-
-                                    world_graph.create_edges(
-                                        chunk.position,
-                                        neighbor_chunk.position,
-                                        grid_position,
-                                        neighbor_grid_position,
-                                        clearance.min(neighbor_clearance),
-                                        cost,
-                                    );
-                                }
-                            }
+                            world_graph.create_edges(
+                                chunk.position,
+                                neighbor_chunk.position,
+                                grid_position,
+                                neighbor_grid_position,
+                                clearance.min(neighbor_clearance),
+                                cost,
+                            );
                         }
                     }
                 }
