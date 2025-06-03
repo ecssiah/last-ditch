@@ -10,7 +10,7 @@ pub const DEFAULT_SEED: u64 = 128;
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const PROJECT_VERSION: &str = "0.1.0";
 
-pub const TESTING: bool = true;
+pub const TESTING: bool = false;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =
@@ -60,8 +60,8 @@ pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
 pub const POPULATION_VIEW_RADIUS: f32 = 120.0;
 pub const POPULATION_VIEW_RADIUS_SQUARED: f32 = POPULATION_VIEW_RADIUS * POPULATION_VIEW_RADIUS;
 
-pub const MAXIMUM_CLEARANCE: usize = 4;
-pub const MINIMUM_CLEARANCE: usize = 2;
+pub const MAXIMUM_CLEARANCE: i32 = 4;
+pub const MINIMUM_CLEARANCE: i32 = 2;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
 

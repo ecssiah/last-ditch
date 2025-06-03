@@ -136,31 +136,6 @@ impl Grid {
         on_x_boundary || on_y_boundary || on_z_boundary
     }
 
-    pub fn adjacent_chunk_directions(&self, grid_position: IVec3) -> Vec<Direction> {
-        let chunk_radius = self.chunk_radius as i32;
-        let mut adjacent_chunk_directions = Vec::new();
-
-        if grid_position.x == chunk_radius {
-            adjacent_chunk_directions.push(Direction::XpYoZo);
-        } else if grid_position.x == -chunk_radius {
-            adjacent_chunk_directions.push(Direction::XnYoZo);
-        }
-
-        if grid_position.y == chunk_radius {
-            adjacent_chunk_directions.push(Direction::XoYpZo);
-        } else if grid_position.y == -chunk_radius {
-            adjacent_chunk_directions.push(Direction::XoYnZo);
-        }
-
-        if grid_position.z == chunk_radius {
-            adjacent_chunk_directions.push(Direction::XoYoZp);
-        } else if grid_position.z == -chunk_radius {
-            adjacent_chunk_directions.push(Direction::XoYoZn);
-        }
-
-        adjacent_chunk_directions
-    }
-
     pub fn is_valid_chunk_id(&self, chunk_id: chunk::ID) -> bool {
         (0..=self.chunk_id_max).contains(&u32::from(chunk_id))
     }

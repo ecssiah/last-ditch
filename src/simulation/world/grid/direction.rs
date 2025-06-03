@@ -1,7 +1,7 @@
 use glam::IVec3;
 use serde::{Deserialize, Serialize};
 
-use crate::simulation::{WORLD_FACE_COST, WORLD_CORNER_COST, WORLD_EDGE_COST};
+use crate::simulation::{WORLD_CORNER_COST, WORLD_EDGE_COST, WORLD_FACE_COST};
 
 #[rustfmt::skip]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
@@ -296,5 +296,12 @@ impl Direction {
 
     pub fn corner_offsets() -> [IVec3; 8] {
         Self::CORNERS.map(|corner| corner.offset())
+    }
+
+    pub fn from_components(x: i32, y: i32, z: i32) -> Option<Direction> {
+        Self::ALL
+            .iter()
+            .copied()
+            .find(|direction| direction.offset() == IVec3::new(x, y, z))
     }
 }

@@ -1,10 +1,11 @@
-use crate::simulation::world::{chunk, grid};
+use glam::IVec3;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Edge {
-    pub chunk_id: chunk::ID,
-    pub direction: grid::Direction,
-    pub cost: f32,
+    pub target_chunk_position: IVec3,
+    pub from_grid_position: IVec3,
+    pub to_grid_position: IVec3,
     pub clearance: u32,
+    pub cost: f32,
     pub group_id: u32,
 }
