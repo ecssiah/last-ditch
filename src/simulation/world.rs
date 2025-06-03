@@ -387,7 +387,7 @@ impl World {
     }
 
     fn compute_visibility_list(&self, grid_position: IVec3) -> Vec<grid::Direction> {
-        let visibility_list: Vec<grid::Direction> = grid::Direction::faces()
+        let visibility_list: Vec<grid::Direction> = grid::Direction::face_list()
             .iter()
             .filter_map(|&direction| {
                 let neighbor_grid_position = grid_position + direction.offset();
@@ -429,26 +429,18 @@ impl World {
         let node_set: HashMap<IVec3, chunk::Node> = chunk_graph.node_map.clone();
 
         for (grid_position, node) in &node_set {
-            for x in [-1, 1] {
-                for y in -1..=1 {
-                    for z in [-1, 1] {
-                        let neighbor_grid_position = grid_position + IVec3::new(x, y, z);
+            for direction in grid::Direction::traversable_list() {
+                let neighbor_grid_position = grid_position + direction.offset();
 
-                        if let Some(neighbor_node) = node_set.get(&neighbor_grid_position) {
-                            let cost = if y == 0 {
-                                WORLD_FACE_COST
-                            } else {
-                                WORLD_EDGE_COST
-                            };
-
-                            chunk_graph.create_edges(
-                                *grid_position,
-                                neighbor_grid_position,
-                                node.clearance.min(neighbor_node.clearance),
-                                cost,
-                            );
-                        }
-                    }
+                if let Some(neighbor_node) = node_set.get(&neighbor_grid_position) {
+                    chunk_graph.add_edge(
+                        *grid_position,
+                        chunk::Edge {
+                            target: neighbor_grid_position,
+                            clearance: node.clearance.min(neighbor_node.clearance),
+                            cost: direction.cost(),
+                        },
+                    );
                 }
             }
         }
@@ -466,7 +458,7 @@ impl World {
                 let visibility_list = &chunk.visibility_list[usize::from(block_id)];
                 let grid_position = self.grid.ids_to_grid(chunk.id, block_id).unwrap();
 
-                for direction in grid::Direction::faces() {
+                for direction in grid::Direction::face_list() {
                     if visibility_list.contains(&direction) {
                         let mut face = block::Face::new(grid_position, direction, block.kind);
 

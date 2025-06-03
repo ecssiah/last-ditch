@@ -52,7 +52,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const NEIGHBORS: [Direction; 26] = [
+    const NEIGHBOR_LIST: [Direction; 26] = [
         Direction::XnYnZn,
         Direction::XoYnZn,
         Direction::XpYnZn,
@@ -82,22 +82,14 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const AXES: [Direction; 3] = [
+    const AXIS_LIST: [Direction; 3] = [
         Direction::XpYoZo,
         Direction::XoYpZo,
         Direction::XoYoZp,
     ];
 
     #[rustfmt::skip]
-    const CARDINAL: [Direction; 4] = [
-        Direction::XpYoZo,
-        Direction::XnYoZo,
-        Direction::XoYoZp,
-        Direction::XoYoZn,
-    ];
-
-    #[rustfmt::skip]
-    const FACES: [Direction; 6] = [
+    const FACE_LIST: [Direction; 6] = [
         Direction::XpYoZo,
         Direction::XnYoZo,
         Direction::XoYpZo,
@@ -107,7 +99,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const EDGES: [Direction; 12] = [
+    const EDGE_LIST: [Direction; 12] = [
         Direction::XoYnZn,
         Direction::XnYoZn,
         Direction::XpYoZn,
@@ -123,7 +115,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const CORNERS: [Direction; 8] = [
+    const CORNER_LIST: [Direction; 8] = [
         Direction::XnYnZn,
         Direction::XpYnZn,
         Direction::XnYpZn,
@@ -135,7 +127,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const DIAGONALS: [Direction; 12] = [
+    const DIAGONAL_LIST: [Direction; 12] = [
         Direction::XnYoZn,
         Direction::XpYoZn,
         Direction::XnYoZp,
@@ -148,6 +140,22 @@ impl Direction {
         Direction::XpYnZp,
         Direction::XnYpZp,
         Direction::XpYpZp,
+    ];
+
+    #[rustfmt::skip]
+    const TRAVERSABLE_LIST: [Direction; 12] = [
+        Direction::XnYpZo,
+        Direction::XpYpZo,
+        Direction::XoYpZp,
+        Direction::XoYpZn,
+        Direction::XnYoZo,
+        Direction::XpYoZo,
+        Direction::XoYoZp,
+        Direction::XoYoZn,
+        Direction::XnYnZo,
+        Direction::XpYnZo,
+        Direction::XoYnZp,
+        Direction::XoYnZn,
     ];
 
     pub fn is_face(&self) -> bool {
@@ -190,32 +198,32 @@ impl Direction {
         Self::ALL
     }
 
-    pub fn neighbors() -> [Direction; 26] {
-        Self::NEIGHBORS
+    pub fn neighbor_list() -> [Direction; 26] {
+        Self::NEIGHBOR_LIST
     }
 
-    pub fn axes() -> [Direction; 3] {
-        Self::AXES
+    pub fn axis_list() -> [Direction; 3] {
+        Self::AXIS_LIST
     }
 
-    pub fn cardinal() -> [Direction; 4] {
-        Self::CARDINAL
+    pub fn face_list() -> [Direction; 6] {
+        Self::FACE_LIST
     }
 
-    pub fn faces() -> [Direction; 6] {
-        Self::FACES
+    pub fn edge_list() -> [Direction; 12] {
+        Self::EDGE_LIST
     }
 
-    pub fn edges() -> [Direction; 12] {
-        Self::EDGES
+    pub fn corner_list() -> [Direction; 8] {
+        Self::CORNER_LIST
     }
 
-    pub fn corners() -> [Direction; 8] {
-        Self::CORNERS
+    pub fn diagonal_list() -> [Direction; 12] {
+        Self::DIAGONAL_LIST
     }
 
-    pub fn diagonals() -> [Direction; 12] {
-        Self::DIAGONALS
+    pub fn traversable_list() -> [Direction; 12] {
+        Self::TRAVERSABLE_LIST
     }
 
     pub fn offset(&self) -> IVec3 {
@@ -283,19 +291,19 @@ impl Direction {
     }
 
     pub fn neighbor_offsets() -> [IVec3; 26] {
-        Self::NEIGHBORS.map(|neighbor| neighbor.offset())
+        Self::NEIGHBOR_LIST.map(|neighbor| neighbor.offset())
     }
 
     pub fn face_offsets() -> [IVec3; 6] {
-        Self::FACES.map(|face| face.offset())
+        Self::FACE_LIST.map(|face| face.offset())
     }
 
     pub fn edge_offsets() -> [IVec3; 12] {
-        Self::EDGES.map(|edge| edge.offset())
+        Self::EDGE_LIST.map(|edge| edge.offset())
     }
 
     pub fn corner_offsets() -> [IVec3; 8] {
-        Self::CORNERS.map(|corner| corner.offset())
+        Self::CORNER_LIST.map(|corner| corner.offset())
     }
 
     pub fn from_components(x: i32, y: i32, z: i32) -> Option<Direction> {

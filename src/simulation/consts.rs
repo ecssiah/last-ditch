@@ -10,7 +10,7 @@ pub const DEFAULT_SEED: u64 = 128;
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const PROJECT_VERSION: &str = "0.1.0";
 
-pub const TESTING: bool = false;
+pub const TESTING: bool = true;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =

@@ -73,8 +73,15 @@ impl Decision {
     fn find_target(grid_position: &IVec3, agent: &Agent, world: &World) -> Option<IVec3> {
         let mut rng = rand::thread_rng();
 
+        let cardinal_direction_list = [
+            grid::Direction::XpYoZo,
+            grid::Direction::XnYoZo,
+            grid::Direction::XoYoZp,
+            grid::Direction::XoYoZn,
+        ];
+
         let direction_index = rng.gen_range(0..4);
-        let direction = grid::Direction::cardinal()[direction_index];
+        let direction = cardinal_direction_list[direction_index];
 
         let dy = rng.gen_range(-1..=1);
 

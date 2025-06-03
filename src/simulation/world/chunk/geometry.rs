@@ -26,7 +26,7 @@ impl Geometry {
         for face in self.face_list.iter() {
             let face_vertex_list = face.vertices();
             let start_index = vertex_list.len() as u32;
-            
+
             for vertex in &face_vertex_list {
                 vertex_list.push(Point3::new(vertex.x, vertex.y, vertex.z));
             }
@@ -42,7 +42,7 @@ impl Geometry {
         let mut vertex_list = Vec::new();
         let mut index_list = Vec::new();
 
-        for direction in grid::Direction::faces() {
+        for direction in grid::Direction::face_list() {
             let mut grid: HashSet<(i32, i32, i32)> = HashSet::new();
 
             let direction_faces = self
