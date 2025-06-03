@@ -2,14 +2,14 @@ use glam::Vec3;
 use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 use std::f32::EPSILON;
 
-struct ApproxSetEqTestCase {
+struct ApproxSetEqCase {
     description: String,
     aabb_list1: Vec<AABB>,
     aabb_list2: Vec<AABB>,
     expected_is_equal: bool,
 }
 
-impl ApproxSetEqTestCase {
+impl ApproxSetEqCase {
     pub fn check(&self) {
         let is_equal = AABB::approx_set_eq(&self.aabb_list1, &self.aabb_list2, EPSILON);
 
@@ -20,7 +20,7 @@ impl ApproxSetEqTestCase {
 #[test]
 fn approx_set_eq() {
     let test_cases = vec![
-        ApproxSetEqTestCase {
+        ApproxSetEqCase {
             description: String::from("Equivalent AABB lists"),
             aabb_list1: vec![
                 AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -36,7 +36,7 @@ fn approx_set_eq() {
             ],
             expected_is_equal: true,
         },
-        ApproxSetEqTestCase {
+        ApproxSetEqCase {
             description: String::from(
                 "AABB lists that differ only by EPSILON in one center coordinate",
             ),
@@ -54,7 +54,7 @@ fn approx_set_eq() {
             ],
             expected_is_equal: true,
         },
-        ApproxSetEqTestCase {
+        ApproxSetEqCase {
             description: String::from(
                 "AABB lists that differ only by 2.0 * EPSILON in one center coordinate",
             ),
@@ -72,7 +72,7 @@ fn approx_set_eq() {
             ],
             expected_is_equal: false,
         },
-        ApproxSetEqTestCase {
+        ApproxSetEqCase {
             description: String::from(
                 "AABB lists that differ only by 4.0 * EPSILON in one size coordinate",
             ),
@@ -93,7 +93,7 @@ fn approx_set_eq() {
             ],
             expected_is_equal: false,
         },
-        ApproxSetEqTestCase {
+        ApproxSetEqCase {
             description: String::from("AABB lists with different lengths"),
             aabb_list1: vec![
                 AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),

@@ -2,14 +2,14 @@ use glam::Vec3;
 use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 use std::f32::EPSILON;
 
-struct SweepTestCase {
+struct SweepCase {
     description: String,
     aabb1: AABB,
     aabb2: AABB,
     expected_aabb: AABB,
 }
 
-impl SweepTestCase {
+impl SweepCase {
     pub fn check(&self) {
         let aabb = AABB::sweep(self.aabb1, self.aabb2);
 
@@ -22,7 +22,7 @@ impl SweepTestCase {
 #[test]
 fn equal() {
     let test_cases = vec![
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -31,7 +31,7 @@ fn equal() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (-1, -1, -1) to block at (-1, -1, -1)".to_string(),
             aabb1: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
@@ -40,7 +40,7 @@ fn equal() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (1, 1, 1) to block at (1, 1, 1)".to_string(),
             aabb1: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
@@ -59,7 +59,7 @@ fn equal() {
 #[test]
 fn x_axis() {
     let test_cases = vec![
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -68,7 +68,7 @@ fn x_axis() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0.5, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -77,7 +77,7 @@ fn x_axis() {
                 Vec3::new(1.5 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (1, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -86,7 +86,7 @@ fn x_axis() {
                 Vec3::new(2.0 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (2.0, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(2.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -95,7 +95,7 @@ fn x_axis() {
                 Vec3::new(3.0 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (-1, 0, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -114,7 +114,7 @@ fn x_axis() {
 #[test]
 fn y_axis() {
     let test_cases = vec![
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0.5, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -123,7 +123,7 @@ fn y_axis() {
                 Vec3::new(BLOCK_SIZE, 1.5 * BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -132,7 +132,7 @@ fn y_axis() {
                 Vec3::new(BLOCK_SIZE, 2.0 * BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 2.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -141,7 +141,7 @@ fn y_axis() {
                 Vec3::new(BLOCK_SIZE, 3.0 * BLOCK_SIZE, BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, -1, 0)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
@@ -160,7 +160,7 @@ fn y_axis() {
 #[test]
 fn z_axis() {
     let test_cases = vec![
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0.5)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
@@ -169,7 +169,7 @@ fn z_axis() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 1.5 * BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 1)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
@@ -178,7 +178,7 @@ fn z_axis() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 2.0 * BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 2)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 2.0), Vec3::splat(BLOCK_SIZE)),
@@ -187,7 +187,7 @@ fn z_axis() {
                 Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 3.0 * BLOCK_SIZE),
             ),
         },
-        SweepTestCase {
+        SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, -1)".to_string(),
             aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),

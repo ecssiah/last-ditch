@@ -129,11 +129,18 @@ impl Grid {
     }
 
     pub fn on_chunk_boundary(&self, grid_position: IVec3) -> bool {
-        let on_x_boundary = grid_position.x.abs() as u32 == self.chunk_radius;
-        let on_y_boundary = grid_position.y.abs() as u32 == self.chunk_radius;
-        let on_z_boundary = grid_position.z.abs() as u32 == self.chunk_radius;
+        if let Some(block_position) = self.grid_to_block(grid_position) {
+            let chunk_radius = self.chunk_radius as i32;
 
-        on_x_boundary || on_y_boundary || on_z_boundary
+            block_position.x == -chunk_radius
+                || block_position.x == chunk_radius
+                || block_position.y == -chunk_radius
+                || block_position.y == chunk_radius
+                || block_position.z == -chunk_radius
+                || block_position.z == chunk_radius
+        } else {
+            false
+        }
     }
 
     pub fn is_valid_chunk_id(&self, chunk_id: chunk::ID) -> bool {

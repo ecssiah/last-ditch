@@ -4,7 +4,7 @@ use last_ditch::simulation::{
     world::{builder, World},
 };
 
-struct HasClearanceTestCase {
+struct HasClearanceCase {
     description: String,
     chunk_position: IVec3,
     block_position: IVec3,
@@ -12,7 +12,7 @@ struct HasClearanceTestCase {
     expected_has_clearance: bool,
 }
 
-impl HasClearanceTestCase {
+impl HasClearanceCase {
     pub fn check(&self, world: &World) {
         let chunk_grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let grid_position = chunk_grid_position + self.block_position;
@@ -34,56 +34,56 @@ fn has_clearance() {
     builder::TestWorld::build(&mut test_world);
 
     let test_cases = vec![
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance max"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(0, -3, 0),
             height: MAXIMUM_CLEARANCE as i32,
             expected_has_clearance: true,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("empty block has no clearance"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(0, 0, 0),
             height: 1,
             expected_has_clearance: false,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance 0"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(-2, -3, 2),
             height: 0,
             expected_has_clearance: true,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("not clearance 1"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(-2, -3, 2),
             height: 1,
             expected_has_clearance: false,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance 1"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(-1, -3, 2),
             height: 1,
             expected_has_clearance: true,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance 2"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(0, -3, 2),
             height: 2,
             expected_has_clearance: true,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance 3"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(1, -3, 2),
             height: 3,
             expected_has_clearance: true,
         },
-        HasClearanceTestCase {
+        HasClearanceCase {
             description: String::from("clearance max"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(2, -3, 2),
@@ -97,14 +97,14 @@ fn has_clearance() {
     }
 }
 
-struct GetClearanceTestCase {
+struct GetClearanceCase {
     description: String,
     chunk_position: IVec3,
     block_position: IVec3,
     expected_clearance: i32,
 }
 
-impl GetClearanceTestCase {
+impl GetClearanceCase {
     pub fn check(&self, world: &World) {
         let chunk_grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let grid_position = chunk_grid_position + self.block_position;
@@ -122,31 +122,31 @@ fn get_clearance() {
     builder::TestWorld::build(&mut test_world);
 
     let test_cases = vec![
-        GetClearanceTestCase {
+        GetClearanceCase {
             description: String::from("clearance 1"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(-2, -3, 2),
             expected_clearance: 0,
         },
-        GetClearanceTestCase {
+        GetClearanceCase {
             description: String::from("clearance 2"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(-1, -3, 2),
             expected_clearance: 1,
         },
-        GetClearanceTestCase {
+        GetClearanceCase {
             description: String::from("clearance 3"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(0, -3, 2),
             expected_clearance: 2,
         },
-        GetClearanceTestCase {
+        GetClearanceCase {
             description: String::from("clearance 4"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(1, -3, 2),
             expected_clearance: 3,
         },
-        GetClearanceTestCase {
+        GetClearanceCase {
             description: String::from("clearance max"),
             chunk_position: IVec3::new(0, 0, 1),
             block_position: IVec3::new(2, -3, 2),

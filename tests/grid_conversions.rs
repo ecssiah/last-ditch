@@ -4,13 +4,13 @@ use last_ditch::simulation::{
     TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
 
-struct WorldToGridTestCase {
+struct WorldToGridCase {
     description: String,
     world_position: Vec3,
     expected_grid_position: Option<IVec3>,
 }
 
-impl WorldToGridTestCase {
+impl WorldToGridCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.world_to_grid(self.world_position);
 
@@ -29,12 +29,12 @@ fn world_to_grid() {
     let boundary = test_world.grid.boundary as f32;
 
     let test_cases = vec![
-        WorldToGridTestCase {
+        WorldToGridCase {
             description: "".to_string(),
             world_position: Vec3::new(0.0, 0.0, 0.0),
             expected_grid_position: Some(IVec3::new(0, 0, 0)),
         },
-        WorldToGridTestCase {
+        WorldToGridCase {
             description: "".to_string(),
             world_position: Vec3::new(boundary, boundary, boundary),
             expected_grid_position: Some(IVec3::new(
@@ -43,12 +43,12 @@ fn world_to_grid() {
                 boundary as i32,
             )),
         },
-        WorldToGridTestCase {
+        WorldToGridCase {
             description: "".to_string(),
             world_position: Vec3::new(boundary + 1.0, boundary + 1.0, boundary + 1.0),
             expected_grid_position: None,
         },
-        WorldToGridTestCase {
+        WorldToGridCase {
             description: "".to_string(),
             world_position: Vec3::new(-boundary, -boundary, -boundary),
             expected_grid_position: Some(IVec3::new(
@@ -57,7 +57,7 @@ fn world_to_grid() {
                 -boundary as i32,
             )),
         },
-        WorldToGridTestCase {
+        WorldToGridCase {
             description: "".to_string(),
             world_position: Vec3::new(-boundary - 1.0, -boundary - 1.0, -boundary - 1.0),
             expected_grid_position: None,
@@ -69,13 +69,13 @@ fn world_to_grid() {
     }
 }
 
-struct GridToChunkTestCase {
+struct GridToChunkCase {
     description: String,
     grid_position: IVec3,
     expected_chunk_position: Option<IVec3>,
 }
 
-impl GridToChunkTestCase {
+impl GridToChunkCase {
     pub fn check(&self, world: &World) {
         let chunk_position = world.grid.grid_to_chunk(self.grid_position);
 
@@ -95,27 +95,27 @@ fn grid_to_chunk() {
     let radius = test_world.grid.radius as i32;
 
     let test_cases = vec![
-        GridToChunkTestCase {
+        GridToChunkCase {
             description: "".to_string(),
             grid_position: IVec3::new(0, 0, 0),
             expected_chunk_position: Some(IVec3::new(0, 0, 0)),
         },
-        GridToChunkTestCase {
+        GridToChunkCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary, boundary, boundary),
             expected_chunk_position: Some(IVec3::new(radius, radius, radius)),
         },
-        GridToChunkTestCase {
+        GridToChunkCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_chunk_position: None,
         },
-        GridToChunkTestCase {
+        GridToChunkCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary, -boundary, -boundary),
             expected_chunk_position: Some(IVec3::new(-radius, -radius, -radius)),
         },
-        GridToChunkTestCase {
+        GridToChunkCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
             expected_chunk_position: None,
@@ -127,13 +127,13 @@ fn grid_to_chunk() {
     }
 }
 
-struct GridToBlockTestCase {
+struct GridToBlockCase {
     description: String,
     grid_position: IVec3,
     expected_block_position: Option<IVec3>,
 }
 
-impl GridToBlockTestCase {
+impl GridToBlockCase {
     pub fn check(&self, world: &World) {
         let block_position = world.grid.grid_to_block(self.grid_position);
 
@@ -153,27 +153,27 @@ fn grid_to_block() {
     let chunk_radius = test_world.grid.chunk_radius as i32;
 
     let test_cases = vec![
-        GridToBlockTestCase {
+        GridToBlockCase {
             description: String::from("origin"),
             grid_position: IVec3::new(0, 0, 0),
             expected_block_position: Some(IVec3::new(0, 0, 0)),
         },
-        GridToBlockTestCase {
+        GridToBlockCase {
             description: String::from("maximum position"),
             grid_position: IVec3::new(boundary, boundary, boundary),
             expected_block_position: Some(IVec3::new(chunk_radius, chunk_radius, chunk_radius)),
         },
-        GridToBlockTestCase {
+        GridToBlockCase {
             description: String::from("beyond maximum position"),
             grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_block_position: None,
         },
-        GridToBlockTestCase {
+        GridToBlockCase {
             description: String::from("minimum position"),
             grid_position: IVec3::new(-boundary, -boundary, -boundary),
             expected_block_position: Some(IVec3::new(-chunk_radius, -chunk_radius, -chunk_radius)),
         },
-        GridToBlockTestCase {
+        GridToBlockCase {
             description: String::from("beyond minimum position"),
             grid_position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
             expected_block_position: None,
@@ -185,13 +185,13 @@ fn grid_to_block() {
     }
 }
 
-struct ChunkToGridTestCase {
+struct ChunkToGridCase {
     description: String,
     chunk_position: IVec3,
     expected_grid_position: Option<IVec3>,
 }
 
-impl ChunkToGridTestCase {
+impl ChunkToGridCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.chunk_to_grid(self.chunk_position);
 
@@ -211,12 +211,12 @@ fn chunk_to_grid() {
     let chunk_size = test_world.grid.chunk_size as i32;
 
     let test_cases = vec![
-        ChunkToGridTestCase {
+        ChunkToGridCase {
             description: "".to_string(),
             chunk_position: IVec3::new(0, 0, 0),
             expected_grid_position: Some(IVec3::new(0, 0, 0)),
         },
-        ChunkToGridTestCase {
+        ChunkToGridCase {
             description: "".to_string(),
             chunk_position: IVec3::new(radius, radius, radius),
             expected_grid_position: Some(IVec3::new(
@@ -225,12 +225,12 @@ fn chunk_to_grid() {
                 radius * chunk_size,
             )),
         },
-        ChunkToGridTestCase {
+        ChunkToGridCase {
             description: "".to_string(),
             chunk_position: IVec3::new(radius + 1, radius + 1, radius + 1),
             expected_grid_position: None,
         },
-        ChunkToGridTestCase {
+        ChunkToGridCase {
             description: "".to_string(),
             chunk_position: IVec3::new(-radius, -radius, -radius),
             expected_grid_position: Some(IVec3::new(
@@ -239,7 +239,7 @@ fn chunk_to_grid() {
                 -radius * chunk_size,
             )),
         },
-        ChunkToGridTestCase {
+        ChunkToGridCase {
             description: "".to_string(),
             chunk_position: IVec3::new(-radius - 1, -radius - 1, -radius - 1),
             expected_grid_position: None,
@@ -251,13 +251,13 @@ fn chunk_to_grid() {
     }
 }
 
-struct GridToChunkIDTestCase {
+struct GridToChunkIDCase {
     description: String,
     grid_position: IVec3,
     expected_chunk_id: Option<chunk::ID>,
 }
 
-impl GridToChunkIDTestCase {
+impl GridToChunkIDCase {
     pub fn check(&self, world: &World) {
         let chunk_id = world.grid.grid_to_chunk_id(self.grid_position);
 
@@ -273,27 +273,27 @@ fn grid_to_chunk_id() {
     let volume = test_world.grid.volume;
 
     let test_cases = vec![
-        GridToChunkIDTestCase {
+        GridToChunkIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(0, 0, 0),
             expected_chunk_id: Some(chunk::ID((volume - 1) / 2)),
         },
-        GridToChunkIDTestCase {
+        GridToChunkIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary, boundary, boundary),
             expected_chunk_id: Some(chunk::ID(volume - 1)),
         },
-        GridToChunkIDTestCase {
+        GridToChunkIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_chunk_id: None,
         },
-        GridToChunkIDTestCase {
+        GridToChunkIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary, -boundary, -boundary),
             expected_chunk_id: Some(chunk::ID(0)),
         },
-        GridToChunkIDTestCase {
+        GridToChunkIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
             expected_chunk_id: None,
@@ -305,13 +305,13 @@ fn grid_to_chunk_id() {
     }
 }
 
-struct WorldToChunkIDTestCase {
+struct WorldToChunkIDCase {
     description: String,
     world_position: Vec3,
     expected_chunk_id: Option<chunk::ID>,
 }
 
-impl WorldToChunkIDTestCase {
+impl WorldToChunkIDCase {
     pub fn check(&self, world: &World) {
         let chunk_id = world.grid.world_to_chunk_id(self.world_position);
 
@@ -327,27 +327,27 @@ fn world_to_chunk_id() {
     let volume = test_world.grid.volume;
 
     let test_cases = vec![
-        WorldToChunkIDTestCase {
+        WorldToChunkIDCase {
             description: "".to_string(),
             world_position: Vec3::new(0.0, 0.0, 0.0),
             expected_chunk_id: Some(chunk::ID((volume - 1) / 2)),
         },
-        WorldToChunkIDTestCase {
+        WorldToChunkIDCase {
             description: "".to_string(),
             world_position: Vec3::new(boundary, boundary, boundary),
             expected_chunk_id: Some(chunk::ID(volume - 1)),
         },
-        WorldToChunkIDTestCase {
+        WorldToChunkIDCase {
             description: "".to_string(),
             world_position: Vec3::new(boundary + 1.0, boundary + 1.0, boundary + 1.0),
             expected_chunk_id: None,
         },
-        WorldToChunkIDTestCase {
+        WorldToChunkIDCase {
             description: "".to_string(),
             world_position: Vec3::new(-boundary, -boundary, -boundary),
             expected_chunk_id: Some(chunk::ID(0)),
         },
-        WorldToChunkIDTestCase {
+        WorldToChunkIDCase {
             description: "".to_string(),
             world_position: Vec3::new(-boundary - 1.0, -boundary - 1.0, -boundary - 1.0),
             expected_chunk_id: None,
@@ -359,13 +359,13 @@ fn world_to_chunk_id() {
     }
 }
 
-struct ChunkIDToPositionTestCase {
+struct ChunkIDToPositionCase {
     description: String,
     chunk_id: chunk::ID,
     expected_chunk_position: Option<IVec3>,
 }
 
-impl ChunkIDToPositionTestCase {
+impl ChunkIDToPositionCase {
     pub fn check(&self, world: &World) {
         let chunk_position = world.grid.chunk_id_to_position(self.chunk_id);
 
@@ -384,22 +384,22 @@ fn chunk_id_to_position() {
     let radius = test_world.grid.radius as i32;
 
     let test_cases = vec![
-        ChunkIDToPositionTestCase {
+        ChunkIDToPositionCase {
             description: "".to_string(),
             chunk_id: chunk::ID(0),
             expected_chunk_position: Some(IVec3::new(-radius, -radius, -radius)),
         },
-        ChunkIDToPositionTestCase {
+        ChunkIDToPositionCase {
             description: "".to_string(),
             chunk_id: chunk::ID(test_world.grid.chunk_id_max / 2),
             expected_chunk_position: Some(IVec3::new(0, 0, 0)),
         },
-        ChunkIDToPositionTestCase {
+        ChunkIDToPositionCase {
             description: "".to_string(),
             chunk_id: chunk::ID(test_world.grid.chunk_id_max),
             expected_chunk_position: Some(IVec3::new(radius, radius, radius)),
         },
-        ChunkIDToPositionTestCase {
+        ChunkIDToPositionCase {
             description: "".to_string(),
             chunk_id: chunk::ID(test_world.grid.chunk_id_max + 1),
             expected_chunk_position: None,
@@ -411,13 +411,13 @@ fn chunk_id_to_position() {
     }
 }
 
-struct GridToBlockIDTestCase {
+struct GridToBlockIDCase {
     description: String,
     grid_position: IVec3,
     expected_block_id: Option<block::ID>,
 }
 
-impl GridToBlockIDTestCase {
+impl GridToBlockIDCase {
     pub fn check(&self, world: &World) {
         let block_id = world.grid.grid_to_block_id(self.grid_position);
 
@@ -434,42 +434,42 @@ fn grid_to_block_id() {
     let boundary = test_world.grid.boundary as i32;
 
     let test_cases = vec![
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(0, 0, 0),
             expected_block_id: Some(block::ID(test_world.grid.block_id_max / 2)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
             expected_block_id: None,
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_block_id: None,
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(chunk_size, chunk_size, chunk_size),
             expected_block_id: Some(block::ID(test_world.grid.block_id_max / 2)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(-chunk_size, -chunk_size, -chunk_size),
             expected_block_id: Some(block::ID(test_world.grid.block_id_max / 2)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(chunk_radius, chunk_radius, chunk_radius),
             expected_block_id: Some(block::ID(test_world.grid.block_id_max)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(-chunk_radius, -chunk_radius, -chunk_radius),
             expected_block_id: Some(block::ID(0)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(
                 chunk_size + chunk_radius,
@@ -478,7 +478,7 @@ fn grid_to_block_id() {
             ),
             expected_block_id: Some(block::ID(test_world.grid.block_id_max)),
         },
-        GridToBlockIDTestCase {
+        GridToBlockIDCase {
             description: "".to_string(),
             grid_position: IVec3::new(
                 -chunk_size - chunk_radius,
@@ -494,13 +494,13 @@ fn grid_to_block_id() {
     }
 }
 
-struct BlockIDToPositionTestCase {
+struct BlockIDToPositionCase {
     description: String,
     block_id: block::ID,
     expected_block_position: Option<IVec3>,
 }
 
-impl BlockIDToPositionTestCase {
+impl BlockIDToPositionCase {
     pub fn check(&self, world: &World) {
         let block_position = world.grid.block_id_to_position(self.block_id);
 
@@ -519,22 +519,22 @@ fn block_id_to_position() {
     let chunk_radius = test_world.grid.chunk_radius as i32;
 
     let test_cases = vec![
-        BlockIDToPositionTestCase {
+        BlockIDToPositionCase {
             description: "".to_string(),
             block_id: block::ID(test_world.grid.block_id_max / 2),
             expected_block_position: Some(IVec3::new(0, 0, 0)),
         },
-        BlockIDToPositionTestCase {
+        BlockIDToPositionCase {
             description: "".to_string(),
             block_id: block::ID(test_world.grid.block_id_max + 1),
             expected_block_position: None,
         },
-        BlockIDToPositionTestCase {
+        BlockIDToPositionCase {
             description: "".to_string(),
             block_id: block::ID(0),
             expected_block_position: Some(IVec3::new(-chunk_radius, -chunk_radius, -chunk_radius)),
         },
-        BlockIDToPositionTestCase {
+        BlockIDToPositionCase {
             description: "".to_string(),
             block_id: block::ID(test_world.grid.block_id_max),
             expected_block_position: Some(IVec3::new(chunk_radius, chunk_radius, chunk_radius)),
@@ -546,14 +546,14 @@ fn block_id_to_position() {
     }
 }
 
-struct GridToIDsTestCase {
+struct GridToIDsCase {
     description: String,
     grid_position: IVec3,
     expected_chunk_id: chunk::ID,
     expected_block_id: block::ID,
 }
 
-impl GridToIDsTestCase {
+impl GridToIDsCase {
     pub fn check(&self, world: &World) {
         let ids = world.grid.grid_to_ids(self.grid_position);
 
@@ -579,25 +579,25 @@ fn grid_to_ids() {
     let boundary = test_world.grid.boundary as i32;
 
     let test_cases = vec![
-        GridToIDsTestCase {
+        GridToIDsCase {
             description: "".to_string(),
             grid_position: IVec3::new(0, 0, 0),
             expected_chunk_id: chunk::ID(test_world.grid.chunk_id_max / 2),
             expected_block_id: block::ID(test_world.grid.block_id_max / 2),
         },
-        GridToIDsTestCase {
+        GridToIDsCase {
             description: "".to_string(),
             grid_position: IVec3::new(boundary, boundary, boundary),
             expected_chunk_id: chunk::ID(test_world.grid.chunk_id_max),
             expected_block_id: block::ID(test_world.grid.block_id_max),
         },
-        GridToIDsTestCase {
+        GridToIDsCase {
             description: "".to_string(),
             grid_position: IVec3::new(-boundary, -boundary, -boundary),
             expected_chunk_id: chunk::ID(0),
             expected_block_id: block::ID(0),
         },
-        GridToIDsTestCase {
+        GridToIDsCase {
             description: "".to_string(),
             grid_position: IVec3::new(
                 -chunk_size - chunk_radius,
@@ -615,7 +615,7 @@ fn grid_to_ids() {
             },
             expected_block_id: block::ID(0),
         },
-        GridToIDsTestCase {
+        GridToIDsCase {
             description: "".to_string(),
             grid_position: IVec3::new(
                 chunk_size + chunk_radius,
@@ -640,14 +640,14 @@ fn grid_to_ids() {
     }
 }
 
-struct IDsToGridTestCase {
+struct IDsToGridCase {
     description: String,
     chunk_id: chunk::ID,
     block_id: block::ID,
     expected_grid_position: Option<IVec3>,
 }
 
-impl IDsToGridTestCase {
+impl IDsToGridCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.ids_to_grid(self.chunk_id, self.block_id);
 
@@ -671,25 +671,25 @@ fn ids_to_grid() {
     let boundary = test_world.grid.boundary as i32;
 
     let test_cases = vec![
-        IDsToGridTestCase {
+        IDsToGridCase {
             description: "ids at (0, 0, 0)".to_string(),
             chunk_id: chunk::ID(test_world.grid.chunk_id_max / 2),
             block_id: block::ID(test_world.grid.block_id_max / 2),
             expected_grid_position: Some(IVec3::new(0, 0, 0)),
         },
-        IDsToGridTestCase {
+        IDsToGridCase {
             description: String::from("ids at (boundary, boundary, boundary)"),
             chunk_id: chunk::ID(test_world.grid.chunk_id_max),
             block_id: block::ID(test_world.grid.block_id_max),
             expected_grid_position: Some(IVec3::new(boundary, boundary, boundary)),
         },
-        IDsToGridTestCase {
+        IDsToGridCase {
             description: "ids at (-boundary, -boundary, -boundary)".to_string(),
             chunk_id: chunk::ID(0),
             block_id: block::ID(0),
             expected_grid_position: Some(IVec3::new(-boundary, -boundary, -boundary)),
         },
-        IDsToGridTestCase {
+        IDsToGridCase {
             description: "ids at minimum of chunk (-1, -1, -1)".to_string(),
             chunk_id: {
                 let chunk_position = IVec3::new(-1, -1, -1);
@@ -707,7 +707,7 @@ fn ids_to_grid() {
                 -chunk_size - chunk_radius,
             )),
         },
-        IDsToGridTestCase {
+        IDsToGridCase {
             description: "ids at max of chunk (1, 1, 1)".to_string(),
             chunk_id: {
                 let chunk_position = IVec3::new(1, 1, 1);

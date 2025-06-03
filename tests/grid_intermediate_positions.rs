@@ -1,14 +1,14 @@
 use glam::IVec3;
 use last_ditch::simulation::world::grid;
 
-struct IntermediatePositionsTestCase {
+struct IntermediatePositionsCase {
     description: String,
     source: IVec3,
     target: IVec3,
     expected_intermediate_positions: Vec<IVec3>,
 }
 
-impl IntermediatePositionsTestCase {
+impl IntermediatePositionsCase {
     pub fn check(&self) {
         let intermediate_positions = grid::Grid::intermediate_positions(self.source, self.target);
 
@@ -23,25 +23,25 @@ impl IntermediatePositionsTestCase {
 #[test]
 fn intermediate_positions() {
     let test_cases = vec![
-        IntermediatePositionsTestCase {
+        IntermediatePositionsCase {
             description: "(0, 0, 0) to (1, 1, 1)".to_string(),
             source: IVec3::new(0, 0, 0),
             target: IVec3::new(1, 1, 1),
             expected_intermediate_positions: Vec::from([IVec3::new(1, 1, 0), IVec3::new(0, 1, 1)]),
         },
-        IntermediatePositionsTestCase {
+        IntermediatePositionsCase {
             description: "(0, 0, 0) to (1, 0, 1)".to_string(),
             source: IVec3::new(0, 0, 0),
             target: IVec3::new(1, 0, 1),
             expected_intermediate_positions: Vec::from([IVec3::new(1, 0, 0), IVec3::new(0, 0, 1)]),
         },
-        IntermediatePositionsTestCase {
+        IntermediatePositionsCase {
             description: "(0, 0, 0) to (1, 0, 0)".to_string(),
             source: IVec3::new(0, 0, 0),
             target: IVec3::new(1, 0, 0),
             expected_intermediate_positions: Vec::from([]),
         },
-        IntermediatePositionsTestCase {
+        IntermediatePositionsCase {
             description: "(0, 0, 0) to (1, 0, 1)".to_string(),
             source: IVec3::new(0, 0, 0),
             target: IVec3::new(2, 2, 2),

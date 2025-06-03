@@ -1,14 +1,14 @@
 use glam::Vec3;
 use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 
-struct OverlapsAABBTestCase {
+struct OverlapsAABBCase {
     description: String,
     aabb1: AABB,
     aabb2: AABB,
     expected_overlap_result: bool,
 }
 
-impl OverlapsAABBTestCase {
+impl OverlapsAABBCase {
     pub fn check(&self) {
         let overlaps_result = self.aabb1.overlaps(self.aabb2);
 
@@ -25,49 +25,49 @@ fn blocks_overlap_when_overlapping() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE));
 
     let test_cases = vec![
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.5, 0.5, 0.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: true,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-0.5, -0.5, -0.5), Vec3::splat(BLOCK_SIZE)),
@@ -85,49 +85,49 @@ fn blocks_do_not_overlap_when_intersecting() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE));
 
     let test_cases = vec![
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
@@ -145,49 +145,49 @@ fn blocks_do_not_overlap_when_separated() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE));
 
     let test_cases = vec![
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-1.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, -1.5, 0.0), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(1.5, 1.5, 1.5), Vec3::splat(BLOCK_SIZE)),
             expected_overlap_result: false,
         },
-        OverlapsAABBTestCase {
+        OverlapsAABBCase {
             description: "".to_string(),
             aabb1,
             aabb2: AABB::new(Vec3::new(-1.5, -1.5, -1.5), Vec3::splat(BLOCK_SIZE)),

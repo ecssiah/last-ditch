@@ -118,6 +118,8 @@ impl World {
             }
         }
 
+        self.graph = world_graph;
+
         for chunk in self.chunk_list.iter_mut() {
             chunk.boundary_updated = false;
         }
@@ -128,6 +130,23 @@ impl World {
 
         if let Some(chunk_grid_position) = self.grid.chunk_to_grid(chunk.position) {
             let mut visited = HashSet::new();
+
+            for cx in -chunk_radius..=chunk_radius {
+                for cy in -chunk_radius..=chunk_radius {
+                    for cz in -chunk_radius..=chunk_radius {
+                        let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
+
+                        if self.grid.on_chunk_boundary(grid_position) {
+                            self.generate_world_edges(
+                                grid_position,
+                                chunk,
+                                world_graph,
+                                &mut visited,
+                            );
+                        }
+                    }
+                }
+            }
 
             for cx in [-chunk_radius, chunk_radius] {
                 for cy in -chunk_radius..=chunk_radius {
@@ -149,9 +168,9 @@ impl World {
                 }
             }
 
-            for cx in chunk_radius..=chunk_radius {
-                for cy in chunk_radius..=chunk_radius {
-                    for cz in [chunk_radius, chunk_radius] {
+            for cx in -chunk_radius..=chunk_radius {
+                for cy in -chunk_radius..=chunk_radius {
+                    for cz in [-chunk_radius, chunk_radius] {
                         let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
 
                         self.generate_world_edges(grid_position, chunk, world_graph, &mut visited);
@@ -178,16 +197,21 @@ impl World {
                         if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
                             let clearance = self.get_clearance(grid_position);
                             let neighbor_clearance = self.get_clearance(neighbor_grid_position);
-                            let cost = direction.cost();
 
-                            world_graph.create_edges(
-                                chunk.position,
-                                neighbor_chunk.position,
-                                grid_position,
-                                neighbor_grid_position,
-                                clearance.min(neighbor_clearance),
-                                cost,
-                            );
+                            if clearance >= MINIMUM_CLEARANCE
+                                && neighbor_clearance >= MINIMUM_CLEARANCE
+                            {
+                                let cost = direction.cost();
+
+                                world_graph.create_edges(
+                                    chunk.position,
+                                    neighbor_chunk.position,
+                                    grid_position,
+                                    neighbor_grid_position,
+                                    clearance.min(neighbor_clearance),
+                                    cost,
+                                );
+                            }
                         }
                     }
                 }

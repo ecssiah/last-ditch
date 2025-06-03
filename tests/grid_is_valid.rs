@@ -1,13 +1,13 @@
 use glam::IVec3;
 use last_ditch::simulation::{world::World, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS};
 
-struct IsValidTestCase {
+struct IsValidCase {
     description: String,
     grid_position: IVec3,
     expected_is_valid: bool,
 }
 
-impl IsValidTestCase {
+impl IsValidCase {
     pub fn check(&self, world: &World) {
         let is_valid = world.grid.is_valid_grid_position(self.grid_position);
 
@@ -22,29 +22,29 @@ fn is_valid() {
     let boundary = test_world.grid.boundary as i32;
 
     let test_cases = vec![
-        IsValidTestCase {
+        IsValidCase {
             description: "Grid Position: (0, 0, 0)".to_string(),
             grid_position: IVec3::new(0, 0, 0),
             expected_is_valid: true,
         },
-        IsValidTestCase {
+        IsValidCase {
             description: "Grid Position: (GRID_BOUNDARY, GRID_BOUNDARY, GRID_BOUNDARY)".to_string(),
             grid_position: IVec3::new(boundary, boundary, boundary),
             expected_is_valid: true,
         },
-        IsValidTestCase {
+        IsValidCase {
             description: "Grid Position: (-GRID_BOUNDARY, -GRID_BOUNDARY, -GRID_BOUNDARY)"
                 .to_string(),
             grid_position: IVec3::new(-boundary, -boundary, -boundary),
             expected_is_valid: true,
         },
-        IsValidTestCase {
+        IsValidCase {
             description: "Grid Position: (GRID_BOUNDARY + 1, GRID_BOUNDARY + 1, GRID_BOUNDARY + 1)"
                 .to_string(),
             grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_is_valid: false,
         },
-        IsValidTestCase {
+        IsValidCase {
             description:
                 "Grid Position: (-GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1)"
                     .to_string(),

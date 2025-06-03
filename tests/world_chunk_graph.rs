@@ -5,13 +5,13 @@ use last_ditch::simulation::{
 };
 use std::f32::EPSILON;
 
-struct NodeCountTestCase {
+struct NodeCountCase {
     description: String,
     chunk_position: IVec3,
     expected_node_count: usize,
 }
 
-impl NodeCountTestCase {
+impl NodeCountCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let chunk = world.get_chunk_at(grid_position).unwrap();
@@ -33,37 +33,37 @@ fn node_count_validation() {
     builder::TestWorld::build(&mut test_world);
 
     let test_cases = vec![
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(0, 0, 0)".to_string(),
             chunk_position: IVec3::new(0, 0, 0),
             expected_node_count: 49,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(1, 0, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             expected_node_count: 26,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(-1, 0, 0)".to_string(),
             chunk_position: IVec3::new(-1, 0, 0),
             expected_node_count: 26,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(0, 1, 0)".to_string(),
             chunk_position: IVec3::new(0, 1, 0),
             expected_node_count: 0,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(0, -1, 0)".to_string(),
             chunk_position: IVec3::new(0, -1, 0),
             expected_node_count: 0,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(0, 0, 1)".to_string(),
             chunk_position: IVec3::new(0, 0, 1),
             expected_node_count: 27,
         },
-        NodeCountTestCase {
+        NodeCountCase {
             description: "(0, 0, -1)".to_string(),
             chunk_position: IVec3::new(0, 0, -1),
             expected_node_count: 31,
@@ -75,14 +75,14 @@ fn node_count_validation() {
     }
 }
 
-struct EdgeCountValidationTestCase {
+struct EdgeCountValidationCase {
     description: String,
     chunk_position: IVec3,
     block_position: IVec3,
     expected_edge_count: usize,
 }
 
-impl EdgeCountValidationTestCase {
+impl EdgeCountValidationCase {
     pub fn check(&self, world: &World) {
         let chunk_grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let chunk = world.get_chunk_at(chunk_grid_position).unwrap();
@@ -107,31 +107,31 @@ fn edge_count_validation() {
     builder::TestWorld::build(&mut test_world);
 
     let test_cases = vec![
-        EdgeCountValidationTestCase {
+        EdgeCountValidationCase {
             description: "Edge Count: (-1, -3, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(-1, -3, 0),
             expected_edge_count: 4,
         },
-        EdgeCountValidationTestCase {
+        EdgeCountValidationCase {
             description: "Edge Count: (1, -3, -1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(1, -3, -1),
             expected_edge_count: 2,
         },
-        EdgeCountValidationTestCase {
+        EdgeCountValidationCase {
             description: "Edge Count: (1, -3, 1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(1, -3, 1),
             expected_edge_count: 3,
         },
-        EdgeCountValidationTestCase {
+        EdgeCountValidationCase {
             description: "Edge Count: (2, 0, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(2, 0, 0),
             expected_edge_count: 2,
         },
-        EdgeCountValidationTestCase {
+        EdgeCountValidationCase {
             description: "Edge Count: (-2, -3, 2)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position: IVec3::new(-2, -3, 2),
@@ -144,7 +144,7 @@ fn edge_count_validation() {
     }
 }
 
-struct EdgeValidationTestCase {
+struct EdgeValidationCase {
     description: String,
     chunk_position: IVec3,
     block_position1: IVec3,
@@ -152,7 +152,7 @@ struct EdgeValidationTestCase {
     expected_cost: Option<f32>,
 }
 
-impl EdgeValidationTestCase {
+impl EdgeValidationCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
         let chunk = world.get_chunk_at(grid_position).unwrap();
@@ -212,35 +212,35 @@ fn edge_validation() {
     builder::TestWorld::build(&mut test_world);
 
     let test_cases = vec![
-        EdgeValidationTestCase {
+        EdgeValidationCase {
             description: "Edge: (0, -2, 0) - (-1, -3, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(0, -2, 0),
             block_position2: IVec3::new(-1, -3, 0),
             expected_cost: Some(WORLD_EDGE_COST),
         },
-        EdgeValidationTestCase {
+        EdgeValidationCase {
             description: "Edge: (-1, -3, 0) - (-2, -3, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(-1, -3, 0),
             block_position2: IVec3::new(-2, -3, 0),
             expected_cost: Some(WORLD_FACE_COST),
         },
-        EdgeValidationTestCase {
+        EdgeValidationCase {
             description: "Edge: (0, -2, 0) - (1, -3, -1)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(0, -2, 0),
             block_position2: IVec3::new(1, -3, -1),
             expected_cost: None,
         },
-        EdgeValidationTestCase {
+        EdgeValidationCase {
             description: "Edge: (1, -3, 1) - (2, -2, 2)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(1, -3, 1),
             block_position2: IVec3::new(2, -2, 2),
             expected_cost: None,
         },
-        EdgeValidationTestCase {
+        EdgeValidationCase {
             description: "Edge: (-2, -3, 0) - (-1, -3, 0)".to_string(),
             chunk_position: IVec3::new(1, 0, 0),
             block_position1: IVec3::new(-2, -3, 0),
