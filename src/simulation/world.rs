@@ -25,8 +25,8 @@ use std::collections::{HashMap, HashSet};
 pub struct World {
     pub tick: Tick,
     pub grid: grid::Grid,
-    pub graph: world::Graph,
     pub chunk_list: Vec<chunk::Chunk>,
+    pub graph: world::Graph,
     pub flags: HashMap<agent::Kind, IVec3>,
 }
 
@@ -34,8 +34,8 @@ impl World {
     pub fn new(radius: u32, chunk_radius: u32) -> World {
         let tick = Tick::ZERO;
         let grid = grid::Grid::new(radius, chunk_radius);
-        let graph = world::Graph::new();
         let chunk_list = Self::setup_chunks(&grid);
+        let graph = Self::setup_graph(&chunk_list);
 
         let flags = HashMap::from([
             (agent::Kind::Lion, IVec3::ZERO),
@@ -47,8 +47,8 @@ impl World {
         let world = Self {
             tick,
             grid,
-            graph,
             chunk_list,
+            graph,
             flags,
         };
 
@@ -193,6 +193,20 @@ impl World {
                 }
             }
         }
+    }
+
+    fn setup_graph(chunk_list: &Vec<chunk::Chunk>) -> world::Graph {
+        let mut graph = world::Graph::new();
+
+        for chunk in chunk_list {
+            let node = world::Node {
+                edge_list: Vec::new(),
+            };
+
+            graph.add_node(chunk.position, node);
+        }
+
+        graph
     }
 
     fn setup_chunks(grid: &grid::Grid) -> Vec<chunk::Chunk> {
