@@ -147,36 +147,6 @@ impl World {
                     }
                 }
             }
-
-            for cx in [-chunk_radius, chunk_radius] {
-                for cy in -chunk_radius..=chunk_radius {
-                    for cz in -chunk_radius..=chunk_radius {
-                        let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
-
-                        self.generate_world_edges(grid_position, chunk, world_graph, &mut visited);
-                    }
-                }
-            }
-
-            for cx in -chunk_radius..=chunk_radius {
-                for cy in [-chunk_radius, chunk_radius] {
-                    for cz in -chunk_radius..=chunk_radius {
-                        let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
-
-                        self.generate_world_edges(grid_position, chunk, world_graph, &mut visited);
-                    }
-                }
-            }
-
-            for cx in -chunk_radius..=chunk_radius {
-                for cy in -chunk_radius..=chunk_radius {
-                    for cz in [-chunk_radius, chunk_radius] {
-                        let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
-
-                        self.generate_world_edges(grid_position, chunk, world_graph, &mut visited);
-                    }
-                }
-            }
         }
     }
 
