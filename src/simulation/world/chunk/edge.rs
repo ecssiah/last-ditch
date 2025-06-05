@@ -4,7 +4,7 @@ use std::f32::EPSILON;
 #[derive(Clone, Debug)]
 pub struct Edge {
     pub target_grid_position: IVec3,
-    pub clearance: i32,
+    pub clearance: u32,
     pub cost: f32,
 }
 

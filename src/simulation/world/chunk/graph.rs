@@ -30,7 +30,7 @@ impl Graph {
         &mut self,
         grid_position1: IVec3,
         grid_position2: IVec3,
-        clearance: i32,
+        clearance: u32,
         cost: f32,
     ) {
         self.add_edge(

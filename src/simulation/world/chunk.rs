@@ -24,7 +24,6 @@ pub struct Chunk {
     pub graph_updated: bool,
     pub boundary_updated: bool,
     pub position: IVec3,
-    pub graph: chunk::Graph,
     pub geometry: chunk::Geometry,
     pub kind_list: Vec<block::Kind>,
     pub block_list: Vec<usize>,
