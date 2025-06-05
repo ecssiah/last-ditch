@@ -1,8 +1,8 @@
-use glam::IVec3;
-use last_ditch::simulation::{
+use crate::simulation::{
     consts::*,
     world::{builder, World},
 };
+use glam::IVec3;
 
 struct HasClearanceCase {
     description: String,

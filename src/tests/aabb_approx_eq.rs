@@ -1,6 +1,6 @@
 use glam::Vec3;
-use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 use std::f32::EPSILON;
+use crate::simulation::{physics::aabb::AABB, consts::*};
 
 struct ApproxEqCase {
     description: String,

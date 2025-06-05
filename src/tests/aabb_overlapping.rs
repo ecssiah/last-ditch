@@ -1,5 +1,5 @@
+use crate::simulation::{consts::*, physics::aabb::AABB};
 use glam::Vec3;
-use last_ditch::simulation::{physics::aabb::AABB, BLOCK_SIZE};
 
 struct OverlapsAABBCase {
     description: String,

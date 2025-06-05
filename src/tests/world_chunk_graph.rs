@@ -1,8 +1,8 @@
-use glam::IVec3;
-use last_ditch::simulation::{
+use crate::simulation::{
     consts::*,
     world::{builder, World},
 };
+use glam::IVec3;
 use std::f32::EPSILON;
 
 struct NodeCountCase {
@@ -160,23 +160,18 @@ impl EdgeValidationCase {
         let node1_grid_position = grid_position + self.block_position1;
         let node2_grid_position = grid_position + self.block_position2;
 
-        let edge12 = chunk
-            .graph
-            .node_map
-            .get(&node1_grid_position)
-            .unwrap()
-            .edge_list
-            .iter()
-            .find(|edge| edge.target == node2_grid_position);
+        let node1 = chunk.graph.node_map.get(&node1_grid_position).unwrap();
+        let node2 = chunk.graph.node_map.get(&node2_grid_position).unwrap();
 
-        let edge21 = chunk
-            .graph
-            .node_map
-            .get(&node2_grid_position)
-            .unwrap()
+        let edge12 = node1
             .edge_list
             .iter()
-            .find(|edge| edge.target == node1_grid_position);
+            .find(|edge| edge.target_grid_position == node2_grid_position);
+
+        let edge21 = node2
+            .edge_list
+            .iter()
+            .find(|edge| edge.target_grid_position == node1_grid_position);
 
         if self.expected_cost.is_some() {
             assert!(edge12.is_some(), "{:?}", self.description);

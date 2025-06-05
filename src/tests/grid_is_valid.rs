@@ -1,5 +1,5 @@
+use crate::simulation::{consts::*, world::World};
 use glam::IVec3;
-use last_ditch::simulation::{world::World, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS};
 
 struct IsValidCase {
     description: String,

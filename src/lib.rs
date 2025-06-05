@@ -10,6 +10,8 @@
 pub mod interface;
 pub mod simulation;
 
+#[cfg(test)]
+mod tests;
 mod macros;
 
 use crate::{interface::Interface, simulation::Simulation};

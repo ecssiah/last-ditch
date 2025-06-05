@@ -1,5 +1,5 @@
+use crate::simulation::world::grid;
 use glam::IVec3;
-use last_ditch::simulation::world::grid;
 
 struct IntermediatePositionsCase {
     description: String,

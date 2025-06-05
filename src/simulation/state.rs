@@ -35,7 +35,7 @@ impl State {
         if TESTING {
             World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32)
         } else {
-            World::new(WORLD_RADIUS as u32, CHUNK_RADIUS as u32)
+            World::new(MAIN_WORLD_RADIUS as u32, CHUNK_RADIUS as u32)
         }
     }
 

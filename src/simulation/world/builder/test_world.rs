@@ -9,8 +9,8 @@ impl TestWorld {
         Self::build_central_room(world);
         Self::build_empty_room(world);
         Self::build_clearance_test(world);
-        Self::build_graph_test(world);
-        Self::build_connection_test(world);
+        Self::build_chunk_graph_test(world);
+        Self::build_world_graph_test(world);
 
         world.update_chunks();
     }
@@ -49,8 +49,7 @@ impl TestWorld {
         world.set_cube(
             chunk_center_grid_position
                 + IVec3::new(-chunk_radius, -chunk_radius + 1, -chunk_radius),
-            chunk_center_grid_position
-                + IVec3::new(chunk_radius, chunk_radius - 1, chunk_radius),
+            chunk_center_grid_position + IVec3::new(chunk_radius, chunk_radius - 1, chunk_radius),
             block::Kind::Empty,
         );
 
@@ -147,7 +146,7 @@ impl TestWorld {
         );
     }
 
-    fn build_graph_test(world: &mut World) {
+    fn build_chunk_graph_test(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
         let chunk_east_grid_position = world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
@@ -199,62 +198,61 @@ impl TestWorld {
         );
     }
 
-    fn build_connection_test(world: &mut World) {
+    fn build_world_graph_test(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_south_transition_grid_position =
-            world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
-        let chunk_south_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -2)).unwrap();
+        let chunk_south_1_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
+        let chunk_south_2_grid_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -2)).unwrap();
 
         world.set_cube(
-            chunk_south_transition_grid_position
+            chunk_south_1_grid_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius),
-            chunk_south_transition_grid_position
+            chunk_south_1_grid_position
                 + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
 
         world.set_cube(
-            chunk_south_grid_position
+            chunk_south_2_grid_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_south_grid_position
+            chunk_south_2_grid_position
                 + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius),
             block::Kind::Empty,
         );
 
         world.set_cube(
-            chunk_south_grid_position
+            chunk_south_2_grid_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, chunk_radius),
-            chunk_south_grid_position
+            chunk_south_2_grid_position
                 + IVec3::new(chunk_radius - 1, -chunk_radius + 1, chunk_radius),
             block::Kind::MagentaStone,
         );
 
         world.set_block_kind(
-            chunk_south_grid_position.x + 2,
-            chunk_south_grid_position.y - chunk_radius + 1,
-            chunk_south_grid_position.z + chunk_radius + 1,
+            chunk_south_2_grid_position.x + 2,
+            chunk_south_2_grid_position.y - chunk_radius + 1,
+            chunk_south_2_grid_position.z + chunk_radius + 1,
             block::Kind::MagentaStone,
         );
 
         world.set_block_kind(
-            chunk_south_grid_position.x + 1,
-            chunk_south_grid_position.y - chunk_radius + 2,
-            chunk_south_grid_position.z + chunk_radius,
+            chunk_south_2_grid_position.x + 1,
+            chunk_south_2_grid_position.y - chunk_radius + 2,
+            chunk_south_2_grid_position.z + chunk_radius,
             block::Kind::MagentaStone,
         );
 
         world.set_block_kind(
-            chunk_south_grid_position.x - 2,
-            chunk_south_grid_position.y - chunk_radius + 1,
-            chunk_south_grid_position.z + chunk_radius + 1,
+            chunk_south_2_grid_position.x - 2,
+            chunk_south_2_grid_position.y - chunk_radius + 1,
+            chunk_south_2_grid_position.z + chunk_radius + 1,
             block::Kind::MagentaStone,
         );
 
         world.set_block_kind(
-            chunk_south_grid_position.x,
-            chunk_south_grid_position.y - chunk_radius + 1,
-            chunk_south_grid_position.z + chunk_radius,
+            chunk_south_2_grid_position.x,
+            chunk_south_2_grid_position.y - chunk_radius + 1,
+            chunk_south_2_grid_position.z + chunk_radius,
             block::Kind::Empty,
         );
     }

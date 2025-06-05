@@ -1,8 +1,8 @@
-use glam::{IVec3, Vec3};
-use last_ditch::simulation::{
+use crate::simulation::{
+    consts::*,
     world::{block, chunk, World},
-    TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
+use glam::{IVec3, Vec3};
 
 struct WorldToGridCase {
     description: String,

@@ -10,7 +10,7 @@ pub const DEFAULT_SEED: u64 = 128;
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const PROJECT_VERSION: &str = "0.1.0";
 
-pub const TESTING: bool = true;
+pub const TESTING: bool = false;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =
@@ -42,7 +42,7 @@ pub const WORLD_FACE_COST: f32 = 1.0;
 pub const WORLD_EDGE_COST: f32 = 1.4142135;
 pub const WORLD_CORNER_COST: f32 = 1.7320508;
 
-pub const WORLD_RADIUS: usize = 4;
+pub const MAIN_WORLD_RADIUS: usize = 4;
 pub const CHUNK_RADIUS: usize = 8;
 
 pub const TEST_WORLD_RADIUS: usize = 2;

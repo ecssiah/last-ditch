@@ -20,14 +20,14 @@ use crate::simulation::{
     world, BLOCK_MAP,
 };
 use glam::{IVec3, Vec4};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct World {
-    pub tick: Tick,
-    pub grid: grid::Grid,
-    pub chunk_list: Vec<chunk::Chunk>,
-    pub graph: world::Graph,
-    pub flags: HashMap<agent::Kind, IVec3>,
+    pub(crate) tick: Tick,
+    pub(crate) grid: grid::Grid,
+    pub(crate) chunk_list: Vec<chunk::Chunk>,
+    pub(crate) graph: world::Graph,
+    pub(crate) flags: HashMap<agent::Kind, IVec3>,
 }
 
 impl World {
@@ -129,20 +129,13 @@ impl World {
         let chunk_radius = self.grid.chunk_radius as i32;
 
         if let Some(chunk_grid_position) = self.grid.chunk_to_grid(chunk.position) {
-            let mut visited = HashSet::new();
-
             for cx in -chunk_radius..=chunk_radius {
                 for cy in -chunk_radius..=chunk_radius {
                     for cz in -chunk_radius..=chunk_radius {
                         let grid_position = chunk_grid_position + IVec3::new(cx, cy, cz);
 
                         if self.grid.on_chunk_boundary(grid_position) {
-                            self.generate_world_edges(
-                                grid_position,
-                                chunk,
-                                world_graph,
-                                &mut visited,
-                            );
+                            self.generate_world_edges(grid_position, chunk, world_graph);
                         }
                     }
                 }
@@ -155,33 +148,28 @@ impl World {
         grid_position: IVec3,
         chunk: &chunk::Chunk,
         world_graph: &mut world::Graph,
-        visited: &mut HashSet<IVec3>,
     ) {
-        if visited.insert(grid_position) {
-            for direction in grid::Direction::traversable_list() {
-                let neighbor_grid_position = grid_position + direction.offset();
+        for direction in grid::Direction::traversable_list() {
+            let neighbor_grid_position = grid_position + direction.offset();
 
-                if let Some(neighbor_chunk_id) = self.grid.grid_to_chunk_id(neighbor_grid_position)
-                {
-                    if neighbor_chunk_id != chunk.id {
-                        if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
-                            let clearance = self.get_clearance(grid_position);
-                            let neighbor_clearance = self.get_clearance(neighbor_grid_position);
+            if let Some(neighbor_chunk_id) = self.grid.grid_to_chunk_id(neighbor_grid_position) {
+                if neighbor_chunk_id != chunk.id {
+                    if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
+                        let node_clearance = self.get_clearance(grid_position);
+                        let neighbor_clearance = self.get_clearance(neighbor_grid_position);
+                        let clearance = node_clearance.min(neighbor_clearance);
 
-                            if clearance >= MINIMUM_CLEARANCE
-                                && neighbor_clearance >= MINIMUM_CLEARANCE
-                            {
-                                let cost = direction.cost();
+                        if clearance >= MINIMUM_CLEARANCE {
+                            let cost = direction.cost();
 
-                                world_graph.create_edges(
-                                    chunk.position,
-                                    neighbor_chunk.position,
-                                    grid_position,
-                                    neighbor_grid_position,
-                                    clearance.min(neighbor_clearance),
-                                    cost,
-                                );
-                            }
+                            world_graph.create_edges(
+                                chunk.position,
+                                neighbor_chunk.position,
+                                grid_position,
+                                neighbor_grid_position,
+                                clearance,
+                                cost,
+                            );
                         }
                     }
                 }
@@ -423,21 +411,23 @@ impl World {
             }
         }
 
-        let node_set: HashMap<IVec3, chunk::Node> = chunk_graph.node_map.clone();
+        let node_map: HashMap<IVec3, chunk::Node> = chunk_graph.node_map.clone();
 
-        for (grid_position, node) in &node_set {
+        for (grid_position, node) in &node_map {
             for direction in grid::Direction::traversable_list() {
                 let neighbor_grid_position = grid_position + direction.offset();
 
-                if let Some(neighbor_node) = node_set.get(&neighbor_grid_position) {
-                    chunk_graph.add_edge(
-                        *grid_position,
-                        chunk::Edge {
-                            target: neighbor_grid_position,
-                            clearance: node.clearance.min(neighbor_node.clearance),
-                            cost: direction.cost(),
-                        },
-                    );
+                if let Some(neighbor_node) = node_map.get(&neighbor_grid_position) {
+                    let clearance = node.clearance.min(neighbor_node.clearance);
+                    let cost = direction.cost();
+
+                    let edge = chunk::Edge {
+                        target_grid_position: neighbor_grid_position,
+                        clearance,
+                        cost,
+                    };
+
+                    chunk_graph.add_edge(*grid_position, edge);
                 }
             }
         }

@@ -36,7 +36,7 @@ impl Graph {
         self.add_edge(
             grid_position1,
             chunk::Edge {
-                target: grid_position2,
+                target_grid_position: grid_position2,
                 clearance,
                 cost,
             },
@@ -45,7 +45,7 @@ impl Graph {
         self.add_edge(
             grid_position2,
             chunk::Edge {
-                target: grid_position1,
+                target_grid_position: grid_position1,
                 clearance,
                 cost,
             },

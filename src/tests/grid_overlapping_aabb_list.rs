@@ -1,9 +1,9 @@
-use glam::Vec3;
-use last_ditch::simulation::{
-    consts::*,
+use crate::simulation::{
     physics::aabb::AABB,
     world::{block, grid, World},
+    BLOCK_SIZE, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
+use glam::Vec3;
 use std::f32::EPSILON;
 
 struct OverlappingAABBCase {
