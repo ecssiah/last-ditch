@@ -1,6 +1,6 @@
 //! # Last Ditch
 //!
-//! A Civilizational Garden
+//! A Civilization Garden
 //!
 //! ## Systems
 //! The Interface handles interactions between the User and the Simulation.
@@ -10,11 +10,14 @@
 pub mod interface;
 pub mod simulation;
 
+mod macros;
 #[cfg(test)]
 mod tests;
-mod macros;
 
-use crate::{interface::Interface, simulation::Simulation};
+use crate::{
+    interface::Interface,
+    simulation::{Simulation, PROJECT_TITLE},
+};
 use std::thread;
 use winit::{
     application::ApplicationHandler,
@@ -79,9 +82,7 @@ pub async fn run() {
 
     std::env::set_var("RUST_LOG", "wgpu=debug");
 
-    log::info!("Last Ditch");
-    log::info!("Version: {:?}", env!("CARGO_PKG_VERSION"));
-    log::info!("");
+    log::info!("{} {}\n", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
 
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);

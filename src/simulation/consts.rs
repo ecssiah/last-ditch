@@ -5,12 +5,10 @@ use crate::{include_assets, simulation::world::block};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, time::Duration};
 
-pub const DEFAULT_SEED: u64 = 128;
-
 pub const PROJECT_TITLE: &str = "Last Ditch";
-pub const PROJECT_VERSION: &str = "0.1.0";
 
-pub const TESTING: bool = false;
+pub const DEFAULT_SEED: u64 = 128;
+pub const TESTING: bool = true;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =

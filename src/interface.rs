@@ -12,7 +12,7 @@ use crate::{
     interface::{
         camera::Camera, consts::*, hud::HUD, input::Input, render::Render, wgpu_state::WGPUState,
     },
-    simulation::{self},
+    simulation::{self, PROJECT_TITLE},
 };
 use std::{
     collections::HashMap,
@@ -56,13 +56,15 @@ impl<'window> Interface<'window> {
             .primary_monitor()
             .expect("No primary monitor found");
 
+        let window_title = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
+
         let window_attributes = if FULLSCREEN {
             WindowAttributes::default()
-                .with_title(consts::WINDOW_TITLE)
+                .with_title(window_title)
                 .with_fullscreen(Some(Fullscreen::Borderless(Some(monitor))))
         } else {
             WindowAttributes::default()
-                .with_title(consts::WINDOW_TITLE)
+                .with_title(window_title)
                 .with_inner_size(PhysicalSize::new(
                     consts::WINDOW_WIDTH,
                     consts::WINDOW_HEIGHT,

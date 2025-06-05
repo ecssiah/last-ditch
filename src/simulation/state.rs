@@ -44,7 +44,7 @@ impl State {
         self.population.setup(&self.world);
 
         self.admin.mode = admin::Mode::Simulate;
-        self.admin.message = format!("{} {}", PROJECT_TITLE, PROJECT_VERSION);
+        self.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
     }
 
     pub fn tick(&mut self) {

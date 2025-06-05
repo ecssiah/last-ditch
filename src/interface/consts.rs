@@ -11,7 +11,6 @@ pub const INTERFACE_FRAME_FREQUENCY: u64 = 60;
 pub const INTERFACE_FRAME_DURATION: Duration =
     Duration::from_nanos(1_000_000_000 / INTERFACE_FRAME_FREQUENCY);
 
-pub const WINDOW_TITLE: &str = "Last Ditch";
 pub const WINDOW_WIDTH: u32 = 2560;
 pub const WINDOW_HEIGHT: u32 = 1440;
 pub const WINDOW_ASPECT_RATIO: f32 = WINDOW_WIDTH as f32 / WINDOW_HEIGHT as f32;
