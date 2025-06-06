@@ -3,7 +3,8 @@ use glam::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct Node {
-    pub grid_position: IVec3,
-    pub clearance: u32,
-    pub edge_list: Vec<chunk::Edge>,
+    pub(crate) grid_position: IVec3,
+    pub(crate) edge_list: Vec<chunk::Edge>,
+    pub(crate) clearance: u32,
+    pub(crate) group_id: u32,
 }

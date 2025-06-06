@@ -52,6 +52,14 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
+    const CARDINALS_LIST: [Direction; 4] = [
+        Direction::XpYoZo,
+        Direction::XnYoZo,
+        Direction::XoYoZp,
+        Direction::XoYoZn,
+    ];
+
+    #[rustfmt::skip]
     const NEIGHBOR_LIST: [Direction; 26] = [
         Direction::XnYnZn,
         Direction::XoYnZn,
@@ -198,6 +206,10 @@ impl Direction {
         Self::ALL
     }
 
+    pub fn cardinal_list() -> [Direction; 4] {
+        Self::CARDINALS_LIST
+    }
+
     pub fn neighbor_list() -> [Direction; 26] {
         Self::NEIGHBOR_LIST
     }
@@ -288,6 +300,10 @@ impl Direction {
             Direction::XoYpZp => WORLD_EDGE_COST,
             Direction::XpYpZp => WORLD_CORNER_COST,
         }
+    }
+
+    pub fn cardinal_offsets() -> [IVec3; 4] {
+        Self::CARDINALS_LIST.map(|cardinal| cardinal.offset())
     }
 
     pub fn neighbor_offsets() -> [IVec3; 26] {

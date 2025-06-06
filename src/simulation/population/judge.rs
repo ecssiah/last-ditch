@@ -17,19 +17,18 @@ use glam::{Quat, Vec3};
 
 #[derive(Clone)]
 pub struct Judge {
-    pub id: ID,
-    pub tick: Tick,
-    pub name: String,
-    pub chunk_id: chunk::ID,
-    pub chunk_update: bool,
-    pub position: Vec3,
-    pub velocity: Vec3,
-    pub acceleration: Vec3,
-    pub aabb: AABB,
-    pub yaw: f32,
-    pub pitch: f32,
-    pub orientation: Quat,
-    pub jump_state: JumpState,
+    pub(crate) id: ID,
+    pub(crate) tick: Tick,
+    pub(crate) chunk_id: chunk::ID,
+    pub(crate) chunk_update: bool,
+    pub(crate) position: Vec3,
+    pub(crate) velocity: Vec3,
+    pub(crate) acceleration: Vec3,
+    pub(crate) aabb: AABB,
+    pub(crate) yaw: f32,
+    pub(crate) pitch: f32,
+    pub(crate) orientation: Quat,
+    pub(crate) jump_state: JumpState,
 }
 
 impl Judge {
@@ -37,7 +36,6 @@ impl Judge {
         let judge = Self {
             id: judge_id,
             tick: Tick::ZERO,
-            name: "TEST JUDGE NAME".to_string(),
             chunk_id: chunk::ID(0),
             chunk_update: false,
             position: Vec3::ZERO,

@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Graph {
-    pub node_map: HashMap<IVec3, world::Node>,
-    pub chunk_graph_map: HashMap<IVec3, chunk::Graph>,
+    pub(crate) node_map: HashMap<IVec3, world::Node>,
+    pub(crate) chunk_graph_map: HashMap<IVec3, chunk::Graph>,
 }
 
 impl Graph {
@@ -18,20 +18,32 @@ impl Graph {
         graph
     }
 
-    pub fn has_node(&self, chunk_position: IVec3) -> bool {
-        self.node_map.contains_key(&chunk_position)
-    }
-
     pub fn get_node(&self, chunk_position: IVec3) -> Option<&world::Node> {
         self.node_map.get(&chunk_position)
+    }
+
+    pub fn add_node(&mut self, chunk_position: IVec3, node: world::Node) -> Option<world::Node> {
+        self.node_map.insert(chunk_position, node)
     }
 
     pub fn get_node_mut(&mut self, chunk_position: IVec3) -> Option<&mut world::Node> {
         self.node_map.get_mut(&chunk_position)
     }
 
-    pub fn add_node(&mut self, chunk_position: IVec3, node: world::Node) -> Option<world::Node> {
-        self.node_map.insert(chunk_position, node)
+    pub fn get_chunk_graph(&self, chunk_position: IVec3) -> Option<&chunk::Graph> {
+        self.chunk_graph_map.get(&chunk_position)
+    }
+
+    pub fn get_chunk_graph_mut(&mut self, chunk_position: IVec3) -> Option<&mut chunk::Graph> {
+        self.chunk_graph_map.get_mut(&chunk_position)
+    }
+
+    pub fn add_chunk_graph(
+        &mut self,
+        chunk_position: IVec3,
+        chunk_graph: chunk::Graph,
+    ) -> Option<chunk::Graph> {
+        self.chunk_graph_map.insert(chunk_position, chunk_graph)
     }
 
     pub fn add_edge(&mut self, chunk_position: IVec3, edge: world::Edge) {

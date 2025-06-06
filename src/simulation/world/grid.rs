@@ -67,17 +67,17 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
 });
 
 pub struct Grid {
-    pub radius: u32,
-    pub size: u32,
-    pub area: u32,
-    pub volume: u32,
-    pub chunk_radius: u32,
-    pub chunk_size: u32,
-    pub chunk_area: u32,
-    pub chunk_volume: u32,
-    pub boundary: u32,
-    pub block_id_max: u32,
-    pub chunk_id_max: u32,
+    pub(crate) radius: u32,
+    pub(crate) size: u32,
+    pub(crate) area: u32,
+    pub(crate) volume: u32,
+    pub(crate) chunk_radius: u32,
+    pub(crate) chunk_size: u32,
+    pub(crate) chunk_area: u32,
+    pub(crate) chunk_volume: u32,
+    pub(crate) boundary: u32,
+    pub(crate) block_id_max: u32,
+    pub(crate) chunk_id_max: u32,
 }
 
 impl Grid {
@@ -112,6 +112,12 @@ impl Grid {
         grid
     }
 
+    pub fn get_block_ids(&self) -> Vec<block::ID> {
+        (0..self.chunk_volume)
+            .map(|index| block::ID(index))
+            .collect()
+    }
+
     pub fn is_valid_grid_position(&self, grid_position: IVec3) -> bool {
         let in_x_range = grid_position.x.abs() as u32 <= self.boundary;
         let in_y_range = grid_position.y.abs() as u32 <= self.boundary;
@@ -128,19 +134,32 @@ impl Grid {
         on_x_boundary || on_y_boundary || on_z_boundary
     }
 
-    pub fn on_chunk_boundary(&self, grid_position: IVec3) -> bool {
+    pub fn get_boundary_contact_directions(&self, grid_position: IVec3) -> Vec<Direction> {
+        let mut directions = Vec::new();
+
         if let Some(block_position) = self.grid_to_block(grid_position) {
             let chunk_radius = self.chunk_radius as i32;
 
-            block_position.x == -chunk_radius
-                || block_position.x == chunk_radius
-                || block_position.y == -chunk_radius
-                || block_position.y == chunk_radius
-                || block_position.z == -chunk_radius
-                || block_position.z == chunk_radius
-        } else {
-            false
+            if block_position.x == -chunk_radius {
+                directions.push(Direction::XnYoZo);
+            } else if block_position.x == chunk_radius {
+                directions.push(Direction::XpYoZo);
+            }
+
+            if block_position.y == -chunk_radius {
+                directions.push(Direction::XoYnZo);
+            } else if block_position.y == chunk_radius {
+                directions.push(Direction::XoYpZo);
+            }
+
+            if block_position.z == -chunk_radius {
+                directions.push(Direction::XoYoZn);
+            } else if block_position.z == chunk_radius {
+                directions.push(Direction::XoYoZp);
+            }
         }
+
+        directions
     }
 
     pub fn is_valid_chunk_id(&self, chunk_id: chunk::ID) -> bool {
@@ -278,6 +297,22 @@ impl Grid {
         }
     }
 
+    pub fn chunk_position_to_id(&self, chunk_position: IVec3) -> Option<chunk::ID> {
+        let x = chunk_position.x + self.radius as i32;
+        let y = chunk_position.y + self.radius as i32;
+        let z = chunk_position.z + self.radius as i32;
+
+        let chunk_id = z * self.area as i32 + y * self.size as i32 + x;
+
+        let chunk_id = chunk::ID(chunk_id as u32);
+
+        if self.is_valid_chunk_id(chunk_id) {
+            Some(chunk_id)
+        } else {
+            None
+        }
+    }
+
     pub fn block_id_to_position(&self, block_id: block::ID) -> Option<IVec3> {
         if self.is_valid_block_id(block_id) {
             let block_id = i32::from(block_id);
@@ -294,6 +329,13 @@ impl Grid {
         } else {
             None
         }
+    }
+
+    pub fn grid_positions_within(radius: i32) -> impl Iterator<Item = IVec3> {
+        (-radius..=radius).flat_map(move |x| {
+            (-radius..=radius)
+                .flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
+        })
     }
 
     pub fn intermediate_positions(source: IVec3, target: IVec3) -> Vec<IVec3> {

@@ -73,28 +73,14 @@ impl Decision {
     fn find_target(grid_position: &IVec3, agent: &Agent, world: &World) -> Option<IVec3> {
         let mut rng = rand::thread_rng();
 
-        let cardinal_direction_list = [
-            grid::Direction::XpYoZo,
-            grid::Direction::XnYoZo,
-            grid::Direction::XoYoZp,
-            grid::Direction::XoYoZn,
-        ];
-
         let direction_index = rng.gen_range(0..4);
-        let direction = cardinal_direction_list[direction_index];
+        let direction = grid::Direction::cardinal_list()[direction_index];
 
         let dy = rng.gen_range(-1..=1);
-
-        let delta = match direction {
-            grid::Direction::XpYoZo => IVec3::new(1, dy, 0),
-            grid::Direction::XnYoZo => IVec3::new(-1, dy, 0),
-            grid::Direction::XoYoZp => IVec3::new(0, dy, 1),
-            grid::Direction::XoYoZn => IVec3::new(0, dy, -1),
-            _ => IVec3::ZERO,
-        };
+        let offset = direction.offset() + IVec3::new(0, dy, 0);
+        let target_position = grid_position + offset;
 
         let required_clearance = agent.height.ceil() as i32;
-        let target_position = grid_position + delta;
 
         if world.has_clearance(target_position, required_clearance) {
             Some(target_position)

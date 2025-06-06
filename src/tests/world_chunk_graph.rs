@@ -13,10 +13,13 @@ struct NodeCountCase {
 
 impl NodeCountCase {
     pub fn check(&self, world: &World) {
-        let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
-        let chunk = world.get_chunk_at(grid_position).unwrap();
+        let chunk_graph = world
+            .graph
+            .chunk_graph_map
+            .get(&self.chunk_position)
+            .unwrap();
 
-        let node_count = chunk.graph.node_map.len();
+        let node_count = chunk_graph.node_map.len();
 
         assert_eq!(
             node_count, self.expected_node_count,
@@ -85,11 +88,15 @@ struct EdgeCountValidationCase {
 impl EdgeCountValidationCase {
     pub fn check(&self, world: &World) {
         let chunk_grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
-        let chunk = world.get_chunk_at(chunk_grid_position).unwrap();
-
         let grid_position = chunk_grid_position + self.block_position;
 
-        let node = chunk.graph.get_node(grid_position).unwrap();
+        let chunk_graph = world
+            .graph
+            .chunk_graph_map
+            .get(&self.chunk_position)
+            .unwrap();
+
+        let node = chunk_graph.get_node(grid_position).unwrap();
         let edge_count = node.edge_list.len();
 
         assert_eq!(
@@ -155,23 +162,28 @@ struct EdgeValidationCase {
 impl EdgeValidationCase {
     pub fn check(&self, world: &World) {
         let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
-        let chunk = world.get_chunk_at(grid_position).unwrap();
 
         let node1_grid_position = grid_position + self.block_position1;
         let node2_grid_position = grid_position + self.block_position2;
 
-        let node1 = chunk.graph.node_map.get(&node1_grid_position).unwrap();
-        let node2 = chunk.graph.node_map.get(&node2_grid_position).unwrap();
+        let chunk_graph = world
+            .graph
+            .chunk_graph_map
+            .get(&self.chunk_position)
+            .unwrap();
+
+        let node1 = chunk_graph.get_node(node1_grid_position).unwrap();
+        let node2 = chunk_graph.get_node(node2_grid_position).unwrap();
 
         let edge12 = node1
             .edge_list
             .iter()
-            .find(|edge| edge.target_grid_position == node2_grid_position);
+            .find(|edge| edge.to_grid_position == node2_grid_position);
 
         let edge21 = node2
             .edge_list
             .iter()
-            .find(|edge| edge.target_grid_position == node1_grid_position);
+            .find(|edge| edge.to_grid_position == node1_grid_position);
 
         if self.expected_cost.is_some() {
             assert!(edge12.is_some(), "{:?}", self.description);

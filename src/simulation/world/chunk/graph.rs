@@ -28,24 +28,26 @@ impl Graph {
 
     pub fn create_edges(
         &mut self,
-        grid_position1: IVec3,
-        grid_position2: IVec3,
+        from_grid_position: IVec3,
+        to_grid_position: IVec3,
         clearance: u32,
         cost: f32,
     ) {
         self.add_edge(
-            grid_position1,
+            from_grid_position,
             chunk::Edge {
-                target_grid_position: grid_position2,
+                from_grid_position: from_grid_position,
+                to_grid_position: to_grid_position,
                 clearance,
                 cost,
             },
         );
 
         self.add_edge(
-            grid_position2,
+            to_grid_position,
             chunk::Edge {
-                target_grid_position: grid_position1,
+                from_grid_position: to_grid_position,
+                to_grid_position: from_grid_position,
                 clearance,
                 cost,
             },

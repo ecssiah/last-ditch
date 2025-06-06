@@ -1,12 +1,12 @@
 //! The Simulation module contains all of the logic required to generate and evolve
 //! the core civilizational garden.
 
-use std::sync::Arc;
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
     simulation::dispatch::{Action, AgentAction, JumpAction, MovementAction, WorldAction},
 };
 use glam::{Vec2, Vec3};
+use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     event::{

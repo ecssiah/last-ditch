@@ -1,5 +1,5 @@
-use glam::IVec3;
 use crate::simulation::population::agent;
+use glam::IVec3;
 
 pub enum Result {
     Path {

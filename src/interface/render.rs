@@ -16,9 +16,7 @@ use crate::{
     interface::{
         camera::Camera,
         consts::BLOCK_DATA_MAP,
-        render::{
-            data::{AgentInstanceData, ChunkData, MeshData, VertexData},
-        },
+        render::data::{AgentInstanceData, ChunkData, MeshData, VertexData},
     },
     simulation,
 };
@@ -55,11 +53,8 @@ impl Render {
             &textures.texture_sampler_bind_group_layout,
         );
 
-        let agent_render = AgentRender::new(
-            &device,
-            &surface_format,
-            &camera.uniform_bind_group_layout,
-        );
+        let agent_render =
+            AgentRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
 
         let render = Render {
             textures,
