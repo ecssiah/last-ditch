@@ -23,9 +23,9 @@ use crate::{
 use std::collections::HashMap;
 
 pub struct Render {
-    textures: Textures,
-    chunk_render: ChunkRender,
-    agent_render: AgentRender,
+    pub(crate) textures: Textures,
+    pub(crate) chunk_render: ChunkRender,
+    pub(crate) agent_render: AgentRender,
 }
 
 impl Render {

@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ID(pub u32);
 
 impl From<ID> for usize {

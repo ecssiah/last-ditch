@@ -8,8 +8,8 @@ pub use tick::Tick;
 use std::time::Instant;
 
 pub struct Time {
-    pub tick: Tick,
-    pub instant: Instant,
+    pub(crate) tick: Tick,
+    pub(crate) instant: Instant,
 }
 
 impl Time {

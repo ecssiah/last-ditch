@@ -13,7 +13,7 @@ pub mod aabb;
 pub mod dynamic_object;
 
 pub struct Physics {
-    pub gravity: Vec3,
+    pub(crate) gravity: Vec3,
 }
 
 impl Physics {
@@ -103,7 +103,7 @@ impl Physics {
     fn get_solid_collisions(target: AABB, world: &World) -> Vec<AABB> {
         world
             .grid
-            .overlapping_aabb_list(target)
+            .blocks_overlapping(target)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();

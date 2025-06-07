@@ -29,7 +29,7 @@ impl HasClearanceCase {
 
 #[test]
 fn has_clearance() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
@@ -96,7 +96,7 @@ impl GetClearanceCase {
 
 #[test]
 fn get_clearance() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 

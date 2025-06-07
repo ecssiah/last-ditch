@@ -11,11 +11,11 @@ use crate::simulation::{
 };
 
 pub struct State {
-    pub admin: Admin,
-    pub time: Time,
-    pub physics: Physics,
-    pub world: World,
-    pub population: Population,
+    pub(crate) admin: Admin,
+    pub(crate) time: Time,
+    pub(crate) physics: Physics,
+    pub(crate) world: World,
+    pub(crate) population: Population,
 }
 
 impl State {
@@ -33,9 +33,9 @@ impl State {
 
     fn setup_world() -> World {
         if TESTING {
-            World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32)
+            World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32)
         } else {
-            World::new(MAIN_WORLD_RADIUS as u32, CHUNK_RADIUS as u32)
+            World::new(MAIN_CHUNK_RADIUS as u32, MAIN_WORLD_RADIUS as u32)
         }
     }
 

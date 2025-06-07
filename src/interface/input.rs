@@ -28,9 +28,9 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
-    action_tx: Arc<UnboundedSender<Action>>,
-    key_inputs: KeyInputs,
-    mouse_inputs: MouseInputs,
+    pub(crate) action_tx: Arc<UnboundedSender<Action>>,
+    pub(crate) key_inputs: KeyInputs,
+    pub(crate) mouse_inputs: MouseInputs,
 }
 
 impl Input {

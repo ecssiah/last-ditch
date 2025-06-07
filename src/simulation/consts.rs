@@ -40,11 +40,11 @@ pub const WORLD_FACE_COST: f32 = 1.0;
 pub const WORLD_EDGE_COST: f32 = 1.4142135;
 pub const WORLD_CORNER_COST: f32 = 1.7320508;
 
+pub const MAIN_CHUNK_RADIUS: usize = 8;
 pub const MAIN_WORLD_RADIUS: usize = 4;
-pub const CHUNK_RADIUS: usize = 8;
 
-pub const TEST_WORLD_RADIUS: usize = 2;
 pub const TEST_CHUNK_RADIUS: usize = 3;
+pub const TEST_WORLD_RADIUS: usize = 2;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;

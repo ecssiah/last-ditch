@@ -1,11 +1,9 @@
-pub mod connection;
 pub mod edge;
 pub mod geometry;
 pub mod graph;
 pub mod id;
 pub mod node;
 
-pub use connection::Connection;
 pub use edge::Edge;
 pub use geometry::Geometry;
 pub use graph::Graph;
@@ -21,10 +19,9 @@ use glam::IVec3;
 pub struct Chunk {
     pub(crate) id: chunk::ID,
     pub(crate) tick: Tick,
-    pub(crate) updated: bool,
+    pub(crate) block_updated: bool,
     pub(crate) boundary_updated: bool,
     pub(crate) position: IVec3,
-    pub(crate) chunk_position: IVec3,
     pub(crate) geometry: chunk::Geometry,
     pub(crate) kind_list: Vec<block::Kind>,
     pub(crate) block_list: Vec<usize>,

@@ -29,7 +29,7 @@ impl NodeCountCase {
 
 #[test]
 fn node_count_validation() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
@@ -105,7 +105,7 @@ impl EdgeCountValidationCase {
 
 #[test]
 fn edge_count_validation() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
@@ -184,7 +184,7 @@ impl EdgeValidationCase {
 
 #[test]
 fn edge_validation() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 

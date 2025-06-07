@@ -24,7 +24,7 @@ impl WorldToGridCase {
 
 #[test]
 fn world_to_grid() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as f32;
 
@@ -89,7 +89,7 @@ impl GridToChunkCase {
 
 #[test]
 fn grid_to_chunk() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as i32;
     let radius = test_world.grid.radius as i32;
@@ -147,7 +147,7 @@ impl GridToBlockCase {
 
 #[test]
 fn grid_to_block() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as i32;
     let chunk_radius = test_world.grid.chunk_radius as i32;
@@ -205,7 +205,7 @@ impl ChunkToGridCase {
 
 #[test]
 fn chunk_to_grid() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let radius = test_world.grid.radius as i32;
     let chunk_size = test_world.grid.chunk_size as i32;
@@ -267,7 +267,7 @@ impl GridToChunkIDCase {
 
 #[test]
 fn grid_to_chunk_id() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as i32;
     let volume = test_world.grid.volume;
@@ -321,7 +321,7 @@ impl WorldToChunkIDCase {
 
 #[test]
 fn world_to_chunk_id() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let boundary = test_world.grid.boundary as f32;
     let volume = test_world.grid.volume;
@@ -367,7 +367,7 @@ struct ChunkIDToPositionCase {
 
 impl ChunkIDToPositionCase {
     pub fn check(&self, world: &World) {
-        let chunk_position = world.grid.chunk_id_to_position(self.chunk_id);
+        let chunk_position = world.grid.chunk_id_to_chunk_position(self.chunk_id);
 
         assert_eq!(
             chunk_position, self.expected_chunk_position,
@@ -378,8 +378,8 @@ impl ChunkIDToPositionCase {
 }
 
 #[test]
-fn chunk_id_to_position() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+fn chunk_id_to_chunk_position() {
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let radius = test_world.grid.radius as i32;
 
@@ -427,7 +427,7 @@ impl GridToBlockIDCase {
 
 #[test]
 fn grid_to_block_id() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
     let chunk_size = test_world.grid.chunk_size as i32;
@@ -502,7 +502,7 @@ struct BlockIDToPositionCase {
 
 impl BlockIDToPositionCase {
     pub fn check(&self, world: &World) {
-        let block_position = world.grid.block_id_to_position(self.block_id);
+        let block_position = world.grid.block_id_to_block_position(self.block_id);
 
         assert_eq!(
             block_position, self.expected_block_position,
@@ -513,8 +513,8 @@ impl BlockIDToPositionCase {
 }
 
 #[test]
-fn block_id_to_position() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+fn block_id_to_block_position() {
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let chunk_radius = test_world.grid.chunk_radius as i32;
 
@@ -569,7 +569,7 @@ impl GridToIDsCase {
 
 #[test]
 fn grid_to_ids() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let radius = test_world.grid.radius as i32;
     let size = test_world.grid.size as i32;
@@ -649,7 +649,7 @@ struct IDsToGridCase {
 
 impl IDsToGridCase {
     pub fn check(&self, world: &World) {
-        let position = world.grid.ids_to_grid(self.chunk_id, self.block_id);
+        let position = world.grid.ids_to_position(self.chunk_id, self.block_id);
 
         assert_eq!(
             position, self.expected_position,
@@ -661,7 +661,7 @@ impl IDsToGridCase {
 
 #[test]
 fn ids_to_grid() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let radius = test_world.grid.radius as i32;
     let size = test_world.grid.size as i32;

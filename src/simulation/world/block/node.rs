@@ -1,7 +1,7 @@
-use crate::simulation::world::chunk;
+use crate::simulation::world::block;
 
 #[derive(Clone, Debug)]
 pub struct Node {
-    pub(crate) chunk_id: chunk::ID,
+    pub(crate) block_id: block::ID,
     pub(crate) group_id: u32,
 }

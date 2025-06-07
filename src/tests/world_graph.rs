@@ -26,13 +26,13 @@ fn node_count_validation() {
     let test_world1 = World::new(1, 1);
     let expected_count1 = test_world1.grid.volume as usize;
 
-    let test_world2 = World::new(2, 1);
+    let test_world2 = World::new(1, 2);
     let expected_count2 = test_world2.grid.volume as usize;
 
-    let test_world3 = World::new(1, 2);
+    let test_world3 = World::new(2, 1);
     let expected_count3 = test_world3.grid.volume as usize;
 
-    let test_world4 = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world4 = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
     let expected_count4 = test_world4.grid.volume as usize;
 
     let test_cases = vec![
@@ -84,7 +84,7 @@ impl EdgeCountValidationCase {
 
 #[test]
 fn edge_count_validation() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 
@@ -156,7 +156,7 @@ impl EdgeValidationCase {
 
 #[test]
 fn edge_validation() {
-    let mut test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     builder::TestWorld::build(&mut test_world);
 

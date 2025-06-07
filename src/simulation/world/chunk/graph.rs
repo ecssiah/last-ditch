@@ -1,72 +1,33 @@
-use crate::simulation::world::chunk::{self};
-use glam::IVec3;
-use std::collections::HashMap;
+use crate::simulation::world::block;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
 pub struct Graph {
-    pub node_map: HashMap<IVec3, chunk::Node>,
+    pub node_map: HashMap<block::ID, block::Node>,
+    pub edge_set: HashSet<(block::ID, block::ID)>,
+    pub edge_map: HashMap<(block::ID, block::ID), block::Edge>,
 }
 
 impl Graph {
     pub fn new() -> Graph {
         let graph = Graph {
             node_map: HashMap::new(),
+            edge_set: HashSet::new(),
+            edge_map: HashMap::new(),
         };
 
         graph
     }
 
-    pub fn add_node(&mut self, position: IVec3, node: chunk::Node) -> Option<chunk::Node> {
-        self.node_map.insert(position, node)
-    }
-
-    pub fn add_edge(&mut self, position: IVec3, edge: chunk::Edge) {
-        if let Some(node) = self.node_map.get_mut(&position) {
-            node.edge_list.push(edge);
-        }
-    }
-
-    pub fn create_edges(
+    pub fn add_block_node(
         &mut self,
-        from_position: IVec3,
-        to_position: IVec3,
-        clearance: u32,
-        cost: f32,
-    ) {
-        self.add_edge(
-            from_position,
-            chunk::Edge {
-                from_position: from_position,
-                to_position: to_position,
-                clearance,
-                cost,
-            },
-        );
-
-        self.add_edge(
-            to_position,
-            chunk::Edge {
-                from_position: to_position,
-                to_position: from_position,
-                clearance,
-                cost,
-            },
-        );
+        block_id: block::ID,
+        block_node: block::Node,
+    ) -> Option<block::Node> {
+        self.node_map.insert(block_id, block_node)
     }
 
-    pub fn has_node(&self, position: IVec3) -> bool {
-        self.node_map.contains_key(&position)
-    }
-
-    pub fn get_node(&self, position: IVec3) -> Option<&chunk::Node> {
-        self.node_map.get(&position)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (&IVec3, &chunk::Node)> {
-        self.node_map.iter()
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&IVec3, &mut chunk::Node)> {
-        self.node_map.iter_mut()
+    pub fn get_block_node(&self, block_id: block::ID) -> Option<&block::Node> {
+        self.node_map.get(&block_id)
     }
 }

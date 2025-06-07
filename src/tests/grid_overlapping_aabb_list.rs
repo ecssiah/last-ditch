@@ -14,7 +14,7 @@ struct OverlappingAABBCase {
 
 impl OverlappingAABBCase {
     pub fn check(&self, world: &World) {
-        let aabb_list = world.grid.overlapping_aabb_list(self.aabb);
+        let aabb_list = world.grid.blocks_overlapping(self.aabb);
 
         let is_equal = AABB::approx_set_eq(&aabb_list, &self.expected_aabb_list, EPSILON);
 
@@ -24,7 +24,7 @@ impl OverlappingAABBCase {
 
 #[test]
 fn directions() {
-    let test_world = World::new(TEST_WORLD_RADIUS as u32, TEST_CHUNK_RADIUS as u32);
+    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
     let test_cases = vec![
         OverlappingAABBCase {

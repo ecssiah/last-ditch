@@ -178,7 +178,6 @@ impl Observation {
                 next_chunk_view = ChunkView {
                     id: chunk.id,
                     tick: StatePair::new(chunk_view.tick.next, chunk.tick),
-                    position: StatePair::new(chunk_view.position.next, chunk.position),
                     geometry: StatePair::new(
                         chunk_view.geometry.next.clone(),
                         chunk.geometry.clone(),
@@ -191,7 +190,6 @@ impl Observation {
             next_chunk_view = ChunkView {
                 id: chunk.id,
                 tick: StatePair::new(chunk.tick, chunk.tick),
-                position: StatePair::new(chunk.position, chunk.position),
                 geometry: StatePair::new(chunk.geometry.clone(), chunk.geometry.clone()),
             };
         }
