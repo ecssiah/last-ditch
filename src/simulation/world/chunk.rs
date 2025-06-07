@@ -19,13 +19,14 @@ use crate::simulation::{
 use glam::IVec3;
 
 pub struct Chunk {
-    pub id: chunk::ID,
-    pub tick: Tick,
-    pub updated: bool,
-    pub boundary_updated: bool,
-    pub position: IVec3,
-    pub geometry: chunk::Geometry,
-    pub kind_list: Vec<block::Kind>,
-    pub block_list: Vec<usize>,
-    pub visibility_list: Vec<Vec<grid::Direction>>,
+    pub(crate) id: chunk::ID,
+    pub(crate) tick: Tick,
+    pub(crate) updated: bool,
+    pub(crate) boundary_updated: bool,
+    pub(crate) position: IVec3,
+    pub(crate) chunk_position: IVec3,
+    pub(crate) geometry: chunk::Geometry,
+    pub(crate) kind_list: Vec<block::Kind>,
+    pub(crate) block_list: Vec<usize>,
+    pub(crate) visibility_list: Vec<Vec<grid::Direction>>,
 }

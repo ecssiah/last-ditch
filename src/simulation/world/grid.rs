@@ -331,7 +331,7 @@ impl Grid {
         }
     }
 
-    pub fn positions_within(radius: i32) -> impl Iterator<Item = IVec3> {
+    pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
         (-radius..=radius).flat_map(move |x| {
             (-radius..=radius)
                 .flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))

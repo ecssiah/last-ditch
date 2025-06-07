@@ -88,15 +88,17 @@ impl World {
     fn setup_chunks(grid: &grid::Grid) -> Vec<chunk::Chunk> {
         (0..grid.volume)
             .map(|index| {
-                let chunk_id = chunk::ID(index);
-                let chunk_position = grid.chunk_id_to_position(chunk_id).unwrap();
+                let id = chunk::ID(index);
+                let chunk_position = grid.chunk_id_to_position(id).unwrap();
+                let position = grid.chunk_to_grid(chunk_position).unwrap();
 
                 chunk::Chunk {
-                    id: chunk_id,
+                    id,
                     tick: Tick::ZERO,
                     updated: false,
                     boundary_updated: false,
-                    position: chunk_position,
+                    position,
+                    chunk_position: chunk_position,
                     geometry: chunk::Geometry::new(),
                     kind_list: Vec::from([block::Kind::Empty]),
                     block_list: (0..grid.chunk_volume).map(|_| 0).collect(),
@@ -304,7 +306,7 @@ impl World {
         let chunk_radius = self.grid.chunk_radius as i32;
 
         if let Some(chunk_position) = self.grid.chunk_to_grid(chunk.position) {
-            for offset in grid::Grid::positions_within(chunk_radius) {
+            for offset in grid::Grid::offsets_in(chunk_radius) {
                 let position = chunk_position + offset;
 
                 let ground_is_solid = self
@@ -397,31 +399,20 @@ impl World {
 
         let chunk_radius = self.grid.chunk_radius as i32;
 
-        if let Some(chunk_position) = self.grid.chunk_to_grid(chunk.position) {
-            for offset in grid::Grid::positions_within(chunk_radius) {
-                let position = chunk_position + offset;
+        for offset in grid::Grid::offsets_in(chunk_radius) {
+            let position = chunk.position + offset;
 
-                if self
-                    .grid
-                    .get_boundary_contact_directions(position)
-                    .len()
-                    > 0
-                {
-                    let world_edge_list = self.update_world_edge_list(position, chunk);
+            if self.grid.get_boundary_contact_directions(position).len() > 0 {
+                let world_edge_list = self.update_world_edge_list(position, chunk);
 
-                    world_edge_map.insert(position, world_edge_list);
-                }
+                world_edge_map.insert(position, world_edge_list);
             }
         }
 
         world_edge_map
     }
 
-    fn update_world_edge_list(
-        &self,
-        position: IVec3,
-        chunk: &chunk::Chunk,
-    ) -> Vec<world::Edge> {
+    fn update_world_edge_list(&self, position: IVec3, chunk: &chunk::Chunk) -> Vec<world::Edge> {
         let mut world_edges = Vec::new();
 
         for direction in grid::Direction::traversable_list() {
@@ -695,7 +686,7 @@ impl World {
         let mut visible_chunk_id_list = Vec::with_capacity(chunk_count_estimate);
 
         if let Some(chunk_position) = self.grid.chunk_id_to_position(chunk_id) {
-            for offset in grid::Grid::positions_within(radius) {
+            for offset in grid::Grid::offsets_in(radius) {
                 if offset.length_squared() < radius_squared {
                     let visible_chunk_position = chunk_position + offset;
 
