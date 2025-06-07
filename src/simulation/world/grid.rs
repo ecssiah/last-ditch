@@ -141,8 +141,8 @@ impl Grid {
         }
     }
 
-    pub fn chunk_coordinates_to_chunk_id(&self, coordinates: IVec3) -> Option<chunk::ID> {
-        let indexable_coordinates = coordinates + IVec3::splat(self.world_radius as i32);
+    pub fn chunk_coordinates_to_chunk_id(&self, chunk_coordinates: IVec3) -> Option<chunk::ID> {
+        let indexable_coordinates = chunk_coordinates + IVec3::splat(self.world_radius as i32);
 
         let chunk_index = Self::linearize(indexable_coordinates, self.world_radius);
 
@@ -153,8 +153,8 @@ impl Grid {
         }
     }
 
-    pub fn chunk_coordinates_to_position(&self, coordinates: IVec3) -> Option<IVec3> {
-        let position = coordinates + self.chunk_size as i32;
+    pub fn chunk_coordinates_to_position(&self, chunk_coordinates: IVec3) -> Option<IVec3> {
+        let position = chunk_coordinates + self.chunk_size as i32;
 
         if self.valid_position(position) {
             Some(position)
@@ -180,8 +180,8 @@ impl Grid {
         }
     }
 
-    pub fn block_coordinates_to_block_id(&self, coordinates: IVec3) -> Option<block::ID> {
-        let indexable_coordinates = coordinates + IVec3::splat(self.chunk_radius as i32);
+    pub fn block_coordinates_to_block_id(&self, block_coordinates: IVec3) -> Option<block::ID> {
+        let indexable_coordinates = block_coordinates + IVec3::splat(self.chunk_radius as i32);
 
         let block_index = Self::linearize(indexable_coordinates, self.chunk_radius);
 
