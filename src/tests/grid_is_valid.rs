@@ -3,13 +3,13 @@ use glam::IVec3;
 
 struct IsValidCase {
     description: String,
-    grid_position: IVec3,
+    position: IVec3,
     expected_is_valid: bool,
 }
 
 impl IsValidCase {
     pub fn check(&self, world: &World) {
-        let is_valid = world.grid.is_valid_grid_position(self.grid_position);
+        let is_valid = world.grid.is_valid_position(self.position);
 
         assert_eq!(is_valid, self.expected_is_valid, "{:?}", self.description);
     }
@@ -24,31 +24,31 @@ fn is_valid() {
     let test_cases = vec![
         IsValidCase {
             description: "Grid Position: (0, 0, 0)".to_string(),
-            grid_position: IVec3::new(0, 0, 0),
+            position: IVec3::new(0, 0, 0),
             expected_is_valid: true,
         },
         IsValidCase {
             description: "Grid Position: (GRID_BOUNDARY, GRID_BOUNDARY, GRID_BOUNDARY)".to_string(),
-            grid_position: IVec3::new(boundary, boundary, boundary),
+            position: IVec3::new(boundary, boundary, boundary),
             expected_is_valid: true,
         },
         IsValidCase {
             description: "Grid Position: (-GRID_BOUNDARY, -GRID_BOUNDARY, -GRID_BOUNDARY)"
                 .to_string(),
-            grid_position: IVec3::new(-boundary, -boundary, -boundary),
+            position: IVec3::new(-boundary, -boundary, -boundary),
             expected_is_valid: true,
         },
         IsValidCase {
             description: "Grid Position: (GRID_BOUNDARY + 1, GRID_BOUNDARY + 1, GRID_BOUNDARY + 1)"
                 .to_string(),
-            grid_position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
+            position: IVec3::new(boundary + 1, boundary + 1, boundary + 1),
             expected_is_valid: false,
         },
         IsValidCase {
             description:
                 "Grid Position: (-GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1, -GRID_BOUNDARY - 1)"
                     .to_string(),
-            grid_position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
+            position: IVec3::new(-boundary - 1, -boundary - 1, -boundary - 1),
             expected_is_valid: false,
         },
     ];

@@ -118,26 +118,26 @@ impl Grid {
             .collect()
     }
 
-    pub fn is_valid_grid_position(&self, grid_position: IVec3) -> bool {
-        let in_x_range = grid_position.x.abs() as u32 <= self.boundary;
-        let in_y_range = grid_position.y.abs() as u32 <= self.boundary;
-        let in_z_range = grid_position.z.abs() as u32 <= self.boundary;
+    pub fn is_valid_position(&self, position: IVec3) -> bool {
+        let in_x_range = position.x.abs() as u32 <= self.boundary;
+        let in_y_range = position.y.abs() as u32 <= self.boundary;
+        let in_z_range = position.z.abs() as u32 <= self.boundary;
 
         in_x_range && in_y_range && in_z_range
     }
 
-    pub fn on_boundary(&self, grid_position: IVec3) -> bool {
-        let on_x_boundary = grid_position.x.abs() as u32 == self.boundary;
-        let on_y_boundary = grid_position.y.abs() as u32 == self.boundary;
-        let on_z_boundary = grid_position.z.abs() as u32 == self.boundary;
+    pub fn on_boundary(&self, position: IVec3) -> bool {
+        let on_x_boundary = position.x.abs() as u32 == self.boundary;
+        let on_y_boundary = position.y.abs() as u32 == self.boundary;
+        let on_z_boundary = position.z.abs() as u32 == self.boundary;
 
         on_x_boundary || on_y_boundary || on_z_boundary
     }
 
-    pub fn get_boundary_contact_directions(&self, grid_position: IVec3) -> Vec<Direction> {
+    pub fn get_boundary_contact_directions(&self, position: IVec3) -> Vec<Direction> {
         let mut directions = Vec::new();
 
-        if let Some(block_position) = self.grid_to_block(grid_position) {
+        if let Some(block_position) = self.grid_to_block(position) {
             let chunk_radius = self.chunk_radius as i32;
 
             if block_position.x == -chunk_radius {
@@ -174,21 +174,21 @@ impl Grid {
         let chunk_position = self.chunk_id_to_position(chunk_id)?;
         let block_position = self.block_id_to_position(block_id)?;
 
-        let grid_position = self.chunk_size as i32 * chunk_position + block_position;
+        let position = self.chunk_size as i32 * chunk_position + block_position;
 
-        Some(grid_position)
+        Some(position)
     }
 
-    pub fn grid_to_ids(&self, grid_position: IVec3) -> Option<(chunk::ID, block::ID)> {
-        let chunk_id = self.grid_to_chunk_id(grid_position)?;
-        let block_id = self.grid_to_block_id(grid_position)?;
+    pub fn grid_to_ids(&self, position: IVec3) -> Option<(chunk::ID, block::ID)> {
+        let chunk_id = self.grid_to_chunk_id(position)?;
+        let block_id = self.grid_to_block_id(position)?;
 
         Some((chunk_id, block_id))
     }
 
-    pub fn grid_to_chunk_id(&self, grid_position: IVec3) -> Option<chunk::ID> {
-        if self.is_valid_grid_position(grid_position) {
-            let chunk_position = self.grid_to_chunk(grid_position)?;
+    pub fn grid_to_chunk_id(&self, position: IVec3) -> Option<chunk::ID> {
+        if self.is_valid_position(position) {
+            let chunk_position = self.grid_to_chunk(position)?;
 
             let x = chunk_position.x + self.radius as i32;
             let y = chunk_position.y + self.radius as i32;
@@ -202,11 +202,11 @@ impl Grid {
         }
     }
 
-    pub fn grid_to_chunk(&self, grid_position: IVec3) -> Option<IVec3> {
-        if self.is_valid_grid_position(grid_position) {
-            let grid_position_shifted = grid_position + IVec3::splat(self.boundary as i32);
+    pub fn grid_to_chunk(&self, position: IVec3) -> Option<IVec3> {
+        if self.is_valid_position(position) {
+            let position_shifted = position + IVec3::splat(self.boundary as i32);
 
-            let chunk_position = grid_position_shifted
+            let chunk_position = position_shifted
                 .map(|coordinate| coordinate.div_euclid(self.chunk_size as i32));
 
             Some(chunk_position - IVec3::splat(self.radius as i32))
@@ -215,9 +215,9 @@ impl Grid {
         }
     }
 
-    pub fn grid_to_block_id(&self, grid_position: IVec3) -> Option<block::ID> {
-        if self.is_valid_grid_position(grid_position) {
-            let block_position = self.grid_to_block(grid_position)?;
+    pub fn grid_to_block_id(&self, position: IVec3) -> Option<block::ID> {
+        if self.is_valid_position(position) {
+            let block_position = self.grid_to_block(position)?;
 
             let chunk_radius = self.chunk_radius as i32;
             let chunk_size = self.chunk_size as i32;
@@ -233,15 +233,15 @@ impl Grid {
         }
     }
 
-    pub fn grid_to_block(&self, grid_position: IVec3) -> Option<IVec3> {
-        if self.is_valid_grid_position(grid_position) {
-            let grid_position_shifted = grid_position + IVec3::splat(self.boundary as i32);
+    pub fn grid_to_block(&self, position: IVec3) -> Option<IVec3> {
+        if self.is_valid_position(position) {
+            let position_shifted = position + IVec3::splat(self.boundary as i32);
 
-            let chunk_position = grid_position_shifted
+            let chunk_position = position_shifted
                 .map(|coordinate| coordinate.div_euclid(self.chunk_size as i32));
             let chunk_center = chunk_position * self.chunk_size as i32;
 
-            let block_position = grid_position_shifted - chunk_center;
+            let block_position = position_shifted - chunk_center;
             let block_position = block_position - IVec3::splat(self.chunk_radius as i32);
 
             Some(block_position)
@@ -251,27 +251,27 @@ impl Grid {
     }
 
     pub fn world_to_chunk_id(&self, world_position: Vec3) -> Option<chunk::ID> {
-        let grid_position = self.world_to_grid(world_position)?;
-        let chunk_id = self.grid_to_chunk_id(grid_position)?;
+        let position = self.world_to_grid(world_position)?;
+        let chunk_id = self.grid_to_chunk_id(position)?;
 
         Some(chunk_id)
     }
 
     pub fn world_to_grid(&self, world_position: Vec3) -> Option<IVec3> {
-        let grid_position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
+        let position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
 
-        if self.is_valid_grid_position(grid_position) {
-            Some(grid_position)
+        if self.is_valid_position(position) {
+            Some(position)
         } else {
             None
         }
     }
 
     pub fn chunk_to_grid(&self, chunk_position: IVec3) -> Option<IVec3> {
-        let grid_position = chunk_position * self.chunk_size as i32;
+        let position = chunk_position * self.chunk_size as i32;
 
-        if self.is_valid_grid_position(grid_position) {
-            Some(grid_position)
+        if self.is_valid_position(position) {
+            Some(position)
         } else {
             None
         }
@@ -331,7 +331,7 @@ impl Grid {
         }
     }
 
-    pub fn grid_positions_within(radius: i32) -> impl Iterator<Item = IVec3> {
+    pub fn positions_within(radius: i32) -> impl Iterator<Item = IVec3> {
         (-radius..=radius).flat_map(move |x| {
             (-radius..=radius)
                 .flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))

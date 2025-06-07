@@ -32,8 +32,8 @@ impl MainWorld {
         for x in -ground_boundary..=ground_boundary {
             for y in -1..=0 {
                 for z in -ground_boundary..=ground_boundary {
-                    let grid_position = IVec3::new(x as i32, y as i32, z as i32);
-                    let chunk_position = world.grid.grid_to_chunk(grid_position).unwrap();
+                    let position = IVec3::new(x as i32, y as i32, z as i32);
+                    let chunk_position = world.grid.grid_to_chunk(position).unwrap();
 
                     let kind = if (chunk_position.x + chunk_position.y + chunk_position.z) % 2 == 0
                     {
@@ -42,7 +42,7 @@ impl MainWorld {
                         block::Kind::Polished2
                     };
 
-                    world.set_block_kind(grid_position.x, grid_position.y, grid_position.z, kind);
+                    world.set_block_kind(position.x, position.y, position.z, kind);
                 }
             }
         }
@@ -57,7 +57,7 @@ impl MainWorld {
     }
 
     fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: agent::Kind) {
-        world.flags.insert(kind, IVec3::new(x, y + 2, z));
+        world.flags.insert(kind, IVec3::new(x, y + 3, z));
 
         world.set_block_kind(x, y + 6, z, kind.icon());
 

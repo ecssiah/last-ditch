@@ -125,8 +125,8 @@ struct EdgeValidationCase {
     pub description: String,
     pub from_chunk_position: IVec3,
     pub to_chunk_position: IVec3,
-    pub from_grid_position: IVec3,
-    pub to_grid_position: IVec3,
+    pub from_position: IVec3,
+    pub to_position: IVec3,
     pub expected_cost: Option<f32>,
 }
 
@@ -134,7 +134,7 @@ impl EdgeValidationCase {
     pub fn check(&self, world: &World) {
         let node = world.graph.get_node(self.from_chunk_position).unwrap();
 
-        let edge = node.get_edge(self.from_grid_position, self.to_grid_position);
+        let edge = node.get_edge(self.from_position, self.to_position);
 
         if self.expected_cost.is_some() {
             assert!(edge.is_some(), "{:?}", self.description);
@@ -165,64 +165,64 @@ fn edge_validation() {
             description: "(0, -3, -10) to (0, -3, -11)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -1),
             to_chunk_position: IVec3::new(0, 0, -2),
-            from_grid_position: IVec3::new(0, -3, -10),
-            to_grid_position: IVec3::new(0, -3, -11),
+            from_position: IVec3::new(0, -3, -10),
+            to_position: IVec3::new(0, -3, -11),
             expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
             description: "(0, -3, -11) to (0, -3, -10)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -2),
             to_chunk_position: IVec3::new(0, 0, -1),
-            from_grid_position: IVec3::new(0, -3, -11),
-            to_grid_position: IVec3::new(0, -3, -10),
+            from_position: IVec3::new(0, -3, -11),
+            to_position: IVec3::new(0, -3, -10),
             expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
             description: "(0, -3, -10) to (1, -3, -11)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -1),
             to_chunk_position: IVec3::new(0, 0, -2),
-            from_grid_position: IVec3::new(0, -3, -10),
-            to_grid_position: IVec3::new(1, -3, -11),
+            from_position: IVec3::new(0, -3, -10),
+            to_position: IVec3::new(1, -3, -11),
             expected_cost: None,
         },
         EdgeValidationCase {
             description: "(1, -3, -11) to (0, -3, -10)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -2),
             to_chunk_position: IVec3::new(0, 0, -1),
-            from_grid_position: IVec3::new(1, -3, -11),
-            to_grid_position: IVec3::new(0, -3, -10),
+            from_position: IVec3::new(1, -3, -11),
+            to_position: IVec3::new(0, -3, -10),
             expected_cost: None,
         },
         EdgeValidationCase {
             description: "(2, -2, -10) to (2, -2, -11)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -1),
             to_chunk_position: IVec3::new(0, 0, -2),
-            from_grid_position: IVec3::new(2, -2, -10),
-            to_grid_position: IVec3::new(2, -2, -11),
+            from_position: IVec3::new(2, -2, -10),
+            to_position: IVec3::new(2, -2, -11),
             expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
             description: "(2, -2, -11) to (2, -2, -10)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -2),
             to_chunk_position: IVec3::new(0, 0, -1),
-            from_grid_position: IVec3::new(2, -2, -11),
-            to_grid_position: IVec3::new(2, -2, -10),
+            from_position: IVec3::new(2, -2, -11),
+            to_position: IVec3::new(2, -2, -10),
             expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
             description: "(-1, -3, -10) to (-1, -2, -11)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -1),
             to_chunk_position: IVec3::new(0, 0, -2),
-            from_grid_position: IVec3::new(-1, -3, -10),
-            to_grid_position: IVec3::new(-1, -2, -11),
+            from_position: IVec3::new(-1, -3, -10),
+            to_position: IVec3::new(-1, -2, -11),
             expected_cost: Some(WORLD_EDGE_COST),
         },
         EdgeValidationCase {
             description: "(-1, -2, -11) to (-1, -3, -10)".to_string(),
             from_chunk_position: IVec3::new(0, 0, -2),
             to_chunk_position: IVec3::new(0, 0, -1),
-            from_grid_position: IVec3::new(-1, -2, -11),
-            to_grid_position: IVec3::new(-1, -3, -10),
+            from_position: IVec3::new(-1, -2, -11),
+            to_position: IVec3::new(-1, -3, -10),
             expected_cost: Some(WORLD_EDGE_COST),
         },
     ];

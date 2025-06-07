@@ -18,17 +18,17 @@ impl Node {
 
     pub fn get_edge(
         &self,
-        from_grid_position: IVec3,
-        to_grid_position: IVec3,
+        from_position: IVec3,
+        to_position: IVec3,
     ) -> Option<world::Edge> {
         let (_, edge_list) = self
             .edge_map
             .iter()
-            .find(|(grid_position, _)| **grid_position == from_grid_position)?;
+            .find(|(position, _)| **position == from_position)?;
 
         edge_list
             .iter()
-            .find(|edge| edge.to_grid_position == to_grid_position)
+            .find(|edge| edge.to_position == to_position)
             .cloned()
     }
 }

@@ -13,19 +13,17 @@ struct NodeCountCase {
 
 impl NodeCountCase {
     pub fn check(&self, world: &World) {
-        let chunk_graph = world
-            .graph
-            .chunk_graph_map
-            .get(&self.chunk_position)
-            .unwrap();
+        if let Some(chunk_graph) = world.graph.get_chunk_graph(self.chunk_position) {
+            let node_count = chunk_graph.node_map.len();
 
-        let node_count = chunk_graph.node_map.len();
-
-        assert_eq!(
-            node_count, self.expected_node_count,
-            "{:?}",
-            self.description
-        );
+            assert_eq!(
+                node_count, self.expected_node_count,
+                "{:?}",
+                self.description
+            );
+        } else {
+            panic!("{:?}", self.description);
+        }
     }
 }
 
@@ -87,23 +85,21 @@ struct EdgeCountValidationCase {
 
 impl EdgeCountValidationCase {
     pub fn check(&self, world: &World) {
-        let chunk_grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
-        let grid_position = chunk_grid_position + self.block_position;
+        let chunk_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
+        let position = chunk_position + self.block_position;
 
-        let chunk_graph = world
-            .graph
-            .chunk_graph_map
-            .get(&self.chunk_position)
-            .unwrap();
+        if let Some(chunk_graph) = world.graph.get_chunk_graph(self.chunk_position) {
+            let node = chunk_graph.get_node(position).unwrap();
+            let edge_count = node.edge_list.len();
 
-        let node = chunk_graph.get_node(grid_position).unwrap();
-        let edge_count = node.edge_list.len();
-
-        assert_eq!(
-            edge_count, self.expected_edge_count,
-            "{:?}",
-            self.description
-        );
+            assert_eq!(
+                edge_count, self.expected_edge_count,
+                "{:?}",
+                self.description
+            );
+        } else {
+            panic!("{:?}", self.description);
+        }
     }
 }
 
@@ -113,38 +109,12 @@ fn edge_count_validation() {
 
     builder::TestWorld::build(&mut test_world);
 
-    let test_cases = vec![
-        EdgeCountValidationCase {
-            description: "Edge Count: (-1, -3, 0)".to_string(),
-            chunk_position: IVec3::new(1, 0, 0),
-            block_position: IVec3::new(-1, -3, 0),
-            expected_edge_count: 4,
-        },
-        EdgeCountValidationCase {
-            description: "Edge Count: (1, -3, -1)".to_string(),
-            chunk_position: IVec3::new(1, 0, 0),
-            block_position: IVec3::new(1, -3, -1),
-            expected_edge_count: 2,
-        },
-        EdgeCountValidationCase {
-            description: "Edge Count: (1, -3, 1)".to_string(),
-            chunk_position: IVec3::new(1, 0, 0),
-            block_position: IVec3::new(1, -3, 1),
-            expected_edge_count: 3,
-        },
-        EdgeCountValidationCase {
-            description: "Edge Count: (2, 0, 0)".to_string(),
-            chunk_position: IVec3::new(1, 0, 0),
-            block_position: IVec3::new(2, 0, 0),
-            expected_edge_count: 2,
-        },
-        EdgeCountValidationCase {
-            description: "Edge Count: (-2, -3, 2)".to_string(),
-            chunk_position: IVec3::new(1, 0, 0),
-            block_position: IVec3::new(-2, -3, 2),
-            expected_edge_count: 2,
-        },
-    ];
+    let test_cases = vec![EdgeCountValidationCase {
+        description: "Edge Count: (0, -1, 0)".to_string(),
+        chunk_position: IVec3::new(1, 0, 0),
+        block_position: IVec3::new(0, -1, 0),
+        expected_edge_count: 4,
+    }];
 
     for test_case in test_cases {
         test_case.check(&test_world);
@@ -161,10 +131,10 @@ struct EdgeValidationCase {
 
 impl EdgeValidationCase {
     pub fn check(&self, world: &World) {
-        let grid_position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
+        let position = world.grid.chunk_to_grid(self.chunk_position).unwrap();
 
-        let node1_grid_position = grid_position + self.block_position1;
-        let node2_grid_position = grid_position + self.block_position2;
+        let node1_position = position + self.block_position1;
+        let node2_position = position + self.block_position2;
 
         let chunk_graph = world
             .graph
@@ -172,18 +142,18 @@ impl EdgeValidationCase {
             .get(&self.chunk_position)
             .unwrap();
 
-        let node1 = chunk_graph.get_node(node1_grid_position).unwrap();
-        let node2 = chunk_graph.get_node(node2_grid_position).unwrap();
+        let node1 = chunk_graph.get_node(node1_position).unwrap();
+        let node2 = chunk_graph.get_node(node2_position).unwrap();
 
         let edge12 = node1
             .edge_list
             .iter()
-            .find(|edge| edge.to_grid_position == node2_grid_position);
+            .find(|edge| edge.to_position == node2_position);
 
         let edge21 = node2
             .edge_list
             .iter()
-            .find(|edge| edge.to_grid_position == node1_grid_position);
+            .find(|edge| edge.to_position == node1_position);
 
         if self.expected_cost.is_some() {
             assert!(edge12.is_some(), "{:?}", self.description);

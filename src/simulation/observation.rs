@@ -154,8 +154,8 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let grid_position = world.grid.world_to_grid(judge.position).unwrap();
-        let current_chunk_id = world.grid.grid_to_chunk_id(grid_position).unwrap();
+        let position = world.grid.world_to_grid(judge.position).unwrap();
+        let current_chunk_id = world.grid.grid_to_chunk_id(position).unwrap();
 
         let visible_chunk_id_list = world.get_visible_chunk_id_list(current_chunk_id);
 

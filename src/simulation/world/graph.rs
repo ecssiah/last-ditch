@@ -49,7 +49,7 @@ impl Graph {
     pub fn add_edge(&mut self, chunk_position: IVec3, edge: world::Edge) {
         if let Some(node) = self.node_map.get_mut(&chunk_position) {
             node.edge_map
-                .entry(edge.from_grid_position)
+                .entry(edge.from_position)
                 .or_insert_with(Vec::new)
                 .push(edge);
         }
@@ -59,8 +59,8 @@ impl Graph {
         &mut self,
         from_chunk_position: IVec3,
         to_chunk_position: IVec3,
-        from_grid_position: IVec3,
-        to_grid_position: IVec3,
+        from_position: IVec3,
+        to_position: IVec3,
         clearance: i32,
         cost: f32,
     ) {
@@ -73,8 +73,8 @@ impl Graph {
                 world::Edge {
                     from_chunk_position: from_chunk_position,
                     to_chunk_position: to_chunk_position,
-                    from_grid_position: from_grid_position,
-                    to_grid_position: to_grid_position,
+                    from_position: from_position,
+                    to_position: to_position,
                     clearance: clearance as u32,
                     cost,
                 },
@@ -85,8 +85,8 @@ impl Graph {
                 world::Edge {
                     from_chunk_position: to_chunk_position,
                     to_chunk_position: from_chunk_position,
-                    from_grid_position: to_grid_position,
-                    to_grid_position: from_grid_position,
+                    from_position: to_position,
+                    to_position: from_position,
                     clearance: clearance as u32,
                     cost,
                 },
