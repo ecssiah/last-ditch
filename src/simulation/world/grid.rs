@@ -152,7 +152,7 @@ impl Grid {
         println!("{:?}", block_coordinates);
 
         let block_coordinates_indexable =
-            Self::indexable_coordinates(block_coordinates, self.chunk_radius)?;
+            Self::indexable_vector(block_coordinates, self.chunk_radius)?;
         let block_index = Self::vector_to_index(block_coordinates_indexable, self.chunk_radius);
 
         Some(block::ID(block_index))
@@ -171,7 +171,7 @@ impl Grid {
 
     pub fn chunk_coordinates_to_chunk_id(&self, chunk_coordinates: IVec3) -> Option<chunk::ID> {
         let chunk_coordinates_indexable =
-            Self::indexable_coordinates(chunk_coordinates, self.world_radius)?;
+            Self::indexable_vector(chunk_coordinates, self.world_radius)?;
         let chunk_index = Self::vector_to_index(chunk_coordinates_indexable, self.world_radius);
 
         Some(chunk::ID(chunk_index))
@@ -193,18 +193,34 @@ impl Grid {
         self.chunk_coordinates_to_position(chunk_coordinates)
     }
 
-    pub fn ids_to_position(&self, chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
-        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id)?;
-        let block_coordinates = self.block_id_to_block_coordinates(block_id)?;
+    pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
+        if self.position_valid(position) {
+            let position_indexable = Self::indexable_vector(position, self.world_boundary)?;
 
-        Some(self.chunk_size as i32 * chunk_coordinates + block_coordinates)
+            let chunk_coordinates_indexable = position_indexable / self.chunk_size as i32;
+
+            let chunk_coordinates =
+                chunk_coordinates_indexable - IVec3::splat(self.world_radius as i32);
+
+            Some(chunk_coordinates)
+        } else {
+            None
+        }
     }
 
-    pub fn position_to_ids(&self, position: IVec3) -> Option<(chunk::ID, block::ID)> {
-        let chunk_id = self.position_to_chunk_id(position)?;
-        let block_id = self.position_to_block_id(position)?;
+    pub fn position_to_block_coordinates(&self, position: IVec3) -> Option<IVec3> {
+        if self.position_valid(position) {
+            let position_indexable = Self::indexable_vector(position, self.world_boundary)?;
 
-        Some((chunk_id, block_id))
+            let block_coordinates_indexable = position_indexable % self.chunk_size as i32;
+
+            let block_coordinates =
+                block_coordinates_indexable - IVec3::splat(self.chunk_radius as i32);
+
+            Some(block_coordinates)
+        } else {
+            None
+        }
     }
 
     pub fn position_to_chunk_id(&self, position: IVec3) -> Option<chunk::ID> {
@@ -219,21 +235,18 @@ impl Grid {
         self.block_coordinates_to_block_id(block_coordinates)
     }
 
-    pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
-        if self.position_valid(position) {
-            let indexable_position = position + IVec3::splat(self.world_boundary as i32);
+    pub fn position_to_ids(&self, position: IVec3) -> Option<(chunk::ID, block::ID)> {
+        let chunk_id = self.position_to_chunk_id(position)?;
+        let block_id = self.position_to_block_id(position)?;
 
-            Some(indexable_position / self.chunk_size as i32)
-        } else {
-            None
-        }
+        Some((chunk_id, block_id))
     }
 
-    pub fn position_to_block_coordinates(&self, position: IVec3) -> Option<IVec3> {
-        let chunk_coordinates = self.position_to_chunk_coordinates(position)?;
-        let chunk_position = self.chunk_coordinates_to_position(chunk_coordinates)?;
+    pub fn ids_to_position(&self, chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
+        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id)?;
+        let block_coordinates = self.block_id_to_block_coordinates(block_id)?;
 
-        Some(position - chunk_position)
+        Some(self.chunk_size as i32 * chunk_coordinates + block_coordinates)
     }
 
     pub fn world_to_position(&self, world_position: Vec3) -> Option<IVec3> {
@@ -270,28 +283,35 @@ impl Grid {
         self.position_to_block_coordinates(position)
     }
 
-    pub fn boundary_contact_directions(&self, position: IVec3) -> Vec<Direction> {
+    pub fn boundary_contact_direction_list(&self, position: IVec3) -> Vec<Direction> {
         let mut directions = Vec::new();
 
         if let Some(block_coordinates) = self.position_to_block_coordinates(position) {
             let chunk_radius = self.chunk_radius as i32;
+            let world_boundary = self.world_boundary as i32;
 
-            if block_coordinates.x == -chunk_radius {
-                directions.push(Direction::XnYoZo);
-            } else if block_coordinates.x == chunk_radius {
-                directions.push(Direction::XpYoZo);
+            if position.x.abs() != world_boundary {
+                if block_coordinates.x == -chunk_radius {
+                    directions.push(Direction::XnYoZo);
+                } else if block_coordinates.x == chunk_radius {
+                    directions.push(Direction::XpYoZo);
+                }
             }
 
-            if block_coordinates.y == -chunk_radius {
-                directions.push(Direction::XoYnZo);
-            } else if block_coordinates.y == chunk_radius {
-                directions.push(Direction::XoYpZo);
+            if position.y.abs() != world_boundary {
+                if block_coordinates.y == -chunk_radius {
+                    directions.push(Direction::XoYnZo);
+                } else if block_coordinates.y == chunk_radius {
+                    directions.push(Direction::XoYpZo);
+                }
             }
 
-            if block_coordinates.z == -chunk_radius {
-                directions.push(Direction::XoYoZn);
-            } else if block_coordinates.z == chunk_radius {
-                directions.push(Direction::XoYoZp);
+            if position.z.abs() != world_boundary {
+                if block_coordinates.z == -chunk_radius {
+                    directions.push(Direction::XoYoZn);
+                } else if block_coordinates.z == chunk_radius {
+                    directions.push(Direction::XoYoZp);
+                }
             }
         }
 
@@ -357,9 +377,9 @@ impl Grid {
             && (min..=max).contains(&vector.z)
     }
 
-    fn indexable_coordinates(coordinates: IVec3, radius: u32) -> Option<IVec3> {
-        if Self::in_bounds(coordinates, radius) {
-            Some(coordinates + IVec3::splat(radius as i32))
+    fn indexable_vector(vector: IVec3, radius: u32) -> Option<IVec3> {
+        if Self::in_bounds(vector, radius) {
+            Some(vector + IVec3::splat(radius as i32))
         } else {
             None
         }

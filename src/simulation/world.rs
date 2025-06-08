@@ -190,7 +190,7 @@ impl World {
     fn mark_updates(&mut self, chunk_id: chunk::ID, position: IVec3) {
         self.set_block_updated(chunk_id, true);
 
-        let directions = self.grid.boundary_contact_directions(position);
+        let directions = self.grid.boundary_contact_direction_list(position);
 
         if directions.len() > 0 {
             self.set_boundary_updated(chunk_id, true);
@@ -406,7 +406,7 @@ impl World {
         for offset in grid::Grid::offsets_in(chunk_radius) {
             let position = chunk.position + offset;
 
-            if self.grid.boundary_contact_directions(position).len() > 0 {
+            if self.grid.boundary_contact_direction_list(position).len() > 0 {
                 let world_edge_list = self.update_chunk_edge_list(position, chunk);
 
                 chunk_edge_map.insert(position, world_edge_list);
