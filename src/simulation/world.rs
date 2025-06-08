@@ -87,9 +87,9 @@ impl World {
     }
 
     fn setup_chunks(grid: &grid::Grid) -> Vec<chunk::Chunk> {
-        (0..grid.world_volume)
-            .map(|index| {
-                let chunk_id = chunk::ID(index);
+        grid.chunk_ids()
+            .into_iter()
+            .map(|chunk_id| {
                 let position = grid.chunk_id_to_position(chunk_id).unwrap();
 
                 chunk::Chunk {
