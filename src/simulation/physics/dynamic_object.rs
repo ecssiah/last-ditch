@@ -2,8 +2,8 @@ use crate::simulation::{physics::aabb::AABB, world::chunk};
 use glam::Vec3;
 
 pub trait DynamicObject {
-    fn position(&self) -> Vec3;
-    fn set_position(&mut self, x: f32, y: f32, z: f32);
+    fn world_position(&self) -> Vec3;
+    fn set_world_position(&mut self, x: f32, y: f32, z: f32);
 
     fn velocity(&self) -> Vec3;
     fn set_velocity(&mut self, x: f32, y: f32, z: f32);

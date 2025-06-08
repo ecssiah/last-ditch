@@ -8,6 +8,7 @@ pub mod graph;
 pub mod grid;
 
 pub use graph::Graph;
+pub use grid::Grid;
 
 use crate::simulation::{
     consts::*,
@@ -89,7 +90,7 @@ impl World {
         (0..grid.world_volume)
             .map(|index| {
                 let chunk_id = chunk::ID(index);
-                let position = grid.chunk_id_to_grid(chunk_id).unwrap();
+                let position = grid.chunk_id_to_position(chunk_id).unwrap();
 
                 chunk::Chunk {
                     id: chunk_id,
@@ -115,7 +116,7 @@ impl World {
     }
 
     pub fn get_chunk_at(&self, position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = self.grid.grid_to_chunk_id(position)?;
+        let chunk_id = self.grid.position_to_chunk_id(position)?;
 
         self.get_chunk(chunk_id)
     }
@@ -130,7 +131,7 @@ impl World {
     }
 
     pub fn get_block_at(&self, position: IVec3) -> Option<&block::Block> {
-        let (chunk_id, block_id) = self.grid.grid_to_ids(position)?;
+        let (chunk_id, block_id) = self.grid.position_to_ids(position)?;
 
         self.get_block(chunk_id, block_id)
     }
@@ -178,7 +179,7 @@ impl World {
     pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) {
         let position = IVec3::new(x, y, z);
 
-        if let Some((chunk_id, block_id)) = self.grid.grid_to_ids(position) {
+        if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
             self.update_kind_list(chunk_id, block_id, kind);
             self.update_visibility_lists(chunk_id, block_id, position);
 
@@ -194,12 +195,13 @@ impl World {
         if directions.len() > 0 {
             self.set_boundary_updated(chunk_id, true);
 
-            if let Some(chunk_position) = self.grid.chunk_id_to_chunk_position(chunk_id) {
+            if let Some(chunk_coordinates) = self.grid.chunk_id_to_chunk_coordinates(chunk_id) {
                 for direction in directions {
-                    let boundary_chunk_position = chunk_position + direction.offset();
+                    let boundary_chunk_coordinates = chunk_coordinates + direction.offset();
 
-                    if let Some(boundary_chunk_id) =
-                        self.grid.chunk_position_to_id(boundary_chunk_position)
+                    if let Some(boundary_chunk_id) = self
+                        .grid
+                        .chunk_coordinates_to_chunk_id(boundary_chunk_coordinates)
                     {
                         self.set_boundary_updated(boundary_chunk_id, true);
                     }
@@ -256,38 +258,38 @@ impl World {
     }
 
     pub fn update_chunks(&mut self) {
-        let mut chunk_geometry_updates = Vec::new();
-        let mut world_edge_map_updates = Vec::new();
+        // let mut chunk_geometry_updates = Vec::new();
+        // let mut chunk_edge_map_updates = Vec::new();
 
-        for chunk in &self.chunk_list {
-            if chunk.block_updated {
-                let chunk_graph = self.update_chunk_graph(chunk);
+        // for chunk in &self.chunk_list {
+        //     if chunk.block_updated {
+        //         let chunk_graph = self.update_chunk_graph(chunk);
 
-                self.world_graph.add_chunk_graph(chunk.id, chunk_graph);
+        //         self.world_graph.add_chunk_graph(chunk.id, chunk_graph);
 
-                let chunk_geometry = self.update_chunk_geometry(chunk);
+        //         let chunk_geometry = self.update_chunk_geometry(chunk);
 
-                chunk_geometry_updates.push((chunk.id, chunk_geometry));
-            }
+        //         chunk_geometry_updates.push((chunk.id, chunk_geometry));
+        //     }
 
-            if chunk.boundary_updated {
-                let world_edge_map = self.update_world_edge_map(chunk);
+        //     if chunk.boundary_updated {
+        //         let chunk_edge_map = self.update_chunk_edge_map(chunk);
 
-                world_edge_map_updates.push((chunk.position, world_edge_map));
-            }
-        }
+        //         chunk_edge_map_updates.push((chunk.position, chunk_edge_map));
+        //     }
+        // }
 
-        for (chunk_id, geometry) in chunk_geometry_updates {
-            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-                chunk.geometry = geometry;
+        // for (chunk_id, geometry) in chunk_geometry_updates {
+        //     if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+        //         chunk.geometry = geometry;
 
-                chunk.block_updated = false;
-            }
-        }
+        //         chunk.block_updated = false;
+        //     }
+        // }
 
-        // for (chunk_position, world_edge_map) in world_edge_map_updates {
+        // for (chunk_position, chunk_edge_map) in chunk_edge_map_updates {
         //     if let Some(chunk_node) = self.world_graph.get_node_mut(chunk_position) {
-        //         chunk_node.edge_map = world_edge_map;
+        //         chunk_node.edge_map = chunk_edge_map;
         //     }
 
         //     if let Some(chunk_id) = self.grid.chunk_position_to_id(chunk_position) {
@@ -315,7 +317,7 @@ impl World {
 
                 if clearance >= MINIMUM_CLEARANCE {
                     let block_node = block::Node {
-                        block_id: self.grid.grid_to_block_id(position).unwrap(),
+                        block_id: self.grid.position_to_block_id(position).unwrap(),
                         group_id: 0,
                     };
 
@@ -326,48 +328,46 @@ impl World {
 
         let mut edge_updates = Vec::new();
 
-        for (block_id1, block_node1) in &chunk_graph.node_map {
+        for block_id1 in chunk_graph.get_block_ids() {
             let block_id1 = *block_id1;
-            let block_position1 = self.grid.ids_to_grid(chunk.id, block_id1).unwrap();
+            let block_position1 = self.grid.ids_to_position(chunk.id, block_id1).unwrap();
 
             for direction in grid::Direction::traversable_list() {
                 let block_position2 = block_position1 + direction.offset();
-                let block_id2 = self.grid.grid_to_block_id(block_position2).unwrap();
+                let block_id2 = self.grid.position_to_block_id(block_position2).unwrap();
 
-                if let Some(block_node2) = chunk_graph.get_block_node(block_id2) {
-                    let (block_id1, block_id2) = if block_id1 < block_id2 {
-                        (block_id1, block_id2)
-                    } else {
-                        (block_id2, block_id1)
-                    };
+                let (block_id1, block_id2) = if block_id1 < block_id2 {
+                    (block_id1, block_id2)
+                } else {
+                    (block_id2, block_id1)
+                };
 
-                    let clearance1 = self.get_clearance(block_position1);
-                    let clearance2 = self.get_clearance(block_position2);
-                    let clearance = clearance1.min(clearance2);
+                let clearance1 = self.get_clearance(block_position1);
+                let clearance2 = self.get_clearance(block_position2);
+                let clearance = clearance1.min(clearance2);
 
-                    let cost = direction.cost();
+                let cost = direction.cost();
 
-                    let edge = block::Edge {
-                        block_id1,
-                        block_id2,
-                        clearance,
-                        cost,
-                    };
+                let edge = block::Edge {
+                    block_id1,
+                    block_id2,
+                    clearance,
+                    cost,
+                };
 
-                    edge_updates
-                }
+                edge_updates.push(edge);
             }
         }
 
         let group_id_map = self.update_group_id_map(chunk);
 
-        for (position, group_id) in group_id_map {
-            if let Some(node) = node_map.get_mut(&position) {
-                node.group_id = group_id;
+        for (block_id, group_id) in group_id_map {
+            if let Some(block_node) = chunk_graph.get_block_node_mut(block_id) {
+                block_node.group_id = group_id;
             }
         }
 
-        chunk::Graph { node_map }
+        chunk_graph
     }
 
     fn update_chunk_geometry(&self, chunk: &chunk::Chunk) -> chunk::Geometry {
@@ -398,8 +398,8 @@ impl World {
         chunk_geometry
     }
 
-    fn update_world_edge_map(&self, chunk: &chunk::Chunk) -> HashMap<IVec3, Vec<world::Edge>> {
-        let mut world_edge_map = HashMap::new();
+    fn update_chunk_edge_map(&self, chunk: &chunk::Chunk) -> HashMap<IVec3, Vec<chunk::Edge>> {
+        let mut chunk_edge_map = HashMap::new();
 
         let chunk_radius = self.grid.chunk_radius as i32;
 
@@ -407,84 +407,89 @@ impl World {
             let position = chunk.position + offset;
 
             if self.grid.boundary_contact_directions(position).len() > 0 {
-                let world_edge_list = self.update_world_edge_list(position, chunk);
+                let world_edge_list = self.update_chunk_edge_list(position, chunk);
 
-                world_edge_map.insert(position, world_edge_list);
+                chunk_edge_map.insert(position, world_edge_list);
             }
         }
 
-        world_edge_map
+        chunk_edge_map
     }
 
-    fn update_world_edge_list(&self, position: IVec3, chunk: &chunk::Chunk) -> Vec<world::Edge> {
-        let mut world_edges = Vec::new();
+    fn update_chunk_edge_list(&self, position1: IVec3, chunk: &chunk::Chunk) -> Vec<chunk::Edge> {
+        let mut chunk_edge_list = Vec::new();
 
         for direction in grid::Direction::traversable_list() {
-            let to_position = position + direction.offset();
+            let position2 = position1 + direction.offset();
 
-            if let Some(neighbor_chunk_id) = self.grid.grid_to_chunk_id(to_position) {
+            if let Some(neighbor_chunk_id) = self.grid.position_to_chunk_id(position2) {
                 if neighbor_chunk_id == chunk.id {
                     continue;
                 }
 
-                if let Some(neighbor_chunk) = self.get_chunk(neighbor_chunk_id) {
-                    let from_clearance = self.get_clearance(position);
-                    let to_clearance = self.get_clearance(to_position);
+                let clearance1 = self.get_clearance(position1);
+                let clearance2 = self.get_clearance(position2);
 
-                    let edge_clearance = from_clearance.min(to_clearance);
+                let clearance = clearance1.min(clearance2);
 
-                    if edge_clearance >= MINIMUM_CLEARANCE {
-                        let cost = direction.cost();
-
-                        let edge = world::Edge {
-                            from_chunk_position: chunk.position,
-                            to_chunk_position: neighbor_chunk.position,
-                            from_position: position,
-                            to_position: to_position,
-                            clearance: edge_clearance,
-                            cost,
+                if clearance >= MINIMUM_CLEARANCE {
+                    let ((chunk_id1, chunk_id2), (position1, position2)) =
+                        if chunk.id < neighbor_chunk_id {
+                            ((chunk.id, neighbor_chunk_id), (position1, position2))
+                        } else {
+                            ((neighbor_chunk_id, chunk.id), (position2, position1))
                         };
 
-                        world_edges.push(edge);
-                    }
+                    let cost = direction.cost();
+
+                    let chunk_edge = chunk::Edge {
+                        chunk_id1,
+                        chunk_id2,
+                        position1,
+                        position2,
+                        clearance,
+                        cost,
+                    };
+
+                    chunk_edge_list.push(chunk_edge);
                 }
             }
         }
 
-        world_edges
+        chunk_edge_list
     }
 
-    fn update_group_id_map(&self, chunk: &chunk::Chunk) -> HashMap<IVec3, u32> {
+    fn update_group_id_map(&self, chunk: &chunk::Chunk) -> HashMap<block::ID, u32> {
         let mut group_id = 0;
-        let mut group_id_map: HashMap<IVec3, u32> = HashMap::new();
+        let mut group_id_map: HashMap<block::ID, u32> = HashMap::new();
 
-        let mut visited: HashSet<IVec3> = HashSet::new();
+        let mut visited: HashSet<block::ID> = HashSet::new();
 
-        if let Some(chunk_graph) = self.world_graph.get_chunk_graph(chunk.position) {
-            for &node_position in chunk_graph.node_map.keys() {
-                if visited.contains(&node_position) {
+        if let Some(chunk_graph) = self.world_graph.get_chunk_graph(chunk.id) {
+            for &block_id in chunk_graph.get_block_ids() {
+                if visited.contains(&block_id) {
                     continue;
                 }
 
                 let mut queue = VecDeque::new();
-                queue.push_back(node_position);
+                queue.push_back(block_id);
 
-                while let Some(position) = queue.pop_front() {
-                    if !visited.insert(position) {
+                while let Some(test_block_id) = queue.pop_front() {
+                    if !visited.insert(test_block_id) {
                         continue;
                     }
 
-                    group_id_map.insert(position, group_id);
+                    group_id_map.insert(test_block_id, group_id);
 
-                    if let Some(node) = chunk_graph.get_node(position) {
-                        for edge in &node.edge_list {
-                            let to_position = edge.to_position;
+                    // if let Some(node) = chunk_graph.get_block_node(test_block_id) {
+                    //     for edge in &node.edge_list {
+                    //         let position2 = edge.position2;
 
-                            if !visited.contains(&to_position) {
-                                queue.push_back(to_position);
-                            }
-                        }
-                    }
+                    //         if !visited.contains(&position2) {
+                    //             queue.push_back(position2);
+                    //         }
+                    //     }
+                    // }
                 }
 
                 group_id += 1;
@@ -689,15 +694,16 @@ impl World {
 
         let mut visible_chunk_id_list = Vec::with_capacity(chunk_count_estimate);
 
-        if let Some(chunk_position) = self.grid.chunk_id_to_chunk_position(chunk_id) {
+        if let Some(chunk_coordinates) = self.grid.chunk_id_to_chunk_coordinates(chunk_id) {
             for offset in grid::Grid::offsets_in(radius) {
                 if offset.length_squared() < radius_squared {
-                    let visible_chunk_position = chunk_position + offset;
+                    let visible_chunk_coordinates = chunk_coordinates + offset;
 
-                    if let Some(position) = self.grid.chunk_to_grid(visible_chunk_position) {
-                        if let Some(visible_chunk_id) = self.grid.grid_to_chunk_id(position) {
-                            visible_chunk_id_list.push(visible_chunk_id);
-                        }
+                    if let Some(visible_chunk_id) = self
+                        .grid
+                        .chunk_coordinates_to_chunk_id(visible_chunk_coordinates)
+                    {
+                        visible_chunk_id_list.push(visible_chunk_id);
                     }
                 }
             }

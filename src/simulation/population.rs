@@ -45,10 +45,10 @@ impl Population {
         log::info!("Setup Judge");
 
         if TESTING {
-            self.judge.set_position(0.0, -2.0, 0.0);
+            self.judge.set_world_position(0.0, -2.0, 0.0);
             self.judge.set_rotation(0.0, 0.0);
         } else {
-            self.judge.set_position(0.0, 2.0, 0.0);
+            self.judge.set_world_position(0.0, 2.0, 0.0);
             self.judge.set_rotation(0.0, 0.0);
         }
     }
@@ -69,12 +69,12 @@ impl Population {
                 for _ in 0..AGENT_INITIAL_POPULATION {
                     let offset =
                         Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
-                    let position = flag_position + offset;
+                    let world_position = flag_position + offset;
 
                     let mut agent = Agent::new(agent::ID::allocate());
 
-                    agent.position = position;
-                    agent.target = position;
+                    agent.world_position = world_position;
+                    agent.target_world_position = world_position;
                     agent.kind = kind;
                     agent.height = rng.gen_range(1.2..=2.2);
 

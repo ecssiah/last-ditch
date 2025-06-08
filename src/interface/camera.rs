@@ -75,9 +75,9 @@ impl Camera {
         judge_view: &simulation::observation::view::JudgeView,
     ) -> CameraUniformData {
         let judge_position = judge_view
-            .position
+            .world_position
             .current
-            .lerp(judge_view.position.next, alpha);
+            .lerp(judge_view.world_position.next, alpha);
 
         let projection =
             Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);

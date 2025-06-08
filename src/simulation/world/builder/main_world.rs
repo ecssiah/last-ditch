@@ -27,15 +27,18 @@ impl MainWorld {
     }
 
     fn build_ground(world: &mut World) {
-        let ground_boundary = (world.grid.boundary - world.grid.chunk_size) as isize;
+        let ground_boundary = (world.grid.world_boundary - world.grid.chunk_size) as isize;
 
         for x in -ground_boundary..=ground_boundary {
             for y in -1..=0 {
                 for z in -ground_boundary..=ground_boundary {
                     let position = IVec3::new(x as i32, y as i32, z as i32);
-                    let chunk_position = world.grid.grid_to_chunk(position).unwrap();
+                    let chunk_coordinates =
+                        world.grid.position_to_chunk_coordinates(position).unwrap();
 
-                    let kind = if (chunk_position.x + chunk_position.y + chunk_position.z) % 2 == 0
+                    let kind = if (chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z)
+                        % 2
+                        == 0
                     {
                         block::Kind::Polished1
                     } else {

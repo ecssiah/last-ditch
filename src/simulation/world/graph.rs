@@ -36,4 +36,8 @@ impl Graph {
     ) -> Option<chunk::Graph> {
         self.chunk_graph_map.insert(chunk_id, chunk_graph)
     }
+
+    pub fn get_chunk_graph(&self, chunk_id: chunk::ID) -> Option<&chunk::Graph> {
+        self.chunk_graph_map.get(&chunk_id)
+    }
 }

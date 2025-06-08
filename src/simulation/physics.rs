@@ -116,18 +116,18 @@ impl Physics {
     }
 
     fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T, world: &World) {
-        let position = dynamic_object.aabb().bottom_center();
+        let world_position = dynamic_object.aabb().bottom_center();
 
-        if let Some(chunk_id) = world.grid.world_to_chunk_id(position) {
+        if let Some(chunk_id) = world.grid.world_to_chunk_id(world_position) {
             let chunk_update = chunk_id != dynamic_object.chunk_id();
 
             dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_position(position.x, position.y, position.z);
+            dynamic_object.set_world_position(world_position.x, world_position.y, world_position.z);
         } else {
             let chunk_update = true;
 
             dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_position(0.0, 10.0, 0.0);
+            dynamic_object.set_world_position(0.0, 10.0, 0.0);
             dynamic_object.set_velocity(0.0, 0.0, 0.0);
             dynamic_object.set_rotation(0.0, 0.0);
         }

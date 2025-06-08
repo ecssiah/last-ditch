@@ -9,7 +9,7 @@ var<uniform> camera_uniform_data: CameraUniformData;
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
-    @location(5) instance_position: vec3<f32>,
+    @location(5) instance_world_position: vec3<f32>,
     @location(6) instance_height: f32,
     @location(7) instance_color: vec4<f32>,
     @builtin(vertex_index) vertex_index: u32,
@@ -30,13 +30,13 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
     let scale = input.instance_height / 1.0;
 
-    let scaled_position = vec3<f32>(
+    let vertex_position_scaled = vec3<f32>(
         scale * input.position.x, 
         scale * input.position.y, 
         scale * input.position.z
     );
 
-    let world_position = scaled_position + input.instance_position + agent_render_offset;
+    let world_position = vertex_position_scaled + input.instance_world_position + agent_render_offset;
     
     out.position = camera_uniform_data.view_projection_matrix * vec4<f32>(world_position, 1.0);
     out.normal = input.normal;

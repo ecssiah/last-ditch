@@ -21,7 +21,7 @@ pub struct Judge {
     pub(crate) tick: Tick,
     pub(crate) chunk_id: chunk::ID,
     pub(crate) chunk_update: bool,
-    pub(crate) position: Vec3,
+    pub(crate) world_position: Vec3,
     pub(crate) velocity: Vec3,
     pub(crate) acceleration: Vec3,
     pub(crate) aabb: AABB,
@@ -38,7 +38,7 @@ impl Judge {
             tick: Tick::ZERO,
             chunk_id: chunk::ID(0),
             chunk_update: false,
-            position: Vec3::ZERO,
+            world_position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
             aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 2.2, 0.6)),
@@ -108,12 +108,12 @@ impl DynamicObject for Judge {
         self.chunk_update = chunk_update;
     }
 
-    fn position(&self) -> Vec3 {
-        self.position
+    fn world_position(&self) -> Vec3 {
+        self.world_position
     }
 
-    fn set_position(&mut self, x: f32, y: f32, z: f32) {
-        self.position = Vec3::new(x, y, z);
+    fn set_world_position(&mut self, x: f32, y: f32, z: f32) {
+        self.world_position = Vec3::new(x, y, z);
         self.aabb.set_bottom_center(x, y, z);
     }
 

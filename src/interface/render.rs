@@ -78,7 +78,7 @@ impl Render {
             .iter()
             .map(|(_, agent_view)| {
                 let agent_instance_data = AgentInstanceData {
-                    position: agent_view.position.next.to_array(),
+                    world_position: agent_view.world_position.next.to_array(),
                     height: agent_view.height,
                     color: agent_view.kind.color(),
                 };

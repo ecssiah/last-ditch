@@ -1,7 +1,7 @@
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct AgentInstanceData {
-    pub position: [f32; 3],
+    pub world_position: [f32; 3],
     pub height: f32,
     pub color: [f32; 4],
 }

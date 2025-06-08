@@ -76,6 +76,8 @@ pub struct Grid {
     pub(crate) world_area: u32,
     pub(crate) world_volume: u32,
     pub(crate) world_boundary: u32,
+    pub(crate) block_index_max: u32,
+    pub(crate) chunk_index_max: u32,
 }
 
 impl Grid {
@@ -89,6 +91,9 @@ impl Grid {
         let world_volume = world_size * world_size * world_size;
         let world_boundary = chunk_radius + world_radius * chunk_size;
 
+        let block_index_max = chunk_volume - 1;
+        let chunk_index_max = world_volume - 1;
+
         Grid {
             chunk_radius,
             chunk_size,
@@ -99,6 +104,8 @@ impl Grid {
             world_area,
             world_volume,
             world_boundary,
+            block_index_max,
+            chunk_index_max,
         }
     }
 
@@ -133,6 +140,9 @@ impl Grid {
     pub fn chunk_id_to_chunk_coordinates(&self, chunk_id: chunk::ID) -> Option<IVec3> {
         if self.valid_chunk_id(chunk_id) {
             let chunk_index = u32::from(chunk_id);
+
+            println!("chunk: {:?}", chunk_index);
+
             let chunk_coordinates = Self::delinearize(chunk_index, self.world_radius);
 
             Some(chunk_coordinates)
@@ -146,7 +156,7 @@ impl Grid {
 
         let chunk_index = Self::linearize(indexable_coordinates, self.world_radius);
 
-        if chunk_index >= 0 && chunk_index < self.world_volume {
+        if chunk_index >= 0 && chunk_index < self.world_volume as i32 {
             Some(chunk::ID(chunk_index as u32))
         } else {
             None
@@ -185,7 +195,7 @@ impl Grid {
 
         let block_index = Self::linearize(indexable_coordinates, self.chunk_radius);
 
-        if block_index >= 0 && block_index < self.chunk_volume {
+        if block_index >= 0 && block_index < self.chunk_volume as i32 {
             Some(block::ID(block_index as u32))
         } else {
             None
@@ -321,13 +331,11 @@ impl Grid {
         aabb_list
     }
 
-    pub fn linearize(vector: IVec3, radius: u32) -> u32 {
-        let vector = vector.as_uvec3();
-
+    pub fn linearize(vector: IVec3, radius: u32) -> i32 {
         let size = 2 * radius + 1;
         let area = size * size;
 
-        vector.x + vector.y * size + vector.z * area
+        vector.x + vector.y * size as i32 + vector.z * area as i32
     }
 
     pub fn delinearize(index: u32, radius: u32) -> IVec3 {
@@ -341,7 +349,11 @@ impl Grid {
         let y = (index / size % size) - radius;
         let z = (index / area) - radius;
 
-        IVec3::new(x, y, z)
+        let vector = IVec3::new(x, y, z);
+
+        println!("{:?}", vector);
+
+        vector
     }
 
     pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {

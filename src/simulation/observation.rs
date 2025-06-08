@@ -95,7 +95,7 @@ impl Observation {
                 id: judge.id,
                 tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
                 aabb: StatePair::new(population_view.judge_view.aabb.next, judge.aabb),
-                position: StatePair::new(population_view.judge_view.position.next, judge.position),
+                world_position: StatePair::new(population_view.judge_view.world_position.next, judge.world_position),
                 orientation: StatePair::new(
                     population_view.judge_view.orientation.next,
                     judge.orientation,
@@ -106,7 +106,7 @@ impl Observation {
 
         for agent in population.get_agent_map() {
             let judge_distance_squared =
-                (agent.position - population.judge.position).length_squared();
+                (agent.world_position - population.judge.world_position).length_squared();
 
             if judge_distance_squared > POPULATION_VIEW_RADIUS_SQUARED {
                 continue;
@@ -118,8 +118,8 @@ impl Observation {
                     kind: agent.kind,
                     height: agent.height,
                     tick: StatePair::new(agent_view.tick.next, agent.tick),
-                    position: StatePair::new(agent_view.position.next, agent.position),
-                    target: StatePair::new(agent_view.target.next, agent.target),
+                    world_position: StatePair::new(agent_view.world_position.next, agent.world_position),
+                    target_world_position: StatePair::new(agent_view.target_world_position.next, agent.target_world_position),
                 };
 
                 next_population_view
@@ -131,8 +131,8 @@ impl Observation {
                     kind: agent.kind,
                     height: agent.height,
                     tick: StatePair::new(agent.tick, agent.tick),
-                    position: StatePair::new(agent.position, agent.position),
-                    target: StatePair::new(agent.target, agent.target),
+                    world_position: StatePair::new(agent.world_position, agent.world_position),
+                    target_world_position: StatePair::new(agent.target_world_position, agent.target_world_position),
                 };
 
                 next_population_view
@@ -154,8 +154,8 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let position = world.grid.world_to_grid(judge.position).unwrap();
-        let current_chunk_id = world.grid.grid_to_chunk_id(position).unwrap();
+        let position = world.grid.world_to_position(judge.world_position).unwrap();
+        let current_chunk_id = world.grid.position_to_chunk_id(position).unwrap();
 
         let visible_chunk_id_list = world.get_visible_chunk_id_list(current_chunk_id);
 

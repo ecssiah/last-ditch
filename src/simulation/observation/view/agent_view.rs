@@ -7,6 +7,6 @@ pub struct AgentView {
     pub id: agent::ID,
     pub kind: agent::Kind,
     pub height: f32,
-    pub position: StatePair<Vec3>,
-    pub target: StatePair<Vec3>,
+    pub world_position: StatePair<Vec3>,
+    pub target_world_position: StatePair<Vec3>,
 }

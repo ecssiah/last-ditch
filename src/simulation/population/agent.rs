@@ -17,12 +17,12 @@ use rand::Rng;
 pub struct Agent {
     pub(crate) id: ID,
     pub(crate) tick: Tick,
-    pub(crate) position: Vec3,
+    pub(crate) world_position: Vec3,
+    pub(crate) target_world_position: Vec3,
     pub(crate) kind: Kind,
     pub(crate) decision: Decision,
     pub(crate) plan: Vec<Step>,
     pub(crate) step_index: usize,
-    pub(crate) target: Vec3,
     pub(crate) speed: f32,
     pub(crate) height: f32,
 }
@@ -32,12 +32,12 @@ impl Agent {
         let agent = Self {
             id: agent_id,
             tick: Tick::ZERO,
-            position: Vec3::ZERO,
+            world_position: Vec3::ZERO,
+            target_world_position: Vec3::ZERO,
             kind: Kind::Lion,
             decision: Decision::new(),
             plan: Vec::new(),
             step_index: 0,
-            target: Vec3::ZERO,
             speed: 1.0,
             height: 1.5,
         };
@@ -62,10 +62,10 @@ impl Agent {
             if let Some(step) = self.plan.get(self.step_index) {
                 match step {
                     Step::Move(target_position) => {
-                        let path = target_position.as_vec3() - self.position;
+                        let path = target_position.as_vec3() - self.world_position;
 
                         if path.length_squared() > 1e-2 {
-                            self.position += self.speed
+                            self.world_position += self.speed
                                 * SIMULATION_TICK_DURATION.as_secs_f32()
                                 * path.normalize();
                         } else {

@@ -16,15 +16,18 @@ impl TestWorld {
     }
 
     fn build_ground(world: &mut World) {
-        let boundary = world.grid.boundary as isize;
+        let boundary = world.grid.world_boundary as isize;
 
         for x in -boundary..=boundary {
             for y in -boundary..=boundary {
                 for z in -boundary..=boundary {
                     let position = IVec3::new(x as i32, y as i32, z as i32);
-                    let chunk_position = world.grid.grid_to_chunk(position).unwrap();
+                    let chunk_coordinates =
+                        world.grid.position_to_chunk_coordinates(position).unwrap();
 
-                    let kind = if (chunk_position.x + chunk_position.y + chunk_position.z) % 2 == 0
+                    let kind = if (chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z)
+                        % 2
+                        == 0
                     {
                         block::Kind::Polished2
                     } else {
@@ -40,15 +43,29 @@ impl TestWorld {
     pub fn build_central_room(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_center_position = world.grid.chunk_to_grid(IVec3::new(0, 0, 0)).unwrap();
-        let chunk_north_position = world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
-        let chunk_south_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
-        let chunk_east_position = world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
-        let chunk_west_position = world.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
+        let chunk_center_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, 0))
+            .unwrap();
+        let chunk_north_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, 1))
+            .unwrap();
+        let chunk_south_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, -1))
+            .unwrap();
+        let chunk_east_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(1, 0, 0))
+            .unwrap();
+        let chunk_west_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
+            .unwrap();
 
         world.set_cube(
-            chunk_center_position
-                + IVec3::new(-chunk_radius, -chunk_radius + 1, -chunk_radius),
+            chunk_center_position + IVec3::new(-chunk_radius, -chunk_radius + 1, -chunk_radius),
             chunk_center_position + IVec3::new(chunk_radius, chunk_radius - 1, chunk_radius),
             block::Kind::Empty,
         );
@@ -86,13 +103,15 @@ impl TestWorld {
     pub fn build_clearance_test(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_north_position = world.grid.chunk_to_grid(IVec3::new(0, 0, 1)).unwrap();
+        let chunk_north_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, 1))
+            .unwrap();
 
         world.set_cube(
             chunk_north_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_north_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            chunk_north_position + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
 
@@ -135,13 +154,15 @@ impl TestWorld {
     fn build_empty_room(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_west_position = world.grid.chunk_to_grid(IVec3::new(-1, 0, 0)).unwrap();
+        let chunk_west_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
+            .unwrap();
 
         world.set_cube(
             chunk_west_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_west_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            chunk_west_position + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
     }
@@ -149,20 +170,21 @@ impl TestWorld {
     fn build_chunk_graph_test(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_east_position = world.grid.chunk_to_grid(IVec3::new(1, 0, 0)).unwrap();
+        let chunk_east_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(1, 0, 0))
+            .unwrap();
 
         world.set_cube(
             chunk_east_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_east_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
+            chunk_east_position + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius - 1),
             block::Kind::Empty,
         );
 
         world.set_cube(
             chunk_east_position + IVec3::new(1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_east_position
-                + IVec3::new(chunk_radius - 1, -chunk_radius + 1, chunk_radius - 1),
+            chunk_east_position + IVec3::new(chunk_radius - 1, -chunk_radius + 1, chunk_radius - 1),
             block::Kind::TealStone,
         );
 
@@ -201,8 +223,15 @@ impl TestWorld {
     fn build_world_graph_test(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
 
-        let chunk_south_1_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -1)).unwrap();
-        let chunk_south_2_position = world.grid.chunk_to_grid(IVec3::new(0, 0, -2)).unwrap();
+        let chunk_south_1_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, -1))
+            .unwrap();
+        
+        let chunk_south_2_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, -2))
+            .unwrap();
 
         world.set_cube(
             chunk_south_1_position
@@ -215,16 +244,13 @@ impl TestWorld {
         world.set_cube(
             chunk_south_2_position
                 + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, -chunk_radius + 1),
-            chunk_south_2_position
-                + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius),
+            chunk_south_2_position + IVec3::new(chunk_radius - 1, chunk_radius - 1, chunk_radius),
             block::Kind::Empty,
         );
 
         world.set_cube(
-            chunk_south_2_position
-                + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, chunk_radius),
-            chunk_south_2_position
-                + IVec3::new(chunk_radius - 1, -chunk_radius + 1, chunk_radius),
+            chunk_south_2_position + IVec3::new(-chunk_radius + 1, -chunk_radius + 1, chunk_radius),
+            chunk_south_2_position + IVec3::new(chunk_radius - 1, -chunk_radius + 1, chunk_radius),
             block::Kind::MagentaStone,
         );
 

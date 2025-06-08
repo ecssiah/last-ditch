@@ -7,7 +7,7 @@ use glam::{Quat, Vec3};
 pub struct JudgeView {
     pub id: judge::ID,
     pub tick: StatePair<Tick>,
-    pub position: StatePair<Vec3>,
+    pub world_position: StatePair<Vec3>,
     pub aabb: StatePair<AABB>,
     pub orientation: StatePair<Quat>,
 }
@@ -17,7 +17,7 @@ impl JudgeView {
         let judge_view = JudgeView {
             id: judge::ID(0),
             tick: StatePair::default(),
-            position: StatePair::default(),
+            world_position: StatePair::default(),
             aabb: StatePair::default(),
             orientation: StatePair::default(),
         };
