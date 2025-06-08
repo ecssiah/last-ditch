@@ -258,34 +258,34 @@ impl World {
     }
 
     pub fn update_chunks(&mut self) {
-        // let mut chunk_geometry_updates = Vec::new();
-        // let mut chunk_edge_map_updates = Vec::new();
+        let mut chunk_geometry_updates = Vec::new();
+        let mut chunk_edge_map_updates = Vec::new();
 
-        // for chunk in &self.chunk_list {
-        //     if chunk.block_updated {
-        //         let chunk_graph = self.update_chunk_graph(chunk);
+        for chunk in &self.chunk_list {
+            if chunk.block_updated {
+                let chunk_graph = self.update_chunk_graph(chunk);
 
-        //         self.world_graph.add_chunk_graph(chunk.id, chunk_graph);
+                self.world_graph.add_chunk_graph(chunk.id, chunk_graph);
 
-        //         let chunk_geometry = self.update_chunk_geometry(chunk);
+                let chunk_geometry = self.update_chunk_geometry(chunk);
 
-        //         chunk_geometry_updates.push((chunk.id, chunk_geometry));
-        //     }
+                chunk_geometry_updates.push((chunk.id, chunk_geometry));
+            }
 
-        //     if chunk.boundary_updated {
-        //         let chunk_edge_map = self.update_chunk_edge_map(chunk);
+            if chunk.boundary_updated {
+                let chunk_edge_map = self.update_chunk_edge_map(chunk);
 
-        //         chunk_edge_map_updates.push((chunk.position, chunk_edge_map));
-        //     }
-        // }
+                chunk_edge_map_updates.push((chunk.position, chunk_edge_map));
+            }
+        }
 
-        // for (chunk_id, geometry) in chunk_geometry_updates {
-        //     if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-        //         chunk.geometry = geometry;
+        for (chunk_id, geometry) in chunk_geometry_updates {
+            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+                chunk.geometry = geometry;
 
-        //         chunk.block_updated = false;
-        //     }
-        // }
+                chunk.block_updated = false;
+            }
+        }
 
         // for (chunk_position, chunk_edge_map) in chunk_edge_map_updates {
         //     if let Some(chunk_node) = self.world_graph.get_node_mut(chunk_position) {

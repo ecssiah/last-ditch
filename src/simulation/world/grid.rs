@@ -149,8 +149,6 @@ impl Grid {
     }
 
     pub fn block_coordinates_to_block_id(&self, block_coordinates: IVec3) -> Option<block::ID> {
-        println!("{:?}", block_coordinates);
-
         let block_coordinates_indexable =
             Self::indexable_vector(block_coordinates, self.chunk_radius)?;
         let block_index = Self::vector_to_index(block_coordinates_indexable, self.chunk_radius);
