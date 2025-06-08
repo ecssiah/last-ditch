@@ -121,15 +121,15 @@ impl Grid {
             .collect()
     }
 
-    pub fn valid_chunk_id(&self, chunk_id: chunk::ID) -> bool {
+    pub fn chunk_id_valid(&self, chunk_id: chunk::ID) -> bool {
         (0u32..self.world_volume).contains(&u32::from(chunk_id))
     }
 
-    pub fn valid_block_id(&self, block_id: block::ID) -> bool {
+    pub fn block_id_valid(&self, block_id: block::ID) -> bool {
         (0u32..self.chunk_volume).contains(&u32::from(block_id))
     }
 
-    pub fn valid_position(&self, position: IVec3) -> bool {
+    pub fn position_valid(&self, position: IVec3) -> bool {
         let in_x_range = position.x.abs() as u32 <= self.world_boundary;
         let in_y_range = position.y.abs() as u32 <= self.world_boundary;
         let in_z_range = position.z.abs() as u32 <= self.world_boundary;
@@ -138,7 +138,7 @@ impl Grid {
     }
 
     pub fn chunk_id_to_chunk_coordinates(&self, chunk_id: chunk::ID) -> Option<IVec3> {
-        if self.valid_chunk_id(chunk_id) {
+        if self.chunk_id_valid(chunk_id) {
             let chunk_index = u32::from(chunk_id);
 
             println!("chunk: {:?}", chunk_index);
@@ -166,7 +166,7 @@ impl Grid {
     pub fn chunk_coordinates_to_position(&self, chunk_coordinates: IVec3) -> Option<IVec3> {
         let position = chunk_coordinates + self.chunk_size as i32;
 
-        if self.valid_position(position) {
+        if self.position_valid(position) {
             Some(position)
         } else {
             None
@@ -180,7 +180,7 @@ impl Grid {
     }
 
     pub fn block_id_to_block_coordinates(&self, block_id: block::ID) -> Option<IVec3> {
-        if self.valid_block_id(block_id) {
+        if self.block_id_valid(block_id) {
             let block_index = u32::from(block_id);
             let block_coordinates = Self::delinearize(block_index, self.chunk_radius);
 
@@ -229,7 +229,7 @@ impl Grid {
     }
 
     pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
-        if self.valid_position(position) {
+        if self.position_valid(position) {
             let indexable_position = position + IVec3::splat(self.world_boundary as i32);
 
             Some(indexable_position / self.chunk_size as i32)
@@ -248,7 +248,7 @@ impl Grid {
     pub fn world_to_position(&self, world_position: Vec3) -> Option<IVec3> {
         let position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
 
-        if self.valid_position(position) {
+        if self.position_valid(position) {
             Some(position)
         } else {
             None
