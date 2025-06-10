@@ -9,9 +9,9 @@ pub struct EdgeKey {
 
 impl EdgeKey {
     pub fn new(block_id1: block::ID, block_id2: block::ID) -> Self {
-        assert!(
-            block_id1 != block_id2,
-            "block edges must travel between different blocks"
+        assert_ne!(
+            block_id1, block_id2,
+            "block edges must connect distinct blocks"
         );
 
         Self {
