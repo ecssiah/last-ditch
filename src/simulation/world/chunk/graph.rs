@@ -4,8 +4,8 @@ use std::collections::{HashMap, HashSet};
 #[derive(Clone, Debug)]
 pub struct Graph {
     pub node_map: HashMap<block::ID, block::Node>,
-    pub edge_map: HashMap<(block::ID, block::ID), block::Edge>,
-    pub node_edge_map: HashMap<block::ID, HashSet<(block::ID, block::ID)>>,
+    pub edge_map: HashMap<block::EdgeKey, block::Edge>,
+    pub node_edge_map: HashMap<block::ID, HashSet<block::EdgeKey>>,
 }
 
 impl Graph {
@@ -17,18 +17,6 @@ impl Graph {
         };
 
         graph
-    }
-
-    pub fn order_edge_key(
-        &self,
-        block_id1: block::ID,
-        block_id2: block::ID,
-    ) -> (block::ID, block::ID) {
-        if block_id1 < block_id2 {
-            (block_id1, block_id2)
-        } else {
-            (block_id2, block_id1)
-        }
     }
 
     pub fn get_node_block_ids(&self) -> impl Iterator<Item = block::ID> + '_ {
@@ -52,13 +40,13 @@ impl Graph {
     }
 
     pub fn has_edge(&self, block_id1: block::ID, block_id2: block::ID) -> bool {
-        let edge_key = self.order_edge_key(block_id1, block_id2);
+        let edge_key = block::EdgeKey::new(block_id1, block_id2);
 
         self.edge_map.contains_key(&edge_key)
     }
 
     pub fn get_edge(&self, block_id1: block::ID, block_id2: block::ID) -> Option<&block::Edge> {
-        let edge_key = self.order_edge_key(block_id1, block_id2);
+        let edge_key = block::EdgeKey::new(block_id1, block_id2);
 
         self.edge_map.get(&edge_key)
     }
@@ -70,18 +58,18 @@ impl Graph {
         clearance: u32,
         cost: f32,
     ) {
-        let edge_key = self.order_edge_key(block_id1, block_id2);
+        let edge_key = block::EdgeKey::new(block_id1, block_id2);
 
         let edge = block::Edge {
-            block_id1: edge_key.0,
-            block_id2: edge_key.1,
+            block_id1: edge_key.block_id1,
+            block_id2: edge_key.block_id2,
             clearance,
             cost,
         };
 
         self.edge_map.insert(edge_key, edge);
 
-        for block_id in [edge_key.0, edge_key.1] {
+        for block_id in [edge_key.block_id1, edge_key.block_id2] {
             self.node_edge_map
                 .entry(block_id)
                 .or_insert_with(HashSet::new)

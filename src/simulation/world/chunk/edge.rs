@@ -1,6 +1,40 @@
+use crate::simulation::world::block;
 use crate::simulation::world::chunk;
 use glam::IVec3;
 use std::f32::EPSILON;
+
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct EdgeKey {
+    pub chunk_id1: chunk::ID,
+    pub block_id1: block::ID,
+    pub chunk_id2: chunk::ID,
+    pub block_id2: block::ID,
+}
+
+impl EdgeKey {
+    pub fn new(
+        chunk_id1: chunk::ID,
+        block_id1: block::ID,
+        chunk_id2: chunk::ID,
+        block_id2: block::ID,
+    ) -> Self {
+        if chunk_id1 < chunk_id2 {
+            Self {
+                chunk_id1: chunk_id1,
+                block_id1: block_id1,
+                chunk_id2: chunk_id2,
+                block_id2: block_id2,
+            }
+        } else {
+            Self {
+                chunk_id1: chunk_id2,
+                block_id1: block_id2,
+                chunk_id2: chunk_id1,
+                block_id2: block_id1,
+            }
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Edge {

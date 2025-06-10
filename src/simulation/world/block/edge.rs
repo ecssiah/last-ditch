@@ -1,6 +1,28 @@
 use crate::simulation::world::block;
 use std::f32::EPSILON;
 
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct EdgeKey {
+    pub block_id1: block::ID,
+    pub block_id2: block::ID,
+}
+
+impl EdgeKey {
+    pub fn new(block_id1: block::ID, block_id2: block::ID) -> Self {
+        if block_id1 < block_id2 {
+            Self {
+                block_id1: block_id1,
+                block_id2: block_id2,
+            }
+        } else {
+            Self {
+                block_id1: block_id2,
+                block_id2: block_id1,
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Edge {
     pub block_id1: block::ID,

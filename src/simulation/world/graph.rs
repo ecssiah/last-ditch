@@ -4,8 +4,8 @@ use std::collections::{HashMap, HashSet};
 #[derive(Clone, Debug)]
 pub struct Graph {
     pub node_map: HashMap<chunk::ID, chunk::Node>,
-    pub edge_map: HashMap<(chunk::ID, chunk::ID), chunk::Edge>,
-    pub node_edge_map: HashMap<chunk::ID, HashSet<(chunk::ID, chunk::ID)>>,
+    pub edge_map: HashMap<chunk::EdgeKey, chunk::Edge>,
+    pub node_edge_map: HashMap<chunk::ID, HashSet<chunk::EdgeKey>>,
     pub chunk_graph_map: HashMap<chunk::ID, chunk::Graph>,
 }
 

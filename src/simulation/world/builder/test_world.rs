@@ -149,6 +149,13 @@ impl TestWorld {
             chunk_north_position.z + 2,
             block::Kind::PurpleStone,
         );
+
+        world.set_block_kind(
+            chunk_north_position.x - 2,
+            chunk_north_position.y - chunk_radius + 3,
+            chunk_north_position.z,
+            block::Kind::PurpleStone,
+        );
     }
 
     fn build_empty_room(world: &mut World) {

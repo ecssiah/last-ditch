@@ -5,6 +5,7 @@ pub mod kind;
 pub mod node;
 
 pub use edge::Edge;
+pub use edge::EdgeKey;
 pub use face::Face;
 pub use id::ID;
 pub use kind::Kind;

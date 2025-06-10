@@ -81,12 +81,26 @@ fn has_clearance() {
             expected_has_clearance: true,
         },
         HasClearanceCase {
+            description: String::from("not clearance max at (2, -2, 2)"),
+            chunk_coordinates: IVec3::new(0, 0, 1),
+            block_coordinates: IVec3::new(2, -2, 2),
+            height: MAXIMUM_CLEARANCE,
+            expected_has_clearance: false,
+        },
+        HasClearanceCase {
             description: "clearance max at (0, -2, 0)".to_string(),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(0, -2, 0),
             height: MAXIMUM_CLEARANCE,
             expected_has_clearance: true,
-        }
+        },
+        HasClearanceCase {
+            description: "clearance min at (-2, -2, 0)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, 1),
+            block_coordinates: IVec3::new(0, -2, 0),
+            height: MINIMUM_CLEARANCE,
+            expected_has_clearance: true,
+        },
     ];
 
     for case in test_cases {

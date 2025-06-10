@@ -5,6 +5,7 @@ pub mod id;
 pub mod node;
 
 pub use edge::Edge;
+pub use edge::EdgeKey;
 pub use geometry::Geometry;
 pub use graph::Graph;
 pub use id::ID;
