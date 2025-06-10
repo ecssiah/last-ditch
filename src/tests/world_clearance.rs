@@ -8,7 +8,7 @@ struct HasClearanceCase {
     description: String,
     chunk_coordinates: IVec3,
     block_coordinates: IVec3,
-    height: i32,
+    height: u32,
     expected_has_clearance: bool,
 }
 
@@ -39,40 +39,54 @@ fn has_clearance() {
 
     let test_cases = vec![
         HasClearanceCase {
-            description: String::from("clearance 0"),
+            description: String::from("clearance 0 at (-2, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(-2, -2, 2),
             height: 0,
             expected_has_clearance: true,
         },
         HasClearanceCase {
-            description: String::from("clearance 1"),
+            description: String::from("clearance 1 at (-1, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(-1, -2, 2),
             height: 1,
             expected_has_clearance: true,
         },
         HasClearanceCase {
-            description: String::from("clearance 2"),
+            description: String::from("not clearance 2 at (-1, -2, 2)"),
+            chunk_coordinates: IVec3::new(0, 0, 1),
+            block_coordinates: IVec3::new(-1, -2, 2),
+            height: 2,
+            expected_has_clearance: false,
+        },
+        HasClearanceCase {
+            description: String::from("clearance 2 at (0, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(0, -2, 2),
             height: 2,
             expected_has_clearance: true,
         },
         HasClearanceCase {
-            description: String::from("clearance 3"),
+            description: String::from("clearance 3 at (1, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(1, -2, 2),
             height: 3,
             expected_has_clearance: true,
         },
         HasClearanceCase {
-            description: String::from("clearance max"),
+            description: String::from("clearance 4 at (2, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(2, -2, 2),
             height: 4,
             expected_has_clearance: true,
         },
+        HasClearanceCase {
+            description: "clearance max at (0, -2, 0)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, 1),
+            block_coordinates: IVec3::new(0, -2, 0),
+            height: MAXIMUM_CLEARANCE,
+            expected_has_clearance: true,
+        }
     ];
 
     for case in test_cases {

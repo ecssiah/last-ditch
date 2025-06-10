@@ -80,7 +80,7 @@ impl Decision {
         let offset = direction.offset() + IVec3::new(0, dy, 0);
         let target_position = position + offset;
 
-        let required_clearance = agent.height.ceil() as i32;
+        let required_clearance = agent.height.ceil() as u32;
 
         let base_is_solid = world
             .get_block_at(target_position + IVec3::NEG_Y)

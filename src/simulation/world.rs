@@ -143,11 +143,11 @@ impl World {
             .position(|target_kind| kind == *target_kind)
     }
 
-    pub fn has_clearance(&self, position: IVec3, height: i32) -> bool {
-        let test_height = height.min(MAXIMUM_CLEARANCE as i32);
+    pub fn has_clearance(&self, position: IVec3, height: u32) -> bool {
+        let test_height = height.min(MAXIMUM_CLEARANCE);
 
         (0..test_height).all(|level| {
-            let vertical_position = position + level * IVec3::Y;
+            let vertical_position = position + level as i32 * IVec3::Y;
 
             self.get_block_at(vertical_position)
                 .map(|block| !block.solid)
