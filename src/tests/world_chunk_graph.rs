@@ -1,232 +1,262 @@
 use crate::simulation::{
     consts::*,
-    world::{block, builder, chunk, World},
+    world::{builder, World},
 };
 use glam::IVec3;
 use std::f32::EPSILON;
 
 struct NodeCountCase {
     description: String,
-    chunk_id: chunk::ID,
+    chunk_coordinates: IVec3,
     expected_node_count: usize,
 }
 
 impl NodeCountCase {
     pub fn check(&self, world: &World) {
-        if let Some(chunk_graph) = world.world_graph.get_chunk_graph(self.chunk_id) {
-            let node_count = chunk_graph.node_map.len();
+        let chunk_id = world
+            .grid
+            .chunk_coordinates_to_chunk_id(self.chunk_coordinates)
+            .expect("invalid chunk coordinates");
 
-            assert_eq!(
-                node_count, self.expected_node_count,
-                "{:?}",
-                self.description
-            );
-        } else {
-            panic!("{:?}", self.description);
-        }
+        let chunk_graph = world
+            .world_graph
+            .get_chunk_graph(chunk_id)
+            .expect("invalid chunk_id");
+
+        let node_count = chunk_graph.node_map.len();
+
+        assert_eq!(
+            node_count, self.expected_node_count,
+            "{:?}",
+            self.description
+        );
     }
 }
 
 #[test]
-fn node_count_validation() {
-    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+fn node_count() {
+    let mut world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
-    builder::TestWorld::build(&mut test_world);
+    builder::TestWorld::build(&mut world);
 
     let test_cases = vec![
         NodeCountCase {
             description: "(0, 0, 0)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0)).unwrap(),
+            chunk_coordinates: IVec3::new(0, 0, 0),
             expected_node_count: 49,
         },
         NodeCountCase {
             description: "(1, 0, 0)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(1, 0, 0)).unwrap(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
             expected_node_count: 26,
         },
         NodeCountCase {
             description: "(-1, 0, 0)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(-1, 0, 0)).unwrap(),
+            chunk_coordinates: IVec3::new(-1, 0, 0),
             expected_node_count: 26,
         },
         NodeCountCase {
             description: "(0, 1, 0)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(0, 1, 0)).unwrap(),
+            chunk_coordinates: IVec3::new(0, 1, 0),
             expected_node_count: 0,
         },
         NodeCountCase {
             description: "(0, -1, 0)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(0, -1, 0)).unwrap(),
+            chunk_coordinates: IVec3::new(0, -1, 0),
             expected_node_count: 0,
         },
         NodeCountCase {
             description: "(0, 0, 1)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 1)).unwrap(),
+            chunk_coordinates: IVec3::new(0, 0, 1),
             expected_node_count: 27,
         },
         NodeCountCase {
             description: "(0, 0, -1)".to_string(),
-            chunk_id: test_world.grid.chunk_coordinates_to_chunk_id(IVec3::new(0, 0, -1)).unwrap(),
+            chunk_coordinates: IVec3::new(0, 0, -1),
             expected_node_count: 31,
         },
     ];
 
     for test_case in test_cases {
-        test_case.check(&test_world);
+        test_case.check(&world);
     }
 }
 
-struct EdgeCountValidationCase {
+struct EdgeCountCase {
     description: String,
-    chunk_id: IVec3,
-    block_position: IVec3,
+    chunk_coordinates: IVec3,
+    block_coordinates: IVec3,
     expected_edge_count: usize,
 }
 
-impl EdgeCountValidationCase {
+impl EdgeCountCase {
     pub fn check(&self, world: &World) {
-        // let chunk_id = world.grid.chunk_to_grid(self.chunk_id).unwrap();
-        // let position = chunk_id + self.block_position;
+        let chunk_id = world
+            .grid
+            .chunk_coordinates_to_chunk_id(self.chunk_coordinates)
+            .expect("invalid chunk coordinates");
 
-        // if let Some(chunk_graph) = world.graph.get_chunk_graph(self.chunk_id) {
-        //     let node = chunk_graph.get_node(position).unwrap();
-        //     let edge_count = node.edge_list.len();
+        let block_id = world
+            .grid
+            .block_coordinates_to_block_id(self.block_coordinates)
+            .expect("invalid block coordinates");
 
-        //     assert_eq!(
-        //         edge_count, self.expected_edge_count,
-        //         "{:?}",
-        //         self.description
-        //     );
-        // } else {
-        //     panic!("{:?}", self.description);
-        // }
+        let chunk_graph = world
+            .world_graph
+            .get_chunk_graph(chunk_id)
+            .expect("invalid chunk id");
+
+        let edge_count = chunk_graph.get_edges(block_id).count();
+
+        assert_eq!(
+            edge_count, self.expected_edge_count,
+            "{:?}",
+            self.description
+        );
     }
 }
 
 #[test]
-fn edge_count_validation() {
-    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+fn edge_count() {
+    let mut world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
-    builder::TestWorld::build(&mut test_world);
+    builder::TestWorld::build(&mut world);
 
-    let test_cases = vec![EdgeCountValidationCase {
-        description: "Edge Count: (0, -1, 0)".to_string(),
-        chunk_id: IVec3::new(1, 0, 0),
-        block_position: IVec3::new(0, -1, 0),
-        expected_edge_count: 4,
-    }];
+    let test_cases = vec![
+        EdgeCountCase {
+            description: "Edge Count: (0, -1, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(0, 0, 0),
+            expected_edge_count: 0,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (0, -1, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(0, -1, 0),
+            expected_edge_count: 4,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (1, -2, -1)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(1, -2, -1),
+            expected_edge_count: 2,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (2, 1, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(2, 1, 0),
+            expected_edge_count: 2,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (-3, -2, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(-3, -2, 0),
+            expected_edge_count: 1,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (-2, -2, 2)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(-2, -2, 2),
+            expected_edge_count: 2,
+        },
+    ];
 
-    for test_case in test_cases {
-        test_case.check(&test_world);
+    for case in test_cases {
+        case.check(&world);
     }
 }
 
 struct EdgeValidationCase {
     description: String,
-    chunk_id: chunk::ID,
-    block_id1: block::ID,
-    block_id2: block::ID,
+    chunk_coordinates: IVec3,
+    block_coordinates1: IVec3,
+    block_coordinates2: IVec3,
     expected_cost: Option<f32>,
 }
 
 impl EdgeValidationCase {
     pub fn check(&self, world: &World) {
-        // let position = world.grid.chunk_id_to_position(self.chunk_id).unwrap();
+        let chunk_id = world
+            .grid
+            .chunk_coordinates_to_chunk_id(self.chunk_coordinates)
+            .expect("invalid chunk coordinates");
 
-        // let node1_position = position + self.block_position1;
-        // let node2_position = position + self.block_position2;
+        let block_id1 = world
+            .grid
+            .block_coordinates_to_block_id(self.block_coordinates1)
+            .expect("invalid block coordinates");
 
-        // let chunk_graph = world
-        //     .graph
-        //     .chunk_graph_map
-        //     .get(&self.chunk_id)
-        //     .unwrap();
+        let block_id2 = world
+            .grid
+            .block_coordinates_to_block_id(self.block_coordinates2)
+            .expect("invalid block coordinates");
 
-        // let node1 = chunk_graph.get_node(node1_position).unwrap();
-        // let node2 = chunk_graph.get_node(node2_position).unwrap();
+        let chunk_graph = world
+            .world_graph
+            .get_chunk_graph(chunk_id)
+            .expect("invalid chunk id");
 
-        // let edge12 = node1
-        //     .edge_list
-        //     .iter()
-        //     .find(|edge| edge.to_position == node2_position);
+        if self.expected_cost.is_some() {
+            assert_eq!(
+                chunk_graph.has_edge(block_id1, block_id2),
+                true,
+                "{:?}",
+                self.description
+            );
 
-        // let edge21 = node2
-        //     .edge_list
-        //     .iter()
-        //     .find(|edge| edge.to_position == node1_position);
+            let expected_cost = self.expected_cost.unwrap();
 
-        // if self.expected_cost.is_some() {
-        //     assert!(edge12.is_some(), "{:?}", self.description);
-        //     assert!(edge21.is_some(), "{:?}", self.description);
+            let edge = chunk_graph
+                .get_edge(block_id1, block_id2)
+                .expect("edge does not exist");
 
-        //     let expected_cost = self.expected_cost.unwrap();
-
-        //     let edge12_cost = edge12.unwrap().cost;
-        //     let edge21_cost = edge21.unwrap().cost;
-
-        //     assert!(
-        //         (edge12_cost - expected_cost).abs() < EPSILON,
-        //         "{:?}",
-        //         self.description
-        //     );
-
-        //     assert!(
-        //         (edge21_cost - expected_cost).abs() < EPSILON,
-        //         "{:?}",
-        //         self.description
-        //     );
-        // } else {
-        //     assert!(edge12.is_none(), "{:?}", self.description);
-        //     assert!(edge21.is_none(), "{:?}", self.description);
-        // }
+            assert!(
+                (edge.cost - expected_cost).abs() < EPSILON,
+                "{:?}",
+                self.description
+            );
+        } else {
+            assert_eq!(
+                chunk_graph.has_edge(block_id1, block_id2),
+                false,
+                "{:?}",
+                self.description
+            );
+        }
     }
 }
 
-// #[test]
-// fn edge_validation() {
-//     let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+#[test]
+fn edge_validation() {
+    let mut world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
-//     builder::TestWorld::build(&mut test_world);
+    builder::TestWorld::build(&mut world);
 
-//     let test_cases = vec![
-//         EdgeValidationCase {
-//             description: "Edge: (0, -2, 0) - (-1, -3, 0)".to_string(),
-//             chunk_id: IVec3::new(1, 0, 0),
-//             block_position1: IVec3::new(0, -2, 0),
-//             block_position2: IVec3::new(-1, -3, 0),
-//             expected_cost: Some(WORLD_EDGE_COST),
-//         },
-//         EdgeValidationCase {
-//             description: "Edge: (-1, -3, 0) - (-2, -3, 0)".to_string(),
-//             chunk_id: IVec3::new(1, 0, 0),
-//             block_position1: IVec3::new(-1, -3, 0),
-//             block_position2: IVec3::new(-2, -3, 0),
-//             expected_cost: Some(WORLD_FACE_COST),
-//         },
-//         EdgeValidationCase {
-//             description: "Edge: (0, -2, 0) - (1, -3, -1)".to_string(),
-//             chunk_id: IVec3::new(1, 0, 0),
-//             block_position1: IVec3::new(0, -2, 0),
-//             block_position2: IVec3::new(1, -3, -1),
-//             expected_cost: None,
-//         },
-//         EdgeValidationCase {
-//             description: "Edge: (1, -3, 1) - (2, -2, 2)".to_string(),
-//             chunk_id: IVec3::new(1, 0, 0),
-//             block_position1: IVec3::new(1, -3, 1),
-//             block_position2: IVec3::new(2, -2, 2),
-//             expected_cost: None,
-//         },
-//         EdgeValidationCase {
-//             description: "Edge: (-2, -3, 0) - (-1, -3, 0)".to_string(),
-//             chunk_id: IVec3::new(1, 0, 0),
-//             block_position1: IVec3::new(-2, -3, 0),
-//             block_position2: IVec3::new(-1, -3, 0),
-//             expected_cost: Some(WORLD_FACE_COST),
-//         },
-//     ];
+    let test_cases = vec![
+        EdgeValidationCase {
+            description: "Edge: (0, -1, 0) - (1, 0, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates1: IVec3::new(0, -1, 0),
+            block_coordinates2: IVec3::new(1, 0, 0),
+            expected_cost: Some(WORLD_EDGE_COST),
+        },
+        EdgeValidationCase {
+            description: "Edge: (0, -1, 0) - (-1, 0, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates1: IVec3::new(0, -1, 0),
+            block_coordinates2: IVec3::new(-1, 0, 0),
+            expected_cost: None,
+        },
+        EdgeValidationCase {
+            description: "Edge: (1, 0, 0) - (0, -1, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates1: IVec3::new(1, 0, 0),
+            block_coordinates2: IVec3::new(0, -1, 0),
+            expected_cost: Some(WORLD_EDGE_COST),
+        },
+    ];
 
-//     for test_case in test_cases {
-//         test_case.check(&test_world);
-//     }
-// }
+    for case in test_cases {
+        case.check(&world);
+    }
+}

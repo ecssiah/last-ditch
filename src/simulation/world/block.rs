@@ -16,10 +16,10 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Block {
-    pub(crate) kind: Kind,
-    pub(crate) opacity: f32,
-    pub(crate) emittance: u8,
-    pub(crate) solid: bool,
+    pub kind: Kind,
+    pub opacity: f32,
+    pub emittance: u8,
+    pub solid: bool,
 }
 
 pub fn aabb(x: i32, y: i32, z: i32) -> AABB {

@@ -67,17 +67,17 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
 });
 
 pub struct Grid {
-    pub(crate) chunk_radius: u32,
-    pub(crate) chunk_size: u32,
-    pub(crate) chunk_area: u32,
-    pub(crate) chunk_volume: u32,
-    pub(crate) world_radius: u32,
-    pub(crate) world_size: u32,
-    pub(crate) world_area: u32,
-    pub(crate) world_volume: u32,
-    pub(crate) world_boundary: u32,
-    pub(crate) block_index_max: u32,
-    pub(crate) chunk_index_max: u32,
+    pub chunk_radius: u32,
+    pub chunk_size: u32,
+    pub chunk_area: u32,
+    pub chunk_volume: u32,
+    pub world_radius: u32,
+    pub world_size: u32,
+    pub world_area: u32,
+    pub world_volume: u32,
+    pub world_boundary: u32,
+    pub block_index_max: u32,
+    pub chunk_index_max: u32,
 }
 
 impl Grid {

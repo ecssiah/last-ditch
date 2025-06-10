@@ -13,7 +13,7 @@ pub mod aabb;
 pub mod dynamic_object;
 
 pub struct Physics {
-    pub(crate) gravity: Vec3,
+    pub gravity: Vec3,
 }
 
 impl Physics {
