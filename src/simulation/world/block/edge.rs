@@ -9,16 +9,14 @@ pub struct EdgeKey {
 
 impl EdgeKey {
     pub fn new(block_id1: block::ID, block_id2: block::ID) -> Self {
-        if block_id1 < block_id2 {
-            Self {
-                block_id1: block_id1,
-                block_id2: block_id2,
-            }
-        } else {
-            Self {
-                block_id1: block_id2,
-                block_id2: block_id1,
-            }
+        assert!(
+            block_id1 != block_id2,
+            "block edges must travel between different blocks"
+        );
+
+        Self {
+            block_id1: block_id1.min(block_id2),
+            block_id2: block_id2.max(block_id1),
         }
     }
 }

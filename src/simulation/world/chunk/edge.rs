@@ -18,6 +18,11 @@ impl EdgeKey {
         chunk_id2: chunk::ID,
         block_id2: block::ID,
     ) -> Self {
+        assert!(
+            chunk_id1 != chunk_id2,
+            "chunk edges must travel between different chunks"
+        );
+
         if chunk_id1 < chunk_id2 {
             Self {
                 chunk_id1: chunk_id1,
