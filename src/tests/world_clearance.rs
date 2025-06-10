@@ -67,6 +67,13 @@ fn has_clearance() {
             expected_has_clearance: true,
         },
         HasClearanceCase {
+            description: String::from("clearance 2 at (0, -2, 2)"),
+            chunk_coordinates: IVec3::new(0, 0, 1),
+            block_coordinates: IVec3::new(0, -2, 2),
+            height: MINIMUM_CLEARANCE,
+            expected_has_clearance: true,
+        },
+        HasClearanceCase {
             description: String::from("clearance 3 at (1, -2, 2)"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(1, -2, 2),
@@ -92,13 +99,6 @@ fn has_clearance() {
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(0, -2, 0),
             height: MAXIMUM_CLEARANCE,
-            expected_has_clearance: true,
-        },
-        HasClearanceCase {
-            description: "clearance min at (-2, -2, 0)".to_string(),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(0, -2, 0),
-            height: MINIMUM_CLEARANCE,
             expected_has_clearance: true,
         },
     ];

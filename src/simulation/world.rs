@@ -176,9 +176,7 @@ impl World {
         clearance
     }
 
-    pub fn set_block_kind(&mut self, x: i32, y: i32, z: i32, kind: block::Kind) {
-        let position = IVec3::new(x, y, z);
-
+    pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
         if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
             self.update_kind_list(chunk_id, block_id, kind);
             self.update_visibility_lists(chunk_id, block_id, position);
@@ -225,7 +223,7 @@ impl World {
                         || z == max.z;
 
                     if on_boundary {
-                        self.set_block_kind(x, y, z, kind);
+                        self.set_block_kind(IVec3::new(x, y, z), kind);
                     }
                 }
             }
@@ -239,7 +237,7 @@ impl World {
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
-                    self.set_block_kind(x, y, z, kind);
+                    self.set_block_kind(IVec3::new(x, y, z), kind);
                 }
             }
         }

@@ -45,24 +45,24 @@ impl MainWorld {
                         block::Kind::Polished2
                     };
 
-                    world.set_block_kind(position.x, position.y, position.z, kind);
+                    world.set_block_kind(position, kind);
                 }
             }
         }
     }
 
     fn build_compass(world: &mut World) {
-        world.set_block_kind(0, 0, 0, block::Kind::TealStone);
-        world.set_block_kind(0, 0, 4, block::Kind::North);
-        world.set_block_kind(-4, 0, 0, block::Kind::West);
-        world.set_block_kind(0, 0, -4, block::Kind::South);
-        world.set_block_kind(4, 0, 0, block::Kind::East);
+        world.set_block_kind(IVec3::new(0, 0, 0), block::Kind::TealStone);
+        world.set_block_kind(IVec3::new(0, 0, 4), block::Kind::North);
+        world.set_block_kind(IVec3::new(-4, 0, 0), block::Kind::West);
+        world.set_block_kind(IVec3::new(0, 0, -4), block::Kind::South);
+        world.set_block_kind(IVec3::new(4, 0, 0), block::Kind::East);
     }
 
     fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: agent::Kind) {
         world.flags.insert(kind, IVec3::new(x, y + 3, z));
 
-        world.set_block_kind(x, y + 6, z, kind.icon());
+        world.set_block_kind(IVec3::new(x, y + 6, z), kind.icon());
 
         world.set_cube(
             IVec3::new(x - 8, y + 1, z - 8),

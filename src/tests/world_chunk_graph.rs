@@ -68,7 +68,7 @@ fn node_count() {
         NodeCountCase {
             description: "(0, 0, 1)".to_string(),
             chunk_coordinates: IVec3::new(0, 0, 1),
-            expected_node_count: 28,
+            expected_node_count: 27,
         },
         NodeCountCase {
             description: "(0, 0, -1)".to_string(),
@@ -124,40 +124,40 @@ fn edge_count() {
 
     let test_cases = vec![
         EdgeCountCase {
-            description: "Edge Count: (0, -1, 0)".to_string(),
+            description: "Edge Count: (0, -2, 0)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates: IVec3::new(0, 0, 0),
-            expected_edge_count: 0,
+            block_coordinates: IVec3::new(0, -2, 0),
+            expected_edge_count: 4,
         },
         EdgeCountCase {
             description: "Edge Count: (0, -1, 0)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
             block_coordinates: IVec3::new(0, -1, 0),
+            expected_edge_count: 0,
+        },
+        EdgeCountCase {
+            description: "Edge Count: (1, -1, 1)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates: IVec3::new(1, -1, 1),
             expected_edge_count: 4,
         },
         EdgeCountCase {
-            description: "Edge Count: (1, -2, -1)".to_string(),
+            description: "Edge Count: (1, -1, 2)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates: IVec3::new(1, -2, -1),
-            expected_edge_count: 2,
+            block_coordinates: IVec3::new(1, -1, 2),
+            expected_edge_count: 3,
         },
         EdgeCountCase {
-            description: "Edge Count: (2, 1, 0)".to_string(),
+            description: "Edge Count: (2, 1, -2)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates: IVec3::new(2, 1, 0),
-            expected_edge_count: 2,
+            block_coordinates: IVec3::new(2, 0, -2),
+            expected_edge_count: 0,
         },
         EdgeCountCase {
-            description: "Edge Count: (-3, -2, 0)".to_string(),
+            description: "Edge Count: (0, -3, 0)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates: IVec3::new(-3, -2, 0),
-            expected_edge_count: 1,
-        },
-        EdgeCountCase {
-            description: "Edge Count: (-2, -2, 2)".to_string(),
-            chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates: IVec3::new(-2, -2, 2),
-            expected_edge_count: 2,
+            block_coordinates: IVec3::new(0, -3, 0),
+            expected_edge_count: 0,
         },
     ];
 
@@ -234,25 +234,39 @@ fn edge_validation() {
 
     let test_cases = vec![
         EdgeValidationCase {
-            description: "Edge: (0, -1, 0) - (1, 0, 0)".to_string(),
+            description: "Edge: (0, -2, 0) - (1, -2, 0)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates1: IVec3::new(0, -1, 0),
-            block_coordinates2: IVec3::new(1, 0, 0),
-            expected_cost: Some(WORLD_EDGE_COST),
+            block_coordinates1: IVec3::new(0, -2, 0),
+            block_coordinates2: IVec3::new(1, -2, 0),
+            expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
-            description: "Edge: (0, -1, 0) - (-1, 0, 0)".to_string(),
+            description: "Edge: (1, -2, 0) - (0, -2, 0)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
-            block_coordinates1: IVec3::new(0, -1, 0),
-            block_coordinates2: IVec3::new(-1, 0, 0),
+            block_coordinates1: IVec3::new(1, -2, 0),
+            block_coordinates2: IVec3::new(0, -2, 0),
+            expected_cost: Some(WORLD_FACE_COST),
+        },
+        EdgeValidationCase {
+            description: "Edge: (1, -1, 1) - (2, 0, 2)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates1: IVec3::new(2, 0, 2),
+            block_coordinates2: IVec3::new(1, -1, 1),
             expected_cost: None,
         },
         EdgeValidationCase {
-            description: "Edge: (1, 0, 0) - (0, -1, 0)".to_string(),
+            description: "Edge: (1, -1, 2) - (2, 0, 2)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            block_coordinates1: IVec3::new(2, 0, 2),
+            block_coordinates2: IVec3::new(1, -1, 2),
+            expected_cost: Some(WORLD_EDGE_COST),
+        },
+        EdgeValidationCase {
+            description: "Edge: (1, 0, 1) - (2, -1, 2)".to_string(),
             chunk_coordinates: IVec3::new(1, 0, 0),
             block_coordinates1: IVec3::new(1, 0, 0),
-            block_coordinates2: IVec3::new(0, -1, 0),
-            expected_cost: Some(WORLD_EDGE_COST),
+            block_coordinates2: IVec3::new(2, -1, 2),
+            expected_cost: None,
         },
     ];
 
