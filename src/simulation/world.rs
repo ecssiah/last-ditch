@@ -445,7 +445,11 @@ impl World {
                                                     .position_to_ids(block_position2)
                                                     .unwrap();
 
-                                                let cost = direction.cost();
+                                                let cost = if dy == 0 {
+                                                    WORLD_FACE_COST
+                                                } else {
+                                                    WORLD_EDGE_COST
+                                                };
 
                                                 self.graph.add_edge(
                                                     chunk_id1,

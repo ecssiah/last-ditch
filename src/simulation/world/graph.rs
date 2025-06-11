@@ -95,6 +95,18 @@ impl Graph {
         }
     }
 
+    pub fn get_edge(
+        &self,
+        chunk_id1: chunk::ID,
+        block_id1: block::ID,
+        chunk_id2: chunk::ID,
+        block_id2: block::ID,
+    ) -> Option<&chunk::Edge> {
+        let key = chunk::edge::Key::new(chunk_id1, block_id1, chunk_id2, block_id2);
+
+        self.edge_map.get(&key)
+    }
+
     pub fn get_edge_iter(&self, chunk_id: chunk::ID) -> impl Iterator<Item = &chunk::Edge> {
         self.node_edge_map
             .get(&chunk_id)
