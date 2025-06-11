@@ -424,8 +424,8 @@ impl World {
                                 }
 
                                 for dy in [-1, 0, 1] {
-                                    let offset = direction.offset() + IVec3::Y * dy;
-                                    let block_position2 = block_position1 + offset;
+                                    let y_offset = direction.offset() + IVec3::Y * dy;
+                                    let block_position2 = block_position1 + y_offset;
 
                                     if let Some(block2) =
                                         self.get_block_at(block_position2 + IVec3::NEG_Y)
@@ -445,11 +445,12 @@ impl World {
                                                     .position_to_ids(block_position2)
                                                     .unwrap();
 
-                                                let cost = if dy == 0 {
-                                                    WORLD_FACE_COST
-                                                } else {
-                                                    WORLD_EDGE_COST
-                                                };
+                                                let cost =
+                                                    if block_position1.y - block_position2.y == 0 {
+                                                        WORLD_FACE_COST
+                                                    } else {
+                                                        WORLD_EDGE_COST
+                                                    };
 
                                                 self.graph.add_edge(
                                                     chunk_id1,
