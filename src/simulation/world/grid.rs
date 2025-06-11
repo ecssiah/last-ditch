@@ -11,7 +11,7 @@ use crate::simulation::{
 };
 use glam::{IVec3, Vec3};
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|| {
     HashMap::from([
@@ -281,8 +281,23 @@ impl Grid {
         self.position_to_block_coordinates(position)
     }
 
-    pub fn boundary_contact_direction_list(&self, position: IVec3) -> Vec<Direction> {
-        let mut directions = Vec::new();
+    pub fn boundary_contact_direction_list(&self, position: IVec3) -> HashSet<Direction> {
+        let mut directions = HashSet::new();
+
+        static COMPOSITE_DIRECTIONS: &[(Direction, &[Direction])] = &[
+            (Direction::XpYpZo, &[Direction::XpYoZo, Direction::XoYpZo]),
+            (Direction::XnYpZo, &[Direction::XnYoZo, Direction::XoYpZo]),
+            (Direction::XoYpZp, &[Direction::XoYpZo, Direction::XoYoZp]),
+            (Direction::XoYpZn, &[Direction::XoYpZo, Direction::XoYoZn]),
+            (Direction::XpYnZo, &[Direction::XpYoZo, Direction::XoYnZo]),
+            (Direction::XnYnZo, &[Direction::XnYoZo, Direction::XoYnZo]),
+            (Direction::XoYnZp, &[Direction::XoYnZo, Direction::XoYoZp]),
+            (Direction::XoYnZn, &[Direction::XoYnZo, Direction::XoYoZn]),
+            (Direction::XpYoZp, &[Direction::XpYoZo, Direction::XoYoZp]),
+            (Direction::XpYoZn, &[Direction::XpYoZo, Direction::XoYoZn]),
+            (Direction::XnYoZn, &[Direction::XnYoZo, Direction::XoYoZn]),
+            (Direction::XnYoZp, &[Direction::XnYoZo, Direction::XoYoZp]),
+        ];
 
         if let Some(block_coordinates) = self.position_to_block_coordinates(position) {
             let chunk_radius = self.chunk_radius as i32;
@@ -290,26 +305,36 @@ impl Grid {
 
             if position.x.abs() != world_boundary {
                 if block_coordinates.x == -chunk_radius {
-                    directions.push(Direction::XnYoZo);
+                    directions.insert(Direction::XnYoZo);
                 } else if block_coordinates.x == chunk_radius {
-                    directions.push(Direction::XpYoZo);
+                    directions.insert(Direction::XpYoZo);
                 }
             }
 
             if position.y.abs() != world_boundary {
                 if block_coordinates.y == -chunk_radius {
-                    directions.push(Direction::XoYnZo);
+                    directions.insert(Direction::XoYnZo);
                 } else if block_coordinates.y == chunk_radius {
-                    directions.push(Direction::XoYpZo);
+                    directions.insert(Direction::XoYpZo);
                 }
             }
 
             if position.z.abs() != world_boundary {
                 if block_coordinates.z == -chunk_radius {
-                    directions.push(Direction::XoYoZn);
+                    directions.insert(Direction::XoYoZn);
                 } else if block_coordinates.z == chunk_radius {
-                    directions.push(Direction::XoYoZp);
+                    directions.insert(Direction::XoYoZp);
                 }
+            }
+        }
+
+        for &(composite_direction, requirements) in COMPOSITE_DIRECTIONS {
+            let required = requirements
+                .iter()
+                .all(|direction| directions.contains(direction));
+
+            if required {
+                directions.insert(composite_direction);
             }
         }
 

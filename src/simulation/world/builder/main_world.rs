@@ -36,10 +36,10 @@ impl MainWorld {
                     let chunk_coordinates =
                         world.grid.position_to_chunk_coordinates(position).unwrap();
 
-                    let kind = if (chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z)
-                        % 2
-                        == 0
-                    {
+                    let component_sum =
+                        chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z;
+
+                    let kind = if component_sum % 2 == 0 {
                         block::Kind::Polished1
                     } else {
                         block::Kind::Polished2

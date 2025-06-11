@@ -1,11 +1,13 @@
+use glam::IVec3;
+
 use crate::simulation::world::block;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
 pub struct Graph {
     pub node_map: HashMap<block::ID, block::Node>,
-    pub edge_map: HashMap<block::EdgeKey, block::Edge>,
-    pub node_edge_map: HashMap<block::ID, HashSet<block::EdgeKey>>,
+    pub edge_map: HashMap<block::edge::Key, block::Edge>,
+    pub node_edge_map: HashMap<block::ID, HashSet<block::edge::Key>>,
 }
 
 impl Graph {
@@ -40,13 +42,13 @@ impl Graph {
     }
 
     pub fn has_edge(&self, block_id1: block::ID, block_id2: block::ID) -> bool {
-        let edge_key = block::EdgeKey::new(block_id1, block_id2);
+        let edge_key = block::edge::Key::new(block_id1, block_id2);
 
         self.edge_map.contains_key(&edge_key)
     }
 
     pub fn get_edge(&self, block_id1: block::ID, block_id2: block::ID) -> Option<&block::Edge> {
-        let edge_key = block::EdgeKey::new(block_id1, block_id2);
+        let edge_key = block::edge::Key::new(block_id1, block_id2);
 
         self.edge_map.get(&edge_key)
     }
@@ -54,30 +56,41 @@ impl Graph {
     pub fn add_edge(
         &mut self,
         block_id1: block::ID,
+        block_position1: IVec3,
         block_id2: block::ID,
+        block_position2: IVec3,
         clearance: u32,
         cost: f32,
     ) {
-        let edge_key = block::EdgeKey::new(block_id1, block_id2);
+        let ((block_id1, block_position1), (block_id2, block_position2)) = if block_id1 < block_id2
+        {
+            ((block_id1, block_position1), (block_id2, block_position2))
+        } else {
+            ((block_id2, block_position2), (block_id1, block_position1))
+        };
+
+        let key = block::edge::Key::new(block_id1, block_id2);
 
         let edge = block::Edge {
-            block_id1: edge_key.block_id1,
-            block_id2: edge_key.block_id2,
+            block_id1,
+            block_position1,
+            block_id2,
+            block_position2,
             clearance,
             cost,
         };
 
-        self.edge_map.insert(edge_key, edge);
+        self.edge_map.insert(key, edge);
 
-        for block_id in [edge_key.block_id1, edge_key.block_id2] {
+        for block_id in [key.block_id1, key.block_id2] {
             self.node_edge_map
                 .entry(block_id)
                 .or_insert_with(HashSet::new)
-                .insert(edge_key);
+                .insert(key);
         }
     }
 
-    pub fn get_edges(&self, block_id: block::ID) -> impl Iterator<Item = &block::Edge> {
+    pub fn get_edge_iter(&self, block_id: block::ID) -> impl Iterator<Item = &block::Edge> {
         self.node_edge_map
             .get(&block_id)
             .into_iter()

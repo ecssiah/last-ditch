@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::simulation::{
     consts::*,
     world::{grid, World},
@@ -7,7 +9,7 @@ use glam::IVec3;
 struct BoundaryContactDirectionsCase {
     description: String,
     position: IVec3,
-    expected_boundary_contact_direction_list: Vec<grid::Direction>,
+    expected_boundary_contact_direction_list: HashSet<grid::Direction>,
 }
 
 impl BoundaryContactDirectionsCase {
@@ -34,61 +36,69 @@ fn boundary_contact_direction_list() {
         BoundaryContactDirectionsCase {
             description: "origin chunk min".to_string(),
             position: IVec3::splat(-chunk_radius),
-            expected_boundary_contact_direction_list: vec![
+            expected_boundary_contact_direction_list: HashSet::from([
                 grid::Direction::XnYoZo,
                 grid::Direction::XoYnZo,
                 grid::Direction::XoYoZn,
-            ],
+                grid::Direction::XnYoZn,
+                grid::Direction::XnYnZo,
+                grid::Direction::XoYnZn,
+            ]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk min x direction".to_string(),
             position: IVec3::new(-chunk_radius, 0, 0),
-            expected_boundary_contact_direction_list: vec![grid::Direction::XnYoZo],
+            expected_boundary_contact_direction_list: HashSet::from([grid::Direction::XnYoZo]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk min x-y direction".to_string(),
             position: IVec3::new(-chunk_radius, -chunk_radius, 0),
-            expected_boundary_contact_direction_list: vec![
+            expected_boundary_contact_direction_list: HashSet::from([
                 grid::Direction::XnYoZo,
                 grid::Direction::XoYnZo,
-            ],
+                grid::Direction::XnYnZo,
+            ]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk origin".to_string(),
             position: IVec3::new(0, 0, 0),
-            expected_boundary_contact_direction_list: vec![],
+            expected_boundary_contact_direction_list: HashSet::from([]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk max".to_string(),
             position: IVec3::splat(chunk_radius),
-            expected_boundary_contact_direction_list: vec![
+            expected_boundary_contact_direction_list: HashSet::from([
                 grid::Direction::XpYoZo,
                 grid::Direction::XoYpZo,
                 grid::Direction::XoYoZp,
-            ],
+                grid::Direction::XpYpZo,
+                grid::Direction::XoYpZp,
+                grid::Direction::XpYoZp,
+            ]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk max x direction".to_string(),
             position: IVec3::new(chunk_radius, 0, 0),
-            expected_boundary_contact_direction_list: vec![grid::Direction::XpYoZo],
+            expected_boundary_contact_direction_list: HashSet::from([grid::Direction::XpYoZo]),
         },
         BoundaryContactDirectionsCase {
             description: "origin chunk max x-y direction".to_string(),
             position: IVec3::new(chunk_radius, chunk_radius, 0),
-            expected_boundary_contact_direction_list: vec![
+            expected_boundary_contact_direction_list: HashSet::from([
                 grid::Direction::XpYoZo,
                 grid::Direction::XoYpZo,
-            ],
+                grid::Direction::XpYpZo,
+            ]),
         },
         BoundaryContactDirectionsCase {
             description: "max chunk max".to_string(),
             position: IVec3::splat(world_boundary),
-            expected_boundary_contact_direction_list: vec![],
+            expected_boundary_contact_direction_list: HashSet::from([]),
         },
         BoundaryContactDirectionsCase {
             description: "min chunk min".to_string(),
             position: IVec3::splat(-world_boundary),
-            expected_boundary_contact_direction_list: vec![],
+            expected_boundary_contact_direction_list: HashSet::from([]),
         },
     ];
 

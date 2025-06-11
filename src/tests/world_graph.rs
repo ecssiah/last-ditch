@@ -1,125 +1,129 @@
-// use crate::simulation::{
-//     consts::*,
-//     world::{builder, World},
-// };
-// use glam::IVec3;
+use crate::simulation::{
+    consts::*,
+    world::{builder, World},
+};
+use glam::IVec3;
 
-// struct NodeCountCase {
-//     description: String,
-//     world: World,
-//     expected_node_count: usize,
-// }
+struct NodeCountCase {
+    description: String,
+    world: World,
+    expected_node_count: usize,
+}
 
-// impl NodeCountCase {
-//     pub fn check(&self) {
-//         assert_eq!(
-//             self.world.graph.node_map.len(),
-//             self.expected_node_count,
-//             "{:?}",
-//             self.description
-//         );
-//     }
-// }
+impl NodeCountCase {
+    pub fn check(&self) {
+        assert_eq!(
+            self.world.graph.node_map.len(),
+            self.expected_node_count,
+            "{:?}",
+            self.description
+        );
+    }
+}
 
-// #[test]
-// fn node_count_validation() {
-//     let test_world1 = World::new(1, 1);
-//     let expected_count1 = test_world1.grid.volume as usize;
+#[test]
+fn node_count_validation() {
+    let test_world1 = World::new(1, 1);
+    let expected_count1 = test_world1.grid.world_volume as usize;
 
-//     let test_world2 = World::new(1, 2);
-//     let expected_count2 = test_world2.grid.volume as usize;
+    let test_world2 = World::new(1, 2);
+    let expected_count2 = test_world2.grid.world_volume as usize;
 
-//     let test_world3 = World::new(2, 1);
-//     let expected_count3 = test_world3.grid.volume as usize;
+    let test_world3 = World::new(2, 1);
+    let expected_count3 = test_world3.grid.world_volume as usize;
 
-//     let test_world4 = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
-//     let expected_count4 = test_world4.grid.volume as usize;
+    let test_world4 = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let expected_count4 = test_world4.grid.world_volume as usize;
 
-//     let test_cases = vec![
-//         NodeCountCase {
-//             description: "test world 1".to_string(),
-//             world: test_world1,
-//             expected_node_count: expected_count1,
-//         },
-//         NodeCountCase {
-//             description: "test world 2".to_string(),
-//             world: test_world2,
-//             expected_node_count: expected_count2,
-//         },
-//         NodeCountCase {
-//             description: "test world 3".to_string(),
-//             world: test_world3,
-//             expected_node_count: expected_count3,
-//         },
-//         NodeCountCase {
-//             description: "test world 4".to_string(),
-//             world: test_world4,
-//             expected_node_count: expected_count4,
-//         },
-//     ];
+    let test_cases = vec![
+        NodeCountCase {
+            description: "test world 1".to_string(),
+            world: test_world1,
+            expected_node_count: expected_count1,
+        },
+        NodeCountCase {
+            description: "test world 2".to_string(),
+            world: test_world2,
+            expected_node_count: expected_count2,
+        },
+        NodeCountCase {
+            description: "test world 3".to_string(),
+            world: test_world3,
+            expected_node_count: expected_count3,
+        },
+        NodeCountCase {
+            description: "test world 4".to_string(),
+            world: test_world4,
+            expected_node_count: expected_count4,
+        },
+    ];
 
-//     for test_case in test_cases {
-//         test_case.check();
-//     }
-// }
+    for test_case in test_cases {
+        test_case.check();
+    }
+}
 
-// struct EdgeCountValidationCase {
-//     description: String,
-//     chunk_position: IVec3,
-//     expected_edge_count: usize,
-// }
+struct EdgeCountValidationCase {
+    description: String,
+    chunk_coordinates: IVec3,
+    expected_edge_count: usize,
+}
 
-// impl EdgeCountValidationCase {
-//     pub fn check(&self, world: &World) {
-//         let node = world.graph.get_node(self.chunk_position).unwrap();
+impl EdgeCountValidationCase {
+    pub fn check(&self, world: &World) {
+        let chunk_id = world
+            .grid
+            .chunk_coordinates_to_chunk_id(self.chunk_coordinates)
+            .expect("invalid chunk coordinates");
 
-//         assert_eq!(
-//             node.edge_map.len(),
-//             self.expected_edge_count,
-//             "{:?}",
-//             self.description
-//         );
-//     }
-// }
+        let edge_count = world.graph.get_edge_iter(chunk_id).count();
 
-// #[test]
-// fn edge_count_validation() {
-//     let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+        assert_eq!(
+            edge_count, self.expected_edge_count,
+            "{:?}",
+            self.description
+        );
+    }
+}
 
-//     builder::TestWorld::build(&mut test_world);
+#[test]
+fn edge_count_validation() {
+    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
-//     let test_cases = vec![
-//         EdgeCountValidationCase {
-//             description: "Chunk: (0, 0, 0)".to_string(),
-//             chunk_position: IVec3::new(0, 0, 0),
-//             expected_edge_count: 4,
-//         },
-//         EdgeCountValidationCase {
-//             description: "Chunk: (0, 0, -1)".to_string(),
-//             chunk_position: IVec3::new(0, 0, -1),
-//             expected_edge_count: 5,
-//         },
-//         EdgeCountValidationCase {
-//             description: "Chunk: (0, 0, -2)".to_string(),
-//             chunk_position: IVec3::new(0, 0, -2),
-//             expected_edge_count: 4,
-//         },
-//         EdgeCountValidationCase {
-//             description: "Chunk: (1, 0, 0)".to_string(),
-//             chunk_position: IVec3::new(1, 0, 0),
-//             expected_edge_count: 1,
-//         },
-//         EdgeCountValidationCase {
-//             description: "Chunk: (-1, 0, 0)".to_string(),
-//             chunk_position: IVec3::new(-1, 0, 0),
-//             expected_edge_count: 1,
-//         },
-//     ];
+    builder::TestWorld::build(&mut test_world);
 
-//     for test_case in test_cases {
-//         test_case.check(&test_world);
-//     }
-// }
+    let test_cases = vec![
+        EdgeCountValidationCase {
+            description: "Chunk: (0, 0, 0)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, 0),
+            expected_edge_count: 4,
+        },
+        EdgeCountValidationCase {
+            description: "Chunk: (0, 0, -1)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, -1),
+            expected_edge_count: 5,
+        },
+        EdgeCountValidationCase {
+            description: "Chunk: (0, 0, -2)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, -2),
+            expected_edge_count: 4,
+        },
+        EdgeCountValidationCase {
+            description: "Chunk: (1, 0, 0)".to_string(),
+            chunk_coordinates: IVec3::new(1, 0, 0),
+            expected_edge_count: 1,
+        },
+        EdgeCountValidationCase {
+            description: "Chunk: (-1, 0, 0)".to_string(),
+            chunk_coordinates: IVec3::new(-1, 0, 0),
+            expected_edge_count: 1,
+        },
+    ];
+
+    for test_case in test_cases {
+        test_case.check(&test_world);
+    }
+}
 
 // struct EdgeValidationCase {
 //     pub description: String,

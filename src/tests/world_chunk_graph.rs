@@ -19,7 +19,7 @@ impl NodeCountCase {
             .expect("invalid chunk coordinates");
 
         let chunk_graph = world
-            .world_graph
+            .graph
             .get_chunk_graph(chunk_id)
             .expect("invalid chunk_id");
 
@@ -102,11 +102,11 @@ impl EdgeCountCase {
             .expect("invalid block coordinates");
 
         let chunk_graph = world
-            .world_graph
+            .graph
             .get_chunk_graph(chunk_id)
             .expect("invalid chunk id");
 
-        let edge_count = chunk_graph.get_edges(block_id).count();
+        let edge_count = chunk_graph.get_edge_iter(block_id).count();
 
         assert_eq!(
             edge_count, self.expected_edge_count,
@@ -192,7 +192,7 @@ impl EdgeValidationCase {
             .expect("invalid block coordinates");
 
         let chunk_graph = world
-            .world_graph
+            .graph
             .get_chunk_graph(chunk_id)
             .expect("invalid chunk id");
 
