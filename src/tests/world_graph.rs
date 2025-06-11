@@ -106,7 +106,7 @@ fn edge_count_validation() {
         EdgeCountValidationCase {
             description: "Chunk: (0, 0, -2)".to_string(),
             chunk_coordinates: IVec3::new(0, 0, -2),
-            expected_edge_count: 4,
+            expected_edge_count: 3,
         },
         EdgeCountValidationCase {
             description: "Chunk: (1, 0, 0)".to_string(),
@@ -179,26 +179,26 @@ impl EdgeValidationCase {
 
 #[test]
 fn edge_validation() {
-    let mut test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mut world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
 
-    builder::TestWorld::build(&mut test_world);
+    builder::TestWorld::build(&mut world);
 
     let test_cases = vec![
         EdgeValidationCase {
             description: "case 1".to_string(),
             chunk_coordinates1: IVec3::new(0, 0, -1),
-            block_coordinates1: IVec3::new(0, -2, -3),
+            block_coordinates1: IVec3::new(-1, -2, -3),
             chunk_coordinates2: IVec3::new(0, 0, -2),
-            block_coordinates2: IVec3::new(0, -2, 3),
+            block_coordinates2: IVec3::new(-1, -2, 3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
             expected_cost: Some(WORLD_FACE_COST),
         },
         EdgeValidationCase {
             description: "case 2".to_string(),
             chunk_coordinates2: IVec3::new(0, 0, -2),
-            block_coordinates2: IVec3::new(0, -2, 3),
+            block_coordinates2: IVec3::new(-1, -2, 3),
             chunk_coordinates1: IVec3::new(0, 0, -1),
-            block_coordinates1: IVec3::new(0, -2, -3),
+            block_coordinates1: IVec3::new(-1, -2, -3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
             expected_cost: Some(WORLD_FACE_COST),
         },
@@ -211,9 +211,18 @@ fn edge_validation() {
             expected_clearance: Some(3),
             expected_cost: Some(WORLD_EDGE_COST),
         },
+        EdgeValidationCase {
+            description: "case 4".to_string(),
+            chunk_coordinates1: IVec3::new(0, 0, -1),
+            block_coordinates1: IVec3::new(-2, -2, -3),
+            chunk_coordinates2: IVec3::new(0, 0, -2),
+            block_coordinates2: IVec3::new(-2, -2, 3),
+            expected_clearance: None,
+            expected_cost: None,
+        },
     ];
 
-    for test_case in test_cases {
-        test_case.check(&test_world);
+    for case in test_cases {
+        case.check(&world);
     }
 }
