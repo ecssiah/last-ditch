@@ -314,22 +314,16 @@ impl World {
         for offset in grid::Grid::offsets_in(chunk_radius) {
             let position = chunk.position + offset;
 
-            let ground_is_solid = self
-                .get_block_at(position + IVec3::NEG_Y)
-                .map_or(false, |block| block.solid);
+            let clearance = self.get_clearance(position);
 
-            if ground_is_solid {
-                let clearance = self.get_clearance(position);
+            if clearance >= MINIMUM_CLEARANCE {
+                let block_node = block::Node {
+                    block_id: self.grid.position_to_block_id(position).unwrap(),
+                    position: position,
+                    group_id: 0,
+                };
 
-                if clearance >= MINIMUM_CLEARANCE {
-                    let block_node = block::Node {
-                        block_id: self.grid.position_to_block_id(position).unwrap(),
-                        position: position,
-                        group_id: 0,
-                    };
-
-                    chunk_graph.add_block_node(block_node.block_id, block_node);
-                }
+                chunk_graph.add_block_node(block_node.block_id, block_node);
             }
         }
 
@@ -400,60 +394,50 @@ impl World {
             for offset in grid::Grid::offsets_in(chunk_radius) {
                 let block_position1 = chunk_position1 + offset;
 
-                if let Some(ground_block1) = self.get_block_at(block_position1 + IVec3::NEG_Y) {
-                    if ground_block1.solid {
-                        let clearance1 = self.get_clearance(block_position1);
+                let clearance1 = self.get_clearance(block_position1);
 
-                        if clearance1 >= MINIMUM_CLEARANCE {
-                            for direction in grid::Direction::traversable_list() {
-                                let block_position2 = block_position1 + direction.offset();
+                if clearance1 >= MINIMUM_CLEARANCE {
+                    for direction in grid::Direction::traversable_list() {
+                        let block_position2 = block_position1 + direction.offset();
 
-                                let chunk_id2 =
-                                    self.grid.position_to_chunk_id(block_position2).unwrap();
+                        let chunk_id2 =
+                            self.grid.position_to_chunk_id(block_position2).unwrap();
 
-                                if chunk_id1 == chunk_id2 {
-                                    continue;
-                                }
+                        if chunk_id1 == chunk_id2 {
+                            continue;
+                        }
 
-                                if let Some(ground_block2) =
-                                    self.get_block_at(block_position2 + IVec3::NEG_Y)
-                                {
-                                    if ground_block2.solid {
-                                        let clearance2 = self.get_clearance(block_position2);
-                                        let clearance = clearance1.min(clearance2);
+                        let clearance2 = self.get_clearance(block_position2);
+                        let clearance = clearance1.min(clearance2);
 
-                                        if clearance >= MINIMUM_CLEARANCE {
-                                            let block_id1 = self
-                                                .grid
-                                                .position_to_block_id(block_position1)
-                                                .unwrap();
+                        if clearance >= MINIMUM_CLEARANCE {
+                            let block_id1 = self
+                                .grid
+                                .position_to_block_id(block_position1)
+                                .unwrap();
 
-                                            let block_id2 = self
-                                                .grid
-                                                .position_to_block_id(block_position2)
-                                                .unwrap();
+                            let block_id2 = self
+                                .grid
+                                .position_to_block_id(block_position2)
+                                .unwrap();
 
-                                            let cost = if block_position1.y - block_position2.y == 0
-                                            {
-                                                WORLD_FACE_COST
-                                            } else {
-                                                WORLD_EDGE_COST
-                                            };
+                            let cost = if block_position1.y - block_position2.y == 0
+                            {
+                                WORLD_FACE_COST
+                            } else {
+                                WORLD_EDGE_COST
+                            };
 
-                                            self.graph.add_edge(
-                                                chunk_id1,
-                                                block_id1,
-                                                block_position1,
-                                                chunk_id2,
-                                                block_id2,
-                                                block_position2,
-                                                clearance,
-                                                cost,
-                                            );
-                                        }
-                                    }
-                                }
-                            }
+                            self.graph.add_edge(
+                                chunk_id1,
+                                block_id1,
+                                block_position1,
+                                chunk_id2,
+                                block_id2,
+                                block_position2,
+                                clearance,
+                                cost,
+                            );
                         }
                     }
                 }

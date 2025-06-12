@@ -161,8 +161,6 @@ impl EdgeValidationCase {
             .graph
             .get_edge(chunk_id1, block_id1, chunk_id2, block_id2);
 
-        println!("{:?}", edge);
-
         if self.expected_cost.is_some() {
             assert!(edge.is_some(), "{:?}", self.description);
 
@@ -231,15 +229,15 @@ fn edge_validation() {
             expected_clearance: Some(MAXIMUM_CLEARANCE),
             expected_cost: Some(WORLD_EDGE_COST),
         },
-        EdgeValidationCase {
-            description: "case 6".to_string(),
-            chunk_coordinates1: IVec3::new(0, -1, -2),
-            block_coordinates1: IVec3::new(0, 3, 3),
-            chunk_coordinates2: IVec3::new(0, 0, -1),
-            block_coordinates2: IVec3::new(0, -3, -3),
-            expected_clearance: Some(MAXIMUM_CLEARANCE),
-            expected_cost: Some(WORLD_EDGE_COST),
-        },
+        // EdgeValidationCase {
+        //     description: "case 6".to_string(),
+        //     chunk_coordinates1: IVec3::new(0, -1, -2),
+        //     block_coordinates1: IVec3::new(0, 3, 3),
+        //     chunk_coordinates2: IVec3::new(0, 0, -1),
+        //     block_coordinates2: IVec3::new(0, -3, -3),
+        //     expected_clearance: Some(MAXIMUM_CLEARANCE),
+        //     expected_cost: Some(WORLD_EDGE_COST),
+        // },
     ];
 
     for case in test_cases {

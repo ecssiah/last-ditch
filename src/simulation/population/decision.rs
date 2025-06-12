@@ -82,11 +82,7 @@ impl Decision {
 
         let required_clearance = agent.height.ceil() as u32;
 
-        let base_is_solid = world
-            .get_block_at(target_position + IVec3::NEG_Y)
-            .map_or(false, |block| block.solid);
-
-        if base_is_solid && world.has_clearance(target_position, required_clearance) {
+        if world.has_clearance(target_position, required_clearance) {
             Some(target_position)
         } else {
             None
