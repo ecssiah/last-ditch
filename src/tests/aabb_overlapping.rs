@@ -75,8 +75,8 @@ fn blocks_overlap_when_overlapping() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }
 
@@ -135,8 +135,8 @@ fn blocks_do_not_overlap_when_intersecting() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }
 
@@ -195,7 +195,7 @@ fn blocks_do_not_overlap_when_separated() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }

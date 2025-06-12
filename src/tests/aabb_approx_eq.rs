@@ -78,7 +78,7 @@ fn approx_eq() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }

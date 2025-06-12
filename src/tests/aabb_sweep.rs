@@ -51,8 +51,8 @@ fn equal() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }
 
@@ -106,8 +106,8 @@ fn x_axis() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }
 
@@ -152,8 +152,8 @@ fn y_axis() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }
 
@@ -198,7 +198,7 @@ fn z_axis() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check();
+    for case in test_cases {
+        case.check();
     }
 }

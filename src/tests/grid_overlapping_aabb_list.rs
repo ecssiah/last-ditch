@@ -190,7 +190,7 @@ fn directions() {
         },
     ];
 
-    for test_case in test_cases {
-        test_case.check(&test_world);
+    for case in test_cases {
+        case.check(&test_world);
     }
 }

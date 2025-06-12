@@ -75,10 +75,15 @@ fn node_count() {
             chunk_coordinates: IVec3::new(0, 0, -1),
             expected_node_count: 31,
         },
+        NodeCountCase {
+            description: "(0, 0, -2)".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, -2),
+            expected_node_count: 30,
+        },
     ];
 
-    for test_case in test_cases {
-        test_case.check(&world);
+    for case in test_cases {
+        case.check(&world);
     }
 }
 
