@@ -10,7 +10,6 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
-bitflags = { version = "2.4.0", features = ["serde"] }
 bytemuck = { version = "1.14", features = ["derive"] }
 crossbeam = "0.8.4"
 egui = "0.31.1"
@@ -30,7 +29,6 @@ rand = "0.8"
 rand_pcg = "0.3"
 rayon = "1.10.0"
 ron = "0.8"
-serde = { version = "1.0", features = ["derive"] }
 specs = "0.20.0"
 tokio = { version = "1.0", features = ["full"] }
 wgpu = "24.0.0"

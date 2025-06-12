@@ -1,10 +1,8 @@
 use glam::IVec3;
-use serde::{Deserialize, Serialize};
-
-use crate::simulation::{WORLD_CORNER_COST, WORLD_EDGE_COST, WORLD_FACE_COST};
+use crate::simulation::consts::*;
 
 #[rustfmt::skip]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum Direction {
     XnYnZn, XoYnZn, XpYnZn,
     XnYoZn, XoYoZn, XpYoZn,

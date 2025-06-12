@@ -54,11 +54,15 @@ impl Decision {
         let mut plan = Vec::new();
 
         if let Some(position) = world.grid.world_to_position(agent.world_position) {
+            let mut current_position = position;
+
             for _ in 0..10 {
-                if let Some(next_position) = Self::find_target(&position, agent, world) {
+                if let Some(next_position) = Self::find_target(current_position, agent, world) {
                     let step = Step::Move(next_position);
 
                     plan.push(step);
+
+                    current_position = next_position;
                 }
             }
         }
@@ -70,7 +74,7 @@ impl Decision {
         Vec::new()
     }
 
-    fn find_target(position: &IVec3, agent: &Agent, world: &World) -> Option<IVec3> {
+    fn find_target(position: IVec3, agent: &Agent, world: &World) -> Option<IVec3> {
         let mut rng = rand::thread_rng();
 
         let direction_index = rng.gen_range(0..4);
@@ -78,6 +82,7 @@ impl Decision {
 
         let dy = rng.gen_range(-1..=1);
         let offset = direction.offset() + IVec3::new(0, dy, 0);
+
         let target_position = position + offset;
 
         let required_clearance = agent.height.ceil() as u32;
