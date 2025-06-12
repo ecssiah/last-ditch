@@ -87,7 +87,7 @@ impl Decision {
 
         let required_clearance = agent.height.ceil() as u32;
 
-        if world.has_clearance(target_position, required_clearance) {
+        if world.get_clearance(target_position) >= required_clearance {
             Some(target_position)
         } else {
             None

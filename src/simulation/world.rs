@@ -22,7 +22,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 pub struct World {
     pub tick: Tick,
     pub grid: grid::Grid,
-    pub block_meta: HashMap<block::Kind, block::Meta>,
+    pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_list: Vec<chunk::Chunk>,
     pub graph: world::Graph,
     pub flags: HashMap<agent::Kind, IVec3>,
@@ -32,7 +32,7 @@ impl World {
     pub fn new(chunk_radius: u32, world_radius: u32) -> World {
         let tick = Tick::ZERO;
         let grid = grid::Grid::new(chunk_radius, world_radius);
-        let block_meta = block::Meta::setup();
+        let block_meta_map = block::Meta::setup();
         let chunk_list = Self::setup_chunk_list(&grid);
         let graph = Self::setup_world_graph(&chunk_list);
 
@@ -46,7 +46,7 @@ impl World {
         let world = Self {
             tick,
             grid,
-            block_meta,
+            block_meta_map,
             chunk_list,
             graph,
             flags,
@@ -146,23 +146,6 @@ impl World {
         self.get_block(chunk_id, block_id)
     }
 
-    pub fn has_clearance(&self, position: IVec3, height: u32) -> bool {
-        let test_height = height.min(MAXIMUM_CLEARANCE);
-
-        let ground_is_solid = self
-            .get_block_at(position + IVec3::NEG_Y)
-            .map_or(false, |block| block.solid);
-
-        ground_is_solid
-            && (0..test_height).all(|level| {
-                let vertical_position = position + level as i32 * IVec3::Y;
-
-                self.get_block_at(vertical_position)
-                    .map(|block| !block.solid)
-                    .unwrap_or(false)
-            })
-    }
-
     pub fn get_clearance(&self, position: IVec3) -> u32 {
         let mut clearance = 0;
 
@@ -190,23 +173,6 @@ impl World {
         clearance
     }
 
-    pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
-        let block_meta = self.block_meta.get(&kind).cloned().unwrap();
-
-        if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
-            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-                if let Some(block) = chunk.get_block_mut(block_id) {
-                    block.kind = kind;
-                    block.solid = block_meta.solid;
-
-                    self.update_visibility_lists(chunk_id, block_id, position);
-
-                    self.mark_updates(chunk_id, position);
-                }
-            }
-        }
-    }
-
     fn mark_updates(&mut self, chunk_id1: chunk::ID, position1: IVec3) {
         self.set_block_modified(chunk_id1, true);
 
@@ -219,6 +185,23 @@ impl World {
                 if let Some(chunk_id2) = self.grid.position_to_chunk_id(position2) {
                     if chunk_id1 != chunk_id2 {
                         self.set_boundary_modified(chunk_id2, true);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
+        if let Some(block_meta) = self.block_meta_map.get(&kind).cloned() {
+            if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
+                if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+                    if let Some(block) = chunk.get_block_mut(block_id) {
+                        block.kind = kind;
+                        block.solid = block_meta.solid;
+
+                        self.update_visibility_lists(chunk_id, block_id, position);
+
+                        self.mark_updates(chunk_id, position);
                     }
                 }
             }
@@ -400,8 +383,7 @@ impl World {
                     for direction in grid::Direction::traversable_list() {
                         let block_position2 = block_position1 + direction.offset();
 
-                        let chunk_id2 =
-                            self.grid.position_to_chunk_id(block_position2).unwrap();
+                        let chunk_id2 = self.grid.position_to_chunk_id(block_position2).unwrap();
 
                         if chunk_id1 == chunk_id2 {
                             continue;
@@ -411,18 +393,13 @@ impl World {
                         let clearance = clearance1.min(clearance2);
 
                         if clearance >= MINIMUM_CLEARANCE {
-                            let block_id1 = self
-                                .grid
-                                .position_to_block_id(block_position1)
-                                .unwrap();
+                            let block_id1 =
+                                self.grid.position_to_block_id(block_position1).unwrap();
 
-                            let block_id2 = self
-                                .grid
-                                .position_to_block_id(block_position2)
-                                .unwrap();
+                            let block_id2 =
+                                self.grid.position_to_block_id(block_position2).unwrap();
 
-                            let cost = if block_position1.y - block_position2.y == 0
-                            {
+                            let cost = if block_position1.y - block_position2.y == 0 {
                                 WORLD_FACE_COST
                             } else {
                                 WORLD_EDGE_COST
