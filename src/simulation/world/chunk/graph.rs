@@ -42,6 +42,12 @@ impl Graph {
     }
 
     pub fn has_edge(&self, block_id1: block::ID, block_id2: block::ID) -> bool {
+        let (block_id1, block_id2) = if block_id1 < block_id2 {
+            (block_id1, block_id2)
+        } else {
+            (block_id2, block_id1)
+        };
+
         let edge_key = block::edge::Key::new(block_id1, block_id2);
 
         self.edge_map.contains_key(&edge_key)
@@ -85,6 +91,12 @@ impl Graph {
     }
 
     pub fn get_edge(&self, block_id1: block::ID, block_id2: block::ID) -> Option<&block::Edge> {
+        let (block_id1, block_id2) = if block_id1 < block_id2 {
+            (block_id1, block_id2)
+        } else {
+            (block_id2, block_id1)
+        };
+
         let edge_key = block::edge::Key::new(block_id1, block_id2);
 
         self.edge_map.get(&edge_key)

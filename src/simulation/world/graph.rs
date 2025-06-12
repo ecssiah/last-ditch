@@ -1,6 +1,5 @@
-use glam::IVec3;
-
 use crate::simulation::world::{block, chunk};
+use glam::IVec3;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
@@ -74,6 +73,19 @@ impl Graph {
         clearance: u32,
         cost: f32,
     ) {
+        let ((chunk_id1, block_id1, block_position1), (chunk_id2, block_id2, block_position2)) =
+            if chunk_id1 < chunk_id2 {
+                (
+                    (chunk_id1, block_id1, block_position1),
+                    (chunk_id2, block_id2, block_position2),
+                )
+            } else {
+                (
+                    (chunk_id2, block_id2, block_position2),
+                    (chunk_id1, block_id1, block_position1),
+                )
+            };
+
         let key = chunk::edge::Key::new(chunk_id1, block_id1, chunk_id2, block_id2);
 
         let edge = chunk::Edge {
@@ -102,6 +114,12 @@ impl Graph {
         chunk_id2: chunk::ID,
         block_id2: block::ID,
     ) -> Option<&chunk::Edge> {
+        let ((chunk_id1, block_id1), (chunk_id2, block_id2)) = if chunk_id1 < chunk_id2 {
+            ((chunk_id1, block_id1), (chunk_id2, block_id2))
+        } else {
+            ((chunk_id2, block_id2), (chunk_id1, block_id1))
+        };
+
         let key = chunk::edge::Key::new(chunk_id1, block_id1, chunk_id2, block_id2);
 
         self.edge_map.get(&key)
