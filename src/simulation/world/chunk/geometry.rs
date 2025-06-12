@@ -1,6 +1,6 @@
 use crate::simulation::{
+    consts::BLOCK_RADIUS,
     world::{block, grid},
-    BLOCK_RADIUS,
 };
 use nalgebra::Point3;
 use std::collections::HashSet;

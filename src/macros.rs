@@ -1,3 +1,5 @@
+//! Macro definitions
+
 #[macro_export]
 macro_rules! include_assets {
     ($path:expr) => {

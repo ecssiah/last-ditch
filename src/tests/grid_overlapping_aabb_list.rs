@@ -1,7 +1,7 @@
 use crate::simulation::{
+    consts::*,
     physics::aabb::AABB,
     world::{block, grid, World},
-    BLOCK_SIZE, TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS,
 };
 use glam::Vec3;
 use std::f32::EPSILON;

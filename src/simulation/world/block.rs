@@ -13,7 +13,7 @@ pub use kind::Kind;
 pub use meta::Meta;
 pub use node::Node;
 
-use crate::simulation::{physics::aabb::AABB, BLOCK_SIZE};
+use crate::simulation::{consts::*, physics::aabb::AABB};
 use glam::{IVec3, Vec3};
 
 #[derive(Debug)]

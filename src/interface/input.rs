@@ -1,5 +1,4 @@
-//! The Simulation module contains all of the logic required to generate and evolve
-//! the core civilizational garden.
+//! User input processing
 
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},

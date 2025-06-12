@@ -80,9 +80,7 @@ impl Decision {
         let direction_index = rng.gen_range(0..4);
         let direction = grid::Direction::cardinal_list()[direction_index];
 
-        let dy = rng.gen_range(-1..=1);
-        let offset = direction.offset() + IVec3::new(0, dy, 0);
-
+        let offset = direction.offset() + IVec3::new(0, rng.gen_range(-1..=1), 0);
         let target_position = position + offset;
 
         let required_clearance = agent.height.ceil() as u32;

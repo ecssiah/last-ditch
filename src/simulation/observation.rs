@@ -1,5 +1,4 @@
-//! The Simulation module contains all of the logic required to generate and evolve
-//! the core civilizational garden.
+//! Exposes Simulation data for Interface
 
 pub mod buffer;
 pub mod repository;

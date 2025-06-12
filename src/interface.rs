@@ -1,5 +1,4 @@
-//! The Interface module manages user interaction with the Simulation. This includes
-//! both presentation and input management.
+//! Interactions with the User.
 
 pub mod camera;
 pub mod consts;
@@ -12,7 +11,7 @@ use crate::{
     interface::{
         camera::Camera, consts::*, hud::HUD, input::Input, render::Render, wgpu_state::WGPUState,
     },
-    simulation::{self, PROJECT_TITLE},
+    simulation::{self, consts::PROJECT_TITLE},
 };
 use std::{
     collections::HashMap,

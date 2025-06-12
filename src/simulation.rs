@@ -1,5 +1,4 @@
-//! The Simulation module contains all of the logic required to generate and evolve
-//! the core civilizational garden.
+//! Evolution of the simulated environment.
 
 pub mod admin;
 pub mod compute;
@@ -12,9 +11,7 @@ pub mod state;
 pub mod time;
 pub mod world;
 
-pub use consts::*;
-
-use crate::simulation::{compute::Compute, dispatch::Dispatch, observation::Observation};
+use crate::simulation::{compute::Compute, consts::SIMULATION_TICK_DURATION, dispatch::Dispatch, observation::Observation};
 use dispatch::Action;
 use state::State;
 use std::{

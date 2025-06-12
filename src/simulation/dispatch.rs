@@ -1,5 +1,4 @@
-//! The Simulation module contains all of the logic required to generate and evolve
-//! the core civilizational garden.
+//! Allows Interface to send messages to Simulation
 
 pub mod action;
 pub mod agent_action;

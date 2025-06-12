@@ -1,11 +1,6 @@
 //! # Last Ditch
 //!
 //! A Civilization Garden
-//!
-//! ## Systems
-//! The Interface handles interactions between the User and the Simulation.
-//!
-//! The Simulation handles the evolution of the world.
 
 pub mod interface;
 pub mod simulation;
@@ -16,7 +11,7 @@ mod tests;
 
 use crate::{
     interface::Interface,
-    simulation::{Simulation, PROJECT_TITLE},
+    simulation::{consts::PROJECT_TITLE, Simulation},
 };
 use std::thread;
 use winit::{

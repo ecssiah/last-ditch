@@ -1,6 +1,6 @@
 use crate::simulation::{
+    consts::BLOCK_RADIUS,
     world::{block, grid},
-    BLOCK_RADIUS,
 };
 use glam::{IVec3, Vec3, Vec4};
 

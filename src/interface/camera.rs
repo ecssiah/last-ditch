@@ -1,5 +1,4 @@
-//! The Simulation module contains all of the logic required to generate and evolve
-//! the core civilizational garden.
+//! Translates Simulation viewpoint for Interface
 
 use crate::{
     interface::{consts::*, render::data::CameraUniformData},
