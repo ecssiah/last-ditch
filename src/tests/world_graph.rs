@@ -329,6 +329,20 @@ fn group_id_validation() {
             block_coordinates2: IVec3::new(2, -2, -2),
             expected_in_same_group: true,
         },
+        GroupIDCase {
+            description: "case 5".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, -2),
+            block_coordinates1: IVec3::new(-2, 1, -2),
+            block_coordinates2: IVec3::new(-2, 0, -1),
+            expected_in_same_group: true,
+        },
+        GroupIDCase {
+            description: "case 6".to_string(),
+            chunk_coordinates: IVec3::new(0, 0, -2),
+            block_coordinates1: IVec3::new(-2, 0, -1),
+            block_coordinates2: IVec3::new(-2, 1, -2),
+            expected_in_same_group: true,
+        },
     ];
 
     for case in test_cases {

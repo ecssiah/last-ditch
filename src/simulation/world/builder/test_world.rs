@@ -260,5 +260,15 @@ impl TestWorld {
             chunk_south_2_position + IVec3::new(0, -1, -2),
             block::Kind::CrimsonStone,
         );
+
+        world.set_block_kind(
+            chunk_south_2_position + IVec3::new(-2, 0, -2),
+            block::Kind::CrimsonStone,
+        );
+
+        world.set_block_kind(
+            chunk_south_2_position + IVec3::new(-2, -1, -1),
+            block::Kind::CrimsonStone,
+        );
     }
 }
