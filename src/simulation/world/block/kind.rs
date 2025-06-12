@@ -1,6 +1,4 @@
-use serde::Deserialize;
-
-#[derive(Copy, Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
     Empty,
     Engraved1,

@@ -15,16 +15,16 @@ use rand::Rng;
 
 #[derive(Clone)]
 pub struct Agent {
-    pub(crate) id: ID,
-    pub(crate) tick: Tick,
-    pub(crate) world_position: Vec3,
-    pub(crate) target_world_position: Vec3,
-    pub(crate) kind: Kind,
-    pub(crate) decision: Decision,
-    pub(crate) plan: Vec<Step>,
-    pub(crate) step_index: usize,
-    pub(crate) speed: f32,
-    pub(crate) height: f32,
+    pub id: ID,
+    pub tick: Tick,
+    pub world_position: Vec3,
+    pub target_world_position: Vec3,
+    pub kind: Kind,
+    pub decision: Decision,
+    pub plan: Vec<Step>,
+    pub step_index: usize,
+    pub speed: f32,
+    pub height: f32,
 }
 
 impl Agent {

@@ -1,9 +1,7 @@
 //! The Simulation module contains all of the logic required to generate and evolve
 //! the core civilizational garden.
 
-use crate::{include_assets, simulation::world::block};
-use once_cell::sync::Lazy;
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";
 
@@ -62,15 +60,3 @@ pub const MAXIMUM_CLEARANCE: u32 = 5;
 pub const MINIMUM_CLEARANCE: u32 = 2;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
-
-const BLOCK_MAP_CONFIG: &str = include_assets!("config/simulation/block_map.ron");
-
-pub static BLOCK_MAP: Lazy<HashMap<block::Kind, block::Block>> = Lazy::new(|| {
-    let block_list: Vec<block::Block> = ron::from_str::<Vec<block::Block>>(BLOCK_MAP_CONFIG)
-        .expect("Failed to parse block_map_config.ron");
-
-    block_list
-        .into_iter()
-        .map(|block| (block.kind, block))
-        .collect()
-});

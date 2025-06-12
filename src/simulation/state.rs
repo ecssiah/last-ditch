@@ -11,11 +11,11 @@ use crate::simulation::{
 };
 
 pub struct State {
-    pub(crate) admin: Admin,
-    pub(crate) time: Time,
-    pub(crate) physics: Physics,
-    pub(crate) world: World,
-    pub(crate) population: Population,
+    pub admin: Admin,
+    pub time: Time,
+    pub physics: Physics,
+    pub world: World,
+    pub population: Population,
 }
 
 impl State {

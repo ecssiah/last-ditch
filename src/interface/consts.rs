@@ -1,9 +1,7 @@
 //! The Simulation module contains all of the logic required to generate and evolve
 //! the core civilizational garden.
 
-use crate::{include_assets, interface::render::data::BlockData, simulation};
-use once_cell::sync::Lazy;
-use std::{collections::HashMap, f32::consts::PI, time::Duration};
+use std::{f32::consts::PI, time::Duration};
 
 pub const FULLSCREEN: bool = false;
 
@@ -23,17 +21,3 @@ pub const FAR_PLANE: f32 = 200.0;
 
 pub const MOUSE_Y_SENSITIVITY: f32 = 0.009;
 pub const MOUSE_X_SENSITIVITY: f32 = 0.006;
-
-const BLOCK_DATA_MAP_CONFIG: &str = include_assets!("config/interface/block_data_map.ron");
-
-pub static BLOCK_DATA_MAP: Lazy<HashMap<simulation::world::block::Kind, BlockData>> =
-    Lazy::new(|| {
-        let block_data_list: Vec<BlockData> =
-            ron::from_str::<Vec<BlockData>>(BLOCK_DATA_MAP_CONFIG)
-                .expect("Failed to parse BlockData");
-
-        block_data_list
-            .into_iter()
-            .map(|block_data| (block_data.kind, block_data))
-            .collect()
-    });

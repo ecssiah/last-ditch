@@ -95,7 +95,10 @@ impl Observation {
                 id: judge.id,
                 tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
                 aabb: StatePair::new(population_view.judge_view.aabb.next, judge.aabb),
-                world_position: StatePair::new(population_view.judge_view.world_position.next, judge.world_position),
+                world_position: StatePair::new(
+                    population_view.judge_view.world_position.next,
+                    judge.world_position,
+                ),
                 orientation: StatePair::new(
                     population_view.judge_view.orientation.next,
                     judge.orientation,
@@ -118,8 +121,14 @@ impl Observation {
                     kind: agent.kind,
                     height: agent.height,
                     tick: StatePair::new(agent_view.tick.next, agent.tick),
-                    world_position: StatePair::new(agent_view.world_position.next, agent.world_position),
-                    target_world_position: StatePair::new(agent_view.target_world_position.next, agent.target_world_position),
+                    world_position: StatePair::new(
+                        agent_view.world_position.next,
+                        agent.world_position,
+                    ),
+                    target_world_position: StatePair::new(
+                        agent_view.target_world_position.next,
+                        agent.target_world_position,
+                    ),
                 };
 
                 next_population_view
@@ -132,7 +141,10 @@ impl Observation {
                     height: agent.height,
                     tick: StatePair::new(agent.tick, agent.tick),
                     world_position: StatePair::new(agent.world_position, agent.world_position),
-                    target_world_position: StatePair::new(agent.target_world_position, agent.target_world_position),
+                    target_world_position: StatePair::new(
+                        agent.target_world_position,
+                        agent.target_world_position,
+                    ),
                 };
 
                 next_population_view

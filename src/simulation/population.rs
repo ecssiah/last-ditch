@@ -20,9 +20,9 @@ use rand::Rng;
 use std::collections::HashMap;
 
 pub struct Population {
-    pub(crate) tick: Tick,
-    pub(crate) judge: Judge,
-    pub(crate) agent_map: HashMap<agent::ID, Agent>,
+    pub tick: Tick,
+    pub judge: Judge,
+    pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {

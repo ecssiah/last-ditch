@@ -15,17 +15,17 @@ pub use textures::Textures;
 use crate::{
     interface::{
         camera::Camera,
-        consts::BLOCK_DATA_MAP,
-        render::data::{AgentInstanceData, ChunkData, MeshData, VertexData},
+        render::data::{AgentInstanceData, BlockRenderData, ChunkData, MeshData, VertexData},
     },
     simulation,
 };
 use std::collections::HashMap;
 
 pub struct Render {
-    pub(crate) textures: Textures,
-    pub(crate) chunk_render: ChunkRender,
-    pub(crate) agent_render: AgentRender,
+    pub block_render_data_map: HashMap<simulation::world::block::Kind, BlockRenderData>,
+    pub textures: Textures,
+    pub chunk_render: ChunkRender,
+    pub agent_render: AgentRender,
 }
 
 impl Render {
@@ -35,6 +35,8 @@ impl Render {
         surface_format: &wgpu::TextureFormat,
         camera: &Camera,
     ) -> Render {
+        let block_render_data_map = BlockRenderData::setup();
+
         let mut textures = Textures::new(&device);
 
         pollster::block_on(textures.load_texture_atlas(
@@ -57,6 +59,7 @@ impl Render {
             AgentRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
 
         let render = Render {
+            block_render_data_map,
             textures,
             chunk_render,
             agent_render,
@@ -124,8 +127,10 @@ impl Render {
                 }
 
                 let face_vertex_list = face.vertices();
-                let block_data = BLOCK_DATA_MAP.get(&face.kind).unwrap();
-                let tile_position = block_data.tile_position_map.get(&face.direction).unwrap();
+                let block_render_data = self.block_render_data_map.get(&face.kind).unwrap();
+
+                let tile_position_index = block_render_data.direction_to_index(face.direction);
+                let tile_position = block_render_data.tile_index_array[tile_position_index];
 
                 let uv_coordinates = self
                     .textures

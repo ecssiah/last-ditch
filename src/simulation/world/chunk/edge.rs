@@ -34,12 +34,12 @@ impl Key {
 
 #[derive(Clone, Debug)]
 pub struct Edge {
-    pub(crate) chunk_id1: chunk::ID,
-    pub(crate) block_position1: IVec3,
-    pub(crate) chunk_id2: chunk::ID,
-    pub(crate) block_position2: IVec3,
-    pub(crate) clearance: u32,
-    pub(crate) cost: f32,
+    pub chunk_id1: chunk::ID,
+    pub block_position1: IVec3,
+    pub chunk_id2: chunk::ID,
+    pub block_position2: IVec3,
+    pub clearance: u32,
+    pub cost: f32,
 }
 
 impl PartialEq for Edge {
