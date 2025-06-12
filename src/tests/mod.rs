@@ -3,7 +3,6 @@ mod aabb_approx_set_eq;
 mod aabb_intersection;
 mod aabb_overlapping;
 mod aabb_sweep;
-mod grid_boundary_contact_directions;
 mod grid_conversions;
 mod grid_intermediate_positions;
 mod grid_overlapping_aabb_list;

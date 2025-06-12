@@ -231,6 +231,15 @@ fn edge_validation() {
             expected_clearance: Some(MAXIMUM_CLEARANCE),
             expected_cost: Some(WORLD_EDGE_COST),
         },
+        EdgeValidationCase {
+            description: "case 6".to_string(),
+            chunk_coordinates1: IVec3::new(0, -1, -2),
+            block_coordinates1: IVec3::new(0, 3, 3),
+            chunk_coordinates2: IVec3::new(0, 0, -1),
+            block_coordinates2: IVec3::new(0, -3, -3),
+            expected_clearance: Some(MAXIMUM_CLEARANCE),
+            expected_cost: Some(WORLD_EDGE_COST),
+        },
     ];
 
     for case in test_cases {

@@ -11,7 +11,7 @@ use crate::simulation::{
 };
 use glam::{IVec3, Vec3};
 use once_cell::sync::Lazy;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|| {
     HashMap::from([
@@ -281,66 +281,6 @@ impl Grid {
         self.position_to_block_coordinates(position)
     }
 
-    pub fn boundary_contact_direction_list(&self, position: IVec3) -> HashSet<Direction> {
-        let mut directions = HashSet::new();
-
-        static COMPOSITE_DIRECTIONS: &[(Direction, &[Direction])] = &[
-            (Direction::XpYpZo, &[Direction::XpYoZo, Direction::XoYpZo]),
-            (Direction::XnYpZo, &[Direction::XnYoZo, Direction::XoYpZo]),
-            (Direction::XoYpZp, &[Direction::XoYpZo, Direction::XoYoZp]),
-            (Direction::XoYpZn, &[Direction::XoYpZo, Direction::XoYoZn]),
-            (Direction::XpYnZo, &[Direction::XpYoZo, Direction::XoYnZo]),
-            (Direction::XnYnZo, &[Direction::XnYoZo, Direction::XoYnZo]),
-            (Direction::XoYnZp, &[Direction::XoYnZo, Direction::XoYoZp]),
-            (Direction::XoYnZn, &[Direction::XoYnZo, Direction::XoYoZn]),
-            (Direction::XpYoZp, &[Direction::XpYoZo, Direction::XoYoZp]),
-            (Direction::XpYoZn, &[Direction::XpYoZo, Direction::XoYoZn]),
-            (Direction::XnYoZn, &[Direction::XnYoZo, Direction::XoYoZn]),
-            (Direction::XnYoZp, &[Direction::XnYoZo, Direction::XoYoZp]),
-        ];
-
-        if let Some(block_coordinates) = self.position_to_block_coordinates(position) {
-            let chunk_radius = self.chunk_radius as i32;
-            let world_boundary = self.world_boundary as i32;
-
-            if position.x.abs() != world_boundary {
-                if block_coordinates.x == -chunk_radius {
-                    directions.insert(Direction::XnYoZo);
-                } else if block_coordinates.x == chunk_radius {
-                    directions.insert(Direction::XpYoZo);
-                }
-            }
-
-            if position.y.abs() != world_boundary {
-                if block_coordinates.y == -chunk_radius {
-                    directions.insert(Direction::XoYnZo);
-                } else if block_coordinates.y == chunk_radius {
-                    directions.insert(Direction::XoYpZo);
-                }
-            }
-
-            if position.z.abs() != world_boundary {
-                if block_coordinates.z == -chunk_radius {
-                    directions.insert(Direction::XoYoZn);
-                } else if block_coordinates.z == chunk_radius {
-                    directions.insert(Direction::XoYoZp);
-                }
-            }
-        }
-
-        for &(composite_direction, requirements) in COMPOSITE_DIRECTIONS {
-            let required = requirements
-                .iter()
-                .all(|direction| directions.contains(direction));
-
-            if required {
-                directions.insert(composite_direction);
-            }
-        }
-
-        directions
-    }
-
     pub fn blocks_overlapping(&self, aabb: AABB) -> Vec<AABB> {
         let mut aabb_list = Vec::new();
 
@@ -389,6 +329,17 @@ impl Grid {
         let vector = IVec3::new(x as i32, y as i32, z as i32);
 
         vector
+    }
+
+    pub fn on_chunk_boundary(&self, position: IVec3) -> bool {
+        self.position_to_block_coordinates(position)
+            .map_or(false, |block_coordinates| {
+                let chunk_radius = self.chunk_radius as i32;
+
+                block_coordinates.x.abs() == chunk_radius
+                    || block_coordinates.y.abs() == chunk_radius
+                    || block_coordinates.z.abs() == chunk_radius
+            })
     }
 
     fn in_bounds(vector: IVec3, radius: u32) -> bool {
