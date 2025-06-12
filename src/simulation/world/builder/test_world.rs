@@ -248,5 +248,17 @@ impl TestWorld {
             chunk_south_2_position + IVec3::new(-1, -4, 4),
             block::Kind::CrimsonStone,
         );
+
+        world.set_cube(
+            chunk_south_2_position + IVec3::new(0, -2, 0),
+            chunk_south_2_position + IVec3::new(2, -1, 0),
+            block::Kind::CrimsonStone,
+        );
+
+        world.set_cube(
+            chunk_south_2_position + IVec3::new(0, -2, 0),
+            chunk_south_2_position + IVec3::new(0, -1, -2),
+            block::Kind::CrimsonStone,
+        );
     }
 }

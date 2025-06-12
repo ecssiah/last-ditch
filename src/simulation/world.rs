@@ -356,7 +356,7 @@ impl World {
             );
         }
 
-        let group_id_map = self.update_group_id_map(chunk);
+        let group_id_map = self.update_group_id_map(&chunk_graph);
 
         for (block_id, group_id) in group_id_map {
             if let Some(block_node) = chunk_graph.get_block_node_mut(block_id) {
@@ -421,41 +421,35 @@ impl World {
         }
     }
 
-    fn update_group_id_map(&self, chunk: &chunk::Chunk) -> HashMap<block::ID, u32> {
+    fn update_group_id_map(&self, chunk_graph: &chunk::Graph) -> HashMap<block::ID, u32> {
         let mut group_id = 0;
         let mut group_id_map: HashMap<block::ID, u32> = HashMap::new();
 
         let mut visited: HashSet<block::ID> = HashSet::new();
 
-        if let Some(chunk_graph) = self.graph.get_chunk_graph(chunk.id) {
-            for block_id in chunk_graph.get_node_block_ids() {
-                if visited.contains(&block_id) {
+        for block_id in chunk_graph.get_node_block_ids() {
+            if visited.contains(&block_id) {
+                continue;
+            }
+
+            let mut queue = VecDeque::new();
+            queue.push_back(block_id);
+
+            while let Some(test_block_id) = queue.pop_front() {
+                if !visited.insert(test_block_id) {
                     continue;
                 }
 
-                let mut queue = VecDeque::new();
-                queue.push_back(block_id);
+                group_id_map.insert(test_block_id, group_id);
 
-                while let Some(test_block_id) = queue.pop_front() {
-                    if !visited.insert(test_block_id) {
-                        continue;
+                for edge in chunk_graph.get_edge_iter(test_block_id) {
+                    if !visited.contains(&edge.block_id2) {
+                        queue.push_back(edge.block_id2);
                     }
-
-                    group_id_map.insert(test_block_id, group_id);
-
-                    // if let Some(node) = chunk_graph.get_block_node(test_block_id) {
-                    //     for edge in &node.edge_list {
-                    //         let position2 = edge.position2;
-
-                    //         if !visited.contains(&position2) {
-                    //             queue.push_back(position2);
-                    //         }
-                    //     }
-                    // }
                 }
-
-                group_id += 1;
             }
+
+            group_id += 1;
         }
 
         group_id_map
