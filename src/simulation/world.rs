@@ -443,8 +443,14 @@ impl World {
                 group_id_map.insert(test_block_id, group_id);
 
                 for edge in chunk_graph.get_edge_iter(test_block_id) {
-                    if !visited.contains(&edge.block_id2) {
-                        queue.push_back(edge.block_id2);
+                    let edge_block_id = if test_block_id == edge.block_id1 {
+                        edge.block_id2
+                    } else {
+                        edge.block_id1
+                    };
+
+                    if !visited.contains(&edge_block_id) {
+                        queue.push_back(edge_block_id);
                     }
                 }
             }

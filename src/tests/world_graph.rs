@@ -327,7 +327,7 @@ fn group_id_validation() {
             chunk_coordinates: IVec3::new(0, 0, -2),
             block_coordinates1: IVec3::new(1, -2, -1),
             block_coordinates2: IVec3::new(2, -2, -2),
-            expected_in_same_group: false,
+            expected_in_same_group: true,
         },
     ];
 
