@@ -8,7 +8,7 @@ struct GetClearanceCase {
     description: String,
     chunk_coordinates: IVec3,
     block_coordinates: IVec3,
-    expected_clearance: u32,
+    expected_clearance: Option<u32>,
 }
 
 impl GetClearanceCase {
@@ -37,37 +37,37 @@ fn get_clearance() {
             description: String::from("clearance 0"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(-2, -2, 2),
-            expected_clearance: 0,
+            expected_clearance: Some(0),
         },
         GetClearanceCase {
             description: String::from("clearance 1"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(-1, -2, 2),
-            expected_clearance: 1,
+            expected_clearance: Some(1),
         },
         GetClearanceCase {
             description: String::from("clearance 2"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(0, -2, 2),
-            expected_clearance: 2,
+            expected_clearance: Some(2),
         },
         GetClearanceCase {
             description: String::from("clearance 3"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(1, -2, 2),
-            expected_clearance: 3,
+            expected_clearance: Some(3),
         },
         GetClearanceCase {
             description: String::from("clearance 4"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(2, -2, 2),
-            expected_clearance: 4,
+            expected_clearance: Some(4),
         },
         GetClearanceCase {
             description: String::from("clearance max"),
             chunk_coordinates: IVec3::new(0, 0, 1),
             block_coordinates: IVec3::new(0, -2, 0),
-            expected_clearance: MAXIMUM_CLEARANCE,
+            expected_clearance: Some(MAXIMUM_CLEARANCE),
         },
     ];
 

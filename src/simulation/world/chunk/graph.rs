@@ -25,12 +25,8 @@ impl Graph {
         self.node_map.keys().copied()
     }
 
-    pub fn add_block_node(
-        &mut self,
-        block_id: block::ID,
-        block_node: block::Node,
-    ) -> Option<block::Node> {
-        self.node_map.insert(block_id, block_node)
+    pub fn add_block_node(&mut self, block_node: block::Node) -> Option<block::Node> {
+        self.node_map.insert(block_node.block_id, block_node)
     }
 
     pub fn get_block_node(&self, block_id: block::ID) -> Option<&block::Node> {
