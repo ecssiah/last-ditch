@@ -21,7 +21,6 @@ use std::collections::HashMap;
 pub struct Population {
     pub tick: Tick,
     pub judge: Judge,
-    pub view_radius_squared: f32,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
 
@@ -30,7 +29,6 @@ impl Population {
         let population = Population {
             tick: Tick::ZERO,
             judge: Judge::new(judge::ID::allocate()),
-            view_radius_squared: 0.0,
             agent_map: HashMap::new(),
         };
 
@@ -38,14 +36,8 @@ impl Population {
     }
 
     pub fn setup(&mut self, world: &World) {
-        self.view_radius_squared = self.calculate_view_radius(world);
-
         self.setup_judge();
         self.setup_agents(world);
-    }
-
-    fn calculate_view_radius(&mut self, world: &World) -> f32 {
-        (world.grid.chunk_size * JUDGE_CHUNK_VIEW_RADIUS).pow(2) as f32
     }
 
     fn setup_judge(&mut self) {

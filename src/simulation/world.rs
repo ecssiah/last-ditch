@@ -651,23 +651,29 @@ impl World {
     }
 
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
-        let radius = JUDGE_CHUNK_VIEW_RADIUS as i32 + 1;
-        let radius_squared = radius * radius;
-        let chunk_count_estimate = ((2 * radius + 1).pow(3)) as usize;
+        let mut visible_chunk_id_list = Vec::new();
 
-        let mut visible_chunk_id_list = Vec::with_capacity(chunk_count_estimate);
+        if let Some(chunk_coordinates) = self.grid.chunk_id_to_chunk_coordinates(judge.chunk_id) {
+            let chunk_view_radius =
+                (JUDGE_VIEW_RADIUS / self.grid.chunk_size as f32).floor() as i32;
+            let chunk_view_radius_squared = chunk_view_radius * chunk_view_radius;
 
-        if let Some(judge_chunk_coordinates) =
-            self.grid.chunk_id_to_chunk_coordinates(judge.chunk_id)
-        {
-            for offset in grid::Grid::offsets_in(radius) {
-                if offset.length_squared() < radius_squared {
-                    let chunk_coordinates = judge_chunk_coordinates + offset;
+            for x in -chunk_view_radius..=chunk_view_radius {
+                for y in -chunk_view_radius..=chunk_view_radius {
+                    for z in -chunk_view_radius..=chunk_view_radius {
+                        let offset = IVec3::new(x, y, z);
+                        let test_chunk_coordinates = chunk_coordinates + offset;
 
-                    if let Some(chunk_id) =
-                        self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates)
-                    {
-                        visible_chunk_id_list.push(chunk_id);
+                        let distance_squared = offset.length_squared();
+
+                        if distance_squared <= chunk_view_radius_squared {
+                            if let Some(test_chunk_id) = self
+                                .grid
+                                .chunk_coordinates_to_chunk_id(test_chunk_coordinates)
+                            {
+                                visible_chunk_id_list.push(test_chunk_id);
+                            }
+                        }
                     }
                 }
             }

@@ -7,7 +7,7 @@ pub mod view;
 
 use crate::simulation::{
     admin::Admin,
-    consts::*,
+    consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::{
         repository::Repository,
         state_pair::StatePair,
@@ -110,7 +110,7 @@ impl Observation {
             let judge_distance_squared =
                 (agent.world_position - population.judge.world_position).length_squared();
 
-            if judge_distance_squared > population.view_radius_squared {
+            if judge_distance_squared > JUDGE_VIEW_RADIUS_SQUARED {
                 continue;
             }
 
