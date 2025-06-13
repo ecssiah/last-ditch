@@ -191,7 +191,7 @@ fn edge_validation() {
             chunk_coordinates2: IVec3::new(0, 0, -2),
             block_coordinates2: IVec3::new(0, -2, 3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
-            expected_cost: Some(WORLD_FACE_COST),
+            expected_cost: Some(MOVEMENT_COST_FACE),
         },
         EdgeValidationCase {
             description: "case 2".to_string(),
@@ -200,7 +200,7 @@ fn edge_validation() {
             chunk_coordinates1: IVec3::new(0, 0, -1),
             block_coordinates1: IVec3::new(0, -2, -3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
-            expected_cost: Some(WORLD_FACE_COST),
+            expected_cost: Some(MOVEMENT_COST_FACE),
         },
         EdgeValidationCase {
             description: "case 3".to_string(),
@@ -209,7 +209,7 @@ fn edge_validation() {
             chunk_coordinates2: IVec3::new(0, 0, -2),
             block_coordinates2: IVec3::new(2, 0, 3),
             expected_clearance: Some(3),
-            expected_cost: Some(WORLD_EDGE_COST),
+            expected_cost: Some(MOVEMENT_COST_EDGE),
         },
         EdgeValidationCase {
             description: "case 4".to_string(),
@@ -227,7 +227,7 @@ fn edge_validation() {
             chunk_coordinates2: IVec3::new(0, -1, -2),
             block_coordinates2: IVec3::new(-1, 3, 3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
-            expected_cost: Some(WORLD_EDGE_COST),
+            expected_cost: Some(MOVEMENT_COST_EDGE),
         },
         EdgeValidationCase {
             description: "case 6".to_string(),
@@ -236,7 +236,7 @@ fn edge_validation() {
             chunk_coordinates2: IVec3::new(0, 0, -1),
             block_coordinates2: IVec3::new(-1, -3, -3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
-            expected_cost: Some(WORLD_EDGE_COST),
+            expected_cost: Some(MOVEMENT_COST_EDGE),
         },
     ];
 

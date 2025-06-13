@@ -386,9 +386,9 @@ impl World {
                                 self.grid.position_to_block_id(block_position2).unwrap();
 
                             let cost = if block_position1.y - block_position2.y == 0 {
-                                WORLD_FACE_COST
+                                MOVEMENT_COST_FACE
                             } else {
-                                WORLD_EDGE_COST
+                                MOVEMENT_COST_EDGE
                             };
 
                             self.graph.add_edge(
