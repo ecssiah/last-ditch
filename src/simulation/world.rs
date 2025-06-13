@@ -186,10 +186,12 @@ impl World {
             for direction in grid::Direction::face_list() {
                 let position2 = position1 + direction.offset();
 
-                if let Some(chunk_id2) = self.grid.position_to_chunk_id(position2) {
-                    if chunk_id1 != chunk_id2 {
-                        self.set_boundary_modified(chunk_id2, true);
-                    }
+                if let Some(chunk_id2) = self
+                    .grid
+                    .position_to_chunk_id(position2)
+                    .filter(|chunk_id| chunk_id != &chunk_id1)
+                {
+                    self.set_boundary_modified(chunk_id2, true);
                 }
             }
         }
@@ -320,12 +322,11 @@ impl World {
 
                 if let Some(block_id2) = self.grid.position_to_block_id(block_position2) {
                     if chunk_graph.get_block_node(block_id2).is_some() {
-                        let clearance1 = self.get_clearance(block_position1);
-                        let clearance2 = self.get_clearance(block_position2);
-
-                        if clearance1.is_some() && clearance2.is_some() {
-                            let clearance = clearance1.unwrap().min(clearance2.unwrap());
-
+                        if let Some(clearance) = self
+                            .get_clearance(block_position1)
+                            .zip(self.get_clearance(block_position2))
+                            .map(|(clearance1, clearance2)| clearance1.min(clearance2))
+                        {
                             if clearance >= MINIMUM_CLEARANCE {
                                 let cost = direction.cost();
 
@@ -364,9 +365,10 @@ impl World {
         for offset in grid::Grid::offsets_in(chunk_radius) {
             let block_position1 = chunk_position + offset;
 
-            let clearance1 = self.get_clearance(block_position1);
-
-            if clearance1.is_some_and(|clearance| clearance >= MINIMUM_CLEARANCE) {
+            if let Some(clearance1) = self
+                .get_clearance(block_position1)
+                .filter(|clearance| clearance >= &MINIMUM_CLEARANCE)
+            {
                 for direction in grid::Direction::traversable_list() {
                     let block_position2 = block_position1 + direction.offset();
 
@@ -375,10 +377,11 @@ impl World {
                             continue;
                         }
 
-                        let clearance2 = self.get_clearance(block_position2);
-
-                        if clearance2.is_some_and(|clearance| clearance >= MINIMUM_CLEARANCE) {
-                            let clearance = clearance1.unwrap().min(clearance2.unwrap());
+                        if let Some(clearance2) = self
+                            .get_clearance(block_position2)
+                            .filter(|clearance| clearance >= &MINIMUM_CLEARANCE)
+                        {
+                            let clearance = clearance1.min(clearance2);
 
                             let block_id1 =
                                 self.grid.position_to_block_id(block_position1).unwrap();
@@ -386,7 +389,7 @@ impl World {
                             let block_id2 =
                                 self.grid.position_to_block_id(block_position2).unwrap();
 
-                            let cost = if block_position1.y - block_position2.y == 0 {
+                            let cost = if block_position1.y == block_position2.y {
                                 MOVEMENT_COST_FACE
                             } else {
                                 MOVEMENT_COST_EDGE
@@ -486,30 +489,32 @@ impl World {
         let mut visibility_updates_map: HashMap<chunk::ID, Vec<(block::ID, Vec<grid::Direction>)>> =
             HashMap::new();
 
-        if let Some(block) = self.get_block(chunk_id, block_id) {
-            if block.kind != block::Kind::Empty {
-                let visibility_list = self.compute_visibility_list(position);
+        if self
+            .get_block(chunk_id, block_id)
+            .map_or(false, |block| block.kind != block::Kind::Empty)
+        {
+            let visibility_list = self.compute_visibility_list(position);
 
-                visibility_updates_map
-                    .entry(chunk_id)
-                    .or_insert_with(Vec::new)
-                    .push((block_id, visibility_list));
-            }
+            visibility_updates_map
+                .entry(chunk_id)
+                .or_insert_with(Vec::new)
+                .push((block_id, visibility_list));
         }
 
         for offset in grid::Direction::face_offsets() {
             let neighbor_position = position + offset;
 
             if let Some((chunk_id, block_id)) = self.grid.position_to_ids(neighbor_position) {
-                if let Some(block) = self.get_block(chunk_id, block_id) {
-                    if block.kind != block::Kind::Empty {
-                        let visibility_list = self.compute_visibility_list(neighbor_position);
+                if self
+                    .get_block(chunk_id, block_id)
+                    .map_or(false, |block| block.kind != block::Kind::Empty)
+                {
+                    let visibility_list = self.compute_visibility_list(neighbor_position);
 
-                        visibility_updates_map
-                            .entry(chunk_id)
-                            .or_insert_with(Vec::new)
-                            .push((block_id, visibility_list));
-                    }
+                    visibility_updates_map
+                        .entry(chunk_id)
+                        .or_insert_with(Vec::new)
+                        .push((block_id, visibility_list));
                 }
             }
         }
@@ -524,7 +529,7 @@ impl World {
     }
 
     fn compute_visibility_list(&self, position: IVec3) -> Vec<grid::Direction> {
-        let visibility_list: Vec<grid::Direction> = grid::Direction::face_list()
+        grid::Direction::face_list()
             .iter()
             .filter_map(|&direction| {
                 let neighbor_position = position + direction.offset();
@@ -534,9 +539,7 @@ impl World {
                     .filter(|block| block.kind == block::Kind::Empty)
                     .map(|_| direction)
             })
-            .collect();
-
-        visibility_list
+            .collect()
     }
 
     fn get_face_neighbors(
