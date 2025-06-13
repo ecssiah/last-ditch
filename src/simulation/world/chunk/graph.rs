@@ -21,7 +21,7 @@ impl Graph {
         graph
     }
 
-    pub fn get_node_block_ids(&self) -> impl Iterator<Item = block::ID> + '_ {
+    pub fn get_block_node_id_list(&self) -> impl Iterator<Item = block::ID> + '_ {
         self.node_map.keys().copied()
     }
 

@@ -47,12 +47,10 @@ impl State {
     }
 
     pub fn tick(&mut self) {
-        let tick = &self.time.tick;
-
-        self.world.tick(tick);
-        self.population.tick(tick, &self.world);
-        self.physics.tick(&self.world, &mut self.population);
-
         self.time.tick();
+
+        self.world.tick(&self.time.tick);
+        self.physics.tick(&self.world, &mut self.population);
+        self.population.tick(&self.time.tick, &self.world);
     }
 }

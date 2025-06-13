@@ -110,7 +110,7 @@ impl Observation {
             let judge_distance_squared =
                 (agent.world_position - population.judge.world_position).length_squared();
 
-            if judge_distance_squared > POPULATION_VIEW_RADIUS_SQUARED {
+            if judge_distance_squared > population.view_radius_squared {
                 continue;
             }
 
@@ -165,10 +165,7 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let position = world.grid.world_to_position(judge.world_position).unwrap();
-        let current_chunk_id = world.grid.position_to_chunk_id(position).unwrap();
-
-        let visible_chunk_id_list = world.get_visible_chunk_id_list(current_chunk_id);
+        let visible_chunk_id_list = world.get_visible_chunk_id_list(judge);
 
         for chunk_id in visible_chunk_id_list {
             if let Some(chunk) = world.get_chunk(chunk_id) {

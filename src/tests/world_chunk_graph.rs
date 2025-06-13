@@ -68,7 +68,7 @@ fn node_count() {
         NodeCountCase {
             description: "(0, 0, 1)".to_string(),
             chunk_coordinates: IVec3::new(0, 0, 1),
-            expected_node_count: 27,
+            expected_node_count: 29,
         },
         NodeCountCase {
             description: "(0, 0, -1)".to_string(),
@@ -78,7 +78,7 @@ fn node_count() {
         NodeCountCase {
             description: "(0, 0, -2)".to_string(),
             chunk_coordinates: IVec3::new(0, 0, -2),
-            expected_node_count: 30,
+            expected_node_count: 31,
         },
     ];
 

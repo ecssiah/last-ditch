@@ -2,10 +2,10 @@
 
 use std::time::Duration;
 
-pub const PROJECT_TITLE: &str = "Last Ditch";
+pub const TESTING: bool = false;
 
+pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const DEFAULT_SEED: u64 = 128;
-pub const TESTING: bool = true;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_TICK_DURATION: Duration =
@@ -18,20 +18,15 @@ pub const MAX_RESOLVE_ITERATIONS: usize = 40;
 pub const GRAVITY_ACCELERATION: f32 = 16.0;
 pub const EPSILON_COLLISION: f32 = 0.001;
 
-pub const DEFAULT_X_SPEED: f32 = 8.0;
-pub const DEFAULT_Z_SPEED: f32 = 9.0;
-pub const DEFAULT_ANGULAR_SPEED: f32 = 1.0;
-pub const MAX_JUMP_TICKS: u32 = 8;
-pub const JUMP_LAUNCH_VELOCITY: f32 = 8.0;
-pub const JUMP_HOLD_VELOCITY: f32 = 1.0;
-pub const JUMP_GRAVITY_DAMPING: f32 = 0.5;
+pub const JUDGE_SPEED_X: f32 = 8.0;
+pub const JUDGE_SPEED_Y: f32 = 8.0;
+pub const JUDGE_SPEED_Z: f32 = 9.0;
+
+pub const JUDGE_CHUNK_VIEW_RADIUS: u32 = 4;
+pub const JUDGE_CHUNK_VIEW_RADIUS_SQUARED: u32 = JUDGE_CHUNK_VIEW_RADIUS * JUDGE_CHUNK_VIEW_RADIUS;
+pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
 
 pub const AGENT_INITIAL_POPULATION: usize = 16;
-
-pub const ENTITY_SIZE_X: f32 = 0.4;
-pub const ENTITY_SIZE_Y: f32 = 1.4;
-pub const ENTITY_SIZE_Z: f32 = 0.4;
-pub const ENTITY_BORDER_RADIUS: f32 = 0.001;
 
 pub const WORLD_FACE_COST: f32 = 1.0;
 pub const WORLD_EDGE_COST: f32 = 1.4142135;
@@ -48,14 +43,10 @@ pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
 pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
 pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
 
-pub const JUDGE_CAMERA_HEIGHT: f32 = 1.4;
-pub const JUDGE_VIEW_RADIUS: i32 = 12;
-pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
-
 pub const POPULATION_VIEW_RADIUS: f32 = 120.0;
 pub const POPULATION_VIEW_RADIUS_SQUARED: f32 = POPULATION_VIEW_RADIUS * POPULATION_VIEW_RADIUS;
 
 pub const MAXIMUM_CLEARANCE: u32 = 5;
-pub const MINIMUM_CLEARANCE: u32 = 2;
+pub const MINIMUM_CLEARANCE: u32 = 1;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];

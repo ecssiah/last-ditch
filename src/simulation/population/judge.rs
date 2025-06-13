@@ -7,6 +7,7 @@ pub use jump_state::JumpState;
 
 use crate::simulation::physics::aabb::AABB;
 use crate::simulation::physics::dynamic_object::DynamicObject;
+use crate::simulation::world::World;
 use crate::simulation::{
     consts::*,
     dispatch::{JumpAction, MovementAction},
@@ -54,6 +55,15 @@ impl Judge {
         judge
     }
 
+    pub fn tick(&mut self, world: &World) {
+        if let Some(chunk_id) = world.grid.world_to_chunk_id(self.world_position) {
+            if chunk_id != self.chunk_id {
+                self.chunk_update = true;
+                self.chunk_id = chunk_id;
+            }
+        }
+    }
+
     pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
         if movement_action.yaw.abs() > 1e-6 || movement_action.pitch.abs() > 1e-6 {
             self.yaw += movement_action.yaw;
@@ -69,7 +79,7 @@ impl Judge {
         if input_direction.length_squared() > 1e-6 {
             let yaw_quat = Quat::from_rotation_y(self.yaw);
 
-            let local_velocity = input_direction * Vec3::new(DEFAULT_X_SPEED, 0.0, DEFAULT_Z_SPEED);
+            let local_velocity = input_direction * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
             let velocity = yaw_quat * local_velocity;
 
             self.velocity.x = velocity.x;
@@ -86,7 +96,7 @@ impl Judge {
                 self.jump_state.stage = JumpStage::Launch;
                 self.jump_state.timer = 0;
 
-                self.velocity.y = JUMP_LAUNCH_VELOCITY;
+                self.velocity.y = JUDGE_SPEED_Y;
             }
             JumpAction::End => {
                 self.jump_state.stage = JumpStage::Fall;
