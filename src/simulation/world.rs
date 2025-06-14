@@ -159,12 +159,12 @@ impl World {
             for level in 0..MAXIMUM_CLEARANCE {
                 let vertical_position = position + IVec3::Y * level as i32;
 
-                let is_clear = self
+                let is_not_solid = self
                     .get_block_at(vertical_position)
                     .map(|block| !block.solid)
                     .unwrap_or(false);
 
-                if is_clear {
+                if is_not_solid {
                     clearance += 1;
                 } else {
                     break;
@@ -200,21 +200,27 @@ impl World {
     pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
         let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
 
-        let (chunk_id, block_id) = self.grid.position_to_ids(position).unwrap();
-        let chunk = self.get_chunk_mut(chunk_id).unwrap();
+        if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
+            let chunk = self.get_chunk_mut(chunk_id).unwrap();
+            let block = chunk.get_block_mut(block_id).unwrap();
 
-        let block = chunk.get_block_mut(block_id).unwrap();
+            block.kind = kind;
+            block.solid = block_meta.solid;
 
-        block.kind = kind;
-        block.solid = block_meta.solid;
-
-        self.update_visibility_lists(chunk_id, block_id, position);
-        self.mark_updates(chunk_id, position);
+            self.update_visibility_lists(chunk_id, block_id, position);
+            self.mark_updates(chunk_id, position);
+        } else {
+            log::info!(
+                "{:?} block not set at invalid location: {:?}",
+                kind,
+                position
+            );
+        }
     }
 
-    pub fn set_box(&mut self, point1: IVec3, point2: IVec3, kind: block::Kind) {
-        let min = point1.min(point2);
-        let max = point1.max(point2);
+    pub fn set_box(&mut self, position1: IVec3, position2: IVec3, kind: block::Kind) {
+        let min = position1.min(position2);
+        let max = position1.max(position2);
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -234,9 +240,9 @@ impl World {
         }
     }
 
-    pub fn set_cube(&mut self, point1: IVec3, point2: IVec3, kind: block::Kind) {
-        let min = point1.min(point2);
-        let max = point1.max(point2);
+    pub fn set_cube(&mut self, position1: IVec3, position2: IVec3, kind: block::Kind) {
+        let min = position1.min(position2);
+        let max = position1.max(position2);
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -265,13 +271,13 @@ impl World {
 
         for chunk in &self.chunk_list {
             if chunk.modified.block {
-                let chunk_graph = self.update_chunk_graph(chunk);
-
-                self.graph.add_chunk_graph(chunk.id, chunk_graph);
-
                 let chunk_geometry = self.update_chunk_geometry(chunk);
 
                 chunk_geometry_update_list.push((chunk.id, chunk_geometry));
+
+                let chunk_graph = self.update_chunk_graph(chunk);
+
+                self.graph.add_chunk_graph(chunk.id, chunk_graph);
             }
 
             if chunk.modified.boundary {
@@ -299,16 +305,17 @@ impl World {
         for offset in grid::Grid::offsets_in(self.grid.chunk_radius as i32) {
             let position = chunk.position + offset;
 
-            if let Some(clearance) = self.get_clearance(position) {
-                if clearance >= MINIMUM_CLEARANCE {
-                    let block_node = block::Node {
-                        block_id: self.grid.position_to_block_id(position).unwrap(),
-                        position,
-                        group_id: 0,
-                    };
+            if self
+                .get_clearance(position)
+                .map_or(false, |clearance| clearance >= MINIMUM_CLEARANCE)
+            {
+                let block_node = block::Node {
+                    block_id: self.grid.position_to_block_id(position).unwrap(),
+                    position,
+                    group_id: 0,
+                };
 
-                    chunk_graph.add_block_node(block_node);
-                }
+                chunk_graph.add_block_node(block_node);
             }
         }
 
@@ -326,19 +333,18 @@ impl World {
                             .get_clearance(block_position1)
                             .zip(self.get_clearance(block_position2))
                             .map(|(clearance1, clearance2)| clearance1.min(clearance2))
+                            .filter(|clearance| clearance >= &MINIMUM_CLEARANCE)
                         {
-                            if clearance >= MINIMUM_CLEARANCE {
-                                let cost = direction.cost();
+                            let cost = direction.cost();
 
-                                chunk_graph.add_edge(
-                                    block_id1,
-                                    block_position1,
-                                    block_id2,
-                                    block_position2,
-                                    clearance,
-                                    cost,
-                                );
-                            }
+                            chunk_graph.add_edge(
+                                block_id1,
+                                block_position1,
+                                block_id2,
+                                block_position2,
+                                clearance,
+                                cost,
+                            );
                         }
                     }
                 }
