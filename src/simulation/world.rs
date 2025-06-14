@@ -15,7 +15,7 @@ use crate::simulation::{
         agent::{self},
         Judge,
     },
-    time::Tick,
+    time::{Tick, Time},
     world,
 };
 use glam::{IVec3, Vec4};
@@ -67,8 +67,8 @@ impl World {
         }
     }
 
-    pub fn tick(&mut self, tick: &Tick) {
-        self.tick = *tick;
+    pub fn tick(&mut self, time: &Time) {
+        self.tick = time.tick;
     }
 
     fn setup_world_graph(chunk_list: &Vec<chunk::Chunk>) -> world::Graph {

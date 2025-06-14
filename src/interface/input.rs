@@ -2,7 +2,9 @@
 
 use crate::{
     interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
-    simulation::dispatch::{Action, AgentAction, JumpAction, MovementAction, WorldAction},
+    simulation::dispatch::{
+        Action, AgentAction, JumpAction, MovementAction, TestAction, WorldAction,
+    },
 };
 use glam::{Vec2, Vec3};
 use std::sync::Arc;
@@ -125,6 +127,38 @@ impl Input {
                 let action = Action::World(world_action);
 
                 self.action_tx.send(action).unwrap();
+            }
+            PhysicalKey::Code(KeyCode::Digit1) => {
+                if key_event.state == ElementState::Released {
+                    let test_action = TestAction::Test1;
+                    let action = Action::Test(test_action);
+
+                    self.action_tx.send(action).unwrap();
+                }
+            }
+            PhysicalKey::Code(KeyCode::Digit2) => {
+                if key_event.state == ElementState::Released {
+                    let test_action = TestAction::Test2;
+                    let action = Action::Test(test_action);
+
+                    self.action_tx.send(action).unwrap();
+                }
+            }
+            PhysicalKey::Code(KeyCode::Digit3) => {
+                if key_event.state == ElementState::Released {
+                    let test_action = TestAction::Test3;
+                    let action = Action::Test(test_action);
+
+                    self.action_tx.send(action).unwrap();
+                }
+            }
+            PhysicalKey::Code(KeyCode::Digit4) => {
+                if key_event.state == ElementState::Released {
+                    let test_action = TestAction::Test4;
+                    let action = Action::Test(test_action);
+
+                    self.action_tx.send(action).unwrap();
+                }
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {

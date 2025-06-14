@@ -49,11 +49,9 @@ impl State {
 
     pub fn tick(&mut self) {
         self.time.tick();
-
-        self.world.tick(&self.time.tick);
+        self.world.tick(&self.time);
         self.physics.tick(&self.world, &mut self.population);
         self.population.tick(&self.time, &self.world);
-
-        self.compute.tick(&self.world);
+        self.compute.tick(&self.world, &self.population);
     }
 }

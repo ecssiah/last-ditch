@@ -7,10 +7,11 @@ pub mod judge;
 
 pub use agent::Agent;
 use crossbeam::channel::{Receiver, Sender};
+use glam::IVec3;
 pub use judge::Judge;
 
 use crate::simulation::{
-    compute,
+    compute::{self, task},
     consts::*,
     time::{Tick, Time},
     world::World,
@@ -86,5 +87,25 @@ impl Population {
 
     pub fn get_agent_mut(&mut self, agent_id: &agent::ID) -> Option<&mut Agent> {
         self.agent_map.get_mut(agent_id)
+    }
+
+    pub fn test_pathfinding_action(&mut self, world: &World) {
+        let task = task::ChunkPathTask {
+            agent_id: agent::ID(0),
+            chunk_id: world
+                .grid
+                .chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0))
+                .unwrap(),
+            block_id_from: world
+                .grid
+                .block_coordinates_to_block_id(IVec3::new(-2, -2, -2))
+                .unwrap(),
+            block_id_to: world
+                .grid
+                .block_coordinates_to_block_id(IVec3::new(2, -2, 2))
+                .unwrap(),
+        };
+
+        self.task_tx.send(Box::new(task)).unwrap();
     }
 }
