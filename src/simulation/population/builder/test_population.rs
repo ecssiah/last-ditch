@@ -14,9 +14,9 @@ impl TestPopulation {
     }
 
     fn setup_judge(population: &mut Population) {
-        log::info!("Setup Judge");
+        log::info!("Setup Test Judge");
 
-        population.judge.set_world_position(0.0, 0.0, 0.0);
+        population.judge.set_world_position(0.0, -2.0, 0.0);
         population.judge.set_rotation(0.0, 0.0);
     }
 
