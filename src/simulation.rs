@@ -42,11 +42,7 @@ impl Simulation {
     }
 
     pub fn run(&mut self) {
-        self.observation.tick(&self.state);
-
-        self.state.setup();
-
-        log::info!("Simulation Run");
+        self.setup();
 
         let mut next_instant = Instant::now();
 
@@ -65,6 +61,12 @@ impl Simulation {
 
             self.fix_timestep(current_instant, next_instant);
         }
+    }
+
+    fn setup(&mut self) {
+        self.observation.tick(&self.state);
+
+        self.state.setup();
     }
 
     fn fix_timestep(&self, current_instant: Instant, next_instant: Instant) {

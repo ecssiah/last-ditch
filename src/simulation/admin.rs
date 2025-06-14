@@ -12,7 +12,6 @@ pub struct Admin {
     pub seed: u64,
     pub mode: Mode,
     pub message: String,
-    pub settlement_tick: u32,
 }
 
 impl Admin {
@@ -22,7 +21,11 @@ impl Admin {
             seed: DEFAULT_SEED,
             mode: Mode::Load,
             message: String::from("Loading World"),
-            settlement_tick: 0,
         }
+    }
+
+    pub fn setup(&mut self) {
+        self.mode = Mode::Simulate;
+        self.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
     }
 }

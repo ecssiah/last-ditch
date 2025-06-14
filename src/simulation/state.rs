@@ -1,13 +1,8 @@
 //! Current state of the simulation
 
 use crate::simulation::{
-    admin::{self, Admin},
-    compute::Compute,
-    consts::*,
-    physics::Physics,
-    population::Population,
-    time::Time,
-    world::World,
+    admin::Admin, compute::Compute, consts::*, physics::Physics, population::Population,
+    time::Time, world::World,
 };
 
 pub struct State {
@@ -47,11 +42,9 @@ impl State {
     }
 
     pub fn setup(&mut self) {
+        self.admin.setup();
         self.world.setup();
         self.population.setup(&self.world);
-
-        self.admin.mode = admin::Mode::Simulate;
-        self.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
     }
 
     pub fn tick(&mut self) {

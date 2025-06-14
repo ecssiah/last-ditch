@@ -29,7 +29,5 @@ impl Compute {
         }
     }
 
-    pub fn tick(&mut self, world: &World) {
-        
-    }
+    pub fn tick(&mut self, world: &World) {}
 }
