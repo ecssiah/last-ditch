@@ -23,6 +23,13 @@ impl TestPopulation {
     fn setup_agents(population: &mut Population, world: &World) {
         log::info!("Setup Test Agents");
 
+        Self::setup_eagle_agents(population, world);
+        Self::setup_lion_agents(population, world);
+        Self::setup_wolf_agents(population, world);
+        Self::setup_horse_agents(population, world);
+    }
+
+    fn setup_eagle_agents(population: &mut Population, world: &World) {
         let chunk_west_position = world
             .grid
             .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
@@ -30,11 +37,65 @@ impl TestPopulation {
 
         let mut agent = Agent::new(agent::ID::allocate());
 
-        let world_position = (chunk_west_position + IVec3::new(0, -2, 0)).as_vec3();
+        let world_position = (chunk_west_position + IVec3::new(2, -2, 2)).as_vec3();
 
         agent.world_position = world_position;
         agent.target_world_position = world_position;
         agent.kind = agent::Kind::Eagle;
+        agent.height = 0.9;
+
+        population.agent_map.insert(agent.id, agent);
+    }
+
+    fn setup_horse_agents(population: &mut Population, world: &World) {
+        let chunk_west_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
+            .unwrap();
+
+        let mut agent = Agent::new(agent::ID::allocate());
+
+        let world_position = (chunk_west_position + IVec3::new(-2, -2, 2)).as_vec3();
+
+        agent.world_position = world_position;
+        agent.target_world_position = world_position;
+        agent.kind = agent::Kind::Horse;
+        agent.height = 0.9;
+
+        population.agent_map.insert(agent.id, agent);
+    }
+
+    fn setup_wolf_agents(population: &mut Population, world: &World) {
+        let chunk_west_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
+            .unwrap();
+
+        let mut agent = Agent::new(agent::ID::allocate());
+
+        let world_position = (chunk_west_position + IVec3::new(2, -2, -2)).as_vec3();
+
+        agent.world_position = world_position;
+        agent.target_world_position = world_position;
+        agent.kind = agent::Kind::Wolf;
+        agent.height = 0.9;
+
+        population.agent_map.insert(agent.id, agent);
+    }
+
+    fn setup_lion_agents(population: &mut Population, world: &World) {
+        let chunk_west_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
+            .unwrap();
+
+        let mut agent = Agent::new(agent::ID::allocate());
+
+        let world_position = (chunk_west_position + IVec3::new(-2, -2, -2)).as_vec3();
+
+        agent.world_position = world_position;
+        agent.target_world_position = world_position;
+        agent.kind = agent::Kind::Lion;
         agent.height = 0.9;
 
         population.agent_map.insert(agent.id, agent);
