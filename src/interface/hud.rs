@@ -25,7 +25,7 @@ impl HUD {
         device: &wgpu::Device,
         window: Arc<winit::window::Window>,
         surface_format: wgpu::TextureFormat,
-    ) -> HUD {
+    ) -> Self {
         let context = egui::Context::default();
 
         let state =
@@ -37,14 +37,12 @@ impl HUD {
             message: "No Message".to_string(),
         });
 
-        let hud = HUD {
+        Self {
             context,
             state,
             renderer,
             mode,
-        };
-
-        hud
+        }
     }
 
     pub fn update(

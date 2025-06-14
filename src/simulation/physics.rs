@@ -16,12 +16,10 @@ pub struct Physics {
 }
 
 impl Physics {
-    pub fn new() -> Physics {
+    pub fn new() -> Self {
         let gravity = Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0);
 
-        let physics = Self { gravity };
-
-        physics
+        Self { gravity }
     }
 
     pub fn tick(&self, world: &World, population: &mut Population) {

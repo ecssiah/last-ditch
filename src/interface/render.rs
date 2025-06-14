@@ -33,7 +33,7 @@ impl Render {
         queue: &wgpu::Queue,
         surface_format: &wgpu::TextureFormat,
         camera: &Camera,
-    ) -> Render {
+    ) -> Self {
         let block_render_data_map = BlockRenderData::setup();
 
         let mut textures = Textures::new(&device);
@@ -57,14 +57,12 @@ impl Render {
         let agent_render =
             AgentRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
 
-        let render = Render {
+        Self {
             block_render_data_map,
             textures,
             chunk_render,
             agent_render,
-        };
-
-        render
+        }
     }
 
     pub fn prepare_agent_view_map(

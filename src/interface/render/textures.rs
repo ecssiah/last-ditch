@@ -9,7 +9,7 @@ pub struct Textures {
 }
 
 impl Textures {
-    pub fn new(device: &wgpu::Device) -> Textures {
+    pub fn new(device: &wgpu::Device) -> Self {
         let texture_sampler_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("Texture and Sampler Bind Group Layout"),
@@ -33,14 +33,12 @@ impl Textures {
                 ],
             });
 
-        let textures = Textures {
+        Self {
             texture_sampler_bind_group_layout,
             texture_sampler_bind_group: None,
             texture_atlas: TextureAtlas::new("atlas".to_string(), 32, 1024, 1024),
             texture_map: HashMap::new(),
-        };
-
-        textures
+        }
     }
 
     pub fn setup_texture_sampler_bind_group(&mut self, device: &wgpu::Device) {

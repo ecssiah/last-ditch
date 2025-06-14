@@ -16,13 +16,11 @@ pub struct PopulationView {
 }
 
 impl PopulationView {
-    pub fn new() -> PopulationView {
-        let population_view = PopulationView {
+    pub fn new() -> Self {
+        Self {
             tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             judge_view: JudgeView::new(),
             agent_view_map: HashMap::new(),
-        };
-
-        population_view
+        }
     }
 }

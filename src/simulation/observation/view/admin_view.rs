@@ -8,13 +8,11 @@ pub struct AdminView {
 }
 
 impl AdminView {
-    pub fn new() -> AdminView {
-        let admin_view = AdminView {
+    pub fn new() -> Self {
+        Self {
             tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             mode: Mode::Load,
             message: String::new(),
-        };
-
-        admin_view
+        }
     }
 }

@@ -12,12 +12,10 @@ pub struct WorldView {
 }
 
 impl WorldView {
-    pub fn new() -> WorldView {
-        let world_view = WorldView {
+    pub fn new() -> Self {
+        Self {
             tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             chunk_view_map: HashMap::new(),
-        };
-
-        world_view
+        }
     }
 }

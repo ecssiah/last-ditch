@@ -145,7 +145,7 @@ impl<'window> Interface<'window> {
 
         wgpu_state.window.request_redraw();
 
-        let interface = Self {
+        Self {
             dt,
             instant,
             last_instant,
@@ -157,11 +157,7 @@ impl<'window> Interface<'window> {
             camera,
             render,
             hud,
-        };
-
-        log::info!("Interface Initialized");
-
-        interface
+        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {

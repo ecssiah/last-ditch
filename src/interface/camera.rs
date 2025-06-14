@@ -13,7 +13,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(device: &wgpu::Device) -> Camera {
+    pub fn new(device: &wgpu::Device) -> Self {
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("View Projection Buffer"),
             size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
@@ -45,13 +45,11 @@ impl Camera {
             }],
         });
 
-        let camera = Camera {
+        Self {
             uniform_buffer,
             uniform_bind_group_layout,
             uniform_bind_group,
-        };
-
-        camera
+        }
     }
 
     pub fn update(

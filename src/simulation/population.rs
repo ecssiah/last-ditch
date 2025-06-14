@@ -18,14 +18,12 @@ pub struct Population {
 }
 
 impl Population {
-    pub fn new() -> Population {
-        let population = Population {
+    pub fn new() -> Self {
+        Self {
             tick: Tick::ZERO,
             judge: Judge::new(judge::ID::allocate()),
             agent_map: HashMap::new(),
-        };
-
-        population
+        }
     }
 
     pub fn setup(&mut self, world: &World) {

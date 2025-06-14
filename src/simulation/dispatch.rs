@@ -23,16 +23,14 @@ pub struct Dispatch {
 }
 
 impl Dispatch {
-    pub fn new() -> Dispatch {
+    pub fn new() -> Self {
         let (action_tx, action_rx) = unbounded_channel();
         let action_tx = Arc::new(action_tx);
 
-        let dispatch = Dispatch {
+        Self {
             action_tx,
             action_rx,
-        };
-
-        dispatch
+        }
     }
 
     pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {

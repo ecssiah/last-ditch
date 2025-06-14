@@ -5,9 +5,7 @@ pub struct StatePair<T> {
 }
 
 impl<T> StatePair<T> {
-    pub fn new(current: T, next: T) -> StatePair<T> {
-        let state_pair = StatePair { current, next };
-
-        state_pair
+    pub fn new(current: T, next: T) -> Self {
+        Self { current, next }
     }
 }

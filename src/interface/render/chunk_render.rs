@@ -19,7 +19,7 @@ impl ChunkRender {
         surface_format: &wgpu::TextureFormat,
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
         texture_sampler_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> ChunkRender {
+    ) -> Self {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Chunk Shader"),
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
@@ -35,13 +35,11 @@ impl ChunkRender {
             texture_sampler_bind_group_layout,
         );
 
-        let chunk_renderer = ChunkRender {
+        Self {
             shader_module,
             chunk_data_list,
             render_pipeline,
-        };
-
-        chunk_renderer
+        }
     }
 
     fn create_chunk_render_pipeline(

@@ -94,7 +94,7 @@ impl Grid {
         let block_index_max = chunk_volume - 1;
         let chunk_index_max = world_volume - 1;
 
-        Grid {
+        Self {
             chunk_radius,
             chunk_size,
             chunk_area,

@@ -31,7 +31,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(chunk_radius: u32, world_radius: u32) -> World {
+    pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
         let tick = Tick::ZERO;
         let grid = grid::Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
@@ -45,16 +45,14 @@ impl World {
             (agent::Kind::Wolf, IVec3::ZERO),
         ]);
 
-        let world = Self {
+        Self {
             tick,
             grid,
             block_meta_map,
             chunk_list,
             graph,
             flags,
-        };
-
-        world
+        }
     }
 
     pub fn get_flag(&self, kind: agent::Kind) -> Option<IVec3> {

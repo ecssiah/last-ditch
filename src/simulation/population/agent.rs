@@ -28,8 +28,8 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new(agent_id: ID) -> Agent {
-        let agent = Self {
+    pub fn new(agent_id: ID) -> Self {
+        Self {
             id: agent_id,
             tick: Tick::ZERO,
             world_position: Vec3::ZERO,
@@ -40,9 +40,7 @@ impl Agent {
             step_index: 0,
             speed: 1.0,
             height: 1.5,
-        };
-
-        agent
+        }
     }
 
     pub fn tick(&mut self, world: &World) {

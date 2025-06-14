@@ -13,15 +13,13 @@ pub struct Face {
 }
 
 impl Face {
-    pub fn new(position: IVec3, direction: grid::Direction, kind: block::Kind) -> Face {
-        let face = Face {
+    pub fn new(position: IVec3, direction: grid::Direction, kind: block::Kind) -> Self {
+        Self {
             position,
             direction,
             kind,
             light: Vec4::new(1.0, 1.0, 1.0, 1.0),
-        };
-
-        face
+        }
     }
 
     pub fn vertices(&self) -> [Vec3; 4] {

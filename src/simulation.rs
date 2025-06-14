@@ -11,7 +11,10 @@ pub mod state;
 pub mod time;
 pub mod world;
 
-use crate::simulation::{compute::Compute, consts::SIMULATION_TICK_DURATION, dispatch::Dispatch, observation::Observation};
+use crate::simulation::{
+    compute::Compute, consts::SIMULATION_TICK_DURATION, dispatch::Dispatch,
+    observation::Observation,
+};
 use dispatch::Action;
 use state::State;
 use std::{
@@ -21,7 +24,7 @@ use std::{
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
-    _compute: Compute,
+    compute: Compute,
     dispatch: Dispatch,
     state: State,
     observation: Arc<Observation>,
@@ -34,20 +37,17 @@ impl Simulation {
         let state = State::new();
         let observation = Arc::new(Observation::new());
 
-        let simulation = Self {
-            _compute: compute,
+        Self {
+            compute,
             dispatch,
             state,
             observation,
-        };
-
-        log::info!("Simulation Initialized");
-
-        simulation
+        }
     }
 
     pub fn run(&mut self) {
         self.observation.tick(&self.state);
+
         self.state.setup();
 
         log::info!("Simulation Run");
@@ -55,9 +55,10 @@ impl Simulation {
         let mut next_instant = Instant::now();
 
         loop {
-            let now = Instant::now();
+            let current_instant = Instant::now();
 
-            while now >= next_instant {
+            while current_instant >= next_instant {
+                self.compute.tick();
                 self.dispatch.tick(&mut self.state);
                 self.state.tick();
                 self.observation.tick(&self.state);
@@ -65,18 +66,22 @@ impl Simulation {
                 next_instant += SIMULATION_TICK_DURATION;
             }
 
-            let now = Instant::now();
+            let current_instant = Instant::now();
 
-            if next_instant > now {
-                let remaining_duration = next_instant - now;
+            self.fix_timestep(current_instant, next_instant);
+        }
+    }
 
-                if remaining_duration > Duration::from_millis(2) {
-                    std::thread::sleep(remaining_duration - Duration::from_millis(1));
-                }
+    fn fix_timestep(&self, current_instant: Instant, next_instant: Instant) {
+        if next_instant > current_instant {
+            let remaining_duration = next_instant - current_instant;
 
-                while Instant::now() < next_instant {
-                    std::hint::spin_loop();
-                }
+            if remaining_duration > Duration::from_millis(2) {
+                std::thread::sleep(remaining_duration - Duration::from_millis(1));
+            }
+
+            while Instant::now() < next_instant {
+                std::hint::spin_loop();
             }
         }
     }

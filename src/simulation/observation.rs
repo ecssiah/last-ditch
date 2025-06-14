@@ -30,9 +30,7 @@ impl Observation {
     pub fn new() -> Self {
         let repository = Arc::new(Repository::new());
 
-        let observation = Self { repository };
-
-        observation
+        Self { repository }
     }
 
     pub fn tick(&self, state: &State) {

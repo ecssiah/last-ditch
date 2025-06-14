@@ -33,8 +33,8 @@ pub struct Judge {
 }
 
 impl Judge {
-    pub fn new(judge_id: ID) -> Judge {
-        let judge = Self {
+    pub fn new(judge_id: ID) -> Self {
+        Self {
             id: judge_id,
             tick: Tick::ZERO,
             chunk_id: chunk::ID(0),
@@ -50,9 +50,7 @@ impl Judge {
                 stage: JumpStage::Ground,
                 timer: 0,
             },
-        };
-
-        judge
+        }
     }
 
     pub fn tick(&mut self, world: &World) {

@@ -12,14 +12,12 @@ pub struct Graph {
 
 impl Graph {
     pub fn new() -> Self {
-        let graph = Graph {
+        Self {
             node_map: HashMap::new(),
             edge_map: HashMap::new(),
             node_edge_map: HashMap::new(),
             chunk_graph_map: HashMap::new(),
-        };
-
-        graph
+        }
     }
 
     pub fn add_chunk_node(

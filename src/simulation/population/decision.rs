@@ -19,14 +19,12 @@ pub struct Decision {
 }
 
 impl Decision {
-    pub fn new() -> Decision {
-        let decision = Decision {
+    pub fn new() -> Self {
+        Self {
             goal: None,
             plan: Vec::new(),
             step: None,
-        };
-
-        decision
+        }
     }
 
     pub fn plan(&self, goal: &Goal, agent: &Agent, world: &World) -> Vec<Step> {

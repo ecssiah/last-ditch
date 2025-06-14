@@ -8,15 +8,13 @@ pub struct TextureAtlas {
 }
 
 impl TextureAtlas {
-    pub fn new(label: String, tile_size: u32, width: u32, height: u32) -> TextureAtlas {
-        let texture_atlas = TextureAtlas {
+    pub fn new(label: String, tile_size: u32, width: u32, height: u32) -> Self {
+        Self {
             label,
             tile_size,
             width,
             height,
-        };
-
-        texture_atlas
+        }
     }
 
     pub fn get_uv_coords(&self, tile_x: u32, tile_y: u32) -> [[f32; 2]; 4] {

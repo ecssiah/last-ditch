@@ -43,13 +43,11 @@ impl Input {
 
         let mouse_inputs = MouseInputs { delta: Vec2::ZERO };
 
-        let input = Self {
+        Self {
             action_tx,
             key_inputs,
             mouse_inputs,
-        };
-
-        input
+        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {

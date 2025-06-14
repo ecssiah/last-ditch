@@ -8,15 +8,13 @@ pub struct TimeView {
 }
 
 impl TimeView {
-    pub fn new() -> TimeView {
-        let time_view = TimeView {
+    pub fn new() -> Self {
+        Self {
             tick: StatePair::new(Tick::ZERO, Tick::ZERO),
             instant: StatePair {
                 current: Instant::now(),
                 next: Instant::now(),
             },
-        };
-
-        time_view
+        }
     }
 }

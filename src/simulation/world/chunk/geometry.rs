@@ -11,12 +11,10 @@ pub struct Geometry {
 }
 
 impl Geometry {
-    pub fn new() -> Geometry {
-        let geometry = Geometry {
+    pub fn new() -> Self {
+        Self {
             face_list: Vec::new(),
-        };
-
-        geometry
+        }
     }
 
     pub fn vertices_and_indices(&self) -> (Vec<Point3<f32>>, Vec<[u32; 3]>) {

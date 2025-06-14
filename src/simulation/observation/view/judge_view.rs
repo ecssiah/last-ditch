@@ -13,15 +13,13 @@ pub struct JudgeView {
 }
 
 impl JudgeView {
-    pub fn new() -> JudgeView {
-        let judge_view = JudgeView {
+    pub fn new() -> Self {
+        Self {
             id: judge::ID(0),
             tick: StatePair::default(),
             world_position: StatePair::default(),
             aabb: StatePair::default(),
             orientation: StatePair::default(),
-        };
-
-        judge_view
+        }
     }
 }

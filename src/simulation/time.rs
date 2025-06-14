@@ -12,13 +12,11 @@ pub struct Time {
 }
 
 impl Time {
-    pub fn new() -> Time {
-        let time = Time {
+    pub fn new() -> Self {
+        Self {
             tick: Tick::ZERO,
             instant: Instant::now(),
-        };
-
-        time
+        }
     }
 
     pub fn tick(&mut self) {

@@ -18,16 +18,14 @@ pub struct State {
 }
 
 impl State {
-    pub fn new() -> State {
-        let state = State {
+    pub fn new() -> Self {
+        Self {
             admin: Admin::new(),
             time: Time::new(),
             physics: Physics::new(),
             world: Self::setup_world(),
             population: Population::new(),
-        };
-
-        state
+        }
     }
 
     fn setup_world() -> World {

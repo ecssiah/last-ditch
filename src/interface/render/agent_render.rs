@@ -22,7 +22,7 @@ impl AgentRender {
         device: &wgpu::Device,
         surface_format: &wgpu::TextureFormat,
         camera_uniform_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> AgentRender {
+    ) -> Self {
         let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Agent Shader"),
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
@@ -52,16 +52,14 @@ impl AgentRender {
 
         let instance_data_list = Vec::new();
 
-        let agent_render = AgentRender {
+        Self {
             shader_module,
             vertex_data_list,
             instance_data_list,
             vertex_buffer,
             instance_buffer,
             render_pipeline,
-        };
-
-        agent_render
+        }
     }
 
     pub fn create_render_pipeline(

@@ -11,14 +11,12 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub fn new() -> Graph {
-        let graph = Graph {
+    pub fn new() -> Self {
+        Self {
             node_map: HashMap::new(),
             edge_map: HashMap::new(),
             node_edge_map: HashMap::new(),
-        };
-
-        graph
+        }
     }
 
     pub fn get_block_node_id_list(&self) -> impl Iterator<Item = block::ID> + '_ {

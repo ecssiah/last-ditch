@@ -1,10 +1,5 @@
-use crate::simulation::population::agent;
-use glam::IVec3;
+use crate::simulation::compute::{self};
 
-pub enum Task {
-    Path {
-        agent_id: agent::ID,
-        from: IVec3,
-        to: IVec3,
-    },
+pub trait Task: Send {
+    fn execute(self: Box<Self>) -> Box<dyn compute::Result>;
 }

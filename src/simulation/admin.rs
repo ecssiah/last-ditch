@@ -16,15 +16,13 @@ pub struct Admin {
 }
 
 impl Admin {
-    pub fn new() -> Admin {
-        let admin = Admin {
+    pub fn new() -> Self {
+        Self {
             tick: Tick::ZERO,
             seed: DEFAULT_SEED,
             mode: Mode::Load,
             message: String::from("Loading World"),
             settlement_tick: 0,
-        };
-
-        admin
+        }
     }
 }

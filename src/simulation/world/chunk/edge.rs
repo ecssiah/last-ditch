@@ -23,6 +23,11 @@ impl Key {
             "chunk edges must connect distinct chunks"
         );
 
+        assert_ne!(
+            block_id1, block_id2,
+            "chunk edges must connect distinct blocks"
+        );
+
         Self {
             chunk_id1: chunk_id1,
             block_id1: block_id1,

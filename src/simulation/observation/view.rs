@@ -26,15 +26,13 @@ pub struct View {
 }
 
 impl View {
-    pub fn new() -> View {
-        let view = View {
+    pub fn new() -> Self {
+        Self {
             judge_id: judge::ID(0),
             admin_view: AdminView::new(),
             time_view: TimeView::new(),
             population_view: PopulationView::new(),
             world_view: WorldView::new(),
-        };
-
-        view
+        }
     }
 }
