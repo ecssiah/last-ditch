@@ -69,6 +69,7 @@ impl Agent {
                                 * SIMULATION_TICK_DURATION.as_secs_f32()
                                 * path.normalize();
                         } else {
+                            self.world_position = target_position.as_vec3();
                             self.step_index += 1;
                         }
                     }
