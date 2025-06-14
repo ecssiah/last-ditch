@@ -12,8 +12,7 @@ pub mod time;
 pub mod world;
 
 use crate::simulation::{
-    compute::Compute, consts::SIMULATION_TICK_DURATION, dispatch::Dispatch,
-    observation::Observation,
+    consts::SIMULATION_TICK_DURATION, dispatch::Dispatch, observation::Observation,
 };
 use dispatch::Action;
 use state::State;
@@ -24,7 +23,6 @@ use std::{
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Simulation {
-    compute: Compute,
     dispatch: Dispatch,
     state: State,
     observation: Arc<Observation>,
@@ -32,13 +30,11 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new() -> Self {
-        let compute = Compute::new();
         let dispatch = Dispatch::new();
         let state = State::new();
         let observation = Arc::new(Observation::new());
 
         Self {
-            compute,
             dispatch,
             state,
             observation,
@@ -58,7 +54,6 @@ impl Simulation {
             let current_instant = Instant::now();
 
             while current_instant >= next_instant {
-                self.compute.tick();
                 self.dispatch.tick(&mut self.state);
                 self.state.tick();
                 self.observation.tick(&self.state);

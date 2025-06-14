@@ -6,23 +6,40 @@ pub mod decision;
 pub mod judge;
 
 pub use agent::Agent;
+use crossbeam::channel::{Receiver, Sender};
 pub use judge::Judge;
 
-use crate::simulation::{consts::*, time::Tick, world::World};
+use crate::simulation::{
+    compute,
+    consts::*,
+    time::{Tick, Time},
+    world::World,
+};
 use std::collections::HashMap;
 
 pub struct Population {
     pub tick: Tick,
+    pub task_tx: Sender<Box<dyn compute::Task>>,
+    pub result_rx: Receiver<Box<dyn compute::Result>>,
     pub judge: Judge,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
-    pub fn new() -> Self {
+    pub fn new(
+        task_tx: Sender<Box<dyn compute::Task>>,
+        result_rx: Receiver<Box<dyn compute::Result>>,
+    ) -> Self {
+        let tick = Tick::ZERO;
+        let judge = Judge::new(judge::ID::allocate());
+        let agent_map = HashMap::new();
+
         Self {
-            tick: Tick::ZERO,
-            judge: Judge::new(judge::ID::allocate()),
-            agent_map: HashMap::new(),
+            tick,
+            task_tx,
+            result_rx,
+            judge,
+            agent_map,
         }
     }
 
@@ -34,8 +51,8 @@ impl Population {
         }
     }
 
-    pub fn tick(&mut self, tick: &Tick, world: &World) {
-        self.tick = *tick;
+    pub fn tick(&mut self, time: &Time, world: &World) {
+        self.tick = time.tick;
 
         self.tick_agent_map(world);
         self.judge.tick(world);

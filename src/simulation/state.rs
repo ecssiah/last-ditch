@@ -2,6 +2,7 @@
 
 use crate::simulation::{
     admin::{self, Admin},
+    compute::Compute,
     consts::*,
     physics::Physics,
     population::Population,
@@ -11,6 +12,7 @@ use crate::simulation::{
 
 pub struct State {
     pub admin: Admin,
+    pub compute: Compute,
     pub time: Time,
     pub physics: Physics,
     pub world: World,
@@ -19,12 +21,20 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
+        let admin = Admin::new();
+        let compute = Compute::new();
+        let time = Time::new();
+        let physics = Physics::new();
+        let world = Self::setup_world();
+        let population = Population::new(compute.task_tx.clone(), compute.result_rx.clone());
+
         Self {
-            admin: Admin::new(),
-            time: Time::new(),
-            physics: Physics::new(),
-            world: Self::setup_world(),
-            population: Population::new(),
+            admin,
+            compute,
+            time,
+            physics,
+            world,
+            population,
         }
     }
 
@@ -49,6 +59,8 @@ impl State {
 
         self.world.tick(&self.time.tick);
         self.physics.tick(&self.world, &mut self.population);
-        self.population.tick(&self.time.tick, &self.world);
+        self.population.tick(&self.time, &self.world);
+
+        self.compute.tick(&self.world);
     }
 }

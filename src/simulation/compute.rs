@@ -6,7 +6,7 @@ pub mod task;
 pub use result::Result;
 pub use task::Task;
 
-use crate::simulation::compute;
+use crate::simulation::{compute, world::World};
 use crossbeam::channel::{unbounded, Receiver, Sender};
 
 pub struct Compute {
@@ -29,5 +29,7 @@ impl Compute {
         }
     }
 
-    pub fn tick(&self) {}
+    pub fn tick(&mut self, world: &World) {
+        
+    }
 }
