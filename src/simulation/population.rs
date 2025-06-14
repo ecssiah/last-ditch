@@ -1,21 +1,14 @@
 //! Entities acting in the simulated environment
 
 pub mod agent;
+pub mod builder;
 pub mod decision;
 pub mod judge;
 
 pub use agent::Agent;
 pub use judge::Judge;
 
-use crate::simulation::{
-    consts::*,
-    physics::dynamic_object::DynamicObject,
-    population::{self},
-    time::Tick,
-    world::World,
-};
-use glam::Vec3;
-use rand::Rng;
+use crate::simulation::{consts::*, time::Tick, world::World};
 use std::collections::HashMap;
 
 pub struct Population {
@@ -36,50 +29,10 @@ impl Population {
     }
 
     pub fn setup(&mut self, world: &World) {
-        self.setup_judge();
-        self.setup_agents(world);
-    }
-
-    fn setup_judge(&mut self) {
-        log::info!("Setup Judge");
-
         if TESTING {
-            self.judge.set_world_position(0.0, -2.0, 0.0);
-            self.judge.set_rotation(0.0, 0.0);
+            builder::TestPopulation::build(self, &world);
         } else {
-            self.judge.set_world_position(0.0, 2.0, 0.0);
-            self.judge.set_rotation(0.0, 0.0);
-        }
-    }
-
-    fn setup_agents(&mut self, world: &World) {
-        log::info!("Setup Agents");
-
-        if TESTING {
-            return;
-        }
-
-        let mut rng = rand::thread_rng();
-
-        for kind in population::agent::Kind::all() {
-            if let Some(flag_position) = world.get_flag(kind) {
-                let flag_position = flag_position.as_vec3();
-
-                for _ in 0..AGENT_INITIAL_POPULATION {
-                    let offset =
-                        Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
-                    let world_position = flag_position + offset;
-
-                    let mut agent = Agent::new(agent::ID::allocate());
-
-                    agent.world_position = world_position;
-                    agent.target_world_position = world_position;
-                    agent.kind = kind;
-                    agent.height = rng.gen_range(1.2..=2.2);
-
-                    self.agent_map.insert(agent.id, agent);
-                }
-            }
+            builder::MainPopulation::build(self, &world);
         }
     }
 

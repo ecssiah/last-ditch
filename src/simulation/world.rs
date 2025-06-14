@@ -63,7 +63,7 @@ impl World {
 
     pub fn setup(&mut self) {
         if TESTING {
-            builder::TestWorld::build(self)
+            builder::TestWorld::build(self);
         } else {
             builder::MainWorld::build(self);
         }
