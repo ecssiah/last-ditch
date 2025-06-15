@@ -11,7 +11,7 @@ use glam::IVec3;
 pub use judge::Judge;
 
 use crate::simulation::{
-    compute::{self, task},
+    compute::{result, task},
     consts::*,
     time::{Tick, Time},
     world::World,
@@ -20,17 +20,14 @@ use std::collections::HashMap;
 
 pub struct Population {
     pub tick: Tick,
-    pub task_tx: Sender<Box<dyn compute::Task>>,
-    pub result_rx: Receiver<Box<dyn compute::Result>>,
+    pub task_tx: Sender<task::Kind>,
+    pub result_rx: Receiver<result::Kind>,
     pub judge: Judge,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
-    pub fn new(
-        task_tx: Sender<Box<dyn compute::Task>>,
-        result_rx: Receiver<Box<dyn compute::Result>>,
-    ) -> Self {
+    pub fn new(task_tx: Sender<task::Kind>, result_rx: Receiver<result::Kind>) -> Self {
         let tick = Tick::ZERO;
         let judge = Judge::new(judge::ID::allocate());
         let agent_map = HashMap::new();
@@ -56,6 +53,9 @@ impl Population {
         self.tick = time.tick;
 
         self.tick_agent_map(world);
+
+        // while let Ok(result) = self.result_rx.try_recv() {}
+
         self.judge.tick(world);
     }
 
@@ -89,23 +89,23 @@ impl Population {
         self.agent_map.get_mut(agent_id)
     }
 
-    pub fn test_pathfinding_action(&mut self, world: &World) {
+    pub fn test_chunk_path(&mut self, world: &World) {
         let task = task::ChunkPathTask {
             agent_id: agent::ID(0),
             chunk_id: world
                 .grid
                 .chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0))
                 .unwrap(),
-            block_id_from: world
+            block_id_start: world
                 .grid
                 .block_coordinates_to_block_id(IVec3::new(-2, -2, -2))
                 .unwrap(),
-            block_id_to: world
+            block_id_end: world
                 .grid
                 .block_coordinates_to_block_id(IVec3::new(2, -2, 2))
                 .unwrap(),
         };
 
-        self.task_tx.send(Box::new(task)).unwrap();
+        self.task_tx.send(task::Kind::ChunkPath(task)).unwrap();
     }
 }

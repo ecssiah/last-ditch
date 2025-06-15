@@ -60,7 +60,7 @@ impl Dispatch {
             TestAction::Test1 => {
                 println!("Test Action 1");
 
-                state.population.test_pathfinding_action(&state.world);
+                state.population.test_chunk_path(&state.world);
             }
             TestAction::Test2 => println!("Test Action 2"),
             TestAction::Test3 => println!("Test Action 3"),

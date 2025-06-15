@@ -1,39 +1,37 @@
 use crate::simulation::{
-    compute::{self},
-    population::agent,
-    world::{block, chunk},
+    compute::{
+        result::chunk_path_result::ChunkPathResult,
+        snapshot::chunk_path_snapshot::ChunkPathSnapshot, Task,
+    },
+    population::{agent, Population},
+    world::{block, chunk, World},
 };
-use std::sync::Arc;
 
 pub struct ChunkPathTask {
     pub agent_id: agent::ID,
     pub chunk_id: chunk::ID,
-    pub block_id_from: block::ID,
-    pub block_id_to: block::ID,
+    pub block_id_start: block::ID,
+    pub block_id_end: block::ID,
 }
 
-impl compute::Task for ChunkPathTask {
-    fn snapshot(
-        &self,
-        world: &crate::simulation::world::World,
-        population: &crate::simulation::population::Population,
-    ) -> Box<dyn compute::Snapshot> {
-        println!("I'm doing a Snapshot!");
+impl Task for ChunkPathTask {
+    type Snapshot = ChunkPathSnapshot;
+    type Result = ChunkPathResult;
 
-        Box::new(compute::snapshot::ChunkPathSnapshot {})
+    fn snapshot(&self, world: &World, population: &Population) -> Self::Snapshot {
+        let chunk_graph = world
+            .graph
+            .get_chunk_graph(self.chunk_id)
+            .cloned()
+            .unwrap_or(chunk::Graph::new());
+
+        Self::Snapshot { chunk_graph }
     }
 
-    fn execute(
-        self: Arc<Self>,
-        snapshot: Box<dyn compute::Snapshot>,
-    ) -> Box<dyn crate::simulation::compute::Result> {
-        println!("I'm doing an EXECUTE!");
-
-        let result = compute::result::ChunkPathResult {
-            agent_id: agent::ID(0),
-            path: Some(Vec::new()),
-        };
-
-        Box::new(result)
+    fn execute(self, snapshot: Self::Snapshot) -> Self::Result {
+        Self::Result {
+            agent_id: self.agent_id,
+            path: Vec::new(),
+        }
     }
 }

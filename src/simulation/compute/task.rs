@@ -1,21 +1,17 @@
 pub mod chunk_path_task;
-
-use std::sync::Arc;
+pub mod kind;
+pub mod world_path_task;
 
 pub use chunk_path_task::ChunkPathTask;
+pub use kind::Kind;
+pub use world_path_task::WorldPathTask;
 
-use crate::simulation::{
-    compute::{self},
-    population::Population,
-    world::World,
-};
+use crate::simulation::{population::Population, world::World};
 
-pub trait Task: Send + Sync {
-    fn snapshot(
-        &self,
-        world: &World,
-        population: &Population,
-    ) -> Box<dyn compute::Snapshot>;
+pub trait Task: Send + Sync + 'static {
+    type Snapshot: Send + Sync + 'static;
+    type Result: Send + 'static;
 
-    fn execute(self: Arc<Self>, snapshot: Box<dyn compute::Snapshot>) -> Box<dyn compute::Result>;
+    fn snapshot(&self, world: &World, population: &Population) -> Self::Snapshot;
+    fn execute(self, snapshot: Self::Snapshot) -> Self::Result;
 }

@@ -1,5 +1,5 @@
-use crate::simulation::compute::Snapshot;
+use crate::simulation::world::chunk;
 
-pub struct ChunkPathSnapshot {}
-
-impl Snapshot for ChunkPathSnapshot {}
+pub struct ChunkPathSnapshot {
+    pub chunk_graph: chunk::Graph,
+}

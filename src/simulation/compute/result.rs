@@ -1,7 +1,7 @@
 pub mod chunk_path_result;
+pub mod kind;
+pub mod world_path_result;
 
 pub use chunk_path_result::ChunkPathResult;
-
-pub trait Result: Send {
-    fn as_any(&self) -> &dyn std::any::Any;
-}
+pub use kind::Kind;
+pub use world_path_result::WorldPathResult;
