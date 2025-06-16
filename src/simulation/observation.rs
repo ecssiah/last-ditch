@@ -64,9 +64,8 @@ impl Observation {
         self.repository.set(next_view);
     }
 
-    fn update_admin_view(&self, admin_view: &AdminView, admin: &Admin) -> AdminView {
+    fn update_admin_view(&self, _admin_view: &AdminView, admin: &Admin) -> AdminView {
         AdminView {
-            tick: StatePair::new(admin_view.tick.next, admin.tick),
             mode: admin.mode,
             message: admin.message.clone(),
         }
@@ -74,7 +73,6 @@ impl Observation {
 
     fn update_time_view(&self, time_view: &TimeView, time: &Time) -> TimeView {
         TimeView {
-            tick: StatePair::new(time_view.tick.next, time.tick),
             instant: StatePair::new(time_view.instant.next, time.instant),
         }
     }
@@ -87,10 +85,8 @@ impl Observation {
         let judge = population.get_judge();
 
         let mut next_population_view = PopulationView {
-            tick: StatePair::new(population_view.tick.next, population.tick),
             judge_view: JudgeView {
                 id: judge.id,
-                tick: StatePair::new(population_view.judge_view.tick.next, judge.tick),
                 aabb: StatePair::new(population_view.judge_view.aabb.next, judge.aabb),
                 world_position: StatePair::new(
                     population_view.judge_view.world_position.next,
@@ -117,7 +113,6 @@ impl Observation {
                     id: agent.id,
                     kind: agent.kind,
                     height: agent.height,
-                    tick: StatePair::new(agent_view.tick.next, agent.tick),
                     world_position: StatePair::new(
                         agent_view.world_position.next,
                         agent.world_position,
@@ -136,7 +131,6 @@ impl Observation {
                     id: agent.id,
                     kind: agent.kind,
                     height: agent.height,
-                    tick: StatePair::new(agent.tick, agent.tick),
                     world_position: StatePair::new(agent.world_position, agent.world_position),
                     target_world_position: StatePair::new(
                         agent.target_world_position,
@@ -159,7 +153,6 @@ impl Observation {
         }
 
         let mut next_world_view = WorldView {
-            tick: StatePair::new(world_view.tick.next, world.tick),
             chunk_view_map: HashMap::new(),
         };
 
@@ -180,22 +173,16 @@ impl Observation {
         let next_chunk_view;
 
         if let Some(chunk_view) = world_view.chunk_view_map.get(&chunk.id) {
-            if chunk_view.tick.next < chunk.tick {
-                next_chunk_view = ChunkView {
-                    id: chunk.id,
-                    tick: StatePair::new(chunk_view.tick.next, chunk.tick),
-                    geometry: StatePair::new(
-                        chunk_view.geometry.next.clone(),
-                        chunk.geometry.clone(),
-                    ),
-                };
-            } else {
-                next_chunk_view = chunk_view.clone();
-            }
+            next_chunk_view = ChunkView {
+                id: chunk.id,
+                geometry: StatePair::new(
+                    chunk_view.geometry.next.clone(),
+                    chunk.geometry.clone(),
+                ),
+            };
         } else {
             next_chunk_view = ChunkView {
                 id: chunk.id,
-                tick: StatePair::new(chunk.tick, chunk.tick),
                 geometry: StatePair::new(chunk.geometry.clone(), chunk.geometry.clone()),
             };
         }

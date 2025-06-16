@@ -5,8 +5,6 @@ pub mod builder;
 pub mod chunk;
 pub mod grid;
 
-pub use grid::Grid;
-
 use crate::simulation::{
     consts::*,
     graph,
@@ -14,13 +12,11 @@ use crate::simulation::{
         agent::{self},
         Judge,
     },
-    time::{Tick, Time},
 };
 use glam::{IVec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
-    pub tick: Tick,
     pub grid: grid::Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_list: Vec<chunk::Chunk>,
@@ -30,7 +26,6 @@ pub struct World {
 
 impl World {
     pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
-        let tick = Tick::ZERO;
         let grid = grid::Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
         let chunk_list = Self::setup_chunk_list(&grid);
@@ -44,7 +39,6 @@ impl World {
         ]);
 
         Self {
-            tick,
             grid,
             block_meta_map,
             chunk_list,
@@ -65,8 +59,8 @@ impl World {
         }
     }
 
-    pub fn tick(&mut self, time: &Time) {
-        self.tick = time.tick;
+    pub fn tick(&mut self) {
+
     }
 
     fn setup_chunk_list(grid: &grid::Grid) -> Vec<chunk::Chunk> {
@@ -74,7 +68,6 @@ impl World {
             .into_iter()
             .map(|chunk_id| chunk::Chunk {
                 id: chunk_id,
-                tick: Tick::ZERO,
                 modified: chunk::Modified {
                     block: false,
                     boundary: false,

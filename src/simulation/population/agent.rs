@@ -6,7 +6,6 @@ pub use kind::Kind;
 
 use crate::simulation::{
     population::decision::{Decision, Goal, Step},
-    time::Tick,
     world::World,
     SIMULATION_TICK_DURATION,
 };
@@ -16,7 +15,6 @@ use rand::Rng;
 #[derive(Clone)]
 pub struct Agent {
     pub id: ID,
-    pub tick: Tick,
     pub world_position: Vec3,
     pub target_world_position: Vec3,
     pub kind: Kind,
@@ -31,7 +29,6 @@ impl Agent {
     pub fn new(agent_id: ID) -> Self {
         Self {
             id: agent_id,
-            tick: Tick::ZERO,
             world_position: Vec3::ZERO,
             target_world_position: Vec3::ZERO,
             kind: Kind::Lion,

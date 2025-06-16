@@ -13,13 +13,11 @@ pub use judge::Judge;
 use crate::simulation::{
     compute::{result, task},
     consts::*,
-    time::{Tick, Time},
     world::World,
 };
 use std::collections::HashMap;
 
 pub struct Population {
-    pub tick: Tick,
     pub task_tx: Sender<task::Kind>,
     pub result_rx: Receiver<result::Kind>,
     pub judge: Judge,
@@ -28,12 +26,10 @@ pub struct Population {
 
 impl Population {
     pub fn new(task_tx: Sender<task::Kind>, result_rx: Receiver<result::Kind>) -> Self {
-        let tick = Tick::ZERO;
         let judge = Judge::new(judge::ID::allocate());
         let agent_map = HashMap::new();
 
         Self {
-            tick,
             task_tx,
             result_rx,
             judge,
@@ -49,9 +45,7 @@ impl Population {
         }
     }
 
-    pub fn tick(&mut self, time: &Time, world: &World) {
-        self.tick = time.tick;
-
+    pub fn tick(&mut self, world: &World) {
         self.tick_agent_map(world);
 
         while let Ok(result) = self.result_rx.try_recv() {

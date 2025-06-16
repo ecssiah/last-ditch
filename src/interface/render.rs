@@ -157,7 +157,6 @@ impl Render {
 
             let chunk = ChunkData {
                 chunk_id,
-                tick: chunk_view.tick.next,
                 mesh_data: MeshData::new(device, vertex_list, index_list),
             };
 

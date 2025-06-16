@@ -7,14 +7,12 @@ pub use id::ID;
 pub use modified::Modified;
 
 use crate::simulation::{
-    time::Tick,
     world::{block, chunk, grid},
 };
 use glam::IVec3;
 
 pub struct Chunk {
     pub id: chunk::ID,
-    pub tick: Tick,
     pub modified: Modified,
     pub position: IVec3,
     pub geometry: chunk::Geometry,

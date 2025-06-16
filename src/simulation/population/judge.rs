@@ -11,7 +11,6 @@ use crate::simulation::world::World;
 use crate::simulation::{
     consts::*,
     dispatch::{JumpAction, MovementAction},
-    time::Tick,
     world::chunk,
 };
 use glam::{Quat, Vec3};
@@ -19,7 +18,6 @@ use glam::{Quat, Vec3};
 #[derive(Clone)]
 pub struct Judge {
     pub id: ID,
-    pub tick: Tick,
     pub chunk_id: chunk::ID,
     pub chunk_update: bool,
     pub world_position: Vec3,
@@ -36,7 +34,6 @@ impl Judge {
     pub fn new(judge_id: ID) -> Self {
         Self {
             id: judge_id,
-            tick: Tick::ZERO,
             chunk_id: chunk::ID(0),
             chunk_update: false,
             world_position: Vec3::ZERO,
