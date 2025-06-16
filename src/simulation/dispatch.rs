@@ -58,8 +58,6 @@ impl Dispatch {
     fn handle_test_action(&mut self, state: &mut State, test_action: &TestAction) {
         match test_action {
             TestAction::Test1 => {
-                println!("Test Action 1");
-
                 state.population.test_chunk_path(&state.world);
             }
             TestAction::Test2 => println!("Test Action 2"),

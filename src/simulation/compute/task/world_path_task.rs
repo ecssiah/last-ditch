@@ -7,6 +7,7 @@ use crate::simulation::{
     world::World,
 };
 
+#[derive(Debug)]
 pub struct WorldPathTask {
     pub agent_id: agent::ID,
 }

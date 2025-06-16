@@ -7,6 +7,7 @@ use crate::simulation::{
     world::{block, chunk, World},
 };
 
+#[derive(Debug)]
 pub struct ChunkPathTask {
     pub agent_id: agent::ID,
     pub chunk_id: chunk::ID,
@@ -18,7 +19,7 @@ impl Task for ChunkPathTask {
     type Snapshot = ChunkPathSnapshot;
     type Result = ChunkPathResult;
 
-    fn snapshot(&self, world: &World, population: &Population) -> Self::Snapshot {
+    fn snapshot(&self, world: &World, _population: &Population) -> Self::Snapshot {
         let chunk_graph = world
             .graph
             .get_chunk_graph(self.chunk_id)

@@ -35,6 +35,27 @@ impl Compute {
     }
 
     pub fn tick(&mut self, world: &World, population: &Population) {
-        
+        for task in self.task_rx.try_iter() {
+            match task {
+                task::Kind::ChunkPath(task) => {
+                    let result_tx = self.result_tx.clone();
+                    let snapshot = task.snapshot(world, population);
+
+                    self.thread_pool.spawn(move || {
+                        let result = task.execute(snapshot);
+                        let _ = result_tx.send(result::Kind::ChunkPath(result));
+                    });
+                }
+                task::Kind::WorldPath(task) => {
+                    let result_tx = self.result_tx.clone();
+                    let snapshot = task.snapshot(world, population);
+
+                    self.thread_pool.spawn(move || {
+                        let result = task.execute(snapshot);
+                        let _ = result_tx.send(result::Kind::WorldPath(result));
+                    });
+                }
+            }
+        }
     }
 }

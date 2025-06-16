@@ -54,7 +54,16 @@ impl Population {
 
         self.tick_agent_map(world);
 
-        // while let Ok(result) = self.result_rx.try_recv() {}
+        while let Ok(result) = self.result_rx.try_recv() {
+            match result {
+                result::Kind::ChunkPath(result) => {
+                    println!("{:?}", result);
+                },
+                result::Kind::WorldPath(_result) => {
+
+                },
+            }
+        }
 
         self.judge.tick(world);
     }
