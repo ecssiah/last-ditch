@@ -1,17 +1,12 @@
-pub mod edge;
 pub mod face;
 pub mod id;
 pub mod kind;
 pub mod meta;
-pub mod node;
 
-pub use edge::Edge;
-pub use edge::Key;
 pub use face::Face;
 pub use id::ID;
 pub use kind::Kind;
 pub use meta::Meta;
-pub use node::Node;
 
 use crate::simulation::{consts::*, physics::aabb::AABB};
 use glam::{IVec3, Vec3};

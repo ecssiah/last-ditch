@@ -16,11 +16,11 @@ impl Task for WorldPathTask {
     type Snapshot = WorldPathSnapshot;
     type Result = WorldPathResult;
 
-    fn snapshot(&self, world: &World, population: &Population) -> Self::Snapshot {
+    fn snapshot(&self, _world: &World, _population: &Population) -> Self::Snapshot {
         todo!()
     }
 
-    fn execute(self, snapshot: Self::Snapshot) -> Self::Result {
+    fn execute(self, _snapshot: Self::Snapshot) -> Self::Result {
         todo!()
     }
 }

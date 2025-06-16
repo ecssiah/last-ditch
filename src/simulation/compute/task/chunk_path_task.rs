@@ -19,17 +19,11 @@ impl Task for ChunkPathTask {
     type Snapshot = ChunkPathSnapshot;
     type Result = ChunkPathResult;
 
-    fn snapshot(&self, world: &World, _population: &Population) -> Self::Snapshot {
-        let chunk_graph = world
-            .graph
-            .get_chunk_graph(self.chunk_id)
-            .cloned()
-            .unwrap_or(chunk::Graph::new());
-
-        Self::Snapshot { chunk_graph }
+    fn snapshot(&self, _world: &World, _population: &Population) -> Self::Snapshot {
+        Self::Snapshot {}
     }
 
-    fn execute(self, snapshot: Self::Snapshot) -> Self::Result {
+    fn execute(self, _snapshot: Self::Snapshot) -> Self::Result {
         Self::Result {
             agent_id: self.agent_id,
             path: Vec::new(),
