@@ -4,7 +4,14 @@ pub mod direction;
 pub use axis::Axis;
 pub use direction::Direction;
 
-use crate::simulation::{consts::*, state::{physics::aabb::AABB, world::{block, chunk}}, utils::indexing};
+use crate::simulation::{
+    consts::*,
+    state::{
+        physics::aabb::AABB,
+        world::{block, chunk},
+    },
+    utils::indexing,
+};
 use glam::{IVec3, Vec3};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -62,6 +69,7 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
     ])
 });
 
+#[derive(Clone, Copy)]
 pub struct Grid {
     pub chunk_radius: u32,
     pub chunk_size: u32,

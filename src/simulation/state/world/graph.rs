@@ -8,7 +8,7 @@ pub use node::Node;
 pub use region::Region;
 pub use transition::Transition;
 
-use crate::simulation::state::world::{chunk::Chunk, grid::Grid, World};
+use crate::simulation::state::world::{chunk::Chunk, grid::Grid};
 use fixedbitset::FixedBitSet;
 use glam::IVec3;
 use std::collections::HashMap;
@@ -32,27 +32,34 @@ impl Level {
 }
 
 pub struct Graph {
-    pub depth: u32,
+    pub depth: usize,
+    pub grid: Grid,
     pub solid_set_map: HashMap<IVec3, FixedBitSet>,
     pub levels: Vec<Level>,
 }
 
 impl Graph {
-    pub fn new() -> Self {
+    pub fn new(grid: &Grid, depth: usize) -> Self {
         Self {
-            depth: 1,
+            depth,
+            grid: *grid,
             solid_set_map: HashMap::new(),
-            levels: Vec::new(),
+            levels: Vec::with_capacity(depth),
         }
     }
 
-    pub fn setup(&mut self, grid: &Grid, chunk_list: &Vec<Chunk>) {
-        self.solid_set_map = Self::setup_solid_set_map(grid, chunk_list);
+    pub fn setup(&mut self, chunk_list: &Vec<Chunk>) {
+        self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_list);
 
-        let mut level = Level::new();
-        level.regions = Self::setup_regions(grid, chunk_list);
+        let base_level = Self::setup_base_level(&self.grid, chunk_list);
 
-        self.levels.push(level);
+        self.levels.push(base_level);
+
+        for level_number in 1..(self.depth - 1).max(0) {
+            let level = Self::setup_level(&self.grid, level_number);
+
+            self.levels.push(level);
+        }
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_list: &Vec<Chunk>) -> HashMap<IVec3, FixedBitSet> {
@@ -70,6 +77,19 @@ impl Graph {
                 (chunk_coordinates, chunk_solid_set)
             })
             .collect()
+    }
+
+    fn setup_base_level(grid: &Grid, chunk_list: &Vec<Chunk>) -> Level {
+        let mut base_level = Level::new();
+        base_level.regions = Self::setup_regions(grid, chunk_list);
+
+        base_level
+    }
+
+    fn setup_level(grid: &Grid, level_number: usize) -> Level {
+        let mut level = Level::new();
+
+        level
     }
 
     fn setup_regions(grid: &Grid, chunk_list: &Vec<Chunk>) -> Vec<Region> {

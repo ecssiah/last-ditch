@@ -32,7 +32,7 @@ impl World {
         let grid = Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
         let chunk_list = Self::setup_chunk_list(&grid);
-        let graph = Graph::new();
+        let graph = Graph::new(&grid, 1);
 
         let flags = HashMap::from([
             (agent::Kind::Lion, IVec3::ZERO),
@@ -61,7 +61,7 @@ impl World {
             builder::MainWorld::build(self);
         }
 
-        self.graph.setup(&self.grid, &self.chunk_list);
+        self.graph.setup(&self.chunk_list);
     }
 
     pub fn tick(&mut self) {}
