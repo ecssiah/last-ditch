@@ -1,4 +1,4 @@
-use crate::simulation::admin::Mode;
+use crate::simulation::state::admin::Mode;
 
 #[derive(Clone, Debug)]
 pub struct AdminView {

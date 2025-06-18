@@ -1,16 +1,9 @@
 //! Evolution of the simulated environment.
 
-pub mod admin;
-pub mod compute;
 pub mod consts;
 pub mod dispatch;
 pub mod observation;
-pub mod physics;
-pub mod population;
 pub mod state;
-pub mod time;
-pub mod world;
-pub mod graph;
 pub mod utils;
 
 use crate::simulation::{

@@ -1,7 +1,7 @@
 use crate::simulation::{
     consts::*,
-    physics::aabb::AABB,
-    world::{block, grid, World},
+    state::physics::aabb::AABB,
+    state::world::{block, grid, World},
 };
 use glam::Vec3;
 use std::f32::EPSILON;

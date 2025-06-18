@@ -12,7 +12,7 @@ pub use agent_action::MovementAction;
 pub use test_action::TestAction;
 pub use world_action::WorldAction;
 
-use crate::simulation::admin;
+use crate::simulation::state::admin;
 use crate::simulation::state::State;
 use std::sync::Arc;
 use tokio::sync::mpsc::unbounded_channel;

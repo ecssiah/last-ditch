@@ -1,4 +1,4 @@
-use crate::simulation::{observation::view::chunk_view::ChunkView, world::chunk};
+use crate::simulation::{observation::view::chunk_view::ChunkView, state::world::chunk};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

@@ -14,7 +14,7 @@ pub use population_view::PopulationView;
 pub use time_view::TimeView;
 pub use world_view::WorldView;
 
-use crate::simulation::population::judge;
+use crate::simulation::state::population::judge;
 
 #[derive(Clone)]
 pub struct View {

@@ -1,4 +1,4 @@
-use crate::simulation::{observation::state_pair::StatePair, population::agent};
+use crate::simulation::{observation::state_pair::StatePair, state::population::agent};
 use glam::Vec3;
 
 #[derive(Clone, Debug)]

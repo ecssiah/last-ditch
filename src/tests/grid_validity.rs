@@ -1,9 +1,8 @@
-use glam::IVec3;
-
 use crate::simulation::{
     consts::*,
-    world::{block, chunk, World},
+    state::world::{block, chunk, World},
 };
+use glam::IVec3;
 
 struct BlockIDValidCase {
     description: String,

@@ -194,10 +194,10 @@ impl<'window> Interface<'window> {
         let view = self.observation.get_view();
 
         match view.admin_view.mode {
-            simulation::admin::Mode::Load => {
+            simulation::state::admin::Mode::Load => {
                 self.apply_admin_view(&view.admin_view);
             }
-            simulation::admin::Mode::Simulate => {
+            simulation::state::admin::Mode::Simulate => {
                 self.apply_admin_view(&view.admin_view);
                 self.apply_time_view(&view.time_view);
                 self.apply_population_view(&view.population_view);
@@ -205,8 +205,8 @@ impl<'window> Interface<'window> {
 
                 self.send_movement_actions();
             }
-            simulation::admin::Mode::Shutdown => {}
-            simulation::admin::Mode::Exit => {
+            simulation::state::admin::Mode::Shutdown => {}
+            simulation::state::admin::Mode::Exit => {
                 event_loop.exit();
             }
         }
@@ -292,7 +292,7 @@ impl<'window> Interface<'window> {
     fn apply_agent_view_map(
         &mut self,
         agent_view_map: &HashMap<
-            simulation::population::agent::ID,
+            simulation::state::population::agent::ID,
             simulation::observation::view::AgentView,
         >,
     ) {

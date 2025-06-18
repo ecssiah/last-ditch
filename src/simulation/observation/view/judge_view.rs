@@ -1,5 +1,6 @@
 use crate::simulation::{
-    observation::state_pair::StatePair, physics::aabb::AABB, population::judge,
+    observation::state_pair::StatePair,
+    state::{physics::aabb::AABB, population::judge},
 };
 use glam::{Quat, Vec3};
 

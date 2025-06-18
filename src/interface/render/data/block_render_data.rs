@@ -8,8 +8,8 @@ pub struct BlockRenderData {
 
 impl BlockRenderData {
     #[rustfmt::skip]
-    pub fn setup() -> HashMap<simulation::world::block::Kind, BlockRenderData> {
-        use simulation::world::block::Kind;
+    pub fn setup() -> HashMap<simulation::state::world::block::Kind, BlockRenderData> {
+        use simulation::state::world::block::Kind;
 
         HashMap::from([
             (
@@ -249,8 +249,11 @@ impl BlockRenderData {
         ])
     }
 
-    pub fn direction_to_index(&self, direction: simulation::world::grid::Direction) -> usize {
-        use simulation::world::grid::Direction;
+    pub fn direction_to_index(
+        &self,
+        direction: simulation::state::world::grid::Direction,
+    ) -> usize {
+        use simulation::state::world::grid::Direction;
 
         match direction {
             Direction::XpYoZo => 0,

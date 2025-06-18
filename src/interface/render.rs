@@ -21,7 +21,7 @@ use crate::{
 use std::collections::HashMap;
 
 pub struct Render {
-    pub block_render_data_map: HashMap<simulation::world::block::Kind, BlockRenderData>,
+    pub block_render_data_map: HashMap<simulation::state::world::block::Kind, BlockRenderData>,
     pub textures: Textures,
     pub chunk_render: ChunkRender,
     pub agent_render: AgentRender,
@@ -70,7 +70,7 @@ impl Render {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         agent_view_map: &HashMap<
-            simulation::population::agent::ID,
+            simulation::state::population::agent::ID,
             simulation::observation::view::AgentView,
         >,
     ) {
@@ -119,7 +119,7 @@ impl Render {
             let mut index_offset = 0;
 
             for face in &chunk_view.geometry.next.face_list {
-                if face.kind == simulation::world::block::Kind::Empty {
+                if face.kind == simulation::state::world::block::Kind::Empty {
                     continue;
                 }
 

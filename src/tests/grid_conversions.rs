@@ -1,6 +1,6 @@
 use crate::simulation::{
     consts::*,
-    world::{block, chunk, World},
+    state::world::{block, chunk, World},
 };
 use glam::{IVec3, Vec3};
 

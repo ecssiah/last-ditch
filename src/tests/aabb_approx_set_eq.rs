@@ -1,4 +1,4 @@
-use crate::simulation::{consts::*, physics::aabb::AABB};
+use crate::simulation::{consts::*, state::physics::aabb::AABB};
 use glam::Vec3;
 use std::f32::EPSILON;
 

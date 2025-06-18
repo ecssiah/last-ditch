@@ -1,4 +1,4 @@
-use crate::simulation::world::grid;
+use crate::simulation::state::world::grid;
 use glam::IVec3;
 
 struct IntermediatePositionsCase {

@@ -6,7 +6,6 @@ pub mod state_pair;
 pub mod view;
 
 use crate::simulation::{
-    admin::Admin,
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::{
         repository::Repository,
@@ -15,10 +14,12 @@ use crate::simulation::{
             AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
     },
-    population::{Judge, Population},
-    state::State,
-    time::Time,
-    world::{chunk, World},
+    state::{
+        population::{Judge, Population},
+        time::Time,
+        world::{chunk, World},
+        Admin, State,
+    },
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -175,10 +176,7 @@ impl Observation {
         if let Some(chunk_view) = world_view.chunk_view_map.get(&chunk.id) {
             next_chunk_view = ChunkView {
                 id: chunk.id,
-                geometry: StatePair::new(
-                    chunk_view.geometry.next.clone(),
-                    chunk.geometry.clone(),
-                ),
+                geometry: StatePair::new(chunk_view.geometry.next.clone(), chunk.geometry.clone()),
             };
         } else {
             next_chunk_view = ChunkView {
