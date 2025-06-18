@@ -889,6 +889,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fixedbitset"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
+
+[[package]]
 name = "flate2"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1506,6 +1512,7 @@ dependencies = [
  "egui-wgpu",
  "egui-winit",
  "env_logger",
+ "fixedbitset",
  "flexi_logger",
  "glam",
  "image",

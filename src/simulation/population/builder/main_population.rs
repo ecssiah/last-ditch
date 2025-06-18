@@ -19,6 +19,9 @@ impl MainPopulation {
     fn setup_judge(population: &mut Population) {
         log::info!("Setup Judge");
 
+        population
+            .judge
+            .set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
         population.judge.set_world_position(0.0, 2.0, 0.0);
         population.judge.set_rotation(0.0, 0.0);
     }
@@ -42,7 +45,7 @@ impl MainPopulation {
                     agent.world_position = world_position;
                     agent.target_world_position = world_position;
                     agent.kind = kind;
-                    agent.height = rng.gen_range(1.2..=2.2);
+                    agent.height = rng.gen_range(AGENT_SIZE_MIN..=AGENT_SIZE_MAX);
 
                     population.agent_map.insert(agent.id, agent);
                 }

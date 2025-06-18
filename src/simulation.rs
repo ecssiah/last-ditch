@@ -11,6 +11,7 @@ pub mod state;
 pub mod time;
 pub mod world;
 pub mod graph;
+pub mod utils;
 
 use crate::simulation::{
     consts::SIMULATION_TICK_DURATION, dispatch::Dispatch, observation::Observation,

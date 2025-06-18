@@ -40,8 +40,13 @@ pub const MINIMUM_CLEARANCE: u32 = 1;
 pub const JUDGE_SPEED_X: f32 = 6.0;
 pub const JUDGE_SPEED_Y: f32 = 8.0;
 pub const JUDGE_SPEED_Z: f32 = 8.0;
+pub const JUDGE_SIZE_X: f32 = 0.6;
+pub const JUDGE_SIZE_Y: f32 = 2.8;
+pub const JUDGE_SIZE_Z: f32 = 0.6;
 pub const JUDGE_VIEW_RADIUS: f32 = 256.0;
 pub const JUDGE_VIEW_RADIUS_SQUARED: f32 = JUDGE_VIEW_RADIUS * JUDGE_VIEW_RADIUS;
 pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
 
 pub const AGENT_INITIAL_POPULATION: usize = 16;
+pub const AGENT_SIZE_MIN: f32 = 0.6;
+pub const AGENT_SIZE_MAX: f32 = 2.2;

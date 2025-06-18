@@ -21,6 +21,8 @@ pub trait DynamicObject {
 
     fn set_rotation(&mut self, yaw: f32, pitch: f32);
 
+    fn set_size(&mut self, size: Vec3);
+
     fn aabb(&self) -> AABB;
     fn set_aabb(&mut self, aabb: AABB);
 

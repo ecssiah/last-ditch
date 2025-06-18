@@ -7,6 +7,7 @@ pub use direction::Direction;
 use crate::simulation::{
     consts::*,
     physics::aabb::AABB,
+    utils::indexing,
     world::{block, chunk},
 };
 use glam::{IVec3, Vec3};
@@ -140,7 +141,7 @@ impl Grid {
     pub fn block_id_to_block_coordinates(&self, block_id: block::ID) -> Option<IVec3> {
         if self.block_id_valid(block_id) {
             let block_index = u32::from(block_id);
-            let block_coordinates = Self::index_to_vector(block_index, self.chunk_radius);
+            let block_coordinates = indexing::index_to_vector(block_index, self.chunk_radius);
 
             Some(block_coordinates)
         } else {
@@ -150,8 +151,8 @@ impl Grid {
 
     pub fn block_coordinates_to_block_id(&self, block_coordinates: IVec3) -> Option<block::ID> {
         let block_coordinates_indexable =
-            Self::indexable_vector(block_coordinates, self.chunk_radius)?;
-        let block_index = Self::vector_to_index(block_coordinates_indexable, self.chunk_radius);
+            indexing::indexable_vector(block_coordinates, self.chunk_radius)?;
+        let block_index = indexing::vector_to_index(block_coordinates_indexable, self.chunk_radius);
 
         Some(block::ID(block_index))
     }
@@ -159,7 +160,7 @@ impl Grid {
     pub fn chunk_id_to_chunk_coordinates(&self, chunk_id: chunk::ID) -> Option<IVec3> {
         if self.chunk_id_valid(chunk_id) {
             let chunk_index = u32::from(chunk_id);
-            let chunk_coordinates = Self::index_to_vector(chunk_index, self.world_radius);
+            let chunk_coordinates = indexing::index_to_vector(chunk_index, self.world_radius);
 
             Some(chunk_coordinates)
         } else {
@@ -169,8 +170,8 @@ impl Grid {
 
     pub fn chunk_coordinates_to_chunk_id(&self, chunk_coordinates: IVec3) -> Option<chunk::ID> {
         let chunk_coordinates_indexable =
-            Self::indexable_vector(chunk_coordinates, self.world_radius)?;
-        let chunk_index = Self::vector_to_index(chunk_coordinates_indexable, self.world_radius);
+            indexing::indexable_vector(chunk_coordinates, self.world_radius)?;
+        let chunk_index = indexing::vector_to_index(chunk_coordinates_indexable, self.world_radius);
 
         Some(chunk::ID(chunk_index))
     }
@@ -193,7 +194,7 @@ impl Grid {
 
     pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
         if self.position_valid(position) {
-            let position_indexable = Self::indexable_vector(position, self.world_boundary)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_boundary)?;
 
             let chunk_coordinates_indexable = position_indexable / self.chunk_size as i32;
 
@@ -208,7 +209,7 @@ impl Grid {
 
     pub fn position_to_block_coordinates(&self, position: IVec3) -> Option<IVec3> {
         if self.position_valid(position) {
-            let position_indexable = Self::indexable_vector(position, self.world_boundary)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_boundary)?;
 
             let block_coordinates_indexable = position_indexable % self.chunk_size as i32;
 
@@ -305,32 +306,6 @@ impl Grid {
         aabb_list
     }
 
-    pub fn vector_to_index(vector: IVec3, radius: u32) -> u32 {
-        let radius = radius as i32;
-        let size = 2 * radius + 1;
-        let area = size * size;
-
-        let index = vector.x + vector.y * size + vector.z * area;
-
-        index as u32
-    }
-
-    pub fn index_to_vector(index: u32, radius: u32) -> IVec3 {
-        let index = index as i32;
-        let radius = radius as i32;
-
-        let size = 2 * radius + 1;
-        let area = size * size;
-
-        let x = (index % size) - radius;
-        let y = (index / size % size) - radius;
-        let z = (index / area) - radius;
-
-        let vector = IVec3::new(x as i32, y as i32, z as i32);
-
-        vector
-    }
-
     pub fn on_chunk_boundary(&self, position: IVec3) -> bool {
         self.position_to_block_coordinates(position)
             .map_or(false, |block_coordinates| {
@@ -340,23 +315,6 @@ impl Grid {
                     || block_coordinates.y.abs() == chunk_radius
                     || block_coordinates.z.abs() == chunk_radius
             })
-    }
-
-    fn in_bounds(vector: IVec3, radius: u32) -> bool {
-        let min = -(radius as i32);
-        let max = radius as i32;
-
-        (min..=max).contains(&vector.x)
-            && (min..=max).contains(&vector.y)
-            && (min..=max).contains(&vector.z)
-    }
-
-    fn indexable_vector(vector: IVec3, radius: u32) -> Option<IVec3> {
-        if Self::in_bounds(vector, radius) {
-            Some(vector + IVec3::splat(radius as i32))
-        } else {
-            None
-        }
     }
 
     pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {

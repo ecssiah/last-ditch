@@ -1,9 +1,10 @@
 use crate::simulation::{
+    consts::*,
     physics::dynamic_object::DynamicObject,
     population::{agent, Agent, Population},
     world::World,
 };
-use glam::IVec3;
+use glam::{IVec3, Vec3};
 
 pub struct TestPopulation {}
 
@@ -16,6 +17,9 @@ impl TestPopulation {
     fn setup_judge(population: &mut Population) {
         log::info!("Setup Test Judge");
 
+        population
+            .judge
+            .set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
         population.judge.set_world_position(0.0, -2.0, 0.0);
         population.judge.set_rotation(0.0, 0.0);
     }

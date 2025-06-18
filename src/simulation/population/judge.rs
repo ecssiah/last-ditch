@@ -39,7 +39,7 @@ impl Judge {
             world_position: Vec3::ZERO,
             velocity: Vec3::ZERO,
             acceleration: Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0),
-            aabb: AABB::new(Vec3::ZERO, Vec3::new(0.6, 2.2, 0.6)),
+            aabb: AABB::default(),
             yaw: 0.0,
             pitch: 0.0,
             orientation: Quat::default(),
@@ -176,6 +176,10 @@ impl DynamicObject for Judge {
             self.velocity.x = new_velocity_xz.x;
             self.velocity.z = new_velocity_xz.z;
         }
+    }
+
+    fn set_size(&mut self, size: Vec3) {
+        self.aabb = AABB::new(self.aabb.center(), size);
     }
 
     fn aabb(&self) -> AABB {

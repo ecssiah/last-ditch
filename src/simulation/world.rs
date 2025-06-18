@@ -7,29 +7,30 @@ pub mod grid;
 
 use crate::simulation::{
     consts::*,
-    graph,
+    graph::Graph,
     population::{
         agent::{self},
         Judge,
     },
+    world::grid::Grid,
 };
 use glam::{IVec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
-    pub grid: grid::Grid,
+    pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_list: Vec<chunk::Chunk>,
-    pub graph: graph::Graph,
+    pub graph: Graph,
     pub flags: HashMap<agent::Kind, IVec3>,
 }
 
 impl World {
     pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
-        let grid = grid::Grid::new(chunk_radius, world_radius);
+        let grid = Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
         let chunk_list = Self::setup_chunk_list(&grid);
-        let graph = graph::Graph::new();
+        let graph = Graph::new();
 
         let flags = HashMap::from([
             (agent::Kind::Lion, IVec3::ZERO),
@@ -59,9 +60,7 @@ impl World {
         }
     }
 
-    pub fn tick(&mut self) {
-
-    }
+    pub fn tick(&mut self) {}
 
     fn setup_chunk_list(grid: &grid::Grid) -> Vec<chunk::Chunk> {
         grid.chunk_ids()
