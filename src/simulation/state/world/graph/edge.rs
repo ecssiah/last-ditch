@@ -1,4 +1,4 @@
-use crate::simulation::state::graph::Node;
+use crate::simulation::state::world::graph::Node;
 
 pub enum Kind {
     Local,

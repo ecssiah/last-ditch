@@ -2,7 +2,6 @@
 
 pub mod admin;
 pub mod compute;
-pub mod graph;
 pub mod physics;
 pub mod population;
 pub mod time;
@@ -10,7 +9,6 @@ pub mod world;
 
 pub use admin::Admin;
 pub use compute::Compute;
-pub use graph::Graph;
 pub use physics::Physics;
 pub use population::Population;
 pub use time::Time;
@@ -24,22 +22,15 @@ pub struct State {
     pub time: Time,
     pub physics: Physics,
     pub world: World,
-    pub graph: Graph,
     pub population: Population,
 }
 
 impl State {
     pub fn new() -> Self {
-        let chunk_radius = if TESTING {
-            TEST_CHUNK_RADIUS as u32
+        let (chunk_radius, world_radius) = if TESTING {
+            (TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32)
         } else {
-            MAIN_CHUNK_RADIUS as u32
-        };
-
-        let world_radius = if TESTING {
-            TEST_WORLD_RADIUS as u32
-        } else {
-            MAIN_WORLD_RADIUS as u32
+            (MAIN_CHUNK_RADIUS as u32, MAIN_WORLD_RADIUS as u32)
         };
 
         let admin = Admin::new();
@@ -47,8 +38,7 @@ impl State {
         let time = Time::new();
         let physics = Physics::new();
         let world = World::new(chunk_radius, world_radius);
-        let graph = Graph::new(chunk_radius, world_radius);
-        let population = Population::new(compute.task_tx.clone(), compute.result_rx.clone());
+        let population = Population::new(&compute);
 
         Self {
             admin,
@@ -56,7 +46,6 @@ impl State {
             time,
             physics,
             world,
-            graph,
             population,
         }
     }
@@ -64,7 +53,6 @@ impl State {
     pub fn setup(&mut self) {
         self.admin.setup();
         self.world.setup();
-        self.graph.setup(&self.world);
         self.population.setup(&self.world);
     }
 

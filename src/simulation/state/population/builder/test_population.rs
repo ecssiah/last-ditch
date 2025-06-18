@@ -48,7 +48,7 @@ impl TestPopulation {
         agent.world_position = world_position;
         agent.target_world_position = world_position;
         agent.kind = agent::Kind::Eagle;
-        agent.height = 0.9;
+        agent.height = 1.8;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -66,7 +66,7 @@ impl TestPopulation {
         agent.world_position = world_position;
         agent.target_world_position = world_position;
         agent.kind = agent::Kind::Horse;
-        agent.height = 0.9;
+        agent.height = 1.8;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -84,7 +84,7 @@ impl TestPopulation {
         agent.world_position = world_position;
         agent.target_world_position = world_position;
         agent.kind = agent::Kind::Wolf;
-        agent.height = 0.9;
+        agent.height = 1.8;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -102,7 +102,7 @@ impl TestPopulation {
         agent.world_position = world_position;
         agent.target_world_position = world_position;
         agent.kind = agent::Kind::Lion;
-        agent.height = 0.9;
+        agent.height = 1.8;
 
         population.agent_map.insert(agent.id, agent);
     }

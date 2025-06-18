@@ -3,6 +3,7 @@
 pub mod block;
 pub mod builder;
 pub mod chunk;
+pub mod graph;
 pub mod grid;
 
 use crate::simulation::{
@@ -12,7 +13,7 @@ use crate::simulation::{
             agent::{self},
             Judge,
         },
-        world::grid::Grid,
+        world::{graph::Graph, grid::Grid},
     },
 };
 use glam::{IVec3, Vec4};
@@ -22,6 +23,7 @@ pub struct World {
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_list: Vec<chunk::Chunk>,
+    pub graph: Graph,
     pub flags: HashMap<agent::Kind, IVec3>,
 }
 
@@ -30,6 +32,7 @@ impl World {
         let grid = Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
         let chunk_list = Self::setup_chunk_list(&grid);
+        let graph = Graph::new();
 
         let flags = HashMap::from([
             (agent::Kind::Lion, IVec3::ZERO),
@@ -42,6 +45,7 @@ impl World {
             grid,
             block_meta_map,
             chunk_list,
+            graph,
             flags,
         }
     }
@@ -56,6 +60,8 @@ impl World {
         } else {
             builder::MainWorld::build(self);
         }
+
+        self.graph.setup(&self.grid, &self.chunk_list);
     }
 
     pub fn tick(&mut self) {}

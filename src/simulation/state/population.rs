@@ -4,15 +4,18 @@ pub mod agent;
 pub mod builder;
 pub mod decision;
 pub mod judge;
+pub mod nation;
 
 pub use agent::Agent;
 pub use judge::Judge;
+pub use nation::Nation;
 
 use crate::simulation::{
     consts::*,
     state::{
         compute::{result, task},
         world::World,
+        Compute,
     },
 };
 use crossbeam::channel::{Receiver, Sender};
@@ -27,7 +30,9 @@ pub struct Population {
 }
 
 impl Population {
-    pub fn new(task_tx: Sender<task::Kind>, result_rx: Receiver<result::Kind>) -> Self {
+    pub fn new(compute: &Compute) -> Self {
+        let task_tx = compute.task_tx.clone();
+        let result_rx = compute.result_rx.clone();
         let judge = Judge::new(judge::ID::allocate());
         let agent_map = HashMap::new();
 

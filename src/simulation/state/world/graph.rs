@@ -8,7 +8,7 @@ pub use node::Node;
 pub use region::Region;
 pub use transition::Transition;
 
-use crate::simulation::state::world::World;
+use crate::simulation::state::world::{chunk::Chunk, grid::Grid, World};
 use fixedbitset::FixedBitSet;
 use glam::IVec3;
 use std::collections::HashMap;
@@ -38,7 +38,7 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
+    pub fn new() -> Self {
         Self {
             depth: 1,
             solid_set_map: HashMap::new(),
@@ -46,42 +46,36 @@ impl Graph {
         }
     }
 
-    pub fn setup(&mut self, world: &World) {
-        self.solid_set_map = Self::setup_solid_set_map(world);
+    pub fn setup(&mut self, grid: &Grid, chunk_list: &Vec<Chunk>) {
+        self.solid_set_map = Self::setup_solid_set_map(grid, chunk_list);
 
         let mut level = Level::new();
-        level.regions = Self::setup_regions(world);
+        level.regions = Self::setup_regions(grid, chunk_list);
 
         self.levels.push(level);
     }
 
-    fn setup_solid_set_map(world: &World) -> HashMap<IVec3, FixedBitSet> {
-        world
-            .chunk_list
+    fn setup_solid_set_map(grid: &Grid, chunk_list: &Vec<Chunk>) -> HashMap<IVec3, FixedBitSet> {
+        chunk_list
             .iter()
             .map(|chunk| {
-                let mut chunk_solid_set =
-                    FixedBitSet::with_capacity(world.grid.chunk_volume as usize);
+                let mut chunk_solid_set = FixedBitSet::with_capacity(grid.chunk_volume as usize);
 
                 for block in &chunk.block_list {
                     chunk_solid_set.set(usize::from(block.id), block.solid);
                 }
 
-                let chunk_coordinates = world
-                    .grid
-                    .position_to_chunk_coordinates(chunk.position)
-                    .unwrap();
+                let chunk_coordinates = grid.position_to_chunk_coordinates(chunk.position).unwrap();
 
                 (chunk_coordinates, chunk_solid_set)
             })
             .collect()
     }
 
-    fn setup_regions(world: &World) -> Vec<Region> {
-        let chunk_radius = IVec3::splat(world.grid.chunk_radius as i32);
+    fn setup_regions(grid: &Grid, chunk_list: &Vec<Chunk>) -> Vec<Region> {
+        let chunk_radius = IVec3::splat(grid.chunk_radius as i32);
 
-        world
-            .chunk_list
+        chunk_list
             .iter()
             .map(|chunk| {
                 let min = chunk.position - chunk_radius;
