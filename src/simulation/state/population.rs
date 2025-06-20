@@ -7,7 +7,7 @@ use crate::simulation::{
     consts::*,
     state::{
         compute::{result, task},
-        population::entity::{judge, Agent, Judge},
+        population::entity::{Agent, Judge},
         world::World,
         Compute,
     },

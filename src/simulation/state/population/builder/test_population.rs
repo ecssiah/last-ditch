@@ -21,7 +21,7 @@ impl TestPopulation {
 
         let judge = &mut population.judge;
 
-        let judge_world_position = Vec3::new(0.0, 2.0, 0.0);
+        let judge_world_position = Vec3::new(0.0, -2.0, 0.0);
         let judge_size = Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z);
         let judge_aabb = AABB::new(judge_world_position + Vec3::Y * judge_size.y, judge_size);
 

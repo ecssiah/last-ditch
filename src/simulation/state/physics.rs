@@ -28,15 +28,15 @@ impl Physics {
     pub fn tick(&self, world: &World, population: &mut Population) {
         let judge = population.get_judge_mut();
 
-        let (velocity, delta) = Self::integrate_judge(judge);
+        let (velocity, delta) = self.integrate_judge(judge);
 
         Self::resolve_judge(judge, world, &velocity, &delta);
         Self::sync_judge(judge);
     }
 
-    fn integrate_judge(judge: &mut Judge) -> (Vec3, Vec3) {
+    fn integrate_judge(&self, judge: &mut Judge) -> (Vec3, Vec3) {
         let initial_velocity = judge.kinematics.velocity;
-        let acceleration = judge.kinematics.acceleration;
+        let acceleration = self.gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
         let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
