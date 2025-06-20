@@ -292,7 +292,7 @@ impl<'window> Interface<'window> {
     fn apply_agent_view_map(
         &mut self,
         agent_view_map: &HashMap<
-            simulation::state::population::agent::ID,
+            simulation::state::population::entity::ID,
             simulation::observation::view::AgentView,
         >,
     ) {

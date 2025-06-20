@@ -15,7 +15,7 @@ use crate::simulation::{
         },
     },
     state::{
-        population::{Judge, Population},
+        population::{entity::Judge, Population},
         time::Time,
         world::{chunk, World},
         Admin, State,
@@ -88,22 +88,19 @@ impl Observation {
         let mut next_population_view = PopulationView {
             judge_view: JudgeView {
                 id: judge.id,
-                aabb: StatePair::new(population_view.judge_view.aabb.next, judge.aabb),
-                world_position: StatePair::new(
-                    population_view.judge_view.world_position.next,
-                    judge.world_position,
-                ),
-                orientation: StatePair::new(
-                    population_view.judge_view.orientation.next,
-                    judge.orientation,
+                spatial: StatePair::new(population_view.judge_view.spatial.next, judge.spatial),
+                kinematics: StatePair::new(
+                    population_view.judge_view.kinematics.next,
+                    judge.kinematics,
                 ),
             },
             agent_view_map: HashMap::new(),
         };
 
         for agent in population.get_agent_map() {
-            let judge_distance_squared =
-                (agent.world_position - population.judge.world_position).length_squared();
+            let judge_distance_squared = (agent.spatial.world_position
+                - population.judge.spatial.world_position)
+                .length_squared();
 
             if judge_distance_squared > JUDGE_VIEW_RADIUS_SQUARED {
                 continue;
@@ -113,14 +110,10 @@ impl Observation {
                 let next_agent_view = AgentView {
                     id: agent.id,
                     kind: agent.kind,
-                    height: agent.height,
-                    world_position: StatePair::new(
-                        agent_view.world_position.next,
-                        agent.world_position,
-                    ),
-                    target_world_position: StatePair::new(
-                        agent_view.target_world_position.next,
-                        agent.target_world_position,
+                    spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
+                    kinematics: StatePair::new(
+                        population_view.judge_view.kinematics.next,
+                        judge.kinematics,
                     ),
                 };
 
@@ -131,12 +124,8 @@ impl Observation {
                 let next_agent_view = AgentView {
                     id: agent.id,
                     kind: agent.kind,
-                    height: agent.height,
-                    world_position: StatePair::new(agent.world_position, agent.world_position),
-                    target_world_position: StatePair::new(
-                        agent.target_world_position,
-                        agent.target_world_position,
-                    ),
+                    spatial: StatePair::new(agent.spatial, agent.spatial),
+                    kinematics: StatePair::new(agent.kinematics, agent.kinematics),
                 };
 
                 next_population_view
@@ -149,7 +138,7 @@ impl Observation {
     }
 
     fn update_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
-        if !judge.chunk_update {
+        if !judge.chunk_updated() {
             return world_view.clone();
         }
 

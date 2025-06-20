@@ -1,7 +1,7 @@
 use crate::{
     include_assets,
     interface::{
-        consts::WINDOW_CLEAR_COLOR,
+        consts::*,
         render::data::{ChunkData, VertexData},
     },
 };

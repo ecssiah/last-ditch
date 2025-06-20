@@ -70,7 +70,7 @@ impl Render {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         agent_view_map: &HashMap<
-            simulation::state::population::agent::ID,
+            simulation::state::population::entity::ID,
             simulation::observation::view::AgentView,
         >,
     ) {
@@ -78,8 +78,8 @@ impl Render {
             .iter()
             .map(|(_, agent_view)| {
                 let agent_instance_data = AgentInstanceData {
-                    world_position: agent_view.world_position.next.to_array(),
-                    height: agent_view.height,
+                    world_position: agent_view.spatial.current.world_position.to_array(),
+                    height: agent_view.spatial.current.aabb.size().y,
                     color: agent_view.kind.color(),
                 };
 

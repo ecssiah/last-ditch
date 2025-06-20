@@ -3,13 +3,13 @@ use crate::simulation::{
         result::chunk_path_result::ChunkPathResult,
         snapshot::chunk_path_snapshot::ChunkPathSnapshot, Task,
     },
-    state::population::{agent, Population},
+    state::population::{entity, Population},
     state::world::{block, chunk, World},
 };
 
 #[derive(Debug)]
 pub struct ChunkPathTask {
-    pub agent_id: agent::ID,
+    pub agent_id: entity::ID,
     pub chunk_id: chunk::ID,
     pub block_id_start: block::ID,
     pub block_id_end: block::ID,

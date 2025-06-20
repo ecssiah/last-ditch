@@ -1,19 +1,13 @@
 //! Entities acting in the simulated environment
 
-pub mod agent;
 pub mod builder;
-pub mod decision;
-pub mod judge;
-pub mod nation;
-
-pub use agent::Agent;
-pub use judge::Judge;
-pub use nation::Nation;
+pub mod entity;
 
 use crate::simulation::{
     consts::*,
     state::{
         compute::{result, task},
+        population::entity::{judge, Agent, Judge},
         world::World,
         Compute,
     },
@@ -26,14 +20,14 @@ pub struct Population {
     pub task_tx: Sender<task::Kind>,
     pub result_rx: Receiver<result::Kind>,
     pub judge: Judge,
-    pub agent_map: HashMap<agent::ID, Agent>,
+    pub agent_map: HashMap<entity::ID, Agent>,
 }
 
 impl Population {
     pub fn new(compute: &Compute) -> Self {
         let task_tx = compute.task_tx.clone();
         let result_rx = compute.result_rx.clone();
-        let judge = Judge::new(judge::ID::allocate());
+        let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
@@ -89,17 +83,17 @@ impl Population {
         self.agent_map.values_mut()
     }
 
-    pub fn get_agent(&self, agent_id: &agent::ID) -> Option<&Agent> {
+    pub fn get_agent(&self, agent_id: &entity::ID) -> Option<&Agent> {
         self.agent_map.get(agent_id)
     }
 
-    pub fn get_agent_mut(&mut self, agent_id: &agent::ID) -> Option<&mut Agent> {
+    pub fn get_agent_mut(&mut self, agent_id: &entity::ID) -> Option<&mut Agent> {
         self.agent_map.get_mut(agent_id)
     }
 
     pub fn test_chunk_path(&mut self, world: &World) {
         let task = task::ChunkPathTask {
-            agent_id: agent::ID(0),
+            agent_id: entity::ID::zero(),
             chunk_id: world
                 .grid
                 .chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0))

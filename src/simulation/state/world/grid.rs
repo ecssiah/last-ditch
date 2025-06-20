@@ -93,6 +93,7 @@ impl Grid {
         let world_size = 2 * world_radius + 1;
         let world_area = world_size * world_size;
         let world_volume = world_size * world_size * world_size;
+        
         let world_boundary = chunk_radius + world_radius * chunk_size;
 
         let block_index_max = chunk_volume - 1;

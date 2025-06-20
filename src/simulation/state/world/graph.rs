@@ -108,7 +108,7 @@ impl Graph {
         level
     }
 
-    fn setup_transitions(&mut self) {}
+    fn setup_transitions() {}
 
     fn add_node(&mut self) {}
 

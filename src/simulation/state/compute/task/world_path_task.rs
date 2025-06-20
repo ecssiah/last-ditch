@@ -3,13 +3,13 @@ use crate::simulation::state::{
         result::world_path_result::WorldPathResult,
         snapshot::world_path_snapshot::WorldPathSnapshot, Task,
     },
-    population::{agent, Population},
+    population::{entity, Population},
     world::World,
 };
 
 #[derive(Debug)]
 pub struct WorldPathTask {
-    pub agent_id: agent::ID,
+    pub agent_id: entity::ID,
 }
 
 impl Task for WorldPathTask {

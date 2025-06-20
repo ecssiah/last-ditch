@@ -17,8 +17,9 @@ A Civilization Garden
    Collision resolution is performed one axis at a time (X, Z, Y), applying only the displacement along that axis. Resolving Y last improves wall sliding consistency.
 
 3. **Sweep and Resolve**  
-   For each axis:  
-    1. Apply the displacement along that axis to the AABB. 2. Check for overlaps with nearby solid voxels. 3. If overlapping, compute the penetration depth and resolve by pushing the AABB back along that axis. 4. Zero out velocity on that axis if a collision occurred (optional, depending on contact handling).
+   For each axis:
+
+   1. Apply the displacement along that axis to the AABB. 2. Check for overlaps with nearby solid voxels. 3. If overlapping, compute the penetration depth and resolve by pushing the AABB back along that axis. 4. Zero out velocity on that axis if a collision occurred (optional, depending on contact handling).
 
 4. **Thread-Safe Design**  
    The AABB used in physics is separate from the display position. Rendering and other threads can safely read the display position at any time, without being exposed to intermediate collision states.
@@ -43,3 +44,7 @@ That's the main task right now, but this pathfinding system needs to fit into a 
 To simplify the overall problem, we can start by creating the foundation of the Decision system, and then getting Agents to request simple pathfinding tasks just within a single test Chunk, so that we don't need to tackle anything with the 1st layer of the navigation Graph quite yet.
 
 ## Interface
+
+### Simulation Views
+
+Use Reference Count (Rc) references for structs like ChunkViews to allow for easy ownership transfer when a ChunkView does not change between frames.

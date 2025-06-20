@@ -14,11 +14,11 @@ pub use population_view::PopulationView;
 pub use time_view::TimeView;
 pub use world_view::WorldView;
 
-use crate::simulation::state::population::judge;
+use crate::simulation::state::population::entity;
 
 #[derive(Clone)]
 pub struct View {
-    pub judge_id: judge::ID,
+    pub judge_id: entity::ID,
     pub admin_view: AdminView,
     pub time_view: TimeView,
     pub population_view: PopulationView,
@@ -28,7 +28,7 @@ pub struct View {
 impl View {
     pub fn new() -> Self {
         Self {
-            judge_id: judge::ID(0),
+            judge_id: entity::ID::zero(),
             admin_view: AdminView::new(),
             time_view: TimeView::new(),
             population_view: PopulationView::new(),

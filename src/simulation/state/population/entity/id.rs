@@ -9,6 +9,10 @@ impl ID {
     pub fn allocate() -> ID {
         ID(NEXT_ID.fetch_add(1, Ordering::Relaxed))
     }
+
+    pub fn zero() -> ID {
+        ID(0)
+    }
 }
 
 impl From<ID> for usize {

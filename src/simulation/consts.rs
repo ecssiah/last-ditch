@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-pub const TESTING: bool = true;
+pub const TESTING: bool = false;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const DEFAULT_SEED: u64 = 128;
@@ -21,8 +21,8 @@ pub const MOVEMENT_COST_CORNER: f32 = 1.7320508;
 pub const MAIN_CHUNK_RADIUS: u32 = 8;
 pub const MAIN_WORLD_RADIUS: u32 = 4;
 
-pub const TEST_CHUNK_RADIUS: u32 = 3;
-pub const TEST_WORLD_RADIUS: u32 = 2;
+pub const TEST_CHUNK_RADIUS: u32 = 4;
+pub const TEST_WORLD_RADIUS: u32 = 3;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;

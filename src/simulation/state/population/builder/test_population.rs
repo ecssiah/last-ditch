@@ -1,8 +1,8 @@
 use crate::simulation::{
     consts::*,
     state::{
-        physics::dynamic_object::DynamicObject,
-        population::{agent, Agent, Population},
+        physics::aabb::AABB,
+        population::{entity, Agent, Population},
         world::World,
     },
 };
@@ -19,11 +19,14 @@ impl TestPopulation {
     fn setup_judge(population: &mut Population) {
         log::info!("Setup Test Judge");
 
-        population
-            .judge
-            .set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
-        population.judge.set_world_position(0.0, -2.0, 0.0);
-        population.judge.set_rotation(0.0, 0.0);
+        let judge = &mut population.judge;
+
+        let judge_world_position = Vec3::new(0.0, 2.0, 0.0);
+        let judge_size = Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z);
+        let judge_aabb = AABB::new(judge_world_position + Vec3::Y * judge_size.y, judge_size);
+
+        judge.spatial.world_position = judge_world_position;
+        judge.spatial.aabb = judge_aabb;
     }
 
     fn setup_agents(population: &mut Population, world: &World) {
@@ -41,14 +44,16 @@ impl TestPopulation {
             .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
             .unwrap();
 
-        let mut agent = Agent::new(agent::ID::allocate());
+        let mut agent = Agent::new();
 
         let world_position = (chunk_west_position + IVec3::new(2, -2, 2)).as_vec3();
 
-        agent.world_position = world_position;
-        agent.target_world_position = world_position;
-        agent.kind = agent::Kind::Eagle;
-        agent.height = 1.8;
+        let agent_size = Vec3::new(0.6, 1.8, 0.6);
+        let agent_aabb = AABB::new(world_position + Vec3::Y * agent_size.y, agent_size);
+
+        agent.kind = entity::Kind::Eagle;
+        agent.spatial.world_position = world_position;
+        agent.spatial.aabb = agent_aabb;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -59,14 +64,16 @@ impl TestPopulation {
             .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
             .unwrap();
 
-        let mut agent = Agent::new(agent::ID::allocate());
+        let mut agent = Agent::new();
 
         let world_position = (chunk_west_position + IVec3::new(-2, -2, 2)).as_vec3();
 
-        agent.world_position = world_position;
-        agent.target_world_position = world_position;
-        agent.kind = agent::Kind::Horse;
-        agent.height = 1.8;
+        let agent_size = Vec3::new(0.6, 1.8, 0.6);
+        let agent_aabb = AABB::new(world_position + Vec3::Y * agent_size.y, agent_size);
+
+        agent.kind = entity::Kind::Horse;
+        agent.spatial.world_position = world_position;
+        agent.spatial.aabb = agent_aabb;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -77,14 +84,16 @@ impl TestPopulation {
             .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
             .unwrap();
 
-        let mut agent = Agent::new(agent::ID::allocate());
+        let mut agent = Agent::new();
 
         let world_position = (chunk_west_position + IVec3::new(2, -2, -2)).as_vec3();
 
-        agent.world_position = world_position;
-        agent.target_world_position = world_position;
-        agent.kind = agent::Kind::Wolf;
-        agent.height = 1.8;
+        let agent_size = Vec3::new(0.6, 1.8, 0.6);
+        let agent_aabb = AABB::new(world_position + Vec3::Y * agent_size.y, agent_size);
+
+        agent.kind = entity::Kind::Wolf;
+        agent.spatial.world_position = world_position;
+        agent.spatial.aabb = agent_aabb;
 
         population.agent_map.insert(agent.id, agent);
     }
@@ -95,14 +104,16 @@ impl TestPopulation {
             .chunk_coordinates_to_position(IVec3::new(-1, 0, 0))
             .unwrap();
 
-        let mut agent = Agent::new(agent::ID::allocate());
+        let mut agent = Agent::new();
 
         let world_position = (chunk_west_position + IVec3::new(-2, -2, -2)).as_vec3();
 
-        agent.world_position = world_position;
-        agent.target_world_position = world_position;
-        agent.kind = agent::Kind::Lion;
-        agent.height = 1.8;
+        let agent_size = Vec3::new(0.6, 1.8, 0.6);
+        let agent_aabb = AABB::new(world_position + Vec3::Y * agent_size.y, agent_size);
+
+        agent.kind = entity::Kind::Lion;
+        agent.spatial.world_position = world_position;
+        agent.spatial.aabb = agent_aabb;
 
         population.agent_map.insert(agent.id, agent);
     }

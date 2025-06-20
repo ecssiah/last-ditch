@@ -1,24 +1,21 @@
 use crate::simulation::{
     observation::state_pair::StatePair,
-    state::{physics::aabb::AABB, population::judge},
+    state::population::entity::{self, Kinematics, Spatial},
 };
-use glam::{Quat, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct JudgeView {
-    pub id: judge::ID,
-    pub world_position: StatePair<Vec3>,
-    pub aabb: StatePair<AABB>,
-    pub orientation: StatePair<Quat>,
+    pub id: entity::ID,
+    pub spatial: StatePair<Spatial>,
+    pub kinematics: StatePair<Kinematics>,
 }
 
 impl JudgeView {
     pub fn new() -> Self {
         Self {
-            id: judge::ID(0),
-            world_position: StatePair::default(),
-            aabb: StatePair::default(),
-            orientation: StatePair::default(),
+            id: entity::ID::zero(),
+            spatial: StatePair::new(Spatial::new(), Spatial::new()),
+            kinematics: StatePair::new(Kinematics::new(), Kinematics::new()),
         }
     }
 }

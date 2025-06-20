@@ -1,6 +1,5 @@
 use crate::simulation::state::{
-    population::agent,
-    world::{block, World},
+    population::entity, world::{block, World}
 };
 use glam::IVec3;
 
@@ -16,10 +15,10 @@ impl MainWorld {
 
         Self::build_compass(world);
 
-        Self::build_temple(world, 0, 0, 34, agent::Kind::Eagle);
-        Self::build_temple(world, -34, 0, 0, agent::Kind::Lion);
-        Self::build_temple(world, 0, 0, -34, agent::Kind::Horse);
-        Self::build_temple(world, 34, 0, 0, agent::Kind::Wolf);
+        Self::build_temple(world, 0, 0, 34, entity::Kind::Eagle);
+        Self::build_temple(world, -34, 0, 0, entity::Kind::Lion);
+        Self::build_temple(world, 0, 0, -34, entity::Kind::Horse);
+        Self::build_temple(world, 34, 0, 0, entity::Kind::Wolf);
 
         Self::build_observation_deck(world);
 
@@ -59,7 +58,7 @@ impl MainWorld {
         world.set_block_kind(IVec3::new(4, 0, 0), block::Kind::East);
     }
 
-    fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: agent::Kind) {
+    fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: entity::Kind) {
         world.flags.insert(kind, IVec3::new(x, y + 3, z));
 
         world.set_block_kind(IVec3::new(x, y + 6, z), kind.icon());

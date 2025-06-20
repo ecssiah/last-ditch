@@ -6,8 +6,8 @@ pub mod dynamic_object;
 use crate::simulation::{
     consts::*,
     state::{
-        physics::{aabb::AABB, dynamic_object::DynamicObject},
-        population::Population,
+        physics::aabb::AABB,
+        population::{entity::Judge, Population},
         world::grid,
         World,
     },
@@ -28,15 +28,15 @@ impl Physics {
     pub fn tick(&self, world: &World, population: &mut Population) {
         let judge = population.get_judge_mut();
 
-        let (velocity, delta) = Self::integrate_dynamic_object(judge);
+        let (velocity, delta) = Self::integrate_judge(judge);
 
-        Self::resolve_dynamic_object(judge, world, &velocity, &delta);
-        Self::sync_dynamic_object(judge, world);
+        Self::resolve_judge(judge, world, &velocity, &delta);
+        Self::sync_judge(judge);
     }
 
-    fn integrate_dynamic_object<T: DynamicObject>(dynamic_object: &mut T) -> (Vec3, Vec3) {
-        let initial_velocity = dynamic_object.velocity();
-        let acceleration = dynamic_object.acceleration();
+    fn integrate_judge(judge: &mut Judge) -> (Vec3, Vec3) {
+        let initial_velocity = judge.kinematics.velocity;
+        let acceleration = judge.kinematics.acceleration;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
         let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
@@ -45,13 +45,8 @@ impl Physics {
         (velocity, delta)
     }
 
-    fn resolve_dynamic_object<T: DynamicObject>(
-        dynamic_object: &mut T,
-        world: &World,
-        velocity: &Vec3,
-        delta: &Vec3,
-    ) {
-        let mut aabb = dynamic_object.aabb();
+    fn resolve_judge(judge: &mut Judge, world: &World, velocity: &Vec3, delta: &Vec3) {
+        let mut aabb = judge.spatial.aabb;
         let mut velocity = *velocity;
 
         for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
@@ -64,8 +59,8 @@ impl Physics {
             velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
         }
 
-        dynamic_object.set_aabb(aabb);
-        dynamic_object.set_velocity(velocity.x, velocity.y, velocity.z);
+        judge.spatial.aabb = aabb;
+        judge.kinematics.velocity = velocity;
     }
 
     fn resolve_axis(aabb: AABB, world: &World, axis: grid::Axis, delta: f32) -> (AABB, f32) {
@@ -115,21 +110,9 @@ impl Physics {
             .collect()
     }
 
-    fn sync_dynamic_object<T: DynamicObject>(dynamic_object: &mut T, world: &World) {
-        let world_position = dynamic_object.aabb().bottom_center();
+    fn sync_judge(judge_data: &mut Judge) {
+        let world_position = judge_data.spatial.aabb.bottom_center();
 
-        if let Some(chunk_id) = world.grid.world_to_chunk_id(world_position) {
-            let chunk_update = chunk_id != dynamic_object.chunk_id();
-
-            dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_world_position(world_position.x, world_position.y, world_position.z);
-        } else {
-            let chunk_update = true;
-
-            dynamic_object.set_chunk_update(chunk_update);
-            dynamic_object.set_world_position(0.0, 10.0, 0.0);
-            dynamic_object.set_velocity(0.0, 0.0, 0.0);
-            dynamic_object.set_rotation(0.0, 0.0);
-        }
+        judge_data.spatial.world_position = world_position;
     }
 }

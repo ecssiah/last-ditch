@@ -9,10 +9,7 @@ pub mod grid;
 use crate::simulation::{
     consts::*,
     state::{
-        population::{
-            agent::{self},
-            Judge,
-        },
+        population::entity::{self, Judge},
         world::{graph::Graph, grid::Grid},
     },
 };
@@ -24,7 +21,7 @@ pub struct World {
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_list: Vec<chunk::Chunk>,
     pub graph: Graph,
-    pub flags: HashMap<agent::Kind, IVec3>,
+    pub flags: HashMap<entity::Kind, IVec3>,
 }
 
 impl World {
@@ -35,10 +32,10 @@ impl World {
         let graph = Graph::new(&grid, 1);
 
         let flags = HashMap::from([
-            (agent::Kind::Lion, IVec3::ZERO),
-            (agent::Kind::Eagle, IVec3::ZERO),
-            (agent::Kind::Horse, IVec3::ZERO),
-            (agent::Kind::Wolf, IVec3::ZERO),
+            (entity::Kind::Lion, IVec3::ZERO),
+            (entity::Kind::Eagle, IVec3::ZERO),
+            (entity::Kind::Horse, IVec3::ZERO),
+            (entity::Kind::Wolf, IVec3::ZERO),
         ]);
 
         Self {
@@ -50,7 +47,7 @@ impl World {
         }
     }
 
-    pub fn get_flag(&self, kind: agent::Kind) -> Option<IVec3> {
+    pub fn get_flag(&self, kind: entity::Kind) -> Option<IVec3> {
         self.flags.get(&kind).cloned()
     }
 
@@ -69,16 +66,20 @@ impl World {
     fn setup_chunk_list(grid: &Grid) -> Vec<chunk::Chunk> {
         grid.chunk_ids()
             .into_iter()
-            .map(|chunk_id| chunk::Chunk {
-                id: chunk_id,
-                modified: chunk::Modified {
-                    block: false,
-                    boundary: false,
-                },
-                position: grid.chunk_id_to_position(chunk_id).unwrap(),
-                geometry: chunk::Geometry::new(),
-                block_list: Self::setup_block_list(grid, chunk_id),
-                visibility_list: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
+            .map(|chunk_id| {
+                let position = grid.chunk_id_to_position(chunk_id).unwrap();
+
+                chunk::Chunk {
+                    id: chunk_id,
+                    modified: chunk::Modified {
+                        block: false,
+                        boundary: false,
+                    },
+                    position,
+                    geometry: chunk::Geometry::new(),
+                    block_list: Self::setup_block_list(grid, chunk_id),
+                    visibility_list: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
+                }
             })
             .collect()
     }
@@ -86,11 +87,15 @@ impl World {
     fn setup_block_list(grid: &Grid, chunk_id: chunk::ID) -> Vec<block::Block> {
         grid.block_ids()
             .into_iter()
-            .map(|block_id| block::Block {
-                id: block_id,
-                position: grid.ids_to_position(chunk_id, block_id).unwrap(),
-                kind: block::Kind::Empty,
-                solid: false,
+            .map(|block_id| {
+                let position = grid.ids_to_position(chunk_id, block_id).unwrap();
+
+                block::Block {
+                    id: block_id,
+                    position,
+                    kind: block::Kind::Empty,
+                    solid: false,
+                }
             })
             .collect()
     }
@@ -472,7 +477,10 @@ impl World {
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
         let mut visible_chunk_id_list = Vec::new();
 
-        if let Some(chunk_coordinates) = self.grid.chunk_id_to_chunk_coordinates(judge.chunk_id) {
+        if let Some(chunk_coordinates) = self
+            .grid
+            .chunk_id_to_chunk_coordinates(judge.chunk_id.current)
+        {
             let chunk_view_radius =
                 (JUDGE_VIEW_RADIUS / self.grid.chunk_size as f32).floor() as i32;
             let chunk_view_radius_squared = chunk_view_radius * chunk_view_radius;

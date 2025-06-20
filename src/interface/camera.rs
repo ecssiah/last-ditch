@@ -72,19 +72,20 @@ impl Camera {
         judge_view: &simulation::observation::view::JudgeView,
     ) -> CameraUniformData {
         let judge_position = judge_view
-            .world_position
+            .spatial
             .current
-            .lerp(judge_view.world_position.next, alpha);
+            .world_position
+            .lerp(judge_view.spatial.next.world_position, alpha);
 
         let projection =
             Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let height = judge_view.aabb.current.max.y - judge_view.aabb.current.min.y;
+        let height = judge_view.spatial.current.aabb.max.y - judge_view.spatial.current.aabb.min.y;
         let eye_offset = Vec3::Y * 0.9 * height;
         let eye = judge_position + eye_offset;
 
-        let forward = judge_view.orientation.current * Vec3::Z;
-        let up = judge_view.orientation.current * Vec3::Y;
+        let forward = judge_view.spatial.current.quaternion * Vec3::Z;
+        let up = judge_view.spatial.current.quaternion * Vec3::Y;
         let target = eye + forward;
 
         let view = Mat4::look_at_lh(eye, target, up);
