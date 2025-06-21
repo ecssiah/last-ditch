@@ -1,13 +1,6 @@
 //! User input processing
 
-use crate::{
-    interface::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
-    simulation::dispatch::{
-        Action, AgentAction, JumpAction, MovementAction, TestAction, WorldAction,
-    },
-};
 use glam::{Vec2, Vec3};
-use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     event::{
@@ -15,6 +8,11 @@ use winit::{
         WindowEvent,
     },
     keyboard::{KeyCode, PhysicalKey},
+};
+
+use crate::{
+    interface::consts::{MOUSE_X_SENSITIVITY, MOUSE_Y_SENSITIVITY},
+    simulation,
 };
 
 pub struct KeyInputs {
@@ -29,13 +27,13 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
-    pub action_tx: Arc<UnboundedSender<Action>>,
+    pub action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
 }
 
 impl Input {
-    pub fn new(action_tx: Arc<UnboundedSender<Action>>) -> Self {
+    pub fn new(action_tx: UnboundedSender<simulation::state::receiver::action::Action>) -> Self {
         let key_inputs = KeyInputs {
             key_w: 0.0,
             key_a: 0.0,
@@ -55,8 +53,8 @@ impl Input {
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
-                let world_action = WorldAction::Exit;
-                let action = Action::World(world_action);
+                let world_action = simulation::state::receiver::action::WorldAction::Exit;
+                let action = simulation::state::receiver::action::Action::World(world_action);
 
                 self.action_tx.send(action).unwrap();
             }
@@ -94,7 +92,7 @@ impl Input {
         }
     }
 
-    pub fn get_movement_actions(&mut self) -> MovementAction {
+    pub fn get_movement_actions(&mut self) -> simulation::state::receiver::action::MovementAction {
         let direction = Vec3::new(
             self.key_inputs.key_a + self.key_inputs.key_d,
             0.0,
@@ -106,7 +104,7 @@ impl Input {
 
         self.mouse_inputs.delta = Vec2::ZERO;
 
-        let movement_actions = MovementAction {
+        let movement_actions = simulation::state::receiver::action::MovementAction {
             direction,
             pitch,
             yaw,
@@ -123,39 +121,39 @@ impl Input {
     ) {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                let world_action = WorldAction::Exit;
-                let action = Action::World(world_action);
+                let world_action = simulation::state::receiver::action::WorldAction::Exit;
+                let action = simulation::state::receiver::action::Action::World(world_action);
 
                 self.action_tx.send(action).unwrap();
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test1;
-                    let action = Action::Test(test_action);
+                    let test_action = simulation::state::receiver::action::TestAction::Test1;
+                    let action = simulation::state::receiver::action::Action::Test(test_action);
 
                     self.action_tx.send(action).unwrap();
                 }
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test2;
-                    let action = Action::Test(test_action);
+                    let test_action = simulation::state::receiver::action::TestAction::Test2;
+                    let action = simulation::state::receiver::action::Action::Test(test_action);
 
                     self.action_tx.send(action).unwrap();
                 }
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test3;
-                    let action = Action::Test(test_action);
+                    let test_action = simulation::state::receiver::action::TestAction::Test3;
+                    let action = simulation::state::receiver::action::Action::Test(test_action);
 
                     self.action_tx.send(action).unwrap();
                 }
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test4;
-                    let action = Action::Test(test_action);
+                    let test_action = simulation::state::receiver::action::TestAction::Test4;
+                    let action = simulation::state::receiver::action::Action::Test(test_action);
 
                     self.action_tx.send(action).unwrap();
                 }
@@ -190,15 +188,17 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
-                    let jump_action = JumpAction::Start;
-                    let agent_action = AgentAction::Jump(jump_action);
-                    let action = Action::Agent(agent_action);
+                    let jump_action = simulation::state::receiver::action::JumpAction::Start;
+                    let agent_action =
+                        simulation::state::receiver::action::AgentAction::Jump(jump_action);
+                    let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
                     self.action_tx.send(action).unwrap();
                 } else if key_event.state == ElementState::Released {
-                    let jump_action = JumpAction::End;
-                    let agent_action = AgentAction::Jump(jump_action);
-                    let action = Action::Agent(agent_action);
+                    let jump_action = simulation::state::receiver::action::JumpAction::End;
+                    let agent_action =
+                        simulation::state::receiver::action::AgentAction::Jump(jump_action);
+                    let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
                     self.action_tx.send(action).unwrap();
                 }

@@ -4,6 +4,7 @@ pub mod admin;
 pub mod compute;
 pub mod physics;
 pub mod population;
+pub mod receiver;
 pub mod time;
 pub mod world;
 
@@ -11,6 +12,7 @@ pub use admin::Admin;
 pub use compute::Compute;
 pub use physics::Physics;
 pub use population::Population;
+pub use receiver::Receiver;
 pub use time::Time;
 pub use world::World;
 

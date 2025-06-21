@@ -1,56 +1,27 @@
-//! Allows Interface to send messages to Simulation
-
 pub mod action;
-pub mod agent_action;
-pub mod test_action;
-pub mod world_action;
 
-pub use action::Action;
-pub use agent_action::AgentAction;
-pub use agent_action::JumpAction;
-pub use agent_action::MovementAction;
-pub use test_action::TestAction;
-pub use world_action::WorldAction;
-
-use crate::simulation::state::admin;
-use crate::simulation::state::State;
-use std::sync::Arc;
-use tokio::sync::mpsc::unbounded_channel;
+use crate::simulation::state::{
+    admin,
+    receiver::action::{Action, AgentAction, JumpAction, MovementAction, TestAction, WorldAction},
+    State,
+};
 use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::mpsc::UnboundedSender;
 
-pub struct Dispatch {
-    action_tx: Arc<UnboundedSender<Action>>,
-    action_rx: UnboundedReceiver<Action>,
+pub struct Receiver {
+    pub action_rx: UnboundedReceiver<Action>,
 }
 
-impl Dispatch {
-    pub fn new() -> Self {
-        let (action_tx, action_rx) = unbounded_channel();
-        let action_tx = Arc::new(action_tx);
-
-        Self {
-            action_tx,
-            action_rx,
-        }
-    }
-
-    pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
-        self.action_tx.clone()
+impl Receiver {
+    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
+        Self { action_rx }
     }
 
     pub fn tick(&mut self, state: &mut State) {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
-                Action::Test(test_action) => {
-                    self.handle_test_action(state, &test_action);
-                }
-                Action::Agent(agent_action) => {
-                    self.handle_agent_action(state, &agent_action);
-                }
-                Action::World(world_action) => {
-                    self.handle_world_action(state, &world_action);
-                }
+                Action::Test(test_action) => self.handle_test_action(state, &test_action),
+                Action::Agent(agent_action) => self.handle_agent_action(state, &agent_action),
+                Action::World(world_action) => self.handle_world_action(state, &world_action),
             }
         }
     }

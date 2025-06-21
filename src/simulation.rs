@@ -1,36 +1,36 @@
 //! Evolution of the simulated environment.
 
 pub mod consts;
-pub mod dispatch;
 pub mod observation;
 pub mod state;
 pub mod utils;
 
 use crate::simulation::{
-    consts::SIMULATION_TICK_DURATION, dispatch::Dispatch, observation::Observation,
+    consts::SIMULATION_TICK_DURATION,
+    observation::Observation,
+    state::{receiver::action::Action, Receiver},
 };
-use dispatch::Action;
 use state::State;
 use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    dispatch: Dispatch,
-    state: State,
-    observation: Arc<Observation>,
+    pub receiver: Receiver,
+    pub state: State,
+    pub observation: Arc<Observation>,
 }
 
 impl Simulation {
-    pub fn new() -> Self {
-        let dispatch = Dispatch::new();
+    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
+        let receiver = Receiver::new(action_rx);
         let state = State::new();
         let observation = Arc::new(Observation::new());
 
         Self {
-            dispatch,
+            receiver,
             state,
             observation,
         }
@@ -45,7 +45,7 @@ impl Simulation {
             let current_instant = Instant::now();
 
             while current_instant >= next_instant {
-                self.dispatch.tick(&mut self.state);
+                self.receiver.tick(&mut self.state);
                 self.state.tick();
                 self.observation.tick(&self.state);
 
@@ -80,9 +80,5 @@ impl Simulation {
 
     pub fn get_observation(&self) -> Arc<Observation> {
         self.observation.clone()
-    }
-
-    pub fn get_action_tx(&self) -> Arc<UnboundedSender<Action>> {
-        self.dispatch.get_action_tx()
     }
 }

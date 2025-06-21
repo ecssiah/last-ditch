@@ -2,6 +2,7 @@
 
 pub mod camera;
 pub mod consts;
+pub mod dispatch;
 pub mod hud;
 pub mod input;
 pub mod render;
@@ -9,7 +10,8 @@ pub mod wgpu_state;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, hud::HUD, input::Input, render::Render, wgpu_state::WGPUState,
+        camera::Camera, consts::*, dispatch::Dispatch, hud::HUD, input::Input, render::Render,
+        wgpu_state::WGPUState,
     },
     simulation::{self, consts::PROJECT_TITLE},
 };
@@ -32,18 +34,18 @@ pub struct Interface<'window> {
     last_instant: Instant,
     alpha: f32,
     wgpu_state: WGPUState<'window>,
-    action_tx: Arc<UnboundedSender<simulation::dispatch::Action>>,
     observation: Arc<simulation::observation::Observation>,
+    dispatch: Dispatch,
     input: Input,
+    camera: Camera,
     render: Render,
     hud: HUD,
-    camera: Camera,
 }
 
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
-        action_tx: Arc<UnboundedSender<simulation::dispatch::Action>>,
+        action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
         observation: Arc<simulation::observation::Observation>,
     ) -> Self {
         let dt = Duration::ZERO;
@@ -127,7 +129,8 @@ impl<'window> Interface<'window> {
             surface_texture_view_descriptor,
         };
 
-        let input = Input::new(action_tx.clone());
+        let dispatch = Dispatch::new(action_tx);
+        let input = Input::new(dispatch.get_action_tx());
         let camera = Camera::new(&wgpu_state.device);
 
         let render = Render::new(
@@ -150,11 +153,11 @@ impl<'window> Interface<'window> {
             instant,
             last_instant,
             alpha,
-            action_tx,
             observation,
             wgpu_state,
             input,
             camera,
+            dispatch,
             render,
             hud,
         }
@@ -311,9 +314,10 @@ impl<'window> Interface<'window> {
     fn send_movement_actions(&mut self) {
         let movement_actions = self.input.get_movement_actions();
 
-        let agent_action = simulation::dispatch::AgentAction::Movement(movement_actions);
-        let action = simulation::dispatch::Action::Agent(agent_action);
+        let agent_action =
+            simulation::state::receiver::action::AgentAction::Movement(movement_actions);
+        let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
-        self.action_tx.send(action).unwrap();
+        self.dispatch.send(action);
     }
 }

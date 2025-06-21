@@ -14,6 +14,7 @@ use crate::{
     simulation::{consts::PROJECT_TITLE, Simulation},
 };
 use std::thread;
+use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -29,12 +30,10 @@ struct App<'window> {
 
 impl<'window> ApplicationHandler for App<'window> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let mut simulation = Box::new(Simulation::new());
+        let (action_tx, action_rx) = unbounded_channel();
 
-        let observation = simulation.get_observation();
-        let action_tx = simulation.get_action_tx();
-
-        let interface = Interface::new(event_loop, action_tx, observation);
+        let mut simulation = Box::new(Simulation::new(action_rx));
+        let interface = Interface::new(event_loop, action_tx, simulation.get_observation());
 
         let simulation_thread = thread::spawn(move || simulation.run());
 
