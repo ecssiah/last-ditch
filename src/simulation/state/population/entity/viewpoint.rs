@@ -28,7 +28,7 @@ impl Viewpoint {
     }
 
     pub fn set_origin(&mut self, origin: Vec3) {
-        self.origin = origin;
+        self.origin = origin + self.forward() * -6.0;
     }
 
     pub fn set_orientation(&mut self, orientation: Quat) {
@@ -36,23 +36,16 @@ impl Viewpoint {
     }
 
     pub fn intersects(&self, aabb: &AABB) -> bool {
-        // Always include if the camera is inside the chunk
         if aabb.contains_point(self.origin) {
             return true;
         }
 
         let center = aabb.center();
 
-        // Direction from viewpoint to AABB center
         let to_center = (center - self.origin).normalize();
-        let view_dir = self.forward();
+        let view_direction = self.forward();
 
-        // Hemisphere check — anything in front of the camera
-        if view_dir.dot(to_center) < 0.0 {
-            return false;
-        }
-
-        true
+        view_direction.dot(to_center) >= 0.0
     }
 
     pub fn forward(&self) -> Vec3 {

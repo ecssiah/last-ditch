@@ -479,14 +479,12 @@ impl World {
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
         let mut visible = Vec::new();
 
-        let judge_pos = judge.viewpoint.origin.as_ivec3();
+        let radius = 6;
 
         let judge_chunk_coordinates = self
             .grid
-            .position_to_chunk_coordinates(judge_pos)
-            .unwrap_or(IVec3::ZERO);
-
-        let radius = 4;
+            .world_to_chunk_coordinates(judge.spatial.world_position)
+            .unwrap();
 
         for x in -radius..=radius {
             for y in -radius..=radius {
