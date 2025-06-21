@@ -1,9 +1,9 @@
-#[derive(Debug, Default, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ID(pub u32);
 
-impl ID {
-    pub fn zero() -> ID {
-        ID(0)
+impl Default for ID {
+    fn default() -> Self {
+        Self(0)
     }
 }
 

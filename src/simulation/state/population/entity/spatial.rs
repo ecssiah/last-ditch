@@ -21,4 +21,16 @@ impl Spatial {
             quaternion: Quat::default(),
         }
     }
+
+    pub fn forward(&self) -> Vec3 {
+        self.quaternion * Vec3::Z
+    }
+
+    pub fn up(&self) -> Vec3 {
+        self.quaternion * Vec3::Y
+    }
+
+    pub fn right(&self) -> Vec3 {
+        self.quaternion * Vec3::X
+    }
 }

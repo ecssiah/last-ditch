@@ -28,7 +28,7 @@ pub struct View {
 impl View {
     pub fn new() -> Self {
         Self {
-            judge_id: entity::ID::zero(),
+            judge_id: entity::ID::default(),
             admin_view: AdminView::new(),
             time_view: TimeView::new(),
             population_view: PopulationView::new(),

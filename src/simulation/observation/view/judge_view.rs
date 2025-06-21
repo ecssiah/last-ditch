@@ -13,7 +13,7 @@ pub struct JudgeView {
 impl JudgeView {
     pub fn new() -> Self {
         Self {
-            id: entity::ID::zero(),
+            id: entity::ID::default(),
             spatial: StatePair::new(Spatial::new(), Spatial::new()),
             kinematic: StatePair::new(Kinematic::new(), Kinematic::new()),
         }

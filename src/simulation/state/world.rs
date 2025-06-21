@@ -495,7 +495,12 @@ impl World {
                         self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates)
                     {
                         if let Some(chunk) = self.get_chunk(chunk_id) {
-                            if judge.viewpoint.intersects(&chunk.aabb) {
+                            let center = chunk.aabb.center();
+                            let origin = judge.eye() + judge.spatial.forward() * -6.0;
+                            let to_center = (center - origin).normalize();
+                            let view_direction = judge.spatial.forward();
+
+                            if view_direction.dot(to_center) >= 0.0 {
                                 visible.push(chunk_id);
                             }
                         }

@@ -93,7 +93,7 @@ impl Grid {
         let world_size = 2 * world_radius + 1;
         let world_area = world_size * world_size;
         let world_volume = world_size * world_size * world_size;
-        
+
         let world_boundary = chunk_radius + world_radius * chunk_size;
 
         let block_index_max = chunk_volume - 1;
@@ -319,6 +319,14 @@ impl Grid {
                     || block_coordinates.y.abs() == chunk_radius
                     || block_coordinates.z.abs() == chunk_radius
             })
+    }
+
+    pub fn on_boundary(&self, position: IVec3) -> bool {
+        let world_boundary = self.world_boundary as i32;
+
+        position.x.abs() == world_boundary
+            || position.y.abs() == world_boundary
+            || position.z.abs() == world_boundary
     }
 
     pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {

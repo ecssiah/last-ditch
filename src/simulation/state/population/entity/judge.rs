@@ -4,7 +4,7 @@ use crate::simulation::{
     observation::state_pair::StatePair,
     state::{
         physics::aabb::AABB,
-        population::entity::{self, Kinematic, Nation, Spatial, Viewpoint},
+        population::entity::{self, Kinematic, Nation, Spatial},
         world::{chunk, World},
     },
 };
@@ -15,7 +15,6 @@ pub struct Judge {
     pub chunk_id: StatePair<chunk::ID>,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
-    pub viewpoint: Viewpoint,
     pub kind: entity::Kind,
     pub nation: Nation,
 }
@@ -24,10 +23,9 @@ impl Judge {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::new(chunk::ID::zero(), chunk::ID::zero()),
+            chunk_id: StatePair::new(chunk::ID::default(), chunk::ID::default()),
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
-            viewpoint: Viewpoint::new(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
@@ -39,10 +37,6 @@ impl Judge {
         if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
             self.chunk_id.set(chunk_id);
         }
-
-        self.viewpoint
-            .set_origin(self.spatial.world_position + Vec3::Y * 0.9 * self.size().y);
-        self.viewpoint.set_orientation(self.spatial.quaternion);
     }
 
     pub fn chunk_updated(&self) -> bool {
@@ -126,5 +120,9 @@ impl Judge {
             self.kinematic.velocity.x = new_velocity_xz.x;
             self.kinematic.velocity.z = new_velocity_xz.z;
         }
+    }
+
+    pub fn eye(&self) -> Vec3 {
+        self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
     }
 }

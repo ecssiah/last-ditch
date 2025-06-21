@@ -47,8 +47,6 @@ impl Population {
     }
 
     pub fn tick(&mut self, world: &World) {
-        self.tick_agent_map(world);
-
         while let Ok(result) = self.result_rx.try_recv() {
             match result {
                 result::Kind::ChunkPath(result) => {
@@ -58,13 +56,11 @@ impl Population {
             }
         }
 
-        self.judge.tick(world);
-    }
-
-    fn tick_agent_map(&mut self, world: &World) {
         for agent in self.agent_map.values_mut() {
             agent.tick(world);
         }
+
+        self.judge.tick(world);
     }
 
     pub fn get_judge(&self) -> &Judge {
@@ -93,7 +89,7 @@ impl Population {
 
     pub fn test_chunk_path(&mut self, world: &World) {
         let task = task::ChunkPathTask {
-            agent_id: entity::ID::zero(),
+            agent_id: entity::ID::default(),
             chunk_id: world
                 .grid
                 .chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0))

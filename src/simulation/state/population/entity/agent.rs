@@ -22,7 +22,7 @@ impl Agent {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::new(chunk::ID::zero(), chunk::ID::zero()),
+            chunk_id: StatePair::new(chunk::ID::default(), chunk::ID::default()),
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             kind: entity::Kind::Eagle,

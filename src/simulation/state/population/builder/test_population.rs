@@ -41,7 +41,7 @@ impl TestPopulation {
 
         let mut agent = Agent::new();
 
-        let world_position = (chunk_west_position + IVec3::new(2, -2, 2)).as_vec3();
+        let world_position = (chunk_west_position + IVec3::new(2, -3, 2)).as_vec3();
 
         agent.kind = entity::Kind::Eagle;
         agent.set_world_position(world_position);
@@ -58,7 +58,7 @@ impl TestPopulation {
 
         let mut agent = Agent::new();
 
-        let world_position = (chunk_west_position + IVec3::new(-2, -2, 2)).as_vec3();
+        let world_position = (chunk_west_position + IVec3::new(-2, -3, 2)).as_vec3();
 
         agent.kind = entity::Kind::Horse;
         agent.set_world_position(world_position);
@@ -75,7 +75,7 @@ impl TestPopulation {
 
         let mut agent = Agent::new();
 
-        let world_position = (chunk_west_position + IVec3::new(2, -2, -2)).as_vec3();
+        let world_position = (chunk_west_position + IVec3::new(2, -3, -2)).as_vec3();
 
         agent.kind = entity::Kind::Wolf;
         agent.set_world_position(world_position);
@@ -92,7 +92,7 @@ impl TestPopulation {
 
         let mut agent = Agent::new();
 
-        let world_position = (chunk_west_position + IVec3::new(-2, -2, -2)).as_vec3();
+        let world_position = (chunk_west_position + IVec3::new(-2, -3, -2)).as_vec3();
 
         agent.kind = entity::Kind::Lion;
         agent.set_world_position(world_position);
