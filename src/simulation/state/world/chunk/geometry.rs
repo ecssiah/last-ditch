@@ -5,7 +5,7 @@ use crate::simulation::{
 use nalgebra::Point3;
 use std::collections::HashSet;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct Geometry {
     pub face_list: Vec<block::Face>,
 }

@@ -1,8 +1,9 @@
 use crate::simulation::state::world::block;
 use glam::IVec3;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Default, Debug, Eq, Hash, PartialEq)]
 pub enum Kind {
+    #[default]
     Lion,
     Eagle,
     Wolf,

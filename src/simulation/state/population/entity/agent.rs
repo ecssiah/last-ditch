@@ -1,5 +1,3 @@
-use glam::Vec3;
-
 use crate::simulation::{
     observation::state_pair::StatePair,
     state::{
@@ -8,6 +6,7 @@ use crate::simulation::{
         world::{chunk, World},
     },
 };
+use glam::Vec3;
 
 pub struct Agent {
     pub id: entity::ID,
@@ -22,7 +21,7 @@ impl Agent {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::new(chunk::ID::default(), chunk::ID::default()),
+            chunk_id: StatePair::default(),
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             kind: entity::Kind::Eagle,

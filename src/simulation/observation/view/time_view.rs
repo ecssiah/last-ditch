@@ -6,13 +6,10 @@ pub struct TimeView {
     pub instant: StatePair<Instant>,
 }
 
-impl TimeView {
-    pub fn new() -> Self {
+impl Default for TimeView {
+    fn default() -> Self {
         Self {
-            instant: StatePair {
-                current: Instant::now(),
-                next: Instant::now(),
-            },
+            instant: StatePair::new(Instant::now(), Instant::now()),
         }
     }
 }

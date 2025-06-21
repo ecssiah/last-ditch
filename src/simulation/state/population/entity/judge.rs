@@ -23,7 +23,7 @@ impl Judge {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::new(chunk::ID::default(), chunk::ID::default()),
+            chunk_id: StatePair::default(),
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             kind: entity::Kind::Eagle,

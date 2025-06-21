@@ -1,8 +1,7 @@
+use crate::simulation::state::physics::aabb::AABB;
 use glam::{Quat, Vec3};
 
-use crate::simulation::state::physics::aabb::AABB;
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct Spatial {
     pub aabb: AABB,
     pub world_position: Vec3,

@@ -7,7 +7,7 @@ pub struct Repository {
 
 impl Repository {
     pub fn new() -> Self {
-        let view = View::new();
+        let view = View::default();
 
         Self {
             buffer_lock: RwLock::new(Buffer::new(view)),

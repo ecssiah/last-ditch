@@ -3,7 +3,7 @@ use crate::simulation::{
     state::population::entity::{self, Kinematic, Spatial},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct AgentView {
     pub id: entity::ID,
     pub kind: entity::Kind,
