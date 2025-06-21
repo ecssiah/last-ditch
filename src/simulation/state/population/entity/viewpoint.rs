@@ -1,8 +1,7 @@
+use crate::simulation::state::physics::aabb::AABB;
 use glam::{Mat4, Quat, Vec3};
 
-use crate::simulation::state::physics::aabb::AABB;
-
-pub const DEFAULT_FOV_Y_DEGREES: f32 = 160.0;
+pub const DEFAULT_FOV_Y_DEGREES: f32 = 179.99;
 pub const DEFAULT_ASPECT_RATIO: f32 = 16.0 / 16.0;
 pub const DEFAULT_NEAR_PLANE: f32 = 0.1;
 pub const DEFAULT_FAR_PLANE: f32 = 1000.0;
@@ -37,30 +36,23 @@ impl Viewpoint {
     }
 
     pub fn intersects(&self, aabb: &AABB) -> bool {
+        // Always include if the camera is inside the chunk
         if aabb.contains_point(self.origin) {
             return true;
         }
 
         let center = aabb.center();
-        let radius = aabb.size().length() * 0.5;
 
-        let to_center = center - self.origin;
-        let distance = to_center.length();
+        // Direction from viewpoint to AABB center
+        let to_center = (center - self.origin).normalize();
+        let view_dir = self.forward();
 
-        if distance + radius < self.near || distance - radius > self.far {
+        // Hemisphere check — anything in front of the camera
+        if view_dir.dot(to_center) < 0.0 {
             return false;
         }
 
-        let view_dir = self.orientation * Vec3::Z;
-        let angle = view_dir.angle_between(to_center);
-
-        let half_fov_y = self.fov_y_radians * 0.5;
-        let vertical_ok = angle <= half_fov_y;
-
-        let fov_x = 2.0 * (self.aspect_ratio * (half_fov_y).tan()).atan();
-        let horizontal_ok = angle <= fov_x * 0.5;
-
-        vertical_ok && horizontal_ok
+        true
     }
 
     pub fn forward(&self) -> Vec3 {
@@ -85,5 +77,42 @@ impl Viewpoint {
 
     pub fn view_proj_matrix(&self) -> Mat4 {
         self.projection_matrix() * self.view_matrix()
+    }
+
+    pub fn bounding_aabb(&self) -> AABB {
+        let forward = self.forward();
+        let up = self.up();
+        let right = self.right();
+
+        let near_center = self.origin + forward * self.near;
+        let far_center = self.origin + forward * self.far;
+
+        let half_fov_y = self.fov_y_radians * 0.5;
+        let near_height = (half_fov_y.tan()) * self.near;
+        let near_width = near_height * self.aspect_ratio;
+
+        let far_height = (half_fov_y.tan()) * self.far;
+        let far_width = far_height * self.aspect_ratio;
+
+        let corners = [
+            near_center + up * near_height + right * near_width,
+            near_center + up * near_height - right * near_width,
+            near_center - up * near_height + right * near_width,
+            near_center - up * near_height - right * near_width,
+            far_center + up * far_height + right * far_width,
+            far_center + up * far_height - right * far_width,
+            far_center - up * far_height + right * far_width,
+            far_center - up * far_height - right * far_width,
+        ];
+
+        let mut min = corners[0];
+        let mut max = corners[0];
+
+        for &corner in &corners[1..] {
+            min = min.min(corner);
+            max = max.max(corner);
+        }
+
+        AABB { min, max }
     }
 }

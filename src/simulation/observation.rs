@@ -146,11 +146,9 @@ impl Observation {
 
         for chunk_id in visible_chunk_id_list {
             if let Some(chunk) = world.get_chunk(chunk_id) {
-                if judge.viewpoint.intersects(&chunk.aabb) {
-                    let chunk_view = self.update_chunk_view(chunk, world_view);
+                let chunk_view = self.update_chunk_view(chunk, world_view);
 
-                    next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
-                }
+                next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
             }
         }
 

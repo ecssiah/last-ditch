@@ -477,30 +477,28 @@ impl World {
     }
 
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
-        let mut visible_chunk_id_list = Vec::new();
+        let mut visible = Vec::new();
 
-        if let Some(chunk_coordinates) = self
+        let judge_pos = judge.viewpoint.origin.as_ivec3();
+
+        let judge_chunk_coordinates = self
             .grid
-            .chunk_id_to_chunk_coordinates(judge.chunk_id.current)
-        {
-            let chunk_view_radius =
-                (JUDGE_VIEW_RADIUS / self.grid.chunk_size as f32).floor() as i32;
-            let chunk_view_radius_squared = chunk_view_radius * chunk_view_radius;
+            .position_to_chunk_coordinates(judge_pos)
+            .unwrap_or(IVec3::ZERO);
 
-            for x in -chunk_view_radius..=chunk_view_radius {
-                for y in -chunk_view_radius..=chunk_view_radius {
-                    for z in -chunk_view_radius..=chunk_view_radius {
-                        let offset = IVec3::new(x, y, z);
-                        let test_chunk_coordinates = chunk_coordinates + offset;
+        let radius = 4;
 
-                        let distance_squared = offset.length_squared();
+        for x in -radius..=radius {
+            for y in -radius..=radius {
+                for z in -radius..=radius {
+                    let chunk_coordinates = judge_chunk_coordinates + IVec3::new(x, y, z);
 
-                        if distance_squared <= chunk_view_radius_squared {
-                            if let Some(test_chunk_id) = self
-                                .grid
-                                .chunk_coordinates_to_chunk_id(test_chunk_coordinates)
-                            {
-                                visible_chunk_id_list.push(test_chunk_id);
+                    if let Some(chunk_id) =
+                        self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates)
+                    {
+                        if let Some(chunk) = self.get_chunk(chunk_id) {
+                            if judge.viewpoint.intersects(&chunk.aabb) {
+                                visible.push(chunk_id);
                             }
                         }
                     }
@@ -508,6 +506,6 @@ impl World {
             }
         }
 
-        visible_chunk_id_list
+        visible
     }
 }
