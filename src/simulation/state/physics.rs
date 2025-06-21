@@ -35,7 +35,7 @@ impl Physics {
     }
 
     fn integrate_judge(&self, judge: &mut Judge) -> (Vec3, Vec3) {
-        let initial_velocity = judge.kinematics.velocity;
+        let initial_velocity = judge.kinematic.velocity;
         let acceleration = self.gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
@@ -60,7 +60,7 @@ impl Physics {
         }
 
         judge.spatial.aabb = aabb;
-        judge.kinematics.velocity = velocity;
+        judge.kinematic.velocity = velocity;
     }
 
     fn resolve_axis(aabb: AABB, world: &World, axis: grid::Axis, delta: f32) -> (AABB, f32) {
@@ -110,9 +110,7 @@ impl Physics {
             .collect()
     }
 
-    fn sync_judge(judge_data: &mut Judge) {
-        let world_position = judge_data.spatial.aabb.bottom_center();
-
-        judge_data.spatial.world_position = world_position;
+    fn sync_judge(judge: &mut Judge) {
+        judge.set_world_position(judge.spatial.aabb.bottom_center());
     }
 }

@@ -4,7 +4,6 @@ use rand::Rng;
 use crate::simulation::{
     consts::*,
     state::{
-        physics::aabb::AABB,
         population::{entity, Agent, Population},
         world::World,
     },
@@ -23,14 +22,9 @@ impl MainPopulation {
 
         let judge = &mut population.judge;
 
-        let judge_world_position = Vec3::new(0.0, 2.0, 0.0);
-        let judge_size = Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z);
-        let judge_aabb = AABB::new(judge_world_position + Vec3::Y * judge_size.y, judge_size);
-
-        judge.spatial.world_position = judge_world_position;
-        judge.spatial.aabb = judge_aabb;
-
-        population.judge.set_rotation(0.0, 0.0);
+        judge.set_world_position(Vec3::new(0.0, 2.0, 0.0));
+        judge.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
+        judge.set_rotation(0.0, 0.0);
     }
 
     fn setup_agents(population: &mut Population, world: &World) {
@@ -43,19 +37,23 @@ impl MainPopulation {
                 let flag_position = flag_position.as_vec3();
 
                 for _ in 0..AGENT_INITIAL_POPULATION {
-                    let offset =
-                        Vec3::new(rng.gen_range(-4.0..=4.0), 0.0, rng.gen_range(-4.0..=4.0));
+                    let offset = Vec3::new(
+                        rng.gen_range(-4..=4) as f32,
+                        0.0,
+                        rng.gen_range(-4..=4) as f32,
+                    );
+
                     let world_position = flag_position + offset;
 
                     let mut agent = Agent::new();
 
-                    let agent_size =
-                        Vec3::new(0.6, rng.gen_range(AGENT_SIZE_MIN..=AGENT_SIZE_MAX), 0.6);
-                    let agent_aabb = AABB::new(world_position + Vec3::Y * agent_size.y, agent_size);
-
                     agent.kind = kind;
-                    agent.spatial.world_position = world_position;
-                    agent.spatial.aabb = agent_aabb;
+                    agent.set_world_position(world_position);
+                    agent.set_size(Vec3::new(
+                        0.6,
+                        rng.gen_range(AGENT_SIZE_MIN..=AGENT_SIZE_MAX),
+                        0.6,
+                    ));
 
                     population.agent_map.insert(agent.id, agent);
                 }

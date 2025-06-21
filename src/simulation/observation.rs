@@ -89,9 +89,9 @@ impl Observation {
             judge_view: JudgeView {
                 id: judge.id,
                 spatial: StatePair::new(population_view.judge_view.spatial.next, judge.spatial),
-                kinematics: StatePair::new(
-                    population_view.judge_view.kinematics.next,
-                    judge.kinematics,
+                kinematic: StatePair::new(
+                    population_view.judge_view.kinematic.next,
+                    judge.kinematic,
                 ),
             },
             agent_view_map: HashMap::new(),
@@ -111,9 +111,9 @@ impl Observation {
                     id: agent.id,
                     kind: agent.kind,
                     spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
-                    kinematics: StatePair::new(
-                        population_view.judge_view.kinematics.next,
-                        judge.kinematics,
+                    kinematic: StatePair::new(
+                        population_view.judge_view.kinematic.next,
+                        judge.kinematic,
                     ),
                 };
 
@@ -125,7 +125,7 @@ impl Observation {
                     id: agent.id,
                     kind: agent.kind,
                     spatial: StatePair::new(agent.spatial, agent.spatial),
-                    kinematics: StatePair::new(agent.kinematics, agent.kinematics),
+                    kinematic: StatePair::new(agent.kinematic, agent.kinematic),
                 };
 
                 next_population_view
@@ -138,10 +138,6 @@ impl Observation {
     }
 
     fn update_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
-        if !judge.chunk_updated() {
-            return world_view.clone();
-        }
-
         let mut next_world_view = WorldView {
             chunk_view_map: HashMap::new(),
         };
@@ -150,9 +146,11 @@ impl Observation {
 
         for chunk_id in visible_chunk_id_list {
             if let Some(chunk) = world.get_chunk(chunk_id) {
-                let chunk_view = self.update_chunk_view(chunk, world_view);
+                if judge.viewpoint.intersects(&chunk.aabb) {
+                    let chunk_view = self.update_chunk_view(chunk, world_view);
 
-                next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
+                    next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
+                }
             }
         }
 

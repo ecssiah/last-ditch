@@ -1,13 +1,13 @@
 use crate::simulation::{
     observation::state_pair::StatePair,
-    state::population::entity::{self, Kinematics, Spatial},
+    state::population::entity::{self, Kinematic, Spatial},
 };
 
 #[derive(Clone, Debug)]
 pub struct JudgeView {
     pub id: entity::ID,
     pub spatial: StatePair<Spatial>,
-    pub kinematics: StatePair<Kinematics>,
+    pub kinematic: StatePair<Kinematic>,
 }
 
 impl JudgeView {
@@ -15,7 +15,7 @@ impl JudgeView {
         Self {
             id: entity::ID::zero(),
             spatial: StatePair::new(Spatial::new(), Spatial::new()),
-            kinematics: StatePair::new(Kinematics::new(), Kinematics::new()),
+            kinematic: StatePair::new(Kinematic::new(), Kinematic::new()),
         }
     }
 }

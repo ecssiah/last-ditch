@@ -3,7 +3,8 @@ use crate::simulation::{
     dispatch::{JumpAction, MovementAction},
     observation::state_pair::StatePair,
     state::{
-        population::entity::{self, Kinematics, Nation, Spatial},
+        physics::aabb::AABB,
+        population::entity::{self, Kinematic, Nation, Spatial, Viewpoint},
         world::{chunk, World},
     },
 };
@@ -13,7 +14,8 @@ pub struct Judge {
     pub id: entity::ID,
     pub chunk_id: StatePair<chunk::ID>,
     pub spatial: Spatial,
-    pub kinematics: Kinematics,
+    pub kinematic: Kinematic,
+    pub viewpoint: Viewpoint,
     pub kind: entity::Kind,
     pub nation: Nation,
 }
@@ -24,7 +26,8 @@ impl Judge {
             id: entity::ID::allocate(),
             chunk_id: StatePair::new(chunk::ID::zero(), chunk::ID::zero()),
             spatial: Spatial::new(),
-            kinematics: Kinematics::new(),
+            kinematic: Kinematic::new(),
+            viewpoint: Viewpoint::new(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
@@ -36,6 +39,10 @@ impl Judge {
         if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
             self.chunk_id.set(chunk_id);
         }
+
+        self.viewpoint
+            .set_origin(self.spatial.world_position + Vec3::Y * 0.9 * self.size().y);
+        self.viewpoint.set_orientation(self.spatial.quaternion);
     }
 
     pub fn chunk_updated(&self) -> bool {
@@ -64,21 +71,37 @@ impl Judge {
             let local_velocity = input_direction * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
             let velocity = yaw_quat * local_velocity;
 
-            self.kinematics.velocity.x = velocity.x;
-            self.kinematics.velocity.z = velocity.z;
+            self.kinematic.velocity.x = velocity.x;
+            self.kinematic.velocity.z = velocity.z;
         } else {
-            self.kinematics.velocity.x = 0.0;
-            self.kinematics.velocity.z = 0.0;
+            self.kinematic.velocity.x = 0.0;
+            self.kinematic.velocity.z = 0.0;
         }
     }
 
     pub fn apply_jump_action(&mut self, jump_action: &JumpAction) {
         match jump_action {
             JumpAction::Start => {
-                self.kinematics.velocity.y = JUDGE_SPEED_Y;
+                self.kinematic.velocity.y = JUDGE_SPEED_Y;
             }
             _ => (),
         }
+    }
+
+    pub fn set_world_position(&mut self, world_position: Vec3) {
+        self.spatial.world_position = world_position;
+
+        self.spatial
+            .aabb
+            .set_bottom_center(world_position.x, world_position.y, world_position.z);
+    }
+
+    pub fn size(&self) -> Vec3 {
+        self.spatial.aabb.size()
+    }
+
+    pub fn set_size(&mut self, size: Vec3) {
+        self.spatial.aabb = AABB::new(self.spatial.aabb.center(), size);
     }
 
     pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
@@ -93,15 +116,15 @@ impl Judge {
         self.spatial.quaternion =
             Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
 
-        let velocity_xz = Vec3::new(self.kinematics.velocity.x, 0.0, self.kinematics.velocity.z);
+        let velocity_xz = Vec3::new(self.kinematic.velocity.x, 0.0, self.kinematic.velocity.z);
         let speed = velocity_xz.length();
 
         if speed > 1e-6 {
             let forward = self.spatial.quaternion * Vec3::Z;
             let new_velocity_xz = forward.normalize() * speed;
 
-            self.kinematics.velocity.x = new_velocity_xz.x;
-            self.kinematics.velocity.z = new_velocity_xz.z;
+            self.kinematic.velocity.x = new_velocity_xz.x;
+            self.kinematic.velocity.z = new_velocity_xz.z;
         }
     }
 }

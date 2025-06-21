@@ -6,13 +6,17 @@ pub use geometry::Geometry;
 pub use id::ID;
 pub use modified::Modified;
 
-use crate::simulation::state::world::{block, chunk, grid};
+use crate::simulation::state::{
+    physics::aabb::AABB,
+    world::{block, chunk, grid},
+};
 use glam::IVec3;
 
 pub struct Chunk {
     pub id: chunk::ID,
     pub modified: Modified,
     pub position: IVec3,
+    pub aabb: AABB,
     pub geometry: chunk::Geometry,
     pub block_list: Vec<block::Block>,
     pub visibility_list: Vec<Vec<grid::Direction>>,

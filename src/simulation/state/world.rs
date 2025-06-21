@@ -9,11 +9,12 @@ pub mod grid;
 use crate::simulation::{
     consts::*,
     state::{
+        physics::aabb::AABB,
         population::entity::{self, Judge},
         world::{graph::Graph, grid::Grid},
     },
 };
-use glam::{IVec3, Vec4};
+use glam::{IVec3, Vec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
@@ -76,6 +77,7 @@ impl World {
                         boundary: false,
                     },
                     position,
+                    aabb: AABB::new(position.as_vec3(), Vec3::splat(grid.chunk_size as f32)),
                     geometry: chunk::Geometry::new(),
                     block_list: Self::setup_block_list(grid, chunk_id),
                     visibility_list: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
