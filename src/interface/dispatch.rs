@@ -12,11 +12,12 @@ impl Dispatch {
         Self { action_tx }
     }
 
-    pub fn get_action_tx(&self) -> UnboundedSender<simulation::state::receiver::action::Action> {
-        self.action_tx.clone()
-    }
-
     pub fn send(&self, action: simulation::state::receiver::action::Action) {
-        self.action_tx.send(action).unwrap();
+        match self.action_tx.send(action) {
+            Ok(()) => (),
+            Err(e) => {
+                eprintln!("Send failed: {:?}", e);
+            }
+        }
     }
 }
