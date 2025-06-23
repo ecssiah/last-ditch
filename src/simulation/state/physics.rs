@@ -36,7 +36,7 @@ impl Physics {
 
     fn integrate_judge(&self, judge: &mut Judge) -> (Vec3, Vec3) {
         let initial_velocity = judge.kinematic.velocity;
-        let acceleration = self.gravity;
+        let acceleration = judge.kinematic.acceleration + self.gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
         let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS

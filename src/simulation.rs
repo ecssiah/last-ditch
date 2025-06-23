@@ -20,19 +20,19 @@ use tokio::sync::mpsc::UnboundedReceiver;
 pub struct Simulation {
     pub receiver: Receiver,
     pub state: State,
-    pub observation: Arc<Observation>,
+    pub observation_arc: Arc<Observation>,
 }
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
         let receiver = Receiver::new(action_rx);
         let state = State::new();
-        let observation = Arc::new(Observation::new());
+        let observation_arc = Arc::new(Observation::new());
 
         Self {
             receiver,
             state,
-            observation,
+            observation_arc,
         }
     }
 
@@ -47,7 +47,7 @@ impl Simulation {
             while current_instant >= next_instant {
                 self.receiver.tick(&mut self.state);
                 self.state.tick();
-                self.observation.tick(&self.state);
+                self.observation_arc.tick(&self.state);
 
                 next_instant += SIMULATION_TICK_DURATION;
             }
@@ -59,7 +59,7 @@ impl Simulation {
     }
 
     fn setup(&mut self) {
-        self.observation.tick(&self.state);
+        self.observation_arc.tick(&self.state);
 
         self.state.setup();
     }
@@ -78,7 +78,7 @@ impl Simulation {
         }
     }
 
-    pub fn get_observation(&self) -> Arc<Observation> {
-        self.observation.clone()
+    pub fn get_observation_arc(&self) -> Arc<Observation> {
+        self.observation_arc.clone()
     }
 }

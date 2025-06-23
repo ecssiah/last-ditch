@@ -32,11 +32,14 @@ impl MainPopulation {
 
         let mut rng = rand::thread_rng();
 
+        let agent_initial_population = 16;
+        let agent_size_bounds = (0.6, 2.2);
+
         for kind in entity::Kind::all() {
             if let Some(flag_position) = world.get_flag(kind) {
                 let flag_position = flag_position.as_vec3();
 
-                for _ in 0..AGENT_INITIAL_POPULATION {
+                for _ in 0..agent_initial_population {
                     let offset = Vec3::new(
                         rng.gen_range(-4..=4) as f32,
                         0.0,
@@ -51,7 +54,7 @@ impl MainPopulation {
                     agent.set_world_position(world_position);
                     agent.set_size(Vec3::new(
                         0.6,
-                        rng.gen_range(AGENT_SIZE_MIN..=AGENT_SIZE_MAX),
+                        rng.gen_range(agent_size_bounds.0..=agent_size_bounds.1),
                         0.6,
                     ));
 

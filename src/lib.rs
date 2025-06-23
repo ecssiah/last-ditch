@@ -30,14 +30,13 @@ struct App<'window> {
 
 impl<'window> ApplicationHandler for App<'window> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let (action_tx, action_rx) = unbounded_channel();
+        let (action_tx, action_rx) =
+            unbounded_channel::<simulation::state::receiver::action::Action>();
 
         let mut simulation = Box::new(Simulation::new(action_rx));
-        let interface = Interface::new(event_loop, action_tx, simulation.get_observation());
+        let interface = Interface::new(event_loop, action_tx, simulation.get_observation_arc());
 
-        let simulation_thread = thread::spawn(move || simulation.run());
-
-        self.simulation_thread = Some(simulation_thread);
+        self.simulation_thread = Some(thread::spawn(move || simulation.run()));
         self.interface = Some(interface);
     }
 
@@ -65,7 +64,6 @@ impl<'window> ApplicationHandler for App<'window> {
     }
 }
 
-/// Application entrypoint
 pub async fn run() {
     flexi_logger::Logger::try_with_str("info")
         .unwrap()

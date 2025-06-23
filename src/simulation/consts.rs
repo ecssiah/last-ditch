@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-pub const TESTING: bool = true;
+pub const TESTING: bool = false;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const DEFAULT_SEED: u64 = 128;
@@ -46,7 +46,3 @@ pub const JUDGE_SIZE_Z: f32 = 0.6;
 pub const JUDGE_VIEW_RADIUS: f32 = 256.0;
 pub const JUDGE_VIEW_RADIUS_SQUARED: f32 = JUDGE_VIEW_RADIUS * JUDGE_VIEW_RADIUS;
 pub const JUDGE_VIEW_X_LIMIT: f32 = 1.5533;
-
-pub const AGENT_INITIAL_POPULATION: usize = 16;
-pub const AGENT_SIZE_MIN: f32 = 0.6;
-pub const AGENT_SIZE_MAX: f32 = 2.2;

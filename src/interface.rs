@@ -34,7 +34,7 @@ pub struct Interface<'window> {
     last_instant: Instant,
     alpha: f32,
     wgpu_interface: WGPUInterface<'window>,
-    observation: Arc<simulation::observation::Observation>,
+    observation_arc: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
     input: Input,
     camera: Camera,
@@ -46,7 +46,7 @@ impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
-        observation: Arc<simulation::observation::Observation>,
+        observation_arc: Arc<simulation::observation::Observation>,
     ) -> Self {
         let dt = Duration::ZERO;
         let instant = Instant::now();
@@ -153,7 +153,7 @@ impl<'window> Interface<'window> {
             instant,
             last_instant,
             alpha,
-            observation,
+            observation_arc,
             wgpu_interface,
             input,
             camera,
@@ -196,7 +196,7 @@ impl<'window> Interface<'window> {
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
-        let view = self.observation.get_view();
+        let view = self.observation_arc.get_view();
 
         match view.admin_view.mode {
             simulation::state::admin::Mode::Load => {
