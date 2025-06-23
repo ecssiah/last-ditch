@@ -6,12 +6,12 @@ pub mod dispatch;
 pub mod hud;
 pub mod input;
 pub mod render;
-pub mod wgpu_state;
+pub mod wgpu_interface;
 
 use crate::{
     interface::{
         camera::Camera, consts::*, dispatch::Dispatch, hud::HUD, input::Input, render::Render,
-        wgpu_state::WGPUState,
+        wgpu_interface::WGPUInterface,
     },
     simulation::{self, consts::PROJECT_TITLE},
 };
@@ -33,7 +33,7 @@ pub struct Interface<'window> {
     instant: Instant,
     last_instant: Instant,
     alpha: f32,
-    wgpu_state: WGPUState<'window>,
+    wgpu_interface: WGPUInterface<'window>,
     observation: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
     input: Input,
@@ -119,7 +119,7 @@ impl<'window> Interface<'window> {
 
         surface.configure(&device, &surface_config);
 
-        let wgpu_state = WGPUState {
+        let wgpu_interface = WGPUInterface {
             window,
             device,
             queue,
@@ -130,23 +130,23 @@ impl<'window> Interface<'window> {
         };
 
         let dispatch = Dispatch::new(action_tx);
-        let input = Input::new(dispatch.get_action_tx());
-        let camera = Camera::new(&wgpu_state.device);
+        let input = Input::new();
+        let camera = Camera::new(&wgpu_interface.device);
 
         let render = Render::new(
-            &wgpu_state.device,
-            &wgpu_state.queue,
+            &wgpu_interface.device,
+            &wgpu_interface.queue,
             &surface_format,
             &camera,
         );
 
         let hud = HUD::new(
-            &wgpu_state.device,
-            wgpu_state.window.clone(),
+            &wgpu_interface.device,
+            wgpu_interface.window.clone(),
             surface_format,
         );
 
-        wgpu_state.window.request_redraw();
+        wgpu_interface.window.request_redraw();
 
         Self {
             dt,
@@ -154,7 +154,7 @@ impl<'window> Interface<'window> {
             last_instant,
             alpha,
             observation,
-            wgpu_state,
+            wgpu_interface,
             input,
             camera,
             dispatch,
@@ -164,7 +164,9 @@ impl<'window> Interface<'window> {
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        self.input.handle_window_event(&event);
+        if let Some(action) = self.input.handle_window_event(&event) {
+            self.dispatch.send(action);
+        }
 
         match event {
             WindowEvent::RedrawRequested => self.handle_redraw_requested(),
@@ -190,7 +192,7 @@ impl<'window> Interface<'window> {
             event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        self.wgpu_state.window.request_redraw();
+        self.wgpu_interface.window.request_redraw();
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
@@ -217,48 +219,49 @@ impl<'window> Interface<'window> {
 
     fn handle_redraw_requested(&mut self) {
         let mut encoder = self
-            .wgpu_state
+            .wgpu_interface
             .device
             .create_command_encoder(&Default::default());
 
         let surface_texture = self
-            .wgpu_state
+            .wgpu_interface
             .surface
             .get_current_texture()
             .expect("failed to acquire next swapchain texture");
 
         let texture_view = surface_texture
             .texture
-            .create_view(&self.wgpu_state.surface_texture_view_descriptor);
+            .create_view(&self.wgpu_interface.surface_texture_view_descriptor);
 
         self.render.update(
             &mut encoder,
-            &self.wgpu_state.device,
-            &self.wgpu_state.surface_config,
+            &self.wgpu_interface.device,
+            &self.wgpu_interface.surface_config,
             &texture_view,
             &self.camera,
         );
 
         self.hud.update(
             &mut encoder,
-            &self.wgpu_state.window,
-            &self.wgpu_state.device,
-            &self.wgpu_state.queue,
+            &self.wgpu_interface.window,
+            &self.wgpu_interface.device,
+            &self.wgpu_interface.queue,
             &texture_view,
         );
 
-        self.wgpu_state.queue.submit([encoder.finish()]);
-        self.wgpu_state.window.pre_present_notify();
+        self.wgpu_interface.queue.submit([encoder.finish()]);
+        self.wgpu_interface.window.pre_present_notify();
 
         surface_texture.present();
     }
 
     fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.wgpu_state.size = new_size;
+        self.wgpu_interface.size = new_size;
 
-        self.wgpu_state
-            .surface
-            .configure(&self.wgpu_state.device, &self.wgpu_state.surface_config);
+        self.wgpu_interface.surface.configure(
+            &self.wgpu_interface.device,
+            &self.wgpu_interface.surface_config,
+        );
     }
 
     fn apply_admin_view(&mut self, admin_view: &simulation::observation::view::AdminView) {
@@ -289,7 +292,7 @@ impl<'window> Interface<'window> {
 
     fn apply_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
         self.camera
-            .update(&self.wgpu_state.queue, self.alpha, judge_view);
+            .update(&self.wgpu_interface.queue, self.alpha, judge_view);
     }
 
     fn apply_agent_view_map(
@@ -300,23 +303,19 @@ impl<'window> Interface<'window> {
         >,
     ) {
         self.render.prepare_agent_view_map(
-            &self.wgpu_state.device,
-            &self.wgpu_state.queue,
+            &self.wgpu_interface.device,
+            &self.wgpu_interface.queue,
             agent_view_map,
         );
     }
 
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
         self.render
-            .prepare_world_view(&self.wgpu_state.device, world_view);
+            .prepare_world_view(&self.wgpu_interface.device, world_view);
     }
 
     fn send_movement_actions(&mut self) {
-        let movement_actions = self.input.get_movement_actions();
-
-        let agent_action =
-            simulation::state::receiver::action::AgentAction::Movement(movement_actions);
-        let action = simulation::state::receiver::action::Action::Agent(agent_action);
+        let action = self.input.get_movement_actions();
 
         self.dispatch.send(action);
     }

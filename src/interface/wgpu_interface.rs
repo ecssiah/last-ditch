@@ -1,8 +1,8 @@
-//! WebGPU data
+//! WebGPU Interface
 
 use std::sync::Arc;
 
-pub struct WGPUState<'window> {
+pub struct WGPUInterface<'window> {
     pub window: Arc<winit::window::Window>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
