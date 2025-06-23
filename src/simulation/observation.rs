@@ -98,16 +98,17 @@ impl Observation {
         };
 
         for agent in population.get_agent_map() {
-            let judge_distance_squared = (agent.spatial.world_position
+            let distance_to_judge_squared = (agent.spatial.world_position
                 - population.judge.spatial.world_position)
                 .length_squared();
 
-            if judge_distance_squared > JUDGE_VIEW_RADIUS_SQUARED {
+            if distance_to_judge_squared > JUDGE_VIEW_RADIUS_SQUARED {
                 continue;
             }
 
-            if let Some(agent_view) = population_view.agent_view_map.get(&agent.id) {
-                let next_agent_view = AgentView {
+            let new_agent_view = if let Some(agent_view) = population_view.agent_view_map.get(&agent.id)
+            {
+                AgentView {
                     id: agent.id,
                     kind: agent.kind,
                     spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
@@ -115,23 +116,19 @@ impl Observation {
                         population_view.judge_view.kinematic.next,
                         judge.kinematic,
                     ),
-                };
-
-                next_population_view
-                    .agent_view_map
-                    .insert(agent.id, next_agent_view);
+                }
             } else {
-                let next_agent_view = AgentView {
+                AgentView {
                     id: agent.id,
                     kind: agent.kind,
                     spatial: StatePair::new(agent.spatial, agent.spatial),
                     kinematic: StatePair::new(agent.kinematic, agent.kinematic),
-                };
+                }
+            };
 
-                next_population_view
-                    .agent_view_map
-                    .insert(agent.id, next_agent_view);
-            }
+            next_population_view
+                .agent_view_map
+                .insert(agent.id, new_agent_view);
         }
 
         next_population_view
@@ -156,20 +153,15 @@ impl Observation {
     }
 
     fn update_chunk_view(&self, chunk: &chunk::Chunk, world_view: &WorldView) -> ChunkView {
-        let next_chunk_view;
+        let current_chunk_geometry = world_view
+            .chunk_view_map
+            .get(&chunk.id)
+            .map(|view| view.geometry.next.clone())
+            .unwrap_or_else(|| chunk.geometry.clone());
 
-        if let Some(chunk_view) = world_view.chunk_view_map.get(&chunk.id) {
-            next_chunk_view = ChunkView {
-                id: chunk.id,
-                geometry: StatePair::new(chunk_view.geometry.next.clone(), chunk.geometry.clone()),
-            };
-        } else {
-            next_chunk_view = ChunkView {
-                id: chunk.id,
-                geometry: StatePair::new(chunk.geometry.clone(), chunk.geometry.clone()),
-            };
+        ChunkView {
+            id: chunk.id,
+            geometry: StatePair::new(current_chunk_geometry, chunk.geometry.clone()),
         }
-
-        next_chunk_view
     }
 }

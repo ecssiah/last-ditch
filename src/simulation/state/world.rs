@@ -496,7 +496,7 @@ impl World {
     }
 
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
-        let mut visible = Vec::new();
+        let mut visible_chunk_id_list = Vec::new();
 
         let judge_chunk_coordinates = self
             .grid
@@ -519,7 +519,7 @@ impl World {
                             let origin_to_center = chunk.aabb.center() - view_origin;
 
                             if view_direction.dot(origin_to_center) >= 0.0 {
-                                visible.push(chunk_id);
+                                visible_chunk_id_list.push(chunk_id);
                             }
                         }
                     }
@@ -527,8 +527,6 @@ impl World {
             }
         }
 
-        println!("{:?}", visible.len());
-
-        visible
+        visible_chunk_id_list
     }
 }

@@ -76,38 +76,22 @@ impl Input {
         event: &WindowEvent,
     ) -> Option<simulation::state::receiver::action::Action> {
         match event {
-            WindowEvent::CloseRequested => {
-                let action = self.handle_close_requested();
-
-                action
-            }
+            WindowEvent::CloseRequested => self.handle_close_requested(),
             WindowEvent::KeyboardInput {
                 device_id,
                 event,
                 is_synthetic,
-            } => {
-                let action = self.handle_keyboard_input(device_id, event, is_synthetic);
-
-                action
-            }
+            } => self.handle_keyboard_input(device_id, event, is_synthetic),
             WindowEvent::MouseInput {
                 device_id,
                 state,
                 button,
-            } => {
-                let action = self.handle_mouse_input(device_id, state, button);
-
-                action
-            }
+            } => self.handle_mouse_input(device_id, state, button),
             WindowEvent::MouseWheel {
                 device_id,
                 delta,
                 phase,
-            } => {
-                let action = self.handle_mouse_wheel(device_id, delta, phase);
-
-                action
-            }
+            } => self.handle_mouse_wheel(device_id, delta, phase),
             _ => None,
         }
     }
@@ -134,21 +118,21 @@ impl Input {
         key_event: &KeyEvent,
         _is_synthetic: &bool,
     ) -> Option<simulation::state::receiver::action::Action> {
-        let mut action_option = None;
-
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
                 let world_action = simulation::state::receiver::action::WorldAction::Exit;
                 let action = simulation::state::receiver::action::Action::World(world_action);
 
-                action_option = Some(action);
+                Some(action)
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
                     let test_action = simulation::state::receiver::action::TestAction::Test1;
                     let action = simulation::state::receiver::action::Action::Test(test_action);
 
-                    action_option = Some(action);
+                    Some(action)
+                } else {
+                    None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
@@ -156,7 +140,9 @@ impl Input {
                     let test_action = simulation::state::receiver::action::TestAction::Test2;
                     let action = simulation::state::receiver::action::Action::Test(test_action);
 
-                    action_option = Some(action);
+                    Some(action)
+                } else {
+                    None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
@@ -164,7 +150,9 @@ impl Input {
                     let test_action = simulation::state::receiver::action::TestAction::Test3;
                     let action = simulation::state::receiver::action::Action::Test(test_action);
 
-                    action_option = Some(action);
+                    Some(action)
+                } else {
+                    None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
@@ -172,7 +160,9 @@ impl Input {
                     let test_action = simulation::state::receiver::action::TestAction::Test4;
                     let action = simulation::state::receiver::action::Action::Test(test_action);
 
-                    action_option = Some(action);
+                    Some(action)
+                } else {
+                    None
                 }
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
@@ -181,6 +171,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_w -= 1.0;
                 }
+
+                None
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
@@ -188,6 +180,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_s += 1.0;
                 }
+
+                None
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
@@ -195,6 +189,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_a += 1.0;
                 }
+
+                None
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
@@ -202,6 +198,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_d -= 1.0;
                 }
+
+                None
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && key_event.repeat == false {
@@ -210,20 +208,20 @@ impl Input {
                         simulation::state::receiver::action::AgentAction::Jump(jump_action);
                     let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
-                    action_option = Some(action);
+                    Some(action)
                 } else if key_event.state == ElementState::Released {
                     let jump_action = simulation::state::receiver::action::JumpAction::End;
                     let agent_action =
                         simulation::state::receiver::action::AgentAction::Jump(jump_action);
                     let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
-                    action_option = Some(action);
+                    Some(action)
+                } else {
+                    None
                 }
             }
-            _ => (),
+            _ => None,
         }
-
-        action_option
     }
 
     fn handle_mouse_input(
