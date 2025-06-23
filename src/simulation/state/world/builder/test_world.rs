@@ -50,34 +50,36 @@ impl TestWorld {
         let world_radius = world.grid.world_radius as i32;
         let entrance_boundary = (world.grid.world_boundary as i32) - chunk_radius;
 
-        for x in -world_radius..=world_radius {
-            let chunk_coordinates = IVec3::new(x, 0, 0);
+        for offset in -world_radius..=world_radius {
+            {
+                let chunk_coordinates = IVec3::new(offset, 0, 0);
 
-            let chunk_position = world
-                .grid
-                .chunk_coordinates_to_position(chunk_coordinates)
-                .unwrap();
+                let chunk_position = world
+                    .grid
+                    .chunk_coordinates_to_position(chunk_coordinates)
+                    .unwrap();
 
-            world.set_cube(
-                chunk_position + IVec3::new(-1, -(chunk_radius - 1), -entrance_boundary),
-                chunk_position + IVec3::new(1, 0, entrance_boundary),
-                block::Kind::Empty,
-            );
-        }
+                world.set_cube(
+                    chunk_position + IVec3::new(-1, -(chunk_radius - 1), -entrance_boundary),
+                    chunk_position + IVec3::new(1, 0, entrance_boundary),
+                    block::Kind::Empty,
+                );
+            }
 
-        for z in -world_radius..=world_radius {
-            let chunk_coordinates = IVec3::new(0, 0, z);
+            {
+                let chunk_coordinates = IVec3::new(0, 0, offset);
 
-            let chunk_position = world
-                .grid
-                .chunk_coordinates_to_position(chunk_coordinates)
-                .unwrap();
+                let chunk_position = world
+                    .grid
+                    .chunk_coordinates_to_position(chunk_coordinates)
+                    .unwrap();
 
-            world.set_cube(
-                chunk_position + IVec3::new(-entrance_boundary, -(chunk_radius - 1), -1),
-                chunk_position + IVec3::new(entrance_boundary, 0, 1),
-                block::Kind::Empty,
-            );
+                world.set_cube(
+                    chunk_position + IVec3::new(-entrance_boundary, -(chunk_radius - 1), -1),
+                    chunk_position + IVec3::new(entrance_boundary, 0, 1),
+                    block::Kind::Empty,
+                );
+            }
         }
     }
 

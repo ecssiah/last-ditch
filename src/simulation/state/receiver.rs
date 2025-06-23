@@ -1,3 +1,5 @@
+//! Processes Actions
+
 pub mod action;
 
 use crate::simulation::state::{
@@ -53,14 +55,15 @@ impl Receiver {
     }
 
     fn handle_jump_action(&mut self, state: &mut State, jump_action: &JumpAction) {
-        state.population.judge.apply_jump_action(jump_action);
+        let judge = state.population.get_judge_mut();
+
+        judge.apply_jump_action(jump_action);
     }
 
     fn handle_movement_action(&mut self, state: &mut State, movement_action: &MovementAction) {
-        state
-            .population
-            .judge
-            .apply_movement_action(movement_action);
+        let judge = state.population.get_judge_mut();
+
+        judge.apply_movement_action(movement_action);
     }
 
     fn handle_exit_action(&mut self, state: &mut State) {

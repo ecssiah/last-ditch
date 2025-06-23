@@ -94,6 +94,7 @@ impl World {
 
                 block::Block {
                     id: block_id,
+                    chunk_id,
                     position,
                     kind: block::Kind::Empty,
                     solid: false,
@@ -122,10 +123,26 @@ impl World {
         chunk.get_block(block_id)
     }
 
+    pub fn get_block_mut(
+        &mut self,
+        chunk_id: chunk::ID,
+        block_id: block::ID,
+    ) -> Option<&mut block::Block> {
+        let chunk = self.get_chunk_mut(chunk_id)?;
+
+        chunk.get_block_mut(block_id)
+    }
+
     pub fn get_block_at(&self, position: IVec3) -> Option<&block::Block> {
         let (chunk_id, block_id) = self.grid.position_to_ids(position)?;
 
         self.get_block(chunk_id, block_id)
+    }
+
+    pub fn get_block_at_mut(&mut self, position: IVec3) -> Option<&mut block::Block> {
+        let (chunk_id, block_id) = self.grid.position_to_ids(position)?;
+
+        self.get_block_mut(chunk_id, block_id)
     }
 
     pub fn get_clearance(&self, position: IVec3) -> Option<u32> {
@@ -177,14 +194,13 @@ impl World {
     }
 
     pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
-        let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
-
         if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
-            let chunk = self.get_chunk_mut(chunk_id).unwrap();
-            let block = chunk.get_block_mut(block_id).unwrap();
+            let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
 
-            block.kind = kind;
-            block.solid = block_meta.solid;
+            if let Some(block) = self.get_block_mut(chunk_id, block_id) {
+                block.kind = kind;
+                block.solid = block_meta.solid;
+            }
 
             self.update_visibility_lists(chunk_id, block_id, position);
             self.mark_updates(chunk_id, position);
@@ -212,7 +228,9 @@ impl World {
                         || z == max.z;
 
                     if on_boundary {
-                        self.set_block_kind(IVec3::new(x, y, z), kind);
+                        let position = IVec3::new(x, y, z);
+
+                        self.set_block_kind(position, kind);
                     }
                 }
             }
@@ -226,7 +244,9 @@ impl World {
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
-                    self.set_block_kind(IVec3::new(x, y, z), kind);
+                    let position = IVec3::new(x, y, z);
+
+                    self.set_block_kind(position, kind);
                 }
             }
         }
@@ -478,28 +498,27 @@ impl World {
     pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
         let mut visible = Vec::new();
 
-        let radius = 6;
-
         let judge_chunk_coordinates = self
             .grid
             .world_to_chunk_coordinates(judge.spatial.world_position)
             .unwrap();
 
-        for x in -radius..=radius {
-            for y in -radius..=radius {
-                for z in -radius..=radius {
+        let view_radius = 6;
+        let view_direction = judge.spatial.forward();
+        let view_origin = judge.eye() + judge.spatial.forward() * -8.0;
+
+        for x in -view_radius..=view_radius {
+            for y in -view_radius + 1..=view_radius - 1 {
+                for z in -view_radius..=view_radius {
                     let chunk_coordinates = judge_chunk_coordinates + IVec3::new(x, y, z);
 
                     if let Some(chunk_id) =
                         self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates)
                     {
                         if let Some(chunk) = self.get_chunk(chunk_id) {
-                            let center = chunk.aabb.center();
-                            let origin = judge.eye() + judge.spatial.forward() * -6.0;
-                            let to_center = (center - origin).normalize();
-                            let view_direction = judge.spatial.forward();
+                            let origin_to_center = chunk.aabb.center() - view_origin;
 
-                            if view_direction.dot(to_center) >= 0.0 {
+                            if view_direction.dot(origin_to_center) >= 0.0 {
                                 visible.push(chunk_id);
                             }
                         }
@@ -507,6 +526,8 @@ impl World {
                 }
             }
         }
+
+        println!("{:?}", visible.len());
 
         visible
     }

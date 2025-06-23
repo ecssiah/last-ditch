@@ -8,12 +8,16 @@ pub use id::ID;
 pub use kind::Kind;
 pub use meta::Meta;
 
-use crate::simulation::{consts::*, state::physics::aabb::AABB};
+use crate::simulation::{
+    consts::*,
+    state::{physics::aabb::AABB, world::chunk},
+};
 use glam::{IVec3, Vec3};
 
 #[derive(Debug)]
 pub struct Block {
     pub id: ID,
+    pub chunk_id: chunk::ID,
     pub position: IVec3,
     pub kind: Kind,
     pub solid: bool,

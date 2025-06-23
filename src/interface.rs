@@ -198,6 +198,11 @@ impl<'window> Interface<'window> {
     fn update(&mut self, event_loop: &ActiveEventLoop) {
         let view = self.observation_arc.get_view();
 
+        self.apply_view(&view);
+        self.dispatch_actions(&view.admin_view.mode, event_loop);
+    }
+
+    fn apply_view(&mut self, view: &simulation::observation::view::View) {
         match view.admin_view.mode {
             simulation::state::admin::Mode::Load => {
                 self.apply_admin_view(&view.admin_view);
@@ -207,8 +212,21 @@ impl<'window> Interface<'window> {
                 self.apply_time_view(&view.time_view);
                 self.apply_population_view(&view.population_view);
                 self.apply_world_view(&view.world_view);
+            }
+            simulation::state::admin::Mode::Shutdown => {}
+            simulation::state::admin::Mode::Exit => {}
+        }
+    }
 
-                self.send_movement_actions();
+    fn dispatch_actions(
+        &mut self,
+        mode: &simulation::state::admin::Mode,
+        event_loop: &ActiveEventLoop,
+    ) {
+        match mode {
+            simulation::state::admin::Mode::Load => {}
+            simulation::state::admin::Mode::Simulate => {
+                self.send_movement_action();
             }
             simulation::state::admin::Mode::Shutdown => {}
             simulation::state::admin::Mode::Exit => {
@@ -314,8 +332,8 @@ impl<'window> Interface<'window> {
             .prepare_world_view(&self.wgpu_interface.device, world_view);
     }
 
-    fn send_movement_actions(&mut self) {
-        let action = self.input.get_movement_actions();
+    fn send_movement_action(&mut self) {
+        let action = self.input.get_movement_action();
 
         self.dispatch.send(action);
     }

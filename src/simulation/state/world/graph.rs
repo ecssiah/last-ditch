@@ -52,7 +52,7 @@ impl Graph {
         self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_list);
         self.regions = Self::setup_regions(&self.grid, chunk_list);
 
-        self.setup_levels();
+        // self.setup_levels();
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_list: &Vec<Chunk>) -> HashMap<IVec3, FixedBitSet> {
@@ -86,35 +86,35 @@ impl Graph {
             .collect()
     }
 
-    fn setup_levels(&mut self) {
-        let base_level = Self::setup_base_level();
-        self.levels.push(base_level);
+    // fn setup_levels(&mut self) {
+    //     let base_level = Self::setup_base_level();
+    //     self.levels.push(base_level);
 
-        for level_number in 2..=self.depth.max(2) {
-            let level = Self::setup_level(&self.grid, level_number);
-            self.levels.push(level);
-        }
-    }
+    //     for level_number in 2..=self.depth.max(2) {
+    //         let level = Self::setup_level(&self.grid, level_number);
+    //         self.levels.push(level);
+    //     }
+    // }
 
-    fn setup_base_level() -> Level {
-        let mut base_level = Level::new();
+    // fn setup_base_level() -> Level {
+    //     let mut base_level = Level::new();
 
-        base_level
-    }
+    //     base_level
+    // }
 
-    fn setup_level(grid: &Grid, level_number: usize) -> Level {
-        let mut level = Level::new();
+    // fn setup_level(grid: &Grid, level_number: usize) -> Level {
+    //     let mut level = Level::new();
 
-        level
-    }
+    //     level
+    // }
 
-    fn setup_transitions() {}
+    // fn setup_transitions() {}
 
-    fn add_node(&mut self) {}
+    // fn add_node(&mut self) {}
 
-    fn add_edge(&mut self) {}
+    // fn add_edge(&mut self) {}
 
-    fn add_region(&mut self) {}
+    // fn add_region(&mut self) {}
 
-    fn add_transition(&mut self) {}
+    // fn add_transition(&mut self) {}
 }

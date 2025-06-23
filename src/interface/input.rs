@@ -46,7 +46,7 @@ impl Input {
         }
     }
 
-    pub fn get_movement_actions(&mut self) -> simulation::state::receiver::action::Action {
+    pub fn get_movement_action(&mut self) -> simulation::state::receiver::action::Action {
         let direction = Vec3::new(
             self.key_inputs.key_a + self.key_inputs.key_d,
             0.0,
