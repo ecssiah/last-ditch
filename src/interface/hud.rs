@@ -23,13 +23,13 @@ pub struct HUD {
 impl HUD {
     pub fn new(
         device: &wgpu::Device,
-        window: Arc<winit::window::Window>,
+        window_arc: Arc<winit::window::Window>,
         surface_format: wgpu::TextureFormat,
     ) -> Self {
         let context = egui::Context::default();
 
         let state =
-            egui_winit::State::new(context.clone(), ViewportId::ROOT, &window, None, None, None);
+            egui_winit::State::new(context.clone(), ViewportId::ROOT, &window_arc, None, None, None);
 
         let renderer = egui_wgpu::Renderer::new(device, surface_format, None, 1, false);
 

@@ -72,10 +72,10 @@ impl<'window> Interface<'window> {
                 ))
         };
 
-        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        let window_arc = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        window.set_cursor_visible(false);
-        window
+        window_arc.set_cursor_visible(false);
+        window_arc
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
 
@@ -89,9 +89,9 @@ impl<'window> Interface<'window> {
             pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default(), None))
                 .expect("Failed to create device");
 
-        let size = window.inner_size();
+        let size = window_arc.inner_size();
 
-        let surface = instance.create_surface(window.clone()).unwrap();
+        let surface = instance.create_surface(window_arc.clone()).unwrap();
         let surface_capabilities = surface.get_capabilities(&adapter);
 
         let surface_format = surface_capabilities
@@ -120,7 +120,7 @@ impl<'window> Interface<'window> {
         surface.configure(&device, &surface_config);
 
         let wgpu_interface = WGPUInterface {
-            window,
+            window_arc,
             device,
             queue,
             size,
@@ -142,11 +142,11 @@ impl<'window> Interface<'window> {
 
         let hud = HUD::new(
             &wgpu_interface.device,
-            wgpu_interface.window.clone(),
+            wgpu_interface.window_arc.clone(),
             surface_format,
         );
 
-        wgpu_interface.window.request_redraw();
+        wgpu_interface.window_arc.request_redraw();
 
         Self {
             dt,
@@ -190,7 +190,7 @@ impl<'window> Interface<'window> {
             event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        self.wgpu_interface.window.request_redraw();
+        self.wgpu_interface.window_arc.request_redraw();
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
@@ -250,14 +250,14 @@ impl<'window> Interface<'window> {
 
         self.hud.update(
             &mut encoder,
-            &self.wgpu_interface.window,
+            &self.wgpu_interface.window_arc,
             &self.wgpu_interface.device,
             &self.wgpu_interface.queue,
             &texture_view,
         );
 
         self.wgpu_interface.queue.submit([encoder.finish()]);
-        self.wgpu_interface.window.pre_present_notify();
+        self.wgpu_interface.window_arc.pre_present_notify();
 
         surface_texture.present();
     }

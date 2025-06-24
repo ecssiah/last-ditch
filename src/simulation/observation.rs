@@ -24,14 +24,14 @@ use crate::simulation::{
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Observation {
-    repository: Arc<repository::Repository>,
+    repository_arc: Arc<repository::Repository>,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let repository = Arc::new(Repository::new());
+        let repository_arc = Arc::new(Repository::new());
 
-        Self { repository }
+        Self { repository_arc }
     }
 
     pub fn tick(&self, state: &State) {
@@ -39,7 +39,7 @@ impl Observation {
     }
 
     pub fn get_view(&self) -> View {
-        let view = self.repository.get();
+        let view = self.repository_arc.get();
 
         (*view).clone()
     }
@@ -47,7 +47,7 @@ impl Observation {
     fn update_view(&self, state: &State) {
         let judge = state.population.get_judge();
 
-        let view = self.repository.get();
+        let view = self.repository_arc.get();
 
         let admin_view = self.update_admin_view(&view.admin_view, &state.admin);
         let time_view = self.update_time_view(&view.time_view, &state.time);
@@ -62,7 +62,7 @@ impl Observation {
             world_view,
         };
 
-        self.repository.set(next_view);
+        self.repository_arc.set(next_view);
     }
 
     fn update_admin_view(&self, _admin_view: &AdminView, admin: &Admin) -> AdminView {

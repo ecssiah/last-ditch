@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-pub const TESTING: bool = false;
+pub const TESTING: bool = true;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const DEFAULT_SEED: u64 = 128;
