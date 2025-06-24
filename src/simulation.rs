@@ -59,7 +59,7 @@ impl Simulation {
     }
 
     fn setup(&mut self) {
-        self.observation_arc.tick(&self.state);
+        // self.observation_arc.tick(&self.state);
 
         self.state.setup();
     }
