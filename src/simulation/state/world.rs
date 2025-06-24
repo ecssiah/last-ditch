@@ -150,27 +150,27 @@ impl World {
             .get_block_at(position + IVec3::NEG_Y)
             .map_or(false, |block| block.solid);
 
-        if !ground_is_solid {
-            return None;
-        }
+        if ground_is_solid {
+            let mut clearance = 0;
 
-        let mut clearance = 0;
+            for level in 0..MAXIMUM_CLEARANCE {
+                let level_position = position + IVec3::new(0, level as i32, 0);
 
-        for level in 0..MAXIMUM_CLEARANCE {
-            let level_position = position + IVec3::Y * level as i32;
-
-            let is_solid = self
-                .get_block_at(level_position)
-                .map_or(false, |block| block.solid);
-
-            if is_solid {
-                break;
-            } else {
-                clearance += 1;
+                if let Some(block) = self.get_block_at(level_position) {
+                    if !block.solid {
+                        clearance += 1;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
             }
-        }
 
-        Some(clearance)
+            Some(clearance)
+        } else {
+            None
+        }
     }
 
     fn mark_updates(&mut self, chunk_id1: chunk::ID, position1: IVec3) {

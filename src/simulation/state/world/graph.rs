@@ -14,17 +14,15 @@ use glam::IVec3;
 use std::collections::HashMap;
 
 pub struct Level {
-    pub nodes: HashMap<IVec3, Node>,
-    pub edges: HashMap<(IVec3, IVec3), Edge>,
-    pub transitions: Vec<Transition>,
+    pub node_list: HashMap<IVec3, Node>,
+    pub edge_list: HashMap<(IVec3, IVec3), Edge>,
 }
 
 impl Level {
     pub fn new() -> Self {
         Self {
-            nodes: HashMap::new(),
-            edges: HashMap::new(),
-            transitions: Vec::new(),
+            node_list: HashMap::new(),
+            edge_list: HashMap::new(),
         }
     }
 }
@@ -33,8 +31,8 @@ pub struct Graph {
     pub depth: usize,
     pub grid: Grid,
     pub solid_set_map: HashMap<IVec3, FixedBitSet>,
-    pub regions: Vec<Region>,
-    pub levels: Vec<Level>,
+    pub region_list: Vec<Region>,
+    pub level_list: Vec<Level>,
 }
 
 impl Graph {
@@ -43,16 +41,16 @@ impl Graph {
             depth,
             grid: *grid,
             solid_set_map: HashMap::new(),
-            regions: Vec::new(),
-            levels: Vec::with_capacity(depth),
+            region_list: Vec::new(),
+            level_list: Vec::with_capacity(depth),
         }
     }
 
     pub fn setup(&mut self, chunk_list: &Vec<Chunk>) {
         self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_list);
-        self.regions = Self::setup_regions(&self.grid, chunk_list);
+        self.region_list = Self::setup_regions(&self.grid, chunk_list);
 
-        // self.setup_levels();
+        println!("{:?}", self.is_solid(IVec3::new(0, 0, 0)));
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_list: &Vec<Chunk>) -> HashMap<IVec3, FixedBitSet> {
@@ -86,35 +84,15 @@ impl Graph {
             .collect()
     }
 
-    // fn setup_levels(&mut self) {
-    //     let base_level = Self::setup_base_level();
-    //     self.levels.push(base_level);
+    fn is_solid(&self, position: IVec3) -> bool {
+        if let Some(chunk_coordinates) = self.grid.position_to_chunk_coordinates(position) {
+            if let Some(solid_set) = self.solid_set_map.get(&chunk_coordinates) {
+                if let Some(block_id) = self.grid.position_to_block_id(position) {
+                    return solid_set.contains(usize::from(block_id));
+                }
+            }
+        }
 
-    //     for level_number in 2..=self.depth.max(2) {
-    //         let level = Self::setup_level(&self.grid, level_number);
-    //         self.levels.push(level);
-    //     }
-    // }
-
-    // fn setup_base_level() -> Level {
-    //     let mut base_level = Level::new();
-
-    //     base_level
-    // }
-
-    // fn setup_level(grid: &Grid, level_number: usize) -> Level {
-    //     let mut level = Level::new();
-
-    //     level
-    // }
-
-    // fn setup_transitions() {}
-
-    // fn add_node(&mut self) {}
-
-    // fn add_edge(&mut self) {}
-
-    // fn add_region(&mut self) {}
-
-    // fn add_transition(&mut self) {}
+        true
+    }
 }
