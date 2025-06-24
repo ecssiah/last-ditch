@@ -1,5 +1,6 @@
 use crate::simulation::state::{
-    population::entity, world::{block, World}
+    population::entity,
+    world::{block, World},
 };
 use glam::IVec3;
 

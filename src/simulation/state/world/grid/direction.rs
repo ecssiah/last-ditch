@@ -1,5 +1,5 @@
-use glam::IVec3;
 use crate::simulation::consts::*;
+use glam::IVec3;
 
 #[rustfmt::skip]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]

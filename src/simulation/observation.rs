@@ -106,25 +106,25 @@ impl Observation {
                 continue;
             }
 
-            let new_agent_view = if let Some(agent_view) = population_view.agent_view_map.get(&agent.id)
-            {
-                AgentView {
-                    id: agent.id,
-                    kind: agent.kind,
-                    spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
-                    kinematic: StatePair::new(
-                        population_view.judge_view.kinematic.next,
-                        judge.kinematic,
-                    ),
-                }
-            } else {
-                AgentView {
-                    id: agent.id,
-                    kind: agent.kind,
-                    spatial: StatePair::new(agent.spatial, agent.spatial),
-                    kinematic: StatePair::new(agent.kinematic, agent.kinematic),
-                }
-            };
+            let new_agent_view =
+                if let Some(agent_view) = population_view.agent_view_map.get(&agent.id) {
+                    AgentView {
+                        id: agent.id,
+                        kind: agent.kind,
+                        spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
+                        kinematic: StatePair::new(
+                            population_view.judge_view.kinematic.next,
+                            judge.kinematic,
+                        ),
+                    }
+                } else {
+                    AgentView {
+                        id: agent.id,
+                        kind: agent.kind,
+                        spatial: StatePair::new(agent.spatial, agent.spatial),
+                        kinematic: StatePair::new(agent.kinematic, agent.kinematic),
+                    }
+                };
 
             next_population_view
                 .agent_view_map

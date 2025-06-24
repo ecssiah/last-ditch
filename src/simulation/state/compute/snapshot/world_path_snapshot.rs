@@ -1,2 +1,1 @@
-pub struct WorldPathSnapshot {
-}
+pub struct WorldPathSnapshot {}

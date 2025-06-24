@@ -2,7 +2,10 @@ use crate::simulation::{
     consts::*,
     observation::state_pair::StatePair,
     state::{
-        physics::aabb::AABB, population::entity::{self, Kinematic, Nation, Spatial}, receiver::action::{JumpAction, MovementAction}, world::{chunk, World}
+        physics::aabb::AABB,
+        population::entity::{self, Kinematic, Nation, Spatial},
+        receiver::action::{JumpAction, MovementAction},
+        world::{chunk, World},
     },
 };
 use glam::{Quat, Vec3};

@@ -1,2 +1,1 @@
-pub struct ChunkPathSnapshot {
-}
+pub struct ChunkPathSnapshot {}

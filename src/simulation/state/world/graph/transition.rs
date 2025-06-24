@@ -1,3 +1,1 @@
-pub struct Transition {
-    
-}
+pub struct Transition {}
