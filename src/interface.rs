@@ -13,7 +13,7 @@ use crate::{
         camera::Camera, consts::*, dispatch::Dispatch, hud::HUD, input::Input, render::Render,
         wgpu_interface::WGPUInterface,
     },
-    simulation::{self, consts::PROJECT_TITLE},
+    simulation::{self},
 };
 use std::{
     collections::HashMap,
@@ -33,6 +33,7 @@ pub struct Interface<'window> {
     instant: Instant,
     last_instant: Instant,
     alpha: f32,
+    window_arc: Arc<winit::window::Window>,
     wgpu_interface: WGPUInterface<'window>,
     observation_arc: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
@@ -57,7 +58,11 @@ impl<'window> Interface<'window> {
             .primary_monitor()
             .expect("No primary monitor found");
 
-        let window_title = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
+        let window_title = format!(
+            "{} {}",
+            simulation::consts::PROJECT_TITLE,
+            env!("CARGO_PKG_VERSION")
+        );
 
         let window_attributes = if FULLSCREEN {
             WindowAttributes::default()
@@ -120,7 +125,6 @@ impl<'window> Interface<'window> {
         surface.configure(&device, &surface_config);
 
         let wgpu_interface = WGPUInterface {
-            window_arc,
             device,
             queue,
             size,
@@ -140,13 +144,9 @@ impl<'window> Interface<'window> {
             &camera,
         );
 
-        let hud = HUD::new(
-            &wgpu_interface.device,
-            wgpu_interface.window_arc.clone(),
-            surface_format,
-        );
+        let hud = HUD::new(&wgpu_interface.device, window_arc.clone(), surface_format);
 
-        wgpu_interface.window_arc.request_redraw();
+        window_arc.request_redraw();
 
         Self {
             dt,
@@ -154,6 +154,7 @@ impl<'window> Interface<'window> {
             last_instant,
             alpha,
             observation_arc,
+            window_arc,
             wgpu_interface,
             input,
             camera,
@@ -190,7 +191,7 @@ impl<'window> Interface<'window> {
             event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        self.wgpu_interface.window_arc.request_redraw();
+        self.window_arc.request_redraw();
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
@@ -250,14 +251,14 @@ impl<'window> Interface<'window> {
 
         self.hud.update(
             &mut encoder,
-            &self.wgpu_interface.window_arc,
+            &self.window_arc,
             &self.wgpu_interface.device,
             &self.wgpu_interface.queue,
             &texture_view,
         );
 
         self.wgpu_interface.queue.submit([encoder.finish()]);
-        self.wgpu_interface.window_arc.pre_present_notify();
+        self.window_arc.pre_present_notify();
 
         surface_texture.present();
     }

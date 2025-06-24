@@ -36,9 +36,20 @@ impl Simulation {
         }
     }
 
+    pub fn get_observation_arc(&self) -> Arc<Observation> {
+        self.observation_arc.clone()
+    }
+
     pub fn run(&mut self) {
         self.setup();
+        self.execute();
+    }
 
+    fn setup(&mut self) {
+        self.state.setup();
+    }
+
+    fn execute(&mut self) {
         let mut next_instant = Instant::now();
 
         loop {
@@ -58,12 +69,6 @@ impl Simulation {
         }
     }
 
-    fn setup(&mut self) {
-        // self.observation_arc.tick(&self.state);
-
-        self.state.setup();
-    }
-
     fn fix_timestep(&self, current_instant: Instant, next_instant: Instant) {
         if next_instant > current_instant {
             let remaining_duration = next_instant - current_instant;
@@ -76,9 +81,5 @@ impl Simulation {
                 std::hint::spin_loop();
             }
         }
-    }
-
-    pub fn get_observation_arc(&self) -> Arc<Observation> {
-        self.observation_arc.clone()
     }
 }
