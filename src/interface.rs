@@ -3,15 +3,15 @@
 pub mod camera;
 pub mod consts;
 pub mod dispatch;
+pub mod gpu_context;
 pub mod hud;
 pub mod input;
 pub mod render;
-pub mod wgpu_interface;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, dispatch::Dispatch, hud::HUD, input::Input, render::Render,
-        wgpu_interface::WGPUInterface,
+        camera::Camera, consts::*, dispatch::Dispatch, gpu_context::GPUContext, hud::HUD,
+        input::Input, render::Render,
     },
     simulation::{self},
 };
@@ -33,8 +33,7 @@ pub struct Interface<'window> {
     instant: Instant,
     last_instant: Instant,
     alpha: f32,
-    window_arc: Arc<winit::window::Window>,
-    wgpu_interface: WGPUInterface<'window>,
+    gpu_context: GPUContext<'window>,
     observation_arc: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
     input: Input,
@@ -106,7 +105,7 @@ impl<'window> Interface<'window> {
             .find(|f| *f == wgpu::TextureFormat::Bgra8Unorm)
             .unwrap_or(surface_capabilities.formats[0]);
 
-        let surface_texture_view_descriptor = wgpu::TextureViewDescriptor {
+        let texture_view_descriptor = wgpu::TextureViewDescriptor {
             format: Some(surface_format),
             ..Default::default()
         };
@@ -124,29 +123,34 @@ impl<'window> Interface<'window> {
 
         surface.configure(&device, &surface_config);
 
-        let wgpu_interface = WGPUInterface {
+        let gpu_context = GPUContext {
+            window_arc,
             device,
             queue,
             size,
             surface,
             surface_config,
-            surface_texture_view_descriptor,
+            texture_view_descriptor,
         };
 
         let dispatch = Dispatch::new(action_tx);
         let input = Input::new();
-        let camera = Camera::new(&wgpu_interface.device);
+        let camera = Camera::new(&gpu_context.device);
 
         let render = Render::new(
-            &wgpu_interface.device,
-            &wgpu_interface.queue,
+            &gpu_context.device,
+            &gpu_context.queue,
             &surface_format,
             &camera,
         );
 
-        let hud = HUD::new(&wgpu_interface.device, window_arc.clone(), surface_format);
+        let hud = HUD::new(
+            &gpu_context.device,
+            gpu_context.window_arc.clone(),
+            surface_format,
+        );
 
-        window_arc.request_redraw();
+        gpu_context.window_arc.request_redraw();
 
         Self {
             dt,
@@ -154,8 +158,7 @@ impl<'window> Interface<'window> {
             last_instant,
             alpha,
             observation_arc,
-            window_arc,
-            wgpu_interface,
+            gpu_context,
             input,
             camera,
             dispatch,
@@ -191,7 +194,7 @@ impl<'window> Interface<'window> {
             event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        self.window_arc.request_redraw();
+        self.gpu_context.window_arc.request_redraw();
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
@@ -227,49 +230,48 @@ impl<'window> Interface<'window> {
 
     fn handle_redraw_requested(&mut self) {
         let mut encoder = self
-            .wgpu_interface
+            .gpu_context
             .device
             .create_command_encoder(&Default::default());
 
         let surface_texture = self
-            .wgpu_interface
+            .gpu_context
             .surface
             .get_current_texture()
             .expect("failed to acquire next swapchain texture");
 
         let texture_view = surface_texture
             .texture
-            .create_view(&self.wgpu_interface.surface_texture_view_descriptor);
+            .create_view(&self.gpu_context.texture_view_descriptor);
 
         self.render.update(
             &mut encoder,
-            &self.wgpu_interface.device,
-            &self.wgpu_interface.surface_config,
+            &self.gpu_context.device,
+            &self.gpu_context.surface_config,
             &texture_view,
             &self.camera,
         );
 
         self.hud.update(
             &mut encoder,
-            &self.window_arc,
-            &self.wgpu_interface.device,
-            &self.wgpu_interface.queue,
+            &self.gpu_context.window_arc,
+            &self.gpu_context.device,
+            &self.gpu_context.queue,
             &texture_view,
         );
 
-        self.wgpu_interface.queue.submit([encoder.finish()]);
-        self.window_arc.pre_present_notify();
+        self.gpu_context.queue.submit([encoder.finish()]);
+        self.gpu_context.window_arc.pre_present_notify();
 
         surface_texture.present();
     }
 
     fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.wgpu_interface.size = new_size;
+        self.gpu_context.size = new_size;
 
-        self.wgpu_interface.surface.configure(
-            &self.wgpu_interface.device,
-            &self.wgpu_interface.surface_config,
-        );
+        self.gpu_context
+            .surface
+            .configure(&self.gpu_context.device, &self.gpu_context.surface_config);
     }
 
     fn apply_admin_view(&mut self, admin_view: &simulation::observation::view::AdminView) {
@@ -300,7 +302,7 @@ impl<'window> Interface<'window> {
 
     fn apply_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
         self.camera
-            .update(&self.wgpu_interface.queue, self.alpha, judge_view);
+            .update(&self.gpu_context.queue, self.alpha, judge_view);
     }
 
     fn apply_agent_view_map(
@@ -311,14 +313,14 @@ impl<'window> Interface<'window> {
         >,
     ) {
         self.render.prepare_agent_view_map(
-            &self.wgpu_interface.device,
-            &self.wgpu_interface.queue,
+            &self.gpu_context.device,
+            &self.gpu_context.queue,
             agent_view_map,
         );
     }
 
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
         self.render
-            .prepare_world_view(&self.wgpu_interface.device, world_view);
+            .prepare_world_view(&self.gpu_context.device, world_view);
     }
 }

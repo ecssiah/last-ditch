@@ -53,9 +53,7 @@ impl Simulation {
         let mut next_instant = Instant::now();
 
         loop {
-            let current_instant = Instant::now();
-
-            while current_instant >= next_instant {
+            while Instant::now() >= next_instant {
                 self.receiver.tick(&mut self.state);
                 self.state.tick();
                 self.observation_arc.tick(&self.state);
@@ -63,13 +61,13 @@ impl Simulation {
                 next_instant += SIMULATION_TICK_DURATION;
             }
 
-            let current_instant = Instant::now();
-
-            self.fix_timestep(current_instant, next_instant);
+            self.fix_timestep(next_instant);
         }
     }
 
-    fn fix_timestep(&self, current_instant: Instant, next_instant: Instant) {
+    fn fix_timestep(&self, next_instant: Instant) {
+        let current_instant = Instant::now();
+
         if next_instant > current_instant {
             let remaining_duration = next_instant - current_instant;
 
