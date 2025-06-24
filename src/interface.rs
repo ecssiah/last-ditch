@@ -164,9 +164,7 @@ impl<'window> Interface<'window> {
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        if let Some(action) = self.input.handle_window_event(&event) {
-            self.dispatch.send(action);
-        }
+        self.input.handle_window_event(&event);
 
         match event {
             WindowEvent::RedrawRequested => self.handle_redraw_requested(),
@@ -198,8 +196,12 @@ impl<'window> Interface<'window> {
     fn update(&mut self, event_loop: &ActiveEventLoop) {
         let view = self.observation_arc.get_view();
 
-        self.apply_view(&view);
-        self.dispatch_actions(&view.admin_view.mode, event_loop);
+        if view.admin_view.mode == simulation::state::admin::Mode::Exit {
+            event_loop.exit();
+        } else {
+            self.apply_view(&view);
+            self.dispatch_actions();
+        }
     }
 
     fn apply_view(&mut self, view: &simulation::observation::view::View) {
@@ -218,20 +220,9 @@ impl<'window> Interface<'window> {
         }
     }
 
-    fn dispatch_actions(
-        &mut self,
-        mode: &simulation::state::admin::Mode,
-        event_loop: &ActiveEventLoop,
-    ) {
-        match mode {
-            simulation::state::admin::Mode::Load => {}
-            simulation::state::admin::Mode::Simulate => {
-                self.send_movement_action();
-            }
-            simulation::state::admin::Mode::Shutdown => {}
-            simulation::state::admin::Mode::Exit => {
-                event_loop.exit();
-            }
+    fn dispatch_actions(&mut self) {
+        for action in self.input.get_input_actions() {
+            self.dispatch.send(action);
         }
     }
 
@@ -330,11 +321,5 @@ impl<'window> Interface<'window> {
     fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
         self.render
             .prepare_world_view(&self.wgpu_interface.device, world_view);
-    }
-
-    fn send_movement_action(&mut self) {
-        let action = self.input.get_movement_action();
-
-        self.dispatch.send(action);
     }
 }

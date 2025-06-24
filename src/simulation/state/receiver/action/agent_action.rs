@@ -7,13 +7,13 @@ pub struct MovementAction {
     pub pitch: f32,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum JumpAction {
     Start,
     End,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum AgentAction {
     Movement(MovementAction),
     Jump(JumpAction),

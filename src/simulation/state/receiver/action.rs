@@ -8,7 +8,7 @@ pub use agent_action::MovementAction;
 pub use test_action::TestAction;
 pub use world_action::WorldAction;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Action {
     Test(TestAction),
     World(WorldAction),

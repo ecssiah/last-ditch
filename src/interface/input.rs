@@ -25,6 +25,7 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
+    pub action_buffer: Vec<simulation::state::receiver::action::Action>,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
 }
@@ -40,10 +41,20 @@ impl Input {
 
         let mouse_inputs = MouseInputs { delta: Vec2::ZERO };
 
+        let action_buffer = Vec::new();
+
         Self {
             key_inputs,
             mouse_inputs,
+            action_buffer,
         }
+    }
+
+    pub fn get_input_actions(&mut self) -> Vec<simulation::state::receiver::action::Action> {
+        let movement_action = self.get_movement_action();
+        self.action_buffer.push(movement_action);
+
+        std::mem::take(&mut self.action_buffer)
     }
 
     pub fn get_movement_action(&mut self) -> simulation::state::receiver::action::Action {
@@ -71,11 +82,8 @@ impl Input {
         action
     }
 
-    pub fn handle_window_event(
-        &mut self,
-        event: &WindowEvent,
-    ) -> Option<simulation::state::receiver::action::Action> {
-        match event {
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
+        if let Some(action) = match event {
             WindowEvent::CloseRequested => self.handle_close_requested(),
             WindowEvent::KeyboardInput {
                 device_id,
@@ -93,6 +101,8 @@ impl Input {
                 phase,
             } => self.handle_mouse_wheel(device_id, delta, phase),
             _ => None,
+        } {
+            self.action_buffer.push(action);
         }
     }
 
@@ -105,7 +115,7 @@ impl Input {
         }
     }
 
-    fn handle_close_requested(&self) -> Option<simulation::state::receiver::action::Action> {
+    fn handle_close_requested(&mut self) -> Option<simulation::state::receiver::action::Action> {
         let world_action = simulation::state::receiver::action::WorldAction::Exit;
         let action = simulation::state::receiver::action::Action::World(world_action);
 
