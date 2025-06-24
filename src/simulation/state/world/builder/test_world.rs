@@ -10,6 +10,7 @@ impl TestWorld {
     pub fn build(world: &mut World) {
         Self::build_rooms(world);
         Self::build_entrances(world);
+        Self::build_north_test_room(world);
         Self::build_compass(world);
 
         world.update_chunks();
@@ -81,6 +82,62 @@ impl TestWorld {
                 );
             }
         }
+    }
+
+    fn build_north_test_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+
+        let room_center_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, 2))
+            .unwrap();
+
+        world.set_cube(
+            room_center_position
+                + IVec3::new(-3 * chunk_radius, -chunk_radius + 1, -3 * chunk_radius),
+            room_center_position + IVec3::new(3 * chunk_radius, chunk_radius - 1, 3 * chunk_radius),
+            block::Kind::Empty,
+        );
+
+        let clearance_test_position = world
+            .grid
+            .chunk_coordinates_to_position(IVec3::new(0, 0, 3))
+            .unwrap();
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(-3, -3, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(-2, -2, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(-1, -1, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(0, 0, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(1, 1, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(2, 2, 3),
+            block::Kind::MagentaStone,
+        );
+
+        world.set_block_kind(
+            clearance_test_position + IVec3::new(3, 3, 3),
+            block::Kind::MagentaStone,
+        );
     }
 
     fn build_compass(world: &mut World) {

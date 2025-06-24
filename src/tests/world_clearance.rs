@@ -35,39 +35,51 @@ fn get_clearance() {
     let test_cases = vec![
         GetClearanceCase {
             description: String::from("clearance 0"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(-2, -2, 2),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(-3, -3, 3),
             expected_clearance: Some(0),
         },
         GetClearanceCase {
             description: String::from("clearance 1"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(-1, -2, 2),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(-2, -3, 3),
             expected_clearance: Some(1),
         },
         GetClearanceCase {
             description: String::from("clearance 2"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(0, -2, 2),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(-1, -3, 3),
             expected_clearance: Some(2),
         },
         GetClearanceCase {
             description: String::from("clearance 3"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(1, -2, 2),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(0, -3, 3),
             expected_clearance: Some(3),
         },
         GetClearanceCase {
             description: String::from("clearance 4"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(2, -2, 2),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(1, -3, 3),
             expected_clearance: Some(4),
         },
         GetClearanceCase {
             description: String::from("clearance max"),
-            chunk_coordinates: IVec3::new(0, 0, 1),
-            block_coordinates: IVec3::new(0, -2, 0),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(2, -3, 3),
+            expected_clearance: Some(5),
+        },
+        GetClearanceCase {
+            description: String::from("clearance max"),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(3, -3, 3),
             expected_clearance: Some(MAXIMUM_CLEARANCE),
+        },
+        GetClearanceCase {
+            description: String::from("clearance none"),
+            chunk_coordinates: IVec3::new(0, 0, 3),
+            block_coordinates: IVec3::new(-3, 0, 3),
+            expected_clearance: None,
         },
     ];
 
