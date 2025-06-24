@@ -194,17 +194,13 @@ impl<'window> Interface<'window> {
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
-        let view = self.observation_arc.get_view();
-
-        if view.admin_view.mode == simulation::state::admin::Mode::Exit {
-            event_loop.exit();
-        } else {
-            self.apply_view(&view);
-            self.dispatch_actions();
-        }
+        self.dispatch_actions();
+        self.apply_view(event_loop);
     }
 
-    fn apply_view(&mut self, view: &simulation::observation::view::View) {
+    fn apply_view(&mut self, event_loop: &ActiveEventLoop) {
+        let view = self.observation_arc.get_view();
+
         match view.admin_view.mode {
             simulation::state::admin::Mode::Load => {
                 self.apply_admin_view(&view.admin_view);
@@ -216,7 +212,9 @@ impl<'window> Interface<'window> {
                 self.apply_world_view(&view.world_view);
             }
             simulation::state::admin::Mode::Shutdown => {}
-            simulation::state::admin::Mode::Exit => {}
+            simulation::state::admin::Mode::Exit => {
+                event_loop.exit();
+            }
         }
     }
 
