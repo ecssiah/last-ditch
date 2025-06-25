@@ -9,7 +9,7 @@ use wgpu::{BindGroupLayout, CommandEncoder, Device, TextureFormat, TextureView};
 
 pub struct ChunkRender {
     pub shader_module: wgpu::ShaderModule,
-    pub chunk_data_list: Vec<ChunkData>,
+    pub chunk_data_vec: Vec<ChunkData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -25,7 +25,7 @@ impl ChunkRender {
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/chunk.wgsl").into()),
         });
 
-        let chunk_data_list = Vec::new();
+        let chunk_data_vec = Vec::new();
 
         let render_pipeline = Self::create_render_pipeline(
             device,
@@ -37,7 +37,7 @@ impl ChunkRender {
 
         Self {
             shader_module,
-            chunk_data_list,
+            chunk_data_vec,
             render_pipeline,
         }
     }
@@ -162,7 +162,7 @@ impl ChunkRender {
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, texture_sampler_bind_group, &[]);
 
-        for gpu_chunk in self.chunk_data_list.iter() {
+        for gpu_chunk in self.chunk_data_vec.iter() {
             if gpu_chunk.mesh_data.index_count > 0 {
                 render_pass.set_vertex_buffer(0, gpu_chunk.mesh_data.vertex_buffer.slice(..));
 

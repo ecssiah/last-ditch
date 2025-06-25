@@ -204,35 +204,35 @@ impl Direction {
         Self::ALL
     }
 
-    pub fn cardinal_list() -> [Direction; 4] {
+    pub fn cardinal_vec() -> [Direction; 4] {
         Self::CARDINALS_LIST
     }
 
-    pub fn neighbor_list() -> [Direction; 26] {
+    pub fn neighbor_vec() -> [Direction; 26] {
         Self::NEIGHBOR_LIST
     }
 
-    pub fn axis_list() -> [Direction; 3] {
+    pub fn axis_vec() -> [Direction; 3] {
         Self::AXIS_LIST
     }
 
-    pub fn face_list() -> [Direction; 6] {
+    pub fn face_vec() -> [Direction; 6] {
         Self::FACE_LIST
     }
 
-    pub fn edge_list() -> [Direction; 12] {
+    pub fn edge_vec() -> [Direction; 12] {
         Self::EDGE_LIST
     }
 
-    pub fn corner_list() -> [Direction; 8] {
+    pub fn corner_vec() -> [Direction; 8] {
         Self::CORNER_LIST
     }
 
-    pub fn diagonal_list() -> [Direction; 12] {
+    pub fn diagonal_vec() -> [Direction; 12] {
         Self::DIAGONAL_LIST
     }
 
-    pub fn traversable_list() -> [Direction; 12] {
+    pub fn traversable_vec() -> [Direction; 12] {
         Self::TRAVERSABLE_LIST
     }
 

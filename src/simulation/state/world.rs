@@ -20,7 +20,7 @@ use std::collections::HashMap;
 pub struct World {
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
-    pub chunk_list: Vec<chunk::Chunk>,
+    pub chunk_vec: Vec<chunk::Chunk>,
     pub graph: Graph,
     pub flags: HashMap<entity::Kind, IVec3>,
 }
@@ -29,7 +29,7 @@ impl World {
     pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
         let grid = Grid::new(chunk_radius, world_radius);
         let block_meta_map = block::Meta::setup();
-        let chunk_list = Self::setup_chunk_list(&grid);
+        let chunk_vec = Self::setup_chunk_vec(&grid);
         let graph = Graph::new(&grid, 1);
 
         let flags = HashMap::from([
@@ -42,7 +42,7 @@ impl World {
         Self {
             grid,
             block_meta_map,
-            chunk_list,
+            chunk_vec,
             graph,
             flags,
         }
@@ -59,12 +59,12 @@ impl World {
             builder::MainWorld::build(self);
         }
 
-        self.graph.setup(&self.chunk_list);
+        self.graph.setup(&self.chunk_vec);
     }
 
     pub fn tick(&mut self) {}
 
-    fn setup_chunk_list(grid: &Grid) -> Vec<chunk::Chunk> {
+    fn setup_chunk_vec(grid: &Grid) -> Vec<chunk::Chunk> {
         grid.chunk_ids()
             .into_iter()
             .map(|chunk_id| {
@@ -79,14 +79,14 @@ impl World {
                     position,
                     aabb: AABB::new(position.as_vec3(), Vec3::splat(grid.chunk_size as f32)),
                     geometry: chunk::Geometry::new(),
-                    block_list: Self::setup_block_list(grid, chunk_id),
-                    visibility_list: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
+                    block_vec: Self::setup_block_vec(grid, chunk_id),
+                    visibility_vec: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
                 }
             })
             .collect()
     }
 
-    fn setup_block_list(grid: &Grid, chunk_id: chunk::ID) -> Vec<block::Block> {
+    fn setup_block_vec(grid: &Grid, chunk_id: chunk::ID) -> Vec<block::Block> {
         grid.block_ids()
             .into_iter()
             .map(|block_id| {
@@ -104,11 +104,11 @@ impl World {
     }
 
     pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
-        self.chunk_list.get(usize::from(chunk_id))
+        self.chunk_vec.get(usize::from(chunk_id))
     }
 
     pub fn get_chunk_mut(&mut self, chunk_id: chunk::ID) -> Option<&mut chunk::Chunk> {
-        self.chunk_list.get_mut(usize::from(chunk_id))
+        self.chunk_vec.get_mut(usize::from(chunk_id))
     }
 
     pub fn get_chunk_at(&self, position: IVec3) -> Option<&chunk::Chunk> {
@@ -179,7 +179,7 @@ impl World {
         if self.grid.on_chunk_boundary(position1) {
             self.set_boundary_modified(chunk_id1, true);
 
-            for direction in grid::Direction::face_list() {
+            for direction in grid::Direction::face_vec() {
                 let position2 = position1 + direction.offset();
 
                 if let Some(chunk_id2) = self
@@ -202,7 +202,7 @@ impl World {
                 block.solid = block_meta.solid;
             }
 
-            self.update_visibility_lists(chunk_id, block_id, position);
+            self.update_visibility_vecs(chunk_id, block_id, position);
             self.mark_updates(chunk_id, position);
         } else {
             log::info!(
@@ -265,22 +265,22 @@ impl World {
     }
 
     pub fn update_chunks(&mut self) {
-        let mut chunk_geometry_update_list = Vec::new();
-        let mut chunk_boundary_update_list = Vec::new();
+        let mut chunk_geometry_update_vec = Vec::new();
+        let mut chunk_boundary_update_vec = Vec::new();
 
-        for chunk in &self.chunk_list {
+        for chunk in &self.chunk_vec {
             if chunk.modified.block {
                 let chunk_geometry = self.update_chunk_geometry(chunk);
 
-                chunk_geometry_update_list.push((chunk.id, chunk_geometry));
+                chunk_geometry_update_vec.push((chunk.id, chunk_geometry));
             }
 
             if chunk.modified.boundary {
-                chunk_boundary_update_list.push(chunk.id);
+                chunk_boundary_update_vec.push(chunk.id);
             }
         }
 
-        for (chunk_id, geometry) in chunk_geometry_update_list {
+        for (chunk_id, geometry) in chunk_geometry_update_vec {
             if let Some(chunk) = self.get_chunk_mut(chunk_id) {
                 chunk.geometry = geometry;
 
@@ -288,7 +288,7 @@ impl World {
             }
         }
 
-        for chunk_id in chunk_boundary_update_list {
+        for chunk_id in chunk_boundary_update_vec {
             self.set_boundary_modified(chunk_id, false);
         }
     }
@@ -300,18 +300,18 @@ impl World {
             let block = self.get_block(chunk.id, block_id).unwrap();
 
             if block.solid {
-                let visibility_list = &chunk.visibility_list[usize::from(block_id)];
+                let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
                 let position = self.grid.ids_to_position(chunk.id, block_id).unwrap();
 
-                for direction in grid::Direction::face_list() {
-                    if visibility_list.contains(&direction) {
+                for direction in grid::Direction::face_vec() {
+                    if visibility_vec.contains(&direction) {
                         let mut face = block::Face::new(position, direction, block.kind);
 
-                        let (edges, corners) = Self::get_face_neighbors(direction, visibility_list);
+                        let (edges, corners) = Self::get_face_neighbors(direction, visibility_vec);
 
                         face.light = Self::calculate_face_light(edges, corners);
 
-                        chunk_geometry.face_list.push(face);
+                        chunk_geometry.face_vec.push(face);
                     }
                 }
             }
@@ -320,7 +320,7 @@ impl World {
         chunk_geometry
     }
 
-    fn update_visibility_lists(
+    fn update_visibility_vecs(
         &mut self,
         chunk_id: chunk::ID,
         block_id: block::ID,
@@ -333,12 +333,12 @@ impl World {
             .get_block(chunk_id, block_id)
             .is_some_and(|block| block.kind != block::Kind::Empty)
         {
-            let visibility_list = self.compute_visibility_list(position);
+            let visibility_vec = self.compute_visibility_vec(position);
 
             visibility_updates_map
                 .entry(chunk_id)
                 .or_default()
-                .push((block_id, visibility_list));
+                .push((block_id, visibility_vec));
         }
 
         for offset in grid::Direction::face_offsets() {
@@ -349,27 +349,27 @@ impl World {
                     .get_block(chunk_id, block_id)
                     .is_some_and(|block| block.kind != block::Kind::Empty)
                 {
-                    let visibility_list = self.compute_visibility_list(neighbor_position);
+                    let visibility_vec = self.compute_visibility_vec(neighbor_position);
 
                     visibility_updates_map
                         .entry(chunk_id)
                         .or_default()
-                        .push((block_id, visibility_list));
+                        .push((block_id, visibility_vec));
                 }
             }
         }
 
-        for (chunk_id, visibility_update_list) in visibility_updates_map {
+        for (chunk_id, visibility_update_vec) in visibility_updates_map {
             if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-                for (block_id, visibility_list) in visibility_update_list {
-                    chunk.visibility_list[usize::from(block_id)] = visibility_list;
+                for (block_id, visibility_vec) in visibility_update_vec {
+                    chunk.visibility_vec[usize::from(block_id)] = visibility_vec;
                 }
             }
         }
     }
 
-    fn compute_visibility_list(&self, position: IVec3) -> Vec<grid::Direction> {
-        grid::Direction::face_list()
+    fn compute_visibility_vec(&self, position: IVec3) -> Vec<grid::Direction> {
+        grid::Direction::face_vec()
             .iter()
             .filter_map(|&direction| {
                 let neighbor_position = position + direction.offset();
@@ -384,91 +384,91 @@ impl World {
 
     fn get_face_neighbors(
         direction: grid::Direction,
-        visibility_list: &[grid::Direction],
+        visibility_vec: &[grid::Direction],
     ) -> ([bool; 4], [bool; 4]) {
         match direction {
             grid::Direction::XpYoZo => (
                 [
-                    visibility_list.contains(&grid::Direction::XpYnZo),
-                    visibility_list.contains(&grid::Direction::XpYoZn),
-                    visibility_list.contains(&grid::Direction::XpYpZo),
-                    visibility_list.contains(&grid::Direction::XpYoZp),
+                    visibility_vec.contains(&grid::Direction::XpYnZo),
+                    visibility_vec.contains(&grid::Direction::XpYoZn),
+                    visibility_vec.contains(&grid::Direction::XpYpZo),
+                    visibility_vec.contains(&grid::Direction::XpYoZp),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XpYnZn),
-                    visibility_list.contains(&grid::Direction::XpYpZn),
-                    visibility_list.contains(&grid::Direction::XpYpZp),
-                    visibility_list.contains(&grid::Direction::XpYnZp),
+                    visibility_vec.contains(&grid::Direction::XpYnZn),
+                    visibility_vec.contains(&grid::Direction::XpYpZn),
+                    visibility_vec.contains(&grid::Direction::XpYpZp),
+                    visibility_vec.contains(&grid::Direction::XpYnZp),
                 ],
             ),
             grid::Direction::XnYoZo => (
                 [
-                    visibility_list.contains(&grid::Direction::XnYnZo),
-                    visibility_list.contains(&grid::Direction::XnYoZp),
-                    visibility_list.contains(&grid::Direction::XnYpZo),
-                    visibility_list.contains(&grid::Direction::XnYoZn),
+                    visibility_vec.contains(&grid::Direction::XnYnZo),
+                    visibility_vec.contains(&grid::Direction::XnYoZp),
+                    visibility_vec.contains(&grid::Direction::XnYpZo),
+                    visibility_vec.contains(&grid::Direction::XnYoZn),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XnYnZp),
-                    visibility_list.contains(&grid::Direction::XnYpZp),
-                    visibility_list.contains(&grid::Direction::XnYpZn),
-                    visibility_list.contains(&grid::Direction::XnYnZn),
+                    visibility_vec.contains(&grid::Direction::XnYnZp),
+                    visibility_vec.contains(&grid::Direction::XnYpZp),
+                    visibility_vec.contains(&grid::Direction::XnYpZn),
+                    visibility_vec.contains(&grid::Direction::XnYnZn),
                 ],
             ),
             grid::Direction::XoYpZo => (
                 [
-                    visibility_list.contains(&grid::Direction::XoYpZn),
-                    visibility_list.contains(&grid::Direction::XnYpZo),
-                    visibility_list.contains(&grid::Direction::XoYpZp),
-                    visibility_list.contains(&grid::Direction::XpYpZo),
+                    visibility_vec.contains(&grid::Direction::XoYpZn),
+                    visibility_vec.contains(&grid::Direction::XnYpZo),
+                    visibility_vec.contains(&grid::Direction::XoYpZp),
+                    visibility_vec.contains(&grid::Direction::XpYpZo),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XnYpZn),
-                    visibility_list.contains(&grid::Direction::XnYpZp),
-                    visibility_list.contains(&grid::Direction::XpYpZp),
-                    visibility_list.contains(&grid::Direction::XpYpZn),
+                    visibility_vec.contains(&grid::Direction::XnYpZn),
+                    visibility_vec.contains(&grid::Direction::XnYpZp),
+                    visibility_vec.contains(&grid::Direction::XpYpZp),
+                    visibility_vec.contains(&grid::Direction::XpYpZn),
                 ],
             ),
             grid::Direction::XoYnZo => (
                 [
-                    visibility_list.contains(&grid::Direction::XoYnZn),
-                    visibility_list.contains(&grid::Direction::XpYnZo),
-                    visibility_list.contains(&grid::Direction::XoYnZp),
-                    visibility_list.contains(&grid::Direction::XnYnZo),
+                    visibility_vec.contains(&grid::Direction::XoYnZn),
+                    visibility_vec.contains(&grid::Direction::XpYnZo),
+                    visibility_vec.contains(&grid::Direction::XoYnZp),
+                    visibility_vec.contains(&grid::Direction::XnYnZo),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XpYnZn),
-                    visibility_list.contains(&grid::Direction::XpYnZp),
-                    visibility_list.contains(&grid::Direction::XnYnZp),
-                    visibility_list.contains(&grid::Direction::XnYnZn),
+                    visibility_vec.contains(&grid::Direction::XpYnZn),
+                    visibility_vec.contains(&grid::Direction::XpYnZp),
+                    visibility_vec.contains(&grid::Direction::XnYnZp),
+                    visibility_vec.contains(&grid::Direction::XnYnZn),
                 ],
             ),
             grid::Direction::XoYoZp => (
                 [
-                    visibility_list.contains(&grid::Direction::XoYnZp),
-                    visibility_list.contains(&grid::Direction::XpYoZp),
-                    visibility_list.contains(&grid::Direction::XoYpZp),
-                    visibility_list.contains(&grid::Direction::XnYoZp),
+                    visibility_vec.contains(&grid::Direction::XoYnZp),
+                    visibility_vec.contains(&grid::Direction::XpYoZp),
+                    visibility_vec.contains(&grid::Direction::XoYpZp),
+                    visibility_vec.contains(&grid::Direction::XnYoZp),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XpYnZp),
-                    visibility_list.contains(&grid::Direction::XpYpZp),
-                    visibility_list.contains(&grid::Direction::XnYpZp),
-                    visibility_list.contains(&grid::Direction::XnYnZp),
+                    visibility_vec.contains(&grid::Direction::XpYnZp),
+                    visibility_vec.contains(&grid::Direction::XpYpZp),
+                    visibility_vec.contains(&grid::Direction::XnYpZp),
+                    visibility_vec.contains(&grid::Direction::XnYnZp),
                 ],
             ),
             grid::Direction::XoYoZn => (
                 [
-                    visibility_list.contains(&grid::Direction::XoYnZn),
-                    visibility_list.contains(&grid::Direction::XnYoZn),
-                    visibility_list.contains(&grid::Direction::XoYpZn),
-                    visibility_list.contains(&grid::Direction::XpYoZn),
+                    visibility_vec.contains(&grid::Direction::XoYnZn),
+                    visibility_vec.contains(&grid::Direction::XnYoZn),
+                    visibility_vec.contains(&grid::Direction::XoYpZn),
+                    visibility_vec.contains(&grid::Direction::XpYoZn),
                 ],
                 [
-                    visibility_list.contains(&grid::Direction::XnYnZn),
-                    visibility_list.contains(&grid::Direction::XnYpZn),
-                    visibility_list.contains(&grid::Direction::XpYpZn),
-                    visibility_list.contains(&grid::Direction::XpYnZn),
+                    visibility_vec.contains(&grid::Direction::XnYnZn),
+                    visibility_vec.contains(&grid::Direction::XnYpZn),
+                    visibility_vec.contains(&grid::Direction::XpYpZn),
+                    visibility_vec.contains(&grid::Direction::XpYnZn),
                 ],
             ),
             _ => panic!("Invalid Direction: {:?}", direction),
@@ -494,8 +494,8 @@ impl World {
         }
     }
 
-    pub fn get_visible_chunk_id_list(&self, judge: &Judge) -> Vec<chunk::ID> {
-        let mut visible_chunk_id_list = Vec::new();
+    pub fn get_visible_chunk_id_vec(&self, judge: &Judge) -> Vec<chunk::ID> {
+        let mut visible_chunk_id_vec = Vec::new();
 
         let judge_chunk_coordinates = self
             .grid
@@ -518,7 +518,7 @@ impl World {
                             let origin_to_center = chunk.aabb.center() - view_origin;
 
                             if view_direction.dot(origin_to_center) >= 0.0 {
-                                visible_chunk_id_list.push(chunk_id);
+                                visible_chunk_id_vec.push(chunk_id);
                             }
                         }
                     }
@@ -526,6 +526,6 @@ impl World {
             }
         }
 
-        visible_chunk_id_list
+        visible_chunk_id_vec
     }
 }

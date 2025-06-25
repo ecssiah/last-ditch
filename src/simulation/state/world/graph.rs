@@ -16,15 +16,15 @@ use glam::IVec3;
 use std::collections::{HashMap, HashSet};
 
 pub struct Level {
-    pub node_list: HashMap<IVec3, Node>,
-    pub edge_list: HashMap<(IVec3, IVec3), Edge>,
+    pub node_vec: HashMap<IVec3, Node>,
+    pub edge_vec: HashMap<(IVec3, IVec3), Edge>,
 }
 
 impl Level {
     pub fn new() -> Self {
         Self {
-            node_list: HashMap::new(),
-            edge_list: HashMap::new(),
+            node_vec: HashMap::new(),
+            edge_vec: HashMap::new(),
         }
     }
 }
@@ -40,9 +40,9 @@ pub struct Graph {
     pub grid: Grid,
     pub solid_set_map: HashMap<IVec3, FixedBitSet>,
     pub clearance_map: HashMap<IVec3, u32>,
-    pub region_list: Vec<Region>,
-    pub entrance_list: Vec<Entrance>,
-    pub level_list: Vec<Level>,
+    pub region_vec: Vec<Region>,
+    pub entrance_vec: Vec<Entrance>,
+    pub level_vec: Vec<Level>,
 }
 
 impl Graph {
@@ -52,27 +52,27 @@ impl Graph {
             grid: *grid,
             solid_set_map: HashMap::new(),
             clearance_map: HashMap::new(),
-            region_list: Vec::new(),
-            entrance_list: Vec::new(),
-            level_list: Vec::with_capacity(depth),
+            region_vec: Vec::new(),
+            entrance_vec: Vec::new(),
+            level_vec: Vec::with_capacity(depth),
         }
     }
 
-    pub fn setup(&mut self, chunk_list: &[Chunk]) {
-        self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_list);
-        self.region_list = Self::setup_regions(&self.grid, chunk_list);
+    pub fn setup(&mut self, chunk_vec: &[Chunk]) {
+        self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_vec);
+        self.region_vec = Self::setup_regions(&self.grid, chunk_vec);
 
         self.setup_clearance_map();
         self.setup_nodes();
     }
 
-    fn setup_solid_set_map(grid: &Grid, chunk_list: &[Chunk]) -> HashMap<IVec3, FixedBitSet> {
-        chunk_list
+    fn setup_solid_set_map(grid: &Grid, chunk_vec: &[Chunk]) -> HashMap<IVec3, FixedBitSet> {
+        chunk_vec
             .iter()
             .map(|chunk| {
                 let mut solid_set = FixedBitSet::with_capacity(grid.chunk_volume as usize);
 
-                for block in &chunk.block_list {
+                for block in &chunk.block_vec {
                     solid_set.set(usize::from(block.id), block.solid);
                 }
 
@@ -101,10 +101,10 @@ impl Graph {
         self.clearance_map = clearance_map;
     }
 
-    fn setup_regions(grid: &Grid, chunk_list: &[Chunk]) -> Vec<Region> {
+    fn setup_regions(grid: &Grid, chunk_vec: &[Chunk]) -> Vec<Region> {
         let chunk_radius = IVec3::splat(grid.chunk_radius as i32);
 
-        chunk_list
+        chunk_vec
             .iter()
             .map(|chunk| {
                 let min = chunk.position - chunk_radius;
@@ -175,15 +175,15 @@ impl Graph {
                                             transitions: Vec::new(),
                                         };
 
-                                        self.entrance_list.push(entrance);
+                                        self.entrance_vec.push(entrance);
 
                                         x_entrance_active = true;
                                     };
 
-                                    let last_entrance_index = self.entrance_list.len() - 1;
+                                    let last_entrance_index = self.entrance_vec.len() - 1;
 
                                     if let Some(entrance) =
-                                        self.entrance_list.get_mut(last_entrance_index)
+                                        self.entrance_vec.get_mut(last_entrance_index)
                                     {
                                         let transition = Transition {
                                             region1_position: block_position,
@@ -204,15 +204,15 @@ impl Graph {
                                                 transitions: Vec::new(),
                                             };
 
-                                            self.entrance_list.push(entrance);
+                                            self.entrance_vec.push(entrance);
 
                                             x_entrance_active = true;
                                         };
 
-                                        let last_entrance_index = self.entrance_list.len() - 1;
+                                        let last_entrance_index = self.entrance_vec.len() - 1;
 
                                         if let Some(entrance) =
-                                            self.entrance_list.get_mut(last_entrance_index)
+                                            self.entrance_vec.get_mut(last_entrance_index)
                                         {
                                             let transition = Transition {
                                                 region1_position: block_position,
@@ -233,15 +233,15 @@ impl Graph {
                                                     transitions: Vec::new(),
                                                 };
 
-                                                self.entrance_list.push(entrance);
+                                                self.entrance_vec.push(entrance);
 
                                                 x_entrance_active = true;
                                             };
 
-                                            let last_entrance_index = self.entrance_list.len() - 1;
+                                            let last_entrance_index = self.entrance_vec.len() - 1;
 
                                             if let Some(entrance) =
-                                                self.entrance_list.get_mut(last_entrance_index)
+                                                self.entrance_vec.get_mut(last_entrance_index)
                                             {
                                                 let transition = Transition {
                                                     region1_position: block_position,
@@ -270,26 +270,26 @@ impl Graph {
                             let block_clearance = self.get_clearance(block_position);
 
                             if block_clearance >= 3 {
-                                let mut neighbor_position_list = Vec::new();
+                                let mut neighbor_position_vec = Vec::new();
 
-                                let neighbor_offset_list = [
+                                let neighbor_offset_vec = [
                                     IVec3::new(1, 1, 0),
                                     IVec3::new(-1, 1, 0),
                                     IVec3::new(0, 1, 1),
                                     IVec3::new(0, 1, -1),
                                 ];
 
-                                for offset in neighbor_offset_list {
+                                for offset in neighbor_offset_vec {
                                     let neighbor_position = block_position + offset;
                                     let neighbor_clearance = self.get_clearance(neighbor_position);
 
                                     if neighbor_clearance >= 3 {
-                                        neighbor_position_list.push(neighbor_position);
+                                        neighbor_position_vec.push(neighbor_position);
                                     }
                                 }
 
-                                if !neighbor_position_list.is_empty() {
-                                    y_candidate_map.insert(block_position, neighbor_position_list);
+                                if !neighbor_position_vec.is_empty() {
+                                    y_candidate_map.insert(block_position, neighbor_position_vec);
                                 }
                             }
                         }
@@ -329,9 +329,9 @@ impl Graph {
                         };
 
                         for position in group {
-                            let neighbor_position_list = y_candidate_map.get(&position).unwrap();
+                            let neighbor_position_vec = y_candidate_map.get(&position).unwrap();
 
-                            for neighbor_position in neighbor_position_list {
+                            for neighbor_position in neighbor_position_vec {
                                 let transition = Transition {
                                     region1_position: position,
                                     region2_position: *neighbor_position,
@@ -341,7 +341,7 @@ impl Graph {
                             }
                         }
 
-                        self.entrance_list.push(entrance);
+                        self.entrance_vec.push(entrance);
                     }
 
                     let mut z_visited_set = HashSet::new();
@@ -385,15 +385,15 @@ impl Graph {
                                             transitions: Vec::new(),
                                         };
 
-                                        self.entrance_list.push(entrance);
+                                        self.entrance_vec.push(entrance);
 
                                         z_entrance_active = true;
                                     };
 
-                                    let last_entrance_index = self.entrance_list.len() - 1;
+                                    let last_entrance_index = self.entrance_vec.len() - 1;
 
                                     if let Some(entrance) =
-                                        self.entrance_list.get_mut(last_entrance_index)
+                                        self.entrance_vec.get_mut(last_entrance_index)
                                     {
                                         let transition = Transition {
                                             region1_position: block_position,
@@ -414,15 +414,15 @@ impl Graph {
                                                 transitions: Vec::new(),
                                             };
 
-                                            self.entrance_list.push(entrance);
+                                            self.entrance_vec.push(entrance);
 
                                             z_entrance_active = true;
                                         };
 
-                                        let last_entrance_index = self.entrance_list.len() - 1;
+                                        let last_entrance_index = self.entrance_vec.len() - 1;
 
                                         if let Some(entrance) =
-                                            self.entrance_list.get_mut(last_entrance_index)
+                                            self.entrance_vec.get_mut(last_entrance_index)
                                         {
                                             let transition = Transition {
                                                 region1_position: block_position,
@@ -443,15 +443,15 @@ impl Graph {
                                                     transitions: Vec::new(),
                                                 };
 
-                                                self.entrance_list.push(entrance);
+                                                self.entrance_vec.push(entrance);
 
                                                 z_entrance_active = true;
                                             };
 
-                                            let last_entrance_index = self.entrance_list.len() - 1;
+                                            let last_entrance_index = self.entrance_vec.len() - 1;
 
                                             if let Some(entrance) =
-                                                self.entrance_list.get_mut(last_entrance_index)
+                                                self.entrance_vec.get_mut(last_entrance_index)
                                             {
                                                 let transition = Transition {
                                                     region1_position: block_position,
@@ -474,8 +474,8 @@ impl Graph {
             }
         }
 
-        let entrance_vec: Vec<&Entrance> = self
-            .entrance_list
+        let test_entrance_vec: Vec<&Entrance> = self
+            .entrance_vec
             .iter()
             .filter(|entrance| {
                 entrance.region1_position == IVec3::new(0, 0, -2)
@@ -483,7 +483,7 @@ impl Graph {
             })
             .collect();
 
-        for entrance in entrance_vec {
+        for entrance in test_entrance_vec {
             println!("{:?}", entrance.region1_position);
             println!("{:?}", entrance.region2_position);
 

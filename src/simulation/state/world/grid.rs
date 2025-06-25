@@ -283,7 +283,7 @@ impl Grid {
     }
 
     pub fn blocks_overlapping(&self, aabb: AABB) -> Vec<AABB> {
-        let mut aabb_list = Vec::new();
+        let mut aabb_vec = Vec::new();
 
         let min = aabb.min.round().as_ivec3();
         let max = aabb.max.round().as_ivec3();
@@ -297,13 +297,13 @@ impl Grid {
                     let block_aabb = AABB::new(block_position.as_vec3(), size);
 
                     if block_aabb.overlaps(aabb) {
-                        aabb_list.push(block_aabb);
+                        aabb_vec.push(block_aabb);
                     }
                 }
             }
         }
 
-        aabb_list
+        aabb_vec
     }
 
     pub fn on_chunk_boundary(&self, position: IVec3) -> bool {

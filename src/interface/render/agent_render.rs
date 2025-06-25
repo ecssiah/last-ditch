@@ -10,8 +10,8 @@ use wgpu::{
 
 pub struct AgentRender {
     pub shader_module: wgpu::ShaderModule,
-    pub vertex_data_list: Vec<VertexData>,
-    pub instance_data_list: Vec<AgentInstanceData>,
+    pub vertex_data_vec: Vec<VertexData>,
+    pub instance_data_vec: Vec<AgentInstanceData>,
     pub vertex_buffer: wgpu::Buffer,
     pub instance_buffer: wgpu::Buffer,
     pub render_pipeline: wgpu::RenderPipeline,
@@ -28,11 +28,11 @@ impl AgentRender {
             source: wgpu::ShaderSource::Wgsl(include_assets!("shaders/agent.wgsl").into()),
         });
 
-        let vertex_data_list = Self::setup_agent_vertex_datas();
+        let vertex_data_vec = Self::setup_agent_vertex_datas();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Agent Vertex Buffer"),
-            contents: bytemuck::cast_slice(&vertex_data_list),
+            contents: bytemuck::cast_slice(&vertex_data_vec),
             usage: wgpu::BufferUsages::VERTEX,
         });
 
@@ -50,12 +50,12 @@ impl AgentRender {
             camera_uniform_bind_group_layout,
         );
 
-        let instance_data_list = Vec::new();
+        let instance_data_vec = Vec::new();
 
         Self {
             shader_module,
-            vertex_data_list,
-            instance_data_list,
+            vertex_data_vec,
+            instance_data_vec,
             vertex_buffer,
             instance_buffer,
             render_pipeline,
@@ -136,7 +136,7 @@ impl AgentRender {
             },
         });
 
-        if !self.instance_data_list.is_empty() {
+        if !self.instance_data_vec.is_empty() {
             let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
@@ -162,8 +162,8 @@ impl AgentRender {
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 
             render_pass.draw(
-                0..(self.vertex_data_list.len() as u32),
-                0..(self.instance_data_list.len() as u32),
+                0..(self.vertex_data_vec.len() as u32),
+                0..(self.instance_data_vec.len() as u32),
             );
 
             drop(render_pass);

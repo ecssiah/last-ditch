@@ -139,9 +139,9 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let visible_chunk_id_list = world.get_visible_chunk_id_list(judge);
+        let visible_chunk_id_vec = world.get_visible_chunk_id_vec(judge);
 
-        for chunk_id in visible_chunk_id_list {
+        for chunk_id in visible_chunk_id_vec {
             if let Some(chunk) = world.get_chunk(chunk_id) {
                 let chunk_view = self.update_chunk_view(chunk, world_view);
 

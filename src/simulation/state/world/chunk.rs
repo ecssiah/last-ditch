@@ -18,16 +18,16 @@ pub struct Chunk {
     pub position: IVec3,
     pub aabb: AABB,
     pub geometry: chunk::Geometry,
-    pub block_list: Vec<block::Block>,
-    pub visibility_list: Vec<Vec<grid::Direction>>,
+    pub block_vec: Vec<block::Block>,
+    pub visibility_vec: Vec<Vec<grid::Direction>>,
 }
 
 impl Chunk {
     pub fn get_block(&self, block_id: block::ID) -> Option<&block::Block> {
-        self.block_list.get(usize::from(block_id))
+        self.block_vec.get(usize::from(block_id))
     }
 
     pub fn get_block_mut(&mut self, block_id: block::ID) -> Option<&mut block::Block> {
-        self.block_list.get_mut(usize::from(block_id))
+        self.block_vec.get_mut(usize::from(block_id))
     }
 }

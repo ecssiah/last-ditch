@@ -9,14 +9,14 @@ use std::f32::EPSILON;
 struct OverlappingAABBCase {
     description: String,
     aabb: AABB,
-    expected_aabb_list: Vec<AABB>,
+    expected_aabb_vec: Vec<AABB>,
 }
 
 impl OverlappingAABBCase {
     pub fn check(&self, world: &World) {
-        let aabb_list = world.grid.blocks_overlapping(self.aabb);
+        let aabb_vec = world.grid.blocks_overlapping(self.aabb);
 
-        let is_equal = AABB::approx_set_eq(&aabb_list, &self.expected_aabb_list, EPSILON);
+        let is_equal = AABB::approx_set_eq(&aabb_vec, &self.expected_aabb_vec, EPSILON);
 
         assert!(is_equal, "{:?}", self.description);
     }
@@ -33,7 +33,7 @@ fn directions() {
                 grid::Direction::XoYoZo.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![block::aabb(0, 0, 0)],
+            expected_aabb_vec: vec![block::aabb(0, 0, 0)],
         },
         OverlappingAABBCase {
             description: String::from("XpYpZp"),
@@ -41,7 +41,7 @@ fn directions() {
                 grid::Direction::XpYpZp.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, 0, 0),
                 block::aabb(1, 0, 0),
                 block::aabb(0, 1, 0),
@@ -58,7 +58,7 @@ fn directions() {
                 grid::Direction::XpYpZn.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, 0, -1),
                 block::aabb(1, 0, -1),
                 block::aabb(0, 1, -1),
@@ -75,7 +75,7 @@ fn directions() {
                 grid::Direction::XpYnZp.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, -1, 0),
                 block::aabb(1, -1, 0),
                 block::aabb(0, 0, 0),
@@ -92,7 +92,7 @@ fn directions() {
                 grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, -1, -1),
                 block::aabb(1, -1, -1),
                 block::aabb(0, 0, -1),
@@ -109,7 +109,7 @@ fn directions() {
                 grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, -1, -1),
                 block::aabb(1, -1, -1),
                 block::aabb(0, 0, -1),
@@ -126,7 +126,7 @@ fn directions() {
                 grid::Direction::XnYpZp.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(-1, 0, 0),
                 block::aabb(0, 0, 0),
                 block::aabb(-1, 1, 0),
@@ -143,7 +143,7 @@ fn directions() {
                 grid::Direction::XnYpZn.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(-1, 0, -1),
                 block::aabb(0, 0, -1),
                 block::aabb(-1, 1, -1),
@@ -160,7 +160,7 @@ fn directions() {
                 grid::Direction::XnYnZp.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(-1, -1, 0),
                 block::aabb(0, -1, 0),
                 block::aabb(-1, 0, 0),
@@ -177,7 +177,7 @@ fn directions() {
                 grid::Direction::XnYnZn.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_list: vec![
+            expected_aabb_vec: vec![
                 block::aabb(0, 0, 0),
                 block::aabb(-1, -1, -1),
                 block::aabb(0, -1, -1),
