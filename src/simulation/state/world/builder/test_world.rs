@@ -156,6 +156,7 @@ impl TestWorld {
         Self::build_graph_test_constricted_entrance_room(world);
         Self::build_graph_test_expanded_entrance_room(world);
         Self::build_graph_test_multiple_entrance_room(world);
+        Self::build_graph_test_vertical_entrance_rooms(world);
     }
 
     fn build_graph_test_center_room(world: &mut World) {
@@ -254,6 +255,72 @@ impl TestWorld {
             chunk_position + IVec3::new(chunk_radius - 2, 0, chunk_radius),
             chunk_position + IVec3::new(chunk_radius - 1, -3, chunk_radius + 1),
             block::Kind::Empty,
+        );
+    }
+
+    fn build_graph_test_vertical_entrance_rooms(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+
+        let chunk_coordinates1 = IVec3::new(0, 1, -3);
+
+        let chunk_position1 = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates1)
+            .unwrap();
+
+        world.set_cube(
+            chunk_position1 + IVec3::splat(-chunk_radius + 1) + IVec3::new(0, -2, 0),
+            chunk_position1 + IVec3::splat(chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        let chunk_coordinates2 = IVec3::new(0, 1, -2);
+
+        let chunk_position2 = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates2)
+            .unwrap();
+
+        world.set_cube(
+            chunk_position2 + IVec3::splat(-chunk_radius + 1) + IVec3::new(0, -2, 0),
+            chunk_position2 + IVec3::splat(chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position1 + IVec3::new(-3, -3, -3),
+            chunk_position2 + IVec3::new(3, 3, 3),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position2 + IVec3::new(-chunk_radius + 1, -chunk_radius - 1, -chunk_radius + 1),
+            chunk_position2 + IVec3::new(chunk_radius - 1, -chunk_radius - 1, chunk_radius - 1),
+            block::Kind::CrimsonStone,
+        );
+
+        world.set_cube(
+            chunk_position2 + IVec3::new(-2, -chunk_radius - 1, -2),
+            chunk_position2 + IVec3::new(-1, -chunk_radius - 1, 2),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position2 + IVec3::new(1, -chunk_radius - 1, -2),
+            chunk_position2 + IVec3::new(2, -chunk_radius - 1, 2),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position2 + IVec3::new(-1, -chunk_radius - 2, 1),
+            chunk_position2 + IVec3::new(-2, -chunk_radius - 2, 2),
+            block::Kind::CrimsonStone,
+        );
+
+        world.set_cube(
+            chunk_position2 + IVec3::new(1, -chunk_radius - 2, -1),
+            chunk_position2 + IVec3::new(2, -chunk_radius - 2, -2),
+            block::Kind::CrimsonStone,
         );
     }
 

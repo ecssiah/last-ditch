@@ -119,7 +119,7 @@ impl Graph {
         let chunk_radius = self.grid.chunk_radius as i32;
         let world_radius = self.grid.world_radius as i32;
 
-        struct NeighborPositions {
+        struct CardinalNeighborPositions {
             up: IVec3,
             center: IVec3,
             down: IVec3,
@@ -158,7 +158,7 @@ impl Graph {
                             if block_clearance >= 3 {
                                 let x_neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
 
-                                let neighbor_positions = NeighborPositions {
+                                let neighbor_positions = CardinalNeighborPositions {
                                     up: block_position + IVec3::new(1, 1, 0),
                                     center: block_position + IVec3::new(1, 0, 0),
                                     down: block_position + IVec3::new(1, -1, 0),
@@ -261,11 +261,87 @@ impl Graph {
                         }
                     }
 
+                    let mut y_candidates = HashMap::new();
+
                     for bz in -chunk_radius..=chunk_radius {
                         for bx in -chunk_radius..=chunk_radius {
-                            let block_coordinates = IVec3::new(bx, chunk_radius, bz);
-                            let _block_position = chunk_position + block_coordinates;
+                            let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
+
+                            let block_clearance = self.get_clearance(block_position);
+
+                            if block_clearance >= 3 {
+                                let mut valid_neighbors = Vec::new();
+
+                                let neighbor_offsets = [
+                                    IVec3::new(1, 1, 0),
+                                    IVec3::new(-1, 1, 0),
+                                    IVec3::new(0, 1, 1),
+                                    IVec3::new(0, 1, -1),
+                                ];
+
+                                for offset in neighbor_offsets {
+                                    let neighbor_position = block_position + offset;
+                                    let neighbor_clearance = self.get_clearance(neighbor_position);
+
+                                    if neighbor_clearance >= 3 {
+                                        valid_neighbors.push(neighbor_position);
+                                    }
+                                }
+
+                                if !valid_neighbors.is_empty() {
+                                    y_candidates.insert(block_position, valid_neighbors);
+                                }
+                            }
                         }
+                    }
+
+                    let mut y_visited = HashSet::new();
+
+                    for &start in y_candidates.keys() {
+                        if y_visited.contains(&start) {
+                            continue;
+                        }
+
+                        let mut group = vec![start];
+                        let mut queue = vec![start];
+
+                        y_visited.insert(start);
+
+                        while let Some(position) = queue.pop() {
+                            for offset in [IVec3::X, -IVec3::X, IVec3::Z, -IVec3::Z] {
+                                let neighbor_position = position + offset;
+
+                                if y_candidates.contains_key(&neighbor_position)
+                                    && !y_visited.contains(&neighbor_position)
+                                {
+                                    y_visited.insert(neighbor_position);
+
+                                    queue.push(neighbor_position);
+                                    group.push(neighbor_position);
+                                }
+                            }
+                        }
+
+                        let mut entrance = Entrance {
+                            region1_position: chunk_coordinates,
+                            region2_position: chunk_coordinates + IVec3::Y,
+                            transitions: Vec::new(),
+                        };
+
+                        for position in group {
+                            let valid_neighbors = y_candidates.get(&position).unwrap();
+
+                            for neighbor in valid_neighbors {
+                                let transition = Transition {
+                                    region1_position: position,
+                                    region2_position: *neighbor,
+                                };
+
+                                entrance.transitions.push(transition);
+                            }
+                        }
+
+                        self.entrance_list.push(entrance);
                     }
 
                     let mut z_visited = HashSet::new();
@@ -292,7 +368,7 @@ impl Graph {
                             if block_clearance >= 3 {
                                 let z_neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
 
-                                let neighbor_positions = NeighborPositions {
+                                let neighbor_positions = CardinalNeighborPositions {
                                     up: block_position + IVec3::new(0, 1, 1),
                                     center: block_position + IVec3::new(0, 0, 1),
                                     down: block_position + IVec3::new(0, -1, 1),
