@@ -53,3 +53,9 @@ impl Agent {
         self.spatial.aabb = AABB::new(self.spatial.aabb.center(), size);
     }
 }
+
+impl Default for Agent {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -27,3 +27,9 @@ impl Admin {
         self.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
     }
 }
+
+impl Default for Admin {
+    fn default() -> Self {
+        Self::new()
+    }
+}

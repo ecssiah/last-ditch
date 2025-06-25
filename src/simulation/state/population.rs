@@ -40,9 +40,9 @@ impl Population {
 
     pub fn setup(&mut self, world: &World) {
         if TESTING {
-            builder::TestPopulation::build(self, &world);
+            builder::TestPopulation::build(self, world);
         } else {
-            builder::MainPopulation::build(self, &world);
+            builder::MainPopulation::build(self, world);
         }
     }
 

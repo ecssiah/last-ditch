@@ -115,15 +115,11 @@ impl Grid {
     }
 
     pub fn block_ids(&self) -> Vec<block::ID> {
-        (0u32..self.chunk_volume)
-            .map(|block_index| block::ID(block_index))
-            .collect()
+        (0u32..self.chunk_volume).map(block::ID).collect()
     }
 
     pub fn chunk_ids(&self) -> Vec<chunk::ID> {
-        (0u32..self.world_volume)
-            .map(|chunk_index| chunk::ID(chunk_index))
-            .collect()
+        (0u32..self.world_volume).map(chunk::ID).collect()
     }
 
     pub fn chunk_id_valid(&self, chunk_id: chunk::ID) -> bool {
@@ -135,9 +131,9 @@ impl Grid {
     }
 
     pub fn position_valid(&self, position: IVec3) -> bool {
-        let in_x_range = position.x.abs() as u32 <= self.world_boundary;
-        let in_y_range = position.y.abs() as u32 <= self.world_boundary;
-        let in_z_range = position.z.abs() as u32 <= self.world_boundary;
+        let in_x_range = position.x.unsigned_abs() <= self.world_boundary;
+        let in_y_range = position.y.unsigned_abs() <= self.world_boundary;
+        let in_z_range = position.z.unsigned_abs() <= self.world_boundary;
 
         in_x_range && in_y_range && in_z_range
     }
@@ -312,7 +308,7 @@ impl Grid {
 
     pub fn on_chunk_boundary(&self, position: IVec3) -> bool {
         self.position_to_block_coordinates(position)
-            .map_or(false, |block_coordinates| {
+            .is_some_and(|block_coordinates| {
                 let chunk_radius = self.chunk_radius as i32;
 
                 block_coordinates.x.abs() == chunk_radius

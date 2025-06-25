@@ -74,11 +74,8 @@ impl Judge {
     }
 
     pub fn apply_jump_action(&mut self, jump_action: &JumpAction) {
-        match jump_action {
-            JumpAction::Start => {
-                self.kinematic.velocity.y = JUDGE_SPEED_Y;
-            }
-            _ => (),
+        if let JumpAction::Start = jump_action {
+            self.kinematic.velocity.y = JUDGE_SPEED_Y;
         }
     }
 
@@ -124,5 +121,11 @@ impl Judge {
 
     pub fn eye(&self) -> Vec3 {
         self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
+    }
+}
+
+impl Default for Judge {
+    fn default() -> Self {
+        Self::new()
     }
 }

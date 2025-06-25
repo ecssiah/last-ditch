@@ -77,9 +77,8 @@ impl Input {
 
         let agent_action =
             simulation::state::receiver::action::AgentAction::Movement(movement_actions);
-        let action = simulation::state::receiver::action::Action::Agent(agent_action);
 
-        action
+        simulation::state::receiver::action::Action::Agent(agent_action)
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -107,11 +106,8 @@ impl Input {
     }
 
     pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        match event {
-            DeviceEvent::MouseMotion { delta: (dx, dy) } => {
-                self.handle_mouse_motion(*dx, *dy);
-            }
-            _ => (),
+        if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
+            self.handle_mouse_motion(*dx, *dy);
         }
     }
 
@@ -176,7 +172,7 @@ impl Input {
                 }
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
-                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
                     self.key_inputs.key_w += 1.0;
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_w -= 1.0;
@@ -185,7 +181,7 @@ impl Input {
                 None
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
-                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
                     self.key_inputs.key_s -= 1.0;
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_s += 1.0;
@@ -194,7 +190,7 @@ impl Input {
                 None
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
-                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
                     self.key_inputs.key_a -= 1.0;
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_a += 1.0;
@@ -203,7 +199,7 @@ impl Input {
                 None
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
-                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
                     self.key_inputs.key_d += 1.0;
                 } else if key_event.state == ElementState::Released {
                     self.key_inputs.key_d -= 1.0;
@@ -212,7 +208,7 @@ impl Input {
                 None
             }
             PhysicalKey::Code(KeyCode::Space) => {
-                if key_event.state == ElementState::Pressed && key_event.repeat == false {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
                     let jump_action = simulation::state::receiver::action::JumpAction::Start;
                     let agent_action =
                         simulation::state::receiver::action::AgentAction::Jump(jump_action);
@@ -266,5 +262,11 @@ impl Input {
         self.mouse_inputs.delta += delta;
 
         None
+    }
+}
+
+impl Default for Input {
+    fn default() -> Self {
+        Self::new()
     }
 }

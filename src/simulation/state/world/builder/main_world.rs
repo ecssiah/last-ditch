@@ -32,7 +32,8 @@ impl MainWorld {
         for x in -ground_boundary..=ground_boundary {
             for y in -1..=0 {
                 for z in -ground_boundary..=ground_boundary {
-                    let position = IVec3::new(x as i32, y as i32, z as i32);
+                    let position = IVec3::new(x as i32, y, z as i32);
+
                     let chunk_coordinates =
                         world.grid.position_to_chunk_coordinates(position).unwrap();
 

@@ -105,12 +105,18 @@ impl Physics {
 
                 world
                     .get_block_at(block_position)
-                    .map_or(false, |b| b.solid)
+                    .is_some_and(|block| block.solid)
             })
             .collect()
     }
 
     fn sync_judge(judge: &mut Judge) {
         judge.set_world_position(judge.spatial.aabb.bottom_center());
+    }
+}
+
+impl Default for Physics {
+    fn default() -> Self {
+        Self::new()
     }
 }

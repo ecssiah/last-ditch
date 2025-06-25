@@ -36,26 +36,26 @@ impl Render {
     ) -> Self {
         let block_render_data_map = BlockRenderData::setup();
 
-        let mut textures = Textures::new(&device);
+        let mut textures = Textures::new(device);
 
         pollster::block_on(textures.load_texture_atlas(
-            &device,
-            &queue,
-            &"assets/textures/atlas.png".to_string(),
+            device,
+            queue,
+            "assets/textures/atlas.png",
             "atlas",
         ));
 
-        textures.setup_texture_sampler_bind_group(&device);
+        textures.setup_texture_sampler_bind_group(device);
 
         let chunk_render = ChunkRender::new(
-            &device,
-            &surface_format,
+            device,
+            surface_format,
             &camera.uniform_bind_group_layout,
             &textures.texture_sampler_bind_group_layout,
         );
 
         let agent_render =
-            AgentRender::new(&device, &surface_format, &camera.uniform_bind_group_layout);
+            AgentRender::new(device, surface_format, &camera.uniform_bind_group_layout);
 
         Self {
             block_render_data_map,
@@ -76,14 +76,10 @@ impl Render {
     ) {
         self.agent_render.instance_data_list = agent_view_map
             .iter()
-            .map(|(_, agent_view)| {
-                let agent_instance_data = AgentInstanceData {
-                    world_position: agent_view.spatial.current.world_position.to_array(),
-                    height: agent_view.spatial.current.aabb.size().y,
-                    color: agent_view.kind.color(),
-                };
-
-                agent_instance_data
+            .map(|(_, agent_view)| AgentInstanceData {
+                world_position: agent_view.spatial.current.world_position.to_array(),
+                height: agent_view.spatial.current.aabb.size().y,
+                color: agent_view.kind.color(),
             })
             .collect();
 
@@ -143,10 +139,10 @@ impl Render {
                     });
                 }
 
-                index_list.push(index_offset + 0);
+                index_list.push(index_offset);
                 index_list.push(index_offset + 1);
                 index_list.push(index_offset + 2);
-                index_list.push(index_offset + 0);
+                index_list.push(index_offset);
                 index_list.push(index_offset + 2);
                 index_list.push(index_offset + 3);
 
@@ -172,7 +168,7 @@ impl Render {
         texture_view: &wgpu::TextureView,
         camera: &Camera,
     ) {
-        let depth_texture_view = Textures::create_depth_texture(device, &surface_config);
+        let depth_texture_view = Textures::create_depth_texture(device, surface_config);
 
         if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
             self.chunk_render.render(

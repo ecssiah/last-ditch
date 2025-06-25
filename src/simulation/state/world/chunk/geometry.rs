@@ -29,8 +29,8 @@ impl Geometry {
                 vertex_list.push(Point3::new(vertex.x, vertex.y, vertex.z));
             }
 
-            index_list.push([start_index + 0, start_index + 1, start_index + 2]);
-            index_list.push([start_index + 2, start_index + 3, start_index + 0]);
+            index_list.push([start_index, start_index + 1, start_index + 2]);
+            index_list.push([start_index + 2, start_index + 3, start_index]);
         }
 
         (vertex_list, index_list)
@@ -96,8 +96,8 @@ impl Geometry {
                         vertex_list.push(Point3::new(x1, y1, zf));
                         vertex_list.push(Point3::new(x0, y1, zf));
 
-                        index_list.push([start_index + 0, start_index + 1, start_index + 2]);
-                        index_list.push([start_index + 2, start_index + 3, start_index + 0]);
+                        index_list.push([start_index, start_index + 1, start_index + 2]);
+                        index_list.push([start_index + 2, start_index + 3, start_index]);
                     }
                     grid::Direction::XpYoZo | grid::Direction::XnYoZo => {
                         while grid.contains(&(x, y + width, z)) {

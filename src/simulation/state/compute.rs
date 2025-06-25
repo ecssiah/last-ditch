@@ -59,3 +59,9 @@ impl Compute {
         }
     }
 }
+
+impl Default for Compute {
+    fn default() -> Self {
+        Self::new()
+    }
+}

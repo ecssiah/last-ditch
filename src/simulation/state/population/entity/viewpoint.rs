@@ -2,7 +2,7 @@ use crate::simulation::state::physics::aabb::AABB;
 use glam::{Mat4, Quat, Vec3};
 
 pub const DEFAULT_FOV_Y_DEGREES: f32 = 179.99;
-pub const DEFAULT_ASPECT_RATIO: f32 = 16.0 / 16.0;
+pub const DEFAULT_ASPECT_RATIO: f32 = 1.0;
 pub const DEFAULT_NEAR_PLANE: f32 = 0.1;
 pub const DEFAULT_FAR_PLANE: f32 = 1000.0;
 pub const DEFAULT_BACK_OFFSET: f32 = -5.0;
@@ -67,5 +67,11 @@ impl Viewpoint {
 
     pub fn view_proj_matrix(&self) -> Mat4 {
         self.projection_matrix() * self.view_matrix()
+    }
+}
+
+impl Default for Viewpoint {
+    fn default() -> Self {
+        Self::new()
     }
 }

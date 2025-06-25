@@ -26,3 +26,9 @@ impl Repository {
         buffer.update(view.clone())
     }
 }
+
+impl Default for Repository {
+    fn default() -> Self {
+        Self::new()
+    }
+}

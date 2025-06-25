@@ -104,20 +104,18 @@ impl ChunkRender {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Chunk Pipeline Layout"),
                 bind_group_layouts: &[
-                    &camera_uniform_bind_group_layout,
-                    &texture_sampler_bind_group_layout,
+                    camera_uniform_bind_group_layout,
+                    texture_sampler_bind_group_layout,
                 ],
                 push_constant_ranges: &[],
             });
 
-        let render_pipeline = Self::create_chunk_render_pipeline(
-            &device,
+        Self::create_chunk_render_pipeline(
+            device,
             &render_pipeline_layout,
-            &shader_module,
+            shader_module,
             surface_format,
-        );
-
-        render_pipeline
+        )
     }
 
     pub fn render(
@@ -129,7 +127,7 @@ impl ChunkRender {
         texture_sampler_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
-            view: &texture_view,
+            view: texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -143,7 +141,7 @@ impl ChunkRender {
         });
 
         let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
-            view: &depth_texture_view,
+            view: depth_texture_view,
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Clear(1.0),
                 store: wgpu::StoreOp::Store,

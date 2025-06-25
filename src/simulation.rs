@@ -46,7 +46,7 @@ impl Simulation {
     }
 
     fn setup(&mut self) {
-        // FIX: currently required to display "Loading World"
+        // FIXME: currently required to display "Loading World"
         self.observation_arc.tick(&self.state);
 
         self.state.setup();

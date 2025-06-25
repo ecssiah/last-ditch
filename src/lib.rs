@@ -28,7 +28,7 @@ struct App<'window> {
     simulation_thread: Option<thread::JoinHandle<()>>,
 }
 
-impl<'window> ApplicationHandler for App<'window> {
+impl ApplicationHandler for App<'_> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let (action_tx, action_rx) =
             unbounded_channel::<simulation::state::receiver::action::Action>();

@@ -23,3 +23,9 @@ impl Time {
         self.tick += 1;
     }
 }
+
+impl Default for Time {
+    fn default() -> Self {
+        Self::new()
+    }
+}

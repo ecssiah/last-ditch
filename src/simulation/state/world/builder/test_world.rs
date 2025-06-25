@@ -21,7 +21,7 @@ impl TestWorld {
         let world_radius = world.grid.world_radius as i32;
 
         for x in -world_radius..=world_radius {
-            for y in -1..=1 {
+            for y in -world_radius..=world_radius {
                 for z in -world_radius..=world_radius {
                     let chunk_coordinates = IVec3::new(x, y, z);
 

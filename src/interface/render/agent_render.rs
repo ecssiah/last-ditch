@@ -75,17 +75,17 @@ impl AgentRender {
                 push_constant_ranges: &[],
             });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Entity Render Pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &shader_module,
+                module: shader_module,
                 entry_point: Some("vs_main"),
                 buffers: &[VertexData::desc(), AgentInstanceData::desc()],
                 compilation_options: PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
-                module: &shader_module,
+                module: shader_module,
                 entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: *surface_format,
@@ -117,9 +117,7 @@ impl AgentRender {
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
             cache: None,
-        });
-
-        render_pipeline
+        })
     }
 
     pub fn render(
@@ -130,7 +128,7 @@ impl AgentRender {
         camera_data_bind_group: &wgpu::BindGroup,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
-            view: &texture_view,
+            view: texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Load,
@@ -138,9 +136,9 @@ impl AgentRender {
             },
         });
 
-        if self.instance_data_list.len() > 0 {
+        if !self.instance_data_list.is_empty() {
             let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &depth_texture_view,
+                view: depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Load,
                     store: wgpu::StoreOp::Store,

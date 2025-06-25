@@ -28,8 +28,14 @@ impl HUD {
     ) -> Self {
         let context = egui::Context::default();
 
-        let state =
-            egui_winit::State::new(context.clone(), ViewportId::ROOT, &window_arc, None, None, None);
+        let state = egui_winit::State::new(
+            context.clone(),
+            ViewportId::ROOT,
+            &window_arc,
+            None,
+            None,
+            None,
+        );
 
         let renderer = egui_wgpu::Renderer::new(device, surface_format, None, 1, false);
 

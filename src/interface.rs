@@ -42,7 +42,7 @@ pub struct Interface<'window> {
     hud: HUD,
 }
 
-impl<'window> Interface<'window> {
+impl Interface<'_> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
@@ -168,7 +168,7 @@ impl<'window> Interface<'window> {
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        self.input.handle_window_event(&event);
+        self.input.handle_window_event(event);
 
         match event {
             WindowEvent::RedrawRequested => self.handle_redraw_requested(),
@@ -178,7 +178,7 @@ impl<'window> Interface<'window> {
     }
 
     pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        self.input.handle_device_event(&event);
+        self.input.handle_device_event(event);
     }
 
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {

@@ -148,7 +148,7 @@ impl World {
     pub fn get_clearance(&self, position: IVec3) -> Option<u32> {
         let ground_is_solid = self
             .get_block_at(position + IVec3::NEG_Y)
-            .map_or(false, |block| block.solid);
+            .is_some_and(|block| block.solid);
 
         if ground_is_solid {
             let mut clearance = 0;
@@ -307,8 +307,7 @@ impl World {
                     if visibility_list.contains(&direction) {
                         let mut face = block::Face::new(position, direction, block.kind);
 
-                        let (edges, corners) =
-                            Self::get_face_neighbors(direction, &visibility_list);
+                        let (edges, corners) = Self::get_face_neighbors(direction, visibility_list);
 
                         face.light = Self::calculate_face_light(edges, corners);
 
@@ -332,13 +331,13 @@ impl World {
 
         if self
             .get_block(chunk_id, block_id)
-            .map_or(false, |block| block.kind != block::Kind::Empty)
+            .is_some_and(|block| block.kind != block::Kind::Empty)
         {
             let visibility_list = self.compute_visibility_list(position);
 
             visibility_updates_map
                 .entry(chunk_id)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push((block_id, visibility_list));
         }
 
@@ -348,13 +347,13 @@ impl World {
             if let Some((chunk_id, block_id)) = self.grid.position_to_ids(neighbor_position) {
                 if self
                     .get_block(chunk_id, block_id)
-                    .map_or(false, |block| block.kind != block::Kind::Empty)
+                    .is_some_and(|block| block.kind != block::Kind::Empty)
                 {
                     let visibility_list = self.compute_visibility_list(neighbor_position);
 
                     visibility_updates_map
                         .entry(chunk_id)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push((block_id, visibility_list));
                 }
             }
@@ -385,7 +384,7 @@ impl World {
 
     fn get_face_neighbors(
         direction: grid::Direction,
-        visibility_list: &Vec<grid::Direction>,
+        visibility_list: &[grid::Direction],
     ) -> ([bool; 4], [bool; 4]) {
         match direction {
             grid::Direction::XpYoZo => (

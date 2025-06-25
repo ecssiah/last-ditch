@@ -1,8 +1,8 @@
 //! Simulation constants
 
-use std::time::Duration;
+use std::{f32::consts::SQRT_2, time::Duration};
 
-pub const TESTING: bool = false;
+pub const TESTING: bool = true;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";
 pub const DEFAULT_SEED: u64 = 128;
@@ -15,7 +15,7 @@ pub const SIMULATION_TICK_IN_SECONDS_SQUARED: f32 =
     SIMULATION_TICK_IN_SECONDS * SIMULATION_TICK_IN_SECONDS;
 
 pub const MOVEMENT_COST_FACE: f32 = 1.0;
-pub const MOVEMENT_COST_EDGE: f32 = 1.4142135;
+pub const MOVEMENT_COST_EDGE: f32 = SQRT_2;
 pub const MOVEMENT_COST_CORNER: f32 = 1.7320508;
 
 pub const MAIN_CHUNK_RADIUS: u32 = 8;

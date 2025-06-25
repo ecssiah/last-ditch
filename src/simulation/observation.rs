@@ -35,7 +35,7 @@ impl Observation {
     }
 
     pub fn tick(&self, state: &State) {
-        self.update_view(&state);
+        self.update_view(state);
     }
 
     pub fn get_view(&self) -> View {
@@ -163,5 +163,11 @@ impl Observation {
             id: chunk.id,
             geometry: StatePair::new(current_chunk_geometry, chunk.geometry.clone()),
         }
+    }
+}
+
+impl Default for Observation {
+    fn default() -> Self {
+        Self::new()
     }
 }

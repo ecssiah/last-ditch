@@ -30,9 +30,9 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         let (chunk_radius, world_radius) = if TESTING {
-            (TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32)
+            (TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS)
         } else {
-            (MAIN_CHUNK_RADIUS as u32, MAIN_WORLD_RADIUS as u32)
+            (MAIN_CHUNK_RADIUS, MAIN_WORLD_RADIUS)
         };
 
         let admin = Admin::new();
@@ -64,5 +64,11 @@ impl State {
         self.physics.tick(&self.world, &mut self.population);
         self.population.tick(&self.world);
         self.compute.tick(&self.world, &self.population);
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::new()
     }
 }
