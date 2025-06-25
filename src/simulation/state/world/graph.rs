@@ -134,7 +134,7 @@ impl Graph {
                         .chunk_coordinates_to_position(chunk_coordinates)
                         .unwrap();
 
-                    let mut x_visited = HashSet::new();
+                    let mut x_visited_set = HashSet::new();
                     let mut x_entrance_active = false;
 
                     for by in -chunk_radius..=chunk_radius {
@@ -142,17 +142,17 @@ impl Graph {
                             let block_coordinates = IVec3::new(chunk_radius, by, bz);
                             let block_position = chunk_position + block_coordinates;
 
-                            if x_visited.contains(&block_position) {
+                            if x_visited_set.contains(&block_position) {
                                 x_entrance_active = false;
                                 continue;
                             }
 
-                            x_visited.insert(block_position);
+                            x_visited_set.insert(block_position);
 
                             let &block_clearance = self.clearance_map.get(&block_position).unwrap();
 
                             (1..=block_clearance).for_each(|level| {
-                                x_visited.insert(block_position + IVec3::Y * level as i32);
+                                x_visited_set.insert(block_position + IVec3::Y * level as i32);
                             });
 
                             if block_clearance >= 3 {
@@ -261,7 +261,7 @@ impl Graph {
                         }
                     }
 
-                    let mut y_candidates = HashMap::new();
+                    let mut y_candidate_map = HashMap::new();
 
                     for bz in -chunk_radius..=chunk_radius {
                         for bx in -chunk_radius..=chunk_radius {
@@ -270,51 +270,51 @@ impl Graph {
                             let block_clearance = self.get_clearance(block_position);
 
                             if block_clearance >= 3 {
-                                let mut valid_neighbors = Vec::new();
+                                let mut neighbor_position_list = Vec::new();
 
-                                let neighbor_offsets = [
+                                let neighbor_offset_list = [
                                     IVec3::new(1, 1, 0),
                                     IVec3::new(-1, 1, 0),
                                     IVec3::new(0, 1, 1),
                                     IVec3::new(0, 1, -1),
                                 ];
 
-                                for offset in neighbor_offsets {
+                                for offset in neighbor_offset_list {
                                     let neighbor_position = block_position + offset;
                                     let neighbor_clearance = self.get_clearance(neighbor_position);
 
                                     if neighbor_clearance >= 3 {
-                                        valid_neighbors.push(neighbor_position);
+                                        neighbor_position_list.push(neighbor_position);
                                     }
                                 }
 
-                                if !valid_neighbors.is_empty() {
-                                    y_candidates.insert(block_position, valid_neighbors);
+                                if !neighbor_position_list.is_empty() {
+                                    y_candidate_map.insert(block_position, neighbor_position_list);
                                 }
                             }
                         }
                     }
 
-                    let mut y_visited = HashSet::new();
+                    let mut y_visited_set = HashSet::new();
 
-                    for &start in y_candidates.keys() {
-                        if y_visited.contains(&start) {
+                    for &start in y_candidate_map.keys() {
+                        if y_visited_set.contains(&start) {
                             continue;
                         }
 
                         let mut group = vec![start];
                         let mut queue = vec![start];
 
-                        y_visited.insert(start);
+                        y_visited_set.insert(start);
 
                         while let Some(position) = queue.pop() {
                             for offset in [IVec3::X, -IVec3::X, IVec3::Z, -IVec3::Z] {
                                 let neighbor_position = position + offset;
 
-                                if y_candidates.contains_key(&neighbor_position)
-                                    && !y_visited.contains(&neighbor_position)
+                                if y_candidate_map.contains_key(&neighbor_position)
+                                    && !y_visited_set.contains(&neighbor_position)
                                 {
-                                    y_visited.insert(neighbor_position);
+                                    y_visited_set.insert(neighbor_position);
 
                                     queue.push(neighbor_position);
                                     group.push(neighbor_position);
@@ -329,12 +329,12 @@ impl Graph {
                         };
 
                         for position in group {
-                            let valid_neighbors = y_candidates.get(&position).unwrap();
+                            let neighbor_position_list = y_candidate_map.get(&position).unwrap();
 
-                            for neighbor in valid_neighbors {
+                            for neighbor_position in neighbor_position_list {
                                 let transition = Transition {
                                     region1_position: position,
-                                    region2_position: *neighbor,
+                                    region2_position: *neighbor_position,
                                 };
 
                                 entrance.transitions.push(transition);
@@ -344,7 +344,7 @@ impl Graph {
                         self.entrance_list.push(entrance);
                     }
 
-                    let mut z_visited = HashSet::new();
+                    let mut z_visited_set = HashSet::new();
                     let mut z_entrance_active = false;
 
                     for by in -chunk_radius..=chunk_radius {
@@ -352,17 +352,17 @@ impl Graph {
                             let block_coordinates = IVec3::new(bx, by, chunk_radius);
                             let block_position = chunk_position + block_coordinates;
 
-                            if z_visited.contains(&block_position) {
+                            if z_visited_set.contains(&block_position) {
                                 z_entrance_active = false;
                                 continue;
                             }
 
-                            z_visited.insert(block_position);
+                            z_visited_set.insert(block_position);
 
                             let &block_clearance = self.clearance_map.get(&block_position).unwrap();
 
                             (1..=block_clearance).for_each(|level| {
-                                z_visited.insert(block_position + IVec3::Y * level as i32);
+                                z_visited_set.insert(block_position + IVec3::Y * level as i32);
                             });
 
                             if block_clearance >= 3 {
@@ -474,7 +474,7 @@ impl Graph {
             }
         }
 
-        let entrances: Vec<&Entrance> = self
+        let entrance_vec: Vec<&Entrance> = self
             .entrance_list
             .iter()
             .filter(|entrance| {
@@ -483,7 +483,7 @@ impl Graph {
             })
             .collect();
 
-        for entrance in entrances {
+        for entrance in entrance_vec {
             println!("{:?}", entrance.region1_position);
             println!("{:?}", entrance.region2_position);
 
