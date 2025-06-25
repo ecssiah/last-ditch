@@ -119,6 +119,12 @@ impl Graph {
         let chunk_radius = self.grid.chunk_radius as i32;
         let world_radius = self.grid.world_radius as i32;
 
+        struct NeighborPositions {
+            up: IVec3,
+            center: IVec3,
+            down: IVec3,
+        }
+
         for cx in -world_radius..=world_radius - 1 {
             for cy in -world_radius..=world_radius - 1 {
                 for cz in -world_radius..=world_radius - 1 {
@@ -129,7 +135,7 @@ impl Graph {
                         .unwrap();
 
                     let mut x_visited = HashSet::new();
-                    let mut x_entrance_discoverd = false;
+                    let mut x_entrance_active = false;
 
                     for by in -chunk_radius..=chunk_radius {
                         for bz in -chunk_radius..=chunk_radius {
@@ -137,6 +143,7 @@ impl Graph {
                             let block_position = chunk_position + block_coordinates;
 
                             if x_visited.contains(&block_position) {
+                                x_entrance_active = false;
                                 continue;
                             }
 
@@ -149,24 +156,28 @@ impl Graph {
                             });
 
                             if block_clearance >= 3 {
-                                let neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
+                                let x_neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
 
-                                let neighbor_block_position_down =
-                                    block_position + IVec3::X + IVec3::NEG_Y;
-                                let neighbor_block_clearance_down =
-                                    self.get_clearance(neighbor_block_position_down);
+                                let neighbor_positions = NeighborPositions {
+                                    up: block_position + IVec3::new(1, 1, 0),
+                                    center: block_position + IVec3::new(1, 0, 0),
+                                    down: block_position + IVec3::new(1, -1, 0),
+                                };
 
-                                if neighbor_block_clearance_down >= 3 {
-                                    if !x_entrance_discoverd {
+                                let neighbor_clearance_down =
+                                    self.get_clearance(neighbor_positions.down);
+
+                                if neighbor_clearance_down >= 3 {
+                                    if !x_entrance_active {
                                         let entrance = Entrance {
                                             region1_position: chunk_coordinates,
-                                            region2_position: neighbor_chunk_coordinates,
+                                            region2_position: x_neighbor_chunk_coordinates,
                                             transitions: Vec::new(),
                                         };
 
                                         self.entrance_list.push(entrance);
 
-                                        x_entrance_discoverd = true;
+                                        x_entrance_active = true;
                                     };
 
                                     let last_entrance_index = self.entrance_list.len() - 1;
@@ -176,27 +187,26 @@ impl Graph {
                                     {
                                         let transition = Transition {
                                             region1_position: block_position,
-                                            region2_position: neighbor_block_position_down,
+                                            region2_position: neighbor_positions.down,
                                         };
 
                                         entrance.transitions.push(transition);
                                     }
                                 } else {
-                                    let neighbor_block_position_center = block_position + IVec3::X;
-                                    let neighbor_block_clearance_center =
-                                        self.get_clearance(neighbor_block_position_center);
+                                    let neighbor_clearance_center =
+                                        self.get_clearance(neighbor_positions.center);
 
-                                    if neighbor_block_clearance_center >= 3 {
-                                        if !x_entrance_discoverd {
+                                    if neighbor_clearance_center >= 3 {
+                                        if !x_entrance_active {
                                             let entrance = Entrance {
                                                 region1_position: chunk_coordinates,
-                                                region2_position: neighbor_chunk_coordinates,
+                                                region2_position: x_neighbor_chunk_coordinates,
                                                 transitions: Vec::new(),
                                             };
 
                                             self.entrance_list.push(entrance);
 
-                                            x_entrance_discoverd = true;
+                                            x_entrance_active = true;
                                         };
 
                                         let last_entrance_index = self.entrance_list.len() - 1;
@@ -206,28 +216,26 @@ impl Graph {
                                         {
                                             let transition = Transition {
                                                 region1_position: block_position,
-                                                region2_position: neighbor_block_position_center,
+                                                region2_position: neighbor_positions.center,
                                             };
 
                                             entrance.transitions.push(transition);
                                         }
                                     } else {
-                                        let neighbor_block_position_up =
-                                            block_position + IVec3::X + IVec3::Y;
-                                        let neighbor_block_clearance_up =
-                                            self.get_clearance(neighbor_block_position_up);
+                                        let neighbor_clearance_up =
+                                            self.get_clearance(neighbor_positions.up);
 
-                                        if neighbor_block_clearance_up >= 3 {
-                                            if !x_entrance_discoverd {
+                                        if neighbor_clearance_up >= 3 {
+                                            if !x_entrance_active {
                                                 let entrance = Entrance {
                                                     region1_position: chunk_coordinates,
-                                                    region2_position: neighbor_chunk_coordinates,
+                                                    region2_position: x_neighbor_chunk_coordinates,
                                                     transitions: Vec::new(),
                                                 };
 
                                                 self.entrance_list.push(entrance);
 
-                                                x_entrance_discoverd = true;
+                                                x_entrance_active = true;
                                             };
 
                                             let last_entrance_index = self.entrance_list.len() - 1;
@@ -237,14 +245,18 @@ impl Graph {
                                             {
                                                 let transition = Transition {
                                                     region1_position: block_position,
-                                                    region2_position: neighbor_block_position_up,
+                                                    region2_position: neighbor_positions.up,
                                                 };
 
                                                 entrance.transitions.push(transition);
                                             }
+                                        } else {
+                                            x_entrance_active = false;
                                         }
                                     }
                                 }
+                            } else {
+                                x_entrance_active = false;
                             }
                         }
                     }
@@ -257,14 +269,15 @@ impl Graph {
                     }
 
                     let mut z_visited = HashSet::new();
-                    let mut z_entrance_discoverd = false;
+                    let mut z_entrance_active = false;
 
-                    for bx in -chunk_radius..=chunk_radius {
-                        for by in -chunk_radius..=chunk_radius {
+                    for by in -chunk_radius..=chunk_radius {
+                        for bx in -chunk_radius..=chunk_radius {
                             let block_coordinates = IVec3::new(bx, by, chunk_radius);
                             let block_position = chunk_position + block_coordinates;
 
                             if z_visited.contains(&block_position) {
+                                z_entrance_active = false;
                                 continue;
                             }
 
@@ -277,27 +290,28 @@ impl Graph {
                             });
 
                             if block_clearance >= 3 {
-                                let neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
+                                let z_neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
 
-                                println!("Chunk: {:?}", chunk_coordinates);
-                                println!("Neighbor: {:?}\n", neighbor_chunk_coordinates);
+                                let neighbor_positions = NeighborPositions {
+                                    up: block_position + IVec3::new(0, 1, 1),
+                                    center: block_position + IVec3::new(0, 0, 1),
+                                    down: block_position + IVec3::new(0, -1, 1),
+                                };
 
-                                let neighbor_block_position_down =
-                                    block_position + IVec3::Z + IVec3::NEG_Y;
-                                let neighbor_block_clearance_down =
-                                    self.get_clearance(neighbor_block_position_down);
+                                let neighbor_clearance_down =
+                                    self.get_clearance(neighbor_positions.down);
 
-                                if neighbor_block_clearance_down >= 3 {
-                                    if !z_entrance_discoverd {
+                                if neighbor_clearance_down >= 3 {
+                                    if !z_entrance_active {
                                         let entrance = Entrance {
                                             region1_position: chunk_coordinates,
-                                            region2_position: neighbor_chunk_coordinates,
+                                            region2_position: z_neighbor_chunk_coordinates,
                                             transitions: Vec::new(),
                                         };
 
                                         self.entrance_list.push(entrance);
 
-                                        z_entrance_discoverd = true;
+                                        z_entrance_active = true;
                                     };
 
                                     let last_entrance_index = self.entrance_list.len() - 1;
@@ -307,27 +321,26 @@ impl Graph {
                                     {
                                         let transition = Transition {
                                             region1_position: block_position,
-                                            region2_position: neighbor_block_position_down,
+                                            region2_position: neighbor_positions.down,
                                         };
 
                                         entrance.transitions.push(transition);
                                     }
                                 } else {
-                                    let neighbor_block_position_center = block_position + IVec3::Z;
-                                    let neighbor_block_clearance_center =
-                                        self.get_clearance(neighbor_block_position_center);
+                                    let neighbor_clearance_center =
+                                        self.get_clearance(neighbor_positions.center);
 
-                                    if neighbor_block_clearance_center >= 3 {
-                                        if !z_entrance_discoverd {
+                                    if neighbor_clearance_center >= 3 {
+                                        if !z_entrance_active {
                                             let entrance = Entrance {
                                                 region1_position: chunk_coordinates,
-                                                region2_position: neighbor_chunk_coordinates,
+                                                region2_position: z_neighbor_chunk_coordinates,
                                                 transitions: Vec::new(),
                                             };
 
                                             self.entrance_list.push(entrance);
 
-                                            z_entrance_discoverd = true;
+                                            z_entrance_active = true;
                                         };
 
                                         let last_entrance_index = self.entrance_list.len() - 1;
@@ -337,28 +350,26 @@ impl Graph {
                                         {
                                             let transition = Transition {
                                                 region1_position: block_position,
-                                                region2_position: neighbor_block_position_center,
+                                                region2_position: neighbor_positions.center,
                                             };
 
                                             entrance.transitions.push(transition);
                                         }
                                     } else {
-                                        let neighbor_block_position_up =
-                                            block_position + IVec3::Z + IVec3::Y;
-                                        let neighbor_block_clearance_up =
-                                            self.get_clearance(neighbor_block_position_up);
+                                        let neighbor_clearance_up =
+                                            self.get_clearance(neighbor_positions.up);
 
-                                        if neighbor_block_clearance_up >= 3 {
-                                            if !z_entrance_discoverd {
+                                        if neighbor_clearance_up >= 3 {
+                                            if !z_entrance_active {
                                                 let entrance = Entrance {
                                                     region1_position: chunk_coordinates,
-                                                    region2_position: neighbor_chunk_coordinates,
+                                                    region2_position: z_neighbor_chunk_coordinates,
                                                     transitions: Vec::new(),
                                                 };
 
                                                 self.entrance_list.push(entrance);
 
-                                                z_entrance_discoverd = true;
+                                                z_entrance_active = true;
                                             };
 
                                             let last_entrance_index = self.entrance_list.len() - 1;
@@ -368,27 +379,22 @@ impl Graph {
                                             {
                                                 let transition = Transition {
                                                     region1_position: block_position,
-                                                    region2_position: neighbor_block_position_up,
+                                                    region2_position: neighbor_positions.up,
                                                 };
 
                                                 entrance.transitions.push(transition);
                                             }
+                                        } else {
+                                            z_entrance_active = false;
                                         }
                                     }
                                 }
+                            } else {
+                                z_entrance_active = false;
                             }
                         }
                     }
                 }
-            }
-        }
-
-        if let Some(entrance) = self.entrance_list.iter().find(|entrance| {
-            entrance.region1_position == IVec3::new(0, 0, -2)
-                && entrance.region2_position == IVec3::new(1, 0, -2)
-        }) {
-            for transition in &entrance.transitions {
-                println!("{:?}", transition);
             }
         }
 
@@ -397,11 +403,18 @@ impl Graph {
             .iter()
             .filter(|entrance| {
                 entrance.region1_position == IVec3::new(0, 0, -2)
-                    && entrance.region2_position == IVec3::new(0, 0, -3)
+                    || entrance.region2_position == IVec3::new(0, 0, -2)
             })
             .collect();
 
-        println!("{:?}", entrances.len())
+        for entrance in entrances {
+            println!("{:?}", entrance.region1_position);
+            println!("{:?}", entrance.region2_position);
+
+            for transition in &entrance.transitions {
+                println!(" {:?}", transition);
+            }
+        }
     }
 
     fn is_solid(&self, position: IVec3) -> bool {
