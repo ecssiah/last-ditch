@@ -50,22 +50,22 @@ impl Graph {
         self.solid_set_map = Self::setup_solid_set_map(&self.grid, chunk_list);
         self.region_list = Self::setup_regions(&self.grid, chunk_list);
 
-        println!("{:?}", self.is_solid(IVec3::new(0, 0, 0)));
+        self.setup_nodes();
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_list: &Vec<Chunk>) -> HashMap<IVec3, FixedBitSet> {
         chunk_list
             .iter()
             .map(|chunk| {
-                let mut chunk_solid_set = FixedBitSet::with_capacity(grid.chunk_volume as usize);
+                let mut solid_set = FixedBitSet::with_capacity(grid.chunk_volume as usize);
 
                 for block in &chunk.block_list {
-                    chunk_solid_set.set(usize::from(block.id), block.solid);
+                    solid_set.set(usize::from(block.id), block.solid);
                 }
 
                 let chunk_coordinates = grid.position_to_chunk_coordinates(chunk.position).unwrap();
 
-                (chunk_coordinates, chunk_solid_set)
+                (chunk_coordinates, solid_set)
             })
             .collect()
     }
@@ -94,5 +94,49 @@ impl Graph {
         }
 
         true
+    }
+
+    fn setup_nodes(&mut self) {
+        let chunk_radius = self.grid.chunk_radius as i32;
+        let world_radius = self.grid.world_radius as i32;
+
+        for cx in -world_radius..=world_radius - 1 {
+            for cy in -world_radius..=world_radius - 1 {
+                for cz in -world_radius..=world_radius - 1 {
+                    let chunk_coordinates = IVec3::new(cx, cy, cz);
+                    let chunk_position = self
+                        .grid
+                        .chunk_coordinates_to_position(chunk_coordinates)
+                        .unwrap();
+
+                    for by in -chunk_radius..=chunk_radius {
+                        for bz in -chunk_radius..=chunk_radius {
+                            let block_coordinates = IVec3::new(chunk_radius, by, bz);
+                            let block_position = chunk_position + block_coordinates;
+
+                            log::info!("X: {:?}", block_position)   
+                        }
+                    }
+
+                    for bz in -chunk_radius..=chunk_radius {
+                        for bx in -chunk_radius..=chunk_radius {
+                            let block_coordinates = IVec3::new(bx, chunk_radius, bz);
+                            let block_position = chunk_position + block_coordinates;
+
+                            log::info!("Y: {:?}", block_position)   
+                        }
+                    }
+
+                    for bx in -chunk_radius..=chunk_radius {
+                        for by in -chunk_radius..=chunk_radius {
+                            let block_coordinates = IVec3::new(bx, by, chunk_radius);
+                            let block_position = chunk_position + block_coordinates;
+
+                            log::info!("Z: {:?}", block_position)   
+                        }
+                    }
+                }
+            }
+        }
     }
 }

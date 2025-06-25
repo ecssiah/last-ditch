@@ -1,6 +1,6 @@
 use crate::simulation::state::world::{
     block::{self},
-    World,
+    grid, World,
 };
 use glam::IVec3;
 
@@ -10,6 +10,7 @@ impl TestWorld {
     pub fn build(world: &mut World) {
         Self::build_rooms(world);
         Self::build_north_test_room(world);
+        Self::build_graph_test_room(world);
         Self::build_central_room(world);
 
         world.update_chunks();
@@ -50,6 +51,7 @@ impl TestWorld {
 
     fn build_central_room(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_size = world.grid.chunk_size as i32;
         let chunk_position = IVec3::new(0, 0, 0);
 
         let chunk_coordinates = world
@@ -62,10 +64,10 @@ impl TestWorld {
             .chunk_coordinates_to_position(chunk_coordinates)
             .unwrap();
 
-        world.set_cube(
-            chunk_position - chunk_radius + 1,
-            chunk_position + chunk_radius - 1,
-            block::Kind::Empty,
+        Self::build_chunk_room(
+            world,
+            chunk_position,
+            Vec::from([grid::Direction::XoYoZp, grid::Direction::XoYoZn]),
         );
 
         let center_position = IVec3::new(0, -4, 0);
@@ -77,7 +79,7 @@ impl TestWorld {
 
         world.set_cube(
             chunk_position + IVec3::new(-1, -3, 0),
-            chunk_position + IVec3::new(1, 0, 12),
+            chunk_position + IVec3::new(1, 0, chunk_radius + 1),
             block::Kind::Empty,
         );
     }
@@ -136,5 +138,182 @@ impl TestWorld {
             clearance_test_position + IVec3::new(3, 3, 3),
             block::Kind::MagentaStone,
         );
+    }
+
+    fn build_graph_test_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_size = world.grid.chunk_size as i32;
+
+        let hallway_position_start = IVec3::new(0, 0, -chunk_radius);
+        let hallway_position_end = IVec3::new(0, 0, -chunk_radius - chunk_size - 1);
+
+        world.set_cube(
+            hallway_position_start + IVec3::new(-1, -3, 0),
+            hallway_position_end + IVec3::new(1, 0, 0),
+            block::Kind::Empty,
+        );
+
+        Self::build_graph_test_center_room(world);
+        Self::build_graph_test_constricted_entrance_room(world);
+        Self::build_graph_test_expanded_entrance_room(world);
+        Self::build_graph_test_multiple_entrance_room(world);
+    }
+
+    fn build_graph_test_center_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_coordinates = IVec3::new(0, 0, -2);
+
+        let chunk_position = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates)
+            .unwrap();
+
+        let entrances = Vec::from([]);
+
+        Self::build_chunk_room(world, chunk_position, entrances);
+    }
+
+    fn build_graph_test_constricted_entrance_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_coordinates = IVec3::new(-1, 0, -2);
+
+        let chunk_position = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates)
+            .unwrap();
+
+        let entrances = Vec::from([
+            grid::Direction::XnYoZo,
+            grid::Direction::XoYoZp,
+            grid::Direction::XoYoZn,
+        ]);
+
+        Self::build_chunk_room(world, chunk_position, entrances);
+
+        world.set_cube(
+            chunk_position + IVec3::new(chunk_radius, 0, 0),
+            chunk_position + IVec3::new(chunk_radius, -2, 0),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position + IVec3::new(chunk_radius + 1, 1, -1),
+            chunk_position + IVec3::new(chunk_radius + 1, -3, 1),
+            block::Kind::Empty,
+        );
+    }
+
+    fn build_graph_test_expanded_entrance_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_coordinates = IVec3::new(1, 0, -2);
+
+        let chunk_position = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates)
+            .unwrap();
+
+        let entrances = Vec::from([
+            grid::Direction::XpYoZo,
+            grid::Direction::XoYoZp,
+            grid::Direction::XoYoZn,
+        ]);
+
+        Self::build_chunk_room(world, chunk_position, entrances);
+
+        world.set_cube(
+            chunk_position + IVec3::new(-chunk_radius, 1, -2),
+            chunk_position + IVec3::new(-chunk_radius + 2, -4, 2),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position + IVec3::new(-chunk_radius - 1, 0, -1),
+            chunk_position + IVec3::new(-chunk_radius - 1, -3, 1),
+            block::Kind::Empty,
+        );
+    }
+
+    fn build_graph_test_multiple_entrance_room(world: &mut World) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+        let chunk_coordinates = IVec3::new(0, 0, -3);
+
+        let chunk_position = world
+            .grid
+            .chunk_coordinates_to_position(chunk_coordinates)
+            .unwrap();
+
+        let entrances = Vec::from([grid::Direction::XpYoZo, grid::Direction::XnYoZo]);
+
+        Self::build_chunk_room(world, chunk_position, entrances);
+
+        world.set_cube(
+            chunk_position + IVec3::new(-chunk_radius + 1, 0, chunk_radius),
+            chunk_position + IVec3::new(-chunk_radius + 2, -3, chunk_radius + 1),
+            block::Kind::Empty,
+        );
+
+        world.set_cube(
+            chunk_position + IVec3::new(chunk_radius - 2, 0, chunk_radius),
+            chunk_position + IVec3::new(chunk_radius - 1, -3, chunk_radius + 1),
+            block::Kind::Empty,
+        );
+    }
+
+    fn build_chunk_room(world: &mut World, position: IVec3, entrances: Vec<grid::Direction>) {
+        let chunk_radius = world.grid.chunk_radius as i32;
+
+        world.set_cube(
+            position - IVec3::splat(chunk_radius - 1),
+            position + IVec3::splat(chunk_radius - 1),
+            block::Kind::Empty,
+        );
+
+        if entrances.contains(&grid::Direction::XpYoZo) {
+            world.set_cube(
+                position + IVec3::new(chunk_radius, 0, 1),
+                position + IVec3::new(chunk_radius, -3, -1),
+                block::Kind::Empty,
+            );
+        }
+
+        if entrances.contains(&grid::Direction::XnYoZo) {
+            world.set_cube(
+                position + IVec3::new(-chunk_radius, 0, 1),
+                position + IVec3::new(-chunk_radius, -3, -1),
+                block::Kind::Empty,
+            );
+        }
+
+        if entrances.contains(&grid::Direction::XoYoZp) {
+            world.set_cube(
+                position + IVec3::new(1, 0, chunk_radius),
+                position + IVec3::new(-1, -3, chunk_radius),
+                block::Kind::Empty,
+            );
+        }
+
+        if entrances.contains(&grid::Direction::XoYoZn) {
+            world.set_cube(
+                position + IVec3::new(1, 0, -chunk_radius),
+                position + IVec3::new(-1, -3, -chunk_radius),
+                block::Kind::Empty,
+            );
+        }
+
+        if entrances.contains(&grid::Direction::XoYpZo) {
+            world.set_cube(
+                position + IVec3::new(-1, chunk_radius, -1),
+                position + IVec3::new(1, chunk_radius, 1),
+                block::Kind::Empty,
+            );
+        }
+
+        if entrances.contains(&grid::Direction::XoYnZo) {
+            world.set_cube(
+                position + IVec3::new(-1, -chunk_radius, -1),
+                position + IVec3::new(1, -chunk_radius, 1),
+                block::Kind::Empty,
+            );
+        }
     }
 }
