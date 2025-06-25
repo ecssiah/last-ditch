@@ -114,25 +114,23 @@ impl Graph {
                             let block_coordinates = IVec3::new(chunk_radius, by, bz);
                             let block_position = chunk_position + block_coordinates;
 
-                            log::info!("X: {:?}", block_position)   
+                            
                         }
                     }
 
                     for bz in -chunk_radius..=chunk_radius {
                         for bx in -chunk_radius..=chunk_radius {
                             let block_coordinates = IVec3::new(bx, chunk_radius, bz);
-                            let block_position = chunk_position + block_coordinates;
+                            let _block_position = chunk_position + block_coordinates;
 
-                            log::info!("Y: {:?}", block_position)   
                         }
                     }
 
                     for bx in -chunk_radius..=chunk_radius {
                         for by in -chunk_radius..=chunk_radius {
                             let block_coordinates = IVec3::new(bx, by, chunk_radius);
-                            let block_position = chunk_position + block_coordinates;
+                            let _block_position = chunk_position + block_coordinates;
 
-                            log::info!("Z: {:?}", block_position)   
                         }
                     }
                 }

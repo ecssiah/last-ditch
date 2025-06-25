@@ -51,7 +51,6 @@ impl TestWorld {
 
     fn build_central_room(world: &mut World) {
         let chunk_radius = world.grid.chunk_radius as i32;
-        let chunk_size = world.grid.chunk_size as i32;
         let chunk_position = IVec3::new(0, 0, 0);
 
         let chunk_coordinates = world
@@ -160,7 +159,6 @@ impl TestWorld {
     }
 
     fn build_graph_test_center_room(world: &mut World) {
-        let chunk_radius = world.grid.chunk_radius as i32;
         let chunk_coordinates = IVec3::new(0, 0, -2);
 
         let chunk_position = world
