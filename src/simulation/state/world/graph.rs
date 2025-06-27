@@ -63,6 +63,7 @@ impl Graph {
         self.region_vec = Self::setup_regions(&self.grid, chunk_vec);
 
         self.setup_clearance_map();
+        self.setup_entrances();
         self.setup_nodes();
     }
 
@@ -115,15 +116,10 @@ impl Graph {
             .collect()
     }
 
-    fn setup_nodes(&mut self) {
-        let chunk_radius = self.grid.chunk_radius as i32;
-        let world_radius = self.grid.world_radius as i32;
+    fn setup_nodes(&mut self) {}
 
-        struct CardinalNeighborPositions {
-            up: IVec3,
-            center: IVec3,
-            down: IVec3,
-        }
+    fn setup_entrances(&mut self) {
+        let world_radius = self.grid.world_radius as i32;
 
         for cx in -world_radius..=world_radius - 1 {
             for cy in -world_radius..=world_radius - 1 {
@@ -134,361 +130,247 @@ impl Graph {
                         .chunk_coordinates_to_position(chunk_coordinates)
                         .unwrap();
 
-                    let mut x_visited_set = HashSet::new();
-                    let mut x_entrance_active = false;
+                    self.setup_x_entrances(chunk_coordinates, chunk_position);
+                    self.setup_y_entrances(chunk_coordinates, chunk_position);
+                    self.setup_z_entrances(chunk_coordinates, chunk_position);
+                }
+            }
+        }
+    }
 
-                    for by in -chunk_radius..=chunk_radius {
-                        for bz in -chunk_radius..=chunk_radius {
-                            let block_coordinates = IVec3::new(chunk_radius, by, bz);
-                            let block_position = chunk_position + block_coordinates;
+    fn setup_x_entrances(&mut self, chunk_coordinates: IVec3, chunk_position: IVec3) {
+        let chunk_radius = self.grid.chunk_radius as i32;
 
-                            if x_visited_set.contains(&block_position) {
-                                x_entrance_active = false;
-                                continue;
-                            }
+        let mut x_visited_set = HashSet::new();
+        let mut x_entrance_active = false;
 
-                            x_visited_set.insert(block_position);
+        for by in -chunk_radius..=chunk_radius {
+            for bz in -chunk_radius..=chunk_radius {
+                let block_coordinates = IVec3::new(chunk_radius, by, bz);
+                let block_position = chunk_position + block_coordinates;
 
-                            let &block_clearance = self.clearance_map.get(&block_position).unwrap();
+                if x_visited_set.contains(&block_position) {
+                    x_entrance_active = false;
+                    continue;
+                }
 
-                            (1..=block_clearance).for_each(|level| {
-                                x_visited_set.insert(block_position + IVec3::Y * level as i32);
-                            });
+                x_visited_set.insert(block_position);
 
-                            if block_clearance >= 3 {
-                                let x_neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
+                let &block_clearance = self.clearance_map.get(&block_position).unwrap();
 
-                                let neighbor_positions = CardinalNeighborPositions {
-                                    up: block_position + IVec3::new(1, 1, 0),
-                                    center: block_position + IVec3::new(1, 0, 0),
-                                    down: block_position + IVec3::new(1, -1, 0),
+                (1..=block_clearance).for_each(|level| {
+                    x_visited_set.insert(block_position + IVec3::Y * level as i32);
+                });
+
+                if block_clearance >= 3 {
+                    let x_neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
+
+                    let directions = [
+                        ("up", block_position + IVec3::new(1, 1, 0)),
+                        ("center", block_position + IVec3::new(1, 0, 0)),
+                        ("down", block_position + IVec3::new(1, -1, 0)),
+                    ];
+
+                    let mut matched = false;
+
+                    for &(_, neighbor_position) in &directions {
+                        if self.get_clearance(neighbor_position) >= 3 {
+                            if !x_entrance_active {
+                                let entrance = Entrance {
+                                    region1_coordinates: chunk_coordinates,
+                                    region2_coordinates: x_neighbor_chunk_coordinates,
+                                    transitions: Vec::new(),
                                 };
 
-                                let neighbor_clearance_down =
-                                    self.get_clearance(neighbor_positions.down);
+                                self.entrance_vec.push(entrance);
 
-                                if neighbor_clearance_down >= 3 {
-                                    if !x_entrance_active {
-                                        let entrance = Entrance {
-                                            region1_position: chunk_coordinates,
-                                            region2_position: x_neighbor_chunk_coordinates,
-                                            transitions: Vec::new(),
-                                        };
-
-                                        self.entrance_vec.push(entrance);
-
-                                        x_entrance_active = true;
-                                    };
-
-                                    let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                    if let Some(entrance) =
-                                        self.entrance_vec.get_mut(last_entrance_index)
-                                    {
-                                        let transition = Transition {
-                                            region1_position: block_position,
-                                            region2_position: neighbor_positions.down,
-                                        };
-
-                                        entrance.transitions.push(transition);
-                                    }
-                                } else {
-                                    let neighbor_clearance_center =
-                                        self.get_clearance(neighbor_positions.center);
-
-                                    if neighbor_clearance_center >= 3 {
-                                        if !x_entrance_active {
-                                            let entrance = Entrance {
-                                                region1_position: chunk_coordinates,
-                                                region2_position: x_neighbor_chunk_coordinates,
-                                                transitions: Vec::new(),
-                                            };
-
-                                            self.entrance_vec.push(entrance);
-
-                                            x_entrance_active = true;
-                                        };
-
-                                        let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                        if let Some(entrance) =
-                                            self.entrance_vec.get_mut(last_entrance_index)
-                                        {
-                                            let transition = Transition {
-                                                region1_position: block_position,
-                                                region2_position: neighbor_positions.center,
-                                            };
-
-                                            entrance.transitions.push(transition);
-                                        }
-                                    } else {
-                                        let neighbor_clearance_up =
-                                            self.get_clearance(neighbor_positions.up);
-
-                                        if neighbor_clearance_up >= 3 {
-                                            if !x_entrance_active {
-                                                let entrance = Entrance {
-                                                    region1_position: chunk_coordinates,
-                                                    region2_position: x_neighbor_chunk_coordinates,
-                                                    transitions: Vec::new(),
-                                                };
-
-                                                self.entrance_vec.push(entrance);
-
-                                                x_entrance_active = true;
-                                            };
-
-                                            let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                            if let Some(entrance) =
-                                                self.entrance_vec.get_mut(last_entrance_index)
-                                            {
-                                                let transition = Transition {
-                                                    region1_position: block_position,
-                                                    region2_position: neighbor_positions.up,
-                                                };
-
-                                                entrance.transitions.push(transition);
-                                            }
-                                        } else {
-                                            x_entrance_active = false;
-                                        }
-                                    }
-                                }
-                            } else {
-                                x_entrance_active = false;
+                                x_entrance_active = true;
                             }
-                        }
-                    }
 
-                    let mut y_candidate_map = HashMap::new();
+                            let last_entrance_index = self.entrance_vec.len() - 1;
 
-                    for bz in -chunk_radius..=chunk_radius {
-                        for bx in -chunk_radius..=chunk_radius {
-                            let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
-
-                            let block_clearance = self.get_clearance(block_position);
-
-                            if block_clearance >= 3 {
-                                let mut neighbor_position_vec = Vec::new();
-
-                                let neighbor_offset_vec = [
-                                    IVec3::new(1, 1, 0),
-                                    IVec3::new(-1, 1, 0),
-                                    IVec3::new(0, 1, 1),
-                                    IVec3::new(0, 1, -1),
-                                ];
-
-                                for offset in neighbor_offset_vec {
-                                    let neighbor_position = block_position + offset;
-                                    let neighbor_clearance = self.get_clearance(neighbor_position);
-
-                                    if neighbor_clearance >= 3 {
-                                        neighbor_position_vec.push(neighbor_position);
-                                    }
-                                }
-
-                                if !neighbor_position_vec.is_empty() {
-                                    y_candidate_map.insert(block_position, neighbor_position_vec);
-                                }
-                            }
-                        }
-                    }
-
-                    let mut y_visited_set = HashSet::new();
-
-                    for &start in y_candidate_map.keys() {
-                        if y_visited_set.contains(&start) {
-                            continue;
-                        }
-
-                        let mut group = vec![start];
-                        let mut queue = vec![start];
-
-                        y_visited_set.insert(start);
-
-                        while let Some(position) = queue.pop() {
-                            for offset in [IVec3::X, -IVec3::X, IVec3::Z, -IVec3::Z] {
-                                let neighbor_position = position + offset;
-
-                                if y_candidate_map.contains_key(&neighbor_position)
-                                    && !y_visited_set.contains(&neighbor_position)
-                                {
-                                    y_visited_set.insert(neighbor_position);
-
-                                    queue.push(neighbor_position);
-                                    group.push(neighbor_position);
-                                }
-                            }
-                        }
-
-                        let mut entrance = Entrance {
-                            region1_position: chunk_coordinates,
-                            region2_position: chunk_coordinates + IVec3::Y,
-                            transitions: Vec::new(),
-                        };
-
-                        for position in group {
-                            let neighbor_position_vec = y_candidate_map.get(&position).unwrap();
-
-                            for neighbor_position in neighbor_position_vec {
+                            if let Some(entrance) = self.entrance_vec.get_mut(last_entrance_index) {
                                 let transition = Transition {
-                                    region1_position: position,
-                                    region2_position: *neighbor_position,
+                                    region1_position: block_position,
+                                    region2_position: neighbor_position,
                                 };
 
                                 entrance.transitions.push(transition);
                             }
-                        }
 
-                        self.entrance_vec.push(entrance);
+                            matched = true;
+                            break;
+                        }
                     }
 
-                    let mut z_visited_set = HashSet::new();
-                    let mut z_entrance_active = false;
+                    if !matched {
+                        x_entrance_active = false;
+                    }
+                } else {
+                    x_entrance_active = false;
+                }
+            }
+        }
+    }
 
-                    for by in -chunk_radius..=chunk_radius {
-                        for bx in -chunk_radius..=chunk_radius {
-                            let block_coordinates = IVec3::new(bx, by, chunk_radius);
-                            let block_position = chunk_position + block_coordinates;
+    fn setup_y_entrances(&mut self, chunk_coordinates: IVec3, chunk_position: IVec3) {
+        let chunk_radius = self.grid.chunk_radius as i32;
 
-                            if z_visited_set.contains(&block_position) {
-                                z_entrance_active = false;
-                                continue;
-                            }
+        let mut y_candidate_map = HashMap::new();
 
-                            z_visited_set.insert(block_position);
+        for bz in -chunk_radius..=chunk_radius {
+            for bx in -chunk_radius..=chunk_radius {
+                let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
 
-                            let &block_clearance = self.clearance_map.get(&block_position).unwrap();
+                let block_clearance = self.get_clearance(block_position);
 
-                            (1..=block_clearance).for_each(|level| {
-                                z_visited_set.insert(block_position + IVec3::Y * level as i32);
-                            });
+                if block_clearance >= 3 {
+                    let mut neighbor_position_vec = Vec::new();
 
-                            if block_clearance >= 3 {
-                                let z_neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
+                    let neighbor_offset_vec = [
+                        IVec3::new(1, 1, 0),
+                        IVec3::new(-1, 1, 0),
+                        IVec3::new(0, 1, 1),
+                        IVec3::new(0, 1, -1),
+                    ];
 
-                                let neighbor_positions = CardinalNeighborPositions {
-                                    up: block_position + IVec3::new(0, 1, 1),
-                                    center: block_position + IVec3::new(0, 0, 1),
-                                    down: block_position + IVec3::new(0, -1, 1),
-                                };
+                    for offset in neighbor_offset_vec {
+                        let neighbor_position = block_position + offset;
+                        let neighbor_clearance = self.get_clearance(neighbor_position);
 
-                                let neighbor_clearance_down =
-                                    self.get_clearance(neighbor_positions.down);
-
-                                if neighbor_clearance_down >= 3 {
-                                    if !z_entrance_active {
-                                        let entrance = Entrance {
-                                            region1_position: chunk_coordinates,
-                                            region2_position: z_neighbor_chunk_coordinates,
-                                            transitions: Vec::new(),
-                                        };
-
-                                        self.entrance_vec.push(entrance);
-
-                                        z_entrance_active = true;
-                                    };
-
-                                    let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                    if let Some(entrance) =
-                                        self.entrance_vec.get_mut(last_entrance_index)
-                                    {
-                                        let transition = Transition {
-                                            region1_position: block_position,
-                                            region2_position: neighbor_positions.down,
-                                        };
-
-                                        entrance.transitions.push(transition);
-                                    }
-                                } else {
-                                    let neighbor_clearance_center =
-                                        self.get_clearance(neighbor_positions.center);
-
-                                    if neighbor_clearance_center >= 3 {
-                                        if !z_entrance_active {
-                                            let entrance = Entrance {
-                                                region1_position: chunk_coordinates,
-                                                region2_position: z_neighbor_chunk_coordinates,
-                                                transitions: Vec::new(),
-                                            };
-
-                                            self.entrance_vec.push(entrance);
-
-                                            z_entrance_active = true;
-                                        };
-
-                                        let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                        if let Some(entrance) =
-                                            self.entrance_vec.get_mut(last_entrance_index)
-                                        {
-                                            let transition = Transition {
-                                                region1_position: block_position,
-                                                region2_position: neighbor_positions.center,
-                                            };
-
-                                            entrance.transitions.push(transition);
-                                        }
-                                    } else {
-                                        let neighbor_clearance_up =
-                                            self.get_clearance(neighbor_positions.up);
-
-                                        if neighbor_clearance_up >= 3 {
-                                            if !z_entrance_active {
-                                                let entrance = Entrance {
-                                                    region1_position: chunk_coordinates,
-                                                    region2_position: z_neighbor_chunk_coordinates,
-                                                    transitions: Vec::new(),
-                                                };
-
-                                                self.entrance_vec.push(entrance);
-
-                                                z_entrance_active = true;
-                                            };
-
-                                            let last_entrance_index = self.entrance_vec.len() - 1;
-
-                                            if let Some(entrance) =
-                                                self.entrance_vec.get_mut(last_entrance_index)
-                                            {
-                                                let transition = Transition {
-                                                    region1_position: block_position,
-                                                    region2_position: neighbor_positions.up,
-                                                };
-
-                                                entrance.transitions.push(transition);
-                                            }
-                                        } else {
-                                            z_entrance_active = false;
-                                        }
-                                    }
-                                }
-                            } else {
-                                z_entrance_active = false;
-                            }
+                        if neighbor_clearance >= 3 {
+                            neighbor_position_vec.push(neighbor_position);
                         }
+                    }
+
+                    if !neighbor_position_vec.is_empty() {
+                        y_candidate_map.insert(block_position, neighbor_position_vec);
                     }
                 }
             }
         }
 
-        let test_entrance_vec: Vec<&Entrance> = self
-            .entrance_vec
-            .iter()
-            .filter(|entrance| {
-                entrance.region1_position == IVec3::new(0, 0, -2)
-                    || entrance.region2_position == IVec3::new(0, 0, -2)
-            })
-            .collect();
+        let mut y_visited_set = HashSet::new();
 
-        for entrance in test_entrance_vec {
-            println!("{:?}", entrance.region1_position);
-            println!("{:?}", entrance.region2_position);
+        for &start in y_candidate_map.keys() {
+            if y_visited_set.contains(&start) {
+                continue;
+            }
 
-            for transition in &entrance.transitions {
-                println!(" {:?}", transition);
+            let mut group = vec![start];
+            let mut queue = vec![start];
+
+            y_visited_set.insert(start);
+
+            while let Some(position) = queue.pop() {
+                for offset in [IVec3::X, -IVec3::X, IVec3::Z, -IVec3::Z] {
+                    let neighbor_position = position + offset;
+
+                    if y_candidate_map.contains_key(&neighbor_position)
+                        && !y_visited_set.contains(&neighbor_position)
+                    {
+                        y_visited_set.insert(neighbor_position);
+
+                        queue.push(neighbor_position);
+                        group.push(neighbor_position);
+                    }
+                }
+            }
+
+            let mut entrance = Entrance {
+                region1_coordinates: chunk_coordinates,
+                region2_coordinates: chunk_coordinates + IVec3::Y,
+                transitions: Vec::new(),
+            };
+
+            for position in group {
+                let neighbor_position_vec = y_candidate_map.get(&position).unwrap();
+
+                for neighbor_position in neighbor_position_vec {
+                    let transition = Transition {
+                        region1_position: position,
+                        region2_position: *neighbor_position,
+                    };
+
+                    entrance.transitions.push(transition);
+                }
+            }
+
+            self.entrance_vec.push(entrance);
+        }
+    }
+
+    fn setup_z_entrances(&mut self, chunk_coordinates: IVec3, chunk_position: IVec3) {
+        let chunk_radius = self.grid.chunk_radius as i32;
+
+        let mut z_visited_set = HashSet::new();
+        let mut z_entrance_active = false;
+
+        for by in -chunk_radius..=chunk_radius {
+            for bx in -chunk_radius..=chunk_radius {
+                let block_coordinates = IVec3::new(bx, by, chunk_radius);
+                let block_position = chunk_position + block_coordinates;
+
+                if z_visited_set.contains(&block_position) {
+                    z_entrance_active = false;
+                    continue;
+                }
+
+                z_visited_set.insert(block_position);
+
+                let &block_clearance = self.clearance_map.get(&block_position).unwrap();
+
+                (1..=block_clearance).for_each(|level| {
+                    z_visited_set.insert(block_position + IVec3::Y * level as i32);
+                });
+
+                if block_clearance >= 3 {
+                    let z_neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
+
+                    let directions = [
+                        ("up", block_position + IVec3::new(0, 1, 1)),
+                        ("center", block_position + IVec3::new(0, 0, 1)),
+                        ("down", block_position + IVec3::new(0, -1, 1)),
+                    ];
+
+                    let mut matched = false;
+
+                    for &(_, neighbor_position) in &directions {
+                        if self.get_clearance(neighbor_position) >= 3 {
+                            if !z_entrance_active {
+                                let entrance = Entrance {
+                                    region1_coordinates: chunk_coordinates,
+                                    region2_coordinates: z_neighbor_chunk_coordinates,
+                                    transitions: Vec::new(),
+                                };
+
+                                self.entrance_vec.push(entrance);
+
+                                z_entrance_active = true;
+                            }
+
+                            let last_entrance_index = self.entrance_vec.len() - 1;
+
+                            if let Some(entrance) = self.entrance_vec.get_mut(last_entrance_index) {
+                                let transition = Transition {
+                                    region1_position: block_position,
+                                    region2_position: neighbor_position,
+                                };
+
+                                entrance.transitions.push(transition);
+                            }
+
+                            matched = true;
+                            break;
+                        }
+                    }
+
+                    if !matched {
+                        z_entrance_active = false;
+                    }
+                } else {
+                    z_entrance_active = false;
+                }
             }
         }
     }

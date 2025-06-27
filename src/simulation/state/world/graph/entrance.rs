@@ -2,16 +2,16 @@ use crate::simulation::state::world::graph::Transition;
 use glam::IVec3;
 
 pub struct Entrance {
-    pub region1_position: IVec3,
-    pub region2_position: IVec3,
+    pub region1_coordinates: IVec3,
+    pub region2_coordinates: IVec3,
     pub transitions: Vec<Transition>,
 }
 
 impl Entrance {
-    pub fn new(region1_position: IVec3, region2_position: IVec3) -> Self {
+    pub fn new(region1_coordinates: IVec3, region2_coordinates: IVec3) -> Self {
         Self {
-            region1_position,
-            region2_position,
+            region1_coordinates,
+            region2_coordinates,
             transitions: Vec::new(),
         }
     }

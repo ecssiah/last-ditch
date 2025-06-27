@@ -1,5 +1,5 @@
 use crate::simulation::{
-    consts::*,
+    self,
     state::world::{block, chunk, World},
 };
 use glam::{IVec3, Vec3};
@@ -28,7 +28,10 @@ impl BlockIDToBlockCoordinatesCase {
 
 #[test]
 fn block_id_to_block_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
 
@@ -77,7 +80,10 @@ impl BlockCoordinatesToBlockIDCase {
 
 #[test]
 fn block_coordinates_to_block_id() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
 
@@ -128,7 +134,10 @@ impl ChunkIDToChunkCoordinates {
 
 #[test]
 fn chunk_id_to_chunk_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_radius = world.grid.world_radius as i32;
 
@@ -177,7 +186,10 @@ impl ChunkCoordinatesToChunkIDCase {
 
 #[test]
 fn chunk_coordinates_to_chunk_id() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_radius = world.grid.world_radius as i32;
 
@@ -226,7 +238,10 @@ impl ChunkCoordinatesToPositionCase {
 
 #[test]
 fn chunk_coordinates_to_position() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
     let world_radius = world.grid.world_radius as i32;
@@ -275,7 +290,10 @@ impl ChunkIDToPositionCase {
 
 #[test]
 fn chunk_id_to_position() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;
     let chunk_radius = world.grid.chunk_radius as i32;
@@ -326,7 +344,10 @@ impl PositionToChunkCoordinatesCase {
 
 #[test]
 fn position_to_chunk_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
     let world_radius = world.grid.world_radius as i32;
@@ -378,7 +399,10 @@ impl PositionToBlockCoordinatesCase {
 
 #[test]
 fn position_to_block_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
     let chunk_size = world.grid.chunk_size as i32;
@@ -456,7 +480,10 @@ impl PositionToChunkIDCase {
 
 #[test]
 fn position_to_chunk_id() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;
 
@@ -502,7 +529,10 @@ impl PositionToBlockIDCase {
 
 #[test]
 fn position_to_block_id() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
 
@@ -549,7 +579,10 @@ impl IDsToPositionCase {
 
 #[test]
 fn ids_to_position() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;
 
@@ -598,7 +631,10 @@ impl PositionToIDsCase {
 
 #[test]
 fn position_to_ids() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;
 
@@ -647,7 +683,10 @@ impl WorldToPositionCase {
 
 #[test]
 fn world_to_grid() {
-    let world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as f32;
 
@@ -700,7 +739,10 @@ impl WorldToChunkIDCase {
 
 #[test]
 fn world_to_chunk_id() {
-    let world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as f32;
 
@@ -757,7 +799,10 @@ impl WorldToChunkCoordinates {
 
 #[test]
 fn world_to_chunk_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_radius = world.grid.world_radius as i32;
     let world_boundary = world.grid.world_boundary as f32;
@@ -801,7 +846,10 @@ impl WorldToBlockIDCase {
 
 #[test]
 fn world_to_block_id() {
-    let world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as f32;
 
@@ -858,7 +906,10 @@ impl WorldToBlockCoordinates {
 
 #[test]
 fn world_to_block_coordinates() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let chunk_radius = world.grid.chunk_radius as i32;
     let world_boundary = world.grid.world_boundary as f32;

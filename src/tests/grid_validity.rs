@@ -1,5 +1,5 @@
 use crate::simulation::{
-    consts::*,
+    self,
     state::world::{block, chunk, World},
 };
 use glam::IVec3;
@@ -20,7 +20,10 @@ impl BlockIDValidCase {
 
 #[test]
 fn block_id_valid() {
-    let world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let test_cases = vec![
         BlockIDValidCase {
@@ -61,7 +64,10 @@ impl ChunkIDValidCase {
 
 #[test]
 fn chunk_id_valid() {
-    let world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let test_cases = vec![
         ChunkIDValidCase {
@@ -102,7 +108,10 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let world = World::new(TEST_CHUNK_RADIUS, TEST_WORLD_RADIUS);
+    let mode = simulation::Mode::WorldTest;
+
+    let mut world = World::new(mode.config());
+    world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;
 

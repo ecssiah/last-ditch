@@ -5,6 +5,7 @@ pub use axis::Axis;
 pub use direction::Direction;
 
 use crate::simulation::{
+    self,
     consts::*,
     state::{
         physics::aabb::AABB,
@@ -85,14 +86,16 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
-        let chunk_size = 2 * chunk_radius + 1;
-        let chunk_area = chunk_size * chunk_size;
-        let chunk_volume = chunk_size * chunk_size * chunk_size;
-
-        let world_size = 2 * world_radius + 1;
+    pub fn new(config: simulation::Config) -> Self {
+        let world_radius = config.world_radius;
+        let world_size = 2 * config.world_radius + 1;
         let world_area = world_size * world_size;
         let world_volume = world_size * world_size * world_size;
+
+        let chunk_radius = config.chunk_radius;
+        let chunk_size = 2 * config.chunk_radius + 1;
+        let chunk_area = chunk_size * chunk_size;
+        let chunk_volume = chunk_size * chunk_size * chunk_size;
 
         let world_boundary = chunk_radius + world_radius * chunk_size;
 
@@ -100,14 +103,14 @@ impl Grid {
         let chunk_index_max = world_volume - 1;
 
         Self {
-            chunk_radius,
-            chunk_size,
-            chunk_area,
-            chunk_volume,
             world_radius,
             world_size,
             world_area,
             world_volume,
+            chunk_radius,
+            chunk_size,
+            chunk_area,
+            chunk_volume,
             world_boundary,
             block_index_max,
             chunk_index_max,

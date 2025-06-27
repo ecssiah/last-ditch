@@ -18,11 +18,11 @@ pub const MOVEMENT_COST_FACE: f32 = 1.0;
 pub const MOVEMENT_COST_EDGE: f32 = SQRT_2;
 pub const MOVEMENT_COST_CORNER: f32 = 1.7320508;
 
-pub const MAIN_CHUNK_RADIUS: u32 = 8;
 pub const MAIN_WORLD_RADIUS: u32 = 4;
+pub const MAIN_CHUNK_RADIUS: u32 = 8;
 
-pub const TEST_CHUNK_RADIUS: u32 = 4;
 pub const TEST_WORLD_RADIUS: u32 = 3;
+pub const TEST_CHUNK_RADIUS: u32 = 4;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;

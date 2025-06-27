@@ -1,9 +1,14 @@
 //! Evolution of the simulated environment.
 
+pub mod config;
 pub mod consts;
+pub mod mode;
 pub mod observation;
 pub mod state;
 pub mod utils;
+
+pub use config::Config;
+pub use mode::Mode;
 
 use crate::simulation::{
     consts::SIMULATION_TICK_DURATION,
@@ -18,6 +23,7 @@ use std::{
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
+    pub mode: Mode,
     pub receiver: Receiver,
     pub state: State,
     pub observation_arc: Arc<Observation>,
@@ -25,11 +31,14 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
+        let mode = Mode::WorldTest;
+
         let receiver = Receiver::new(action_rx);
-        let state = State::new();
+        let state = State::new(mode);
         let observation_arc = Arc::new(Observation::new());
 
         Self {
+            mode,
             receiver,
             state,
             observation_arc,

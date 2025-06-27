@@ -1,5 +1,3 @@
-pub mod main_world;
-pub mod test_world;
-
-pub use main_world::MainWorld;
-pub use test_world::TestWorld;
+pub mod graph_test;
+pub mod main;
+pub mod world_test;

@@ -1,7 +1,5 @@
 use crate::simulation::{
-    consts::*,
-    state::physics::aabb::AABB,
-    state::world::{block, grid, World},
+    self, consts::*, state::{physics::aabb::AABB, world::{block, grid, World}}
 };
 use glam::Vec3;
 use std::f32::EPSILON;
@@ -24,8 +22,11 @@ impl OverlappingAABBCase {
 
 #[test]
 fn directions() {
-    let test_world = World::new(TEST_CHUNK_RADIUS as u32, TEST_WORLD_RADIUS as u32);
+    let mode = simulation::Mode::WorldTest;
 
+    let mut world = World::new(mode.config());
+    world.setup();
+    
     let test_cases = vec![
         OverlappingAABBCase {
             description: String::from("XoYoZo"),
@@ -191,6 +192,6 @@ fn directions() {
     ];
 
     for case in test_cases {
-        case.check(&test_world);
+        case.check(&world);
     }
 }

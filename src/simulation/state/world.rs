@@ -7,17 +7,19 @@ pub mod graph;
 pub mod grid;
 
 use crate::simulation::{
+    self,
     consts::*,
     state::{
         physics::aabb::AABB,
         population::entity::{self, Judge},
-        world::{graph::Graph, grid::Grid},
+        world::{self, graph::Graph, grid::Grid},
     },
 };
 use glam::{IVec3, Vec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
+    pub config: simulation::Config,
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_vec: Vec<chunk::Chunk>,
@@ -26,8 +28,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(chunk_radius: u32, world_radius: u32) -> Self {
-        let grid = Grid::new(chunk_radius, world_radius);
+    pub fn new(config: simulation::Config) -> Self {
+        let grid = Grid::new(config);
         let block_meta_map = block::Meta::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
         let graph = Graph::new(&grid, 1);
@@ -40,6 +42,7 @@ impl World {
         ]);
 
         Self {
+            config,
             grid,
             block_meta_map,
             chunk_vec,
@@ -53,10 +56,10 @@ impl World {
     }
 
     pub fn setup(&mut self) {
-        if TESTING {
-            builder::TestWorld::build(self);
-        } else {
-            builder::MainWorld::build(self);
+        match self.config.mode {
+            simulation::Mode::Main => world::builder::main::construct(self),
+            simulation::Mode::WorldTest => world::builder::world_test::construct(self),
+            simulation::Mode::GraphTest => world::builder::graph_test::construct(self),
         }
 
         self.graph.setup(&self.chunk_vec);

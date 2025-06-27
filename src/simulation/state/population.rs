@@ -4,10 +4,13 @@ pub mod builder;
 pub mod entity;
 
 use crate::simulation::{
-    consts::*,
+    self,
     state::{
         compute::{result, task},
-        population::entity::{Agent, Judge},
+        population::{
+            self,
+            entity::{Agent, Judge},
+        },
         world::World,
         Compute,
     },
@@ -17,6 +20,7 @@ use glam::IVec3;
 use std::collections::HashMap;
 
 pub struct Population {
+    pub config: simulation::Config,
     pub task_tx: Sender<task::Kind>,
     pub result_rx: Receiver<result::Kind>,
     pub judge: Judge,
@@ -24,13 +28,14 @@ pub struct Population {
 }
 
 impl Population {
-    pub fn new(compute: &Compute) -> Self {
+    pub fn new(config: simulation::Config, compute: &Compute) -> Self {
         let task_tx = compute.task_tx.clone();
         let result_rx = compute.result_rx.clone();
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
+            config,
             task_tx,
             result_rx,
             judge,
@@ -39,10 +44,10 @@ impl Population {
     }
 
     pub fn setup(&mut self, world: &World) {
-        if TESTING {
-            builder::TestPopulation::build(self, world);
-        } else {
-            builder::MainPopulation::build(self, world);
+        match self.config.mode {
+            simulation::Mode::Main => population::builder::main::construct(self, world),
+            simulation::Mode::WorldTest => population::builder::world_test::construct(self, world),
+            _ => (),
         }
     }
 
