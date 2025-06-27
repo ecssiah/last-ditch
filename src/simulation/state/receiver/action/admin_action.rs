@@ -1,4 +1,4 @@
 #[derive(Clone, Copy, Debug)]
-pub enum WorldAction {
+pub enum AdminAction {
     Exit,
 }

@@ -4,7 +4,7 @@ pub mod mode;
 
 pub use mode::Mode;
 
-use crate::simulation::consts::*;
+use crate::simulation::{consts::*, state::receiver::action::AdminAction};
 
 #[derive(Debug)]
 pub struct Admin {
@@ -23,6 +23,16 @@ impl Admin {
     pub fn setup(&mut self) {
         self.mode = Mode::Simulate;
         self.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
+    }
+
+    pub fn receive_action(&mut self, admin_action: &AdminAction) {
+        match admin_action {
+            AdminAction::Exit => self.receive_exit_action(),
+        }
+    }
+
+    pub fn receive_exit_action(&mut self) {
+        self.mode = Mode::Exit;
     }
 }
 

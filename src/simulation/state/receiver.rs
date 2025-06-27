@@ -3,8 +3,7 @@
 pub mod action;
 
 use crate::simulation::state::{
-    admin,
-    receiver::action::{Action, AgentAction, JumpAction, MovementAction, TestAction, WorldAction},
+    receiver::action::{Action, AdminAction, JudgeAction, TestAction},
     State,
 };
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -21,9 +20,9 @@ impl Receiver {
     pub fn tick(&mut self, state: &mut State) {
         while let Ok(action) = self.action_rx.try_recv() {
             match action {
+                Action::Admin(admin_action) => self.handle_admin_action(state, &admin_action),
                 Action::Test(test_action) => self.handle_test_action(state, &test_action),
-                Action::Agent(agent_action) => self.handle_agent_action(state, &agent_action),
-                Action::World(world_action) => self.handle_world_action(state, &world_action),
+                Action::Judge(judge_action) => self.handle_judge_action(state, &judge_action),
             }
         }
     }
@@ -39,34 +38,13 @@ impl Receiver {
         }
     }
 
-    fn handle_agent_action(&mut self, state: &mut State, agent_action: &AgentAction) {
-        match agent_action {
-            AgentAction::Jump(jump_action) => self.handle_jump_action(state, jump_action),
-            AgentAction::Movement(movement_action) => {
-                self.handle_movement_action(state, movement_action)
-            }
-        }
+    fn handle_admin_action(&mut self, state: &mut State, admin_action: &AdminAction) {
+        state.admin.receive_action(admin_action);
     }
 
-    fn handle_world_action(&mut self, state: &mut State, world_action: &WorldAction) {
-        match world_action {
-            WorldAction::Exit => self.handle_exit_action(state),
-        }
-    }
-
-    fn handle_jump_action(&mut self, state: &mut State, jump_action: &JumpAction) {
+    fn handle_judge_action(&mut self, state: &mut State, judge_action: &JudgeAction) {
         let judge = state.population.get_judge_mut();
 
-        judge.apply_jump_action(jump_action);
-    }
-
-    fn handle_movement_action(&mut self, state: &mut State, movement_action: &MovementAction) {
-        let judge = state.population.get_judge_mut();
-
-        judge.apply_movement_action(movement_action);
-    }
-
-    fn handle_exit_action(&mut self, state: &mut State) {
-        state.admin.mode = admin::Mode::Exit;
+        judge.receive_action(judge_action);
     }
 }

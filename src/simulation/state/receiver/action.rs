@@ -1,16 +1,16 @@
-pub mod agent_action;
+pub mod admin_action;
+pub mod judge_action;
 pub mod test_action;
-pub mod world_action;
 
-pub use agent_action::AgentAction;
-pub use agent_action::JumpAction;
-pub use agent_action::MovementAction;
+pub use admin_action::AdminAction;
+pub use judge_action::JudgeAction;
+pub use judge_action::JumpAction;
+pub use judge_action::MovementAction;
 pub use test_action::TestAction;
-pub use world_action::WorldAction;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
+    Admin(AdminAction),
     Test(TestAction),
-    World(WorldAction),
-    Agent(AgentAction),
+    Judge(JudgeAction),
 }

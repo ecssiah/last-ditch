@@ -4,7 +4,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::entity::{self, Detection, Kinematic, Nation, Spatial},
-        receiver::action::{JumpAction, MovementAction},
+        receiver::action::{JudgeAction, JumpAction, MovementAction},
         world::{chunk, World},
     },
 };
@@ -45,15 +45,63 @@ impl Judge {
         self.chunk_id.current != self.chunk_id.next
     }
 
-    pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
-        if movement_action.yaw.abs() > 1e-6 || movement_action.pitch.abs() > 1e-6 {
-            self.spatial.yaw += movement_action.yaw;
+    pub fn set_world_position(&mut self, world_position: Vec3) {
+        self.spatial.world_position = world_position;
+        self.detection.set_world_position(world_position);
+    }
 
-            self.spatial.pitch += movement_action.pitch;
+    pub fn size(&self) -> Vec3 {
+        self.detection.body.size()
+    }
+
+    pub fn set_size(&mut self, size: Vec3) {
+        self.detection.body = AABB::new(self.detection.body.center(), size);
+    }
+
+    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
+        self.spatial.yaw = yaw.to_radians();
+        self.spatial.pitch = pitch.to_radians();
+
+        self.spatial.pitch = self
+            .spatial
+            .pitch
+            .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
+
+        self.spatial.quaternion =
+            Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
+
+        let velocity_xz = Vec3::new(self.kinematic.velocity.x, 0.0, self.kinematic.velocity.z);
+        let speed = velocity_xz.length_squared();
+
+        if speed > 1e-12 {
+            let forward = self.spatial.quaternion * Vec3::Z;
+            let new_velocity_xz = forward.normalize() * speed;
+
+            self.kinematic.velocity.x = new_velocity_xz.x;
+            self.kinematic.velocity.z = new_velocity_xz.z;
+        }
+    }
+
+    pub fn eye(&self) -> Vec3 {
+        self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
+    }
+
+    pub fn receive_action(&mut self, judge_action: &JudgeAction) {
+        match judge_action {
+            JudgeAction::Movement(movement_action) => self.receive_movement_action(movement_action),
+            JudgeAction::Jump(jump_action) => self.receive_jump_action(jump_action),
+        }
+    }
+
+    pub fn receive_movement_action(&mut self, movement_action: &MovementAction) {
+        if movement_action.rotation.y.abs() > 1e-6 || movement_action.rotation.z.abs() > 1e-6 {
+            self.spatial.yaw += movement_action.rotation.y;
+            self.spatial.pitch += movement_action.rotation.z;
+
             self.spatial.pitch = self
                 .spatial
                 .pitch
-                .clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
+                .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
             self.spatial.quaternion =
                 Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
@@ -75,51 +123,10 @@ impl Judge {
         }
     }
 
-    pub fn apply_jump_action(&mut self, jump_action: &JumpAction) {
+    pub fn receive_jump_action(&mut self, jump_action: &JumpAction) {
         if let JumpAction::Start = jump_action {
             self.kinematic.velocity.y = JUDGE_SPEED_Y;
         }
-    }
-
-    pub fn set_world_position(&mut self, world_position: Vec3) {
-        self.spatial.world_position = world_position;
-        self.detection.set_world_position(world_position);
-    }
-
-    pub fn size(&self) -> Vec3 {
-        self.detection.body.size()
-    }
-
-    pub fn set_size(&mut self, size: Vec3) {
-        self.detection.body = AABB::new(self.detection.body.center(), size);
-    }
-
-    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
-        self.spatial.yaw = yaw.to_radians();
-
-        self.spatial.pitch = pitch.to_radians();
-        self.spatial.pitch = self
-            .spatial
-            .pitch
-            .clamp(-JUDGE_VIEW_X_LIMIT, JUDGE_VIEW_X_LIMIT);
-
-        self.spatial.quaternion =
-            Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
-
-        let velocity_xz = Vec3::new(self.kinematic.velocity.x, 0.0, self.kinematic.velocity.z);
-        let speed = velocity_xz.length();
-
-        if speed > 1e-6 {
-            let forward = self.spatial.quaternion * Vec3::Z;
-            let new_velocity_xz = forward.normalize() * speed;
-
-            self.kinematic.velocity.x = new_velocity_xz.x;
-            self.kinematic.velocity.z = new_velocity_xz.z;
-        }
-    }
-
-    pub fn eye(&self) -> Vec3 {
-        self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
     }
 }
 

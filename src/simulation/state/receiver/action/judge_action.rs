@@ -3,8 +3,7 @@ use glam::Vec3;
 #[derive(Clone, Copy, Debug)]
 pub struct MovementAction {
     pub direction: Vec3,
-    pub yaw: f32,
-    pub pitch: f32,
+    pub rotation: Vec3,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -14,7 +13,7 @@ pub enum JumpAction {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum AgentAction {
+pub enum JudgeAction {
     Movement(MovementAction),
     Jump(JumpAction),
 }
