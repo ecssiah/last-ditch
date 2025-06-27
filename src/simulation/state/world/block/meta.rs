@@ -124,6 +124,12 @@ impl Meta {
                     solid: true,
                 },
             ),
+            (
+                block::Kind::EsayaBlock,
+                Meta {
+                    solid: true,
+                },
+            ),
         ])
     }
 }

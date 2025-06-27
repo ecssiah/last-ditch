@@ -1,16 +1,12 @@
 //! Entities acting in the simulated environment
 
-pub mod builder;
 pub mod entity;
 
 use crate::simulation::{
-    self,
+    self, constructor,
     state::{
         compute::{result, task},
-        population::{
-            self,
-            entity::{Agent, Judge},
-        },
+        population::entity::{Agent, Judge},
         world::World,
         Compute,
     },
@@ -42,13 +38,16 @@ impl Population {
             agent_map,
         }
     }
-
     pub fn setup(&mut self, world: &World) {
         match self.mode {
-            simulation::Mode::Main => population::builder::main::construct(self, world),
-            simulation::Mode::WorldTest => population::builder::world_test::construct(self, world),
-            simulation::Mode::GraphTest => population::builder::graph_test::construct(self, world),
-            _ => (),
+            simulation::Mode::Main => constructor::main::construct_population(self, world),
+            simulation::Mode::Empty => constructor::empty::construct_population(self, world),
+            simulation::Mode::WorldTest => {
+                constructor::world_test::construct_population(self, world)
+            }
+            simulation::Mode::GraphTest => {
+                constructor::graph_test::construct_population(self, world)
+            }
         }
     }
 

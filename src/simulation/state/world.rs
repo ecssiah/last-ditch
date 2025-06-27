@@ -1,18 +1,17 @@
 //! The simulated environment
 
 pub mod block;
-pub mod builder;
 pub mod chunk;
 pub mod graph;
 pub mod grid;
 
 use crate::simulation::{
-    self,
+    self, constructor,
     consts::*,
     state::{
         physics::aabb::AABB,
         population::entity::{self, Judge},
-        world::{self, graph::Graph, grid::Grid},
+        world::{graph::Graph, grid::Grid},
     },
 };
 use glam::{IVec3, Vec3, Vec4};
@@ -57,10 +56,10 @@ impl World {
 
     pub fn setup(&mut self) {
         match self.mode {
-            simulation::Mode::Main => world::builder::main::construct(self),
-            simulation::Mode::Empty => world::builder::empty::construct(self),
-            simulation::Mode::WorldTest => world::builder::world_test::construct(self),
-            simulation::Mode::GraphTest => world::builder::graph_test::construct(self),
+            simulation::Mode::Main => constructor::main::construct_world(self),
+            simulation::Mode::Empty => constructor::empty::construct_world(self),
+            simulation::Mode::WorldTest => constructor::world_test::construct_world(self),
+            simulation::Mode::GraphTest => constructor::graph_test::construct_world(self),
         }
 
         self.graph.setup(&self.chunk_vec);

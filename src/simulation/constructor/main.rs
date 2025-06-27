@@ -1,10 +1,18 @@
-use crate::simulation::state::{
-    population::entity,
-    world::{block, World},
+use crate::simulation::{
+    consts::*,
+    state::{
+        population::{
+            entity::{self, Agent},
+            Population,
+        },
+        world::{block, World},
+    },
 };
 use glam::IVec3;
+use glam::Vec3;
+use rand::Rng;
 
-pub fn construct(world: &mut World) {
+pub fn construct_world(world: &mut World) {
     log::info!("Setup Ground");
 
     build_ground(world);
@@ -21,6 +29,11 @@ pub fn construct(world: &mut World) {
     build_observation_deck(world);
 
     world.update_chunks();
+}
+
+pub fn construct_population(population: &mut Population, world: &World) {
+    setup_judge(population);
+    setup_agents(population, world);
 }
 
 fn build_ground(world: &mut World) {
@@ -161,4 +174,51 @@ fn build_observation_deck(world: &mut World) {
         IVec3::new(center - chunk_radius - 1, height, center - chunk_radius - 1),
         block::Kind::Empty,
     );
+}
+
+fn setup_judge(population: &mut Population) {
+    log::info!("Setup Judge");
+
+    let judge = &mut population.judge;
+
+    judge.set_world_position(Vec3::new(0.0, 2.0, 0.0));
+    judge.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
+    judge.set_rotation(0.0, 0.0);
+}
+
+fn setup_agents(population: &mut Population, world: &World) {
+    log::info!("Setup Agents");
+
+    let mut rng = rand::thread_rng();
+
+    let agent_initial_population = 16;
+    let agent_size_bounds = (0.6, 2.2);
+
+    for kind in entity::Kind::all() {
+        if let Some(flag_position) = world.get_flag(kind) {
+            let flag_position = flag_position.as_vec3();
+
+            for _ in 0..agent_initial_population {
+                let offset = Vec3::new(
+                    rng.gen_range(-4..=4) as f32,
+                    0.0,
+                    rng.gen_range(-4..=4) as f32,
+                );
+
+                let world_position = flag_position + offset;
+
+                let mut agent = Agent::new();
+
+                agent.kind = kind;
+                agent.set_world_position(world_position);
+                agent.set_size(Vec3::new(
+                    0.6,
+                    rng.gen_range(agent_size_bounds.0..=agent_size_bounds.1),
+                    0.6,
+                ));
+
+                population.agent_map.insert(agent.id, agent);
+            }
+        }
+    }
 }

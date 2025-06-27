@@ -1,6 +1,7 @@
 //! Evolution of the simulated environment.
 
 pub mod config;
+pub mod constructor;
 pub mod consts;
 pub mod mode;
 pub mod observation;
@@ -31,7 +32,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let mode = Mode::GraphTest;
+        let mode = Mode::WorldTest;
 
         let receiver = Receiver::new(action_rx);
         let state = State::new(mode);

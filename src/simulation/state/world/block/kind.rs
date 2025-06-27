@@ -19,4 +19,5 @@ pub enum Kind {
     West,
     South,
     East,
+    EsayaBlock,
 }

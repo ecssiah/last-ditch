@@ -246,6 +246,19 @@ impl BlockRenderData {
                     ],
                 },
             ),
+            (
+                Kind::EsayaBlock,
+                BlockRenderData {
+                    tile_index_array: [
+                        [0, 6],
+                        [0, 6],
+                        [0, 6],
+                        [0, 6],
+                        [0, 6],
+                        [0, 6],
+                    ],
+                },
+            ),
         ])
     }
 

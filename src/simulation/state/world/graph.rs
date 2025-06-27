@@ -179,7 +179,7 @@ impl Graph {
                                 let entrance = Entrance {
                                     region1_coordinates: chunk_coordinates,
                                     region2_coordinates: x_neighbor_chunk_coordinates,
-                                    transitions: Vec::new(),
+                                    transition_vec: Vec::new(),
                                 };
 
                                 self.entrance_vec.push(entrance);
@@ -195,7 +195,7 @@ impl Graph {
                                     region2_position: neighbor_position,
                                 };
 
-                                entrance.transitions.push(transition);
+                                entrance.transition_vec.push(transition);
                             }
 
                             matched = true;
@@ -280,7 +280,7 @@ impl Graph {
             let mut entrance = Entrance {
                 region1_coordinates: chunk_coordinates,
                 region2_coordinates: chunk_coordinates + IVec3::Y,
-                transitions: Vec::new(),
+                transition_vec: Vec::new(),
             };
 
             for position in group {
@@ -292,7 +292,7 @@ impl Graph {
                         region2_position: *neighbor_position,
                     };
 
-                    entrance.transitions.push(transition);
+                    entrance.transition_vec.push(transition);
                 }
             }
 
@@ -341,7 +341,7 @@ impl Graph {
                                 let entrance = Entrance {
                                     region1_coordinates: chunk_coordinates,
                                     region2_coordinates: z_neighbor_chunk_coordinates,
-                                    transitions: Vec::new(),
+                                    transition_vec: Vec::new(),
                                 };
 
                                 self.entrance_vec.push(entrance);
@@ -357,7 +357,7 @@ impl Graph {
                                     region2_position: neighbor_position,
                                 };
 
-                                entrance.transitions.push(transition);
+                                entrance.transition_vec.push(transition);
                             }
 
                             matched = true;
