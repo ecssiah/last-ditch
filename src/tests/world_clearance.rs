@@ -27,7 +27,7 @@ impl GetClearanceCase {
 fn get_clearance() {
     let mode = simulation::Mode::WorldTest;
 
-    let mut world = World::new(mode.config());
+    let mut world = World::new(mode);
     world.setup();
 
     let test_cases = vec![

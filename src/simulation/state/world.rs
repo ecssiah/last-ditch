@@ -19,7 +19,7 @@ use glam::{IVec3, Vec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
-    pub config: simulation::Config,
+    pub mode: simulation::Mode,
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_vec: Vec<chunk::Chunk>,
@@ -28,8 +28,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(config: simulation::Config) -> Self {
-        let grid = Grid::new(config);
+    pub fn new(mode: simulation::Mode) -> Self {
+        let grid = Grid::new(mode);
         let block_meta_map = block::Meta::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
         let graph = Graph::new(&grid, 1);
@@ -42,7 +42,7 @@ impl World {
         ]);
 
         Self {
-            config,
+            mode,
             grid,
             block_meta_map,
             chunk_vec,
@@ -56,7 +56,7 @@ impl World {
     }
 
     pub fn setup(&mut self) {
-        match self.config.mode {
+        match self.mode {
             simulation::Mode::Main => world::builder::main::construct(self),
             simulation::Mode::WorldTest => world::builder::world_test::construct(self),
             simulation::Mode::GraphTest => world::builder::graph_test::construct(self),

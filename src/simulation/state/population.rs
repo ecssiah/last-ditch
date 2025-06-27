@@ -20,7 +20,7 @@ use glam::IVec3;
 use std::collections::HashMap;
 
 pub struct Population {
-    pub config: simulation::Config,
+    pub mode: simulation::Mode,
     pub task_tx: Sender<task::Kind>,
     pub result_rx: Receiver<result::Kind>,
     pub judge: Judge,
@@ -28,14 +28,14 @@ pub struct Population {
 }
 
 impl Population {
-    pub fn new(config: simulation::Config, compute: &Compute) -> Self {
+    pub fn new(mode: simulation::Mode, compute: &Compute) -> Self {
         let task_tx = compute.task_tx.clone();
         let result_rx = compute.result_rx.clone();
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            config,
+            mode,
             task_tx,
             result_rx,
             judge,
@@ -44,7 +44,7 @@ impl Population {
     }
 
     pub fn setup(&mut self, world: &World) {
-        match self.config.mode {
+        match self.mode {
             simulation::Mode::Main => population::builder::main::construct(self, world),
             simulation::Mode::WorldTest => population::builder::world_test::construct(self, world),
             _ => (),

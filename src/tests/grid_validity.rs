@@ -22,7 +22,7 @@ impl BlockIDValidCase {
 fn block_id_valid() {
     let mode = simulation::Mode::WorldTest;
 
-    let mut world = World::new(mode.config());
+    let mut world = World::new(mode);
     world.setup();
 
     let test_cases = vec![
@@ -66,7 +66,7 @@ impl ChunkIDValidCase {
 fn chunk_id_valid() {
     let mode = simulation::Mode::WorldTest;
 
-    let mut world = World::new(mode.config());
+    let mut world = World::new(mode);
     world.setup();
 
     let test_cases = vec![
@@ -110,7 +110,7 @@ impl PositionValidCase {
 fn position_valid() {
     let mode = simulation::Mode::WorldTest;
 
-    let mut world = World::new(mode.config());
+    let mut world = World::new(mode);
     world.setup();
 
     let world_boundary = world.grid.world_boundary as i32;

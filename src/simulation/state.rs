@@ -19,7 +19,6 @@ pub use world::World;
 use crate::simulation::{self};
 
 pub struct State {
-    pub config: simulation::Config,
     pub admin: Admin,
     pub compute: Compute,
     pub time: Time,
@@ -30,16 +29,14 @@ pub struct State {
 
 impl State {
     pub fn new(mode: simulation::Mode) -> Self {
-        let config = mode.config();
         let admin = Admin::new();
         let compute = Compute::new();
         let time = Time::new();
         let physics = Physics::new();
-        let world = World::new(config);
-        let population = Population::new(config, &compute);
+        let world = World::new(mode);
+        let population = Population::new(mode, &compute);
 
         Self {
-            config,
             admin,
             compute,
             time,
