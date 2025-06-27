@@ -108,7 +108,7 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let mode = simulation::Mode::WorldTest;
+    let mode = simulation::Mode::Empty;
 
     let mut world = World::new(mode);
     world.setup();

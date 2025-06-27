@@ -58,6 +58,7 @@ impl World {
     pub fn setup(&mut self) {
         match self.mode {
             simulation::Mode::Main => world::builder::main::construct(self),
+            simulation::Mode::Empty => world::builder::empty::construct(self),
             simulation::Mode::WorldTest => world::builder::world_test::construct(self),
             simulation::Mode::GraphTest => world::builder::graph_test::construct(self),
         }
