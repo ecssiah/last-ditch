@@ -60,6 +60,12 @@ fn validate_entrances() {
             region2_coordinates: IVec3::new(-1, 0, 0),
             expected_number_of_entrances: 1,
         },
+        EntranceValidationCase {
+            description: "constricted entrance".to_string(),
+            region1_coordinates: IVec3::new(0, 0, 1),
+            region2_coordinates: IVec3::new(0, 1, 1),
+            expected_number_of_entrances: 1,
+        },
     ];
 
     for case in test_cases {

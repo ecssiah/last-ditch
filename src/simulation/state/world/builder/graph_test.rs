@@ -97,6 +97,12 @@ fn build_expanded_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(-chunk_radius - 1, -3, 1),
         block::Kind::Empty,
     );
+
+    world.set_cube(
+        chunk_position + IVec3::new(-chunk_radius, -5, -2),
+        chunk_position + IVec3::new(-chunk_radius + 2, -5, 2),
+        block::Kind::Polished2,
+    );
 }
 
 fn build_multiple_entrance_room(world: &mut World) {
@@ -130,7 +136,7 @@ fn build_vertical_entrance_room(world: &mut World) {
 
     let chunk_coordinates_001 = IVec3::new(0, 0, 1);
 
-    let chunk_position001 = world
+    let chunk_position_001 = world
         .grid
         .chunk_coordinates_to_position(chunk_coordinates_001)
         .unwrap();
@@ -139,25 +145,43 @@ fn build_vertical_entrance_room(world: &mut World) {
 
     build_chunk_room(
         world,
-        chunk_position001,
+        chunk_position_001,
         entrance_vec,
         block::Kind::Polished2,
     );
 
     let chunk_coordinates_011 = IVec3::new(0, 1, 1);
 
-    let chunk_position011 = world
+    let chunk_position_011 = world
         .grid
         .chunk_coordinates_to_position(chunk_coordinates_011)
         .unwrap();
 
-    let entrance_vec = vec![grid::Direction::XoYoZn, grid::Direction::XoYnZo];
+    let entrance_vec = vec![grid::Direction::XoYnZo];
 
     build_chunk_room(
         world,
-        chunk_position011,
+        chunk_position_011,
         entrance_vec,
         block::Kind::Polished1,
+    );
+
+    world.set_box(
+        chunk_position_001 + IVec3::new(-3, chunk_radius + 1, -3),
+        chunk_position_001 + IVec3::new(3, chunk_radius + 1, 3),
+        block::Kind::Empty,
+    );
+
+    world.set_box(
+        chunk_position_001 + IVec3::new(-3, chunk_radius, -3),
+        chunk_position_001 + IVec3::new(3, chunk_radius, 3),
+        block::Kind::Polished2,
+    );
+
+    world.set_box(
+        chunk_position_001 + IVec3::new(-2, chunk_radius - 1, -2),
+        chunk_position_001 + IVec3::new(2, chunk_radius - 1, 2),
+        block::Kind::Polished2,
     );
 }
 

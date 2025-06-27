@@ -224,17 +224,26 @@ impl World {
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
-                    let on_boundary = x == min.x
-                        || x == max.x
-                        || y == min.y
-                        || y == max.y
-                        || z == min.z
-                        || z == max.z;
+                    let mut on_boundary = false;
+
+                    if min.x != max.x && (x == min.x || x == max.x) {
+                        on_boundary = true;
+                    }
+
+                    if min.y != max.y && (y == min.y || y == max.y) {
+                        on_boundary = true;
+                    }
+
+                    if min.z != max.z && (z == min.z || z == max.z) {
+                        on_boundary = true;
+                    }
+
+                    let position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        let position = IVec3::new(x, y, z);
-
                         self.set_block_kind(position, kind);
+                    } else {
+                        self.set_block_kind(position, block::Kind::Empty);
                     }
                 }
             }
