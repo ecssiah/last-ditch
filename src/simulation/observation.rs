@@ -93,6 +93,10 @@ impl Observation {
                     population_view.judge_view.kinematic.next,
                     judge.kinematic,
                 ),
+                detection: StatePair::new(
+                    population_view.judge_view.detection.next,
+                    judge.detection,
+                ),
             },
             agent_view_map: HashMap::new(),
         };
@@ -116,6 +120,10 @@ impl Observation {
                             population_view.judge_view.kinematic.next,
                             judge.kinematic,
                         ),
+                        detection: StatePair::new(
+                            population_view.judge_view.detection.next,
+                            judge.detection,
+                        ),
                     }
                 } else {
                     AgentView {
@@ -123,6 +131,7 @@ impl Observation {
                         kind: agent.kind,
                         spatial: StatePair::new(agent.spatial, agent.spatial),
                         kinematic: StatePair::new(agent.kinematic, agent.kinematic),
+                        detection: StatePair::new(agent.detection, agent.detection),
                     }
                 };
 

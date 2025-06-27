@@ -1,5 +1,10 @@
 use crate::simulation::{
-    self, consts::*, state::{physics::aabb::AABB, world::{block, grid, World}}
+    self,
+    consts::*,
+    state::{
+        physics::aabb::AABB,
+        world::{block, grid, World},
+    },
 };
 use glam::Vec3;
 use std::f32::EPSILON;
@@ -26,7 +31,7 @@ fn directions() {
 
     let mut world = World::new(mode);
     world.setup();
-    
+
     let test_cases = vec![
         OverlappingAABBCase {
             description: String::from("XoYoZo"),

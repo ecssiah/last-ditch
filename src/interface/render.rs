@@ -78,7 +78,7 @@ impl Render {
             .iter()
             .map(|(_, agent_view)| AgentInstanceData {
                 world_position: agent_view.spatial.current.world_position.to_array(),
-                height: agent_view.spatial.current.aabb.size().y,
+                height: agent_view.detection.current.body.size().y,
                 color: agent_view.kind.color(),
             })
             .collect();

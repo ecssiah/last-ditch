@@ -80,7 +80,8 @@ impl Camera {
         let projection =
             Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let height = judge_view.spatial.current.aabb.max.y - judge_view.spatial.current.aabb.min.y;
+        let height =
+            judge_view.detection.current.body.max.y - judge_view.detection.current.body.min.y;
         let eye_offset = Vec3::Y * 0.9 * height;
         let eye = judge_position + eye_offset;
 

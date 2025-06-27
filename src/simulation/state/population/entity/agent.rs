@@ -2,7 +2,7 @@ use crate::simulation::{
     observation::state_pair::StatePair,
     state::{
         physics::aabb::AABB,
-        population::entity::{self, Kinematic, Nation, Spatial},
+        population::entity::{self, Detection, Kinematic, Nation, Spatial},
         world::{chunk, World},
     },
 };
@@ -13,6 +13,7 @@ pub struct Agent {
     pub chunk_id: StatePair<chunk::ID>,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
+    pub detection: Detection,
     pub kind: entity::Kind,
     pub nation: Nation,
 }
@@ -22,8 +23,9 @@ impl Agent {
         Self {
             id: entity::ID::allocate(),
             chunk_id: StatePair::default(),
-            spatial: Spatial::new(),
-            kinematic: Kinematic::new(),
+            spatial: Spatial::default(),
+            kinematic: Kinematic::default(),
+            detection: Detection::default(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
@@ -43,14 +45,11 @@ impl Agent {
 
     pub fn set_world_position(&mut self, world_position: Vec3) {
         self.spatial.world_position = world_position;
-
-        self.spatial
-            .aabb
-            .set_bottom_center(world_position.x, world_position.y, world_position.z);
+        self.detection.set_world_position(world_position);
     }
 
     pub fn set_size(&mut self, size: Vec3) {
-        self.spatial.aabb = AABB::new(self.spatial.aabb.center(), size);
+        self.detection.body = AABB::new(self.detection.body.center(), size);
     }
 }
 

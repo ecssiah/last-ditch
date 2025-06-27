@@ -1,7 +1,6 @@
 //! Forces affecting Population
 
 pub mod aabb;
-pub mod dynamic_object;
 
 use crate::simulation::{
     consts::*,
@@ -47,7 +46,7 @@ impl Physics {
     }
 
     fn resolve_judge(judge: &mut Judge, world: &World, velocity: &Vec3, delta: &Vec3) {
-        let mut aabb = judge.spatial.aabb;
+        let mut aabb = judge.detection.body;
         let mut velocity = *velocity;
 
         for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
@@ -60,7 +59,7 @@ impl Physics {
             velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
         }
 
-        judge.spatial.aabb = aabb;
+        judge.detection.body = aabb;
         judge.kinematic.velocity = velocity;
     }
 
@@ -96,10 +95,10 @@ impl Physics {
         (adjusted_aabb, adjusted_velocity)
     }
 
-    fn get_solid_collisions(target: AABB, world: &World) -> Vec<AABB> {
+    fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
         world
             .grid
-            .blocks_overlapping(target)
+            .blocks_overlapping(aabb)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();
@@ -112,6 +111,6 @@ impl Physics {
     }
 
     fn sync_judge(judge: &mut Judge) {
-        judge.set_world_position(judge.spatial.aabb.bottom_center());
+        judge.set_world_position(judge.detection.body.bottom_center());
     }
 }

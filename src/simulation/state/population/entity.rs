@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod detection;
 pub mod id;
 pub mod judge;
 pub mod kind;
@@ -8,6 +9,7 @@ pub mod spatial;
 pub mod viewpoint;
 
 pub use agent::Agent;
+pub use detection::Detection;
 pub use id::ID;
 pub use judge::Judge;
 pub use kind::Kind;
