@@ -12,7 +12,7 @@ pub use config::Config;
 pub use mode::Mode;
 
 use crate::simulation::{
-    consts::SIMULATION_TICK_DURATION,
+    consts::*,
     observation::Observation,
     state::{receiver::action::Action, Receiver},
 };
@@ -32,7 +32,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let mode = Mode::WorldTest;
+        let mode = Mode::GraphTest;
 
         let receiver = Receiver::new(action_rx);
         let state = State::new(mode);

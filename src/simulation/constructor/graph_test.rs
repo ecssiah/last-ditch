@@ -237,7 +237,7 @@ fn build_vertical_entrance_room(world: &mut World) {
     );
 
     world.set_cube(
-        chunk_position_001 + IVec3::new(-3, 5, 2),
+        chunk_position_001 + IVec3::new(-3, 5, 0),
         chunk_position_001 + IVec3::new(-2, 5, 3),
         block::Kind::CrimsonStone,
     );
@@ -292,7 +292,7 @@ fn build_vertical_entrance_room(world: &mut World) {
 
     world.set_cube(
         chunk_position_001 + IVec3::new(2, 5, -3),
-        chunk_position_001 + IVec3::new(3, 5, -2),
+        chunk_position_001 + IVec3::new(3, 5, 0),
         block::Kind::CrimsonStone,
     );
 }

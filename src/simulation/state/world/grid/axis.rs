@@ -1,6 +1,6 @@
 use glam::Vec3;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
     X = 0,
     Y = 1,
