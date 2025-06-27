@@ -8,7 +8,6 @@ use crate::simulation::consts::*;
 
 #[derive(Debug)]
 pub struct Admin {
-    pub seed: u64,
     pub mode: Mode,
     pub message: String,
 }
@@ -16,7 +15,6 @@ pub struct Admin {
 impl Admin {
     pub fn new() -> Self {
         Self {
-            seed: DEFAULT_SEED,
             mode: Mode::Load,
             message: String::from("Loading World"),
         }

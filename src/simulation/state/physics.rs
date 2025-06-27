@@ -14,6 +14,7 @@ use crate::simulation::{
 };
 use glam::Vec3;
 
+#[derive(Default)]
 pub struct Physics {
     pub gravity: Vec3,
 }
@@ -112,11 +113,5 @@ impl Physics {
 
     fn sync_judge(judge: &mut Judge) {
         judge.set_world_position(judge.spatial.aabb.bottom_center());
-    }
-}
-
-impl Default for Physics {
-    fn default() -> Self {
-        Self::new()
     }
 }

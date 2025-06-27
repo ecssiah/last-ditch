@@ -50,14 +50,14 @@ fn validate_entrances() {
     let test_cases = vec![
         EntranceValidationCase {
             description: "expanded entrance".to_string(),
-            region1_coordinates: IVec3::new(0, 0, -2),
-            region2_coordinates: IVec3::new(1, 0, -2),
+            region1_coordinates: IVec3::new(0, 0, 0),
+            region2_coordinates: IVec3::new(1, 0, 0),
             expected_number_of_entrances: 1,
         },
         EntranceValidationCase {
             description: "constricted entrance".to_string(),
-            region1_coordinates: IVec3::new(0, 0, -2),
-            region2_coordinates: IVec3::new(-1, 0, -2),
+            region1_coordinates: IVec3::new(0, 0, 0),
+            region2_coordinates: IVec3::new(-1, 0, 0),
             expected_number_of_entrances: 1,
         },
     ];

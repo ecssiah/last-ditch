@@ -47,6 +47,7 @@ impl Population {
         match self.mode {
             simulation::Mode::Main => population::builder::main::construct(self, world),
             simulation::Mode::WorldTest => population::builder::world_test::construct(self, world),
+            simulation::Mode::GraphTest => population::builder::graph_test::construct(self, world),
             _ => (),
         }
     }
