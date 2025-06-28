@@ -53,10 +53,11 @@ impl State {
     }
 
     pub fn tick(&mut self) {
+        self.admin.tick();
         self.time.tick();
         self.world.tick();
-        self.physics.tick(&self.world, &mut self.population);
         self.population.tick(&self.world);
+        self.physics.tick(&self.world, &mut self.population);
         self.compute.tick(&self.world, &self.population);
     }
 }

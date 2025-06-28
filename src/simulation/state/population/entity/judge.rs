@@ -13,6 +13,7 @@ use glam::{Quat, Vec3};
 pub struct Judge {
     pub id: entity::ID,
     pub chunk_id: StatePair<chunk::ID>,
+    pub action_vec: Vec<JudgeAction>,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub detection: Detection,
@@ -25,6 +26,7 @@ impl Judge {
         Self {
             id: entity::ID::allocate(),
             chunk_id: StatePair::default(),
+            action_vec: Vec::default(),
             spatial: Spatial::default(),
             kinematic: Kinematic::default(),
             detection: Detection::default(),
@@ -38,6 +40,17 @@ impl Judge {
     pub fn tick(&mut self, world: &World) {
         if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
             self.chunk_id.set(chunk_id);
+        }
+
+        let action_vec = std::mem::take(&mut self.action_vec);
+
+        for action in action_vec {
+            match action {
+                JudgeAction::Movement(movement_action) => {
+                    self.apply_movement_action(&movement_action)
+                }
+                JudgeAction::Jump(jump_action) => self.apply_jump_action(&jump_action),
+            }
         }
     }
 
@@ -87,13 +100,10 @@ impl Judge {
     }
 
     pub fn receive_action(&mut self, judge_action: &JudgeAction) {
-        match judge_action {
-            JudgeAction::Movement(movement_action) => self.receive_movement_action(movement_action),
-            JudgeAction::Jump(jump_action) => self.receive_jump_action(jump_action),
-        }
+        self.action_vec.push(*judge_action);
     }
 
-    pub fn receive_movement_action(&mut self, movement_action: &MovementAction) {
+    pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
         if movement_action.rotation.y.abs() > 1e-6 || movement_action.rotation.z.abs() > 1e-6 {
             self.spatial.yaw += movement_action.rotation.y;
             self.spatial.pitch += movement_action.rotation.z;
@@ -123,7 +133,7 @@ impl Judge {
         }
     }
 
-    pub fn receive_jump_action(&mut self, jump_action: &JumpAction) {
+    pub fn apply_jump_action(&mut self, jump_action: &JumpAction) {
         if let JumpAction::Start = jump_action {
             self.kinematic.velocity.y = JUDGE_SPEED_Y;
         }
