@@ -146,7 +146,7 @@ impl State {
                             TestAction::Test4 => println!("Test Action 4"),
                         },
                         _ => {
-                            log::warn!("Received an invalid action in Simulate mode: {:?}", action)
+                            log::warn!("Received an invalid Action in Simulate mode: {:?}", action)
                         }
                     }
                 }

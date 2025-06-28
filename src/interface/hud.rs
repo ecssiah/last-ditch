@@ -153,6 +153,7 @@ impl HUD {
         action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
         let mut start_clicked = false;
+        let mut exit_clicked = false;
 
         egui::CentralPanel::default().show(context, |ui| {
             ui.vertical_centered(|ui| {
@@ -161,11 +162,22 @@ impl HUD {
                 start_clicked = ui
                     .add_sized([200.0, 60.0], egui::Button::new("Start"))
                     .clicked();
+
+                exit_clicked = ui
+                    .add_sized([200.0, 60.0], egui::Button::new("Exit"))
+                    .clicked();
             });
         });
 
         if start_clicked {
             let admin_action = simulation::state::receiver::action::AdminAction::Start;
+            let action = simulation::state::receiver::action::Action::Admin(admin_action);
+
+            action_vec.push(action);
+        }
+
+        if exit_clicked {
+            let admin_action = simulation::state::receiver::action::AdminAction::Shutdown;
             let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
             action_vec.push(action);
@@ -179,9 +191,9 @@ impl HUD {
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
         egui::Area::new(Id::new(0))
-            .fixed_pos(egui::pos2(10.0, 10.0))
+            .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
             .show(context, |ui| {
-                Self::draw_hud_text(ui, Vec2::ZERO, &load_data.message);
+                Self::draw_hud_text(ui, Vec2::new(6.0, 6.0), &load_data.message);
             });
     }
 
@@ -192,9 +204,9 @@ impl HUD {
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
         egui::Area::new(Id::new(0))
-            .fixed_pos(egui::pos2(10.0, 10.0))
+            .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
             .show(context, |ui| {
-                Self::draw_hud_text(ui, Vec2::ZERO, &simulate_data.message);
+                Self::draw_hud_text(ui, Vec2::new(6.0, 6.0), &simulate_data.message);
             });
     }
 
@@ -205,9 +217,9 @@ impl HUD {
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
         egui::Area::new(Id::new(0))
-            .fixed_pos(egui::pos2(10.0, 10.0))
+            .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
             .show(context, |ui| {
-                Self::draw_hud_text(ui, Vec2::ZERO, &shutdown_data.message);
+                Self::draw_hud_text(ui, Vec2::new(6.0, 6.0), &shutdown_data.message);
             });
     }
 
