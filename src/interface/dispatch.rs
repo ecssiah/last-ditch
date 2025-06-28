@@ -1,7 +1,7 @@
 //! Allows Interface to send messages to Simulation
 
 use crate::simulation;
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::mpsc::{error::SendError, UnboundedSender};
 
 pub struct Dispatch {
     action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
@@ -12,12 +12,10 @@ impl Dispatch {
         Self { action_tx }
     }
 
-    pub fn send(&self, action: simulation::state::receiver::action::Action) {
-        match self.action_tx.send(action) {
-            Ok(()) => (),
-            Err(e) => {
-                eprintln!("Send failed: {:?}", e);
-            }
-        }
+    pub fn send(
+        &self,
+        action: simulation::state::receiver::action::Action,
+    ) -> Result<(), SendError<simulation::state::receiver::action::Action>> {
+        self.action_tx.send(action)
     }
 }

@@ -13,7 +13,6 @@ use crate::{
     interface::Interface,
     simulation::{consts::PROJECT_TITLE, Simulation},
 };
-use std::thread;
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler,
@@ -25,7 +24,7 @@ use winit::{
 #[derive(Default)]
 struct App<'window> {
     interface: Option<Interface<'window>>,
-    simulation_thread: Option<thread::JoinHandle<()>>,
+    simulation_thread: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl ApplicationHandler for App<'_> {
@@ -36,7 +35,7 @@ impl ApplicationHandler for App<'_> {
         let mut simulation = Box::new(Simulation::new(action_rx));
         let interface = Interface::new(event_loop, action_tx, simulation.get_observation_arc());
 
-        self.simulation_thread = Some(thread::spawn(move || simulation.run()));
+        self.simulation_thread = Some(tokio::spawn(async move { simulation.run() }));
         self.interface = Some(interface);
     }
 

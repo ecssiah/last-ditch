@@ -250,8 +250,11 @@ impl Interface<'_> {
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
-        self.dispatch_actions();
-        self.apply_view(event_loop);
+        if !self.dispatch_actions() {
+            event_loop.exit();
+        } else {
+            self.apply_view(event_loop);
+        }
     }
 
     fn apply_view(&mut self, event_loop: &ActiveEventLoop) {
@@ -321,13 +324,23 @@ impl Interface<'_> {
         self.hud.prepare_shutdown(view);
     }
 
-    fn dispatch_actions(&mut self) {
-        for action in self.input.get_actions() {
-            self.dispatch.send(action);
+    fn dispatch_actions(&mut self) -> bool {
+        let input_actions = self.input.get_actions();
+        let hud_actions = self.hud.get_actions();
+
+        let action_vec: Vec<_> = input_actions.iter().chain(&hud_actions).cloned().collect();
+
+        for action in action_vec {
+            match self.dispatch.send(action) {
+                Ok(()) => (),
+                Err(_) => {
+                    log::error!("{:?}", action);
+
+                    return false;
+                }
+            }
         }
 
-        for action in self.hud.get_actions() {
-            self.dispatch.send(action);
-        }
+        true
     }
 }
