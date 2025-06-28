@@ -1,4 +1,4 @@
-//! Interactions with the User.
+//! Interactions with the User
 
 pub mod camera;
 pub mod consts;
@@ -15,8 +15,8 @@ use crate::{
     },
     simulation::{self},
 };
+use egui::ViewportId;
 use std::{
-    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -123,6 +123,17 @@ impl Interface<'_> {
 
         surface.configure(&device, &surface_config);
 
+        let egui_context = egui::Context::default();
+
+        let egui_winit_state = egui_winit::State::new(
+            egui_context.clone(),
+            egui::ViewportId::ROOT,
+            &window_arc,
+            None,
+            None,
+            None,
+        );
+
         let gpu_context = GPUContext {
             window_arc,
             device,
@@ -131,6 +142,8 @@ impl Interface<'_> {
             surface,
             surface_config,
             texture_view_descriptor,
+            egui_context,
+            egui_winit_state,
         };
 
         let dispatch = Dispatch::new(action_tx);
@@ -144,11 +157,7 @@ impl Interface<'_> {
             &camera,
         );
 
-        let hud = HUD::new(
-            &gpu_context.device,
-            gpu_context.window_arc.clone(),
-            surface_format,
-        );
+        let hud = HUD::new(&gpu_context.device, surface_format);
 
         gpu_context.window_arc.request_redraw();
 
@@ -167,20 +176,6 @@ impl Interface<'_> {
         }
     }
 
-    pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        self.input.handle_window_event(event);
-
-        match event {
-            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
-            WindowEvent::Resized(size) => self.handle_resized(*size),
-            _ => (),
-        }
-    }
-
-    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        self.input.handle_device_event(event);
-    }
-
     pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let instant = Instant::now();
         let next_instant = self.last_instant + INTERFACE_FRAME_DURATION;
@@ -197,34 +192,17 @@ impl Interface<'_> {
         self.gpu_context.window_arc.request_redraw();
     }
 
-    fn update(&mut self, event_loop: &ActiveEventLoop) {
-        self.dispatch_actions();
-        self.apply_view(event_loop);
+    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
+        self.input.handle_device_event(event);
     }
 
-    fn apply_view(&mut self, event_loop: &ActiveEventLoop) {
-        let view = self.observation_arc.get_view();
+    pub fn handle_window_event(&mut self, event: &WindowEvent) {
+        self.input.handle_window_event(event);
 
-        match view.admin_view.mode {
-            simulation::state::admin::Mode::Load => {
-                self.apply_admin_view(&view.admin_view);
-            }
-            simulation::state::admin::Mode::Simulate => {
-                self.apply_admin_view(&view.admin_view);
-                self.apply_time_view(&view.time_view);
-                self.apply_population_view(&view.population_view);
-                self.apply_world_view(&view.world_view);
-            }
-            simulation::state::admin::Mode::Shutdown => {}
-            simulation::state::admin::Mode::Exit => {
-                event_loop.exit();
-            }
-        }
-    }
-
-    fn dispatch_actions(&mut self) {
-        for action in self.input.get_input_actions() {
-            self.dispatch.send(action);
+        match event {
+            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
+            WindowEvent::Resized(size) => self.handle_resized(*size),
+            _ => (),
         }
     }
 
@@ -244,21 +222,11 @@ impl Interface<'_> {
             .texture
             .create_view(&self.gpu_context.texture_view_descriptor);
 
-        self.render.update(
-            &mut encoder,
-            &self.gpu_context.device,
-            &self.gpu_context.surface_config,
-            &texture_view,
-            &self.camera,
-        );
+        self.render
+            .update(&mut encoder, &self.gpu_context, &texture_view, &self.camera);
 
-        self.hud.update(
-            &mut encoder,
-            &self.gpu_context.window_arc,
-            &self.gpu_context.device,
-            &self.gpu_context.queue,
-            &texture_view,
-        );
+        self.hud
+            .update(&mut encoder, &mut self.gpu_context, &texture_view);
 
         self.gpu_context.queue.submit([encoder.finish()]);
         self.gpu_context.window_arc.pre_present_notify();
@@ -274,53 +242,73 @@ impl Interface<'_> {
             .configure(&self.gpu_context.device, &self.gpu_context.surface_config);
     }
 
-    fn apply_admin_view(&mut self, admin_view: &simulation::observation::view::AdminView) {
-        self.hud.prepare_load(admin_view);
+    fn update(&mut self, event_loop: &ActiveEventLoop) {
+        self.dispatch_actions();
+        self.apply_view(event_loop);
     }
 
-    fn apply_time_view(&mut self, time_view: &simulation::observation::view::TimeView) {
+    fn apply_view(&mut self, event_loop: &ActiveEventLoop) {
+        let view = self.observation_arc.get_view();
+
+        match view.admin_view.mode {
+            simulation::state::admin::Mode::Menu => self.apply_menu_view(&view),
+            simulation::state::admin::Mode::Load => self.apply_load_view(&view),
+            simulation::state::admin::Mode::Simulate => self.apply_simulate_view(&view),
+            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(&view),
+            simulation::state::admin::Mode::Exit => event_loop.exit(),
+        }
+    }
+
+    fn apply_menu_view(&mut self, view: &simulation::observation::view::View) {
+        self.hud.prepare_menu(&view);
+    }
+
+    fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
+        self.hud.prepare_load(&view);
+    }
+
+    fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
+        self.hud.prepare_simulate(&view);
+
         self.dt = self.instant.elapsed();
         self.instant = Instant::now();
 
         let now = self.instant;
-        let current = time_view.instant.current;
-        let next = time_view.instant.next;
+        let current = (&view.time_view).instant.current;
+        let next = (&view.time_view).instant.next;
 
         let total_duration = next.duration_since(current).as_secs_f32();
         let elapsed_since_current = now.duration_since(current).as_secs_f32();
 
         self.alpha = (elapsed_since_current / total_duration).clamp(0.0, 1.0);
-    }
 
-    fn apply_population_view(
-        &mut self,
-        population_view: &simulation::observation::view::PopulationView,
-    ) {
-        self.apply_judge_view(&population_view.judge_view);
-        self.apply_agent_view_map(&population_view.agent_view_map);
-    }
+        self.camera.update(
+            &self.gpu_context.queue,
+            self.alpha,
+            &view.population_view.judge_view,
+        );
 
-    fn apply_judge_view(&mut self, judge_view: &simulation::observation::view::JudgeView) {
-        self.camera
-            .update(&self.gpu_context.queue, self.alpha, judge_view);
-    }
-
-    fn apply_agent_view_map(
-        &mut self,
-        agent_view_map: &HashMap<
-            simulation::state::population::entity::ID,
-            simulation::observation::view::AgentView,
-        >,
-    ) {
         self.render.prepare_agent_view_map(
             &self.gpu_context.device,
             &self.gpu_context.queue,
-            agent_view_map,
+            &view.population_view.agent_view_map,
         );
+
+        self.render
+            .prepare_world_view(&self.gpu_context.device, &view.world_view);
     }
 
-    fn apply_world_view(&mut self, world_view: &simulation::observation::view::WorldView) {
-        self.render
-            .prepare_world_view(&self.gpu_context.device, world_view);
+    fn apply_shutdown_view(&mut self, view: &simulation::observation::view::View) {
+        self.hud.prepare_shutdown(view);
+    }
+
+    fn dispatch_actions(&mut self) {
+        for action in self.input.get_actions() {
+            self.dispatch.send(action);
+        }
+
+        for action in self.hud.get_actions() {
+            self.dispatch.send(action);
+        }
     }
 }

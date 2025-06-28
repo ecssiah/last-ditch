@@ -14,6 +14,7 @@ pub use textures::Textures;
 use crate::{
     interface::{
         camera::Camera,
+        gpu_context::GPUContext,
         render::data::{AgentInstanceData, BlockRenderData, ChunkData, MeshData, VertexData},
     },
     simulation,
@@ -163,12 +164,12 @@ impl Render {
     pub fn update(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
-        device: &wgpu::Device,
-        surface_config: &wgpu::SurfaceConfiguration,
+        gpu_context: &GPUContext,
         texture_view: &wgpu::TextureView,
         camera: &Camera,
     ) {
-        let depth_texture_view = Textures::create_depth_texture(device, surface_config);
+        let depth_texture_view =
+            Textures::create_depth_texture(&gpu_context.device, &gpu_context.surface_config);
 
         if let Some(ref texture_sampler_bind_group) = self.textures.texture_sampler_bind_group {
             self.chunk_render.render(

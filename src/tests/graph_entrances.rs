@@ -52,7 +52,7 @@ impl EntranceValidationCase {
 
 #[test]
 fn validate_entrances() {
-    let mode = simulation::Mode::GraphTest;
+    let mode = simulation::Kind::GraphTest;
 
     let mut world = World::new(mode);
     world.setup();

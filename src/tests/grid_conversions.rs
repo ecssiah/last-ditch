@@ -28,7 +28,7 @@ impl BlockIDToBlockCoordinatesCase {
 
 #[test]
 fn block_id_to_block_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -80,7 +80,7 @@ impl BlockCoordinatesToBlockIDCase {
 
 #[test]
 fn block_coordinates_to_block_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -134,7 +134,7 @@ impl ChunkIDToChunkCoordinates {
 
 #[test]
 fn chunk_id_to_chunk_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -186,7 +186,7 @@ impl ChunkCoordinatesToChunkIDCase {
 
 #[test]
 fn chunk_coordinates_to_chunk_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -238,7 +238,7 @@ impl ChunkCoordinatesToPositionCase {
 
 #[test]
 fn chunk_coordinates_to_position() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -290,7 +290,7 @@ impl ChunkIDToPositionCase {
 
 #[test]
 fn chunk_id_to_position() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -344,7 +344,7 @@ impl PositionToChunkCoordinatesCase {
 
 #[test]
 fn position_to_chunk_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -399,7 +399,7 @@ impl PositionToBlockCoordinatesCase {
 
 #[test]
 fn position_to_block_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -480,7 +480,7 @@ impl PositionToChunkIDCase {
 
 #[test]
 fn position_to_chunk_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -529,7 +529,7 @@ impl PositionToBlockIDCase {
 
 #[test]
 fn position_to_block_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -579,7 +579,7 @@ impl IDsToPositionCase {
 
 #[test]
 fn ids_to_position() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -631,7 +631,7 @@ impl PositionToIDsCase {
 
 #[test]
 fn position_to_ids() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -683,7 +683,7 @@ impl WorldToPositionCase {
 
 #[test]
 fn world_to_grid() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -739,7 +739,7 @@ impl WorldToChunkIDCase {
 
 #[test]
 fn world_to_chunk_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -799,7 +799,7 @@ impl WorldToChunkCoordinates {
 
 #[test]
 fn world_to_chunk_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -846,7 +846,7 @@ impl WorldToBlockIDCase {
 
 #[test]
 fn world_to_block_id() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();
@@ -906,7 +906,7 @@ impl WorldToBlockCoordinates {
 
 #[test]
 fn world_to_block_coordinates() {
-    let mode = simulation::Mode::Empty;
+    let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
     world.setup();

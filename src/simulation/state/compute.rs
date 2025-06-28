@@ -35,6 +35,15 @@ impl Compute {
     }
 
     pub fn tick(&mut self, world: &World, population: &Population) {
+        while let Ok(result) = self.result_rx.try_recv() {
+            match result {
+                result::Kind::ChunkPath(result) => {
+                    println!("{:?}", result);
+                }
+                result::Kind::WorldPath(_result) => {}
+            }
+        }
+
         for task in self.task_rx.try_iter() {
             match task {
                 task::Kind::ChunkPath(task) => {

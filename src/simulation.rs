@@ -3,13 +3,13 @@
 pub mod config;
 pub mod constructor;
 pub mod consts;
-pub mod mode;
+pub mod kind;
 pub mod observation;
 pub mod state;
 pub mod utils;
 
 pub use config::Config;
-pub use mode::Mode;
+pub use kind::Kind;
 
 use crate::simulation::{
     consts::*,
@@ -24,7 +24,7 @@ use std::{
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    pub mode: Mode,
+    pub kind: Kind,
     pub receiver: Receiver,
     pub state: State,
     pub observation_arc: Arc<Observation>,
@@ -32,14 +32,14 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let mode = Mode::GraphTest;
+        let kind = Kind::GraphTest;
 
         let receiver = Receiver::new(action_rx);
-        let state = State::new(mode);
+        let state = State::new(kind);
         let observation_arc = Arc::new(Observation::new());
 
         Self {
-            mode,
+            kind,
             receiver,
             state,
             observation_arc,
@@ -56,9 +56,6 @@ impl Simulation {
     }
 
     fn setup(&mut self) {
-        // FIXME: currently required to display "Loading World"
-        self.observation_arc.tick(&self.state);
-
         self.state.setup();
     }
 

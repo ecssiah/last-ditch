@@ -86,8 +86,8 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(mode: simulation::Mode) -> Self {
-        let config = mode.config();
+    pub fn new(kind: simulation::Kind) -> Self {
+        let config = kind.config();
 
         let world_radius = config.world_radius;
         let world_size = 2 * config.world_radius + 1;

@@ -5,7 +5,7 @@ pub mod test_action;
 pub use admin_action::AdminAction;
 pub use judge_action::JudgeAction;
 pub use judge_action::JumpAction;
-pub use judge_action::MovementAction;
+pub use judge_action::MovementData;
 pub use test_action::TestAction;
 
 #[derive(Clone, Copy, Debug)]

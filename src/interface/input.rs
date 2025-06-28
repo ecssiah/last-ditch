@@ -22,7 +22,7 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
-    pub action_buffer: Vec<simulation::state::receiver::action::Action>,
+    pub action_vec: Vec<simulation::state::receiver::action::Action>,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
 }
@@ -38,20 +38,20 @@ impl Input {
 
         let mouse_inputs = MouseInputs { delta: Vec2::ZERO };
 
-        let action_buffer = Vec::new();
+        let action_vec = Vec::new();
 
         Self {
             key_inputs,
             mouse_inputs,
-            action_buffer,
+            action_vec,
         }
     }
 
-    pub fn get_input_actions(&mut self) -> Vec<simulation::state::receiver::action::Action> {
+    pub fn get_actions(&mut self) -> Vec<simulation::state::receiver::action::Action> {
         let movement_action = self.get_movement_action();
-        self.action_buffer.push(movement_action);
+        self.action_vec.push(movement_action);
 
-        std::mem::take(&mut self.action_buffer)
+        std::mem::take(&mut self.action_vec)
     }
 
     pub fn get_movement_action(&mut self) -> simulation::state::receiver::action::Action {
@@ -69,13 +69,13 @@ impl Input {
 
         self.mouse_inputs.delta = Vec2::ZERO;
 
-        let movement_action = simulation::state::receiver::action::MovementAction {
+        let movement_data = simulation::state::receiver::action::MovementData {
             direction,
             rotation,
         };
 
         let judge_action =
-            simulation::state::receiver::action::JudgeAction::Movement(movement_action);
+            simulation::state::receiver::action::JudgeAction::Movement(movement_data);
 
         simulation::state::receiver::action::Action::Judge(judge_action)
     }
@@ -100,7 +100,7 @@ impl Input {
             } => self.handle_mouse_wheel(device_id, delta, phase),
             _ => None,
         } {
-            self.action_buffer.push(action);
+            self.action_vec.push(action);
         }
     }
 

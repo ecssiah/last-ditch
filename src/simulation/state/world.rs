@@ -18,7 +18,7 @@ use glam::{IVec3, Vec3, Vec4};
 use std::collections::HashMap;
 
 pub struct World {
-    pub mode: simulation::Mode,
+    pub kind: simulation::Kind,
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_vec: Vec<chunk::Chunk>,
@@ -27,8 +27,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(mode: simulation::Mode) -> Self {
-        let grid = Grid::new(mode);
+    pub fn new(kind: simulation::Kind) -> Self {
+        let grid = Grid::new(kind);
         let block_meta_map = block::Meta::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
         let graph = Graph::new(&grid, 1);
@@ -41,7 +41,25 @@ impl World {
         ]);
 
         Self {
-            mode,
+            kind,
+            grid,
+            block_meta_map,
+            chunk_vec,
+            graph,
+            flags,
+        }
+    }
+
+    pub fn placeholder() -> Self {
+        let kind = simulation::Kind::Placeholder;
+        let grid = Grid::new(kind);
+        let block_meta_map = HashMap::default();
+        let chunk_vec = Vec::default();
+        let graph = Graph::new(&grid, 1);
+        let flags = HashMap::default();
+
+        Self {
+            kind,
             grid,
             block_meta_map,
             chunk_vec,
@@ -55,11 +73,12 @@ impl World {
     }
 
     pub fn setup(&mut self) {
-        match self.mode {
-            simulation::Mode::Main => constructor::main::construct_world(self),
-            simulation::Mode::Empty => constructor::empty::construct_world(self),
-            simulation::Mode::WorldTest => constructor::world_test::construct_world(self),
-            simulation::Mode::GraphTest => constructor::graph_test::construct_world(self),
+        match self.kind {
+            simulation::Kind::Main => constructor::main::construct_world(self),
+            simulation::Kind::Placeholder => (),
+            simulation::Kind::Empty => constructor::empty::construct_world(self),
+            simulation::Kind::WorldTest => constructor::world_test::construct_world(self),
+            simulation::Kind::GraphTest => constructor::graph_test::construct_world(self),
         }
 
         self.graph.setup(&self.chunk_vec);

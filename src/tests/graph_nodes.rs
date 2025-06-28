@@ -23,7 +23,7 @@ impl NodeValidationCase {
 
 #[test]
 fn get_clearance() {
-    let mode = simulation::Mode::GraphTest;
+    let mode = simulation::Kind::GraphTest;
 
     let mut world = World::new(mode);
     world.setup();

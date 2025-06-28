@@ -4,7 +4,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::entity::{self, Detection, Kinematic, Nation, Spatial},
-        receiver::action::{JudgeAction, JumpAction, MovementAction},
+        receiver::action::{JudgeAction, JumpAction, MovementData},
         world::{chunk, World},
     },
 };
@@ -46,9 +46,7 @@ impl Judge {
 
         for action in action_vec {
             match action {
-                JudgeAction::Movement(movement_action) => {
-                    self.apply_movement_action(&movement_action)
-                }
+                JudgeAction::Movement(movement_data) => self.apply_movement_data(&movement_data),
                 JudgeAction::Jump(jump_action) => self.apply_jump_action(&jump_action),
             }
         }
@@ -103,10 +101,10 @@ impl Judge {
         self.action_vec.push(*judge_action);
     }
 
-    pub fn apply_movement_action(&mut self, movement_action: &MovementAction) {
-        if movement_action.rotation.y.abs() > 1e-6 || movement_action.rotation.z.abs() > 1e-6 {
-            self.spatial.yaw += movement_action.rotation.y;
-            self.spatial.pitch += movement_action.rotation.z;
+    pub fn apply_movement_data(&mut self, movement_data: &MovementData) {
+        if movement_data.rotation.y.abs() > 1e-6 || movement_data.rotation.z.abs() > 1e-6 {
+            self.spatial.yaw += movement_data.rotation.y;
+            self.spatial.pitch += movement_data.rotation.z;
 
             self.spatial.pitch = self
                 .spatial
@@ -117,7 +115,7 @@ impl Judge {
                 Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
         }
 
-        let input_direction = movement_action.direction.normalize_or_zero();
+        let input_direction = movement_data.direction.normalize_or_zero();
 
         if input_direction.length_squared() > 1e-6 {
             let yaw_quat = Quat::from_rotation_y(self.spatial.yaw);

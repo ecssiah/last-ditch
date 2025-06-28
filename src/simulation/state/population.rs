@@ -5,62 +5,58 @@ pub mod entity;
 use crate::simulation::{
     self, constructor,
     state::{
-        compute::{result, task},
         population::entity::{Agent, Judge},
         world::World,
-        Compute,
     },
 };
-use crossbeam::channel::{Receiver, Sender};
-use glam::IVec3;
 use std::collections::HashMap;
 
 pub struct Population {
-    pub mode: simulation::Mode,
-    pub task_tx: Sender<task::Kind>,
-    pub result_rx: Receiver<result::Kind>,
+    pub kind: simulation::Kind,
     pub judge: Judge,
     pub agent_map: HashMap<entity::ID, Agent>,
 }
 
 impl Population {
-    pub fn new(mode: simulation::Mode, compute: &Compute) -> Self {
-        let task_tx = compute.task_tx.clone();
-        let result_rx = compute.result_rx.clone();
+    pub fn new(kind: simulation::Kind) -> Self {
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            mode,
-            task_tx,
-            result_rx,
+            kind,
             judge,
             agent_map,
         }
     }
+
+    pub fn placeholder() -> Self {
+        let kind = simulation::Kind::Placeholder;
+
+        let judge = Judge::new();
+        let agent_map = HashMap::default();
+
+        Self {
+            kind,
+            judge,
+            agent_map,
+        }
+    }
+
     pub fn setup(&mut self, world: &World) {
-        match self.mode {
-            simulation::Mode::Main => constructor::main::construct_population(self, world),
-            simulation::Mode::Empty => constructor::empty::construct_population(self, world),
-            simulation::Mode::WorldTest => {
+        match self.kind {
+            simulation::Kind::Main => constructor::main::construct_population(self, world),
+            simulation::Kind::Placeholder => (),
+            simulation::Kind::Empty => constructor::empty::construct_population(self, world),
+            simulation::Kind::WorldTest => {
                 constructor::world_test::construct_population(self, world)
             }
-            simulation::Mode::GraphTest => {
+            simulation::Kind::GraphTest => {
                 constructor::graph_test::construct_population(self, world)
             }
         }
     }
 
     pub fn tick(&mut self, world: &World) {
-        while let Ok(result) = self.result_rx.try_recv() {
-            match result {
-                result::Kind::ChunkPath(result) => {
-                    println!("{:?}", result);
-                }
-                result::Kind::WorldPath(_result) => {}
-            }
-        }
-
         for agent in self.agent_map.values_mut() {
             agent.tick(world);
         }
@@ -90,25 +86,5 @@ impl Population {
 
     pub fn get_agent_mut(&mut self, agent_id: &entity::ID) -> Option<&mut Agent> {
         self.agent_map.get_mut(agent_id)
-    }
-
-    pub fn test_chunk_path(&mut self, world: &World) {
-        let task = task::ChunkPathTask {
-            agent_id: entity::ID::default(),
-            chunk_id: world
-                .grid
-                .chunk_coordinates_to_chunk_id(IVec3::new(0, 0, 0))
-                .unwrap(),
-            block_id_start: world
-                .grid
-                .block_coordinates_to_block_id(IVec3::new(-2, -2, -2))
-                .unwrap(),
-            block_id_end: world
-                .grid
-                .block_coordinates_to_block_id(IVec3::new(2, -2, 2))
-                .unwrap(),
-        };
-
-        self.task_tx.send(task::Kind::ChunkPath(task)).unwrap();
     }
 }
