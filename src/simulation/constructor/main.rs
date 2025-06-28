@@ -177,8 +177,6 @@ fn build_observation_deck(world: &mut World) {
 }
 
 fn setup_judge(population: &mut Population) {
-    log::info!("Setup Judge");
-
     let judge = &mut population.judge;
 
     judge.set_world_position(Vec3::new(0.0, 2.0, 0.0));
@@ -187,8 +185,6 @@ fn setup_judge(population: &mut Population) {
 }
 
 fn setup_agents(population: &mut Population, world: &World) {
-    log::info!("Setup Agents");
-
     let mut rng = rand::thread_rng();
 
     let agent_initial_population = 16;

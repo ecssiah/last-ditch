@@ -198,8 +198,6 @@ fn build_chunk_room(
 }
 
 fn setup_judge(population: &mut Population) {
-    log::info!("Setup Test Judge");
-
     let judge = &mut population.judge;
 
     judge.set_world_position(Vec3::new(0.0, -2.0, 0.0));

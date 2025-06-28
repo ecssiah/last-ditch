@@ -63,7 +63,7 @@ impl Simulation {
     }
 
     fn execute(&mut self) {
-        let mut next_instant = Instant::now();
+        let mut next_instant = Instant::now() + SIMULATION_TICK_DURATION;
 
         loop {
             while Instant::now() >= next_instant {
