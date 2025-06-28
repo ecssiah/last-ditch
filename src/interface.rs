@@ -192,28 +192,24 @@ impl Interface<'_> {
     }
 
     pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            let _egui_consumed = self
-                .gpu_context
-                .egui_winit_state
-                .on_mouse_motion((*dx, *dy));
-        }
+        let hud_handled = self.hud.handle_device_event(event, &mut self.gpu_context);
 
-        self.input.handle_device_event(event);
+        if !hud_handled {
+            self.input.handle_device_event(event);
+        }
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
-        let _egui_consumed = self
-            .gpu_context
-            .egui_winit_state
-            .on_window_event(&self.gpu_context.window_arc, &event);
-
-        self.input.handle_window_event(event);
-
         match event {
             WindowEvent::RedrawRequested => self.handle_redraw_requested(),
             WindowEvent::Resized(size) => self.handle_resized(*size),
-            _ => (),
+            _ => {
+                let hud_handled = self.hud.handle_window_event(event, &mut self.gpu_context);
+
+                if !hud_handled {
+                    self.input.handle_window_event(event);
+                }
+            }
         }
     }
 

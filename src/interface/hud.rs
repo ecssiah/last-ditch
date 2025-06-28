@@ -3,6 +3,7 @@
 pub mod mode;
 
 pub use mode::Mode;
+use winit::event::{DeviceEvent, WindowEvent};
 
 use crate::{
     interface::{
@@ -214,5 +215,29 @@ impl HUD {
             FontId::proportional(22.0),
             egui::Color32::WHITE,
         );
+    }
+
+    pub fn handle_device_event(
+        &mut self,
+        event: &DeviceEvent,
+        gpu_context: &mut GPUContext,
+    ) -> bool {
+        if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
+            gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
+        };
+
+        true
+    }
+
+    pub fn handle_window_event(
+        &mut self,
+        event: &WindowEvent,
+        gpu_context: &mut GPUContext,
+    ) -> bool {
+        let _event_response = gpu_context
+            .egui_winit_state
+            .on_window_event(&gpu_context.window_arc, event);
+
+        true
     }
 }
