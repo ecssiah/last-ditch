@@ -16,15 +16,13 @@ impl Receiver {
 
     pub fn tick(&mut self, state: &mut State) -> bool {
         while let Ok(action) = self.action_rx.try_recv() {
-            match action {
-                Action::Admin(admin_action) => match admin_action {
-                    action::AdminAction::Exit => return false,
-                    action::AdminAction::Start => state.receive_action(action),
-                },
-                other => state.receive_action(other),
+            if matches!(action, Action::Admin(action::AdminAction::Exit)) {
+                return false;
             }
+
+            state.receive_action(action);
         }
-        
+
         true
     }
 }
