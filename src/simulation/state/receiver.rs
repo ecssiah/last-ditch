@@ -16,7 +16,7 @@ impl Receiver {
 
     pub fn tick(&mut self, state: &mut State) -> bool {
         while let Ok(action) = self.action_rx.try_recv() {
-            if matches!(action, Action::Admin(action::AdminAction::Exit)) {
+            if matches!(action, Action::Admin(action::AdminAction::Shutdown)) {
                 return false;
             }
 

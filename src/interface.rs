@@ -264,10 +264,7 @@ impl Interface<'_> {
             simulation::state::admin::Mode::Menu => self.apply_menu_view(&view),
             simulation::state::admin::Mode::Load => self.apply_load_view(&view),
             simulation::state::admin::Mode::Simulate => self.apply_simulate_view(&view),
-            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(&view),
-            simulation::state::admin::Mode::Exit => {
-                event_loop.exit();
-            }
+            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(&view, event_loop),
         }
     }
 
@@ -322,8 +319,14 @@ impl Interface<'_> {
             .prepare_world_view(&self.gpu_context.device, &view.world_view);
     }
 
-    fn apply_shutdown_view(&mut self, view: &simulation::observation::view::View) {
+    fn apply_shutdown_view(
+        &mut self,
+        view: &simulation::observation::view::View,
+        event_loop: &ActiveEventLoop,
+    ) {
         self.hud.prepare_shutdown(view);
+
+        event_loop.exit();
     }
 
     fn dispatch_actions(&mut self) -> bool {

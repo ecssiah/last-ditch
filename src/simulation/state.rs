@@ -99,9 +99,12 @@ impl State {
                                 self.admin.mode = admin::Mode::Load;
                                 self.admin.message = "Construction in Progress...".to_string();
                             }
-                            AdminAction::Exit => (),
+                            _ => log::warn!(
+                                "Received an invalid AdminAction in Menu mode: {:?}",
+                                action
+                            ),
                         },
-                        _ => log::warn!("Received an invalid action in Menu mode: {:?}", action),
+                        _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
                     }
                 }
             }
@@ -124,15 +127,6 @@ impl State {
 
                 for action in action_vec {
                     match action {
-                        Action::Admin(admin_action) => match admin_action {
-                            AdminAction::Exit => {
-                                self.admin.mode = admin::Mode::Exit;
-                                self.admin.message = "NO MESSAGE SET".to_string();
-                            }
-                            _ => {
-                                log::warn!("Received an invalid action in Exit Mode: {:?}", action)
-                            }
-                        },
                         Action::Judge(judge_action) => {
                             let judge = self.population.get_judge_mut();
 
@@ -151,6 +145,9 @@ impl State {
                             TestAction::Test3 => println!("Test Action 3"),
                             TestAction::Test4 => println!("Test Action 4"),
                         },
+                        _ => {
+                            log::warn!("Received an invalid action in Simulate mode: {:?}", action)
+                        }
                     }
                 }
 
@@ -162,9 +159,6 @@ impl State {
                 self.compute.tick(&self.world, &self.population);
             }
             admin::Mode::Shutdown => {
-                let _action_vec = std::mem::take(&mut self.action_vec);
-            }
-            admin::Mode::Exit => {
                 let _action_vec = std::mem::take(&mut self.action_vec);
             }
         }

@@ -32,7 +32,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let kind = Kind::Main;
+        let kind = Kind::GraphTest;
 
         let receiver = Receiver::new(action_rx);
         let state = State::new(kind);

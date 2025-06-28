@@ -5,5 +5,4 @@ pub enum Mode {
     Load,
     Simulate,
     Shutdown,
-    Exit,
 }
