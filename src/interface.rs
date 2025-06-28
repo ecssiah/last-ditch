@@ -15,7 +15,6 @@ use crate::{
     },
     simulation::{self},
 };
-use egui::ViewportId;
 use std::{
     sync::Arc,
     time::{Duration, Instant},
@@ -193,10 +192,22 @@ impl Interface<'_> {
     }
 
     pub fn handle_device_event(&mut self, event: &DeviceEvent) {
+        if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
+            let _egui_consumed = self
+                .gpu_context
+                .egui_winit_state
+                .on_mouse_motion((*dx, *dy));
+        }
+
         self.input.handle_device_event(event);
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
+        let _egui_consumed = self
+            .gpu_context
+            .egui_winit_state
+            .on_window_event(&self.gpu_context.window_arc, &event);
+
         self.input.handle_window_event(event);
 
         match event {
@@ -260,6 +271,12 @@ impl Interface<'_> {
     }
 
     fn apply_menu_view(&mut self, view: &simulation::observation::view::View) {
+        self.gpu_context.window_arc.set_cursor_visible(true);
+        self.gpu_context
+            .window_arc
+            .set_cursor_grab(winit::window::CursorGrabMode::None)
+            .expect("Failed to grab cursor");
+
         self.hud.prepare_menu(&view);
     }
 
@@ -268,6 +285,12 @@ impl Interface<'_> {
     }
 
     fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
+        self.gpu_context.window_arc.set_cursor_visible(false);
+        self.gpu_context
+            .window_arc
+            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+            .expect("Failed to grab cursor");
+
         self.hud.prepare_simulate(&view);
 
         self.dt = self.instant.elapsed();

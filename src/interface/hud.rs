@@ -153,7 +153,11 @@ impl HUD {
             });
         });
 
+        println!("{:?}", start_clicked);
+
         if start_clicked {
+            println!("CLICKED!");
+
             let admin_action = simulation::state::receiver::action::AdminAction::Start;
             let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
