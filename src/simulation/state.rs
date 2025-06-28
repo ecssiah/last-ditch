@@ -84,14 +84,14 @@ impl State {
 
                                 let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
 
-                                tokio::spawn(async move {
+                                tokio::task::spawn_blocking(move || {
                                     let mut world = world;
                                     let mut population = population;
 
                                     world.setup();
                                     population.setup(&world);
 
-                                    let _ = result_tx.send((world, population)).await;
+                                    let _ = result_tx.blocking_send((world, population));
                                 });
 
                                 self.result_rx = Some(result_rx);
@@ -124,6 +124,15 @@ impl State {
 
                 for action in action_vec {
                     match action {
+                        Action::Admin(admin_action) => match admin_action {
+                            AdminAction::Exit => {
+                                self.admin.mode = admin::Mode::Exit;
+                                self.admin.message = "NO MESSAGE SET".to_string();
+                            }
+                            _ => {
+                                log::warn!("Received an invalid action in Exit Mode: {:?}", action)
+                            }
+                        },
                         Action::Judge(judge_action) => {
                             let judge = self.population.get_judge_mut();
 
@@ -142,9 +151,6 @@ impl State {
                             TestAction::Test3 => println!("Test Action 3"),
                             TestAction::Test4 => println!("Test Action 4"),
                         },
-                        _ => {
-                            log::warn!("Received an invalid action in Simulate Mode: {:?}", action)
-                        }
                     }
                 }
 

@@ -265,7 +265,9 @@ impl Interface<'_> {
             simulation::state::admin::Mode::Load => self.apply_load_view(&view),
             simulation::state::admin::Mode::Simulate => self.apply_simulate_view(&view),
             simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(&view),
-            simulation::state::admin::Mode::Exit => event_loop.exit(),
+            simulation::state::admin::Mode::Exit => {
+                event_loop.exit();
+            }
         }
     }
 

@@ -32,7 +32,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let kind = Kind::GraphTest;
+        let kind = Kind::Main;
 
         let receiver = Receiver::new(action_rx);
         let state = State::new(kind);
@@ -64,11 +64,14 @@ impl Simulation {
 
         loop {
             while Instant::now() >= next_instant {
-                self.receiver.tick(&mut self.state);
-                self.state.tick();
-                self.observation_arc.tick(&self.state);
+                if self.receiver.tick(&mut self.state) {
+                    self.state.tick();
+                    self.observation_arc.tick(&self.state);
 
-                next_instant += SIMULATION_TICK_DURATION;
+                    next_instant += SIMULATION_TICK_DURATION;
+                } else {
+                    return;
+                }
             }
 
             self.fix_timestep(next_instant);

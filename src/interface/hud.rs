@@ -12,7 +12,7 @@ use crate::{
     },
     simulation::{self},
 };
-use egui::{FontId, FullOutput, Ui};
+use egui::{FontId, FullOutput, Id, Ui};
 use glam::Vec2;
 
 pub struct HUD {
@@ -54,8 +54,8 @@ impl HUD {
             gpu_context
                 .egui_context
                 .run(raw_input, |context| match &self.mode {
-                    Mode::Load(load_data) => self.draw_load(context, &load_data, &mut action_vec),
                     Mode::Menu(menu_data) => self.draw_menu(context, &menu_data, &mut action_vec),
+                    Mode::Load(load_data) => self.draw_load(context, &load_data, &mut action_vec),
                     Mode::Simulate(simulate_data) => {
                         self.draw_simulate(context, &simulate_data, &mut action_vec)
                     }
@@ -115,27 +115,35 @@ impl HUD {
     }
 
     pub fn prepare_menu(&mut self, view: &simulation::observation::view::View) {
-        if let Mode::Menu(data) = &mut self.mode {
-            data.message = view.admin_view.message.clone();
-        }
+        let menu_data = mode::MenuData {
+            message: view.admin_view.message.clone(),
+        };
+
+        self.mode = Mode::Menu(menu_data);
     }
 
     pub fn prepare_load(&mut self, view: &simulation::observation::view::View) {
-        if let Mode::Load(data) = &mut self.mode {
-            data.message = view.admin_view.message.clone();
-        }
+        let load_data = mode::LoadData {
+            message: view.admin_view.message.clone(),
+        };
+
+        self.mode = Mode::Load(load_data);
     }
 
     pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
-        if let Mode::Simulate(data) = &mut self.mode {
-            data.message = view.admin_view.message.clone();
-        }
+        let simulate_data = mode::SimulateData {
+            message: view.admin_view.message.clone(),
+        };
+
+        self.mode = Mode::Simulate(simulate_data);
     }
 
     pub fn prepare_shutdown(&mut self, view: &simulation::observation::view::View) {
-        if let Mode::Shutdown(data) = &mut self.mode {
-            data.message = view.admin_view.message.clone();
-        }
+        let shutdown_data = mode::ShutdownData {
+            message: view.admin_view.message.clone(),
+        };
+
+        self.mode = Mode::Shutdown(shutdown_data);
     }
 
     fn draw_menu(
@@ -149,13 +157,14 @@ impl HUD {
         egui::CentralPanel::default().show(context, |ui| {
             ui.vertical_centered(|ui| {
                 ui.add_space(ui.available_height() * 0.4);
-                start_clicked = ui.button("Start").clicked();
-                // ui.label(&menu_data.message);
+
+                start_clicked = ui
+                    .add_sized([200.0, 60.0], egui::Button::new("Start"))
+                    .clicked();
             });
         });
 
         if start_clicked {
-            println!("Clicked!");
             let admin_action = simulation::state::receiver::action::AdminAction::Start;
             let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
@@ -169,9 +178,11 @@ impl HUD {
         load_data: &LoadData,
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
-        egui::TopBottomPanel::top("top_panel").show(context, |ui| {
-            Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), &load_data.message);
-        });
+        egui::Area::new(Id::new(0))
+            .fixed_pos(egui::pos2(10.0, 10.0))
+            .show(context, |ui| {
+                Self::draw_hud_text(ui, Vec2::ZERO, &load_data.message);
+            });
     }
 
     fn draw_simulate(
@@ -180,9 +191,11 @@ impl HUD {
         simulate_data: &SimulateData,
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
-        egui::TopBottomPanel::top("top_panel").show(context, |ui| {
-            Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), &simulate_data.message);
-        });
+        egui::Area::new(Id::new(0))
+            .fixed_pos(egui::pos2(10.0, 10.0))
+            .show(context, |ui| {
+                Self::draw_hud_text(ui, Vec2::ZERO, &simulate_data.message);
+            });
     }
 
     fn draw_shutdown(
@@ -191,9 +204,11 @@ impl HUD {
         shutdown_data: &ShutdownData,
         _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
     ) {
-        egui::TopBottomPanel::top("top_panel").show(context, |ui| {
-            Self::draw_hud_text(ui, Vec2::new(10.0, 10.0), &shutdown_data.message);
-        });
+        egui::Area::new(Id::new(0))
+            .fixed_pos(egui::pos2(10.0, 10.0))
+            .show(context, |ui| {
+                Self::draw_hud_text(ui, Vec2::ZERO, &shutdown_data.message);
+            });
     }
 
     fn draw_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
@@ -219,11 +234,24 @@ impl HUD {
         event: &DeviceEvent,
         gpu_context: &mut GPUContext,
     ) -> bool {
-        if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
-        };
+        match &self.mode {
+            Mode::Menu(_) => {
+                if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
+                    gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
+                };
 
-        true
+                true
+            }
+            Mode::Load(_) => {
+                if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
+                    gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
+                };
+
+                true
+            }
+            Mode::Simulate(_) => false,
+            Mode::Shutdown(_) => false,
+        }
     }
 
     pub fn handle_window_event(
@@ -231,10 +259,23 @@ impl HUD {
         event: &WindowEvent,
         gpu_context: &mut GPUContext,
     ) -> bool {
-        let _event_response = gpu_context
-            .egui_winit_state
-            .on_window_event(&gpu_context.window_arc, event);
+        match &self.mode {
+            Mode::Menu(_) => {
+                let _event_response = gpu_context
+                    .egui_winit_state
+                    .on_window_event(&gpu_context.window_arc, event);
 
-        true
+                true
+            }
+            Mode::Load(_) => {
+                let _event_response = gpu_context
+                    .egui_winit_state
+                    .on_window_event(&gpu_context.window_arc, event);
+
+                true
+            }
+            Mode::Simulate(_) => false,
+            Mode::Shutdown(_) => false,
+        }
     }
 }
