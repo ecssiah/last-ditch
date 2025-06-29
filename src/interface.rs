@@ -133,6 +133,8 @@ impl Interface<'_> {
             None,
         );
 
+        let egui_renderer = egui_wgpu::Renderer::new(&device, surface_format, None, 1, false);
+
         let gpu_context = GPUContext {
             window_arc,
             device,
@@ -143,6 +145,7 @@ impl Interface<'_> {
             texture_view_descriptor,
             egui_context,
             egui_winit_state,
+            egui_renderer,
         };
 
         let dispatch = Dispatch::new(action_tx);
@@ -156,7 +159,7 @@ impl Interface<'_> {
             &camera,
         );
 
-        let hud = HUD::new(&gpu_context.device, surface_format);
+        let hud = HUD::new();
 
         gpu_context.window_arc.request_redraw();
 

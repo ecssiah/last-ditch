@@ -67,100 +67,101 @@ impl State {
 
     pub fn tick(&mut self) {
         match self.admin.mode {
-            admin::Mode::Menu => {
-                let action_vec = std::mem::take(&mut self.action_vec);
+            admin::Mode::Menu => self.tick_menu(),
+            admin::Mode::Load => self.tick_load(),
+            admin::Mode::Simulate => self.tick_simulate(),
+            admin::Mode::Shutdown => self.tick_shutdown(),
+        }
+    }
 
-                for action in action_vec {
-                    match action {
-                        Action::Admin(admin_action) => match admin_action {
-                            AdminAction::Start => {
-                                let world =
-                                    std::mem::replace(&mut self.world, World::placeholder());
+    fn tick_menu(&mut self) {
+        let action_vec = std::mem::take(&mut self.action_vec);
 
-                                let population = std::mem::replace(
-                                    &mut self.population,
-                                    Population::placeholder(),
-                                );
+        for action in action_vec {
+            match action {
+                Action::Admin(admin_action) => match admin_action {
+                    AdminAction::Start => {
+                        let world = std::mem::replace(&mut self.world, World::placeholder());
 
-                                let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
+                        let population =
+                            std::mem::replace(&mut self.population, Population::placeholder());
 
-                                tokio::task::spawn_blocking(move || {
-                                    let mut world = world;
-                                    let mut population = population;
+                        let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
 
-                                    world.setup();
-                                    population.setup(&world);
+                        tokio::task::spawn_blocking(move || {
+                            let mut world = world;
+                            let mut population = population;
 
-                                    let _ = result_tx.blocking_send((world, population));
-                                });
+                            world.setup();
+                            population.setup(&world);
 
-                                self.result_rx = Some(result_rx);
+                            let _ = result_tx.blocking_send((world, population));
+                        });
 
-                                self.admin.mode = admin::Mode::Load;
-                                self.admin.message = "Construction in Progress...".to_string();
-                            }
-                            _ => log::warn!(
-                                "Received an invalid AdminAction in Menu mode: {:?}",
-                                action
-                            ),
-                        },
-                        _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
+                        self.result_rx = Some(result_rx);
+
+                        self.admin.mode = admin::Mode::Load;
+                        self.admin.message = "Construction in Progress...".to_string();
                     }
-                }
-            }
-            admin::Mode::Load => {
-                let _action_vec = std::mem::take(&mut self.action_vec);
-
-                if let Some(result_rx) = &mut self.result_rx {
-                    if let Ok((world, population)) = result_rx.try_recv() {
-                        self.world = world;
-                        self.population = population;
-
-                        self.admin.mode = admin::Mode::Simulate;
-                        self.admin.message =
-                            format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
-                    }
-                }
-            }
-            admin::Mode::Simulate => {
-                let action_vec = std::mem::take(&mut self.action_vec);
-
-                for action in action_vec {
-                    match action {
-                        Action::Judge(judge_action) => {
-                            let judge = self.population.get_judge_mut();
-
-                            match judge_action {
-                                JudgeAction::Movement(movement_data) => {
-                                    judge.apply_movement_data(&movement_data);
-                                }
-                                JudgeAction::Jump(jump_action) => {
-                                    judge.apply_jump_action(&jump_action);
-                                }
-                            }
-                        }
-                        Action::Test(test_action) => match test_action {
-                            TestAction::Test1 => println!("Test Action 1"),
-                            TestAction::Test2 => println!("Test Action 2"),
-                            TestAction::Test3 => println!("Test Action 3"),
-                            TestAction::Test4 => println!("Test Action 4"),
-                        },
-                        _ => {
-                            log::warn!("Received an invalid Action in Simulate mode: {:?}", action)
-                        }
-                    }
-                }
-
-                self.admin.tick();
-                self.time.tick();
-                self.world.tick();
-                self.population.tick(&self.world);
-                self.physics.tick(&self.world, &mut self.population);
-                self.compute.tick(&self.world, &self.population);
-            }
-            admin::Mode::Shutdown => {
-                let _action_vec = std::mem::take(&mut self.action_vec);
+                    _ => log::warn!("Received an invalid AdminAction in Menu mode: {:?}", action),
+                },
+                _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
             }
         }
+    }
+
+    fn tick_load(&mut self) {
+        let _action_vec = std::mem::take(&mut self.action_vec);
+
+        if let Some(result_rx) = &mut self.result_rx {
+            if let Ok((world, population)) = result_rx.try_recv() {
+                self.world = world;
+                self.population = population;
+
+                self.admin.mode = admin::Mode::Simulate;
+                self.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
+            }
+        }
+    }
+
+    fn tick_simulate(&mut self) {
+        let action_vec = std::mem::take(&mut self.action_vec);
+
+        for action in action_vec {
+            match action {
+                Action::Judge(judge_action) => {
+                    let judge = self.population.get_judge_mut();
+
+                    match judge_action {
+                        JudgeAction::Movement(movement_data) => {
+                            judge.apply_movement_data(&movement_data);
+                        }
+                        JudgeAction::Jump(jump_action) => {
+                            judge.apply_jump_action(&jump_action);
+                        }
+                    }
+                }
+                Action::Test(test_action) => match test_action {
+                    TestAction::Test1 => println!("Test Action 1"),
+                    TestAction::Test2 => println!("Test Action 2"),
+                    TestAction::Test3 => println!("Test Action 3"),
+                    TestAction::Test4 => println!("Test Action 4"),
+                },
+                _ => {
+                    log::warn!("Received an invalid Action in Simulate mode: {:?}", action)
+                }
+            }
+        }
+
+        self.admin.tick();
+        self.time.tick();
+        self.world.tick();
+        self.population.tick(&self.world);
+        self.physics.tick(&self.world, &mut self.population);
+        self.compute.tick(&self.world, &self.population);
+    }
+
+    fn tick_shutdown(&mut self) {
+        let _action_vec = std::mem::take(&mut self.action_vec);
     }
 }

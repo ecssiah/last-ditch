@@ -18,24 +18,16 @@ use glam::Vec2;
 pub struct HUD {
     mode: Mode,
     action_vec: Vec<simulation::state::receiver::action::Action>,
-    renderer: egui_wgpu::Renderer,
 }
 
 impl HUD {
-    pub fn new(device: &wgpu::Device, surface_format: wgpu::TextureFormat) -> Self {
+    pub fn new() -> Self {
         let action_vec = Vec::new();
-
-        let renderer = egui_wgpu::Renderer::new(device, surface_format, None, 1, false);
-
         let mode = Mode::Menu(mode::MenuData {
             message: "NO MESSAGE SET".to_string(),
         });
 
-        Self {
-            action_vec,
-            renderer,
-            mode,
-        }
+        Self { action_vec, mode }
     }
 
     pub fn update(
@@ -76,11 +68,15 @@ impl HUD {
         };
 
         for (id, image_delta) in &full_output.textures_delta.set {
-            self.renderer
-                .update_texture(&gpu_context.device, &gpu_context.queue, *id, image_delta);
+            gpu_context.egui_renderer.update_texture(
+                &gpu_context.device,
+                &gpu_context.queue,
+                *id,
+                image_delta,
+            );
         }
 
-        self.renderer.update_buffers(
+        gpu_context.egui_renderer.update_buffers(
             &gpu_context.device,
             &gpu_context.queue,
             encoder,
@@ -103,7 +99,7 @@ impl HUD {
             timestamp_writes: None,
         });
 
-        self.renderer.render(
+        gpu_context.egui_renderer.render(
             &mut render_pass.forget_lifetime(),
             &paint_jobs,
             &screen_descriptor,
