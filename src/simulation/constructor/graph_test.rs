@@ -15,6 +15,8 @@ pub fn construct_world(world: &mut World) {
     build_expanded_entrance_room(world);
     build_multiple_entrance_room(world);
 
+    build_floor(world);
+
     world.update_chunks();
 }
 
@@ -364,6 +366,17 @@ fn build_chunk_room(
             block::Kind::Empty,
         );
     }
+}
+
+fn build_floor(world: &mut World) {
+    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_size = world.grid.chunk_size as i32;
+
+    world.set_cube(
+        IVec3::new(-2 * chunk_size, -chunk_radius - 1, -2 * chunk_size),
+        IVec3::new(2 * chunk_size, -chunk_radius - 1, 2 * chunk_size),
+        block::Kind::Polished1,
+    );
 }
 
 fn setup_judge(population: &mut Population) {

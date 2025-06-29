@@ -15,6 +15,7 @@ use crate::{
 use egui::{FontId, FullOutput, Id, Ui};
 use glam::Vec2;
 
+#[derive(Default)]
 pub struct HUD {
     mode: Mode,
     action_vec: Vec<simulation::state::receiver::action::Action>,
@@ -46,13 +47,13 @@ impl HUD {
             gpu_context
                 .egui_context
                 .run(raw_input, |context| match &self.mode {
-                    Mode::Menu(menu_data) => self.draw_menu(context, &menu_data, &mut action_vec),
-                    Mode::Load(load_data) => self.draw_load(context, &load_data, &mut action_vec),
+                    Mode::Menu(menu_data) => self.draw_menu(context, menu_data, &mut action_vec),
+                    Mode::Load(load_data) => self.draw_load(context, load_data, &mut action_vec),
                     Mode::Simulate(simulate_data) => {
-                        self.draw_simulate(context, &simulate_data, &mut action_vec)
+                        self.draw_simulate(context, simulate_data, &mut action_vec)
                     }
                     Mode::Shutdown(shutdown_data) => {
-                        self.draw_shutdown(context, &shutdown_data, &mut action_vec)
+                        self.draw_shutdown(context, shutdown_data, &mut action_vec)
                     }
                 });
 

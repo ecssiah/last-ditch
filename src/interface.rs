@@ -278,11 +278,11 @@ impl Interface<'_> {
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
-        self.hud.prepare_menu(&view);
+        self.hud.prepare_menu(view);
     }
 
     fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
-        self.hud.prepare_load(&view);
+        self.hud.prepare_load(view);
     }
 
     fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
@@ -292,14 +292,14 @@ impl Interface<'_> {
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
 
-        self.hud.prepare_simulate(&view);
+        self.hud.prepare_simulate(view);
 
         self.dt = self.instant.elapsed();
         self.instant = Instant::now();
 
         let now = self.instant;
-        let current = (&view.time_view).instant.current;
-        let next = (&view.time_view).instant.next;
+        let current = view.time_view.instant.current;
+        let next = view.time_view.instant.next;
 
         let total_duration = next.duration_since(current).as_secs_f32();
         let elapsed_since_current = now.duration_since(current).as_secs_f32();
@@ -342,7 +342,7 @@ impl Interface<'_> {
             match self.dispatch.send(action) {
                 Ok(()) => (),
                 Err(_) => {
-                    log::error!("{:?}", action);
+                    log::error!("Send Failed: {:?}", action);
 
                     return false;
                 }

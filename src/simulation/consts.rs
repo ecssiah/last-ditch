@@ -1,10 +1,7 @@
 //! Simulation constants
 
 use std::{
-    f32::{
-        consts::{FRAC_PI_2, SQRT_2},
-        EPSILON,
-    },
+    f32::consts::{FRAC_PI_2, SQRT_2},
     time::Duration,
 };
 
@@ -44,4 +41,4 @@ pub const JUDGE_SIZE_Y: f32 = 2.8;
 pub const JUDGE_SIZE_Z: f32 = 0.6;
 pub const JUDGE_VIEW_RADIUS: f32 = 256.0;
 pub const JUDGE_VIEW_RADIUS_SQUARED: f32 = JUDGE_VIEW_RADIUS * JUDGE_VIEW_RADIUS;
-pub const JUDGE_PITCH_LIMIT: f32 = FRAC_PI_2 + EPSILON;
+pub const JUDGE_PITCH_LIMIT: f32 = FRAC_PI_2 + f32::EPSILON;
