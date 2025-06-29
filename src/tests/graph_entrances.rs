@@ -12,7 +12,7 @@ struct EntranceValidationCase {
     region1_coordinates: IVec3,
     region2_coordinates: IVec3,
     expected_number_of_entrances: usize,
-    expected_number_of_transitions: usize,
+    expected_transitions_per_entrance: usize,
 }
 
 impl EntranceValidationCase {
@@ -42,7 +42,7 @@ impl EntranceValidationCase {
         for entrance in &test_entrance_vec {
             assert_eq!(
                 entrance.transition_vec.len(),
-                self.expected_number_of_transitions,
+                self.expected_transitions_per_entrance,
                 "{:?}",
                 self.description
             );
@@ -63,28 +63,28 @@ fn validate_entrances() {
             region1_coordinates: IVec3::new(0, 0, 1),
             region2_coordinates: IVec3::new(0, 1, 1),
             expected_number_of_entrances: 2,
-            expected_number_of_transitions: 2,
+            expected_transitions_per_entrance: 2,
         },
         EntranceValidationCase {
             description: "expanded entrance".to_string(),
             region1_coordinates: IVec3::new(0, 0, 0),
             region2_coordinates: IVec3::new(1, 0, 0),
             expected_number_of_entrances: 1,
-            expected_number_of_transitions: 3,
+            expected_transitions_per_entrance: 3,
         },
         EntranceValidationCase {
             description: "constricted entrance".to_string(),
             region1_coordinates: IVec3::new(0, 0, 0),
             region2_coordinates: IVec3::new(-1, 0, 0),
             expected_number_of_entrances: 1,
-            expected_number_of_transitions: 1,
+            expected_transitions_per_entrance: 1,
         },
         EntranceValidationCase {
             description: "multiple entrance".to_string(),
             region1_coordinates: IVec3::new(0, 0, 0),
             region2_coordinates: IVec3::new(0, 0, -1),
             expected_number_of_entrances: 2,
-            expected_number_of_transitions: 2,
+            expected_transitions_per_entrance: 2,
         },
     ];
 

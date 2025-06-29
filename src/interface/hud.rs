@@ -128,8 +128,18 @@ impl HUD {
     }
 
     pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
+        let judge_world_position = view
+            .population_view
+            .judge_view
+            .spatial
+            .current
+            .world_position;
+
         let simulate_data = mode::SimulateData {
-            message: view.admin_view.message.clone(),
+            message: format!(
+                "Position: ({:.1}, {:.1}, {:.1})",
+                judge_world_position.x, judge_world_position.y, judge_world_position.z
+            ),
         };
 
         self.mode = Mode::Simulate(simulate_data);
