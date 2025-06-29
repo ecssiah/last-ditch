@@ -377,6 +377,8 @@ fn build_floor(world: &mut World) {
         IVec3::new(2 * chunk_size, -chunk_radius - 1, 2 * chunk_size),
         block::Kind::Polished1,
     );
+
+    world.set_block_kind(IVec3::new(13, 12, 13), block::Kind::EsayaBlock);
 }
 
 fn setup_judge(population: &mut Population) {

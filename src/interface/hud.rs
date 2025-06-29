@@ -128,16 +128,12 @@ impl HUD {
     }
 
     pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
-        let judge_world_position = view
-            .population_view
-            .judge_view
-            .spatial
-            .current
-            .world_position;
+        let judge_view = &view.population_view.judge_view;
+        let judge_world_position = judge_view.spatial.current.world_position.round();
 
         let simulate_data = mode::SimulateData {
             message: format!(
-                "Position: ({:.1}, {:.1}, {:.1})",
+                "Position: ({:.0}, {:.0}, {:.0})",
                 judge_world_position.x, judge_world_position.y, judge_world_position.z
             ),
         };
