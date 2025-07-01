@@ -1,13 +1,10 @@
-use crate::simulation::{
-    consts::*,
-    state::{
-        world::{block, grid},
-        Population, World,
-    },
+use crate::simulation::state::{
+    world::{block, grid},
+    World,
 };
-use glam::{IVec3, Vec3};
+use glam::IVec3;
 
-pub fn construct_world(world: &mut World) {
+pub fn construct(world: &mut World) {
     build_rooms(world);
     build_central_room(world);
     build_clearance_test(world);
@@ -15,10 +12,6 @@ pub fn construct_world(world: &mut World) {
     world.set_block_kind(IVec3::new(-9, -2, 0), block::Kind::EsayaBlock);
 
     world.update_chunks();
-}
-
-pub fn construct_population(population: &mut Population, _world: &World) {
-    setup_judge(population);
 }
 
 fn build_rooms(world: &mut World) {
@@ -195,11 +188,4 @@ fn build_chunk_room(
             block::Kind::Empty,
         );
     }
-}
-
-fn setup_judge(population: &mut Population) {
-    let judge = &mut population.judge;
-
-    judge.set_world_position(Vec3::new(0.0, -2.0, 0.0));
-    judge.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
 }

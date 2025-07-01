@@ -2,7 +2,7 @@
 
 pub mod action;
 
-use crate::simulation::state::{receiver::action::Action, State};
+use crate::simulation::state::receiver::action::Action;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Receiver {
@@ -14,15 +14,17 @@ impl Receiver {
         Self { action_rx }
     }
 
-    pub fn tick(&mut self, state: &mut State) -> bool {
+    pub fn listen(&mut self) -> Option<Vec<Action>> {
+        let mut action_vec = Vec::new();
+
         while let Ok(action) = self.action_rx.try_recv() {
             if matches!(action, Action::Admin(action::AdminAction::Shutdown)) {
-                return false;
+                return None;
             }
 
-            state.receive_action(action);
+            action_vec.push(action);
         }
 
-        true
+        Some(action_vec)
     }
 }

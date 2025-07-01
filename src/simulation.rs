@@ -64,13 +64,14 @@ impl Simulation {
 
         loop {
             while Instant::now() >= next_instant {
-                if self.receiver.tick(&mut self.state) {
-                    self.state.tick();
-                    self.observation_arc.tick(&self.state);
+                match self.receiver.listen() {
+                    Some(action_vec) => {
+                        self.state.tick(action_vec);
+                        self.observation_arc.tick(&self.state);
 
-                    next_instant += SIMULATION_TICK_DURATION;
-                } else {
-                    return;
+                        next_instant += SIMULATION_TICK_DURATION;
+                    }
+                    None => return,
                 }
             }
 
@@ -81,7 +82,7 @@ impl Simulation {
     fn fix_timestep(&self, next_instant: Instant) {
         let current_instant = Instant::now();
 
-        if next_instant > current_instant {
+        if current_instant < next_instant {
             let remaining_duration = next_instant - current_instant;
 
             if remaining_duration > Duration::from_millis(2) {

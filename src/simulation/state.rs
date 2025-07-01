@@ -61,11 +61,9 @@ impl State {
         self.admin.setup();
     }
 
-    pub fn receive_action(&mut self, action: Action) {
-        self.action_vec.push(action);
-    }
+    pub fn tick(&mut self, action_vec: Vec<Action>) {
+        self.action_vec = action_vec;
 
-    pub fn tick(&mut self) {
         match self.admin.mode {
             admin::Mode::Menu => self.tick_menu(),
             admin::Mode::Load => self.tick_load(),

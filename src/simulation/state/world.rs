@@ -52,6 +52,7 @@ impl World {
 
     pub fn placeholder() -> Self {
         let kind = simulation::Kind::Placeholder;
+
         let grid = Grid::new(kind);
         let block_meta_map = HashMap::default();
         let chunk_vec = Vec::default();
@@ -74,11 +75,11 @@ impl World {
 
     pub fn setup(&mut self) {
         match self.kind {
-            simulation::Kind::Main => constructor::main::construct_world(self),
+            simulation::Kind::Main => constructor::world::main::construct(self),
+            simulation::Kind::Empty => constructor::world::empty::construct(self),
+            simulation::Kind::WorldTest => constructor::world::world_test::construct(self),
+            simulation::Kind::GraphTest => constructor::world::graph_test::construct(self),
             simulation::Kind::Placeholder => (),
-            simulation::Kind::Empty => constructor::empty::construct_world(self),
-            simulation::Kind::WorldTest => constructor::world_test::construct_world(self),
-            simulation::Kind::GraphTest => constructor::graph_test::construct_world(self),
         }
 
         self.graph.setup(&self.chunk_vec);
