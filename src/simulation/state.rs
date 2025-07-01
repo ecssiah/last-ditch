@@ -23,7 +23,6 @@ use crate::simulation::{
 };
 
 pub struct State {
-    pub action_vec: Vec<Action>,
     pub result_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
     pub compute: Compute,
@@ -35,7 +34,6 @@ pub struct State {
 
 impl State {
     pub fn new(kind: simulation::Kind) -> Self {
-        let action_vec = Vec::default();
         let result_rx = None;
 
         let admin = Admin::new();
@@ -46,7 +44,6 @@ impl State {
         let population = Population::new(kind);
 
         Self {
-            action_vec,
             result_rx,
             admin,
             compute,
@@ -62,19 +59,15 @@ impl State {
     }
 
     pub fn tick(&mut self, action_vec: Vec<Action>) {
-        self.action_vec = action_vec;
-
         match self.admin.mode {
-            admin::Mode::Menu => self.tick_menu(),
-            admin::Mode::Load => self.tick_load(),
-            admin::Mode::Simulate => self.tick_simulate(),
-            admin::Mode::Shutdown => self.tick_shutdown(),
+            admin::Mode::Menu => self.tick_menu(action_vec),
+            admin::Mode::Load => self.tick_load(action_vec),
+            admin::Mode::Simulate => self.tick_simulate(action_vec),
+            admin::Mode::Shutdown => self.tick_shutdown(action_vec),
         }
     }
 
-    fn tick_menu(&mut self) {
-        let action_vec = std::mem::take(&mut self.action_vec);
-
+    fn tick_menu(&mut self, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
@@ -108,9 +101,7 @@ impl State {
         }
     }
 
-    fn tick_load(&mut self) {
-        let _action_vec = std::mem::take(&mut self.action_vec);
-
+    fn tick_load(&mut self, _action_vec: Vec<Action>) {
         if let Some(result_rx) = &mut self.result_rx {
             if let Ok((world, population)) = result_rx.try_recv() {
                 self.world = world;
@@ -122,9 +113,7 @@ impl State {
         }
     }
 
-    fn tick_simulate(&mut self) {
-        let action_vec = std::mem::take(&mut self.action_vec);
-
+    fn tick_simulate(&mut self, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
                 Action::Judge(judge_action) => {
@@ -159,7 +148,5 @@ impl State {
         self.compute.tick(&self.world, &self.population);
     }
 
-    fn tick_shutdown(&mut self) {
-        let _action_vec = std::mem::take(&mut self.action_vec);
-    }
+    fn tick_shutdown(&mut self, _action_vec: Vec<Action>) {}
 }
