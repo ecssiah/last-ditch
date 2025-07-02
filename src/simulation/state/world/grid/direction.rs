@@ -1,4 +1,3 @@
-use crate::simulation::consts::*;
 use glam::IVec3;
 
 #[rustfmt::skip]
@@ -268,37 +267,37 @@ impl Direction {
         }
     }
 
-    pub fn cost(&self) -> f32 {
-        match self {
-            Direction::XnYnZn => MOVEMENT_COST_CORNER,
-            Direction::XoYnZn => MOVEMENT_COST_EDGE,
-            Direction::XpYnZn => MOVEMENT_COST_CORNER,
-            Direction::XnYoZn => MOVEMENT_COST_EDGE,
-            Direction::XoYoZn => MOVEMENT_COST_FACE,
-            Direction::XpYoZn => MOVEMENT_COST_EDGE,
-            Direction::XnYpZn => MOVEMENT_COST_CORNER,
-            Direction::XoYpZn => MOVEMENT_COST_EDGE,
-            Direction::XpYpZn => MOVEMENT_COST_CORNER,
-            Direction::XnYnZo => MOVEMENT_COST_EDGE,
-            Direction::XoYnZo => MOVEMENT_COST_FACE,
-            Direction::XpYnZo => MOVEMENT_COST_EDGE,
-            Direction::XnYoZo => MOVEMENT_COST_FACE,
-            Direction::XoYoZo => MOVEMENT_COST_FACE,
-            Direction::XpYoZo => MOVEMENT_COST_FACE,
-            Direction::XnYpZo => MOVEMENT_COST_EDGE,
-            Direction::XoYpZo => MOVEMENT_COST_FACE,
-            Direction::XpYpZo => MOVEMENT_COST_EDGE,
-            Direction::XnYnZp => MOVEMENT_COST_CORNER,
-            Direction::XoYnZp => MOVEMENT_COST_EDGE,
-            Direction::XpYnZp => MOVEMENT_COST_CORNER,
-            Direction::XnYoZp => MOVEMENT_COST_EDGE,
-            Direction::XoYoZp => MOVEMENT_COST_FACE,
-            Direction::XpYoZp => MOVEMENT_COST_EDGE,
-            Direction::XnYpZp => MOVEMENT_COST_CORNER,
-            Direction::XoYpZp => MOVEMENT_COST_EDGE,
-            Direction::XpYpZp => MOVEMENT_COST_CORNER,
-        }
-    }
+    // pub fn cost(&self) -> f32 {
+    //     match self {
+    //         Direction::XnYnZn => MOVEMENT_COST_CORNER,
+    //         Direction::XoYnZn => MOVEMENT_COST_EDGE,
+    //         Direction::XpYnZn => MOVEMENT_COST_CORNER,
+    //         Direction::XnYoZn => MOVEMENT_COST_EDGE,
+    //         Direction::XoYoZn => MOVEMENT_COST_FACE,
+    //         Direction::XpYoZn => MOVEMENT_COST_EDGE,
+    //         Direction::XnYpZn => MOVEMENT_COST_CORNER,
+    //         Direction::XoYpZn => MOVEMENT_COST_EDGE,
+    //         Direction::XpYpZn => MOVEMENT_COST_CORNER,
+    //         Direction::XnYnZo => MOVEMENT_COST_EDGE,
+    //         Direction::XoYnZo => MOVEMENT_COST_FACE,
+    //         Direction::XpYnZo => MOVEMENT_COST_EDGE,
+    //         Direction::XnYoZo => MOVEMENT_COST_FACE,
+    //         Direction::XoYoZo => MOVEMENT_COST_FACE,
+    //         Direction::XpYoZo => MOVEMENT_COST_FACE,
+    //         Direction::XnYpZo => MOVEMENT_COST_EDGE,
+    //         Direction::XoYpZo => MOVEMENT_COST_FACE,
+    //         Direction::XpYpZo => MOVEMENT_COST_EDGE,
+    //         Direction::XnYnZp => MOVEMENT_COST_CORNER,
+    //         Direction::XoYnZp => MOVEMENT_COST_EDGE,
+    //         Direction::XpYnZp => MOVEMENT_COST_CORNER,
+    //         Direction::XnYoZp => MOVEMENT_COST_EDGE,
+    //         Direction::XoYoZp => MOVEMENT_COST_FACE,
+    //         Direction::XpYoZp => MOVEMENT_COST_EDGE,
+    //         Direction::XnYpZp => MOVEMENT_COST_CORNER,
+    //         Direction::XoYpZp => MOVEMENT_COST_EDGE,
+    //         Direction::XpYpZp => MOVEMENT_COST_CORNER,
+    //     }
+    // }
 
     pub fn cardinal_offsets() -> [IVec3; 4] {
         Self::CARDINALS_LIST.map(|cardinal| cardinal.offset())

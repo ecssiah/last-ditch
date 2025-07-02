@@ -1,9 +1,6 @@
 //! Simulation constants
 
-use std::{
-    f32::consts::{FRAC_PI_2, SQRT_2},
-    time::Duration,
-};
+use std::{f32::consts::FRAC_PI_2, time::Duration};
 
 pub const TESTING: bool = true;
 
@@ -17,9 +14,8 @@ pub const SIMULATION_TICK_IN_SECONDS: f32 = SIMULATION_TICK_DURATION.as_secs_f32
 pub const SIMULATION_TICK_IN_SECONDS_SQUARED: f32 =
     SIMULATION_TICK_IN_SECONDS * SIMULATION_TICK_IN_SECONDS;
 
-pub const MOVEMENT_COST_FACE: f32 = 1.0;
-pub const MOVEMENT_COST_EDGE: f32 = SQRT_2;
-pub const MOVEMENT_COST_CORNER: f32 = 1.732_050_8;
+pub const MOVEMENT_COST_STRAIGHT: u32 = 10;
+pub const MOVEMENT_COST_DIAGONAL: u32 = 14;
 
 pub const BLOCK_RADIUS: f32 = 0.5;
 pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
