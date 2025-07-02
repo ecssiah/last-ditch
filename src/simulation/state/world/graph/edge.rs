@@ -1,5 +1,6 @@
 use crate::simulation::state::world::graph::Node;
 
+#[derive(Clone, Copy)]
 pub enum Kind {
     Local,
     Regional,

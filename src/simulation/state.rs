@@ -71,34 +71,34 @@ impl State {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
-                    AdminAction::Start => {
-                        let world = std::mem::replace(&mut self.world, World::placeholder());
-
-                        let population =
-                            std::mem::replace(&mut self.population, Population::placeholder());
-
-                        let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
-
-                        tokio::task::spawn_blocking(move || {
-                            let mut world = world;
-                            let mut population = population;
-
-                            world.setup();
-                            population.setup(&world);
-
-                            let _ = result_tx.blocking_send((world, population));
-                        });
-
-                        self.result_rx = Some(result_rx);
-
-                        self.admin.mode = admin::Mode::Load;
-                        self.admin.message = "Construction in Progress...".to_string();
-                    }
+                    AdminAction::Start => self.initialize_load(),
                     _ => log::warn!("Received an invalid AdminAction in Menu mode: {:?}", action),
                 },
                 _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
             }
         }
+    }
+
+    fn initialize_load(&mut self) {
+        let world = std::mem::replace(&mut self.world, World::placeholder());
+        let population = std::mem::replace(&mut self.population, Population::placeholder());
+
+        let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
+
+        tokio::task::spawn_blocking(move || {
+            let mut world = world;
+            let mut population = population;
+
+            world.setup();
+            population.setup(&world);
+
+            let _ = result_tx.blocking_send((world, population));
+        });
+
+        self.result_rx = Some(result_rx);
+
+        self.admin.mode = admin::Mode::Load;
+        self.admin.message = "Construction in Progress...".to_string();
     }
 
     fn tick_load(&mut self, _action_vec: Vec<Action>) {

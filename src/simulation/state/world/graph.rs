@@ -1,42 +1,27 @@
 pub mod edge;
 pub mod entrance;
+pub mod level;
 pub mod node;
 pub mod region;
 pub mod transition;
 
 pub use edge::Edge;
 pub use entrance::Entrance;
+pub use level::Level;
 pub use node::Node;
 pub use region::Region;
 pub use transition::Transition;
 
-use crate::simulation::state::world::{chunk::Chunk, grid::Grid};
+use crate::simulation::{
+    consts::{MOVEMENT_COST_EDGE, MOVEMENT_COST_FACE},
+    state::world::{chunk::Chunk, graph, grid::Grid},
+};
 use fixedbitset::FixedBitSet;
 use glam::IVec3;
 use std::collections::{HashMap, HashSet};
 
-pub struct Level {
-    pub node_vec: HashMap<IVec3, Node>,
-    pub edge_vec: HashMap<(IVec3, IVec3), Edge>,
-}
-
-impl Level {
-    pub fn new() -> Self {
-        Self {
-            node_vec: HashMap::new(),
-            edge_vec: HashMap::new(),
-        }
-    }
-}
-
-impl Default for Level {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 pub struct Graph {
-    pub depth: usize,
+    pub depth: u32,
     pub grid: Grid,
     pub solid_set_map: HashMap<IVec3, FixedBitSet>,
     pub clearance_map: HashMap<IVec3, u32>,
@@ -46,7 +31,7 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub fn new(grid: &Grid, depth: usize) -> Self {
+    pub fn new(grid: &Grid, depth: u32) -> Self {
         Self {
             depth,
             grid: *grid,
@@ -54,7 +39,9 @@ impl Graph {
             clearance_map: HashMap::new(),
             region_vec: Vec::new(),
             entrance_vec: Vec::new(),
-            level_vec: Vec::with_capacity(depth),
+            level_vec: std::iter::repeat_with(|| Level::new())
+                .take(depth as usize)
+                .collect(),
         }
     }
 
@@ -64,7 +51,7 @@ impl Graph {
 
         self.setup_clearance_map();
         self.setup_entrances();
-        self.setup_nodes();
+        self.setup_levels();
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_vec: &[Chunk]) -> HashMap<IVec3, FixedBitSet> {
@@ -115,8 +102,6 @@ impl Graph {
             })
             .collect()
     }
-
-    fn setup_nodes(&mut self) {}
 
     fn setup_entrances(&mut self) {
         let world_radius = self.grid.world_radius as i32;
@@ -373,6 +358,73 @@ impl Graph {
                 }
             }
         }
+    }
+
+    fn setup_levels(&mut self) {
+        self.setup_level0();
+
+        for level_number in 1..=self.depth {
+            self.setup_level(level_number);
+        }
+    }
+
+    fn setup_level0(&mut self) {
+        let level0 = Level::new();
+
+        self.level_vec.push(level0);
+    }
+
+    fn setup_level(&mut self, level_number: u32) {
+        let mut level = Level::new();
+
+        let kind = graph::edge::Kind::Regional;
+
+        for entrance in &self.entrance_vec {
+            let transition_vec = entrance.representative_transitions();
+
+            for transition in &transition_vec {
+                let node1 = *level
+                    .node_vec
+                    .entry(transition.region1_position)
+                    .or_insert(Node {
+                        level: level_number,
+                        position: transition.region1_position,
+                    });
+
+                let node2 = *level
+                    .node_vec
+                    .entry(transition.region2_position)
+                    .or_insert(Node {
+                        level: level_number,
+                        position: transition.region2_position,
+                    });
+
+                let weight = if node1.position.y - node2.position.y == 0 {
+                    MOVEMENT_COST_FACE
+                } else {
+                    MOVEMENT_COST_EDGE
+                };
+
+                let clearance = self
+                    .get_clearance(transition.region1_position)
+                    .min(self.get_clearance(transition.region2_position));
+
+                let edge = Edge {
+                    node1,
+                    node2,
+                    level: level_number,
+                    weight,
+                    clearance,
+                    kind,
+                };
+
+                level
+                    .edge_vec
+                    .insert((node1.position, node2.position), edge);
+            }
+        }
+
+        self.level_vec.insert(level_number as usize, level);
     }
 
     fn is_solid(&self, position: IVec3) -> bool {
