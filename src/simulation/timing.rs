@@ -1,64 +1,54 @@
 use crate::simulation::consts::*;
 use std::time::{Duration, Instant};
 
-struct Instants {
-    start: Instant,
-    next: Instant,
-}
-
-struct Ticks {
-    total: u32,
-    frame: u32,
-}
-
 pub struct Timing {
-    ticks: Ticks,
-    instants: Instants,
+    start_instant: Instant,
+    next_instant: Instant,
+    ticks_total: u32,
+    ticks_frame: u32,
 }
 
 impl Timing {
     pub fn new() -> Self {
-        let instants = Instants {
-            start: Instant::now(),
-            next: Instant::now(),
-        };
-
-        let ticks = Ticks { total: 0, frame: 0 };
-
-        Self { instants, ticks }
+        Self {
+            start_instant: Instant::now(),
+            next_instant: Instant::now(),
+            ticks_total: 0,
+            ticks_frame: 0,
+        }
     }
 
     pub fn init(&mut self) {
-        self.instants.start = Instant::now();
-        self.instants.next = self.instants.start;
+        self.start_instant = Instant::now();
+        self.next_instant = self.start_instant;
     }
 
     pub fn has_work(&self) -> bool {
-        Instant::now() >= self.instants.next && self.ticks.frame < SIMULATION_MAX_TICKS_PER_FRAME
+        Instant::now() >= self.next_instant && self.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
     pub fn start_frame(&mut self) {
-        self.ticks.frame = 0;
+        self.ticks_frame = 0;
     }
 
     pub fn update_frame(&mut self) {
-        self.ticks.total += 1;
-        self.ticks.frame += 1;
+        self.ticks_total += 1;
+        self.ticks_frame += 1;
 
-        self.instants.next = self.instants.start + self.ticks.total * SIMULATION_TICK_DURATION;
+        self.next_instant = self.start_instant + self.ticks_total * SIMULATION_TICK_DURATION;
     }
 
     pub fn fix_timestep(&mut self) {
         let current_instant = Instant::now();
 
-        if current_instant < self.instants.next {
-            let remaining_duration = self.instants.next - current_instant;
+        if current_instant < self.next_instant {
+            let remaining_duration = self.next_instant - current_instant;
 
             if remaining_duration > Duration::from_millis(2) {
                 std::thread::sleep(remaining_duration - Duration::from_millis(1));
             }
 
-            while Instant::now() < self.instants.next {
+            while Instant::now() < self.next_instant {
                 std::hint::spin_loop();
             }
         }
