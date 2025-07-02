@@ -6,25 +6,23 @@ pub mod consts;
 pub mod kind;
 pub mod observation;
 pub mod state;
+pub mod timing;
 pub mod utils;
 
 pub use config::Config;
 pub use kind::Kind;
 
 use crate::simulation::{
-    consts::*,
     observation::Observation,
-    state::{receiver::action::Action, Receiver},
+    state::{receiver::action::Action, Receiver, State},
+    timing::Timing,
 };
-use state::State;
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
     pub kind: Kind,
+    pub timing: Timing,
     pub receiver: Receiver,
     pub state: State,
     pub observation_arc: Arc<Observation>,
@@ -32,14 +30,16 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let kind = Kind::Main;
+        let kind = Kind::GraphTest;
 
+        let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
         let state = State::new(kind);
         let observation_arc = Arc::new(Observation::new());
 
         Self {
             kind,
+            timing,
             receiver,
             state,
             observation_arc,
@@ -60,38 +60,24 @@ impl Simulation {
     }
 
     fn execute(&mut self) {
-        let mut next_instant = Instant::now() + SIMULATION_TICK_DURATION;
+        self.timing.init();
 
         loop {
-            while Instant::now() >= next_instant {
+            self.timing.start_frame();
+
+            while self.timing.has_work() {
                 match self.receiver.listen() {
                     Some(action_vec) => {
                         self.state.tick(action_vec);
                         self.observation_arc.tick(&self.state);
 
-                        next_instant += SIMULATION_TICK_DURATION;
+                        self.timing.update_frame();
                     }
                     None => return,
                 }
             }
 
-            self.fix_timestep(next_instant);
-        }
-    }
-
-    fn fix_timestep(&self, next_instant: Instant) {
-        let current_instant = Instant::now();
-
-        if current_instant < next_instant {
-            let remaining_duration = next_instant - current_instant;
-
-            if remaining_duration > Duration::from_millis(2) {
-                std::thread::sleep(remaining_duration - Duration::from_millis(1));
-            }
-
-            while Instant::now() < next_instant {
-                std::hint::spin_loop();
-            }
+            self.timing.fix_timestep();
         }
     }
 }

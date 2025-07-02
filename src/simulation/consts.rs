@@ -10,6 +10,7 @@ pub const TESTING: bool = true;
 pub const PROJECT_TITLE: &str = "Last Ditch";
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
+pub const SIMULATION_MAX_TICKS_PER_FRAME: u32 = 5;
 pub const SIMULATION_TICK_DURATION: Duration =
     Duration::from_nanos(1_000_000_000 / SIMULATION_TICK_FREQUENCY);
 pub const SIMULATION_TICK_IN_SECONDS: f32 = SIMULATION_TICK_DURATION.as_secs_f32();
