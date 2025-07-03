@@ -14,6 +14,23 @@ impl Level {
             edge_map: HashMap::new(),
         }
     }
+
+    pub fn neighbors(&self, position: IVec3) -> Vec<Node> {
+        let mut node_vec = Vec::new();
+
+        for ((position1, position2), edge) in &self.edge_map {
+            log::info!("{:?}", (position1, position2));
+            log::info!("{:?}", edge);
+
+            if &position == position1 {
+                node_vec.push(edge.node2);
+            } else if &position == position2 {
+                node_vec.push(edge.node1);
+            }
+        }
+
+        node_vec
+    }
 }
 
 impl Default for Level {

@@ -1,11 +1,12 @@
 use crate::simulation::state::world::graph::Node;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Kind {
     Local,
     Regional,
 }
 
+#[derive(Debug)]
 pub struct Edge {
     pub node1: Node,
     pub node2: Node,

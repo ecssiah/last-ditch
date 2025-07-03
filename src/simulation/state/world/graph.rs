@@ -58,6 +58,13 @@ impl Graph {
         self.setup_entrances();
 
         self.build();
+
+        let path = self.get_path(IVec3::new(0, -3, 0), IVec3::new(-9, -3, 0));
+
+        println!("Path: ");
+        for position in path {
+            println!("{:?}", position);
+        }
     }
 
     fn setup_solid_set_map(grid: &Grid, chunk_vec: &[Chunk]) -> HashMap<IVec3, FixedBitSet> {
@@ -375,35 +382,36 @@ impl Graph {
     fn build(&mut self) {
         let mut level = Level::new();
 
-        let kind = graph::edge::Kind::Regional;
+        self.setup_regional_edges(&mut level);
+        self.setup_local_edges(&mut level);
 
+        self.level_vec.push(level);
+    }
+
+    fn setup_regional_edges(&mut self, level: &mut Level) {
         for entrance in &self.entrance_vec {
             let transition_vec = entrance.representative_transitions();
 
             for transition in &transition_vec {
-                let node1 = *level
+                let node1 = level
                     .node_map
                     .entry(transition.region1_position)
                     .or_insert(Node {
                         level: 1,
                         region_coordinates: entrance.region1_coordinates,
                         position: transition.region1_position,
-                    });
+                    })
+                    .clone();
 
-                let node2 = *level
+                let node2 = level
                     .node_map
                     .entry(transition.region2_position)
                     .or_insert(Node {
                         level: 1,
                         region_coordinates: entrance.region2_coordinates,
                         position: transition.region2_position,
-                    });
-
-                let weight = if node1.position.y - node2.position.y == 0 {
-                    MOVEMENT_COST_STRAIGHT
-                } else {
-                    MOVEMENT_COST_DIAGONAL
-                };
+                    })
+                    .clone();
 
                 let clearance = self
                     .get_clearance(transition.region1_position)
@@ -413,9 +421,9 @@ impl Graph {
                     node1,
                     node2,
                     level: 1,
-                    weight,
+                    weight: 10,
                     clearance,
-                    kind,
+                    kind: graph::edge::Kind::Regional,
                 };
 
                 level
@@ -423,25 +431,42 @@ impl Graph {
                     .insert((node1.position, node2.position), edge);
             }
         }
+    }
 
+    fn setup_local_edges(&mut self, level: &mut Level) {
         for region in &self.region_vec {
             let node_vec: Vec<Node> = level
                 .node_map
                 .iter()
                 .filter(|(_, node)| node.region_coordinates == region.coordinates)
-                .map(|(_, node)| *node)
+                .map(|(_, node)| node.clone())
                 .collect();
 
             for (index, node1) in node_vec.iter().enumerate() {
                 for node2 in node_vec.iter().skip(index + 1) {
-                    let distance = self.get_path_distance(node1.position, node2.position);
+                    let distance = self.get_path_cost(node1.position, node2.position);
 
-                    println!("{:?}", distance);
+                    let clearance = self
+                        .get_clearance(node1.position)
+                        .min(self.get_clearance(node2.position));
+
+                    if distance < u32::MAX {
+                        let edge = Edge {
+                            node1: *node1,
+                            node2: *node2,
+                            level: 1,
+                            weight: distance,
+                            clearance,
+                            kind: graph::edge::Kind::Local,
+                        };
+
+                        level
+                            .edge_map
+                            .insert((node1.position, node2.position), edge);
+                    }
                 }
             }
         }
-
-        self.level_vec.push(level);
     }
 
     fn is_solid(&self, position: IVec3) -> bool {
@@ -458,11 +483,14 @@ impl Graph {
 
     fn calculate_clearance(&self, position: IVec3) -> u32 {
         let chunk_size = self.grid.chunk_size as i32;
+        let world_boundary = self.grid.world_boundary as i32;
+
+        let is_bottom_layer = position.y == -world_boundary;
         let ground_is_solid = self.is_solid(position + IVec3::NEG_Y);
 
         let mut clearance = 0;
 
-        if ground_is_solid {
+        if !is_bottom_layer && ground_is_solid {
             for level in 0..chunk_size {
                 let level_position = position + IVec3::new(0, level, 0);
 
@@ -485,7 +513,60 @@ impl Graph {
         }
     }
 
-    fn get_path_distance(&self, start: IVec3, goal: IVec3) -> u32 {
+    fn get_path(&self, start: IVec3, end: IVec3) -> Vec<Node> {
+        let mut heap = BinaryHeap::new();
+        let mut came_from = HashMap::new();
+        let mut cost_so_far = HashMap::new();
+
+        heap.push(HeapEntry::new(0, start));
+        came_from.insert(start, None);
+        cost_so_far.insert(start, 0);
+
+        while let Some(HeapEntry { cost, position }) = heap.pop() {
+            if position == end {
+                let mut path = Vec::new();
+                let mut current = Some(position);
+
+                while let Some(pos) = current {
+                    if let Some(node) = self.level_vec[1].node_map.get(&pos) {
+                        path.push(*node);
+                    }
+
+                    current = came_from.get(&pos).cloned().flatten();
+                }
+
+                path.reverse();
+
+                return path;
+            }
+
+            for neighbor_node in self.level_vec[1].neighbors(position) {
+                let step_cost = self.level_vec[1]
+                    .edge_map
+                    .get(&(position, neighbor_node.position))
+                    .map_or(MOVEMENT_COST_STRAIGHT, |edge| edge.weight);
+
+                let next_cost = cost + step_cost;
+
+                if next_cost
+                    < *cost_so_far
+                        .get(&neighbor_node.position)
+                        .unwrap_or(&u32::MAX)
+                {
+                    cost_so_far.insert(neighbor_node.position, next_cost);
+
+                    let priority = next_cost + Graph::manhattan_distance(position, end);
+
+                    heap.push(HeapEntry::new(priority, neighbor_node.position));
+                    came_from.insert(neighbor_node.position, Some(position));
+                }
+            }
+        }
+
+        Vec::new()
+    }
+
+    fn get_path_cost(&self, start: IVec3, goal: IVec3) -> u32 {
         if self.get_clearance(start) < 3 || self.get_clearance(goal) < 3 {
             return u32::MAX;
         }
@@ -493,11 +574,7 @@ impl Graph {
         let mut heap = BinaryHeap::new();
         let mut cost_so_far = HashMap::new();
 
-        heap.push(HeapEntry {
-            cost: 0,
-            position: start,
-        });
-
+        heap.push(HeapEntry::new(0, start));
         cost_so_far.insert(start, 0);
 
         while let Some(HeapEntry { cost, position }) = heap.pop() {
@@ -505,41 +582,39 @@ impl Graph {
                 return cost;
             }
 
-            let directions = [
-                IVec3::X,
-                -IVec3::X,
-                IVec3::Y,
-                -IVec3::Y,
-                IVec3::Z,
-                -IVec3::Z,
-            ];
+            let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
 
-            for dir in directions {
-                let neighbor = position + dir;
+            for direction in direction_array {
+                for y_offset in -1..=1 {
+                    let offset = direction + IVec3::Y * y_offset;
+                    let neighbor_position = position + offset;
 
-                if self.get_clearance(neighbor) < 3 {
-                    continue;
-                }
+                    if self.get_clearance(neighbor_position) < 3 {
+                        continue;
+                    }
 
-                let step_cost = if dir.y != 0 {
-                    MOVEMENT_COST_DIAGONAL
-                } else {
-                    MOVEMENT_COST_STRAIGHT
-                };
+                    let step_cost = if y_offset == 0 {
+                        MOVEMENT_COST_STRAIGHT
+                    } else {
+                        MOVEMENT_COST_DIAGONAL
+                    };
 
-                let next_cost = cost + step_cost;
+                    let next_cost = cost + step_cost;
 
-                if next_cost < *cost_so_far.get(&neighbor).unwrap_or(&u32::MAX) {
-                    cost_so_far.insert(neighbor, next_cost);
-
-                    heap.push(HeapEntry {
-                        cost: next_cost,
-                        position: neighbor,
-                    });
+                    if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+                        heap.push(HeapEntry::new(next_cost, neighbor_position));
+                        cost_so_far.insert(neighbor_position, next_cost);
+                    }
                 }
             }
         }
 
         u32::MAX
+    }
+
+    fn manhattan_distance(position1: IVec3, position2: IVec3) -> u32 {
+        (position1.x - position2.x).abs() as u32
+            + (position1.y - position2.y).abs() as u32
+            + (position1.z - position2.z).abs() as u32
     }
 }

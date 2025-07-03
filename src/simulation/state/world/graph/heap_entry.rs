@@ -6,6 +6,12 @@ pub struct HeapEntry {
     pub position: IVec3,
 }
 
+impl HeapEntry {
+    pub fn new(cost: u32, position: IVec3) -> Self {
+        HeapEntry { cost, position }
+    }
+}
+
 impl Ord for HeapEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         // reverse to make BinaryHeap a min-heap

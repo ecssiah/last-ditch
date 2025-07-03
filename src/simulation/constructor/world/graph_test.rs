@@ -9,7 +9,7 @@ pub fn construct(world: &mut World) {
     build_expanded_entrance_room(world);
     build_multiple_entrance_room(world);
 
-    build_floor(world);
+    // build_floor(world);
 
     world.update_chunks();
 }
@@ -358,7 +358,7 @@ fn build_chunk_room(
     }
 }
 
-fn build_floor(world: &mut World) {
+fn _build_floor(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
     let chunk_size = world.grid.chunk_size as i32;
 

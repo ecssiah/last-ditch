@@ -253,16 +253,20 @@ impl Interface<'_> {
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
-        if !self.dispatch_actions() {
+        let view = self.observation_arc.get_view();
+
+        if !self.dispatch_actions(&view) {
             event_loop.exit();
         } else {
-            self.apply_view(event_loop);
+            self.apply_view(event_loop, &view);
         }
     }
 
-    fn apply_view(&mut self, event_loop: &ActiveEventLoop) {
-        let view = self.observation_arc.get_view();
-
+    fn apply_view(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        view: &simulation::observation::view::View,
+    ) {
         match view.admin_view.mode {
             simulation::state::admin::Mode::Menu => self.apply_menu_view(&view),
             simulation::state::admin::Mode::Load => self.apply_load_view(&view),
@@ -332,11 +336,25 @@ impl Interface<'_> {
         event_loop.exit();
     }
 
-    fn dispatch_actions(&mut self) -> bool {
-        let input_actions = self.input.get_actions();
-        let hud_actions = self.hud.get_actions();
+    fn dispatch_actions(&mut self, view: &simulation::observation::view::View) -> bool {
+        let mut action_vec = Vec::new();
 
-        let action_vec: Vec<_> = input_actions.iter().chain(&hud_actions).cloned().collect();
+        match view.admin_view.mode {
+            simulation::state::admin::Mode::Menu => {
+                let hud_actions = self.hud.get_actions();
+
+                action_vec.extend(hud_actions);
+            }
+            simulation::state::admin::Mode::Load => {}
+            simulation::state::admin::Mode::Simulate => {
+                let input_actions = self.input.get_actions();
+                let hud_actions = self.hud.get_actions();
+
+                action_vec.extend(input_actions);
+                action_vec.extend(hud_actions);
+            }
+            simulation::state::admin::Mode::Shutdown => {}
+        }
 
         for action in action_vec {
             match self.dispatch.send(action) {
