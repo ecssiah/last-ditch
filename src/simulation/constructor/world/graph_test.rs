@@ -309,6 +309,8 @@ fn build_chunk_room(
         kind,
     );
 
+    world.set_block_kind(position - IVec3::Y * chunk_radius, block::Kind::TealStone);
+
     if entrance_vec.contains(&grid::Direction::XpYoZo) {
         world.set_cube(
             position + IVec3::new(chunk_radius, 0, 1),

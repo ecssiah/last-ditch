@@ -2,7 +2,7 @@ use glam::IVec3;
 
 #[derive(Debug)]
 pub struct Region {
-    pub coordinates: IVec3,
+    pub id: u32,
     pub min: IVec3,
     pub max: IVec3,
 }

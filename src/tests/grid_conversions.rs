@@ -682,7 +682,7 @@ impl WorldToPositionCase {
 }
 
 #[test]
-fn world_to_grid() {
+fn world_to_position() {
     let mode = simulation::Kind::Empty;
 
     let mut world = World::new(mode);
@@ -715,6 +715,11 @@ fn world_to_grid() {
             description: "world max + 1.0".to_string(),
             world_position: Vec3::splat(world_limit + 1.0),
             expected_position: None,
+        },
+        WorldToPositionCase {
+            description: "standard position".to_string(),
+            world_position: Vec3::new(0.0, -3.5, 0.0),
+            expected_position: Some(IVec3::new(0, -3, 0)),
         },
     ];
 

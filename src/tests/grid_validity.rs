@@ -137,8 +137,7 @@ fn position_valid() {
             expected_valid: false,
         },
         PositionValidCase {
-            description: "(-world_limit - 1, -world_limit - 1, -world_limit - 1)"
-                .to_string(),
+            description: "(-world_limit - 1, -world_limit - 1, -world_limit - 1)".to_string(),
             position: IVec3::splat(-world_limit - 1),
             expected_valid: false,
         },
