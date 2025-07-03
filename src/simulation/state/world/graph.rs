@@ -87,11 +87,11 @@ impl Graph {
     fn setup_clearance_map(&mut self) {
         let mut clearance_map = HashMap::new();
 
-        let world_boundary = self.grid.world_boundary as i32;
+        let world_limit = self.grid.world_limit as i32;
 
-        for x in -world_boundary..=world_boundary {
-            for y in -world_boundary..=world_boundary {
-                for z in -world_boundary..=world_boundary {
+        for x in -world_limit..=world_limit {
+            for y in -world_limit..=world_limit {
+                for z in -world_limit..=world_limit {
                     let position = IVec3::new(x, y, z);
 
                     clearance_map.insert(position, self.calculate_clearance(position));
@@ -426,6 +426,8 @@ impl Graph {
                     kind: graph::edge::Kind::Regional,
                 };
 
+                println!("{:?}", edge);
+
                 level
                     .edge_map
                     .insert((node1.position, node2.position), edge);
@@ -478,19 +480,17 @@ impl Graph {
             }
         }
 
-        true
+        false
     }
 
     fn calculate_clearance(&self, position: IVec3) -> u32 {
         let chunk_size = self.grid.chunk_size as i32;
-        let world_boundary = self.grid.world_boundary as i32;
 
-        let is_bottom_layer = position.y == -world_boundary;
         let ground_is_solid = self.is_solid(position + IVec3::NEG_Y);
 
         let mut clearance = 0;
 
-        if !is_bottom_layer && ground_is_solid {
+        if ground_is_solid {
             for level in 0..chunk_size {
                 let level_position = position + IVec3::new(0, level, 0);
 

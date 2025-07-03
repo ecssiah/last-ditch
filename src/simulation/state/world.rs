@@ -120,7 +120,7 @@ impl World {
                     chunk_id,
                     position,
                     kind: block::Kind::Empty,
-                    solid: grid.on_boundary(position),
+                    solid: false,
                 }
             })
             .collect()
@@ -217,9 +217,7 @@ impl World {
     }
 
     pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
-        if self.grid.on_boundary(position) {
-            log::warn!("Cannot set blocks on world boundary");
-        } else if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
+        if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
             let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
 
             if let Some(block) = self.get_block_mut(chunk_id, block_id) {
@@ -231,7 +229,7 @@ impl World {
             self.mark_updates(chunk_id, position);
         } else {
             log::info!(
-                "{:?} block not set at invalid location: {:?}",
+                "{:?} block cannot be set at invalid location: {:?}",
                 kind,
                 position
             );

@@ -103,9 +103,10 @@ impl Physics {
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();
 
-                world
-                    .get_block_at(block_position)
-                    .is_some_and(|block| block.solid)
+                match world.get_block_at(block_position) {
+                    Some(block) => block.solid,
+                    None => true,
+                }
             })
             .collect()
     }

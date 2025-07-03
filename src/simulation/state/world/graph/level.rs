@@ -19,9 +19,6 @@ impl Level {
         let mut node_vec = Vec::new();
 
         for ((position1, position2), edge) in &self.edge_map {
-            log::info!("{:?}", (position1, position2));
-            log::info!("{:?}", edge);
-
             if &position == position1 {
                 node_vec.push(edge.node2);
             } else if &position == position2 {

@@ -80,7 +80,7 @@ pub struct Grid {
     pub world_size: u32,
     pub world_area: u32,
     pub world_volume: u32,
-    pub world_boundary: u32,
+    pub world_limit: u32,
     pub block_index_max: u32,
     pub chunk_index_max: u32,
 }
@@ -99,7 +99,7 @@ impl Grid {
         let chunk_area = chunk_size * chunk_size;
         let chunk_volume = chunk_size * chunk_size * chunk_size;
 
-        let world_boundary = chunk_radius + world_radius * chunk_size;
+        let world_limit = chunk_radius + world_radius * chunk_size;
 
         let block_index_max = chunk_volume - 1;
         let chunk_index_max = world_volume - 1;
@@ -113,7 +113,7 @@ impl Grid {
             chunk_size,
             chunk_area,
             chunk_volume,
-            world_boundary,
+            world_limit,
             block_index_max,
             chunk_index_max,
         }
@@ -136,9 +136,9 @@ impl Grid {
     }
 
     pub fn position_valid(&self, position: IVec3) -> bool {
-        let in_x_range = position.x.unsigned_abs() <= self.world_boundary;
-        let in_y_range = position.y.unsigned_abs() <= self.world_boundary;
-        let in_z_range = position.z.unsigned_abs() <= self.world_boundary;
+        let in_x_range = position.x.unsigned_abs() <= self.world_limit;
+        let in_y_range = position.y.unsigned_abs() <= self.world_limit;
+        let in_z_range = position.z.unsigned_abs() <= self.world_limit;
 
         in_x_range && in_y_range && in_z_range
     }
@@ -199,7 +199,7 @@ impl Grid {
 
     pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
         if self.position_valid(position) {
-            let position_indexable = indexing::indexable_vector(position, self.world_boundary)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_limit)?;
 
             let chunk_coordinates_indexable = position_indexable / self.chunk_size as i32;
 
@@ -214,7 +214,7 @@ impl Grid {
 
     pub fn position_to_block_coordinates(&self, position: IVec3) -> Option<IVec3> {
         if self.position_valid(position) {
-            let position_indexable = indexing::indexable_vector(position, self.world_boundary)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_limit)?;
 
             let block_coordinates_indexable = position_indexable % self.chunk_size as i32;
 
@@ -322,12 +322,12 @@ impl Grid {
             })
     }
 
-    pub fn on_boundary(&self, position: IVec3) -> bool {
-        let world_boundary = self.world_boundary as i32;
+    pub fn on_world_limit(&self, position: IVec3) -> bool {
+        let world_limit = self.world_limit as i32;
 
-        position.x.abs() == world_boundary
-            || position.y.abs() == world_boundary
-            || position.z.abs() == world_boundary
+        position.x.abs() == world_limit
+            || position.y.abs() == world_limit
+            || position.z.abs() == world_limit
     }
 
     pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {

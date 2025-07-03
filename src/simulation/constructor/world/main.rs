@@ -18,7 +18,7 @@ pub fn construct(world: &mut World) {
 }
 
 fn build_ground(world: &mut World) {
-    let ground_boundary = (world.grid.world_boundary - world.grid.chunk_size) as isize;
+    let ground_boundary = (world.grid.world_limit - world.grid.chunk_size) as isize;
 
     for x in -ground_boundary..=ground_boundary {
         for y in -1..=0 {

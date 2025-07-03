@@ -113,7 +113,7 @@ fn position_valid() {
     let mut world = World::new(mode);
     world.setup();
 
-    let world_boundary = world.grid.world_boundary as i32;
+    let world_limit = world.grid.world_limit as i32;
 
     let test_cases = vec![
         PositionValidCase {
@@ -122,24 +122,24 @@ fn position_valid() {
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_boundary, world_boundary, world_boundary)".to_string(),
-            position: IVec3::splat(world_boundary),
+            description: "(world_limit, world_limit, world_limit)".to_string(),
+            position: IVec3::splat(world_limit),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(-world_boundary, -world_boundary, -world_boundary)".to_string(),
-            position: IVec3::splat(-world_boundary),
+            description: "(-world_limit, -world_limit, -world_limit)".to_string(),
+            position: IVec3::splat(-world_limit),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_boundary + 1, world_boundary + 1, world_boundary + 1)".to_string(),
-            position: IVec3::splat(world_boundary + 1),
+            description: "(world_limit + 1, world_limit + 1, world_limit + 1)".to_string(),
+            position: IVec3::splat(world_limit + 1),
             expected_valid: false,
         },
         PositionValidCase {
-            description: "(-world_boundary - 1, -world_boundary - 1, -world_boundary - 1)"
+            description: "(-world_limit - 1, -world_limit - 1, -world_limit - 1)"
                 .to_string(),
-            position: IVec3::splat(-world_boundary - 1),
+            position: IVec3::splat(-world_limit - 1),
             expected_valid: false,
         },
     ];
