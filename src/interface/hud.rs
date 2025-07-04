@@ -129,12 +129,16 @@ impl HUD {
 
     pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
         let judge_view = &view.population_view.judge_view;
-        let judge_position = judge_view.spatial.current.position();
 
         let simulate_data = mode::SimulateData {
             message: format!(
-                "Position: ({:.2}, {:.2}, {:.2})",
-                judge_position.x, judge_position.y, judge_position.z
+                "Position: ({:.0}, {:.0}, {:.0})\nChunk Coordinates: {:.0}, {:.0}, {:.0}",
+                judge_view.position.x,
+                judge_view.position.y,
+                judge_view.position.z,
+                judge_view.chunk_coordinates.x,
+                judge_view.chunk_coordinates.y,
+                judge_view.chunk_coordinates.z,
             ),
         };
 

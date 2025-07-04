@@ -17,16 +17,30 @@ struct EntranceValidationCase {
 
 impl EntranceValidationCase {
     pub fn check(&self, world: &World) {
+        let region1_id = usize::from(
+            world
+                .grid
+                .chunk_coordinates_to_chunk_id(self.region1_coordinates)
+                .expect("Invalid Region1 coordinates"),
+        ) as u32;
+
+        let region2_id = usize::from(
+            world
+                .grid
+                .chunk_coordinates_to_chunk_id(self.region2_coordinates)
+                .expect("Invalid Region2 coordinates"),
+        ) as u32;
+
         let test_entrance_vec: Vec<&world::graph::Entrance> = world
             .graph
             .entrance_vec
             .iter()
             .filter(|entrance| {
-                let original_match = entrance.region1_coordinates == self.region1_coordinates
-                    && entrance.region2_coordinates == self.region2_coordinates;
+                let original_match =
+                    entrance.region1_id == region1_id && entrance.region2_id == region2_id;
 
-                let symmetric_match = entrance.region1_coordinates == self.region2_coordinates
-                    && entrance.region2_coordinates == self.region1_coordinates;
+                let symmetric_match =
+                    entrance.region1_id == region2_id && entrance.region2_id == region1_id;
 
                 original_match || symmetric_match
             })

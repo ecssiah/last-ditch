@@ -55,10 +55,9 @@ impl Camera {
     pub fn update(
         &mut self,
         queue: &wgpu::Queue,
-        alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) {
-        let camera_uniform_data = Self::setup_camera_uniform_data(alpha, judge_view);
+        let camera_uniform_data = Self::setup_camera_uniform_data(judge_view);
 
         queue.write_buffer(
             &self.uniform_buffer,
@@ -68,25 +67,16 @@ impl Camera {
     }
 
     fn setup_camera_uniform_data(
-        alpha: f32,
         judge_view: &simulation::observation::view::JudgeView,
     ) -> CameraUniformData {
-        let judge_position = judge_view
-            .spatial
-            .current
-            .world_position
-            .lerp(judge_view.spatial.next.world_position, alpha);
-
         let projection =
             Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let height =
-            judge_view.detection.current.body.max.y - judge_view.detection.current.body.min.y;
-        let eye_offset = Vec3::Y * 0.9 * height;
-        let eye = judge_position + eye_offset;
+        let eye_offset = Vec3::Y * 0.9 * judge_view.size.y;
+        let eye = judge_view.world_position + eye_offset;
 
-        let forward = judge_view.spatial.current.quaternion * Vec3::Z;
-        let up = judge_view.spatial.current.quaternion * Vec3::Y;
+        let forward = judge_view.quaternion * Vec3::Z;
+        let up = judge_view.quaternion * Vec3::Y;
         let target = eye + forward;
 
         let view = Mat4::look_at_lh(eye, target, up);

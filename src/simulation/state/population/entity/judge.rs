@@ -1,6 +1,5 @@
 use crate::simulation::{
     consts::*,
-    observation::state_pair::StatePair,
     state::{
         physics::aabb::AABB,
         population::entity::{self, Detection, Kinematic, Nation, Spatial},
@@ -12,7 +11,8 @@ use glam::{Quat, Vec3};
 
 pub struct Judge {
     pub id: entity::ID,
-    pub chunk_id: StatePair<chunk::ID>,
+    pub chunk_id: chunk::ID,
+    pub chunk_updated: bool,
     pub action_vec: Vec<JudgeAction>,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
@@ -25,7 +25,8 @@ impl Judge {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::default(),
+            chunk_id: chunk::ID(0),
+            chunk_updated: false,
             action_vec: Vec::default(),
             spatial: Spatial::default(),
             kinematic: Kinematic::default(),
@@ -39,7 +40,10 @@ impl Judge {
 
     pub fn tick(&mut self, world: &World) {
         if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
-            self.chunk_id.set(chunk_id);
+            if chunk_id != self.chunk_id {
+                self.chunk_updated = true;
+                self.chunk_id = chunk_id;
+            }
         }
 
         let action_vec = std::mem::take(&mut self.action_vec);
@@ -50,10 +54,6 @@ impl Judge {
                 JudgeAction::Jump(jump_action) => self.apply_jump_action(&jump_action),
             }
         }
-    }
-
-    pub fn chunk_updated(&self) -> bool {
-        self.chunk_id.current != self.chunk_id.next
     }
 
     pub fn set_world_position(&mut self, world_position: Vec3) {

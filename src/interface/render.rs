@@ -78,8 +78,8 @@ impl Render {
         self.agent_render.instance_data_vec = agent_view_map
             .iter()
             .map(|(_, agent_view)| AgentInstanceData {
-                world_position: agent_view.spatial.current.world_position.to_array(),
-                height: agent_view.detection.current.body.size().y,
+                world_position: agent_view.spatial.world_position.to_array(),
+                height: agent_view.detection.body.size().y,
                 color: agent_view.kind.color(),
             })
             .collect();
@@ -115,7 +115,7 @@ impl Render {
             let mut index_vec = Vec::new();
             let mut index_offset = 0;
 
-            for face in &chunk_view.geometry.next.face_vec {
+            for face in &chunk_view.geometry.face_vec {
                 if face.kind == simulation::state::world::block::Kind::Empty {
                     continue;
                 }

@@ -38,7 +38,7 @@ impl Graph {
     pub fn new(grid: &Grid, depth: u32) -> Self {
         Self {
             depth,
-            grid: *grid,
+            grid: grid.clone(),
             solid_set_map: HashMap::new(),
             clearance_map: HashMap::new(),
             entrance_vec: Vec::new(),
@@ -55,10 +55,14 @@ impl Graph {
 
         self.build();
 
-        let start_node = self.create_node(1, IVec3::new(0, -3, 0));
-        let end_node = self.create_node(1, IVec3::new(-9, -3, 0));
+        // let start_node = self.create_node(1, IVec3::new(0, -3, 0));
+        // let end_node = self.create_node(1, IVec3::new(-12, -3, 0));
 
-        self.find_path(start_node, end_node);
+        // let path_vec = self.find_path(start_node, end_node);
+
+        // for node in &path_vec {
+        //     println!("{:?}", node);
+        // }
     }
 
     pub fn find_path(&mut self, start_node: Node, end_node: Node) -> Vec<Node> {
@@ -78,6 +82,8 @@ impl Graph {
         let mut edge_vec = Vec::new();
 
         for transition_node in level.get_region_node_vec(node.region_id) {
+            println!("{:?}", transition_node);
+
             if node.position == transition_node.position {
                 continue;
             }
@@ -96,6 +102,8 @@ impl Graph {
                 clearance,
                 kind: graph::edge::Kind::Local,
             };
+
+            println!("{:?}", edge);
 
             edge_vec.push(edge);
         }
@@ -180,56 +188,56 @@ impl Graph {
     ) {
         let chunk_radius = self.grid.chunk_radius as i32;
 
-        let mut x_visited_set = HashSet::new();
-        let mut x_entrance_active = false;
+        let mut entrance_active = false;
+        let mut visited_set = HashSet::new();
 
         for by in -chunk_radius..=chunk_radius {
             for bz in -chunk_radius..=chunk_radius {
                 let block_coordinates = IVec3::new(chunk_radius, by, bz);
                 let block_position = chunk_position + block_coordinates;
 
-                if x_visited_set.contains(&block_position) {
-                    x_entrance_active = false;
+                if visited_set.contains(&block_position) {
+                    entrance_active = false;
                     continue;
                 }
 
-                x_visited_set.insert(block_position);
+                visited_set.insert(block_position);
 
                 let &block_clearance = self.clearance_map.get(&block_position).unwrap();
 
                 (1..=block_clearance).for_each(|level| {
-                    x_visited_set.insert(block_position + IVec3::Y * level as i32);
+                    visited_set.insert(block_position + IVec3::Y * level as i32);
                 });
 
                 if block_clearance >= 3 {
-                    let x_neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
+                    let neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
 
-                    let directions = [
-                        ("up", block_position + IVec3::new(1, 1, 0)),
-                        ("center", block_position + IVec3::new(1, 0, 0)),
-                        ("down", block_position + IVec3::new(1, -1, 0)),
+                    let neighbor_positions = [
+                        block_position + IVec3::new(1, 1, 0),
+                        block_position + IVec3::new(1, 0, 0),
+                        block_position + IVec3::new(1, -1, 0),
                     ];
 
                     let mut matched = false;
 
-                    for &(_, neighbor_position) in &directions {
+                    for neighbor_position in neighbor_positions {
                         if self.get_clearance(neighbor_position) >= 3 {
-                            if !x_entrance_active {
-                                let x_neighbor_chunk_index = usize::from(
+                            if !entrance_active {
+                                let neighbor_chunk_index = usize::from(
                                     self.grid
-                                        .chunk_coordinates_to_chunk_id(x_neighbor_chunk_coordinates)
+                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates)
                                         .unwrap(),
                                 );
 
                                 let entrance = Entrance {
                                     region1_id: chunk_index as u32,
-                                    region2_id: x_neighbor_chunk_index as u32,
+                                    region2_id: neighbor_chunk_index as u32,
                                     transition_vec: Vec::new(),
                                 };
 
                                 self.entrance_vec.push(entrance);
 
-                                x_entrance_active = true;
+                                entrance_active = true;
                             }
 
                             let last_entrance_index = self.entrance_vec.len() - 1;
@@ -250,10 +258,10 @@ impl Graph {
                     }
 
                     if !matched {
-                        x_entrance_active = false;
+                        entrance_active = false;
                     }
                 } else {
-                    x_entrance_active = false;
+                    entrance_active = false;
                 }
             }
         }
@@ -267,7 +275,7 @@ impl Graph {
     ) {
         let chunk_radius = self.grid.chunk_radius as i32;
 
-        let mut y_candidate_map = HashMap::new();
+        let mut candidate_map = HashMap::new();
 
         for bz in -chunk_radius..=chunk_radius {
             for bx in -chunk_radius..=chunk_radius {
@@ -278,15 +286,14 @@ impl Graph {
                 if block_clearance >= 3 {
                     let mut neighbor_position_vec = Vec::new();
 
-                    let neighbor_offset_vec = [
-                        IVec3::new(1, 1, 0),
-                        IVec3::new(-1, 1, 0),
-                        IVec3::new(0, 1, 1),
-                        IVec3::new(0, 1, -1),
+                    let neighbor_position_array = [
+                        block_position + IVec3::new(1, 1, 0),
+                        block_position + IVec3::new(-1, 1, 0),
+                        block_position + IVec3::new(0, 1, 1),
+                        block_position + IVec3::new(0, 1, -1),
                     ];
 
-                    for offset in neighbor_offset_vec {
-                        let neighbor_position = block_position + offset;
+                    for neighbor_position in neighbor_position_array {
                         let neighbor_clearance = self.get_clearance(neighbor_position);
 
                         if neighbor_clearance >= 3 {
@@ -295,32 +302,37 @@ impl Graph {
                     }
 
                     if !neighbor_position_vec.is_empty() {
-                        y_candidate_map.insert(block_position, neighbor_position_vec);
+                        candidate_map.insert(block_position, neighbor_position_vec);
                     }
                 }
             }
         }
 
-        let mut y_visited_set = HashSet::new();
+        let mut visited_set = HashSet::new();
 
-        for &start in y_candidate_map.keys() {
-            if y_visited_set.contains(&start) {
+        for &start in candidate_map.keys() {
+            if visited_set.contains(&start) {
                 continue;
             }
 
             let mut group = vec![start];
             let mut queue = vec![start];
 
-            y_visited_set.insert(start);
+            visited_set.insert(start);
 
             while let Some(position) = queue.pop() {
-                for offset in [IVec3::X, -IVec3::X, IVec3::Z, -IVec3::Z] {
-                    let neighbor_position = position + offset;
+                let neighbor_position_array = [
+                    position + IVec3::X,
+                    position + IVec3::NEG_X,
+                    position + IVec3::Z,
+                    position + IVec3::NEG_Z,
+                ];
 
-                    if y_candidate_map.contains_key(&neighbor_position)
-                        && !y_visited_set.contains(&neighbor_position)
+                for neighbor_position in neighbor_position_array {
+                    if candidate_map.contains_key(&neighbor_position)
+                        && !visited_set.contains(&neighbor_position)
                     {
-                        y_visited_set.insert(neighbor_position);
+                        visited_set.insert(neighbor_position);
 
                         queue.push(neighbor_position);
                         group.push(neighbor_position);
@@ -328,7 +340,7 @@ impl Graph {
                 }
             }
 
-            let y_neighbor_chunk_index = usize::from(
+            let neighbor_chunk_index = usize::from(
                 self.grid
                     .chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y)
                     .unwrap(),
@@ -336,12 +348,12 @@ impl Graph {
 
             let mut entrance = Entrance {
                 region1_id: chunk_index as u32,
-                region2_id: y_neighbor_chunk_index as u32,
+                region2_id: neighbor_chunk_index as u32,
                 transition_vec: Vec::new(),
             };
 
             for position in group {
-                let neighbor_position_vec = y_candidate_map.get(&position).unwrap();
+                let neighbor_position_vec = candidate_map.get(&position).unwrap();
 
                 for neighbor_position in neighbor_position_vec {
                     let transition = Transition {
@@ -365,56 +377,56 @@ impl Graph {
     ) {
         let chunk_radius = self.grid.chunk_radius as i32;
 
-        let mut z_visited_set = HashSet::new();
-        let mut z_entrance_active = false;
+        let mut entrance_active = false;
+        let mut visited_set = HashSet::new();
 
         for by in -chunk_radius..=chunk_radius {
             for bx in -chunk_radius..=chunk_radius {
                 let block_coordinates = IVec3::new(bx, by, chunk_radius);
                 let block_position = chunk_position + block_coordinates;
 
-                if z_visited_set.contains(&block_position) {
-                    z_entrance_active = false;
+                if visited_set.contains(&block_position) {
+                    entrance_active = false;
                     continue;
                 }
 
-                z_visited_set.insert(block_position);
+                visited_set.insert(block_position);
 
                 let &block_clearance = self.clearance_map.get(&block_position).unwrap();
 
                 (1..=block_clearance).for_each(|level| {
-                    z_visited_set.insert(block_position + IVec3::Y * level as i32);
+                    visited_set.insert(block_position + IVec3::Y * level as i32);
                 });
 
                 if block_clearance >= 3 {
-                    let z_neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
+                    let neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
 
-                    let directions = [
-                        ("up", block_position + IVec3::new(0, 1, 1)),
-                        ("center", block_position + IVec3::new(0, 0, 1)),
-                        ("down", block_position + IVec3::new(0, -1, 1)),
+                    let neighbor_position_array = [
+                        block_position + IVec3::new(0, 1, 1),
+                        block_position + IVec3::new(0, 0, 1),
+                        block_position + IVec3::new(0, -1, 1),
                     ];
 
                     let mut matched = false;
 
-                    for &(_, neighbor_position) in &directions {
+                    for neighbor_position in neighbor_position_array {
                         if self.get_clearance(neighbor_position) >= 3 {
-                            if !z_entrance_active {
-                                let z_neighbor_chunk_index = usize::from(
+                            if !entrance_active {
+                                let neighbor_chunk_index = usize::from(
                                     self.grid
-                                        .chunk_coordinates_to_chunk_id(z_neighbor_chunk_coordinates)
+                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates)
                                         .unwrap(),
                                 );
 
                                 let entrance = Entrance {
                                     region1_id: chunk_index as u32,
-                                    region2_id: z_neighbor_chunk_index as u32,
+                                    region2_id: neighbor_chunk_index as u32,
                                     transition_vec: Vec::new(),
                                 };
 
                                 self.entrance_vec.push(entrance);
 
-                                z_entrance_active = true;
+                                entrance_active = true;
                             }
 
                             let last_entrance_index = self.entrance_vec.len() - 1;
@@ -435,10 +447,10 @@ impl Graph {
                     }
 
                     if !matched {
-                        z_entrance_active = false;
+                        entrance_active = false;
                     }
                 } else {
-                    z_entrance_active = false;
+                    entrance_active = false;
                 }
             }
         }
@@ -456,16 +468,16 @@ impl Graph {
 
     fn setup_regions(&mut self, level: &mut Level) {
         let chunk_size = self.grid.chunk_size as i32;
-        let region_count = (self.grid.world_limit / self.grid.chunk_size) as i32;
+        let world_radius = self.grid.world_radius as i32;
 
         let mut region_id = 0;
         let mut region_map = HashMap::new();
 
-        for rx in 0..region_count {
-            for ry in 0..region_count {
-                for rz in 0..region_count {
+        for rx in -world_radius..=world_radius {
+            for ry in -world_radius..=world_radius {
+                for rz in -world_radius..=world_radius {
                     let id = region_id;
-                    let min = IVec3::new(rx, ry, rz);
+                    let min = IVec3::new(rx * chunk_size, ry * chunk_size, rz * chunk_size);
                     let max = min + IVec3::splat(chunk_size);
 
                     region_map.insert(region_id, Region { id, min, max });
@@ -483,22 +495,34 @@ impl Graph {
             let transition_vec = entrance.representative_transitions();
 
             for transition in &transition_vec {
+                let node1_region_id = usize::from(
+                    self.grid
+                        .position_to_chunk_id(transition.region1_position)
+                        .unwrap(),
+                );
+
                 let node1 = level
                     .node_map
                     .entry(transition.region1_position)
                     .or_insert(Node {
                         level: 1,
-                        region_id: entrance.region1_id,
+                        region_id: node1_region_id as u32,
                         position: transition.region1_position,
                     })
                     .clone();
+
+                let node2_region_id = usize::from(
+                    self.grid
+                        .position_to_chunk_id(transition.region2_position)
+                        .unwrap(),
+                );
 
                 let node2 = level
                     .node_map
                     .entry(transition.region2_position)
                     .or_insert(Node {
                         level: 1,
-                        region_id: entrance.region2_id,
+                        region_id: node2_region_id as u32,
                         position: transition.region2_position,
                     })
                     .clone();

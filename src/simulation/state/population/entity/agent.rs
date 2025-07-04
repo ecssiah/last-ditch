@@ -1,16 +1,14 @@
-use crate::simulation::{
-    observation::state_pair::StatePair,
-    state::{
-        physics::aabb::AABB,
-        population::entity::{self, Detection, Kinematic, Nation, Spatial},
-        world::{chunk, World},
-    },
+use crate::simulation::state::{
+    physics::aabb::AABB,
+    population::entity::{self, Detection, Kinematic, Nation, Spatial},
+    world::{chunk, World},
 };
 use glam::Vec3;
 
 pub struct Agent {
     pub id: entity::ID,
-    pub chunk_id: StatePair<chunk::ID>,
+    pub chunk_id: chunk::ID,
+    pub chunk_updated: bool,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub detection: Detection,
@@ -22,7 +20,8 @@ impl Agent {
     pub fn new() -> Self {
         Self {
             id: entity::ID::allocate(),
-            chunk_id: StatePair::default(),
+            chunk_id: chunk::ID(0),
+            chunk_updated: false,
             spatial: Spatial::default(),
             kinematic: Kinematic::default(),
             detection: Detection::default(),
@@ -35,12 +34,11 @@ impl Agent {
 
     pub fn tick(&mut self, world: &World) {
         if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
-            self.chunk_id.set(chunk_id);
+            if chunk_id != self.chunk_id {
+                self.chunk_updated = true;
+                self.chunk_id = chunk_id;
+            }
         }
-    }
-
-    pub fn chunk_updated(&self) -> bool {
-        self.chunk_id.current != self.chunk_id.next
     }
 
     pub fn set_world_position(&mut self, world_position: Vec3) {

@@ -2,24 +2,17 @@
 
 pub mod buffer;
 pub mod repository;
-pub mod state_pair;
 pub mod view;
 
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::{
         repository::Repository,
-        state_pair::StatePair,
         view::{
             AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
     },
-    state::{
-        population::{entity::Judge, Population},
-        time::Time,
-        world::{chunk, World},
-        Admin, State,
-    },
+    state::State,
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -45,133 +38,99 @@ impl Observation {
     }
 
     fn update_view(&self, state: &State) {
-        let judge = state.population.get_judge();
+        let admin_view = self.update_admin_view(&state);
+        let time_view = self.update_time_view(&state);
+        let population_view = self.update_population_view(&state);
+        let world_view = self.update_world_view(&state);
 
-        let view = self.repository_arc.get();
-
-        let admin_view = self.update_admin_view(&view.admin_view, &state.admin);
-        let time_view = self.update_time_view(&view.time_view, &state.time);
-        let population_view = self.update_population_view(&view.population_view, &state.population);
-        let world_view = self.update_world_view(judge, &view.world_view, &state.world);
-
-        let next_view = View {
-            judge_id: judge.id,
+        let view = View {
+            judge_id: state.population.judge.id,
             admin_view,
             time_view,
             population_view,
             world_view,
         };
 
-        self.repository_arc.set(next_view);
+        self.repository_arc.set(view);
     }
 
-    fn update_admin_view(&self, _admin_view: &AdminView, admin: &Admin) -> AdminView {
+    fn update_admin_view(&self, state: &State) -> AdminView {
         AdminView {
-            mode: admin.mode,
-            message: admin.message.clone(),
+            mode: state.admin.mode,
+            message: state.admin.message.clone(),
         }
     }
 
-    fn update_time_view(&self, time_view: &TimeView, time: &Time) -> TimeView {
+    fn update_time_view(&self, state: &State) -> TimeView {
         TimeView {
-            instant: StatePair::new(time_view.instant.next, time.instant),
+            instant: state.time.instant,
         }
     }
 
-    fn update_population_view(
-        &self,
-        population_view: &PopulationView,
-        population: &Population,
-    ) -> PopulationView {
-        let judge = population.get_judge();
+    fn update_population_view(&self, state: &State) -> PopulationView {
+        let judge = state.population.get_judge();
 
-        let mut next_population_view = PopulationView {
+        let mut population_view = PopulationView {
             judge_view: JudgeView {
                 id: judge.id,
-                spatial: StatePair::new(population_view.judge_view.spatial.next, judge.spatial),
-                kinematic: StatePair::new(
-                    population_view.judge_view.kinematic.next,
-                    judge.kinematic,
-                ),
-                detection: StatePair::new(
-                    population_view.judge_view.detection.next,
-                    judge.detection,
-                ),
+                position: judge.spatial.position(),
+                world_position: judge.spatial.world_position,
+                chunk_id: judge.chunk_id,
+                chunk_coordinates: state
+                    .world
+                    .grid
+                    .chunk_id_to_chunk_coordinates(judge.chunk_id)
+                    .unwrap(),
+                size: judge.size(),
+                quaternion: judge.spatial.quaternion,
             },
             agent_view_map: HashMap::new(),
         };
 
-        for agent in population.get_agent_map() {
+        for agent in state.population.get_agent_map() {
             let distance_to_judge_squared = (agent.spatial.world_position
-                - population.judge.spatial.world_position)
+                - state.population.judge.spatial.world_position)
                 .length_squared();
 
             if distance_to_judge_squared > JUDGE_VIEW_RADIUS_SQUARED {
                 continue;
             }
 
-            let new_agent_view =
-                if let Some(agent_view) = population_view.agent_view_map.get(&agent.id) {
-                    AgentView {
-                        id: agent.id,
-                        kind: agent.kind,
-                        spatial: StatePair::new(agent_view.spatial.next, agent.spatial),
-                        kinematic: StatePair::new(
-                            population_view.judge_view.kinematic.next,
-                            judge.kinematic,
-                        ),
-                        detection: StatePair::new(
-                            population_view.judge_view.detection.next,
-                            judge.detection,
-                        ),
-                    }
-                } else {
-                    AgentView {
-                        id: agent.id,
-                        kind: agent.kind,
-                        spatial: StatePair::new(agent.spatial, agent.spatial),
-                        kinematic: StatePair::new(agent.kinematic, agent.kinematic),
-                        detection: StatePair::new(agent.detection, agent.detection),
-                    }
-                };
+            let agent_view = AgentView {
+                id: agent.id,
+                kind: agent.kind,
+                spatial: agent.spatial,
+                kinematic: agent.kinematic,
+                detection: agent.detection,
+            };
 
-            next_population_view
-                .agent_view_map
-                .insert(agent.id, new_agent_view);
+            population_view.agent_view_map.insert(agent.id, agent_view);
         }
 
-        next_population_view
+        population_view
     }
 
-    fn update_world_view(&self, judge: &Judge, world_view: &WorldView, world: &World) -> WorldView {
-        let mut next_world_view = WorldView {
+    fn update_world_view(&self, state: &State) -> WorldView {
+        let mut world_view = WorldView {
             chunk_view_map: HashMap::new(),
         };
 
-        let visible_chunk_id_vec = world.get_visible_chunk_id_vec(judge);
+        let visible_chunk_id_vec = state
+            .world
+            .get_visible_chunk_id_vec(&state.population.judge);
 
         for chunk_id in visible_chunk_id_vec {
-            if let Some(chunk) = world.get_chunk(chunk_id) {
-                let chunk_view = self.update_chunk_view(chunk, world_view);
+            if let Some(chunk) = state.world.get_chunk(chunk_id) {
+                let chunk_view = ChunkView {
+                    id: chunk.id,
+                    geometry: chunk.geometry.clone(),
+                };
 
-                next_world_view.chunk_view_map.insert(chunk.id, chunk_view);
+                world_view.chunk_view_map.insert(chunk.id, chunk_view);
             }
         }
 
-        next_world_view
-    }
-
-    fn update_chunk_view(&self, chunk: &chunk::Chunk, world_view: &WorldView) -> ChunkView {
-        let current_chunk_geometry = world_view
-            .chunk_view_map
-            .get(&chunk.id)
-            .map(|view| view.geometry.next.clone())
-            .unwrap_or_else(|| chunk.geometry.clone());
-
-        ChunkView {
-            id: chunk.id,
-            geometry: StatePair::new(current_chunk_geometry, chunk.geometry.clone()),
-        }
+        world_view
     }
 }
 

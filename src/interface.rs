@@ -31,7 +31,6 @@ pub struct Interface<'window> {
     dt: Duration,
     instant: Instant,
     last_instant: Instant,
-    alpha: f32,
     gpu_context: GPUContext<'window>,
     observation_arc: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
@@ -50,7 +49,6 @@ impl Interface<'_> {
         let dt = Duration::ZERO;
         let instant = Instant::now();
         let last_instant = Instant::now();
-        let alpha = 0.0;
 
         let monitor = event_loop
             .primary_monitor()
@@ -167,7 +165,6 @@ impl Interface<'_> {
             dt,
             instant,
             last_instant,
-            alpha,
             observation_arc,
             gpu_context,
             input,
@@ -301,20 +298,8 @@ impl Interface<'_> {
         self.dt = self.instant.elapsed();
         self.instant = Instant::now();
 
-        let now = self.instant;
-        let current = view.time_view.instant.current;
-        let next = view.time_view.instant.next;
-
-        let total_duration = next.duration_since(current).as_secs_f32();
-        let elapsed_since_current = now.duration_since(current).as_secs_f32();
-
-        self.alpha = (elapsed_since_current / total_duration).clamp(0.0, 1.0);
-
-        self.camera.update(
-            &self.gpu_context.queue,
-            self.alpha,
-            &view.population_view.judge_view,
-        );
+        self.camera
+            .update(&self.gpu_context.queue, &view.population_view.judge_view);
 
         self.render.prepare_agent_view_map(
             &self.gpu_context.device,
