@@ -49,24 +49,25 @@ impl Graph {
         }
     }
 
-    pub fn setup(&mut self, chunk_vec: &[Chunk]) {
-        self.setup_solid_set_map(chunk_vec);
+    pub fn setup(&mut self, chunk_vec_slice: &[Chunk]) {
+        self.setup_solid_set_map(chunk_vec_slice);
         self.setup_clearance_map();
         self.setup_entrances();
 
         self.build();
 
-        let start_node = self.create_node(1, IVec3::new(0, -3, 0));
-        let end_node = self.create_node(1, IVec3::new(0, 6, 9));
+        let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
 
-        let path_vec = self.find_path(start_node, end_node);
-
+        println!("Path: ");
         for node in &path_vec {
             println!("{:?}", node);
         }
     }
 
-    pub fn find_path(&mut self, start_node: Node, end_node: Node) -> Vec<Node> {
+    pub fn find_path(&mut self, start: IVec3, end: IVec3) -> Vec<Node> {
+        let start_node = self.create_node(start, 1);
+        let end_node = self.create_node(end, 1);
+
         let level = &mut self.level_vec[1];
         level.reset();
 
@@ -112,8 +113,8 @@ impl Graph {
         }
     }
 
-    fn setup_solid_set_map(&mut self, chunk_vec: &[Chunk]) {
-        self.solid_set_map = chunk_vec
+    fn setup_solid_set_map(&mut self, chunk_vec_slice: &[Chunk]) {
+        self.solid_set_map = chunk_vec_slice
             .iter()
             .map(|chunk| {
                 let mut solid_set = FixedBitSet::with_capacity(self.grid.chunk_volume as usize);
@@ -627,7 +628,7 @@ impl Graph {
         }
     }
 
-    fn create_node(&self, level: u32, position: IVec3) -> Node {
+    fn create_node(&self, position: IVec3, level: u32) -> Node {
         let region_id = self.level_vec[level as usize]
             .region_map
             .iter()

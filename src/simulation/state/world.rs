@@ -75,14 +75,24 @@ impl World {
 
     pub fn setup(&mut self) {
         match self.kind {
-            simulation::Kind::Main => constructor::world::main::construct(self),
-            simulation::Kind::Empty => constructor::world::empty::construct(self),
-            simulation::Kind::WorldTest => constructor::world::world_test::construct(self),
-            simulation::Kind::GraphTest => constructor::world::graph_test::construct(self),
+            simulation::Kind::Main => {
+                constructor::world::main::construct(self);
+
+                self.graph.setup(&self.chunk_vec);
+            }
+            simulation::Kind::Empty => {
+                constructor::world::empty::construct(self);
+            }
+            simulation::Kind::WorldTest => {
+                constructor::world::world_test::construct(self);
+            }
+            simulation::Kind::GraphTest => {
+                constructor::world::graph_test::construct(self);
+
+                self.graph.setup(&self.chunk_vec);
+            }
             simulation::Kind::Placeholder => (),
         }
-
-        self.graph.setup(&self.chunk_vec);
     }
 
     pub fn tick(&mut self) {}
