@@ -20,15 +20,13 @@ impl EntranceValidationCase {
         let region1_id = usize::from(
             world
                 .grid
-                .chunk_coordinates_to_chunk_id(self.region1_coordinates)
-                .expect("Invalid Region1 coordinates"),
+                .chunk_coordinates_to_chunk_id(self.region1_coordinates),
         ) as u32;
 
         let region2_id = usize::from(
             world
                 .grid
-                .chunk_coordinates_to_chunk_id(self.region2_coordinates)
-                .expect("Invalid Region2 coordinates"),
+                .chunk_coordinates_to_chunk_id(self.region2_coordinates),
         ) as u32;
 
         let test_entrance_vec: Vec<&world::graph::Entrance> = world

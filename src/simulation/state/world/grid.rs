@@ -143,148 +143,200 @@ impl Grid {
         in_x_range && in_y_range && in_z_range
     }
 
-    pub fn block_id_to_block_coordinates(&self, block_id: block::ID) -> Option<IVec3> {
+    pub fn block_id_to_block_coordinates(&self, block_id: block::ID) -> IVec3 {
         if self.block_id_valid(block_id) {
             let block_index = u32::from(block_id);
             let block_coordinates = indexing::index_to_vector(block_index, self.chunk_radius);
 
-            Some(block_coordinates)
+            block_coordinates
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn block_coordinates_to_block_id(&self, block_coordinates: IVec3) -> Option<block::ID> {
+    pub fn block_coordinates_to_block_id(&self, block_coordinates: IVec3) -> block::ID {
         let block_coordinates_indexable =
-            indexing::indexable_vector(block_coordinates, self.chunk_radius)?;
-        let block_index = indexing::vector_to_index(block_coordinates_indexable, self.chunk_radius);
+            indexing::indexable_vector(block_coordinates, self.chunk_radius);
 
-        Some(block::ID(block_index))
+        if block_coordinates_indexable != IVec3::MAX {
+            let block_index =
+                indexing::vector_to_index(block_coordinates_indexable, self.chunk_radius);
+
+            block::ID(block_index)
+        } else {
+            block::ID::MAX
+        }
     }
 
-    pub fn chunk_id_to_chunk_coordinates(&self, chunk_id: chunk::ID) -> Option<IVec3> {
+    pub fn chunk_id_to_chunk_coordinates(&self, chunk_id: chunk::ID) -> IVec3 {
         if self.chunk_id_valid(chunk_id) {
             let chunk_index = u32::from(chunk_id);
             let chunk_coordinates = indexing::index_to_vector(chunk_index, self.world_radius);
 
-            Some(chunk_coordinates)
+            chunk_coordinates
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn chunk_coordinates_to_chunk_id(&self, chunk_coordinates: IVec3) -> Option<chunk::ID> {
+    pub fn chunk_coordinates_to_chunk_id(&self, chunk_coordinates: IVec3) -> chunk::ID {
         let chunk_coordinates_indexable =
-            indexing::indexable_vector(chunk_coordinates, self.world_radius)?;
-        let chunk_index = indexing::vector_to_index(chunk_coordinates_indexable, self.world_radius);
+            indexing::indexable_vector(chunk_coordinates, self.world_radius);
 
-        Some(chunk::ID(chunk_index))
+        if chunk_coordinates_indexable != IVec3::MAX {
+            let chunk_index =
+                indexing::vector_to_index(chunk_coordinates_indexable, self.world_radius);
+
+            chunk::ID(chunk_index)
+        } else {
+            chunk::ID::MAX
+        }
     }
 
-    pub fn chunk_coordinates_to_position(&self, chunk_coordinates: IVec3) -> Option<IVec3> {
+    pub fn chunk_coordinates_to_position(&self, chunk_coordinates: IVec3) -> IVec3 {
         let position = chunk_coordinates * self.chunk_size as i32;
 
         if self.position_valid(position) {
-            Some(position)
+            position
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn chunk_id_to_position(&self, chunk_id: chunk::ID) -> Option<IVec3> {
-        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id)?;
+    pub fn chunk_id_to_position(&self, chunk_id: chunk::ID) -> IVec3 {
+        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id);
 
-        self.chunk_coordinates_to_position(chunk_coordinates)
+        if chunk_coordinates != IVec3::MAX {
+            self.chunk_coordinates_to_position(chunk_coordinates)
+        } else {
+            IVec3::MAX
+        }
     }
 
-    pub fn position_to_chunk_coordinates(&self, position: IVec3) -> Option<IVec3> {
+    pub fn position_to_chunk_coordinates(&self, position: IVec3) -> IVec3 {
         if self.position_valid(position) {
-            let position_indexable = indexing::indexable_vector(position, self.world_limit)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_limit);
 
-            let chunk_coordinates_indexable = position_indexable / self.chunk_size as i32;
+            if position_indexable != IVec3::MAX {
+                let chunk_coordinates_indexable = position_indexable / self.chunk_size as i32;
 
-            let chunk_coordinates =
-                chunk_coordinates_indexable - IVec3::splat(self.world_radius as i32);
+                let chunk_coordinates =
+                    chunk_coordinates_indexable - IVec3::splat(self.world_radius as i32);
 
-            Some(chunk_coordinates)
+                chunk_coordinates
+            } else {
+                IVec3::MAX
+            }
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn position_to_block_coordinates(&self, position: IVec3) -> Option<IVec3> {
+    pub fn position_to_block_coordinates(&self, position: IVec3) -> IVec3 {
         if self.position_valid(position) {
-            let position_indexable = indexing::indexable_vector(position, self.world_limit)?;
+            let position_indexable = indexing::indexable_vector(position, self.world_limit);
 
-            let block_coordinates_indexable = position_indexable % self.chunk_size as i32;
+            if position_indexable != IVec3::MAX {
+                let block_coordinates_indexable = position_indexable % self.chunk_size as i32;
 
-            let block_coordinates =
-                block_coordinates_indexable - IVec3::splat(self.chunk_radius as i32);
+                let block_coordinates =
+                    block_coordinates_indexable - IVec3::splat(self.chunk_radius as i32);
 
-            Some(block_coordinates)
+                block_coordinates
+            } else {
+                IVec3::MAX
+            }
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn position_to_chunk_id(&self, position: IVec3) -> Option<chunk::ID> {
-        let chunk_coordinates = self.position_to_chunk_coordinates(position)?;
+    pub fn position_to_chunk_id(&self, position: IVec3) -> chunk::ID {
+        let chunk_coordinates = self.position_to_chunk_coordinates(position);
 
-        self.chunk_coordinates_to_chunk_id(chunk_coordinates)
+        if chunk_coordinates != IVec3::MAX {
+            self.chunk_coordinates_to_chunk_id(chunk_coordinates)
+        } else {
+            chunk::ID::MAX
+        }
     }
 
-    pub fn position_to_block_id(&self, position: IVec3) -> Option<block::ID> {
-        let block_coordinates = self.position_to_block_coordinates(position)?;
+    pub fn position_to_block_id(&self, position: IVec3) -> block::ID {
+        let block_coordinates = self.position_to_block_coordinates(position);
 
-        self.block_coordinates_to_block_id(block_coordinates)
+        if block_coordinates != IVec3::MAX {
+            self.block_coordinates_to_block_id(block_coordinates)
+        } else {
+            block::ID::MAX
+        }
     }
 
-    pub fn position_to_ids(&self, position: IVec3) -> Option<(chunk::ID, block::ID)> {
-        let chunk_id = self.position_to_chunk_id(position)?;
-        let block_id = self.position_to_block_id(position)?;
+    pub fn position_to_ids(&self, position: IVec3) -> (chunk::ID, block::ID) {
+        let chunk_id = self.position_to_chunk_id(position);
+        let block_id = self.position_to_block_id(position);
 
-        Some((chunk_id, block_id))
+        (chunk_id, block_id)
     }
 
-    pub fn ids_to_position(&self, chunk_id: chunk::ID, block_id: block::ID) -> Option<IVec3> {
-        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id)?;
-        let block_coordinates = self.block_id_to_block_coordinates(block_id)?;
+    pub fn ids_to_position(&self, chunk_id: chunk::ID, block_id: block::ID) -> IVec3 {
+        let chunk_coordinates = self.chunk_id_to_chunk_coordinates(chunk_id);
+        let block_coordinates = self.block_id_to_block_coordinates(block_id);
 
-        Some(self.chunk_size as i32 * chunk_coordinates + block_coordinates)
+        if chunk_coordinates != IVec3::MAX && block_coordinates != IVec3::MAX {
+            self.chunk_size as i32 * chunk_coordinates + block_coordinates
+        } else {
+            IVec3::MAX
+        }
     }
 
-    pub fn world_to_position(&self, world_position: Vec3) -> Option<IVec3> {
+    pub fn world_to_position(&self, world_position: Vec3) -> IVec3 {
         let position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
 
         if self.position_valid(position) {
-            Some(position)
+            position
         } else {
-            None
+            IVec3::MAX
         }
     }
 
-    pub fn world_to_chunk_id(&self, world_position: Vec3) -> Option<chunk::ID> {
-        let position = self.world_to_position(world_position)?;
+    pub fn world_to_chunk_id(&self, world_position: Vec3) -> chunk::ID {
+        let position = self.world_to_position(world_position);
 
-        self.position_to_chunk_id(position)
+        if self.position_valid(position) {
+            self.position_to_chunk_id(position)
+        } else {
+            chunk::ID::MAX
+        }
     }
 
-    pub fn world_to_chunk_coordinates(&self, world_position: Vec3) -> Option<IVec3> {
-        let position = self.world_to_position(world_position)?;
+    pub fn world_to_chunk_coordinates(&self, world_position: Vec3) -> IVec3 {
+        let position = self.world_to_position(world_position);
 
-        self.position_to_chunk_coordinates(position)
+        if self.position_valid(position) {
+            self.position_to_chunk_coordinates(position)
+        } else {
+            IVec3::MAX
+        }
     }
 
-    pub fn world_to_block_id(&self, world_position: Vec3) -> Option<block::ID> {
-        let position = self.world_to_position(world_position)?;
+    pub fn world_to_block_id(&self, world_position: Vec3) -> block::ID {
+        let position = self.world_to_position(world_position);
 
-        self.position_to_block_id(position)
+        if self.position_valid(position) {
+            self.position_to_block_id(position)
+        } else {
+            block::ID::MAX
+        }
     }
 
-    pub fn world_to_block_coordinates(&self, world_position: Vec3) -> Option<IVec3> {
-        let position = self.world_to_position(world_position)?;
+    pub fn world_to_block_coordinates(&self, world_position: Vec3) -> IVec3 {
+        let position = self.world_to_position(world_position);
 
-        self.position_to_block_coordinates(position)
+        if self.position_valid(position) {
+            self.position_to_block_coordinates(position)
+        } else {
+            IVec3::MAX
+        }
     }
 
     pub fn blocks_overlapping(&self, aabb: AABB) -> Vec<AABB> {
@@ -312,14 +364,17 @@ impl Grid {
     }
 
     pub fn on_chunk_boundary(&self, position: IVec3) -> bool {
-        self.position_to_block_coordinates(position)
-            .is_some_and(|block_coordinates| {
-                let chunk_radius = self.chunk_radius as i32;
+        let block_coordinates = self.position_to_block_coordinates(position);
 
-                block_coordinates.x.abs() == chunk_radius
-                    || block_coordinates.y.abs() == chunk_radius
-                    || block_coordinates.z.abs() == chunk_radius
-            })
+        if block_coordinates == IVec3::MAX {
+            true
+        } else {
+            let chunk_radius = self.chunk_radius as i32;
+
+            block_coordinates.x.abs() == chunk_radius
+                || block_coordinates.y.abs() == chunk_radius
+                || block_coordinates.z.abs() == chunk_radius
+        }
     }
 
     pub fn on_world_limit(&self, position: IVec3) -> bool {

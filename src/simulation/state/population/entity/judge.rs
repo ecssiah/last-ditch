@@ -39,11 +39,11 @@ impl Judge {
     }
 
     pub fn tick(&mut self, world: &World) {
-        if let Some(chunk_id) = world.grid.world_to_chunk_id(self.spatial.world_position) {
-            if chunk_id != self.chunk_id {
-                self.chunk_updated = true;
-                self.chunk_id = chunk_id;
-            }
+        let chunk_id = world.grid.world_to_chunk_id(self.spatial.world_position);
+
+        if chunk_id != self.chunk_id {
+            self.chunk_updated = true;
+            self.chunk_id = chunk_id;
         }
 
         let action_vec = std::mem::take(&mut self.action_vec);

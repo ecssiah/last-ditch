@@ -22,11 +22,7 @@ fn build_rooms(world: &mut World) {
         for y in -chunk_extent..=chunk_extent {
             for z in -chunk_extent..=chunk_extent {
                 let chunk_coordinates = IVec3::new(x, y, z);
-
-                let chunk_position = world
-                    .grid
-                    .chunk_coordinates_to_position(chunk_coordinates)
-                    .unwrap();
+                let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
 
                 let component_sum = chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z;
 
@@ -50,11 +46,7 @@ fn build_central_room(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates = IVec3::new(0, 0, 0);
-
-    let chunk_position = world
-        .grid
-        .chunk_coordinates_to_position(chunk_coordinates)
-        .unwrap();
+    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
 
     world.set_cube(
         chunk_position + IVec3::new(-3 * chunk_radius - 1, -chunk_radius, -3 * chunk_radius - 1),
@@ -74,11 +66,7 @@ fn build_clearance_test(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates = IVec3::new(0, 0, 1);
-
-    let chunk_position = world
-        .grid
-        .chunk_coordinates_to_position(chunk_coordinates)
-        .unwrap();
+    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
 
     world.set_block_kind(
         chunk_position + IVec3::new(-4, -4, chunk_radius),

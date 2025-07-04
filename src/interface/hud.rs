@@ -130,21 +130,30 @@ impl HUD {
     pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
         let judge_view = &view.population_view.judge_view;
 
-        let simulate_data = mode::SimulateData {
-            message: format!(
-                "World: ({:.2}, {:.2}, {:.2})\nPos: ({:.0}, {:.0}, {:.0})\nChunk: ({:.0}, {:.0}, {:.0}) ID {:?}",
-                judge_view.world_position.x,
-                judge_view.world_position.y,
-                judge_view.world_position.z,
-                judge_view.position.x,
-                judge_view.position.y,
-                judge_view.position.z,
-                judge_view.chunk_coordinates.x,
-                judge_view.chunk_coordinates.y,
-                judge_view.chunk_coordinates.z,
-                usize::from(judge_view.chunk_id),
-            ),
-        };
+        let world_position_string = format!(
+            "World: ({:.2}, {:.2}, {:.2})\n",
+            judge_view.world_position.x, judge_view.world_position.y, judge_view.world_position.z,
+        );
+
+        let position_string = format!(
+            "Pos: ({:.0}, {:.0}, {:.0})\n",
+            judge_view.position.x, judge_view.position.y, judge_view.position.z,
+        );
+
+        let chunk_string = format!(
+            "Chunk: ({:.0}, {:.0}, {:.0}) ID {:?}",
+            judge_view.chunk_coordinates.x,
+            judge_view.chunk_coordinates.y,
+            judge_view.chunk_coordinates.z,
+            usize::from(judge_view.chunk_id),
+        );
+
+        let mut message = String::new();
+        message.push_str(&world_position_string);
+        message.push_str(&position_string);
+        message.push_str(&chunk_string);
+
+        let simulate_data = mode::SimulateData { message };
 
         self.mode = Mode::Simulate(simulate_data);
     }

@@ -9,11 +9,11 @@ pub fn in_bounds(vector: IVec3, radius: u32) -> bool {
         && (min..=max).contains(&vector.z)
 }
 
-pub fn indexable_vector(vector: IVec3, radius: u32) -> Option<IVec3> {
+pub fn indexable_vector(vector: IVec3, radius: u32) -> IVec3 {
     if in_bounds(vector, radius) {
-        Some(vector + IVec3::splat(radius as i32))
+        vector + IVec3::splat(radius as i32)
     } else {
-        None
+        IVec3::MAX
     }
 }
 

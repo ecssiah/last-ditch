@@ -16,6 +16,7 @@ pub use transition::Transition;
 use crate::simulation::{
     consts::*,
     state::world::{
+        block,
         chunk::Chunk,
         graph::{self, heap_entry::HeapEntry},
         grid::Grid,
@@ -125,10 +126,7 @@ impl Graph {
                     solid_set.set(usize::from(block.id), block.solid);
                 }
 
-                let chunk_coordinates = self
-                    .grid
-                    .position_to_chunk_coordinates(chunk.position)
-                    .unwrap();
+                let chunk_coordinates = self.grid.position_to_chunk_coordinates(chunk.position);
 
                 (chunk_coordinates, solid_set)
             })
@@ -161,16 +159,9 @@ impl Graph {
                 for cz in -world_radius..=world_radius - 1 {
                     let chunk_coordinates = IVec3::new(cx, cy, cz);
 
-                    let chunk_index = usize::from(
-                        self.grid
-                            .chunk_coordinates_to_chunk_id(chunk_coordinates)
-                            .unwrap(),
-                    );
-
-                    let chunk_position = self
-                        .grid
-                        .chunk_coordinates_to_position(chunk_coordinates)
-                        .unwrap();
+                    let chunk_index =
+                        usize::from(self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
+                    let chunk_position = self.grid.chunk_coordinates_to_position(chunk_coordinates);
 
                     self.setup_x_entrances(chunk_index, chunk_coordinates, chunk_position);
                     self.setup_y_entrances(chunk_index, chunk_coordinates, chunk_position);
@@ -225,8 +216,7 @@ impl Graph {
                             if !entrance_active {
                                 let neighbor_chunk_index = usize::from(
                                     self.grid
-                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates)
-                                        .unwrap(),
+                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
@@ -342,8 +332,7 @@ impl Graph {
 
             let neighbor_chunk_index = usize::from(
                 self.grid
-                    .chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y)
-                    .unwrap(),
+                    .chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y),
             );
 
             let mut entrance = Entrance {
@@ -414,8 +403,7 @@ impl Graph {
                             if !entrance_active {
                                 let neighbor_chunk_index = usize::from(
                                     self.grid
-                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates)
-                                        .unwrap(),
+                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
@@ -495,11 +483,8 @@ impl Graph {
             let transition_vec = entrance.representative_transitions();
 
             for transition in &transition_vec {
-                let node1_region_id = usize::from(
-                    self.grid
-                        .position_to_chunk_id(transition.region1_position)
-                        .unwrap(),
-                );
+                let node1_region_id =
+                    usize::from(self.grid.position_to_chunk_id(transition.region1_position));
 
                 let node1 = level
                     .node_map
@@ -511,11 +496,8 @@ impl Graph {
                     })
                     .clone();
 
-                let node2_region_id = usize::from(
-                    self.grid
-                        .position_to_chunk_id(transition.region2_position)
-                        .unwrap(),
-                );
+                let node2_region_id =
+                    usize::from(self.grid.position_to_chunk_id(transition.region2_position));
 
                 let node2 = level
                     .node_map
@@ -593,9 +575,13 @@ impl Graph {
     }
 
     fn is_solid(&self, position: IVec3) -> bool {
-        if let Some(chunk_coordinates) = self.grid.position_to_chunk_coordinates(position) {
+        let chunk_coordinates = self.grid.position_to_chunk_coordinates(position);
+
+        if chunk_coordinates != IVec3::MAX {
             if let Some(solid_set) = self.solid_set_map.get(&chunk_coordinates) {
-                if let Some(block_id) = self.grid.position_to_block_id(position) {
+                let block_id = self.grid.position_to_block_id(position);
+
+                if block_id != block::ID::MAX {
                     return solid_set.contains(usize::from(block_id));
                 }
             }

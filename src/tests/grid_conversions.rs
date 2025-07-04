@@ -14,10 +14,7 @@ impl BlockIDToBlockCoordinatesCase {
     pub fn check(&self, world: &World) {
         let block_coordinates = world.grid.block_id_to_block_coordinates(self.block_id);
 
-        assert!(block_coordinates.is_some(), "{:?}", self.description);
-
-        let block_coordinates = block_coordinates.unwrap();
-
+        assert_ne!(block_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
             block_coordinates, self.expected_block_coordinates,
             "{:?}",
@@ -70,10 +67,7 @@ impl BlockCoordinatesToBlockIDCase {
             .grid
             .block_coordinates_to_block_id(self.block_coordinates);
 
-        assert!(block_id.is_some(), "{:?}", self.description);
-
-        let block_id = block_id.unwrap();
-
+        assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
         assert_eq!(block_id, self.expected_block_id, "{:?}", self.description);
     }
 }
@@ -120,10 +114,7 @@ impl ChunkIDToChunkCoordinates {
     pub fn check(&self, world: &World) {
         let chunk_coordinates = world.grid.chunk_id_to_chunk_coordinates(self.chunk_id);
 
-        assert!(chunk_coordinates.is_some(), "{:?}", self.description);
-
-        let chunk_coordinates = chunk_coordinates.unwrap();
-
+        assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
             chunk_coordinates, self.expected_chunk_coordinates,
             "{:?}",
@@ -176,10 +167,7 @@ impl ChunkCoordinatesToChunkIDCase {
             .grid
             .chunk_coordinates_to_chunk_id(self.chunk_coordinates);
 
-        assert!(chunk_id.is_some(), "{:?}", self.description);
-
-        let chunk_id = chunk_id.unwrap();
-
+        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
         assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
     }
 }
@@ -228,10 +216,7 @@ impl ChunkCoordinatesToPositionCase {
             .grid
             .chunk_coordinates_to_position(self.chunk_coordinates);
 
-        assert!(position.is_some(), "{:?}", self.description);
-
-        let position = position.unwrap();
-
+        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -280,10 +265,7 @@ impl ChunkIDToPositionCase {
     pub fn check(&self, world: &World) {
         let position = world.grid.chunk_id_to_position(self.chunk_id);
 
-        assert!(position.is_some(), "{:?}", self.description);
-
-        let position = position.unwrap();
-
+        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -329,11 +311,9 @@ struct PositionToChunkCoordinatesCase {
 
 impl PositionToChunkCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = world
-            .grid
-            .position_to_chunk_coordinates(self.position)
-            .expect("invalid position");
+        let chunk_coordinates = world.grid.position_to_chunk_coordinates(self.position);
 
+        assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
             chunk_coordinates, self.expected_chunk_coordinates,
             "{:?}",
@@ -384,11 +364,9 @@ struct PositionToBlockCoordinatesCase {
 
 impl PositionToBlockCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let block_coordinates = world
-            .grid
-            .position_to_block_coordinates(self.position)
-            .expect("invalid position");
+        let block_coordinates = world.grid.position_to_block_coordinates(self.position);
 
+        assert_ne!(block_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
             block_coordinates, self.expected_block_coordinates,
             "{:?}",
@@ -469,11 +447,9 @@ struct PositionToChunkIDCase {
 
 impl PositionToChunkIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = world
-            .grid
-            .position_to_chunk_id(self.position)
-            .expect("invalid position");
+        let chunk_id = world.grid.position_to_chunk_id(self.position);
 
+        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
         assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
     }
 }
@@ -518,11 +494,9 @@ struct PositionToBlockIDCase {
 
 impl PositionToBlockIDCase {
     pub fn check(&self, world: &World) {
-        let block_id = world
-            .grid
-            .position_to_block_id(self.position)
-            .expect("invalid position");
+        let block_id = world.grid.position_to_block_id(self.position);
 
+        assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
         assert_eq!(block_id, self.expected_block_id, "{:?}", self.description);
     }
 }
@@ -568,11 +542,9 @@ struct IDsToPositionCase {
 
 impl IDsToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = world
-            .grid
-            .ids_to_position(self.chunk_id, self.block_id)
-            .expect("id pair is invalid");
+        let position = world.grid.ids_to_position(self.chunk_id, self.block_id);
 
+        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -620,12 +592,16 @@ struct PositionToIDsCase {
 
 impl PositionToIDsCase {
     pub fn check(&self, world: &World) {
-        let ids = world
-            .grid
-            .position_to_ids(self.position)
-            .expect("invalid position");
+        let (chunk_id, block_id) = world.grid.position_to_ids(self.position);
 
-        assert_eq!(ids, self.expected_ids, "{:?}", self.description);
+        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
+        assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
+        assert_eq!(
+            (chunk_id, block_id),
+            self.expected_ids,
+            "{:?}",
+            self.description
+        );
     }
 }
 
@@ -670,7 +646,7 @@ fn position_to_ids() {
 struct WorldToPositionCase {
     description: String,
     world_position: Vec3,
-    expected_position: Option<IVec3>,
+    expected_position: IVec3,
 }
 
 impl WorldToPositionCase {
@@ -694,32 +670,32 @@ fn world_to_position() {
         WorldToPositionCase {
             description: "world min".to_string(),
             world_position: Vec3::splat(-world_limit),
-            expected_position: Some(IVec3::splat(-world_limit as i32)),
+            expected_position: IVec3::splat(-world_limit as i32),
         },
         WorldToPositionCase {
             description: "world min - 1.0".to_string(),
             world_position: Vec3::splat(-world_limit - 1.0),
-            expected_position: None,
+            expected_position: IVec3::MAX,
         },
         WorldToPositionCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_position: Some(IVec3::splat(0)),
+            expected_position: IVec3::splat(0),
         },
         WorldToPositionCase {
             description: "world max".to_string(),
             world_position: Vec3::splat(world_limit),
-            expected_position: Some(IVec3::splat(world_limit as i32)),
+            expected_position: IVec3::splat(world_limit as i32),
         },
         WorldToPositionCase {
             description: "world max + 1.0".to_string(),
             world_position: Vec3::splat(world_limit + 1.0),
-            expected_position: None,
+            expected_position: IVec3::MAX,
         },
         WorldToPositionCase {
             description: "standard position".to_string(),
             world_position: Vec3::new(0.0, -3.5, 0.0),
-            expected_position: Some(IVec3::new(0, -3, 0)),
+            expected_position: IVec3::new(0, -3, 0),
         },
     ];
 
@@ -731,7 +707,7 @@ fn world_to_position() {
 struct WorldToChunkIDCase {
     description: String,
     world_position: Vec3,
-    expected_chunk_id: Option<chunk::ID>,
+    expected_chunk_id: chunk::ID,
 }
 
 impl WorldToChunkIDCase {
@@ -755,27 +731,27 @@ fn world_to_chunk_id() {
         WorldToChunkIDCase {
             description: "world min".to_string(),
             world_position: Vec3::splat(-world_limit),
-            expected_chunk_id: Some(chunk::ID(0)),
+            expected_chunk_id: chunk::ID(0),
         },
         WorldToChunkIDCase {
             description: "world min - 1.0".to_string(),
             world_position: Vec3::splat(-world_limit - 1.0),
-            expected_chunk_id: None,
+            expected_chunk_id: chunk::ID::MAX,
         },
         WorldToChunkIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_chunk_id: Some(chunk::ID(world.grid.chunk_index_max / 2)),
+            expected_chunk_id: chunk::ID(world.grid.chunk_index_max / 2),
         },
         WorldToChunkIDCase {
             description: "world max".to_string(),
             world_position: Vec3::splat(world_limit),
-            expected_chunk_id: Some(chunk::ID(world.grid.chunk_index_max)),
+            expected_chunk_id: chunk::ID(world.grid.chunk_index_max),
         },
         WorldToChunkIDCase {
             description: "world max + 1.0".to_string(),
             world_position: Vec3::splat(world_limit + 1.0),
-            expected_chunk_id: None,
+            expected_chunk_id: chunk::ID::MAX,
         },
     ];
 
@@ -787,7 +763,7 @@ fn world_to_chunk_id() {
 struct WorldToChunkCoordinates {
     description: String,
     world_position: Vec3,
-    expected_chunk_coordinates: Option<IVec3>,
+    expected_chunk_coordinates: IVec3,
 }
 
 impl WorldToChunkCoordinates {
@@ -816,17 +792,17 @@ fn world_to_chunk_coordinates() {
         WorldToChunkCoordinates {
             description: "world min".to_string(),
             world_position: Vec3::splat(world_limit),
-            expected_chunk_coordinates: Some(IVec3::splat(world_radius)),
+            expected_chunk_coordinates: IVec3::splat(world_radius),
         },
         WorldToChunkCoordinates {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_chunk_coordinates: Some(IVec3::splat(0)),
+            expected_chunk_coordinates: IVec3::splat(0),
         },
         WorldToChunkCoordinates {
             description: "world max".to_string(),
             world_position: Vec3::splat(-world_limit),
-            expected_chunk_coordinates: Some(IVec3::splat(-world_radius)),
+            expected_chunk_coordinates: IVec3::splat(-world_radius),
         },
     ];
 
@@ -838,7 +814,7 @@ fn world_to_chunk_coordinates() {
 struct WorldToBlockIDCase {
     description: String,
     world_position: Vec3,
-    expected_block_id: Option<block::ID>,
+    expected_block_id: block::ID,
 }
 
 impl WorldToBlockIDCase {
@@ -862,27 +838,27 @@ fn world_to_block_id() {
         WorldToBlockIDCase {
             description: "world min".to_string(),
             world_position: Vec3::splat(-world_limit),
-            expected_block_id: Some(block::ID(0)),
+            expected_block_id: block::ID(0),
         },
         WorldToBlockIDCase {
             description: "world min - 1.0".to_string(),
             world_position: Vec3::splat(-world_limit - 1.0),
-            expected_block_id: None,
+            expected_block_id: block::ID::MAX,
         },
         WorldToBlockIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_block_id: Some(block::ID(world.grid.block_index_max / 2)),
+            expected_block_id: block::ID(world.grid.block_index_max / 2),
         },
         WorldToBlockIDCase {
             description: "world max".to_string(),
             world_position: Vec3::splat(world_limit),
-            expected_block_id: Some(block::ID(world.grid.block_index_max)),
+            expected_block_id: block::ID(world.grid.block_index_max),
         },
         WorldToBlockIDCase {
             description: "world max + 1.0".to_string(),
             world_position: Vec3::splat(world_limit + 1.0),
-            expected_block_id: None,
+            expected_block_id: block::ID::MAX,
         },
     ];
 
@@ -894,7 +870,7 @@ fn world_to_block_id() {
 struct WorldToBlockCoordinates {
     description: String,
     world_position: Vec3,
-    expected_block_coordinates: Option<IVec3>,
+    expected_block_coordinates: IVec3,
 }
 
 impl WorldToBlockCoordinates {
@@ -923,17 +899,17 @@ fn world_to_block_coordinates() {
         WorldToBlockCoordinates {
             description: "world min".to_string(),
             world_position: Vec3::splat(world_limit),
-            expected_block_coordinates: Some(IVec3::splat(chunk_radius)),
+            expected_block_coordinates: IVec3::splat(chunk_radius),
         },
         WorldToBlockCoordinates {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_block_coordinates: Some(IVec3::splat(0)),
+            expected_block_coordinates: IVec3::splat(0),
         },
         WorldToBlockCoordinates {
             description: "world max".to_string(),
             world_position: Vec3::splat(-world_limit),
-            expected_block_coordinates: Some(IVec3::splat(-chunk_radius)),
+            expected_block_coordinates: IVec3::splat(-chunk_radius),
         },
     ];
 

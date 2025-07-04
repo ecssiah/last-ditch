@@ -76,15 +76,13 @@ impl Observation {
                 position: state
                     .world
                     .grid
-                    .world_to_position(judge.spatial.world_position)
-                    .unwrap(),
+                    .world_to_position(judge.spatial.world_position),
                 world_position: judge.spatial.world_position,
                 chunk_id: judge.chunk_id,
                 chunk_coordinates: state
                     .world
                     .grid
-                    .chunk_id_to_chunk_coordinates(judge.chunk_id)
-                    .unwrap(),
+                    .chunk_id_to_chunk_coordinates(judge.chunk_id),
                 size: judge.size(),
                 quaternion: judge.spatial.quaternion,
             },

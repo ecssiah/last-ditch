@@ -91,7 +91,7 @@ impl World {
         grid.chunk_ids()
             .into_iter()
             .map(|chunk_id| {
-                let position = grid.chunk_id_to_position(chunk_id).unwrap();
+                let position = grid.chunk_id_to_position(chunk_id);
 
                 chunk::Chunk {
                     id: chunk_id,
@@ -113,7 +113,7 @@ impl World {
         grid.block_ids()
             .into_iter()
             .map(|block_id| {
-                let position = grid.ids_to_position(chunk_id, block_id).unwrap();
+                let position = grid.ids_to_position(chunk_id, block_id);
 
                 block::Block {
                     id: block_id,
@@ -135,9 +135,13 @@ impl World {
     }
 
     pub fn get_chunk_at(&self, position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = self.grid.position_to_chunk_id(position)?;
+        let chunk_id = self.grid.position_to_chunk_id(position);
 
-        self.get_chunk(chunk_id)
+        if chunk_id != chunk::ID::MAX {
+            self.get_chunk(chunk_id)
+        } else {
+            None
+        }
     }
 
     pub fn get_block(&self, chunk_id: chunk::ID, block_id: block::ID) -> Option<&block::Block> {
@@ -157,25 +161,33 @@ impl World {
     }
 
     pub fn get_block_at(&self, position: IVec3) -> Option<&block::Block> {
-        let (chunk_id, block_id) = self.grid.position_to_ids(position)?;
+        let (chunk_id, block_id) = self.grid.position_to_ids(position);
 
-        self.get_block(chunk_id, block_id)
+        if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
+            self.get_block(chunk_id, block_id)
+        } else {
+            None
+        }
     }
 
     pub fn get_block_at_mut(&mut self, position: IVec3) -> Option<&mut block::Block> {
-        let (chunk_id, block_id) = self.grid.position_to_ids(position)?;
+        let (chunk_id, block_id) = self.grid.position_to_ids(position);
 
-        self.get_block_mut(chunk_id, block_id)
+        if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
+            self.get_block_mut(chunk_id, block_id)
+        } else {
+            None
+        }
     }
 
-    pub fn get_clearance(&self, position: IVec3) -> Option<u32> {
+    pub fn get_clearance(&self, position: IVec3) -> u32 {
         let ground_is_solid = self
             .get_block_at(position + IVec3::NEG_Y)
             .is_some_and(|block| block.solid);
 
-        if ground_is_solid {
-            let mut clearance = 0;
+        let mut clearance = 0;
 
+        if ground_is_solid {
             for level in 0..MAXIMUM_CLEARANCE {
                 let level_position = position + IVec3::new(0, level as i32, 0);
 
@@ -189,11 +201,9 @@ impl World {
                     break;
                 }
             }
-
-            Some(clearance)
-        } else {
-            None
         }
+
+        clearance
     }
 
     fn mark_updates(&mut self, chunk_id1: chunk::ID, position1: IVec3) {
@@ -204,12 +214,9 @@ impl World {
 
             for direction in grid::Direction::face_vec() {
                 let position2 = position1 + direction.offset();
+                let chunk_id2 = self.grid.position_to_chunk_id(position2);
 
-                if let Some(chunk_id2) = self
-                    .grid
-                    .position_to_chunk_id(position2)
-                    .filter(|chunk_id| chunk_id != &chunk_id1)
-                {
+                if chunk_id2 != chunk::ID::MAX && chunk_id1 != chunk_id2 {
                     self.set_boundary_modified(chunk_id2, true);
                 }
             }
@@ -217,7 +224,9 @@ impl World {
     }
 
     pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
-        if let Some((chunk_id, block_id)) = self.grid.position_to_ids(position) {
+        let (chunk_id, block_id) = self.grid.position_to_ids(position);
+
+        if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
             let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
 
             if let Some(block) = self.get_block_mut(chunk_id, block_id) {
@@ -333,7 +342,7 @@ impl World {
 
             if block.solid {
                 let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
-                let position = self.grid.ids_to_position(chunk.id, block_id).unwrap();
+                let position = self.grid.ids_to_position(chunk.id, block_id);
 
                 for direction in grid::Direction::face_vec() {
                     if visibility_vec.contains(&direction) {
@@ -376,7 +385,9 @@ impl World {
         for offset in grid::Direction::face_offsets() {
             let neighbor_position = position + offset;
 
-            if let Some((chunk_id, block_id)) = self.grid.position_to_ids(neighbor_position) {
+            let (chunk_id, block_id) = self.grid.position_to_ids(neighbor_position);
+
+            if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
                 if self
                     .get_block(chunk_id, block_id)
                     .is_some_and(|block| block.kind != block::Kind::Empty)
@@ -531,8 +542,7 @@ impl World {
 
         let judge_chunk_coordinates = self
             .grid
-            .world_to_chunk_coordinates(judge.spatial.world_position)
-            .unwrap();
+            .world_to_chunk_coordinates(judge.spatial.world_position);
 
         let view_radius = 6;
         let view_direction = judge.spatial.forward();
@@ -542,10 +552,9 @@ impl World {
             for y in -view_radius + 1..=view_radius - 1 {
                 for z in -view_radius..=view_radius {
                     let chunk_coordinates = judge_chunk_coordinates + IVec3::new(x, y, z);
+                    let chunk_id = self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates);
 
-                    if let Some(chunk_id) =
-                        self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates)
-                    {
+                    if chunk_id != chunk::ID::MAX {
                         if let Some(chunk) = self.get_chunk(chunk_id) {
                             let origin_to_center = chunk.aabb.center() - view_origin;
 

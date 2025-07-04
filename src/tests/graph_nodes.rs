@@ -12,8 +12,7 @@ impl NodeValidationCase {
     pub fn check(&self, world: &World) {
         let chunk_position = world
             .grid
-            .chunk_coordinates_to_position(self.chunk_coordinates)
-            .expect("invalid chunk coordinates");
+            .chunk_coordinates_to_position(self.chunk_coordinates);
 
         let _position = chunk_position + self.block_coordinates;
 

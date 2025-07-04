@@ -24,8 +24,7 @@ fn build_ground(world: &mut World) {
         for y in -1..=0 {
             for z in -ground_boundary..=ground_boundary {
                 let position = IVec3::new(x as i32, y, z as i32);
-
-                let chunk_coordinates = world.grid.position_to_chunk_coordinates(position).unwrap();
+                let chunk_coordinates = world.grid.position_to_chunk_coordinates(position);
 
                 let component_sum = chunk_coordinates.x + chunk_coordinates.y + chunk_coordinates.z;
 
