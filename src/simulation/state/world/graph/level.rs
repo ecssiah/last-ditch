@@ -52,10 +52,7 @@ impl Level {
     pub fn get_region_node_vec(&self, region_id: u32) -> Vec<&Node> {
         self.node_map
             .iter()
-            .filter(|(_, node)| {
-                println!("{:?} {:?}", node.region_id, region_id);
-                node.region_id == region_id
-            })
+            .filter(|(_, node)| node.region_id == region_id)
             .map(|(_, node)| node)
             .collect()
     }

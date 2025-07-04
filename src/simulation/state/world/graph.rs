@@ -57,7 +57,7 @@ impl Graph {
         self.build();
 
         let start_node = self.create_node(1, IVec3::new(0, -3, 0));
-        let end_node = self.create_node(1, IVec3::new(-9, -3, 0));
+        let end_node = self.create_node(1, IVec3::new(0, 6, 9));
 
         let path_vec = self.find_path(start_node, end_node);
 
@@ -686,17 +686,17 @@ impl Graph {
                     };
 
                     let step_cost = edge.weight;
-                    let next_cost = cost + step_cost;
 
-                    if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                        cost_so_far.insert(neighbor_position, next_cost);
+                    if let Some(next_cost) = cost.checked_add(step_cost) {
+                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+                            cost_so_far.insert(neighbor_position, next_cost);
 
-                        let priority = next_cost
-                            + Self::manhattan_distance(neighbor_position, end_node.position);
+                            let priority = next_cost
+                                + Self::manhattan_distance(neighbor_position, end_node.position);
 
-                        heap.push(HeapEntry::new(priority, neighbor_position));
-
-                        came_from.insert(neighbor_position, Some(position));
+                            heap.push(HeapEntry::new(priority, neighbor_position));
+                            came_from.insert(neighbor_position, Some(position));
+                        }
                     }
                 }
             }
@@ -750,16 +750,16 @@ impl Graph {
                         MOVEMENT_COST_DIAGONAL
                     };
 
-                    let next_cost = cost + step_cost;
+                    if let Some(next_cost) = cost.checked_add(step_cost) {
+                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+                            cost_so_far.insert(neighbor_position, next_cost);
 
-                    if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                        cost_so_far.insert(neighbor_position, next_cost);
+                            let priority =
+                                next_cost + Self::manhattan_distance(neighbor_position, goal);
+                            heap.push(HeapEntry::new(priority, neighbor_position));
 
-                        let priority =
-                            next_cost + Self::manhattan_distance(neighbor_position, goal);
-                        heap.push(HeapEntry::new(priority, neighbor_position));
-
-                        came_from.insert(neighbor_position, Some(position));
+                            came_from.insert(neighbor_position, Some(position));
+                        }
                     }
                 }
             }
@@ -801,11 +801,11 @@ impl Graph {
                         MOVEMENT_COST_DIAGONAL
                     };
 
-                    let next_cost = cost + step_cost;
-
-                    if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                        heap.push(HeapEntry::new(next_cost, neighbor_position));
-                        cost_so_far.insert(neighbor_position, next_cost);
+                    if let Some(next_cost) = cost.checked_add(step_cost) {
+                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+                            heap.push(HeapEntry::new(next_cost, neighbor_position));
+                            cost_so_far.insert(neighbor_position, next_cost);
+                        }
                     }
                 }
             }
