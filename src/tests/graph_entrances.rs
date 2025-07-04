@@ -17,17 +17,17 @@ struct EntranceValidationCase {
 
 impl EntranceValidationCase {
     pub fn check(&self, world: &World) {
-        let region1_id = usize::from(
+        let region1_id = u32::from(
             world
                 .grid
                 .chunk_coordinates_to_chunk_id(self.region1_coordinates),
-        ) as u32;
+        );
 
-        let region2_id = usize::from(
+        let region2_id = u32::from(
             world
                 .grid
                 .chunk_coordinates_to_chunk_id(self.region2_coordinates),
-        ) as u32;
+        );
 
         let test_entrance_vec: Vec<&world::graph::Entrance> = world
             .graph

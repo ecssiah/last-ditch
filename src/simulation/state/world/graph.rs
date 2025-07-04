@@ -56,14 +56,14 @@ impl Graph {
 
         self.build();
 
-        // let start_node = self.create_node(1, IVec3::new(0, -3, 0));
-        // let end_node = self.create_node(1, IVec3::new(-12, -3, 0));
+        let start_node = self.create_node(1, IVec3::new(0, -3, 0));
+        let end_node = self.create_node(1, IVec3::new(-9, -3, 0));
 
-        // let path_vec = self.find_path(start_node, end_node);
+        let path_vec = self.find_path(start_node, end_node);
 
-        // for node in &path_vec {
-        //     println!("{:?}", node);
-        // }
+        for node in &path_vec {
+            println!("{:?}", node);
+        }
     }
 
     pub fn find_path(&mut self, start_node: Node, end_node: Node) -> Vec<Node> {
@@ -83,8 +83,6 @@ impl Graph {
         let mut edge_vec = Vec::new();
 
         for transition_node in level.get_region_node_vec(node.region_id) {
-            println!("{:?}", transition_node);
-
             if node.position == transition_node.position {
                 continue;
             }
@@ -103,8 +101,6 @@ impl Graph {
                 clearance,
                 kind: graph::edge::Kind::Local,
             };
-
-            println!("{:?}", edge);
 
             edge_vec.push(edge);
         }
@@ -160,7 +156,7 @@ impl Graph {
                     let chunk_coordinates = IVec3::new(cx, cy, cz);
 
                     let chunk_index =
-                        usize::from(self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
+                        u32::from(self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
                     let chunk_position = self.grid.chunk_coordinates_to_position(chunk_coordinates);
 
                     self.setup_x_entrances(chunk_index, chunk_coordinates, chunk_position);
@@ -173,7 +169,7 @@ impl Graph {
 
     fn setup_x_entrances(
         &mut self,
-        chunk_index: usize,
+        chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
     ) {
@@ -214,14 +210,14 @@ impl Graph {
                     for neighbor_position in neighbor_positions {
                         if self.get_clearance(neighbor_position) >= 3 {
                             if !entrance_active {
-                                let neighbor_chunk_index = usize::from(
+                                let neighbor_chunk_index = u32::from(
                                     self.grid
                                         .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
-                                    region1_id: chunk_index as u32,
-                                    region2_id: neighbor_chunk_index as u32,
+                                    region1_id: chunk_index,
+                                    region2_id: neighbor_chunk_index,
                                     transition_vec: Vec::new(),
                                 };
 
@@ -259,7 +255,7 @@ impl Graph {
 
     fn setup_y_entrances(
         &mut self,
-        chunk_index: usize,
+        chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
     ) {
@@ -330,14 +326,14 @@ impl Graph {
                 }
             }
 
-            let neighbor_chunk_index = usize::from(
+            let neighbor_chunk_index = u32::from(
                 self.grid
                     .chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y),
             );
 
             let mut entrance = Entrance {
-                region1_id: chunk_index as u32,
-                region2_id: neighbor_chunk_index as u32,
+                region1_id: chunk_index,
+                region2_id: neighbor_chunk_index,
                 transition_vec: Vec::new(),
             };
 
@@ -360,7 +356,7 @@ impl Graph {
 
     fn setup_z_entrances(
         &mut self,
-        chunk_index: usize,
+        chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
     ) {
@@ -401,14 +397,14 @@ impl Graph {
                     for neighbor_position in neighbor_position_array {
                         if self.get_clearance(neighbor_position) >= 3 {
                             if !entrance_active {
-                                let neighbor_chunk_index = usize::from(
+                                let neighbor_chunk_index = u32::from(
                                     self.grid
                                         .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
-                                    region1_id: chunk_index as u32,
-                                    region2_id: neighbor_chunk_index as u32,
+                                    region1_id: chunk_index,
+                                    region2_id: neighbor_chunk_index,
                                     transition_vec: Vec::new(),
                                 };
 
@@ -455,22 +451,33 @@ impl Graph {
     }
 
     fn setup_regions(&mut self, level: &mut Level) {
-        let chunk_size = self.grid.chunk_size as i32;
+        let chunk_radius = self.grid.chunk_radius as i32;
         let world_radius = self.grid.world_radius as i32;
 
-        let mut region_id = 0;
         let mut region_map = HashMap::new();
 
         for rx in -world_radius..=world_radius {
             for ry in -world_radius..=world_radius {
                 for rz in -world_radius..=world_radius {
-                    let id = region_id;
-                    let min = IVec3::new(rx * chunk_size, ry * chunk_size, rz * chunk_size);
-                    let max = min + IVec3::splat(chunk_size);
+                    let region_coordinates = IVec3::new(rx, ry, rz);
+                    let region_position =
+                        self.grid.chunk_coordinates_to_position(region_coordinates);
 
-                    region_map.insert(region_id, Region { id, min, max });
+                    let region_id =
+                        u32::from(self.grid.chunk_coordinates_to_chunk_id(region_coordinates));
 
-                    region_id += 1;
+                    let min = region_position - IVec3::splat(chunk_radius);
+                    let max = region_position + IVec3::splat(chunk_radius);
+
+                    region_map.insert(
+                        region_id,
+                        Region {
+                            id: region_id,
+                            coordinates: region_coordinates,
+                            min,
+                            max,
+                        },
+                    );
                 }
             }
         }
@@ -484,27 +491,27 @@ impl Graph {
 
             for transition in &transition_vec {
                 let node1_region_id =
-                    usize::from(self.grid.position_to_chunk_id(transition.region1_position));
+                    u32::from(self.grid.position_to_chunk_id(transition.region1_position));
 
                 let node1 = level
                     .node_map
                     .entry(transition.region1_position)
                     .or_insert(Node {
                         level: 1,
-                        region_id: node1_region_id as u32,
+                        region_id: node1_region_id,
                         position: transition.region1_position,
                     })
                     .clone();
 
                 let node2_region_id =
-                    usize::from(self.grid.position_to_chunk_id(transition.region2_position));
+                    u32::from(self.grid.position_to_chunk_id(transition.region2_position));
 
                 let node2 = level
                     .node_map
                     .entry(transition.region2_position)
                     .or_insert(Node {
                         level: 1,
-                        region_id: node2_region_id as u32,
+                        region_id: node2_region_id,
                         position: transition.region2_position,
                     })
                     .clone();
