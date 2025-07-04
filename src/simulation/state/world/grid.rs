@@ -254,7 +254,7 @@ impl Grid {
     }
 
     pub fn world_to_position(&self, world_position: Vec3) -> Option<IVec3> {
-        let position = world_position.trunc().as_ivec3();
+        let position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
 
         if self.position_valid(position) {
             Some(position)

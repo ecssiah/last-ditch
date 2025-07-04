@@ -1,4 +1,4 @@
-use glam::{IVec3, Quat, Vec3};
+use glam::{Quat, Vec3};
 
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Spatial {
@@ -28,9 +28,5 @@ impl Spatial {
 
     pub fn right(&self) -> Vec3 {
         self.quaternion * Vec3::X
-    }
-
-    pub fn position(&self) -> IVec3 {
-        self.world_position.trunc().as_ivec3()
     }
 }

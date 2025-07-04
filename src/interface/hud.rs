@@ -132,13 +132,17 @@ impl HUD {
 
         let simulate_data = mode::SimulateData {
             message: format!(
-                "Position: ({:.0}, {:.0}, {:.0})\nChunk Coordinates: {:.0}, {:.0}, {:.0}",
+                "World: ({:.2}, {:.2}, {:.2})\nPos: ({:.0}, {:.0}, {:.0})\nChunk: ({:.0}, {:.0}, {:.0}) ID {:?}",
+                judge_view.world_position.x,
+                judge_view.world_position.y,
+                judge_view.world_position.z,
                 judge_view.position.x,
                 judge_view.position.y,
                 judge_view.position.z,
                 judge_view.chunk_coordinates.x,
                 judge_view.chunk_coordinates.y,
                 judge_view.chunk_coordinates.z,
+                usize::from(judge_view.chunk_id),
             ),
         };
 
@@ -231,11 +235,13 @@ impl HUD {
     }
 
     fn draw_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
+        let font_size = 16.0;
+
         ui.painter().text(
             egui::pos2(position.x - 1.0, position.y + 1.0),
             egui::Align2::LEFT_TOP,
             text,
-            FontId::proportional(22.0),
+            FontId::proportional(font_size),
             egui::Color32::BLACK,
         );
 
@@ -243,7 +249,7 @@ impl HUD {
             egui::pos2(position.x, position.y),
             egui::Align2::LEFT_TOP,
             text,
-            FontId::proportional(22.0),
+            FontId::proportional(font_size),
             egui::Color32::WHITE,
         );
     }

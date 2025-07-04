@@ -32,7 +32,7 @@ impl Kind {
             },
             Kind::GraphTest => simulation::Config {
                 kind: *self,
-                world_radius: 3,
+                world_radius: 2,
                 chunk_radius: 4,
                 seed: 0,
             },

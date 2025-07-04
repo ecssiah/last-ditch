@@ -73,7 +73,11 @@ impl Observation {
         let mut population_view = PopulationView {
             judge_view: JudgeView {
                 id: judge.id,
-                position: judge.spatial.position(),
+                position: state
+                    .world
+                    .grid
+                    .world_to_position(judge.spatial.world_position)
+                    .unwrap(),
                 world_position: judge.spatial.world_position,
                 chunk_id: judge.chunk_id,
                 chunk_coordinates: state
