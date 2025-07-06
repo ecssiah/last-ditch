@@ -17,7 +17,7 @@ use crate::simulation::{
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Observation {
-    repository_arc: Arc<repository::Repository>,
+    repository_arc: Arc<Repository>,
 }
 
 impl Observation {

@@ -31,6 +31,7 @@ impl World {
         let grid = Grid::new(kind);
         let block_meta_map = block::Meta::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
+
         let graph = Graph::new(&grid, 1);
 
         let flags = HashMap::from([
@@ -56,7 +57,9 @@ impl World {
         let grid = Grid::new(kind);
         let block_meta_map = HashMap::default();
         let chunk_vec = Vec::default();
+
         let graph = Graph::new(&grid, 1);
+
         let flags = HashMap::default();
 
         Self {

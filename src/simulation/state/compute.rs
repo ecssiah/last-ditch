@@ -3,8 +3,6 @@
 pub mod result;
 pub mod task;
 
-pub use task::Task;
-
 use crate::simulation::state::{population::Population, world::World};
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use rayon::ThreadPoolBuilder;
@@ -33,7 +31,7 @@ impl Compute {
         }
     }
 
-    pub fn tick(&mut self, world: &World, population: &Population) {}
+    pub fn tick(&mut self, _world: &World, _population: &Population) {}
 }
 
 impl Default for Compute {

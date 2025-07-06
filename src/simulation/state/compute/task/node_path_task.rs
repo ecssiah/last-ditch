@@ -1,7 +1,9 @@
-use crate::simulation::state::{population::entity, world::graph::Node};
+use crate::simulation::state::population::entity;
+use glam::IVec3;
 
 #[derive(Debug)]
 pub struct NodePathTask {
     pub agent_id: entity::ID,
-    pub node_vec: Vec<Node>,
+    pub start_position: IVec3,
+    pub end_position: IVec3,
 }
