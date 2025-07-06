@@ -1,9 +1,9 @@
 use crate::simulation::state::compute::result::{
-    chunk_path_result::ChunkPathResult, world_path_result::WorldPathResult,
+    block_path_result::BlockPathResult, node_path_result::NodePathResult,
 };
 
 #[derive(Debug)]
 pub enum Kind {
-    WorldPath(WorldPathResult),
-    ChunkPath(ChunkPathResult),
+    NodePath(NodePathResult),
+    BlockPath(BlockPathResult),
 }

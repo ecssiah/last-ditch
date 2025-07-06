@@ -1,7 +1,6 @@
 //! Agent task processing
 
 pub mod result;
-pub mod snapshot;
 pub mod task;
 
 pub use task::Task;
@@ -34,39 +33,7 @@ impl Compute {
         }
     }
 
-    pub fn tick(&mut self, world: &World, population: &Population) {
-        while let Ok(result) = self.result_rx.try_recv() {
-            match result {
-                result::Kind::ChunkPath(result) => {
-                    println!("{:?}", result);
-                }
-                result::Kind::WorldPath(_result) => {}
-            }
-        }
-
-        for task in self.task_rx.try_iter() {
-            match task {
-                task::Kind::ChunkPath(task) => {
-                    let result_tx = self.result_tx.clone();
-                    let snapshot = task.snapshot(world, population);
-
-                    self.thread_pool.spawn(move || {
-                        let result = task.execute(snapshot);
-                        let _ = result_tx.send(result::Kind::ChunkPath(result));
-                    });
-                }
-                task::Kind::WorldPath(task) => {
-                    let result_tx = self.result_tx.clone();
-                    let snapshot = task.snapshot(world, population);
-
-                    self.thread_pool.spawn(move || {
-                        let result = task.execute(snapshot);
-                        let _ = result_tx.send(result::Kind::WorldPath(result));
-                    });
-                }
-            }
-        }
-    }
+    pub fn tick(&mut self, world: &World, population: &Population) {}
 }
 
 impl Default for Compute {

@@ -1,8 +1,8 @@
 use crate::simulation::state::compute::task::{
-    chunk_path_task::ChunkPathTask, world_path_task::WorldPathTask,
+    block_path_task::BlockPathTask, node_path_task::NodePathTask,
 };
 
 pub enum Kind {
-    WorldPath(WorldPathTask),
-    ChunkPath(ChunkPathTask),
+    NodePath(NodePathTask),
+    BlockPath(BlockPathTask),
 }

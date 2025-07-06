@@ -1,6 +1,6 @@
 use glam::IVec3;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Region {
     pub id: u32,
     pub coordinates: IVec3,

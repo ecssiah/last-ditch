@@ -10,6 +10,7 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
+arc-swap = "1.6"
 fixedbitset = "0.5"
 bytemuck = { version = "1.14", features = ["derive"] }
 crossbeam = "0.8.4"
