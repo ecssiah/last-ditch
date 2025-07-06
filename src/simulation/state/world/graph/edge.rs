@@ -6,7 +6,7 @@ pub enum Kind {
     Regional,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Edge {
     pub node1: Node,
     pub node2: Node,

@@ -29,8 +29,10 @@ impl EntranceValidationCase {
                 .chunk_coordinates_to_chunk_id(self.region2_coordinates),
         );
 
-        let test_entrance_vec: Vec<&world::graph::Entrance> = world
-            .graph
+        let graph_buffer = world.graph_buffer_lock.read().unwrap();
+        let graph = graph_buffer.get();
+
+        let test_entrance_vec: Vec<&world::graph::Entrance> = graph
             .entrance_vec
             .iter()
             .filter(|entrance| {

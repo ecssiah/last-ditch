@@ -2,6 +2,7 @@ use crate::simulation::state::world::graph::{Edge, Node, Region};
 use glam::IVec3;
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Level {
     pub region_map: HashMap<u32, Region>,
     pub node_map: HashMap<IVec3, Node>,

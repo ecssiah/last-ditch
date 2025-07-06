@@ -27,6 +27,7 @@ use fixedbitset::FixedBitSet;
 use glam::IVec3;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
+#[derive(Clone)]
 pub struct Graph {
     pub depth: u32,
     pub grid: Grid,
@@ -48,6 +49,23 @@ impl Graph {
                 .take(depth as usize)
                 .collect(),
         }
+    }
+
+    pub fn construct(grid: &Grid, depth: u32, chunk_vec_slice: &[Chunk]) -> Self {
+        let mut graph = Self {
+            depth,
+            grid: grid.clone(),
+            solid_set_map: HashMap::new(),
+            clearance_map: HashMap::new(),
+            entrance_vec: Vec::new(),
+            level_vec: std::iter::repeat_with(Level::new)
+                .take(depth as usize)
+                .collect(),
+        };
+
+        graph.setup(chunk_vec_slice);
+
+        graph
     }
 
     pub fn setup(&mut self, chunk_vec_slice: &[Chunk]) {

@@ -13,16 +13,17 @@ use crate::simulation::{
         population::entity::{self, Judge},
         world::{graph::Graph, grid::Grid},
     },
+    utils::buffer::Buffer,
 };
 use glam::{IVec3, Vec3, Vec4};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::RwLock};
 
 pub struct World {
     pub kind: simulation::Kind,
     pub grid: Grid,
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_vec: Vec<chunk::Chunk>,
-    pub graph: Graph,
+    pub graph_buffer_lock: RwLock<Buffer<Graph>>,
     pub flags: HashMap<entity::Kind, IVec3>,
 }
 
@@ -33,6 +34,7 @@ impl World {
         let chunk_vec = Self::setup_chunk_vec(&grid);
 
         let graph = Graph::new(&grid, 1);
+        let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
         let flags = HashMap::from([
             (entity::Kind::Lion, IVec3::ZERO),
@@ -46,7 +48,7 @@ impl World {
             grid,
             block_meta_map,
             chunk_vec,
-            graph,
+            graph_buffer_lock,
             flags,
         }
     }
@@ -59,6 +61,7 @@ impl World {
         let chunk_vec = Vec::default();
 
         let graph = Graph::new(&grid, 1);
+        let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
         let flags = HashMap::default();
 
@@ -67,7 +70,7 @@ impl World {
             grid,
             block_meta_map,
             chunk_vec,
-            graph,
+            graph_buffer_lock,
             flags,
         }
     }
@@ -81,7 +84,10 @@ impl World {
             simulation::Kind::Main => {
                 constructor::world::main::construct(self);
 
-                self.graph.setup(&self.chunk_vec);
+                let new_graph = Graph::construct(&self.grid, 1, &self.chunk_vec);
+
+                let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
+                graph_buffer.update(new_graph);
             }
             simulation::Kind::Empty => {
                 constructor::world::empty::construct(self);
@@ -92,7 +98,10 @@ impl World {
             simulation::Kind::GraphTest => {
                 constructor::world::graph_test::construct(self);
 
-                self.graph.setup(&self.chunk_vec);
+                let new_graph = Graph::construct(&self.grid, 1, &self.chunk_vec);
+
+                let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
+                graph_buffer.update(new_graph);
             }
             simulation::Kind::Placeholder => (),
         }

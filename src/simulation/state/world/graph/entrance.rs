@@ -2,6 +2,7 @@ use crate::simulation::state::world::graph::Transition;
 use glam::Vec3;
 use std::collections::HashSet;
 
+#[derive(Clone)]
 pub struct Entrance {
     pub region1_id: u32,
     pub region2_id: u32,
