@@ -1,30 +1,30 @@
 //! Exposes Simulation data for Interface
 
 pub mod buffer;
-pub mod repository;
 pub mod view;
 
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::{
-        repository::Repository,
+        buffer::Buffer,
         view::{
             AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
         },
     },
     state::State,
 };
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::RwLock};
 
 pub struct Observation {
-    repository_arc: Arc<Repository>,
+    view_buffer_lock: RwLock<Buffer>,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let repository_arc = Arc::new(Repository::new());
+        let view = View::default();
+        let view_buffer_lock = RwLock::new(Buffer::new(view));
 
-        Self { repository_arc }
+        Self { view_buffer_lock }
     }
 
     pub fn tick(&self, state: &State) {
@@ -32,7 +32,8 @@ impl Observation {
     }
 
     pub fn get_view(&self) -> View {
-        let view = self.repository_arc.get();
+        let view_buffer = self.view_buffer_lock.read().unwrap();
+        let view = view_buffer.get();
 
         (*view).clone()
     }
@@ -51,7 +52,9 @@ impl Observation {
             world_view,
         };
 
-        self.repository_arc.set(view);
+        let mut view_buffer = self.view_buffer_lock.write().unwrap();
+
+        view_buffer.update(view.clone());
     }
 
     fn update_admin_view(&self, state: &State) -> AdminView {
