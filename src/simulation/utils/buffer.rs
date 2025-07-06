@@ -1,19 +1,21 @@
-use crate::simulation::observation::view::View;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc,
 };
 
-pub struct Buffer {
-    buffer_arc_vec: [Arc<View>; 2],
+pub struct Buffer<T> {
+    buffer_arc_vec: [Arc<T>; 2],
     write_index: AtomicUsize,
     read_index: AtomicUsize,
 }
 
-impl Buffer {
-    pub fn new(view: View) -> Self {
-        let view1 = Arc::new(view.clone());
-        let view2 = Arc::new(view);
+impl<T> Buffer<T> {
+    pub fn new(value: T) -> Self
+    where
+        T: Clone,
+    {
+        let view1 = Arc::new(value.clone());
+        let view2 = Arc::new(value);
 
         Self {
             buffer_arc_vec: [view1, view2],
@@ -22,14 +24,14 @@ impl Buffer {
         }
     }
 
-    pub fn get(&self) -> Arc<View> {
+    pub fn get(&self) -> Arc<T> {
         let index = self.read_index.load(Ordering::Acquire);
         self.buffer_arc_vec[index].clone()
     }
 
-    pub fn update(&mut self, view: View) {
+    pub fn update(&mut self, value: T) {
         let index = self.write_index.load(Ordering::Relaxed);
-        self.buffer_arc_vec[index] = Arc::new(view);
+        self.buffer_arc_vec[index] = Arc::new(value);
 
         self.read_index.store(index, Ordering::Release);
         self.write_index.store(1 - index, Ordering::Relaxed);

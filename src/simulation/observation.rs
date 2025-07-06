@@ -1,22 +1,19 @@
 //! Exposes Simulation data for Interface
 
-pub mod buffer;
 pub mod view;
 
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
-    observation::{
-        buffer::Buffer,
-        view::{
-            AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
-        },
+    observation::view::{
+        AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
     },
     state::State,
+    utils::buffer::Buffer,
 };
 use std::{collections::HashMap, sync::RwLock};
 
 pub struct Observation {
-    view_buffer_lock: RwLock<Buffer>,
+    view_buffer_lock: RwLock<Buffer<View>>,
 }
 
 impl Observation {
