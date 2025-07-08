@@ -31,7 +31,7 @@ fn setup_agents(population: &mut Population, world: &World) {
     let agent_size_bounds = (0.6, 2.2);
 
     for kind in entity::Kind::all() {
-        if let Some(flag_position) = world.get_flag(kind) {
+        if let Some(flag_position) = world.flag_position_map.get(&kind) {
             let flag_position = flag_position.as_vec3();
 
             for _ in 0..agent_initial_population {

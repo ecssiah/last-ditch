@@ -85,7 +85,9 @@ fn build_compass(world: &mut World) {
 }
 
 fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: entity::Kind) {
-    world.flags.insert(kind, IVec3::new(x, y + 3, z));
+    world
+        .flag_position_map
+        .insert(kind, IVec3::new(x, y + 3, z));
 
     World::set_block_kind(
         IVec3::new(x, y + 6, z),

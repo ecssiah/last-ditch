@@ -24,7 +24,7 @@ pub struct World {
     pub block_meta_map: HashMap<block::Kind, block::Meta>,
     pub chunk_vec: Vec<chunk::Chunk>,
     pub graph_buffer_lock: RwLock<Buffer<Graph>>,
-    pub flags: HashMap<entity::Kind, IVec3>,
+    pub flag_position_map: HashMap<entity::Kind, IVec3>,
 }
 
 impl World {
@@ -36,7 +36,7 @@ impl World {
         let graph = Graph::new(&grid, 1);
         let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
-        let flags = HashMap::from([
+        let flag_position_map = HashMap::from([
             (entity::Kind::Lion, IVec3::ZERO),
             (entity::Kind::Eagle, IVec3::ZERO),
             (entity::Kind::Horse, IVec3::ZERO),
@@ -49,7 +49,7 @@ impl World {
             block_meta_map,
             chunk_vec,
             graph_buffer_lock,
-            flags,
+            flag_position_map,
         }
     }
 
@@ -63,7 +63,7 @@ impl World {
         let graph = Graph::new(&grid, 1);
         let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
-        let flags = HashMap::default();
+        let flag_position_map = HashMap::default();
 
         Self {
             kind,
@@ -71,12 +71,15 @@ impl World {
             block_meta_map,
             chunk_vec,
             graph_buffer_lock,
-            flags,
+            flag_position_map,
         }
     }
 
-    pub fn get_flag(&self, kind: entity::Kind) -> Option<IVec3> {
-        self.flags.get(&kind).cloned()
+    pub fn get_flag(
+        kind: entity::Kind,
+        flag_position_map: HashMap<entity::Kind, IVec3>,
+    ) -> Option<IVec3> {
+        flag_position_map.get(&kind).cloned()
     }
 
     pub fn setup(&mut self) {
