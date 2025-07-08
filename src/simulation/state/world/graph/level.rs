@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct Level {
     pub depth: usize,
     pub region_size: usize,
-    pub node_map: HashMap<IVec3, HashMap<IVec3, Node>>,
+    pub region_node_map: HashMap<IVec3, HashMap<IVec3, Node>>,
     pub edge_map: HashMap<(IVec3, IVec3), Edge>,
     pub search_node_key_vec: Vec<IVec3>,
     pub search_edge_key_vec: Vec<(IVec3, IVec3)>,
@@ -17,7 +17,7 @@ impl Level {
         Self {
             depth,
             region_size,
-            node_map: HashMap::new(),
+            region_node_map: HashMap::new(),
             edge_map: HashMap::new(),
             search_node_key_vec: Vec::new(),
             search_edge_key_vec: Vec::new(),

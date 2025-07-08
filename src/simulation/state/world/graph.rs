@@ -12,9 +12,15 @@ pub use level::Level;
 pub use node::Node;
 pub use transition::Transition;
 
-use crate::simulation::state::{
-    world::{chunk::Chunk, grid::Grid},
-    World,
+use crate::simulation::{
+    consts::{MOVEMENT_COST_DIAGONAL, MOVEMENT_COST_STRAIGHT},
+    state::{
+        world::{
+            chunk::Chunk,
+            grid::{self, Grid},
+        },
+        World,
+    },
 };
 use glam::IVec3;
 use std::collections::{HashMap, HashSet};
@@ -112,30 +118,116 @@ impl Graph {
     // }
 
     pub fn construct(grid: &Grid, chunk_vec_slice: &[Chunk], max_depth: usize) -> Self {
-        let level_0;
-        let mut level_1;
-
-        {
-            level_0 = Level::new(0, 1);
-        }
-
-        {
-            level_1 = Level::new(1, grid.chunk_size as usize);
-
-            let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
-
-            // Self::setup_external_edges(&entrance_vec, &mut level_1);
-            // Self::setup_internal_edges(&mut level_1);
-        }
-
-        {
-            // construct higher levels
-        }
+        let level_0 = Graph::setup_level_0(grid, chunk_vec_slice);
+        let level_1 = Graph::setup_level_1(grid, chunk_vec_slice);
 
         Self {
             max_depth,
             level_vec: Vec::from([level_0, level_1]),
         }
+    }
+
+    fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
+        let mut level = Level::new(0, 1);
+
+        let world_limit = grid.world_limit as i32;
+
+        for x in -world_limit..world_limit {
+            for y in -world_limit..world_limit {
+                for z in -world_limit..world_limit {
+                    let position = IVec3::new(x, y, z);
+
+                    let node = Node::new(position, position, 0);
+                    let clearance = World::get_clearance(position, grid, chunk_vec_slice);
+
+                    if clearance >= 3 {
+                        for direction_offset in grid::Direction::axis_offset_array() {
+                            for vertical_offset in [-IVec3::NEG_Y, IVec3::ZERO, IVec3::Y] {
+                                let neighbor_position =
+                                    position + direction_offset + vertical_offset;
+
+                                let neighbor_clearance =
+                                    World::get_clearance(neighbor_position, grid, chunk_vec_slice);
+
+                                if neighbor_clearance >= 3 {
+                                    let neighbor_node =
+                                        Node::new(neighbor_position, neighbor_position, 0);
+
+                                    let node_map = level
+                                        .region_node_map
+                                        .entry(position)
+                                        .or_insert(HashMap::from([(position, node)]));
+
+                                    node_map.insert(position, node);
+
+                                    let neighbor_node_map = level
+                                        .region_node_map
+                                        .entry(position)
+                                        .or_insert(HashMap::from([(position, node)]));
+
+                                    neighbor_node_map
+                                        .entry(neighbor_position)
+                                        .or_insert(neighbor_node);
+
+                                    let cost = if vertical_offset.y == 0 {
+                                        MOVEMENT_COST_STRAIGHT
+                                    } else {
+                                        MOVEMENT_COST_DIAGONAL
+                                    };
+
+                                    let edge = Edge::new(
+                                        node,
+                                        neighbor_node,
+                                        0,
+                                        cost,
+                                        edge::Kind::External,
+                                    );
+
+                                    level.edge_map.insert((position, neighbor_position), edge);
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some(node_region_map) = level.region_node_map.get(&IVec3::new(0, -3, 0)) {
+            if let Some(node) = node_region_map.get(&IVec3::new(0, -3, 0)) {
+                println!("{:?}", node);
+            }
+        }
+
+        let edge_vec: Vec<Edge> = level
+            .edge_map
+            .iter()
+            .filter_map(|(&(position1, position2), edge)| {
+                if position1 == IVec3::new(0, -3, 0) || position2 == IVec3::new(0, -3, 0) {
+                    Some(edge.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        for edge in edge_vec {
+            println!("{:?}", edge);
+        }
+
+        level
+    }
+
+    fn setup_level_1(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
+        let mut level = Level::new(1, grid.chunk_size as usize);
+
+        let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
+
+        // Self::setup_external_edges(&entrance_vec, &mut level_1);
+        // Self::setup_internal_edges(&mut level_1);
+
+        level
     }
 
     fn setup_entrance_vec(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Vec<Entrance> {

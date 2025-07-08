@@ -87,10 +87,10 @@ impl World {
             simulation::Kind::Main => {
                 constructor::world::main::construct(world);
 
-                let new_graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
+                let graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
 
                 let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
-                graph_buffer.update(new_graph);
+                graph_buffer.update(graph);
             }
             simulation::Kind::Empty => {
                 constructor::world::empty::construct(world);
@@ -101,10 +101,10 @@ impl World {
             simulation::Kind::GraphTest => {
                 constructor::world::graph_test::construct(world);
 
-                let new_graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
+                let graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
 
                 let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
-                graph_buffer.update(new_graph);
+                graph_buffer.update(graph);
             }
             simulation::Kind::Placeholder => (),
         }
@@ -263,8 +263,8 @@ impl World {
         }
 
         if let Some(chunk1_id) = chunk1_id {
-            for direction in grid::Direction::face_vec() {
-                let position2 = position1 + direction.offset();
+            for direction_offset in grid::Direction::face_offset_array() {
+                let position2 = position1 + direction_offset;
                 let chunk_id2 = grid.position_to_chunk_id(position2);
 
                 if chunk_id2 != chunk::ID::MAX && chunk1_id != chunk_id2 {
@@ -416,7 +416,7 @@ impl World {
                     let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
                     let position = grid.ids_to_position(chunk.id, block_id);
 
-                    for direction in grid::Direction::face_vec() {
+                    for direction in grid::Direction::face_array() {
                         if visibility_vec.contains(&direction) {
                             let mut face = block::Face::new(position, direction, block.kind);
 
@@ -456,7 +456,7 @@ impl World {
                 .push((block_id, visibility_vec));
         }
 
-        for offset in grid::Direction::face_offsets() {
+        for offset in grid::Direction::face_offset_array() {
             let neighbor_position = position + offset;
 
             let (chunk_id, block_id) = grid.position_to_ids(neighbor_position);
@@ -490,7 +490,7 @@ impl World {
         grid: &Grid,
         chunk_vec_slice: &[Chunk],
     ) -> Vec<grid::Direction> {
-        grid::Direction::face_vec()
+        grid::Direction::face_array()
             .iter()
             .filter_map(|&direction| {
                 let neighbor_position = position + direction.offset();

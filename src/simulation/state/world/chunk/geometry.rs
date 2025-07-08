@@ -40,7 +40,7 @@ impl Geometry {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
-        for direction in grid::Direction::face_vec() {
+        for direction in grid::Direction::face_array() {
             let mut grid: HashSet<(i32, i32, i32)> = HashSet::new();
 
             let direction_faces = self

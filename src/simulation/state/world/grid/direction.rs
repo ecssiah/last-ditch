@@ -18,7 +18,7 @@ pub enum Direction {
 
 impl Direction {
     #[rustfmt::skip]
-    const ALL: [Direction; 27] = [
+    const ALL_ARRAY: [Direction; 27] = [
         Direction::XnYnZn,
         Direction::XoYnZn,
         Direction::XpYnZn,
@@ -49,7 +49,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const CARDINALS_LIST: [Direction; 4] = [
+    const CARDINAL_ARRAY: [Direction; 4] = [
         Direction::XpYoZo,
         Direction::XnYoZo,
         Direction::XoYoZp,
@@ -57,7 +57,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const NEIGHBOR_LIST: [Direction; 26] = [
+    const NEIGHBOR_ARRAY: [Direction; 26] = [
         Direction::XnYnZn,
         Direction::XoYnZn,
         Direction::XpYnZn,
@@ -87,14 +87,14 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const AXIS_LIST: [Direction; 3] = [
+    const AXIS_ARRAY: [Direction; 3] = [
         Direction::XpYoZo,
         Direction::XoYpZo,
         Direction::XoYoZp,
     ];
 
     #[rustfmt::skip]
-    const FACE_LIST: [Direction; 6] = [
+    const FACE_ARRAY: [Direction; 6] = [
         Direction::XpYoZo,
         Direction::XnYoZo,
         Direction::XoYpZo,
@@ -104,7 +104,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const EDGE_LIST: [Direction; 12] = [
+    const EDGE_ARRAY: [Direction; 12] = [
         Direction::XoYnZn,
         Direction::XnYoZn,
         Direction::XpYoZn,
@@ -120,7 +120,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const CORNER_LIST: [Direction; 8] = [
+    const CORNER_ARRAY: [Direction; 8] = [
         Direction::XnYnZn,
         Direction::XpYnZn,
         Direction::XnYpZn,
@@ -132,7 +132,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const DIAGONAL_LIST: [Direction; 12] = [
+    const DIAGONAL_ARRAY: [Direction; 12] = [
         Direction::XnYoZn,
         Direction::XpYoZn,
         Direction::XnYoZp,
@@ -148,7 +148,7 @@ impl Direction {
     ];
 
     #[rustfmt::skip]
-    const TRAVERSABLE_LIST: [Direction; 12] = [
+    const TRAVERSABLE_ARRAY: [Direction; 12] = [
         Direction::XnYpZo,
         Direction::XpYpZo,
         Direction::XoYpZp,
@@ -199,40 +199,40 @@ impl Direction {
         offset.x != 0 && offset.z != 0
     }
 
-    pub fn all() -> [Direction; 27] {
-        Self::ALL
+    pub fn all_array() -> [Direction; 27] {
+        Self::ALL_ARRAY
     }
 
-    pub fn cardinal_vec() -> [Direction; 4] {
-        Self::CARDINALS_LIST
+    pub fn cardinal_array() -> [Direction; 4] {
+        Self::CARDINAL_ARRAY
     }
 
-    pub fn neighbor_vec() -> [Direction; 26] {
-        Self::NEIGHBOR_LIST
+    pub fn neighbor_array() -> [Direction; 26] {
+        Self::NEIGHBOR_ARRAY
     }
 
-    pub fn axis_vec() -> [Direction; 3] {
-        Self::AXIS_LIST
+    pub fn axis_array() -> [Direction; 3] {
+        Self::AXIS_ARRAY
     }
 
-    pub fn face_vec() -> [Direction; 6] {
-        Self::FACE_LIST
+    pub fn face_array() -> [Direction; 6] {
+        Self::FACE_ARRAY
     }
 
-    pub fn edge_vec() -> [Direction; 12] {
-        Self::EDGE_LIST
+    pub fn edge_array() -> [Direction; 12] {
+        Self::EDGE_ARRAY
     }
 
-    pub fn corner_vec() -> [Direction; 8] {
-        Self::CORNER_LIST
+    pub fn corner_array() -> [Direction; 8] {
+        Self::CORNER_ARRAY
     }
 
-    pub fn diagonal_vec() -> [Direction; 12] {
-        Self::DIAGONAL_LIST
+    pub fn diagonal_array() -> [Direction; 12] {
+        Self::DIAGONAL_ARRAY
     }
 
-    pub fn traversable_vec() -> [Direction; 12] {
-        Self::TRAVERSABLE_LIST
+    pub fn traversable_array() -> [Direction; 12] {
+        Self::TRAVERSABLE_ARRAY
     }
 
     pub fn offset(&self) -> IVec3 {
@@ -299,28 +299,32 @@ impl Direction {
     //     }
     // }
 
-    pub fn cardinal_offsets() -> [IVec3; 4] {
-        Self::CARDINALS_LIST.map(|cardinal| cardinal.offset())
+    pub fn axis_offset_array() -> [IVec3; 3] {
+        Self::AXIS_ARRAY.map(|axis| axis.offset())
     }
 
-    pub fn neighbor_offsets() -> [IVec3; 26] {
-        Self::NEIGHBOR_LIST.map(|neighbor| neighbor.offset())
+    pub fn cardinal_offset_array() -> [IVec3; 4] {
+        Self::CARDINAL_ARRAY.map(|cardinal| cardinal.offset())
     }
 
-    pub fn face_offsets() -> [IVec3; 6] {
-        Self::FACE_LIST.map(|face| face.offset())
+    pub fn neighbor_offset_array() -> [IVec3; 26] {
+        Self::NEIGHBOR_ARRAY.map(|neighbor| neighbor.offset())
     }
 
-    pub fn edge_offsets() -> [IVec3; 12] {
-        Self::EDGE_LIST.map(|edge| edge.offset())
+    pub fn face_offset_array() -> [IVec3; 6] {
+        Self::FACE_ARRAY.map(|face| face.offset())
     }
 
-    pub fn corner_offsets() -> [IVec3; 8] {
-        Self::CORNER_LIST.map(|corner| corner.offset())
+    pub fn edge_offset_array() -> [IVec3; 12] {
+        Self::EDGE_ARRAY.map(|edge| edge.offset())
+    }
+
+    pub fn corner_offset_array() -> [IVec3; 8] {
+        Self::CORNER_ARRAY.map(|corner| corner.offset())
     }
 
     pub fn from_components(x: i32, y: i32, z: i32) -> Option<Direction> {
-        Self::ALL
+        Self::ALL_ARRAY
             .iter()
             .copied()
             .find(|direction| direction.offset() == IVec3::new(x, y, z))
