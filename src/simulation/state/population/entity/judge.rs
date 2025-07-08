@@ -27,10 +27,10 @@ impl Judge {
             id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            action_vec: Vec::default(),
-            spatial: Spatial::default(),
-            kinematic: Kinematic::default(),
-            detection: Detection::default(),
+            action_vec: Vec::new(),
+            spatial: Spatial::new(),
+            kinematic: Kinematic::new(),
+            detection: Detection::new(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
@@ -38,20 +38,22 @@ impl Judge {
         }
     }
 
-    pub fn tick(&mut self, world: &World) {
-        let chunk_id = world.grid.world_to_chunk_id(self.spatial.world_position);
+    pub fn tick(judge: &mut Judge, world: &World) {
+        let chunk_id = world.grid.world_to_chunk_id(judge.spatial.world_position);
 
-        if chunk_id != self.chunk_id {
-            self.chunk_updated = true;
-            self.chunk_id = chunk_id;
+        if chunk_id != judge.chunk_id {
+            judge.chunk_updated = true;
+            judge.chunk_id = chunk_id;
         }
 
-        let action_vec = std::mem::take(&mut self.action_vec);
+        let action_vec = std::mem::take(&mut judge.action_vec);
 
         for action in action_vec {
             match action {
-                JudgeAction::Movement(movement_data) => self.apply_movement_data(&movement_data),
-                JudgeAction::Jump(jump_action) => self.apply_jump_action(&jump_action),
+                JudgeAction::Movement(movement_data) => {
+                    Judge::apply_movement_data(judge, &movement_data)
+                }
+                JudgeAction::Jump(jump_action) => Judge::apply_jump_action(judge, &jump_action),
             }
         }
     }
@@ -101,45 +103,39 @@ impl Judge {
         self.action_vec.push(*judge_action);
     }
 
-    pub fn apply_movement_data(&mut self, movement_data: &MovementData) {
+    pub fn apply_movement_data(judge: &mut Judge, movement_data: &MovementData) {
         if movement_data.rotation.y.abs() > 1e-6 || movement_data.rotation.z.abs() > 1e-6 {
-            self.spatial.yaw += movement_data.rotation.y;
-            self.spatial.pitch += movement_data.rotation.z;
+            judge.spatial.yaw += movement_data.rotation.y;
+            judge.spatial.pitch += movement_data.rotation.z;
 
-            self.spatial.pitch = self
+            judge.spatial.pitch = judge
                 .spatial
                 .pitch
                 .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
-            self.spatial.quaternion =
-                Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
+            judge.spatial.quaternion = Quat::from_rotation_y(judge.spatial.yaw)
+                * Quat::from_rotation_x(judge.spatial.pitch);
         }
 
         let input_direction = movement_data.direction.normalize_or_zero();
 
         if input_direction.length_squared() > 1e-6 {
-            let yaw_quat = Quat::from_rotation_y(self.spatial.yaw);
+            let yaw_quat = Quat::from_rotation_y(judge.spatial.yaw);
 
             let local_velocity = input_direction * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
             let velocity = yaw_quat * local_velocity;
 
-            self.kinematic.velocity.x = velocity.x;
-            self.kinematic.velocity.z = velocity.z;
+            judge.kinematic.velocity.x = velocity.x;
+            judge.kinematic.velocity.z = velocity.z;
         } else {
-            self.kinematic.velocity.x = 0.0;
-            self.kinematic.velocity.z = 0.0;
+            judge.kinematic.velocity.x = 0.0;
+            judge.kinematic.velocity.z = 0.0;
         }
     }
 
-    pub fn apply_jump_action(&mut self, jump_action: &JumpAction) {
+    pub fn apply_jump_action(judge: &mut Judge, jump_action: &JumpAction) {
         if let JumpAction::Start = jump_action {
-            self.kinematic.velocity.y = JUDGE_SPEED_Y;
+            judge.kinematic.velocity.y = JUDGE_SPEED_Y;
         }
-    }
-}
-
-impl Default for Judge {
-    fn default() -> Self {
-        Self::new()
     }
 }

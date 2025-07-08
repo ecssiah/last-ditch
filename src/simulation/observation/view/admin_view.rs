@@ -1,7 +1,16 @@
 use crate::simulation::state::admin::Mode;
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct AdminView {
     pub mode: Mode,
     pub message: String,
+}
+
+impl AdminView {
+    pub fn new() -> Self {
+        Self {
+            mode: Mode::Load,
+            message: "NO MESSAGE SET".to_string(),
+        }
+    }
 }

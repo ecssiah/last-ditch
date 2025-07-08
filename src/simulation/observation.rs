@@ -10,36 +10,42 @@ use crate::simulation::{
     state::{State, World},
     utils::buffer::Buffer,
 };
-use std::{collections::HashMap, sync::RwLock};
+use std::{
+    collections::HashMap,
+    ops::Deref,
+    sync::{Arc, RwLock},
+};
 
 pub struct Observation {
-    view_buffer_lock: RwLock<Buffer<View>>,
+    pub view_buffer_lock: RwLock<Buffer<View>>,
 }
 
 impl Observation {
     pub fn new() -> Self {
-        let view = View::default();
+        let view = View::new();
         let view_buffer_lock = RwLock::new(Buffer::new(view));
 
         Self { view_buffer_lock }
     }
 
-    pub fn tick(&self, state: &State) {
-        self.update_view(state);
+    pub fn tick(observation_arc: Arc<Observation>, state: &State) {
+        let observation = observation_arc.deref();
+
+        Observation::update_view(&observation.view_buffer_lock, state);
     }
 
-    pub fn get_view(&self) -> View {
-        let view_buffer = self.view_buffer_lock.read().unwrap();
+    pub fn get_view(view_buffer_lock: &RwLock<Buffer<View>>) -> View {
+        let view_buffer = view_buffer_lock.read().unwrap();
         let view = view_buffer.get();
 
         (*view).clone()
     }
 
-    fn update_view(&self, state: &State) {
-        let admin_view = self.update_admin_view(&state);
-        let time_view = self.update_time_view(&state);
-        let population_view = self.update_population_view(&state);
-        let world_view = self.update_world_view(&state);
+    fn update_view(view_buffer_lock: &RwLock<Buffer<View>>, state: &State) {
+        let admin_view = Self::update_admin_view(&state);
+        let time_view = Self::update_time_view(&state);
+        let population_view = Self::update_population_view(&state);
+        let world_view = Self::update_world_view(&state);
 
         let view = View {
             judge_id: state.population.judge.id,
@@ -49,26 +55,26 @@ impl Observation {
             world_view,
         };
 
-        let mut view_buffer = self.view_buffer_lock.write().unwrap();
+        let mut view_buffer = view_buffer_lock.write().unwrap();
 
         view_buffer.update(view.clone());
     }
 
-    fn update_admin_view(&self, state: &State) -> AdminView {
+    fn update_admin_view(state: &State) -> AdminView {
         AdminView {
             mode: state.admin.mode,
             message: state.admin.message.clone(),
         }
     }
 
-    fn update_time_view(&self, state: &State) -> TimeView {
+    fn update_time_view(state: &State) -> TimeView {
         TimeView {
             instant: state.time.instant,
         }
     }
 
-    fn update_population_view(&self, state: &State) -> PopulationView {
-        let judge = state.population.get_judge();
+    fn update_population_view(state: &State) -> PopulationView {
+        let judge = &state.population.judge;
 
         let mut population_view = PopulationView {
             judge_view: JudgeView {
@@ -89,7 +95,7 @@ impl Observation {
             agent_view_map: HashMap::new(),
         };
 
-        for agent in state.population.get_agent_map() {
+        for agent in state.population.agent_map.values() {
             let distance_to_judge_squared = (agent.spatial.world_position
                 - state.population.judge.spatial.world_position)
                 .length_squared();
@@ -112,7 +118,7 @@ impl Observation {
         population_view
     }
 
-    fn update_world_view(&self, state: &State) -> WorldView {
+    fn update_world_view(state: &State) -> WorldView {
         let mut world_view = WorldView {
             chunk_view_map: HashMap::new(),
         };
@@ -135,11 +141,5 @@ impl Observation {
         }
 
         world_view
-    }
-}
-
-impl Default for Observation {
-    fn default() -> Self {
-        Self::new()
     }
 }

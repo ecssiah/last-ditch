@@ -19,13 +19,7 @@ impl Time {
         }
     }
 
-    pub fn tick(&mut self) {
-        self.tick += 1;
-    }
-}
-
-impl Default for Time {
-    fn default() -> Self {
-        Self::new()
+    pub fn tick(time: &mut Time) {
+        time.tick += 1;
     }
 }

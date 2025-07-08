@@ -1,6 +1,5 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
-    #[default]
     Menu,
     Load,
     Simulate,

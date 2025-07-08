@@ -1,6 +1,6 @@
 use glam::{Quat, Vec3};
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Spatial {
     pub world_position: Vec3,
     pub yaw: f32,

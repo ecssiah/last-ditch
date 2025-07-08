@@ -16,6 +16,7 @@ use crate::{
     simulation::{self},
 };
 use std::{
+    ops::Deref,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -250,7 +251,8 @@ impl Interface<'_> {
     }
 
     fn update(&mut self, event_loop: &ActiveEventLoop) {
-        let view = self.observation_arc.get_view();
+        let observation = self.observation_arc.deref();
+        let view = simulation::observation::Observation::get_view(&observation.view_buffer_lock);
 
         if !self.dispatch_actions(&view) {
             event_loop.exit();

@@ -7,10 +7,10 @@ use glam::IVec3;
 pub fn construct(world: &mut World) {
     build_ground(world);
     build_compass(world);
-    build_temple(world, 0, 0, 34, entity::Kind::Eagle);
-    build_temple(world, -34, 0, 0, entity::Kind::Lion);
-    build_temple(world, 0, 0, -34, entity::Kind::Horse);
-    build_temple(world, 34, 0, 0, entity::Kind::Wolf);
+    build_temple(0, 0, 34, entity::Kind::Eagle, world);
+    build_temple(-34, 0, 0, entity::Kind::Lion, world);
+    build_temple(0, 0, -34, entity::Kind::Horse, world);
+    build_temple(34, 0, 0, entity::Kind::Wolf, world);
 
     build_observation_deck(world);
 
@@ -84,7 +84,7 @@ fn build_compass(world: &mut World) {
     );
 }
 
-fn build_temple(world: &mut World, x: i32, y: i32, z: i32, kind: entity::Kind) {
+fn build_temple(x: i32, y: i32, z: i32, kind: entity::Kind, world: &mut World) {
     world
         .flag_position_map
         .insert(kind, IVec3::new(x, y + 3, z));

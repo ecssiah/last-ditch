@@ -14,3 +14,15 @@ pub struct Edge {
     pub weight: u32,
     pub kind: Kind,
 }
+
+impl Edge {
+    pub fn new(node1: Node, node2: Node, depth: usize, weight: u32, kind: Kind) -> Self {
+        Self {
+            node1,
+            node2,
+            depth,
+            weight,
+            kind,
+        }
+    }
+}

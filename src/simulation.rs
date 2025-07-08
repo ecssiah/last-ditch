@@ -30,54 +30,55 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
-        let kind = Kind::Main;
+        let kind = Kind::GraphTest;
 
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
-        let state = State::new(kind);
         let observation_arc = Arc::new(Observation::new());
+        let state = State::new(kind);
 
         Self {
             kind,
             timing,
             receiver,
-            state,
             observation_arc,
+            state,
         }
     }
 
-    pub fn get_observation_arc(&self) -> Arc<Observation> {
-        self.observation_arc.clone()
+    pub fn run(
+        timing: &mut Timing,
+        receiver: &mut Receiver,
+        observation_arc: Arc<Observation>,
+        state: &mut State,
+    ) {
+        Self::execute(timing, receiver, observation_arc, state);
     }
 
-    pub fn run(&mut self) {
-        self.setup();
-        self.execute();
-    }
-
-    fn setup(&mut self) {
-        self.state.setup();
-    }
-
-    fn execute(&mut self) {
-        self.timing.init();
+    fn execute(
+        timing: &mut Timing,
+        receiver: &mut Receiver,
+        observation_arc: Arc<Observation>,
+        state: &mut State,
+    ) {
+        Timing::init(timing);
 
         loop {
-            self.timing.start_frame();
+            Timing::start_frame(timing);
 
-            while self.timing.has_work() {
-                match self.receiver.listen() {
+            while Timing::has_work(timing) {
+                match Receiver::listen(receiver) {
                     Some(action_vec) => {
-                        self.state.tick(action_vec);
-                        self.observation_arc.tick(&self.state);
+                        State::tick(state, action_vec);
+                        Observation::tick(observation_arc.clone(), state);
 
-                        self.timing.update_frame();
+                        Timing::update_frame(timing);
                     }
                     None => return,
                 }
             }
 
-            self.timing.fix_timestep();
+            Timing::fix_timestep(timing);
         }
     }
 }

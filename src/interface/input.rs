@@ -263,9 +263,3 @@ impl Input {
         None
     }
 }
-
-impl Default for Input {
-    fn default() -> Self {
-        Self::new()
-    }
-}

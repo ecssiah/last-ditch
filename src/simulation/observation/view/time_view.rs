@@ -5,8 +5,8 @@ pub struct TimeView {
     pub instant: Instant,
 }
 
-impl Default for TimeView {
-    fn default() -> Self {
+impl TimeView {
+    pub fn new() -> Self {
         Self {
             instant: Instant::now(),
         }

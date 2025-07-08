@@ -4,7 +4,7 @@ use crate::simulation::state::{
 };
 use glam::{IVec3, Quat, Vec3};
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct JudgeView {
     pub id: entity::ID,
     pub position: IVec3,
@@ -13,4 +13,18 @@ pub struct JudgeView {
     pub chunk_coordinates: IVec3,
     pub size: Vec3,
     pub quaternion: Quat,
+}
+
+impl JudgeView {
+    pub fn new() -> Self {
+        Self {
+            id: entity::ID::MAX,
+            position: IVec3::ZERO,
+            world_position: Vec3::ZERO,
+            chunk_id: chunk::ID::MAX,
+            chunk_coordinates: IVec3::ZERO,
+            size: Vec3::ZERO,
+            quaternion: Quat::IDENTITY,
+        }
+    }
 }

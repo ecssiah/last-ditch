@@ -27,9 +27,3 @@ pub enum Mode {
     Simulate(SimulateData),
     Shutdown(ShutdownData),
 }
-
-impl Default for Mode {
-    fn default() -> Self {
-        Self::Menu(MenuData::default())
-    }
-}

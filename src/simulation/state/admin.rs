@@ -17,14 +17,4 @@ impl Admin {
             message: "NO MESSAGE SET".to_string(),
         }
     }
-
-    pub fn setup(&mut self) {}
-
-    pub fn tick(&mut self) {}
-}
-
-impl Default for Admin {
-    fn default() -> Self {
-        Self::new()
-    }
 }

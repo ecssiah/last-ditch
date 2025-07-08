@@ -82,35 +82,33 @@ impl World {
         flag_position_map.get(&kind).cloned()
     }
 
-    pub fn setup(&mut self) {
-        match self.kind {
+    pub fn setup(kind: simulation::Kind, world: &mut World) {
+        match kind {
             simulation::Kind::Main => {
-                constructor::world::main::construct(self);
+                constructor::world::main::construct(world);
 
-                let new_graph = Graph::construct(&self.grid, &self.chunk_vec, 1);
+                let new_graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
 
-                let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
+                let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(new_graph);
             }
             simulation::Kind::Empty => {
-                constructor::world::empty::construct(self);
+                constructor::world::empty::construct(world);
             }
             simulation::Kind::WorldTest => {
-                constructor::world::world_test::construct(self);
+                constructor::world::world_test::construct(world);
             }
             simulation::Kind::GraphTest => {
-                constructor::world::graph_test::construct(self);
+                constructor::world::graph_test::construct(world);
 
-                let new_graph = Graph::construct(&self.grid, &self.chunk_vec, 1);
+                let new_graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
 
-                let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
+                let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(new_graph);
             }
             simulation::Kind::Placeholder => (),
         }
     }
-
-    pub fn tick(&mut self) {}
 
     fn setup_chunk_vec(grid: &Grid) -> Vec<chunk::Chunk> {
         grid.chunk_ids()
@@ -186,7 +184,7 @@ impl World {
     ) -> Option<&block::Block> {
         let chunk = chunk_vec_slice.get(usize::from(chunk_id))?;
 
-        chunk.get_block(block_id)
+        chunk.block_vec.get(usize::from(block_id))
     }
 
     pub fn get_block_mut(
@@ -196,7 +194,7 @@ impl World {
     ) -> Option<&mut block::Block> {
         let chunk = chunk_vec_slice.get_mut(usize::from(chunk_id))?;
 
-        chunk.get_block_mut(block_id)
+        chunk.block_vec.get_mut(usize::from(block_id))
     }
 
     pub fn get_block_at<'a>(
@@ -413,21 +411,22 @@ impl World {
         let mut chunk_geometry = chunk::Geometry::new();
 
         for block_id in grid.block_ids() {
-            let block = chunk.get_block(block_id).unwrap();
+            if let Some(block) = chunk.block_vec.get(usize::from(block_id)) {
+                if block.solid {
+                    let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
+                    let position = grid.ids_to_position(chunk.id, block_id);
 
-            if block.solid {
-                let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
-                let position = grid.ids_to_position(chunk.id, block_id);
+                    for direction in grid::Direction::face_vec() {
+                        if visibility_vec.contains(&direction) {
+                            let mut face = block::Face::new(position, direction, block.kind);
 
-                for direction in grid::Direction::face_vec() {
-                    if visibility_vec.contains(&direction) {
-                        let mut face = block::Face::new(position, direction, block.kind);
+                            let (edges, corners) =
+                                Self::get_face_neighbors(direction, visibility_vec);
 
-                        let (edges, corners) = Self::get_face_neighbors(direction, visibility_vec);
+                            face.light = Self::calculate_face_light(edges, corners);
 
-                        face.light = Self::calculate_face_light(edges, corners);
-
-                        chunk_geometry.face_vec.push(face);
+                            chunk_geometry.face_vec.push(face);
+                        }
                     }
                 }
             }
@@ -649,5 +648,12 @@ impl World {
         }
 
         visible_chunk_id_vec
+    }
+
+    pub fn block_aabb(x: i32, y: i32, z: i32) -> AABB {
+        AABB::new(
+            Vec3::new(x as f32, y as f32, z as f32),
+            Vec3::splat(BLOCK_SIZE),
+        )
     }
 }

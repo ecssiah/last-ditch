@@ -20,10 +20,10 @@ impl BlockIDValidCase {
 
 #[test]
 fn block_id_valid() {
-    let mode = simulation::Kind::WorldTest;
+    let kind = simulation::Kind::WorldTest;
 
-    let mut world = World::new(mode);
-    world.setup();
+    let mut world = World::new(kind);
+    World::setup(kind, &mut world);
 
     let test_cases = vec![
         BlockIDValidCase {
@@ -64,10 +64,10 @@ impl ChunkIDValidCase {
 
 #[test]
 fn chunk_id_valid() {
-    let mode = simulation::Kind::WorldTest;
+    let kind = simulation::Kind::WorldTest;
 
-    let mut world = World::new(mode);
-    world.setup();
+    let mut world = World::new(kind);
+    World::setup(kind, &mut world);
 
     let test_cases = vec![
         ChunkIDValidCase {
@@ -108,10 +108,10 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let mode = simulation::Kind::Empty;
+    let kind = simulation::Kind::Empty;
 
-    let mut world = World::new(mode);
-    world.setup();
+    let mut world = World::new(kind);
+    World::setup(kind, &mut world);
 
     let world_limit = world.grid.world_limit as i32;
 

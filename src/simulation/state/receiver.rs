@@ -14,10 +14,10 @@ impl Receiver {
         Self { action_rx }
     }
 
-    pub fn listen(&mut self) -> Option<Vec<Action>> {
+    pub fn listen(receiver: &mut Receiver) -> Option<Vec<Action>> {
         let mut action_vec = Vec::new();
 
-        while let Ok(action) = self.action_rx.try_recv() {
+        while let Ok(action) = receiver.action_rx.try_recv() {
             if matches!(action, Action::Admin(action::AdminAction::Shutdown)) {
                 return None;
             }

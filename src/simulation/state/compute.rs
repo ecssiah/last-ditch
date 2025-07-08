@@ -31,11 +31,5 @@ impl Compute {
         }
     }
 
-    pub fn tick(&mut self, _world: &World, _population: &Population) {}
-}
-
-impl Default for Compute {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub fn tick(_compute: &Compute, _world: &World, _population: &Population) {}
 }

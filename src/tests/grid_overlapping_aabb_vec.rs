@@ -3,7 +3,7 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        world::{block, grid, World},
+        world::{grid, World},
     },
 };
 use glam::Vec3;
@@ -27,10 +27,10 @@ impl OverlappingAABBCase {
 
 #[test]
 fn directions() {
-    let mode = simulation::Kind::Empty;
+    let kind = simulation::Kind::Empty;
 
-    let mut world = World::new(mode);
-    world.setup();
+    let mut world = World::new(kind);
+    World::setup(kind, &mut world);
 
     let test_cases = vec![
         OverlappingAABBCase {
@@ -39,7 +39,7 @@ fn directions() {
                 grid::Direction::XoYoZo.offset().as_vec3() * 0.5,
                 Vec3::splat(BLOCK_SIZE),
             ),
-            expected_aabb_vec: vec![block::aabb(0, 0, 0)],
+            expected_aabb_vec: vec![World::block_aabb(0, 0, 0)],
         },
         OverlappingAABBCase {
             description: String::from("XpYpZp"),
@@ -48,14 +48,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, 0, 0),
-                block::aabb(1, 0, 0),
-                block::aabb(0, 1, 0),
-                block::aabb(1, 1, 0),
-                block::aabb(0, 0, 1),
-                block::aabb(1, 0, 1),
-                block::aabb(0, 1, 1),
-                block::aabb(1, 1, 1),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(1, 0, 0),
+                World::block_aabb(0, 1, 0),
+                World::block_aabb(1, 1, 0),
+                World::block_aabb(0, 0, 1),
+                World::block_aabb(1, 0, 1),
+                World::block_aabb(0, 1, 1),
+                World::block_aabb(1, 1, 1),
             ],
         },
         OverlappingAABBCase {
@@ -65,14 +65,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, 0, -1),
-                block::aabb(1, 0, -1),
-                block::aabb(0, 1, -1),
-                block::aabb(1, 1, -1),
-                block::aabb(0, 0, 0),
-                block::aabb(1, 0, 0),
-                block::aabb(0, 1, 0),
-                block::aabb(1, 1, 0),
+                World::block_aabb(0, 0, -1),
+                World::block_aabb(1, 0, -1),
+                World::block_aabb(0, 1, -1),
+                World::block_aabb(1, 1, -1),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(1, 0, 0),
+                World::block_aabb(0, 1, 0),
+                World::block_aabb(1, 1, 0),
             ],
         },
         OverlappingAABBCase {
@@ -82,14 +82,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, -1, 0),
-                block::aabb(1, -1, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(1, 0, 0),
-                block::aabb(0, -1, 1),
-                block::aabb(1, -1, 1),
-                block::aabb(0, 0, 1),
-                block::aabb(1, 0, 1),
+                World::block_aabb(0, -1, 0),
+                World::block_aabb(1, -1, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(1, 0, 0),
+                World::block_aabb(0, -1, 1),
+                World::block_aabb(1, -1, 1),
+                World::block_aabb(0, 0, 1),
+                World::block_aabb(1, 0, 1),
             ],
         },
         OverlappingAABBCase {
@@ -99,14 +99,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, -1, -1),
-                block::aabb(1, -1, -1),
-                block::aabb(0, 0, -1),
-                block::aabb(1, 0, -1),
-                block::aabb(0, -1, 0),
-                block::aabb(1, -1, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(1, 0, 0),
+                World::block_aabb(0, -1, -1),
+                World::block_aabb(1, -1, -1),
+                World::block_aabb(0, 0, -1),
+                World::block_aabb(1, 0, -1),
+                World::block_aabb(0, -1, 0),
+                World::block_aabb(1, -1, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(1, 0, 0),
             ],
         },
         OverlappingAABBCase {
@@ -116,14 +116,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, -1, -1),
-                block::aabb(1, -1, -1),
-                block::aabb(0, 0, -1),
-                block::aabb(1, 0, -1),
-                block::aabb(0, -1, 0),
-                block::aabb(1, -1, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(1, 0, 0),
+                World::block_aabb(0, -1, -1),
+                World::block_aabb(1, -1, -1),
+                World::block_aabb(0, 0, -1),
+                World::block_aabb(1, 0, -1),
+                World::block_aabb(0, -1, 0),
+                World::block_aabb(1, -1, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(1, 0, 0),
             ],
         },
         OverlappingAABBCase {
@@ -133,14 +133,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(-1, 0, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(-1, 1, 0),
-                block::aabb(0, 1, 0),
-                block::aabb(-1, 0, 1),
-                block::aabb(0, 0, 1),
-                block::aabb(-1, 1, 1),
-                block::aabb(0, 1, 1),
+                World::block_aabb(-1, 0, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(-1, 1, 0),
+                World::block_aabb(0, 1, 0),
+                World::block_aabb(-1, 0, 1),
+                World::block_aabb(0, 0, 1),
+                World::block_aabb(-1, 1, 1),
+                World::block_aabb(0, 1, 1),
             ],
         },
         OverlappingAABBCase {
@@ -150,14 +150,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(-1, 0, -1),
-                block::aabb(0, 0, -1),
-                block::aabb(-1, 1, -1),
-                block::aabb(0, 1, -1),
-                block::aabb(-1, 0, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(-1, 1, 0),
-                block::aabb(0, 1, 0),
+                World::block_aabb(-1, 0, -1),
+                World::block_aabb(0, 0, -1),
+                World::block_aabb(-1, 1, -1),
+                World::block_aabb(0, 1, -1),
+                World::block_aabb(-1, 0, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(-1, 1, 0),
+                World::block_aabb(0, 1, 0),
             ],
         },
         OverlappingAABBCase {
@@ -167,14 +167,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(-1, -1, 0),
-                block::aabb(0, -1, 0),
-                block::aabb(-1, 0, 0),
-                block::aabb(0, 0, 0),
-                block::aabb(-1, -1, 1),
-                block::aabb(0, -1, 1),
-                block::aabb(-1, 0, 1),
-                block::aabb(0, 0, 1),
+                World::block_aabb(-1, -1, 0),
+                World::block_aabb(0, -1, 0),
+                World::block_aabb(-1, 0, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(-1, -1, 1),
+                World::block_aabb(0, -1, 1),
+                World::block_aabb(-1, 0, 1),
+                World::block_aabb(0, 0, 1),
             ],
         },
         OverlappingAABBCase {
@@ -184,14 +184,14 @@ fn directions() {
                 Vec3::splat(BLOCK_SIZE),
             ),
             expected_aabb_vec: vec![
-                block::aabb(0, 0, 0),
-                block::aabb(-1, -1, -1),
-                block::aabb(0, -1, -1),
-                block::aabb(-1, 0, -1),
-                block::aabb(0, 0, -1),
-                block::aabb(-1, -1, 0),
-                block::aabb(0, -1, 0),
-                block::aabb(-1, 0, 0),
+                World::block_aabb(0, 0, 0),
+                World::block_aabb(-1, -1, -1),
+                World::block_aabb(0, -1, -1),
+                World::block_aabb(-1, 0, -1),
+                World::block_aabb(0, 0, -1),
+                World::block_aabb(-1, -1, 0),
+                World::block_aabb(0, -1, 0),
+                World::block_aabb(-1, 0, 0),
             ],
         },
     ];

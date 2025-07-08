@@ -7,7 +7,6 @@ pub mod kind;
 pub mod kinematic;
 pub mod nation;
 pub mod spatial;
-pub mod viewpoint;
 
 pub use agent::Agent;
 pub use decision::Decision;
@@ -18,4 +17,3 @@ pub use kind::Kind;
 pub use kinematic::Kinematic;
 pub use nation::Nation;
 pub use spatial::Spatial;
-pub use viewpoint::Viewpoint;

@@ -3,7 +3,6 @@ pub mod entrance;
 pub mod heap_entry;
 pub mod level;
 pub mod node;
-pub mod region;
 pub mod transition;
 
 pub use edge::Edge;
@@ -11,23 +10,14 @@ pub use entrance::Entrance;
 pub use heap_entry::HeapEntry;
 pub use level::Level;
 pub use node::Node;
-pub use region::Region;
 pub use transition::Transition;
 
-use crate::simulation::{
-    consts::*,
-    state::{
-        world::{
-            block,
-            chunk::Chunk,
-            graph::{self},
-            grid::Grid,
-        },
-        World,
-    },
+use crate::simulation::state::{
+    world::{chunk::Chunk, grid::Grid},
+    World,
 };
 use glam::IVec3;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone)]
 pub struct Graph {

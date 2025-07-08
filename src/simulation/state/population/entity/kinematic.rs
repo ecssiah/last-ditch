@@ -1,6 +1,6 @@
 use glam::Vec3;
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Kinematic {
     pub velocity: Vec3,
     pub acceleration: Vec3,

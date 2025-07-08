@@ -48,53 +48,29 @@ impl Population {
         }
     }
 
-    pub fn setup(&mut self, world: &World) {
-        match self.kind {
+    pub fn setup(kind: simulation::Kind, population: &mut Population, world: &World) {
+        match kind {
             simulation::Kind::Main => {
-                constructor::population::main::construct(self, world);
+                constructor::population::main::construct(population, world);
             }
             simulation::Kind::Empty => {
-                constructor::population::empty::construct(self, world);
+                constructor::population::empty::construct(population, world);
             }
             simulation::Kind::WorldTest => {
-                constructor::population::world_test::construct(self, world);
+                constructor::population::world_test::construct(population, world);
             }
             simulation::Kind::GraphTest => {
-                constructor::population::graph_test::construct(self, world);
+                constructor::population::graph_test::construct(population, world);
             }
             simulation::Kind::Placeholder => (),
         }
     }
 
-    pub fn tick(&mut self, world: &World) {
-        for agent in self.agent_map.values_mut() {
-            agent.tick(world);
+    pub fn tick(population: &mut Population, world: &World) {
+        for agent in population.agent_map.values_mut() {
+            Agent::tick(agent, world);
         }
 
-        self.judge.tick(world);
-    }
-
-    pub fn get_judge(&self) -> &Judge {
-        &self.judge
-    }
-
-    pub fn get_judge_mut(&mut self) -> &mut Judge {
-        &mut self.judge
-    }
-
-    pub fn get_agent_map(&self) -> impl Iterator<Item = &Agent> {
-        self.agent_map.values()
-    }
-
-    pub fn get_agent_map_mut(&mut self) -> impl Iterator<Item = &mut Agent> {
-        self.agent_map.values_mut()
-    }
-
-    pub fn get_agent(&self, agent_id: &entity::ID) -> Option<&Agent> {
-        self.agent_map.get(agent_id)
-    }
-
-    pub fn get_agent_mut(&mut self, agent_id: &entity::ID) -> Option<&mut Agent> {
-        self.agent_map.get_mut(agent_id)
+        Judge::tick(&mut population.judge, world);
     }
 }

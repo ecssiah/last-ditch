@@ -15,7 +15,6 @@ use crate::{
 use egui::{FontId, FullOutput, Id, Ui};
 use glam::Vec2;
 
-#[derive(Default)]
 pub struct HUD {
     mode: Mode,
     action_vec: Vec<simulation::state::receiver::action::Action>,

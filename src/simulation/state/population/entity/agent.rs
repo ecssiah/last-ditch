@@ -23,10 +23,10 @@ impl Agent {
             id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            decision: Decision::default(),
-            spatial: Spatial::default(),
-            kinematic: Kinematic::default(),
-            detection: Detection::default(),
+            decision: Decision::new(),
+            spatial: Spatial::new(),
+            kinematic: Kinematic::new(),
+            detection: Detection::new(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
@@ -34,15 +34,13 @@ impl Agent {
         }
     }
 
-    pub fn tick(&mut self, world: &World) {
-        let chunk_id = world.grid.world_to_chunk_id(self.spatial.world_position);
+    pub fn tick(agent: &mut Agent, world: &World) {
+        let chunk_id = world.grid.world_to_chunk_id(agent.spatial.world_position);
 
-        if chunk_id != self.chunk_id {
-            self.chunk_updated = true;
-            self.chunk_id = chunk_id;
+        if chunk_id != agent.chunk_id {
+            agent.chunk_updated = true;
+            agent.chunk_id = chunk_id;
         }
-
-        self.decision.tick(world);
     }
 
     pub fn set_world_position(&mut self, world_position: Vec3) {
@@ -52,11 +50,5 @@ impl Agent {
 
     pub fn set_size(&mut self, size: Vec3) {
         self.detection.body = AABB::new(self.detection.body.center(), size);
-    }
-}
-
-impl Default for Agent {
-    fn default() -> Self {
-        Self::new()
     }
 }

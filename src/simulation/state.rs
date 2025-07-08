@@ -19,10 +19,14 @@ pub use world::World;
 use crate::simulation::{
     self,
     consts::PROJECT_TITLE,
-    state::receiver::action::{Action, AdminAction, JudgeAction, TestAction},
+    state::{
+        population::entity::Judge,
+        receiver::action::{Action, AdminAction, JudgeAction, TestAction},
+    },
 };
 
 pub struct State {
+    pub kind: simulation::Kind,
     pub result_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
     pub compute: Compute,
@@ -44,6 +48,7 @@ impl State {
         let population = Population::new(kind);
 
         Self {
+            kind,
             result_rx,
             admin,
             compute,
@@ -54,24 +59,20 @@ impl State {
         }
     }
 
-    pub fn setup(&mut self) {
-        self.admin.setup();
-    }
-
-    pub fn tick(&mut self, action_vec: Vec<Action>) {
-        match self.admin.mode {
-            admin::Mode::Menu => self.tick_menu(action_vec),
-            admin::Mode::Load => self.tick_load(action_vec),
-            admin::Mode::Simulate => self.tick_simulate(action_vec),
-            admin::Mode::Shutdown => self.tick_shutdown(action_vec),
+    pub fn tick(state: &mut State, action_vec: Vec<Action>) {
+        match state.admin.mode {
+            admin::Mode::Menu => Self::tick_menu(state, action_vec),
+            admin::Mode::Load => Self::tick_load(state, action_vec),
+            admin::Mode::Simulate => Self::tick_simulate(state, action_vec),
+            admin::Mode::Shutdown => Self::tick_shutdown(state, action_vec),
         }
     }
 
-    fn tick_menu(&mut self, action_vec: Vec<Action>) {
+    fn tick_menu(state: &mut State, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
-                    AdminAction::Start => self.initialize_load(),
+                    AdminAction::Start => Self::initialize_load(state),
                     _ => log::warn!("Received an invalid AdminAction in Menu mode: {:?}", action),
                 },
                 _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
@@ -79,9 +80,10 @@ impl State {
         }
     }
 
-    fn initialize_load(&mut self) {
-        let world = std::mem::replace(&mut self.world, World::placeholder());
-        let population = std::mem::replace(&mut self.population, Population::placeholder());
+    fn initialize_load(state: &mut State) {
+        let kind = state.kind;
+        let world = std::mem::replace(&mut state.world, World::placeholder());
+        let population = std::mem::replace(&mut state.population, Population::placeholder());
 
         let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
 
@@ -89,45 +91,41 @@ impl State {
             let mut world = world;
             let mut population = population;
 
-            world.setup();
-            population.setup(&world);
+            World::setup(kind, &mut world);
+            Population::setup(kind, &mut population, &world);
 
             let _ = result_tx.blocking_send((world, population));
         });
 
-        self.result_rx = Some(result_rx);
+        state.result_rx = Some(result_rx);
 
-        self.admin.mode = admin::Mode::Load;
-        self.admin.message = "Construction in Progress...".to_string();
+        state.admin.mode = admin::Mode::Load;
+        state.admin.message = "Construction in Progress...".to_string();
     }
 
-    fn tick_load(&mut self, _action_vec: Vec<Action>) {
-        if let Some(result_rx) = &mut self.result_rx {
+    fn tick_load(state: &mut State, _action_vec: Vec<Action>) {
+        if let Some(result_rx) = &mut state.result_rx {
             if let Ok((world, population)) = result_rx.try_recv() {
-                self.world = world;
-                self.population = population;
+                state.world = world;
+                state.population = population;
 
-                self.admin.mode = admin::Mode::Simulate;
-                self.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
+                state.admin.mode = admin::Mode::Simulate;
+                state.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
             }
         }
     }
 
-    fn tick_simulate(&mut self, action_vec: Vec<Action>) {
+    fn tick_simulate(state: &mut State, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
-                Action::Judge(judge_action) => {
-                    let judge = self.population.get_judge_mut();
-
-                    match judge_action {
-                        JudgeAction::Movement(movement_data) => {
-                            judge.apply_movement_data(&movement_data);
-                        }
-                        JudgeAction::Jump(jump_action) => {
-                            judge.apply_jump_action(&jump_action);
-                        }
+                Action::Judge(judge_action) => match judge_action {
+                    JudgeAction::Movement(movement_data) => {
+                        Judge::apply_movement_data(&mut state.population.judge, &movement_data);
                     }
-                }
+                    JudgeAction::Jump(jump_action) => {
+                        Judge::apply_jump_action(&mut state.population.judge, &jump_action);
+                    }
+                },
                 Action::Test(test_action) => match test_action {
                     TestAction::Test1 => println!("Test Action 1"),
                     TestAction::Test2 => println!("Test Action 2"),
@@ -140,13 +138,11 @@ impl State {
             }
         }
 
-        self.admin.tick();
-        self.time.tick();
-        self.world.tick();
-        self.population.tick(&self.world);
-        self.physics.tick(&self.world, &mut self.population);
-        self.compute.tick(&self.world, &self.population);
+        Time::tick(&mut state.time);
+        Population::tick(&mut state.population, &mut state.world);
+        Physics::tick(&state.physics, &state.world, &mut state.population);
+        Compute::tick(&state.compute, &state.world, &mut state.population);
     }
 
-    fn tick_shutdown(&mut self, _action_vec: Vec<Action>) {}
+    fn tick_shutdown(_state: &mut State, _action_vec: Vec<Action>) {}
 }
