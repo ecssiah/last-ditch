@@ -11,7 +11,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::entity::{self, Judge},
-        world::{graph::Graph, grid::Grid},
+        world::{chunk::Chunk, graph::Graph, grid::Grid},
     },
     utils::buffer::Buffer,
 };
@@ -84,7 +84,7 @@ impl World {
             simulation::Kind::Main => {
                 constructor::world::main::construct(self);
 
-                let new_graph = Graph::construct(&self.grid, 1, &self.chunk_vec);
+                let new_graph = Graph::construct(&self.grid, &self.chunk_vec, 1);
 
                 let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(new_graph);
@@ -98,7 +98,7 @@ impl World {
             simulation::Kind::GraphTest => {
                 constructor::world::graph_test::construct(self);
 
-                let new_graph = Graph::construct(&self.grid, 1, &self.chunk_vec);
+                let new_graph = Graph::construct(&self.grid, &self.chunk_vec, 1);
 
                 let mut graph_buffer = self.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(new_graph);
@@ -148,63 +148,84 @@ impl World {
             .collect()
     }
 
-    pub fn get_chunk(&self, chunk_id: chunk::ID) -> Option<&chunk::Chunk> {
-        self.chunk_vec.get(usize::from(chunk_id))
-    }
-
-    pub fn get_chunk_mut(&mut self, chunk_id: chunk::ID) -> Option<&mut chunk::Chunk> {
-        self.chunk_vec.get_mut(usize::from(chunk_id))
-    }
-
-    pub fn get_chunk_at(&self, position: IVec3) -> Option<&chunk::Chunk> {
-        let chunk_id = self.grid.position_to_chunk_id(position);
+    pub fn get_chunk_at<'a>(
+        position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &'a [Chunk],
+    ) -> Option<&'a chunk::Chunk> {
+        let chunk_id = grid.position_to_chunk_id(position);
 
         if chunk_id != chunk::ID::MAX {
-            self.get_chunk(chunk_id)
+            chunk_vec_slice.get(usize::from(chunk_id))
         } else {
             None
         }
     }
 
-    pub fn get_block(&self, chunk_id: chunk::ID, block_id: block::ID) -> Option<&block::Block> {
-        let chunk = self.get_chunk(chunk_id)?;
+    pub fn get_chunk_at_mut<'a>(
+        position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &'a mut [Chunk],
+    ) -> Option<&'a mut chunk::Chunk> {
+        let chunk_id = grid.position_to_chunk_id(position);
+
+        if chunk_id != chunk::ID::MAX {
+            chunk_vec_slice.get_mut(usize::from(chunk_id))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_block(
+        chunk_id: chunk::ID,
+        block_id: block::ID,
+        chunk_vec_slice: &[Chunk],
+    ) -> Option<&block::Block> {
+        let chunk = chunk_vec_slice.get(usize::from(chunk_id))?;
 
         chunk.get_block(block_id)
     }
 
     pub fn get_block_mut(
-        &mut self,
         chunk_id: chunk::ID,
         block_id: block::ID,
+        chunk_vec_slice: &mut [Chunk],
     ) -> Option<&mut block::Block> {
-        let chunk = self.get_chunk_mut(chunk_id)?;
+        let chunk = chunk_vec_slice.get_mut(usize::from(chunk_id))?;
 
         chunk.get_block_mut(block_id)
     }
 
-    pub fn get_block_at(&self, position: IVec3) -> Option<&block::Block> {
-        let (chunk_id, block_id) = self.grid.position_to_ids(position);
+    pub fn get_block_at<'a>(
+        position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &'a [Chunk],
+    ) -> Option<&'a block::Block> {
+        let (chunk_id, block_id) = grid.position_to_ids(position);
 
         if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-            self.get_block(chunk_id, block_id)
+            Self::get_block(chunk_id, block_id, chunk_vec_slice)
         } else {
             None
         }
     }
 
-    pub fn get_block_at_mut(&mut self, position: IVec3) -> Option<&mut block::Block> {
-        let (chunk_id, block_id) = self.grid.position_to_ids(position);
+    pub fn get_block_at_mut<'a>(
+        position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &'a mut [Chunk],
+    ) -> Option<&'a mut block::Block> {
+        let (chunk_id, block_id) = grid.position_to_ids(position);
 
         if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-            self.get_block_mut(chunk_id, block_id)
+            Self::get_block_mut(chunk_id, block_id, chunk_vec_slice)
         } else {
             None
         }
     }
 
-    pub fn get_clearance(&self, position: IVec3) -> u32 {
-        let ground_is_solid = self
-            .get_block_at(position + IVec3::NEG_Y)
+    pub fn get_clearance(position: IVec3, grid: &Grid, chunk_vec_slice: &[Chunk]) -> u32 {
+        let ground_is_solid = Self::get_block_at(position + IVec3::NEG_Y, grid, chunk_vec_slice)
             .is_some_and(|block| block.solid);
 
         let mut clearance = 0;
@@ -213,7 +234,7 @@ impl World {
             for level in 0..MAXIMUM_CLEARANCE {
                 let level_position = position + IVec3::new(0, level as i32, 0);
 
-                if let Some(block) = self.get_block_at(level_position) {
+                if let Some(block) = Self::get_block_at(level_position, grid, chunk_vec_slice) {
                     if !block.solid {
                         clearance += 1;
                     } else {
@@ -228,46 +249,72 @@ impl World {
         clearance
     }
 
-    fn mark_updates(&mut self, chunk_id1: chunk::ID, position1: IVec3) {
-        self.set_block_modified(chunk_id1, true);
+    fn mark_updates(position1: IVec3, grid: &Grid, chunk_vec_slice: &mut [Chunk]) {
+        let mut chunk1_id = None;
 
-        if self.grid.on_chunk_boundary(position1) {
-            self.set_boundary_modified(chunk_id1, true);
+        if let Some(chunk1) = Self::get_chunk_at_mut(position1, grid, chunk_vec_slice) {
+            chunk1_id = Some(chunk1.id);
+            chunk1.modified.block = true;
 
+            if grid.on_chunk_boundary(position1) {
+                chunk1.modified.boundary = true;
+            }
+        }
+
+        if let Some(chunk1_id) = chunk1_id {
             for direction in grid::Direction::face_vec() {
                 let position2 = position1 + direction.offset();
-                let chunk_id2 = self.grid.position_to_chunk_id(position2);
+                let chunk_id2 = grid.position_to_chunk_id(position2);
 
-                if chunk_id2 != chunk::ID::MAX && chunk_id1 != chunk_id2 {
-                    self.set_boundary_modified(chunk_id2, true);
+                if chunk_id2 != chunk::ID::MAX && chunk1_id != chunk_id2 {
+                    if let Some(chunk2) = chunk_vec_slice.get_mut(usize::from(chunk_id2)) {
+                        chunk2.modified.boundary = true;
+                    }
                 }
             }
         }
     }
 
-    pub fn set_block_kind(&mut self, position: IVec3, kind: block::Kind) {
-        let (chunk_id, block_id) = self.grid.position_to_ids(position);
+    pub fn set_block_kind(
+        position: IVec3,
+        kind: block::Kind,
+        grid: &Grid,
+        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        chunk_vec_slice: &mut [Chunk],
+    ) -> bool {
+        let (chunk_id, block_id) = grid.position_to_ids(position);
 
         if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-            let block_meta = self.block_meta_map.get(&kind).cloned().unwrap();
+            let block_meta = block_meta_map.get(&kind).cloned().unwrap();
 
-            if let Some(block) = self.get_block_mut(chunk_id, block_id) {
+            if let Some(block) = Self::get_block_mut(chunk_id, block_id, chunk_vec_slice) {
                 block.kind = kind;
                 block.solid = block_meta.solid;
             }
 
-            self.update_visibility_vecs(chunk_id, block_id, position);
-            self.mark_updates(chunk_id, position);
+            Self::update_visibility_vecs(chunk_id, block_id, position, grid, chunk_vec_slice);
+            Self::mark_updates(position, grid, chunk_vec_slice);
+
+            true
         } else {
             log::info!(
                 "{:?} block cannot be set at invalid location: {:?}",
                 kind,
                 position
             );
+
+            false
         }
     }
 
-    pub fn set_box(&mut self, position1: IVec3, position2: IVec3, kind: block::Kind) {
+    pub fn set_box(
+        position1: IVec3,
+        position2: IVec3,
+        kind: block::Kind,
+        grid: &Grid,
+        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        chunk_vec_slice: &mut [Chunk],
+    ) {
         let min = position1.min(position2);
         let max = position1.max(position2);
 
@@ -291,16 +338,29 @@ impl World {
                     let position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        self.set_block_kind(position, kind);
+                        Self::set_block_kind(position, kind, grid, block_meta_map, chunk_vec_slice);
                     } else {
-                        self.set_block_kind(position, block::Kind::Empty);
+                        Self::set_block_kind(
+                            position,
+                            block::Kind::Empty,
+                            grid,
+                            block_meta_map,
+                            chunk_vec_slice,
+                        );
                     }
                 }
             }
         }
     }
 
-    pub fn set_cube(&mut self, position1: IVec3, position2: IVec3, kind: block::Kind) {
+    pub fn set_cube(
+        position1: IVec3,
+        position2: IVec3,
+        kind: block::Kind,
+        grid: &Grid,
+        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        chunk_vec_slice: &mut [Chunk],
+    ) {
         let min = position1.min(position2);
         let max = position1.max(position2);
 
@@ -309,31 +369,19 @@ impl World {
                 for z in min.z..=max.z {
                     let position = IVec3::new(x, y, z);
 
-                    self.set_block_kind(position, kind);
+                    Self::set_block_kind(position, kind, grid, block_meta_map, chunk_vec_slice);
                 }
             }
         }
     }
 
-    fn set_block_modified(&mut self, chunk_id: chunk::ID, modified: bool) {
-        if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-            chunk.modified.block = modified;
-        }
-    }
-
-    fn set_boundary_modified(&mut self, chunk_id: chunk::ID, modified: bool) {
-        if let Some(chunk) = self.get_chunk_mut(chunk_id) {
-            chunk.modified.boundary = modified;
-        }
-    }
-
-    pub fn update_chunks(&mut self) {
+    pub fn update_chunks(grid: &Grid, chunk_vec_slice: &mut [Chunk]) {
         let mut chunk_geometry_update_vec = Vec::new();
         let mut chunk_boundary_update_vec = Vec::new();
 
-        for chunk in &self.chunk_vec {
+        for chunk in chunk_vec_slice.iter_mut() {
             if chunk.modified.block {
-                let chunk_geometry = self.update_chunk_geometry(chunk);
+                let chunk_geometry = Self::update_chunk_geometry(chunk, grid);
 
                 chunk_geometry_update_vec.push((chunk.id, chunk_geometry));
             }
@@ -344,7 +392,7 @@ impl World {
         }
 
         for (chunk_id, geometry) in chunk_geometry_update_vec {
-            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
                 chunk.geometry = geometry;
 
                 chunk.modified.block = false;
@@ -352,19 +400,21 @@ impl World {
         }
 
         for chunk_id in chunk_boundary_update_vec {
-            self.set_boundary_modified(chunk_id, false);
+            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
+                chunk.modified.boundary = false;
+            }
         }
     }
 
-    fn update_chunk_geometry(&self, chunk: &chunk::Chunk) -> chunk::Geometry {
+    fn update_chunk_geometry(chunk: &chunk::Chunk, grid: &Grid) -> chunk::Geometry {
         let mut chunk_geometry = chunk::Geometry::new();
 
-        for block_id in self.grid.block_ids() {
-            let block = self.get_block(chunk.id, block_id).unwrap();
+        for block_id in grid.block_ids() {
+            let block = chunk.get_block(block_id).unwrap();
 
             if block.solid {
                 let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
-                let position = self.grid.ids_to_position(chunk.id, block_id);
+                let position = grid.ids_to_position(chunk.id, block_id);
 
                 for direction in grid::Direction::face_vec() {
                     if visibility_vec.contains(&direction) {
@@ -384,19 +434,19 @@ impl World {
     }
 
     fn update_visibility_vecs(
-        &mut self,
         chunk_id: chunk::ID,
         block_id: block::ID,
         position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &mut [Chunk],
     ) {
         let mut visibility_updates_map: HashMap<chunk::ID, Vec<(block::ID, Vec<grid::Direction>)>> =
             HashMap::new();
 
-        if self
-            .get_block(chunk_id, block_id)
+        if Self::get_block(chunk_id, block_id, chunk_vec_slice)
             .is_some_and(|block| block.kind != block::Kind::Empty)
         {
-            let visibility_vec = self.compute_visibility_vec(position);
+            let visibility_vec = Self::compute_visibility_vec(position, grid, chunk_vec_slice);
 
             visibility_updates_map
                 .entry(chunk_id)
@@ -407,14 +457,14 @@ impl World {
         for offset in grid::Direction::face_offsets() {
             let neighbor_position = position + offset;
 
-            let (chunk_id, block_id) = self.grid.position_to_ids(neighbor_position);
+            let (chunk_id, block_id) = grid.position_to_ids(neighbor_position);
 
             if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-                if self
-                    .get_block(chunk_id, block_id)
+                if Self::get_block(chunk_id, block_id, chunk_vec_slice)
                     .is_some_and(|block| block.kind != block::Kind::Empty)
                 {
-                    let visibility_vec = self.compute_visibility_vec(neighbor_position);
+                    let visibility_vec =
+                        Self::compute_visibility_vec(neighbor_position, grid, chunk_vec_slice);
 
                     visibility_updates_map
                         .entry(chunk_id)
@@ -425,7 +475,7 @@ impl World {
         }
 
         for (chunk_id, visibility_update_vec) in visibility_updates_map {
-            if let Some(chunk) = self.get_chunk_mut(chunk_id) {
+            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
                 for (block_id, visibility_vec) in visibility_update_vec {
                     chunk.visibility_vec[usize::from(block_id)] = visibility_vec;
                 }
@@ -433,12 +483,16 @@ impl World {
         }
     }
 
-    fn compute_visibility_vec(&self, position: IVec3) -> Vec<grid::Direction> {
+    fn compute_visibility_vec(
+        position: IVec3,
+        grid: &Grid,
+        chunk_vec_slice: &[Chunk],
+    ) -> Vec<grid::Direction> {
         grid::Direction::face_vec()
             .iter()
             .filter_map(|&direction| {
                 let neighbor_position = position + direction.offset();
-                let block = self.get_block_at(neighbor_position);
+                let block = Self::get_block_at(neighbor_position, grid, chunk_vec_slice);
 
                 block
                     .filter(|block| block.kind == block::Kind::Empty)
@@ -559,12 +613,14 @@ impl World {
         }
     }
 
-    pub fn get_visible_chunk_id_vec(&self, judge: &Judge) -> Vec<chunk::ID> {
+    pub fn get_visible_chunk_id_vec(
+        judge: &Judge,
+        grid: &Grid,
+        chunk_vec_slice: &[Chunk],
+    ) -> Vec<chunk::ID> {
         let mut visible_chunk_id_vec = Vec::new();
 
-        let judge_chunk_coordinates = self
-            .grid
-            .world_to_chunk_coordinates(judge.spatial.world_position);
+        let judge_chunk_coordinates = grid.world_to_chunk_coordinates(judge.spatial.world_position);
 
         let view_radius = 6;
         let view_direction = judge.spatial.forward();
@@ -574,10 +630,10 @@ impl World {
             for y in -view_radius + 1..=view_radius - 1 {
                 for z in -view_radius..=view_radius {
                     let chunk_coordinates = judge_chunk_coordinates + IVec3::new(x, y, z);
-                    let chunk_id = self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates);
+                    let chunk_id = grid.chunk_coordinates_to_chunk_id(chunk_coordinates);
 
                     if chunk_id != chunk::ID::MAX {
-                        if let Some(chunk) = self.get_chunk(chunk_id) {
+                        if let Some(chunk) = chunk_vec_slice.get(usize::from(chunk_id)) {
                             let origin_to_center = chunk.aabb.center() - view_origin;
 
                             if view_direction.dot(origin_to_center) >= 0.0 {

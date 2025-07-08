@@ -103,7 +103,7 @@ impl Physics {
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();
 
-                match world.get_block_at(block_position) {
+                match World::get_block_at(block_position, &world.grid, &world.chunk_vec) {
                     Some(block) => block.solid,
                     None => true,
                 }

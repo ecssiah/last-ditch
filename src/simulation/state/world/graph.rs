@@ -16,180 +16,141 @@ pub use transition::Transition;
 
 use crate::simulation::{
     consts::*,
-    state::world::{
-        block,
-        chunk::Chunk,
-        graph::{self},
-        grid::Grid,
+    state::{
+        world::{
+            block,
+            chunk::Chunk,
+            graph::{self},
+            grid::Grid,
+        },
+        World,
     },
 };
-use fixedbitset::FixedBitSet;
 use glam::IVec3;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
 #[derive(Clone)]
 pub struct Graph {
-    pub depth: u32,
-    pub grid: Grid,
-    pub solid_set_map: HashMap<IVec3, FixedBitSet>,
-    pub clearance_map: HashMap<IVec3, u32>,
-    pub entrance_vec: Vec<Entrance>,
+    pub max_depth: usize,
     pub level_vec: Vec<Level>,
 }
 
 impl Graph {
-    pub fn new(grid: &Grid, depth: u32) -> Self {
+    pub fn new(_grid: &Grid, max_depth: usize) -> Self {
         Self {
-            depth,
-            grid: grid.clone(),
-            solid_set_map: HashMap::new(),
-            clearance_map: HashMap::new(),
-            entrance_vec: Vec::new(),
-            level_vec: std::iter::repeat_with(Level::new)
-                .take(depth as usize)
-                .collect(),
+            max_depth,
+            level_vec: Vec::new(),
         }
     }
 
-    pub fn construct(grid: &Grid, depth: u32, chunk_vec_slice: &[Chunk]) -> Self {
-        let mut graph = Self {
-            depth,
-            grid: grid.clone(),
-            solid_set_map: HashMap::new(),
-            clearance_map: HashMap::new(),
-            entrance_vec: Vec::new(),
-            level_vec: std::iter::repeat_with(Level::new)
-                .take(depth as usize)
-                .collect(),
-        };
+    // pub fn find_path(&mut self, start: IVec3, end: IVec3) -> Vec<Node> {
+    //     let level = &mut self.level_vec[1];
+    //     level.reset();
 
-        graph.setup(chunk_vec_slice);
+    //     let start_node = Self::create_node(start, level);
+    //     let end_node = Self::create_node(end, level);
 
-        graph
-    }
+    //     Self::connect_node(start_node, level);
+    //     Self::connect_node(end_node, level);
 
-    pub fn setup(&mut self, chunk_vec_slice: &[Chunk]) {
-        self.setup_solid_set_map(chunk_vec_slice);
-        self.setup_clearance_map();
-        self.setup_entrances();
+    //     let node_vec = Self::get_node_path(start_node, end_node, level);
 
-        self.build();
+    //     node_vec
+    // }
 
-        self.test_full_path();
-    }
+    // fn connect_node(node: Node, level: &mut Level) {
+    //     let mut edge_vec = Vec::new();
 
-    pub fn find_path(&mut self, start: IVec3, end: IVec3) -> Vec<Node> {
-        let level = &mut self.level_vec[1];
-        level.reset();
+    //     for transition_node in level.get_region_node_vec(node.region_id) {
+    //         if node.position == transition_node.position {
+    //             continue;
+    //         }
 
-        let start_node = self.create_node(start, 1);
-        let end_node = self.create_node(end, 1);
+    //         let weight = Self::get_path_cost(node.position, transition_node.position, level);
 
-        self.connect_node(start_node);
-        self.connect_node(end_node);
+    //         let edge = Edge {
+    //             node1: node,
+    //             node2: *transition_node,
+    //             depth: 1,
+    //             weight,
+    //             kind: graph::edge::Kind::Internal,
+    //         };
 
-        let node_vec = self.get_node_path(start_node, end_node);
+    //         edge_vec.push(edge);
+    //     }
 
-        node_vec
-    }
+    //     level.add_search_node(node);
 
-    fn test_full_path(&mut self) {
-        let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
+    //     for edge in edge_vec.drain(..) {
+    //         level.add_search_edge(edge);
+    //     }
+    // }
 
-        println!("Path: ");
-        for node in &path_vec {
-            println!("{:?}", node);
+    // fn setup_solid_set_map(&mut self, chunk_vec_slice: &[Chunk]) {
+    //     self.solid_set_map = chunk_vec_slice
+    //         .iter()
+    //         .map(|chunk| {
+    //             let mut solid_set = FixedBitSet::with_capacity(self.grid.chunk_volume as usize);
+
+    //             for block in &chunk.block_vec {
+    //                 solid_set.set(usize::from(block.id), block.solid);
+    //             }
+
+    //             let chunk_coordinates = self.grid.position_to_chunk_coordinates(chunk.position);
+
+    //             (chunk_coordinates, solid_set)
+    //         })
+    //         .collect()
+    // }
+
+    // fn setup_clearance_map(&mut self) {
+    //     let mut clearance_map = HashMap::new();
+
+    //     let world_limit = self.grid.world_limit as i32;
+
+    //     for x in -world_limit..=world_limit {
+    //         for y in -world_limit..=world_limit {
+    //             for z in -world_limit..=world_limit {
+    //                 let position = IVec3::new(x, y, z);
+
+    //                 clearance_map.insert(position, self.calculate_clearance(position));
+    //             }
+    //         }
+    //     }
+
+    //     self.clearance_map = clearance_map;
+    // }
+
+    pub fn construct(grid: &Grid, chunk_vec_slice: &[Chunk], max_depth: usize) -> Self {
+        let level_0;
+        let mut level_1;
+
+        {
+            level_0 = Level::new(0, 1);
         }
 
-        println!("\nFull Path: ");
-        let mut full_path_vec = Vec::new();
-        for index in 1..path_vec.len() {
-            let node1 = path_vec[index - 1];
-            let node2 = path_vec[index];
+        {
+            level_1 = Level::new(1, grid.chunk_size as usize);
 
-            let path = self.get_path(node1.position, node2.position);
+            let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
 
-            full_path_vec.extend(path);
+            // Self::setup_external_edges(&entrance_vec, &mut level_1);
+            // Self::setup_internal_edges(&mut level_1);
         }
 
-        full_path_vec.dedup();
-
-        for position in &full_path_vec {
-            println!("{:?}", position);
-        }
-    }
-
-    fn connect_node(&mut self, node: Node) {
-        let level = &self.level_vec[1];
-        let mut edge_vec = Vec::new();
-
-        for transition_node in level.get_region_node_vec(node.region_id) {
-            if node.position == transition_node.position {
-                continue;
-            }
-
-            let weight = self.get_path_cost(node.position, transition_node.position);
-
-            let clearance = self
-                .get_clearance(node.position)
-                .min(self.get_clearance(transition_node.position));
-
-            let edge = Edge {
-                node1: node,
-                node2: *transition_node,
-                level: 1,
-                weight,
-                clearance,
-                kind: graph::edge::Kind::Local,
-            };
-
-            edge_vec.push(edge);
+        {
+            // construct higher levels
         }
 
-        self.level_vec[1].add_search_node(node);
-
-        for edge in edge_vec.drain(..) {
-            self.level_vec[1].add_search_edge(edge);
+        Self {
+            max_depth,
+            level_vec: Vec::from([level_0, level_1]),
         }
     }
 
-    fn setup_solid_set_map(&mut self, chunk_vec_slice: &[Chunk]) {
-        self.solid_set_map = chunk_vec_slice
-            .iter()
-            .map(|chunk| {
-                let mut solid_set = FixedBitSet::with_capacity(self.grid.chunk_volume as usize);
-
-                for block in &chunk.block_vec {
-                    solid_set.set(usize::from(block.id), block.solid);
-                }
-
-                let chunk_coordinates = self.grid.position_to_chunk_coordinates(chunk.position);
-
-                (chunk_coordinates, solid_set)
-            })
-            .collect()
-    }
-
-    fn setup_clearance_map(&mut self) {
-        let mut clearance_map = HashMap::new();
-
-        let world_limit = self.grid.world_limit as i32;
-
-        for x in -world_limit..=world_limit {
-            for y in -world_limit..=world_limit {
-                for z in -world_limit..=world_limit {
-                    let position = IVec3::new(x, y, z);
-
-                    clearance_map.insert(position, self.calculate_clearance(position));
-                }
-            }
-        }
-
-        self.clearance_map = clearance_map;
-    }
-
-    fn setup_entrances(&mut self) {
-        let world_radius = self.grid.world_radius as i32;
+    fn setup_entrance_vec(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Vec<Entrance> {
+        let mut entrance_vec = Vec::new();
+        let world_radius = grid.world_radius as i32;
 
         for cx in -world_radius..=world_radius - 1 {
             for cy in -world_radius..=world_radius - 1 {
@@ -197,24 +158,54 @@ impl Graph {
                     let chunk_coordinates = IVec3::new(cx, cy, cz);
 
                     let chunk_index =
-                        u32::from(self.grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
-                    let chunk_position = self.grid.chunk_coordinates_to_position(chunk_coordinates);
+                        u32::from(grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
 
-                    self.setup_x_entrances(chunk_index, chunk_coordinates, chunk_position);
-                    self.setup_y_entrances(chunk_index, chunk_coordinates, chunk_position);
-                    self.setup_z_entrances(chunk_index, chunk_coordinates, chunk_position);
+                    let chunk_position = grid.chunk_coordinates_to_position(chunk_coordinates);
+
+                    let x_entrance_vec = Self::setup_x_entrance_vec(
+                        grid,
+                        chunk_vec_slice,
+                        chunk_index,
+                        chunk_coordinates,
+                        chunk_position,
+                    );
+
+                    let y_entrance_vec = Self::setup_y_entrance_vec(
+                        grid,
+                        chunk_vec_slice,
+                        chunk_index,
+                        chunk_coordinates,
+                        chunk_position,
+                    );
+
+                    let z_entrance_vec = Self::setup_z_entrance_vec(
+                        grid,
+                        chunk_vec_slice,
+                        chunk_index,
+                        chunk_coordinates,
+                        chunk_position,
+                    );
+
+                    entrance_vec.extend(x_entrance_vec);
+                    entrance_vec.extend(y_entrance_vec);
+                    entrance_vec.extend(z_entrance_vec);
                 }
             }
         }
+
+        entrance_vec
     }
 
-    fn setup_x_entrances(
-        &mut self,
+    fn setup_x_entrance_vec(
+        grid: &Grid,
+        chunk_vec_slice: &[Chunk],
         chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
-    ) {
-        let chunk_radius = self.grid.chunk_radius as i32;
+    ) -> Vec<Entrance> {
+        let mut entrance_vec = Vec::new();
+
+        let chunk_radius = grid.chunk_radius as i32;
 
         let mut entrance_active = false;
         let mut visited_set = HashSet::new();
@@ -231,7 +222,7 @@ impl Graph {
 
                 visited_set.insert(block_position);
 
-                let &block_clearance = self.clearance_map.get(&block_position).unwrap();
+                let block_clearance = World::get_clearance(block_position, grid, chunk_vec_slice);
 
                 (1..=block_clearance).for_each(|level| {
                     visited_set.insert(block_position + IVec3::Y * level as i32);
@@ -249,11 +240,13 @@ impl Graph {
                     let mut matched = false;
 
                     for neighbor_position in neighbor_positions {
-                        if self.get_clearance(neighbor_position) >= 3 {
+                        let neighbor_clearance =
+                            World::get_clearance(neighbor_position, grid, chunk_vec_slice);
+
+                        if neighbor_clearance >= 3 {
                             if !entrance_active {
                                 let neighbor_chunk_index = u32::from(
-                                    self.grid
-                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
+                                    grid.chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
@@ -262,14 +255,14 @@ impl Graph {
                                     transition_vec: Vec::new(),
                                 };
 
-                                self.entrance_vec.push(entrance);
+                                entrance_vec.push(entrance);
 
                                 entrance_active = true;
                             }
 
-                            let last_entrance_index = self.entrance_vec.len() - 1;
+                            let last_entrance_index = entrance_vec.len() - 1;
 
-                            if let Some(entrance) = self.entrance_vec.get_mut(last_entrance_index) {
+                            if let Some(entrance) = entrance_vec.get_mut(last_entrance_index) {
                                 let transition = Transition {
                                     region1_position: block_position,
                                     region2_position: neighbor_position,
@@ -292,23 +285,27 @@ impl Graph {
                 }
             }
         }
+
+        entrance_vec
     }
 
-    fn setup_y_entrances(
-        &mut self,
+    fn setup_y_entrance_vec(
+        grid: &Grid,
+        chunk_vec_slice: &[Chunk],
         chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
-    ) {
-        let chunk_radius = self.grid.chunk_radius as i32;
+    ) -> Vec<Entrance> {
+        let mut entrance_vec = Vec::new();
+
+        let chunk_radius = grid.chunk_radius as i32;
 
         let mut candidate_map = HashMap::new();
 
         for bz in -chunk_radius..=chunk_radius {
             for bx in -chunk_radius..=chunk_radius {
                 let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
-
-                let block_clearance = self.get_clearance(block_position);
+                let block_clearance = World::get_clearance(block_position, grid, chunk_vec_slice);
 
                 if block_clearance >= 3 {
                     let mut neighbor_position_vec = Vec::new();
@@ -321,7 +318,8 @@ impl Graph {
                     ];
 
                     for neighbor_position in neighbor_position_array {
-                        let neighbor_clearance = self.get_clearance(neighbor_position);
+                        let neighbor_clearance =
+                            World::get_clearance(neighbor_position, grid, chunk_vec_slice);
 
                         if neighbor_clearance >= 3 {
                             neighbor_position_vec.push(neighbor_position);
@@ -367,10 +365,8 @@ impl Graph {
                 }
             }
 
-            let neighbor_chunk_index = u32::from(
-                self.grid
-                    .chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y),
-            );
+            let neighbor_chunk_index =
+                u32::from(grid.chunk_coordinates_to_chunk_id(chunk_coordinates + IVec3::Y));
 
             let mut entrance = Entrance {
                 region1_id: chunk_index,
@@ -391,17 +387,22 @@ impl Graph {
                 }
             }
 
-            self.entrance_vec.push(entrance);
+            entrance_vec.push(entrance);
         }
+
+        entrance_vec
     }
 
-    fn setup_z_entrances(
-        &mut self,
+    fn setup_z_entrance_vec(
+        grid: &Grid,
+        chunk_vec_slice: &[Chunk],
         chunk_index: u32,
         chunk_coordinates: IVec3,
         chunk_position: IVec3,
-    ) {
-        let chunk_radius = self.grid.chunk_radius as i32;
+    ) -> Vec<Entrance> {
+        let mut entrance_vec = Vec::new();
+
+        let chunk_radius = grid.chunk_radius as i32;
 
         let mut entrance_active = false;
         let mut visited_set = HashSet::new();
@@ -418,7 +419,7 @@ impl Graph {
 
                 visited_set.insert(block_position);
 
-                let &block_clearance = self.clearance_map.get(&block_position).unwrap();
+                let block_clearance = World::get_clearance(block_position, grid, chunk_vec_slice);
 
                 (1..=block_clearance).for_each(|level| {
                     visited_set.insert(block_position + IVec3::Y * level as i32);
@@ -436,11 +437,13 @@ impl Graph {
                     let mut matched = false;
 
                     for neighbor_position in neighbor_position_array {
-                        if self.get_clearance(neighbor_position) >= 3 {
+                        let neighbor_clearance =
+                            World::get_clearance(neighbor_position, grid, chunk_vec_slice);
+
+                        if neighbor_clearance >= 3 {
                             if !entrance_active {
                                 let neighbor_chunk_index = u32::from(
-                                    self.grid
-                                        .chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
+                                    grid.chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
                                 );
 
                                 let entrance = Entrance {
@@ -449,14 +452,14 @@ impl Graph {
                                     transition_vec: Vec::new(),
                                 };
 
-                                self.entrance_vec.push(entrance);
+                                entrance_vec.push(entrance);
 
                                 entrance_active = true;
                             }
 
-                            let last_entrance_index = self.entrance_vec.len() - 1;
+                            let last_entrance_index = entrance_vec.len() - 1;
 
-                            if let Some(entrance) = self.entrance_vec.get_mut(last_entrance_index) {
+                            if let Some(entrance) = entrance_vec.get_mut(last_entrance_index) {
                                 let transition = Transition {
                                     region1_position: block_position,
                                     region2_position: neighbor_position,
@@ -479,387 +482,384 @@ impl Graph {
                 }
             }
         }
+
+        entrance_vec
     }
 
-    fn build(&mut self) {
-        let mut level = Level::new();
-
-        self.setup_regions(&mut level);
-        self.setup_regional_edges(&mut level);
-        self.setup_local_edges(&mut level);
-
-        self.level_vec.push(level);
-    }
-
-    fn setup_regions(&mut self, level: &mut Level) {
-        let chunk_radius = self.grid.chunk_radius as i32;
-        let world_radius = self.grid.world_radius as i32;
-
-        let mut region_map = HashMap::new();
-
-        for rx in -world_radius..=world_radius {
-            for ry in -world_radius..=world_radius {
-                for rz in -world_radius..=world_radius {
-                    let region_coordinates = IVec3::new(rx, ry, rz);
-                    let region_position =
-                        self.grid.chunk_coordinates_to_position(region_coordinates);
-
-                    let region_id =
-                        u32::from(self.grid.chunk_coordinates_to_chunk_id(region_coordinates));
-
-                    let min = region_position - IVec3::splat(chunk_radius);
-                    let max = region_position + IVec3::splat(chunk_radius);
-
-                    region_map.insert(
-                        region_id,
-                        Region {
-                            id: region_id,
-                            coordinates: region_coordinates,
-                            min,
-                            max,
-                        },
-                    );
-                }
-            }
-        }
-
-        level.region_map = region_map;
-    }
-
-    fn setup_regional_edges(&mut self, level: &mut Level) {
-        for entrance in &self.entrance_vec {
-            let transition_vec = entrance.representative_transitions();
-
-            for transition in &transition_vec {
-                let node1_region_id =
-                    u32::from(self.grid.position_to_chunk_id(transition.region1_position));
-
-                let node1 = level
-                    .node_map
-                    .entry(transition.region1_position)
-                    .or_insert(Node {
-                        level_number: 1,
-                        region_id: node1_region_id,
-                        position: transition.region1_position,
-                    })
-                    .clone();
-
-                let node2_region_id =
-                    u32::from(self.grid.position_to_chunk_id(transition.region2_position));
-
-                let node2 = level
-                    .node_map
-                    .entry(transition.region2_position)
-                    .or_insert(Node {
-                        level_number: 1,
-                        region_id: node2_region_id,
-                        position: transition.region2_position,
-                    })
-                    .clone();
-
-                let clearance = self
-                    .get_clearance(transition.region1_position)
-                    .min(self.get_clearance(transition.region2_position));
-
-                let edge = Edge {
-                    node1,
-                    node2,
-                    level: 1,
-                    weight: 10,
-                    clearance,
-                    kind: graph::edge::Kind::Regional,
-                };
-
-                level
-                    .edge_map
-                    .insert((node1.position, node2.position), edge);
-            }
-        }
-    }
-
-    fn setup_local_edges(&mut self, level: &mut Level) {
-        for (_, region) in &level.region_map {
-            let node_vec: Vec<Node> = level
-                .node_map
-                .iter()
-                .filter(|(position, _)| {
-                    let in_x_range = position.x >= region.min.x && position.x <= region.max.x;
-                    let in_y_range = position.y >= region.min.y && position.y <= region.max.y;
-                    let in_z_range = position.z >= region.min.z && position.z <= region.max.z;
-
-                    in_x_range && in_y_range && in_z_range
-                })
-                .map(|(_, node)| node.clone())
-                .collect();
-
-            for (index, node1) in node_vec.iter().enumerate() {
-                for node2 in node_vec.iter().skip(index + 1) {
-                    let distance = self.get_path_cost(node1.position, node2.position);
-
-                    let clearance = self
-                        .get_clearance(node1.position)
-                        .min(self.get_clearance(node2.position));
-
-                    if distance < u32::MAX {
-                        let edge_key = (node1.position, node2.position);
-
-                        let edge = Edge {
-                            node1: *node1,
-                            node2: *node2,
-                            level: 1,
-                            weight: distance,
-                            clearance,
-                            kind: graph::edge::Kind::Local,
-                        };
-
-                        level.edge_map.insert(edge_key, edge);
-                    }
-                }
-            }
-        }
-    }
-
-    fn is_solid(&self, position: IVec3) -> bool {
-        let chunk_coordinates = self.grid.position_to_chunk_coordinates(position);
-
-        if chunk_coordinates != IVec3::MAX {
-            if let Some(solid_set) = self.solid_set_map.get(&chunk_coordinates) {
-                let block_id = self.grid.position_to_block_id(position);
-
-                if block_id != block::ID::MAX {
-                    return solid_set.contains(usize::from(block_id));
-                }
-            }
-        }
-
-        false
-    }
-
-    fn calculate_clearance(&self, position: IVec3) -> u32 {
-        let chunk_size = self.grid.chunk_size as i32;
-
-        let ground_is_solid = self.is_solid(position + IVec3::NEG_Y);
-
-        let mut clearance = 0;
-
-        if ground_is_solid {
-            for level in 0..chunk_size {
-                let level_position = position + IVec3::new(0, level, 0);
-
-                if self.is_solid(level_position) {
-                    break;
-                } else {
-                    clearance += 1;
-                }
-            }
-        }
-
-        clearance
-    }
-
-    fn get_clearance(&self, position: IVec3) -> u32 {
-        if let Some(&clearance) = self.clearance_map.get(&position) {
-            clearance
-        } else {
-            0
-        }
-    }
-
-    fn create_node(&self, position: IVec3, level_number: u32) -> Node {
-        let level = &self.level_vec[level_number as usize];
-
-        let region_id = level
-            .region_map
-            .values()
-            .find(|region| {
-                let in_x_range = position.x >= region.min.x && position.x <= region.max.x;
-                let in_y_range = position.y >= region.min.y && position.y <= region.max.y;
-                let in_z_range = position.z >= region.min.z && position.z <= region.max.z;
-
-                in_x_range && in_y_range && in_z_range
-            })
-            .map(|region| region.id)
-            .unwrap()
-            .clone();
-
-        level
-            .node_map
-            .values()
-            .find(|node| {
-                node.region_id == region_id
-                    && node.position == position
-                    && node.level_number == level_number
-            })
-            .map(|node| *node)
-            .unwrap_or(Node {
-                level_number,
-                region_id,
-                position,
-            })
-    }
-
-    fn get_node_path(&self, start_node: Node, end_node: Node) -> Vec<Node> {
-        let level = &self.level_vec[1];
-
-        let mut heap = BinaryHeap::new();
-        let mut came_from = HashMap::new();
-        let mut cost_so_far = HashMap::new();
-
-        heap.push(HeapEntry::new(0, start_node.position));
-        came_from.insert(start_node.position, None);
-        cost_so_far.insert(start_node.position, 0);
-
-        while let Some(HeapEntry { cost, position }) = heap.pop() {
-            if position == end_node.position {
-                let mut path = Vec::new();
-                let mut current = Some(position);
-
-                while let Some(test_position) = current {
-                    if let Some(node) = level.node_map.get(&test_position) {
-                        path.push(*node);
-                    }
-
-                    current = came_from.get(&test_position).cloned().flatten();
-                }
-
-                path.reverse();
-
-                return path;
-            }
-
-            for (&(position1, position2), edge) in level.edge_map.iter() {
-                if position1 == position || position2 == position {
-                    let neighbor_position = if position1 == position {
-                        position2
-                    } else {
-                        position1
-                    };
-
-                    let step_cost = edge.weight;
-
-                    if let Some(next_cost) = cost.checked_add(step_cost) {
-                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                            cost_so_far.insert(neighbor_position, next_cost);
-
-                            let priority = next_cost
-                                + Self::manhattan_distance(neighbor_position, end_node.position);
-
-                            heap.push(HeapEntry::new(priority, neighbor_position));
-                            came_from.insert(neighbor_position, Some(position));
-                        }
-                    }
-                }
-            }
-        }
-
-        Vec::new()
-    }
-
-    fn get_path(&self, start: IVec3, goal: IVec3) -> Vec<IVec3> {
-        if self.get_clearance(start) < 3 || self.get_clearance(goal) < 3 {
-            return Vec::new();
-        }
-
-        let mut heap = BinaryHeap::new();
-        let mut came_from = HashMap::new();
-        let mut cost_so_far = HashMap::new();
-
-        heap.push(HeapEntry::new(0, start));
-        came_from.insert(start, None);
-        cost_so_far.insert(start, 0);
-
-        while let Some(HeapEntry { cost, position }) = heap.pop() {
-            if position == goal {
-                let mut path = Vec::new();
-                let mut current = Some(position);
-
-                while let Some(test_position) = current {
-                    path.push(test_position);
-                    current = came_from.get(&test_position).cloned().flatten();
-                }
-
-                path.reverse();
-
-                return path;
-            }
-
-            let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
-
-            for direction in direction_array {
-                for y_offset in -1..=1 {
-                    let offset = direction + IVec3::Y * y_offset;
-                    let neighbor_position = position + offset;
-
-                    if self.get_clearance(neighbor_position) < 3 {
-                        continue;
-                    }
-
-                    let step_cost = if y_offset == 0 {
-                        MOVEMENT_COST_STRAIGHT
-                    } else {
-                        MOVEMENT_COST_DIAGONAL
-                    };
-
-                    if let Some(next_cost) = cost.checked_add(step_cost) {
-                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                            cost_so_far.insert(neighbor_position, next_cost);
-
-                            let priority =
-                                next_cost + Self::manhattan_distance(neighbor_position, goal);
-
-                            heap.push(HeapEntry::new(priority, neighbor_position));
-                            came_from.insert(neighbor_position, Some(position));
-                        }
-                    }
-                }
-            }
-        }
-
-        Vec::new()
-    }
-
-    fn get_path_cost(&self, start: IVec3, goal: IVec3) -> u32 {
-        if self.get_clearance(start) < 3 || self.get_clearance(goal) < 3 {
-            return u32::MAX;
-        }
-
-        let mut heap = BinaryHeap::new();
-        let mut cost_so_far = HashMap::new();
-
-        heap.push(HeapEntry::new(0, start));
-        cost_so_far.insert(start, 0);
-
-        while let Some(HeapEntry { cost, position }) = heap.pop() {
-            if position == goal {
-                return cost;
-            }
-
-            let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
-
-            for direction in direction_array {
-                for y_offset in -1..=1 {
-                    let offset = direction + IVec3::Y * y_offset;
-                    let neighbor_position = position + offset;
-
-                    if self.get_clearance(neighbor_position) < 3 {
-                        continue;
-                    }
-
-                    let step_cost = if y_offset == 0 {
-                        MOVEMENT_COST_STRAIGHT
-                    } else {
-                        MOVEMENT_COST_DIAGONAL
-                    };
-
-                    if let Some(next_cost) = cost.checked_add(step_cost) {
-                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                            heap.push(HeapEntry::new(next_cost, neighbor_position));
-                            cost_so_far.insert(neighbor_position, next_cost);
-                        }
-                    }
-                }
-            }
-        }
+    // fn build(&mut self) {
+    //     let mut level = Level::new(1);
+
+    //     self.setup_regions(&mut level);
+    //     self.setup_external_edges(&mut level);
+    //     self.setup_internal_edges(&mut level);
+
+    //     self.level_vec.push(level);
+    // }
+
+    // fn setup_regions(&mut self, level: &mut Level) {
+    //     let chunk_radius = self.grid.chunk_radius as i32;
+    //     let world_radius = self.grid.world_radius as i32;
+
+    //     let mut region_map = HashMap::new();
+
+    //     for rx in -world_radius..=world_radius {
+    //         for ry in -world_radius..=world_radius {
+    //             for rz in -world_radius..=world_radius {
+    //                 let region_coordinates = IVec3::new(rx, ry, rz);
+    //                 let region_position =
+    //                     self.grid.chunk_coordinates_to_position(region_coordinates);
+
+    //                 let region_id =
+    //                     u32::from(self.grid.chunk_coordinates_to_chunk_id(region_coordinates));
+
+    //                 let min = region_position - IVec3::splat(chunk_radius);
+    //                 let max = region_position + IVec3::splat(chunk_radius);
+
+    //                 region_map.insert(
+    //                     region_id,
+    //                     Region {
+    //                         id: region_id,
+    //                         coordinates: region_coordinates,
+    //                         min,
+    //                         max,
+    //                     },
+    //                 );
+    //             }
+    //         }
+    //     }
+
+    //     level.region_map = region_map;
+    // }
+
+    // fn setup_external_edges(entrance_vec_slice: &[Entrance], level: &mut Level) {
+    //     for entrance in entrance_vec_slice {
+    //         let transition_vec = entrance.representative_transitions();
+
+    //         for transition in &transition_vec {
+    //             let node1_region_id =
+    //                 u32::from(self.grid.position_to_chunk_id(transition.region1_position));
+
+    //             let node1 = level
+    //                 .node_map
+    //                 .entry(transition.region1_position)
+    //                 .or_insert(Node {
+    //                     depth: 1,
+    //                     region_id: node1_region_id,
+    //                     position: transition.region1_position,
+    //                 })
+    //                 .clone();
+
+    //             let node2_region_id =
+    //                 u32::from(self.grid.position_to_chunk_id(transition.region2_position));
+
+    //             let node2 = level
+    //                 .node_map
+    //                 .entry(transition.region2_position)
+    //                 .or_insert(Node {
+    //                     depth: 1,
+    //                     region_id: node2_region_id,
+    //                     position: transition.region2_position,
+    //                 })
+    //                 .clone();
+
+    //             let clearance = self
+    //                 .get_clearance(transition.region1_position)
+    //                 .min(self.get_clearance(transition.region2_position));
+
+    //             let edge = Edge {
+    //                 node1,
+    //                 node2,
+    //                 level: 1,
+    //                 weight: 10,
+    //                 kind: graph::edge::Kind::External,
+    //             };
+
+    //             level
+    //                 .edge_map
+    //                 .insert((node1.position, node2.position), edge);
+    //         }
+    //     }
+    // }
+
+    // fn setup_internal_edges(level: &mut Level) {
+    //     for (_, region) in &level.region_map {
+    //         let node_vec: Vec<Node> = level
+    //             .node_map
+    //             .iter()
+    //             .filter(|(position, _)| {
+    //                 let in_x_range = position.x >= region.min.x && position.x <= region.max.x;
+    //                 let in_y_range = position.y >= region.min.y && position.y <= region.max.y;
+    //                 let in_z_range = position.z >= region.min.z && position.z <= region.max.z;
+
+    //                 in_x_range && in_y_range && in_z_range
+    //             })
+    //             .map(|(_, node)| node.clone())
+    //             .collect();
+
+    //         for (index, node1) in node_vec.iter().enumerate() {
+    //             for node2 in node_vec.iter().skip(index + 1) {
+    //                 let distance = self.get_path_cost(node1.position, node2.position);
+
+    //                 let clearance = self
+    //                     .get_clearance(node1.position)
+    //                     .min(self.get_clearance(node2.position));
+
+    //                 if distance < u32::MAX {
+    //                     let edge_key = (node1.position, node2.position);
+
+    //                     let edge = Edge {
+    //                         node1: *node1,
+    //                         node2: *node2,
+    //                         level: 1,
+    //                         weight: distance,
+    //                         clearance,
+    //                         kind: graph::edge::Kind::Internal,
+    //                     };
+
+    //                     level.edge_map.insert(edge_key, edge);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // fn is_solid(&self, position: IVec3) -> bool {
+    //     let chunk_coordinates = self.grid.position_to_chunk_coordinates(position);
+
+    //     if chunk_coordinates != IVec3::MAX {
+    //         if let Some(solid_set) = self.solid_set_map.get(&chunk_coordinates) {
+    //             let block_id = self.grid.position_to_block_id(position);
+
+    //             if block_id != block::ID::MAX {
+    //                 return solid_set.contains(usize::from(block_id));
+    //             }
+    //         }
+    //     }
+
+    //     false
+    // }
+
+    // fn calculate_clearance(&self, position: IVec3) -> u32 {
+    //     let chunk_size = self.grid.chunk_size as i32;
+
+    //     let ground_is_solid = self.is_solid(position + IVec3::NEG_Y);
+
+    //     let mut clearance = 0;
+
+    //     if ground_is_solid {
+    //         for level in 0..chunk_size {
+    //             let level_position = position + IVec3::new(0, level, 0);
+
+    //             if self.is_solid(level_position) {
+    //                 break;
+    //             } else {
+    //                 clearance += 1;
+    //             }
+    //         }
+    //     }
+
+    //     clearance
+    // }
+
+    // fn get_clearance(&self, position: IVec3) -> u32 {
+    //     if let Some(&clearance) = self.clearance_map.get(&position) {
+    //         clearance
+    //     } else {
+    //         0
+    //     }
+    // }
+
+    // fn create_node(position: IVec3, level: &mut Level) -> Node {
+    //     let region_id = level
+    //         .region_map
+    //         .values()
+    //         .find(|region| {
+    //             let in_x_range = position.x >= region.min.x && position.x <= region.max.x;
+    //             let in_y_range = position.y >= region.min.y && position.y <= region.max.y;
+    //             let in_z_range = position.z >= region.min.z && position.z <= region.max.z;
+
+    //             in_x_range && in_y_range && in_z_range
+    //         })
+    //         .map(|region| region.id)
+    //         .unwrap()
+    //         .clone();
+
+    //     level
+    //         .node_map
+    //         .values()
+    //         .find(|node| {
+    //             node.region_id == region_id
+    //                 && node.position == position
+    //                 && node.depth == level.depth
+    //         })
+    //         .map(|node| *node)
+    //         .unwrap_or(Node {
+    //             depth: level.depth,
+    //             region_id,
+    //             position,
+    //         })
+    // }
+
+    // fn get_node_path(start_node: Node, end_node: Node, level: &mut Level) -> Vec<Node> {
+    //     let mut heap = BinaryHeap::new();
+    //     let mut came_from = HashMap::new();
+    //     let mut cost_so_far = HashMap::new();
+
+    //     heap.push(HeapEntry::new(0, start_node.position));
+    //     came_from.insert(start_node.position, None);
+    //     cost_so_far.insert(start_node.position, 0);
+
+    //     while let Some(HeapEntry { cost, position }) = heap.pop() {
+    //         if position == end_node.position {
+    //             let mut path = Vec::new();
+    //             let mut current = Some(position);
+
+    //             while let Some(test_position) = current {
+    //                 if let Some(node) = level.node_map.get(&test_position) {
+    //                     path.push(*node);
+    //                 }
+
+    //                 current = came_from.get(&test_position).cloned().flatten();
+    //             }
+
+    //             path.reverse();
+
+    //             return path;
+    //         }
+
+    //         for (&(position1, position2), edge) in level.edge_map.iter() {
+    //             if position1 == position || position2 == position {
+    //                 let neighbor_position = if position1 == position {
+    //                     position2
+    //                 } else {
+    //                     position1
+    //                 };
+
+    //                 let step_cost = edge.weight;
+
+    //                 if let Some(next_cost) = cost.checked_add(step_cost) {
+    //                     if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+    //                         cost_so_far.insert(neighbor_position, next_cost);
+
+    //                         let priority = next_cost
+    //                             + Self::manhattan_distance(neighbor_position, end_node.position);
+
+    //                         heap.push(HeapEntry::new(priority, neighbor_position));
+    //                         came_from.insert(neighbor_position, Some(position));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     Vec::new()
+    // }
+
+    // fn get_path(&self, start: IVec3, goal: IVec3) -> Vec<IVec3> {
+    //     if self.get_clearance(start) < 3 || self.get_clearance(goal) < 3 {
+    //         return Vec::new();
+    //     }
+
+    //     let mut heap = BinaryHeap::new();
+    //     let mut came_from = HashMap::new();
+    //     let mut cost_so_far = HashMap::new();
+
+    //     heap.push(HeapEntry::new(0, start));
+    //     came_from.insert(start, None);
+    //     cost_so_far.insert(start, 0);
+
+    //     while let Some(HeapEntry { cost, position }) = heap.pop() {
+    //         if position == goal {
+    //             let mut path = Vec::new();
+    //             let mut current = Some(position);
+
+    //             while let Some(test_position) = current {
+    //                 path.push(test_position);
+    //                 current = came_from.get(&test_position).cloned().flatten();
+    //             }
+
+    //             path.reverse();
+
+    //             return path;
+    //         }
+
+    //         let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
+
+    //         for direction in direction_array {
+    //             for y_offset in -1..=1 {
+    //                 let offset = direction + IVec3::Y * y_offset;
+    //                 let neighbor_position = position + offset;
+
+    //                 if self.get_clearance(neighbor_position) < 3 {
+    //                     continue;
+    //                 }
+
+    //                 let step_cost = if y_offset == 0 {
+    //                     MOVEMENT_COST_STRAIGHT
+    //                 } else {
+    //                     MOVEMENT_COST_DIAGONAL
+    //                 };
+
+    //                 if let Some(next_cost) = cost.checked_add(step_cost) {
+    //                     if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+    //                         cost_so_far.insert(neighbor_position, next_cost);
+
+    //                         let priority =
+    //                             next_cost + Self::manhattan_distance(neighbor_position, goal);
+
+    //                         heap.push(HeapEntry::new(priority, neighbor_position));
+    //                         came_from.insert(neighbor_position, Some(position));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     Vec::new()
+    // }
+
+    fn get_path_cost(start: IVec3, goal: IVec3, level: &Level) -> u32 {
+        // if self.get_clearance(start) < 3 || self.get_clearance(goal) < 3 {
+        //     return u32::MAX;
+        // }
+
+        // let mut heap = BinaryHeap::new();
+        // let mut cost_so_far = HashMap::new();
+
+        // heap.push(HeapEntry::new(0, start));
+        // cost_so_far.insert(start, 0);
+
+        // while let Some(HeapEntry { cost, position }) = heap.pop() {
+        //     if position == goal {
+        //         return cost;
+        //     }
+
+        //     let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
+
+        //     for direction in direction_array {
+        //         for y_offset in -1..=1 {
+        //             let offset = direction + IVec3::Y * y_offset;
+        //             let neighbor_position = position + offset;
+
+        //             if self.get_clearance(neighbor_position) < 3 {
+        //                 continue;
+        //             }
+
+        //             let step_cost = if y_offset == 0 {
+        //                 MOVEMENT_COST_STRAIGHT
+        //             } else {
+        //                 MOVEMENT_COST_DIAGONAL
+        //             };
+
+        //             if let Some(next_cost) = cost.checked_add(step_cost) {
+        //                 if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
+        //                     heap.push(HeapEntry::new(next_cost, neighbor_position));
+        //                     cost_so_far.insert(neighbor_position, next_cost);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         u32::MAX
     }
@@ -869,4 +869,30 @@ impl Graph {
             + (position1.y - position2.y).abs() as u32
             + (position1.z - position2.z).abs() as u32
     }
+
+    // fn test_full_path(&mut self) {
+    //     let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
+
+    //     println!("Path: ");
+    //     for node in &path_vec {
+    //         println!("{:?}", node);
+    //     }
+
+    //     println!("\nFull Path: ");
+    //     let mut full_path_vec = Vec::new();
+    //     for index in 1..path_vec.len() {
+    //         let node1 = path_vec[index - 1];
+    //         let node2 = path_vec[index];
+
+    //         let path = self.get_path(node1.position, node2.position);
+
+    //         full_path_vec.extend(path);
+    //     }
+
+    //     full_path_vec.dedup();
+
+    //     for position in &full_path_vec {
+    //         println!("{:?}", position);
+    //     }
+    // }
 }

@@ -17,7 +17,7 @@ impl GetClearanceCase {
         assert_ne!(chunk_position, IVec3::MAX, "{:?}", self.description);
 
         let position = chunk_position + self.block_coordinates;
-        let clearance = world.get_clearance(position);
+        let clearance = World::get_clearance(position, &world.grid, &world.chunk_vec);
 
         assert_eq!(clearance, self.expected_clearance, "{:?}", self.description);
     }

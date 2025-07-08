@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     physics::aabb::AABB,
-    population::entity::{self, Detection, Kinematic, Nation, Spatial},
+    population::entity::{self, Decision, Detection, Kinematic, Nation, Spatial},
     world::{chunk, World},
 };
 use glam::Vec3;
@@ -9,6 +9,7 @@ pub struct Agent {
     pub id: entity::ID,
     pub chunk_id: chunk::ID,
     pub chunk_updated: bool,
+    pub decision: Decision,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub detection: Detection,
@@ -22,6 +23,7 @@ impl Agent {
             id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
+            decision: Decision::default(),
             spatial: Spatial::default(),
             kinematic: Kinematic::default(),
             detection: Detection::default(),
@@ -39,6 +41,8 @@ impl Agent {
             self.chunk_updated = true;
             self.chunk_id = chunk_id;
         }
+
+        self.decision.tick(world);
     }
 
     pub fn set_world_position(&mut self, world_position: Vec3) {
