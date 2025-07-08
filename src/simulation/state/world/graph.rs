@@ -80,36 +80,23 @@ impl Graph {
     //     node_vec
     // }
 
-    // fn create_node(position: IVec3, level: &mut Level) -> Node {
-    //     let region_id = level
-    //         .region_map
-    //         .values()
-    //         .find(|region| {
-    //             let in_x_range = position.x >= region.min.x && position.x <= region.max.x;
-    //             let in_y_range = position.y >= region.min.y && position.y <= region.max.y;
-    //             let in_z_range = position.z >= region.min.z && position.z <= region.max.z;
+    fn create_node(position: IVec3, level: &mut Level) -> Node {
+        let region_position = Self::get_region_position(position, level.region_size);
 
-    //             in_x_range && in_y_range && in_z_range
-    //         })
-    //         .map(|region| region.id)
-    //         .unwrap()
-    //         .clone();
+        let node_map = level
+            .region_node_map
+            .entry(region_position)
+            .or_insert_with(HashMap::new);
 
-    //     level
-    //         .node_map
-    //         .values()
-    //         .find(|node| {
-    //             node.region_id == region_id
-    //                 && node.position == position
-    //                 && node.depth == level.depth
-    //         })
-    //         .map(|node| *node)
-    //         .unwrap_or(Node {
-    //             depth: level.depth,
-    //             region_id,
-    //             position,
-    //         })
-    // }
+        if let Some(existing_node) = node_map.get(&position) {
+            *existing_node
+        } else {
+            let node = Node::new(position, region_position, level.depth);
+            node_map.insert(position, node);
+
+            node
+        }
+    }
 
     // fn connect_node(node: Node, level: &mut Level) {
     //     let mut edge_vec = Vec::new();
@@ -178,13 +165,13 @@ impl Graph {
                                     level
                                         .region_node_map
                                         .entry(position)
-                                        .or_insert(HashMap::new())
+                                        .or_insert_with(HashMap::new)
                                         .insert(position, node);
 
                                     level
                                         .region_node_map
                                         .entry(position)
-                                        .or_insert(HashMap::new())
+                                        .or_insert_with(HashMap::new)
                                         .insert(neighbor_position, neighbor_node);
 
                                     let cost = if vertical_offset.y == 0 {
@@ -581,7 +568,7 @@ impl Graph {
                 level
                     .region_node_map
                     .entry(node1_region_position)
-                    .or_insert(HashMap::new())
+                    .or_insert_with(HashMap::new)
                     .insert(transition.region1_position, node1);
 
                 let node2_region_position =
@@ -596,7 +583,7 @@ impl Graph {
                 level
                     .region_node_map
                     .entry(node2_region_position)
-                    .or_insert(HashMap::new())
+                    .or_insert_with(HashMap::new)
                     .insert(transition.region2_position, node2);
 
                 let edge_key = (node1.position, node2.position);
