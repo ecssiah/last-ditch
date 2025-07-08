@@ -2,10 +2,10 @@ use crate::simulation::consts::*;
 use std::time::{Duration, Instant};
 
 pub struct Timing {
-    start_instant: Instant,
-    next_instant: Instant,
-    ticks_total: u32,
-    ticks_frame: u32,
+    pub start_instant: Instant,
+    pub next_instant: Instant,
+    pub ticks_total: u32,
+    pub ticks_frame: u32,
 }
 
 impl Timing {
