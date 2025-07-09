@@ -2,7 +2,7 @@ use crate::simulation::{
     self,
     consts::{MOVEMENT_COST_DIAGONAL, MOVEMENT_COST_STRAIGHT},
     state::{
-        world::graph::{edge, Edge, Graph, Level, Node},
+        world::graph::{edge, Edge, Level, Node},
         World,
     },
 };

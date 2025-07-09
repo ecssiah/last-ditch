@@ -40,23 +40,31 @@ impl Graph {
     }
 
     pub fn test_full_path(&mut self) {
-        let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
+        let level_1_path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
 
         println!("Level 1 Path:");
-        for node in &path_vec {
+        for node in &level_1_path_vec {
             println!("{:?}", node);
         }
 
         let level_0 = &mut self.level_vec[0];
 
-        for index in 1..path_vec.len() {
+        for index in 1..level_1_path_vec.len() {
             println!("Level 0 Path:");
-            let node1 = path_vec[index - 1];
-            let node2 = path_vec[index];
+            let node1 = level_1_path_vec[index - 1];
+            let node2 = level_1_path_vec[index];
 
-            let path_vec = Self::get_path(node1, node2, level_0);
+            let node1_level_0 =
+                Level::get_node(node1.position, node1.position, &level_0.region_node_map).unwrap();
+            let node1_level_1 =
+                Level::get_node(node2.position, node2.position, &level_0.region_node_map).unwrap();
 
-            for node in &path_vec {
+            println!("  Node1: {:?}", node1_level_0);
+            println!("  Node2: {:?}", node1_level_1);
+
+            let level_0_path_vec = Self::get_path(*node1_level_0, *node1_level_1, level_0);
+
+            for node in &level_0_path_vec {
                 println!("{:?}", node);
             }
         }
@@ -119,23 +127,6 @@ impl Graph {
     pub fn construct(grid: &Grid, chunk_vec_slice: &[Chunk], max_depth: usize) -> Self {
         let level_0 = Graph::setup_level_0(grid, chunk_vec_slice);
         let level_1 = Graph::setup_level_1(grid, chunk_vec_slice, &level_0);
-
-        // for (region_position, node_map) in &level_0.region_node_map {
-        //     log::info!("{:?}", region_position);
-        //     // if region_position == &IVec3::new(-4, -4, 5) {
-        //     for node in node_map {
-        //         log::info!("{:?}", node);
-        //     }
-        //     // }
-        // }
-
-        for (&(position1, position2), edge) in &level_0.edge_map {
-            if position1 == IVec3::new(-2, -2, 11) {
-                println!("pos1: {:?}", edge);
-            } else if position2 == IVec3::new(-2, -2, 11) {
-                println!("pos2: {:?}", edge);
-            }
-        }
 
         Self {
             max_depth,
