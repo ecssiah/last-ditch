@@ -1,19 +1,19 @@
 pub mod edge;
 pub mod entrance;
-pub mod heap_entry;
 pub mod level;
 pub mod node;
+pub mod node_entry;
 pub mod transition;
 
 pub use edge::Edge;
 pub use entrance::Entrance;
-pub use heap_entry::HeapEntry;
 pub use level::Level;
 pub use node::Node;
+pub use node_entry::NodeEntry;
 pub use transition::Transition;
 
 use crate::simulation::{
-    consts::{MOVEMENT_COST_DIAGONAL, MOVEMENT_COST_STRAIGHT},
+    consts::*,
     state::{
         world::{
             chunk::Chunk,
@@ -39,49 +39,50 @@ impl Graph {
         }
     }
 
-    // fn test_full_path(&mut self) {
-    //     let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
+    pub fn test_full_path(&mut self) {
+        let path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
 
-    //     println!("Path: ");
-    //     for node in &path_vec {
-    //         println!("{:?}", node);
-    //     }
+        println!("Path: ");
+        for node in &path_vec {
+            println!("{:?}", node);
+        }
+        println!("\n");
 
-    //     println!("\nFull Path: ");
-    //     let mut full_path_vec = Vec::new();
-    //     for index in 1..path_vec.len() {
-    //         let node1 = path_vec[index - 1];
-    //         let node2 = path_vec[index];
+        println!("Full Path: ");
+        let level_0 = &mut self.level_vec[0];
+        let mut full_path_vec = Vec::new();
 
-    //         let path = self.get_path(node1.position, node2.position);
+        for index in 1..path_vec.len() {
+            let node1 = path_vec[index - 1];
+            let node2 = path_vec[index];
 
-    //         full_path_vec.extend(path);
-    //     }
+            let path = Self::get_path(node1, node2, level_0);
 
-    //     full_path_vec.dedup();
+            full_path_vec.extend(path);
+        }
 
-    //     for position in &full_path_vec {
-    //         println!("{:?}", position);
-    //     }
-    // }
+        full_path_vec.dedup();
 
-    // pub fn find_path(&mut self, start: IVec3, end: IVec3) -> Vec<Node> {
-    //     let level = &mut self.level_vec[1];
-    //     level.reset();
+        for position in &full_path_vec {
+            println!("{:?}", position);
+        }
+    }
 
-    //     let start_node = Self::create_node(start, level);
-    //     let end_node = Self::create_node(end, level);
+    pub fn find_path(&mut self, start: IVec3, end: IVec3) -> Vec<Node> {
+        let level = &mut self.level_vec[1];
+        level.reset();
 
-    //     Self::connect_node(start_node, level);
-    //     Self::connect_node(end_node, level);
+        let start_node = Self::create_node(start, level);
+        let end_node = Self::create_node(end, level);
 
-    //     let node_vec = Self::get_node_path(start_node, end_node, level);
+        Self::connect_node(start_node, level);
+        Self::connect_node(end_node, level);
 
-    //     node_vec
-    // }
+        Self::get_path(start_node, end_node, level)
+    }
 
     fn create_node(position: IVec3, level: &mut Level) -> Node {
-        let region_position = Self::get_region_position(position, level.region_size);
+        let region_position = Self::get_region_position(position, level);
 
         let node_map = level
             .region_node_map
@@ -98,33 +99,33 @@ impl Graph {
         }
     }
 
-    // fn connect_node(node: Node, level: &mut Level) {
-    //     let mut edge_vec = Vec::new();
+    fn connect_node(node: Node, level: &mut Level) {
+        let mut edge_vec = Vec::new();
 
-    //     for transition_node in level.get_region_node_vec(node.region_id) {
-    //         if node.position == transition_node.position {
-    //             continue;
-    //         }
+        if let Some(node_map) = level.region_node_map.get(&node.region_position) {
+            for (_, &region_node) in node_map {
+                if node.position == region_node.position {
+                    continue;
+                }
 
-    //         let weight = Self::get_path_cost(node.position, transition_node.position, level);
+                let cost = Self::get_path_cost(node, region_node, level);
 
-    //         let edge = Edge {
-    //             node1: node,
-    //             node2: *transition_node,
-    //             depth: 1,
-    //             weight,
-    //             kind: graph::edge::Kind::Internal,
-    //         };
+                edge_vec.push(Edge::new(
+                    node,
+                    region_node,
+                    level.depth,
+                    cost,
+                    edge::Kind::Internal,
+                ));
+            }
+        }
 
-    //         edge_vec.push(edge);
-    //     }
+        level.add_search_node(node);
 
-    //     level.add_search_node(node);
-
-    //     for edge in edge_vec.drain(..) {
-    //         level.add_search_edge(edge);
-    //     }
-    // }
+        for edge in edge_vec {
+            level.add_search_edge(edge);
+        }
+    }
 
     pub fn construct(grid: &Grid, chunk_vec_slice: &[Chunk], max_depth: usize) -> Self {
         let level_0 = Graph::setup_level_0(grid, chunk_vec_slice);
@@ -137,7 +138,7 @@ impl Graph {
     }
 
     fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
-        let mut level = Level::new(0, 1);
+        let mut level = Level::new(0, 1, grid.world_limit as usize);
 
         let world_limit = grid.world_limit as i32;
 
@@ -149,7 +150,7 @@ impl Graph {
                     let node = Node::new(position, position, 0);
                     let clearance = World::get_clearance(position, grid, chunk_vec_slice);
 
-                    if clearance >= 3 {
+                    if clearance >= MINIMUM_CLEARANCE {
                         for direction_offset in grid::Direction::axis_offset_array() {
                             for vertical_offset in [-IVec3::NEG_Y, IVec3::ZERO, IVec3::Y] {
                                 let neighbor_position =
@@ -158,7 +159,7 @@ impl Graph {
                                 let neighbor_clearance =
                                     World::get_clearance(neighbor_position, grid, chunk_vec_slice);
 
-                                if neighbor_clearance >= 3 {
+                                if neighbor_clearance >= MINIMUM_CLEARANCE {
                                     let neighbor_node =
                                         Node::new(neighbor_position, neighbor_position, 0);
 
@@ -203,7 +204,7 @@ impl Graph {
     }
 
     fn setup_level_1(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
-        let mut level = Level::new(1, grid.chunk_size as usize);
+        let mut level = Level::new(1, grid.chunk_size as usize, grid.world_limit as usize);
 
         let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
 
@@ -215,12 +216,13 @@ impl Graph {
 
     fn setup_entrance_vec(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Vec<Entrance> {
         let mut entrance_vec = Vec::new();
+
         let world_radius = grid.world_radius as i32;
 
-        for cx in -world_radius..=world_radius - 1 {
-            for cy in -world_radius..=world_radius - 1 {
-                for cz in -world_radius..=world_radius - 1 {
-                    let chunk_coordinates = IVec3::new(cx, cy, cz);
+        for x in -world_radius..world_radius {
+            for y in -world_radius..world_radius {
+                for z in -world_radius..world_radius {
+                    let chunk_coordinates = IVec3::new(x, y, z);
 
                     let chunk_index =
                         u32::from(grid.chunk_coordinates_to_chunk_id(chunk_coordinates));
@@ -293,7 +295,7 @@ impl Graph {
                     visited_set.insert(block_position + IVec3::Y * level as i32);
                 });
 
-                if block_clearance >= 3 {
+                if block_clearance >= MINIMUM_CLEARANCE {
                     let neighbor_chunk_coordinates = chunk_coordinates + IVec3::X;
 
                     let neighbor_positions = [
@@ -308,7 +310,7 @@ impl Graph {
                         let neighbor_clearance =
                             World::get_clearance(neighbor_position, grid, chunk_vec_slice);
 
-                        if neighbor_clearance >= 3 {
+                        if neighbor_clearance >= MINIMUM_CLEARANCE {
                             if !entrance_active {
                                 let neighbor_chunk_index = u32::from(
                                     grid.chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
@@ -329,8 +331,8 @@ impl Graph {
 
                             if let Some(entrance) = entrance_vec.get_mut(last_entrance_index) {
                                 let transition = Transition {
-                                    region1_position: block_position,
-                                    region2_position: neighbor_position,
+                                    position1: block_position,
+                                    position2: neighbor_position,
                                 };
 
                                 entrance.transition_vec.push(transition);
@@ -372,7 +374,7 @@ impl Graph {
                 let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
                 let block_clearance = World::get_clearance(block_position, grid, chunk_vec_slice);
 
-                if block_clearance >= 3 {
+                if block_clearance >= MINIMUM_CLEARANCE {
                     let mut neighbor_position_vec = Vec::new();
 
                     let neighbor_position_array = [
@@ -386,7 +388,7 @@ impl Graph {
                         let neighbor_clearance =
                             World::get_clearance(neighbor_position, grid, chunk_vec_slice);
 
-                        if neighbor_clearance >= 3 {
+                        if neighbor_clearance >= MINIMUM_CLEARANCE {
                             neighbor_position_vec.push(neighbor_position);
                         }
                     }
@@ -444,8 +446,8 @@ impl Graph {
 
                 for neighbor_position in neighbor_position_vec {
                     let transition = Transition {
-                        region1_position: position,
-                        region2_position: *neighbor_position,
+                        position1: position,
+                        position2: *neighbor_position,
                     };
 
                     entrance.transition_vec.push(transition);
@@ -490,7 +492,7 @@ impl Graph {
                     visited_set.insert(block_position + IVec3::Y * level as i32);
                 });
 
-                if block_clearance >= 3 {
+                if block_clearance >= MINIMUM_CLEARANCE {
                     let neighbor_chunk_coordinates = chunk_coordinates + IVec3::Z;
 
                     let neighbor_position_array = [
@@ -505,7 +507,7 @@ impl Graph {
                         let neighbor_clearance =
                             World::get_clearance(neighbor_position, grid, chunk_vec_slice);
 
-                        if neighbor_clearance >= 3 {
+                        if neighbor_clearance >= MINIMUM_CLEARANCE {
                             if !entrance_active {
                                 let neighbor_chunk_index = u32::from(
                                     grid.chunk_coordinates_to_chunk_id(neighbor_chunk_coordinates),
@@ -526,8 +528,8 @@ impl Graph {
 
                             if let Some(entrance) = entrance_vec.get_mut(last_entrance_index) {
                                 let transition = Transition {
-                                    region1_position: block_position,
-                                    region2_position: neighbor_position,
+                                    position1: block_position,
+                                    position2: neighbor_position,
                                 };
 
                                 entrance.transition_vec.push(transition);
@@ -553,38 +555,34 @@ impl Graph {
 
     fn setup_external_edges(entrance_vec_slice: &[Entrance], level: &mut Level) {
         for entrance in entrance_vec_slice {
-            let transition_vec = entrance.representative_transitions();
-
-            for transition in &transition_vec {
-                let node1_region_position =
-                    Self::get_region_position(transition.region1_position, level.region_size);
+            for transition in entrance.representative_transitions() {
+                let node1_region_position = Self::get_region_position(transition.position1, level);
 
                 let node1 = Node {
                     depth: 1,
                     region_position: node1_region_position,
-                    position: transition.region1_position,
+                    position: transition.position1,
                 };
 
                 level
                     .region_node_map
                     .entry(node1_region_position)
                     .or_insert_with(HashMap::new)
-                    .insert(transition.region1_position, node1);
+                    .insert(transition.position1, node1);
 
-                let node2_region_position =
-                    Self::get_region_position(transition.region2_position, level.region_size);
+                let node2_region_position = Self::get_region_position(transition.position2, level);
 
                 let node2 = Node {
                     depth: 1,
                     region_position: node2_region_position,
-                    position: transition.region2_position,
+                    position: transition.position2,
                 };
 
                 level
                     .region_node_map
                     .entry(node2_region_position)
                     .or_insert_with(HashMap::new)
-                    .insert(transition.region2_position, node2);
+                    .insert(transition.position2, node2);
 
                 let edge_key = (node1.position, node2.position);
                 let edge = Edge::new(node1, node2, 1, 10, edge::Kind::External);
@@ -596,14 +594,14 @@ impl Graph {
 
     fn setup_internal_edges(level: &mut Level) {
         for (_, node_map) in &level.region_node_map {
-            for (index, (_, node1)) in node_map.iter().enumerate() {
-                for (_, node2) in node_map.iter().skip(index + 1) {
-                    let cost = Self::get_path_cost(*node1, *node2, level);
+            for (index, (_, &node1)) in node_map.iter().enumerate() {
+                for (_, &node2) in node_map.iter().skip(index + 1) {
+                    let cost = Self::get_path_cost(node1, node2, level);
 
                     if cost < u32::MAX {
                         let edge_key = (node1.position, node2.position);
 
-                        let edge = Edge::new(*node1, *node2, 1, cost, edge::Kind::Internal);
+                        let edge = Edge::new(node1, node2, 1, cost, edge::Kind::Internal);
 
                         level.edge_map.insert(edge_key, edge);
                     }
@@ -612,15 +610,17 @@ impl Graph {
         }
     }
 
-    fn get_region_position(node_position: IVec3, region_size: usize) -> IVec3 {
-        if region_size == 1 {
+    fn get_region_position(node_position: IVec3, level: &Level) -> IVec3 {
+        if level.region_size == 1 {
             node_position
         } else {
-            IVec3::new(
-                node_position.x.div_euclid(region_size as i32) * region_size as i32,
-                node_position.y.div_euclid(region_size as i32) * region_size as i32,
-                node_position.z.div_euclid(region_size as i32) * region_size as i32,
-            )
+            let region_size = level.region_size as i32;
+            let world_limit = level.world_limit as i32;
+
+            let node_position_indexable = node_position + world_limit;
+            let region_coordinates = (node_position_indexable / region_size) * region_size;
+
+            region_coordinates - world_limit
         }
     }
 
@@ -628,41 +628,29 @@ impl Graph {
         let mut heap = BinaryHeap::new();
         let mut cost_so_far = HashMap::new();
 
-        heap.push(HeapEntry::new(0, start_node.position));
-        cost_so_far.insert(start_node.position, 0);
+        heap.push(NodeEntry::new(0, start_node));
+        cost_so_far.insert(start_node, 0);
 
-        while let Some(HeapEntry { cost, position }) = heap.pop() {
-            if position == end_node.position {
+        while let Some(NodeEntry { cost, node }) = heap.pop() {
+            if node == end_node {
                 return cost;
             }
 
-            let direction_array = [IVec3::X, IVec3::NEG_X, IVec3::Z, IVec3::NEG_Z];
+            for edge in Level::edge_vec(node.position, &level.edge_map) {
+                if let Some(next_cost) = cost.checked_add(edge.weight) {
+                    let neighbor_node = if node.position == edge.node1.position {
+                        edge.node2
+                    } else {
+                        edge.node1
+                    };
 
-            for direction in direction_array {
-                for y_offset in -1..=1 {
-                    let offset = direction + IVec3::Y * y_offset;
-                    let neighbor_position = position + offset;
+                    if next_cost < *cost_so_far.get(&neighbor_node).unwrap_or(&u32::MAX) {
+                        cost_so_far.insert(neighbor_node, next_cost);
 
-                    let region_position =
-                        Self::get_region_position(neighbor_position, level.region_size);
+                        let priority = next_cost
+                            + Self::manhattan_distance(neighbor_node.position, end_node.position);
 
-                    if let Some(node_map) = level.region_node_map.get(&region_position) {
-                        if node_map.contains_key(&neighbor_position) {
-                            let step_cost = if y_offset == 0 {
-                                MOVEMENT_COST_STRAIGHT
-                            } else {
-                                MOVEMENT_COST_DIAGONAL
-                            };
-
-                            if let Some(next_cost) = cost.checked_add(step_cost) {
-                                if next_cost
-                                    < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX)
-                                {
-                                    heap.push(HeapEntry::new(next_cost, neighbor_position));
-                                    cost_so_far.insert(neighbor_position, next_cost);
-                                }
-                            }
-                        }
+                        heap.push(NodeEntry::new(priority, neighbor_node));
                     }
                 }
             }
@@ -676,26 +664,18 @@ impl Graph {
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
 
-        heap.push(HeapEntry::new(0, start_node.position));
-        came_from.insert(start_node.position, None);
-        cost_so_far.insert(start_node.position, 0);
+        heap.push(NodeEntry::new(0, start_node));
+        came_from.insert(start_node, None);
+        cost_so_far.insert(start_node, 0);
 
-        while let Some(HeapEntry { cost, position }) = heap.pop() {
-            if position == end_node.position {
+        while let Some(NodeEntry { cost, node }) = heap.pop() {
+            if node == end_node {
                 let mut path = Vec::new();
-                let mut current = Some(position);
+                let mut current = Some(node);
 
-                while let Some(test_position) = current {
-                    let region_position =
-                        Self::get_region_position(test_position, level.region_size);
-
-                    if let Some(node_map) = level.region_node_map.get(&region_position) {
-                        if let Some(node) = node_map.get(&test_position) {
-                            path.push(*node);
-                        }
-                    }
-
-                    current = came_from.get(&test_position).cloned().flatten();
+                while let Some(test_node) = current {
+                    path.push(test_node);
+                    current = came_from.get(&test_node).cloned().flatten();
                 }
 
                 path.reverse();
@@ -703,26 +683,22 @@ impl Graph {
                 return path;
             }
 
-            for (&(position1, position2), edge) in level.edge_map.iter() {
-                if position1 == position || position2 == position {
-                    let neighbor_position = if position1 == position {
-                        position2
-                    } else {
-                        position1
-                    };
+            for edge in Level::edge_vec(node.position, &level.edge_map) {
+                let neighbor_node = if node.position == edge.node1.position {
+                    edge.node2
+                } else {
+                    edge.node1
+                };
 
-                    let step_cost = edge.weight;
+                if let Some(next_cost) = cost.checked_add(edge.weight) {
+                    if next_cost < *cost_so_far.get(&neighbor_node).unwrap_or(&u32::MAX) {
+                        cost_so_far.insert(neighbor_node, next_cost);
+                        came_from.insert(neighbor_node, Some(node));
 
-                    if let Some(next_cost) = cost.checked_add(step_cost) {
-                        if next_cost < *cost_so_far.get(&neighbor_position).unwrap_or(&u32::MAX) {
-                            cost_so_far.insert(neighbor_position, next_cost);
+                        let priority = next_cost
+                            + Self::manhattan_distance(neighbor_node.position, end_node.position);
 
-                            let priority = next_cost
-                                + Self::manhattan_distance(neighbor_position, end_node.position);
-
-                            heap.push(HeapEntry::new(priority, neighbor_position));
-                            came_from.insert(neighbor_position, Some(position));
-                        }
+                        heap.push(NodeEntry::new(priority, neighbor_node));
                     }
                 }
             }

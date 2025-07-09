@@ -1,6 +1,6 @@
 use glam::IVec3;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Node {
     pub position: IVec3,
     pub region_position: IVec3,

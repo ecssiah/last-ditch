@@ -6,7 +6,7 @@ pub enum Kind {
     External,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Edge {
     pub node1: Node,
     pub node2: Node,

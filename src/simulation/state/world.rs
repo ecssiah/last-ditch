@@ -101,7 +101,9 @@ impl World {
             simulation::Kind::GraphTest => {
                 constructor::world::graph_test::construct(world);
 
-                let graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
+                let mut graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
+
+                graph.test_full_path();
 
                 let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(graph);

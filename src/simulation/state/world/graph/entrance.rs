@@ -24,7 +24,7 @@ impl Entrance {
         if let Some(min_x_transition) = self
             .transition_vec
             .iter()
-            .min_by_key(|transition| transition.region1_position.x)
+            .min_by_key(|transition| transition.position1.x)
         {
             candidates.push(*min_x_transition);
         }
@@ -32,7 +32,7 @@ impl Entrance {
         if let Some(max_x_transition) = self
             .transition_vec
             .iter()
-            .max_by_key(|transition| transition.region1_position.x)
+            .max_by_key(|transition| transition.position1.x)
         {
             candidates.push(*max_x_transition);
         }
@@ -40,7 +40,7 @@ impl Entrance {
         if let Some(min_y_transition) = self
             .transition_vec
             .iter()
-            .min_by_key(|transition| transition.region1_position.y)
+            .min_by_key(|transition| transition.position1.y)
         {
             candidates.push(*min_y_transition);
         }
@@ -48,7 +48,7 @@ impl Entrance {
         if let Some(max_y_transition) = self
             .transition_vec
             .iter()
-            .max_by_key(|transition| transition.region1_position.y)
+            .max_by_key(|transition| transition.position1.y)
         {
             candidates.push(*max_y_transition);
         }
@@ -56,7 +56,7 @@ impl Entrance {
         if let Some(min_z_transition) = self
             .transition_vec
             .iter()
-            .min_by_key(|transition| transition.region1_position.z)
+            .min_by_key(|transition| transition.position1.z)
         {
             candidates.push(*min_z_transition);
         }
@@ -64,7 +64,7 @@ impl Entrance {
         if let Some(max_z_transition) = self
             .transition_vec
             .iter()
-            .max_by_key(|transition| transition.region1_position.z)
+            .max_by_key(|transition| transition.position1.z)
         {
             candidates.push(*max_z_transition);
         }
@@ -72,7 +72,7 @@ impl Entrance {
         let position_sum = self
             .transition_vec
             .iter()
-            .map(|transition| transition.region1_position.as_vec3())
+            .map(|transition| transition.position1.as_vec3())
             .fold(Vec3::ZERO, |position_sum, position| position_sum + position);
 
         let transition_count = self.transition_vec.len().max(1) as f32;
@@ -80,7 +80,7 @@ impl Entrance {
         let average_transition_position = position_sum / transition_count;
 
         let center_transition = self.transition_vec.iter().min_by_key(|transition| {
-            let delta = transition.region1_position.as_vec3() - average_transition_position;
+            let delta = transition.position1.as_vec3() - average_transition_position;
             let delta_length_squared = (delta.length_squared() * 1000.0) as i32;
 
             delta_length_squared
@@ -91,9 +91,7 @@ impl Entrance {
         }
 
         let mut seen = HashSet::new();
-        candidates.retain(|transition| {
-            seen.insert((transition.region1_position, transition.region2_position))
-        });
+        candidates.retain(|transition| seen.insert((transition.position1, transition.position2)));
 
         candidates
     }
