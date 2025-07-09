@@ -1,19 +1,19 @@
 use crate::simulation::state::world::graph::Transition;
-use glam::Vec3;
+use glam::{IVec3, Vec3};
 use std::collections::HashSet;
 
 #[derive(Clone)]
 pub struct Entrance {
-    pub region1_id: u32,
-    pub region2_id: u32,
+    pub region_position1: IVec3,
+    pub region_position2: IVec3,
     pub transition_vec: Vec<Transition>,
 }
 
 impl Entrance {
-    pub fn new(region1_id: u32, region2_id: u32) -> Self {
+    pub fn new(region_position1: IVec3, region_position2: IVec3) -> Self {
         Self {
-            region1_id,
-            region2_id,
+            region_position1,
+            region_position2,
             transition_vec: Vec::new(),
         }
     }

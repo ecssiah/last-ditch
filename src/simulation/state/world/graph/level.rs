@@ -26,6 +26,16 @@ impl Level {
         }
     }
 
+    pub fn get_node(
+        position: IVec3,
+        region_position: IVec3,
+        region_node_map: &HashMap<IVec3, HashMap<IVec3, Node>>,
+    ) -> Option<&Node> {
+        let node_map = region_node_map.get(&region_position)?;
+
+        node_map.get(&position)
+    }
+
     pub fn edge_vec(position: IVec3, edge_map: &HashMap<(IVec3, IVec3), Edge>) -> Vec<Edge> {
         edge_map
             .iter()
