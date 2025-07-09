@@ -36,6 +36,46 @@ impl Level {
         node_map.get(&position)
     }
 
+    pub fn get_edge(
+        position1: IVec3,
+        position2: IVec3,
+        edge_map: &HashMap<(IVec3, IVec3), Edge>,
+    ) -> Option<&Edge> {
+        edge_map.get(&(position1, position2))
+    }
+
+    pub fn attach_node(node: Node, region_node_map: &mut HashMap<IVec3, HashMap<IVec3, Node>>) {
+        let node_map = region_node_map
+            .entry(node.region_position)
+            .or_insert_with(HashMap::new);
+
+        node_map.insert(node.position, node);
+    }
+
+    pub fn attach_edge(edge: Edge, edge_map: &mut HashMap<(IVec3, IVec3), Edge>) {
+        edge_map.insert((edge.node1.position, edge.node2.position), edge);
+    }
+
+    pub fn register_search_node(node: Node, search_node_key_vec: &mut Vec<(IVec3, IVec3)>) {
+        search_node_key_vec.push((node.region_position, node.position));
+    }
+
+    pub fn register_search_edge(edge: Edge, search_edge_key_vec: &mut Vec<(IVec3, IVec3)>) {
+        search_edge_key_vec.push((edge.node1.position, edge.node2.position));
+    }
+
+    pub fn reset(&mut self) {
+        for (region_position, node_position) in self.search_node_keys_vec.drain(..) {
+            if let Some(node_map) = self.region_node_map.get_mut(&region_position) {
+                node_map.remove(&node_position);
+            }
+        }
+
+        for search_edge_key in self.search_edge_key_vec.drain(..) {
+            self.edge_map.remove(&search_edge_key);
+        }
+    }
+
     pub fn edge_vec(position: IVec3, edge_map: &HashMap<(IVec3, IVec3), Edge>) -> Vec<Edge> {
         edge_map
             .iter()
@@ -62,36 +102,5 @@ impl Level {
                 }
             })
             .collect()
-    }
-
-    pub fn add_search_node(&mut self, node: Node) {
-        let node_map = self
-            .region_node_map
-            .entry(node.region_position)
-            .or_insert_with(HashMap::new);
-
-        node_map.insert(node.position, node);
-
-        self.search_node_keys_vec
-            .push((node.region_position, node.position));
-    }
-
-    pub fn add_search_edge(&mut self, edge: Edge) {
-        let edge_key = (edge.node1.position, edge.node2.position);
-
-        self.edge_map.insert(edge_key, edge);
-        self.search_edge_key_vec.push(edge_key);
-    }
-
-    pub fn reset(&mut self) {
-        for (region_position, node_position) in self.search_node_keys_vec.drain(..) {
-            if let Some(node_map) = self.region_node_map.get_mut(&region_position) {
-                node_map.remove(&node_position);
-            }
-        }
-
-        for search_edge_key in self.search_edge_key_vec.drain(..) {
-            self.edge_map.remove(&search_edge_key);
-        }
     }
 }

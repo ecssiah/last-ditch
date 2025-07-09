@@ -28,7 +28,7 @@ pub const GRAVITY_ACCELERATION: f32 = 16.0;
 pub const EPSILON_COLLISION: f32 = 0.001;
 pub const MAX_RESOLVE_ITERATIONS: usize = 40;
 pub const MAXIMUM_CLEARANCE: u32 = 5;
-pub const MINIMUM_CLEARANCE: u32 = 1;
+pub const MINIMUM_CLEARANCE: u32 = 3;
 pub const CONTACT_OFFSET: f32 = 0.001;
 
 pub const JUDGE_SPEED_X: f32 = 6.0;
