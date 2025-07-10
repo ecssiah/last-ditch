@@ -4,7 +4,11 @@ use std::ops::{Add, AddAssign};
 pub struct Tick(u64);
 
 impl Tick {
-    pub const ZERO: Tick = Tick(0);
+    pub const ZERO: Tick = Self(0);
+
+    pub fn new(value: u32) -> Self {
+        Self(value as u64)
+    }
 }
 
 impl Add<u64> for Tick {

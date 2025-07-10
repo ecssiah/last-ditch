@@ -3,7 +3,7 @@ use crate::simulation::state::{
     physics::aabb::AABB,
     population::entity::{
         self,
-        decision::{self, plan},
+        decision::{self, plan, Plan},
         Decision, Detection, Kinematic, Nation, Spatial,
     },
     world::{chunk, World},
@@ -62,9 +62,11 @@ impl Agent {
             match result {
                 compute::Result::Path(kind) => match kind {
                     compute::result::path::Kind::Regional(regional_data) => {
-                        let plan = decision::Plan::new(plan::Priority::High, plan::Kind::Travel);
+                        let mut plan =
+                            decision::Plan::new(plan::Priority::High, plan::Kind::Travel);
+                        plan.state = plan::State::Active;
 
-                        let plan_data = decision::plan::data::Travel {
+                        let travel_data = decision::plan::data::Travel {
                             regional_path_vec: regional_data.position_vec,
                             local_path_vec: Vec::new(),
                         };
@@ -73,7 +75,7 @@ impl Agent {
                             .decision
                             .plan_data
                             .travel_data
-                            .insert(plan.id, plan_data);
+                            .insert(plan.id, travel_data);
 
                         agent.decision.plan_heap.push(plan);
                     }
@@ -82,10 +84,16 @@ impl Agent {
             }
         }
 
-        while let Some(mut plan) = agent.decision.plan_heap.pop() {
+        let mut current_plans: Vec<_> = agent.decision.plan_heap.drain().collect();
+
+        while let Some(mut plan) = current_plans.pop() {
             match plan.kind {
                 plan::Kind::Idle => match plan.state {
-                    plan::State::Init => todo!(),
+                    plan::State::Init => {
+                        plan.state = plan::State::Active;
+
+                        agent.decision.plan_heap.push(plan);
+                    }
                     plan::State::Active => {
                         if let Some(idle_data) =
                             agent.decision.plan_data.idle_data.get_mut(&plan.id)
@@ -94,14 +102,18 @@ impl Agent {
 
                             if idle_data.tick_count >= idle_data.duration {
                                 plan.state = plan::State::Success;
-
-                                agent.decision.plan_heap.push(plan);
                             }
+
+                            agent.decision.plan_heap.push(plan);
                         } else {
                             log::warn!("Plan ID: {:?} is missing idle::Data", plan.id);
                         }
                     }
-                    plan::State::Success => todo!(),
+                    plan::State::Success => {
+                        let travel_plan = Plan::new(plan::Priority::High, plan::Kind::Travel);
+
+                        agent.decision.plan_heap.push(travel_plan);
+                    }
                     plan::State::Fail => todo!(),
                     plan::State::Cancel => todo!(),
                 },
@@ -117,24 +129,46 @@ impl Agent {
                                 .world_to_position(agent.spatial.world_position),
                             end_position: IVec3::new(0, -3, 0),
                             level_0: graph.level_0.clone(),
-                            search_level: graph.level_vec[1].clone(),
+                            search_level: graph.level_vec[0].clone(),
                         };
 
                         let task =
                             compute::Task::Path(compute::task::path::Kind::Regional(task_data));
 
                         task_vec.push(task);
+
+                        plan.state = plan::State::Success;
+                        agent.decision.plan_heap.push(plan);
                     }
                     plan::State::Active => {
-                        if let Some(_travel_data) =
+                        if let Some(travel_data) =
                             agent.decision.plan_data.travel_data.get_mut(&plan.id)
                         {
-                            println!("I HAVE A PLAN!");
+                            if let Some(target_position) = travel_data.regional_path_vec.last() {
+                                let path_vector =
+                                    target_position.as_vec3() - agent.spatial.world_position;
+
+                                if path_vector.length_squared() <= 0.01 {
+                                    travel_data.regional_path_vec.pop();
+                                } else {
+                                    let direction = path_vector.normalize();
+
+                                    agent.set_world_position(
+                                        agent.spatial.world_position + 0.4 * direction,
+                                    );
+                                }
+
+                                agent.decision.plan_heap.push(plan);
+                            } else {
+                                plan.state = plan::State::Success;
+
+                                agent.decision.plan_heap.push(plan);
+                            }
                         } else {
                             log::warn!("Plan ID: {:?} is missing travel::Data", plan.id);
                         }
                     }
-                    plan::State::Success => todo!(),
+                    plan::State::Success => {}
                     plan::State::Fail => todo!(),
                     plan::State::Cancel => todo!(),
                 },
