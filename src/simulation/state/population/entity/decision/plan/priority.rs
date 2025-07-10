@@ -1,10 +1,6 @@
-#[derive(Hash, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Priority {
-    High,
-    Medium,
-    Low,
-}
-
-impl Priority {
-    pub const ALL_ARRAY: [Priority; 3] = [Priority::High, Priority::Medium, Priority::Low];
+    High = 3,
+    Medium = 2,
+    Low = 1,
 }

@@ -1,9 +1,10 @@
-use crate::simulation::state::population::entity;
+use crate::simulation::state::{population::entity, world::chunk};
 use glam::IVec3;
 
 #[derive(Debug)]
-pub struct NodePathTask {
+pub struct Local {
     pub agent_id: entity::ID,
+    pub chunk_id: chunk::ID,
     pub start_position: IVec3,
     pub end_position: IVec3,
 }

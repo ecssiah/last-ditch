@@ -1,5 +1,5 @@
 pub enum State {
-    Pending,
+    Init,
     Active,
     Success,
     Fail,

@@ -1,7 +1,5 @@
-use crate::simulation::state::time::Tick;
-use glam::IVec3;
-
+#[derive(Debug)]
 pub enum Kind {
-    Idle { duration: Tick },
-    Move { target_position: IVec3 },
+    Idle,
+    Travel,
 }

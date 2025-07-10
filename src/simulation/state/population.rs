@@ -5,7 +5,7 @@ pub mod entity;
 use crate::simulation::{
     self, constructor,
     state::{
-        compute,
+        compute::Task,
         population::entity::{Agent, Judge},
         world::World,
     },
@@ -16,7 +16,7 @@ pub struct Population {
     pub kind: simulation::Kind,
     pub judge: Judge,
     pub agent_map: HashMap<entity::ID, Agent>,
-    pub task_vec: Vec<compute::task::Kind>,
+    pub task_vec: Vec<Task>,
 }
 
 impl Population {

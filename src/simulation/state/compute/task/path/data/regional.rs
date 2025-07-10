@@ -1,10 +1,9 @@
-use crate::simulation::state::{population::entity, world::chunk};
+use crate::simulation::state::population::entity;
 use glam::IVec3;
 
 #[derive(Debug)]
-pub struct BlockPathTask {
+pub struct Regional {
     pub agent_id: entity::ID,
-    pub chunk_id: chunk::ID,
     pub start_position: IVec3,
     pub end_position: IVec3,
 }

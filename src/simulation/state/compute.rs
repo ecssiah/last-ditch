@@ -3,24 +3,27 @@
 pub mod result;
 pub mod task;
 
+pub use result::Result;
+pub use task::Task;
+
 use crate::simulation::state::{population::Population, world::World};
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use rayon::ThreadPoolBuilder;
 
 pub struct Compute {
     pub thread_pool: rayon::ThreadPool,
-    pub task_tx: Sender<task::Kind>,
-    pub task_rx: Receiver<task::Kind>,
-    pub result_tx: Sender<result::Kind>,
-    pub result_rx: Receiver<result::Kind>,
+    pub task_tx: Sender<Task>,
+    pub task_rx: Receiver<Task>,
+    pub result_tx: Sender<Result>,
+    pub result_rx: Receiver<Result>,
 }
 
 impl Compute {
     pub fn new() -> Self {
         let thread_pool = ThreadPoolBuilder::new().build().unwrap();
 
-        let (task_tx, task_rx) = unbounded::<task::Kind>();
-        let (result_tx, result_rx) = unbounded::<result::Kind>();
+        let (task_tx, task_rx) = unbounded::<Task>();
+        let (result_tx, result_rx) = unbounded::<Result>();
 
         Self {
             thread_pool,
