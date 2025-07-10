@@ -1,6 +1,7 @@
+pub mod kind;
 pub mod data;
 
-pub use data::Data;
+pub use kind::Kind;
 
 pub enum Path {
     Local(data::Local),

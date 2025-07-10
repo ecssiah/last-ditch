@@ -1,7 +1,11 @@
 use crate::simulation::state::{
     compute::{self},
     physics::aabb::AABB,
-    population::entity::{self, decision::plan, Decision, Detection, Kinematic, Nation, Spatial},
+    population::entity::{
+        self,
+        decision::{self, plan},
+        Decision, Detection, Kinematic, Nation, Spatial,
+    },
     world::{chunk, World},
 };
 use glam::{IVec3, Vec3};
@@ -52,7 +56,31 @@ impl Agent {
     }
 
     fn act(agent: &mut Agent, task_vec: &mut Vec<compute::Task>, world: &World) {
-        let mut action_count = 0;
+        // let mut action_count = 0;
+
+        for result in agent.result_vec.drain(..) {
+            match result {
+                compute::Result::Path(kind) => match kind {
+                    compute::result::path::Kind::Regional(regional_data) => {
+                        let plan = decision::Plan::new(plan::Priority::High, plan::Kind::Travel);
+
+                        let plan_data = decision::plan::data::Travel {
+                            regional_path_vec: regional_data.position_vec,
+                            local_path_vec: Vec::new(),
+                        };
+
+                        agent
+                            .decision
+                            .plan_data
+                            .travel_data
+                            .insert(plan.id, plan_data);
+
+                        agent.decision.plan_heap.push(plan);
+                    }
+                    compute::result::path::Kind::Local(_local_data) => todo!(),
+                },
+            }
+        }
 
         while let Some(mut plan) = agent.decision.plan_heap.pop() {
             match plan.kind {
@@ -79,24 +107,29 @@ impl Agent {
                 },
                 plan::Kind::Travel => match plan.state {
                     plan::State::Init => {
-                        let data_regional = compute::task::path::data::Regional {
+                        let graph_buffer = world.graph_buffer_lock.read().unwrap();
+                        let graph = graph_buffer.get();
+
+                        let task_data = compute::task::path::data::Regional {
                             agent_id: agent.id,
                             start_position: world
                                 .grid
                                 .world_to_position(agent.spatial.world_position),
                             end_position: IVec3::new(0, -3, 0),
+                            level_0: graph.level_0.clone(),
+                            search_level: graph.level_vec[1].clone(),
                         };
 
-                        let path_data_kind = compute::task::path::Data::Regional(data_regional);
-
-                        let task = compute::Task::Path(path_data_kind);
+                        let task =
+                            compute::Task::Path(compute::task::path::Kind::Regional(task_data));
 
                         task_vec.push(task);
                     }
                     plan::State::Active => {
-                        if let Some(travel_data) =
+                        if let Some(_travel_data) =
                             agent.decision.plan_data.travel_data.get_mut(&plan.id)
                         {
+                            println!("I HAVE A PLAN!");
                         } else {
                             log::warn!("Plan ID: {:?} is missing travel::Data", plan.id);
                         }

@@ -1,7 +1,8 @@
-use crate::simulation::state::population::entity::decision::plan::Plan;
-use std::collections::BinaryHeap;
-
 pub mod plan;
+
+pub use plan::Plan;
+
+use std::collections::BinaryHeap;
 
 pub struct Decision {
     pub max_choices: u32,

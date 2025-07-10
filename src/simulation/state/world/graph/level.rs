@@ -2,7 +2,7 @@ use crate::simulation::state::world::graph::{Edge, Node};
 use glam::IVec3;
 use std::collections::HashMap;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Level {
     pub depth: usize,
     pub world_limit: usize,

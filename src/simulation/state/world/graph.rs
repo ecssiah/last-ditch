@@ -28,27 +28,31 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 #[derive(Clone)]
 pub struct Graph {
     pub max_depth: usize,
+    pub level_0: Level,
     pub level_vec: Vec<Level>,
 }
 
 impl Graph {
-    pub fn new(_grid: &Grid, max_depth: usize) -> Self {
+    pub fn new(grid: &Grid, max_depth: usize) -> Self {
         Self {
             max_depth,
+            level_0: Level::new(0, grid.chunk_size as usize, grid.world_limit as usize),
             level_vec: Vec::new(),
         }
     }
 
-    pub fn test_full_path(level_vec: &mut [Level]) {
-        let level_1_path_vec =
-            Self::find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9), level_vec);
+    pub fn test_full_path(level_0: &Level, level_vec: &mut [Level]) {
+        let level_1_path_vec = Self::find_path(
+            IVec3::new(0, -3, 0),
+            IVec3::new(0, 6, 9),
+            &level_0,
+            &mut level_vec[1],
+        );
 
         println!("Level 1 Path:");
         for node in &level_1_path_vec {
             println!("  {:?}", node);
         }
-
-        let level_0 = &mut level_vec[0];
 
         for index in 1..level_1_path_vec.len() {
             println!("Level 0 Path:");
@@ -80,23 +84,18 @@ impl Graph {
     pub fn find_path(
         start_position: IVec3,
         end_position: IVec3,
-        level_vec: &mut [Level],
+        level_0: &Level,
+        search_level: &mut Level,
     ) -> Vec<Node> {
-        let (level_0, level_1) = {
-            let (left, right) = level_vec.split_at_mut(1);
+        search_level.reset();
 
-            (&left[0], &mut right[0])
-        };
+        let start_node = Self::create_node(start_position, search_level);
+        let end_node = Self::create_node(end_position, search_level);
 
-        level_1.reset();
+        Self::connect_node(start_node, level_0, search_level);
+        Self::connect_node(end_node, level_0, search_level);
 
-        let start_node = Self::create_node(start_position, level_1);
-        let end_node = Self::create_node(end_position, level_1);
-
-        Self::connect_node(start_node, level_0, level_1);
-        Self::connect_node(end_node, level_0, level_1);
-
-        Self::get_path(start_node, end_node, level_1)
+        Self::get_path(start_node, end_node, search_level)
     }
 
     fn create_node(position: IVec3, level: &Level) -> Node {
@@ -141,7 +140,8 @@ impl Graph {
 
         Self {
             max_depth,
-            level_vec: Vec::from([level_0, level_1]),
+            level_0,
+            level_vec: Vec::from([level_1]),
         }
     }
 
@@ -620,7 +620,7 @@ impl Graph {
         u32::MAX
     }
 
-    fn get_path(start_node: Node, end_node: Node, level: &mut Level) -> Vec<Node> {
+    fn get_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Node> {
         let mut heap = BinaryHeap::new();
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
