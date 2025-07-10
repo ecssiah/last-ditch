@@ -39,40 +39,51 @@ impl Graph {
         }
     }
 
-    pub fn test_full_path(&mut self) {
-        let level_1_path_vec = self.find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9));
+    pub fn test_full_path(level_vec: &mut [Level]) {
+        let level_1_path_vec =
+            Self::find_path(IVec3::new(0, -3, 0), IVec3::new(0, 6, 9), level_vec);
 
         println!("Level 1 Path:");
         for node in &level_1_path_vec {
-            println!("{:?}", node);
+            println!("  {:?}", node);
         }
 
-        let level_0 = &mut self.level_vec[0];
+        let level_0 = &mut level_vec[0];
 
         for index in 1..level_1_path_vec.len() {
             println!("Level 0 Path:");
-            let node1 = level_1_path_vec[index - 1];
-            let node2 = level_1_path_vec[index];
+            let level1_node1 = level_1_path_vec[index - 1];
+            let level1_node2 = level_1_path_vec[index];
 
-            let node1_level_0 =
-                Level::get_node(node1.position, node1.position, &level_0.region_node_map).unwrap();
-            let node1_level_1 =
-                Level::get_node(node2.position, node2.position, &level_0.region_node_map).unwrap();
+            let node1 = Level::get_node(
+                level1_node1.position,
+                level1_node1.position,
+                &level_0.region_node_map,
+            )
+            .unwrap();
 
-            println!("  Node1: {:?}", node1_level_0);
-            println!("  Node2: {:?}", node1_level_1);
+            let node2 = Level::get_node(
+                level1_node2.position,
+                level1_node2.position,
+                &level_0.region_node_map,
+            )
+            .unwrap();
 
-            let level_0_path_vec = Self::get_path(*node1_level_0, *node1_level_1, level_0);
+            let level_0_path_vec = Self::get_path(*node1, *node2, level_0);
 
             for node in &level_0_path_vec {
-                println!("{:?}", node);
+                println!("  {:?}", node);
             }
         }
     }
 
-    pub fn find_path(&mut self, start_position: IVec3, end_position: IVec3) -> Vec<Node> {
+    pub fn find_path(
+        start_position: IVec3,
+        end_position: IVec3,
+        level_vec: &mut [Level],
+    ) -> Vec<Node> {
         let (level_0, level_1) = {
-            let (left, right) = self.level_vec.split_at_mut(1);
+            let (left, right) = level_vec.split_at_mut(1);
 
             (&left[0], &mut right[0])
         };
@@ -137,6 +148,7 @@ impl Graph {
     fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
         let mut level_0 = Level::new(0, 1, grid.world_limit as usize);
 
+        let chunk_size = grid.chunk_size as i32;
         let world_limit = grid.world_limit as i32;
 
         for x in -world_limit..world_limit {
@@ -145,7 +157,14 @@ impl Graph {
                     let position = IVec3::new(x, y, z);
                     let clearance = World::get_clearance(position, grid, chunk_vec_slice);
 
+                    let on_region_boundary = ((x + world_limit % chunk_size) == (chunk_size - 1))
+                        || ((y + world_limit % chunk_size) == (chunk_size - 1))
+                        || ((z + world_limit % chunk_size) == (chunk_size - 1));
+
                     if clearance >= MINIMUM_CLEARANCE {
+                        let node1 = Self::create_node(position, &level_0);
+                        Level::attach_node(node1, &mut level_0.region_node_map);
+
                         for direction_offset in grid::Direction::axis_offset_array() {
                             for vertical_offset in [IVec3::NEG_Y, IVec3::ZERO, IVec3::Y] {
                                 let test_position = position + direction_offset + vertical_offset;
@@ -153,22 +172,21 @@ impl Graph {
                                     World::get_clearance(test_position, grid, chunk_vec_slice);
 
                                 if test_clearance >= MINIMUM_CLEARANCE {
-                                    let node1 = Self::create_node(position, &level_0);
                                     let node2 = Self::create_node(test_position, &level_0);
-
-                                    Level::attach_node(node1, &mut level_0.region_node_map);
                                     Level::attach_node(node2, &mut level_0.region_node_map);
 
-                                    let cost = if node1.position.y == node2.position.y {
-                                        MOVEMENT_COST_STRAIGHT
-                                    } else {
-                                        MOVEMENT_COST_DIAGONAL
-                                    };
+                                    if !on_region_boundary {
+                                        let cost = if node1.position.y == node2.position.y {
+                                            MOVEMENT_COST_STRAIGHT
+                                        } else {
+                                            MOVEMENT_COST_DIAGONAL
+                                        };
 
-                                    let edge =
-                                        Edge::new(node1, node2, 0, cost, edge::Kind::External);
+                                        let edge =
+                                            Edge::new(node1, node2, 0, cost, edge::Kind::External);
 
-                                    Level::attach_edge(edge, &mut level_0.edge_map);
+                                        Level::attach_edge(edge, &mut level_0.edge_map);
+                                    }
 
                                     break;
                                 }
@@ -540,8 +558,6 @@ impl Graph {
                             .expect("Level 0 Node 2 should exist");
 
                     let cost = Self::get_path_cost(*node1_level_0, *node2_level_0, level_0);
-
-                    // let cost = Self::get_path_cost(node1, node2, level_1);
 
                     if cost < u32::MAX {
                         let edge = Edge::new(node1, node2, 1, cost, edge::Kind::Internal);

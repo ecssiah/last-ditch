@@ -103,7 +103,7 @@ impl World {
 
                 let mut graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
 
-                graph.test_full_path();
+                Graph::test_full_path(&mut graph.level_vec);
 
                 let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
                 graph_buffer.update(graph);
