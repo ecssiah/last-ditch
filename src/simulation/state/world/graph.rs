@@ -639,7 +639,7 @@ impl Graph {
                     current = came_from.get(&test_node).cloned().flatten();
                 }
 
-                path.reverse();
+                // path.reverse();
 
                 return path;
             }

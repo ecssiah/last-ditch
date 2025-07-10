@@ -127,7 +127,7 @@ impl Agent {
                             start_position: world
                                 .grid
                                 .world_to_position(agent.spatial.world_position),
-                            end_position: IVec3::new(0, -3, 0),
+                            end_position: IVec3::new(0, 6, 9),
                             level_0: graph.level_0.clone(),
                             search_level: graph.level_vec[0].clone(),
                         };
@@ -154,7 +154,7 @@ impl Agent {
                                     let direction = path_vector.normalize();
 
                                     agent.set_world_position(
-                                        agent.spatial.world_position + 0.4 * direction,
+                                        agent.spatial.world_position + 0.05 * direction,
                                     );
                                 }
 
