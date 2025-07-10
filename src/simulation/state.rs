@@ -141,7 +141,7 @@ impl State {
         Time::tick(&mut state.time);
         Population::tick(&mut state.population, &mut state.world);
         Physics::tick(&state.physics, &state.world, &mut state.population);
-        Compute::tick(&state.compute, &state.world, &mut state.population);
+        Compute::tick(&mut state.compute, &mut state.population, &state.world);
     }
 
     fn tick_shutdown(_state: &mut State, _action_vec: Vec<Action>) {}

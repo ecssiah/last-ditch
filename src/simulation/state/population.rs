@@ -68,7 +68,7 @@ impl Population {
 
     pub fn tick(population: &mut Population, world: &World) {
         for agent in population.agent_map.values_mut() {
-            Agent::tick(agent, world);
+            Agent::tick(agent, &mut population.task_vec, world);
         }
 
         Judge::tick(&mut population.judge, world);

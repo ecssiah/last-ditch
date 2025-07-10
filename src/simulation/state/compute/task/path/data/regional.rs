@@ -1,7 +1,7 @@
 use crate::simulation::state::population::entity;
 use glam::IVec3;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Regional {
     pub agent_id: entity::ID,
     pub start_position: IVec3,

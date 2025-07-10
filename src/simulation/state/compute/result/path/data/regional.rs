@@ -1,7 +1,8 @@
-use crate::simulation::state::{population::entity, world::graph::Node};
+use crate::simulation::state::population::entity;
+use glam::IVec3;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Regional {
     pub agent_id: entity::ID,
-    pub node_vec: Vec<Node>,
+    pub position_vec: Vec<IVec3>,
 }

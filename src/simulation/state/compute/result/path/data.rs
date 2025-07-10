@@ -6,6 +6,7 @@ pub use regional::Regional;
 
 use crate::simulation::state::compute::result::path::data;
 
+#[derive(Clone, Debug)]
 pub enum Data {
     Local(data::Local),
     Regional(data::Regional),

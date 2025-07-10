@@ -34,5 +34,31 @@ impl Compute {
         }
     }
 
-    pub fn tick(_compute: &Compute, _world: &World, _population: &Population) {}
+    pub fn tick(compute: &mut Compute, population: &mut Population, _world: &World) {
+        for task in population.task_vec.drain(..) {
+            match compute.task_tx.send(task) {
+                Ok(()) => {}
+                Err(err) => {
+                    log::error!("{:?}", err);
+                }
+            }
+        }
+
+        while let Ok(result) = compute.result_rx.try_recv() {
+            match result {
+                Result::Path(ref path_data) => match path_data {
+                    result::path::Data::Regional(regional_data) => {
+                        if let Some(agent) = population.agent_map.get_mut(&regional_data.agent_id) {
+                            agent.result_vec.push(result);
+                        }
+                    }
+                    result::path::Data::Local(local_data) => {
+                        if let Some(agent) = population.agent_map.get_mut(&local_data.agent_id) {
+                            agent.result_vec.push(result);
+                        }
+                    }
+                },
+            }
+        }
+    }
 }

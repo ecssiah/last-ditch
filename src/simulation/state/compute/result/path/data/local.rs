@@ -1,7 +1,7 @@
 use crate::simulation::state::{population::entity, world::chunk};
 use glam::IVec3;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Local {
     pub agent_id: entity::ID,
     pub chunk_id: chunk::ID,

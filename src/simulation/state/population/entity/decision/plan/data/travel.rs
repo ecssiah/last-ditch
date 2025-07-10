@@ -1,6 +1,6 @@
-use crate::simulation::state::world::graph;
+use glam::IVec3;
 
 pub struct Travel {
-    pub regional_path_vec: Vec<graph::Node>,
-    pub local_path_vec: Vec<graph::Node>,
+    pub regional_path_vec: Vec<IVec3>,
+    pub local_path_vec: Vec<IVec3>,
 }
