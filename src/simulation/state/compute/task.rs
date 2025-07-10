@@ -1,6 +1,6 @@
 pub mod path;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug)]
 pub enum Task {
     Path(path::Data),
 }

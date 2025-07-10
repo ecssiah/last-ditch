@@ -35,6 +35,11 @@ impl Compute {
     }
 
     pub fn tick(compute: &mut Compute, population: &mut Population, _world: &World) {
+        Self::send_tasks(compute, population);
+        Self::distribute_results(compute, population);
+    }
+
+    fn send_tasks(compute: &mut Compute, population: &mut Population) {
         for task in population.task_vec.drain(..) {
             match compute.task_tx.send(task) {
                 Ok(()) => {}
@@ -43,7 +48,9 @@ impl Compute {
                 }
             }
         }
+    }
 
+    fn distribute_results(compute: &mut Compute, population: &mut Population) {
         while let Ok(result) = compute.result_rx.try_recv() {
             match result {
                 Result::Path(ref path_data) => match path_data {
