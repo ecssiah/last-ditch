@@ -53,6 +53,19 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     Agent::set_size(Vec3::new(0.3, 2.8, 0.3), &mut pathfinding_agent3.detection);
 
     agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
+
+    let mut pathfinding_agent4 = Agent::new();
+    pathfinding_agent4.info.kind = entity::Kind::Horse;
+
+    Agent::set_world_position(
+        Vec3::new(0.0, -3.0, 9.0),
+        &mut pathfinding_agent4.spatial,
+        &mut pathfinding_agent4.detection,
+    );
+
+    Agent::set_size(Vec3::new(0.1, 2.1, 0.1), &mut pathfinding_agent4.detection);
+
+    agent_map.insert(pathfinding_agent4.info.entity_id, pathfinding_agent4);
 }
 
 fn setup_judge(judge: &mut Judge) {

@@ -93,9 +93,15 @@ impl Agent {
                     &mut decision.plan_store.idle_data_map,
                     &mut decision.plan_store.travel_data_map,
                 ),
-                plan::Kind::Travel => {
-                    Self::act_travel(plan, info, spatial, decision, compute, world)
-                }
+                plan::Kind::Travel => Self::act_travel(
+                    plan,
+                    world,
+                    info,
+                    spatial,
+                    &mut decision.plan_heap,
+                    &mut decision.plan_store.travel_data_map,
+                    compute,
+                ),
             }
         }
     }
@@ -157,37 +163,22 @@ impl Agent {
 
     fn act_travel(
         plan: Plan,
+        world: &World,
         info: &Info,
         spatial: &mut Spatial,
-        decision: &mut Decision,
+        plan_heap: &mut BinaryHeap<Plan>,
+        travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
         compute: &mut Compute,
-        world: &World,
     ) {
-        let travel_data = decision
-            .plan_store
-            .travel_data_map
-            .get_mut(&plan.id)
-            .unwrap();
+        let travel_data = travel_data_map.get_mut(&plan.id).unwrap();
 
         match travel_data.state {
-            plan::State::Init => Self::act_travel_init(
-                plan,
-                travel_data,
-                &mut decision.plan_heap,
-                info,
-                spatial,
-                compute,
-                world,
-            ),
-            plan::State::Active => Self::act_travel_active(
-                plan,
-                travel_data,
-                &mut decision.plan_heap,
-                info,
-                spatial,
-                compute,
-                world,
-            ),
+            plan::State::Init => {
+                Self::act_travel_init(plan, travel_data, plan_heap, info, spatial, compute, world)
+            }
+            plan::State::Active => {
+                Self::act_travel_active(plan, travel_data, plan_heap, info, spatial, compute, world)
+            }
             plan::State::Success => {
                 println!("Travel Success!");
             }
