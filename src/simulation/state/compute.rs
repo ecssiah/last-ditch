@@ -12,7 +12,7 @@ use crate::simulation::state::{
         entity::{self, decision::plan, Agent},
         Population,
     },
-    world::{graph::Graph, World},
+    world::graph::Graph,
 };
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use rayon::ThreadPoolBuilder;
@@ -23,9 +23,9 @@ use std::{
 
 pub struct Compute {
     pub thread_pool: rayon::ThreadPool,
-    pub result_tx: Sender<Result>,
-    pub result_rx: Receiver<Result>,
-    pub task_heap: BinaryHeap<Task>,
+    pub result_tx: Sender<compute::Result>,
+    pub result_rx: Receiver<compute::Result>,
+    pub task_heap: BinaryHeap<compute::Task>,
     pub task_store_arc_lock: Arc<RwLock<task::Store>>,
     pub result_store_arc_lock: Arc<RwLock<result::Store>>,
 }
@@ -33,7 +33,7 @@ pub struct Compute {
 impl Compute {
     pub fn new() -> Self {
         let thread_pool = ThreadPoolBuilder::new().build().unwrap();
-        let (result_tx, result_rx) = unbounded::<Result>();
+        let (result_tx, result_rx) = unbounded::<compute::Result>();
 
         let task_heap = BinaryHeap::new();
 
@@ -50,7 +50,7 @@ impl Compute {
         }
     }
 
-    pub fn tick(compute: &mut Compute, population: &mut Population, _world: &World) {
+    pub fn tick(compute: &mut Compute, population: &mut Population) {
         Self::process_tasks(
             &compute.thread_pool,
             &compute.result_tx,
@@ -68,8 +68,8 @@ impl Compute {
 
     fn process_tasks(
         thread_pool: &rayon::ThreadPool,
-        result_tx: &Sender<Result>,
-        task_heap: &mut BinaryHeap<Task>,
+        result_tx: &Sender<compute::Result>,
+        task_heap: &mut BinaryHeap<compute::Task>,
         task_store_arc_lock: &Arc<RwLock<task::Store>>,
         result_store_arc_lock: &Arc<RwLock<result::Store>>,
     ) {
@@ -95,7 +95,7 @@ impl Compute {
     }
 
     fn execute_task(
-        task: Task,
+        task: compute::Task,
         task_store_arc_lock: Arc<RwLock<task::Store>>,
         result_store_arc_lock: Arc<RwLock<result::Store>>,
     ) -> compute::Result {
@@ -110,7 +110,7 @@ impl Compute {
     }
 
     fn execute_path_region_task(
-        task: Task,
+        task: compute::Task,
         task_store_arc_lock: Arc<RwLock<task::Store>>,
         result_store_arc_lock: Arc<RwLock<result::Store>>,
     ) -> compute::Result {
@@ -152,7 +152,7 @@ impl Compute {
     }
 
     fn execute_path_local_task(
-        task: Task,
+        task: compute::Task,
         task_store_arc_lock: Arc<RwLock<task::Store>>,
         result_store_arc_lock: Arc<RwLock<result::Store>>,
     ) -> compute::Result {
@@ -194,7 +194,7 @@ impl Compute {
     }
 
     fn distribute_results(
-        result_rx: &Receiver<Result>,
+        result_rx: &Receiver<compute::Result>,
         result_store_arc_lock: &Arc<RwLock<result::Store>>,
         agent_map: &mut HashMap<entity::ID, Agent>,
     ) {
