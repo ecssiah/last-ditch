@@ -58,40 +58,42 @@ impl Judge {
         }
     }
 
-    pub fn set_world_position(&mut self, world_position: Vec3) {
-        self.spatial.world_position = world_position;
-        self.detection.set_world_position(world_position);
+    pub fn set_world_position(
+        world_position: Vec3,
+        spatial: &mut Spatial,
+        detection: &mut Detection,
+    ) {
+        spatial.world_position = world_position;
+
+        Detection::set_world_position(world_position, &mut detection.body);
     }
 
     pub fn size(&self) -> Vec3 {
         self.detection.body.size()
     }
 
-    pub fn set_size(&mut self, size: Vec3) {
-        self.detection.body = AABB::new(self.detection.body.center(), size);
+    pub fn set_size(size: Vec3, detection: &mut Detection) {
+        detection.body = AABB::new(detection.body.center(), size);
     }
 
-    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
-        self.spatial.yaw = yaw.to_radians();
-        self.spatial.pitch = pitch.to_radians();
+    pub fn set_rotation(yaw: f32, pitch: f32, spatial: &mut Spatial, kinematic: &mut Kinematic) {
+        spatial.yaw = yaw.to_radians();
+        spatial.pitch = pitch.to_radians();
 
-        self.spatial.pitch = self
-            .spatial
-            .pitch
-            .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
+        spatial.pitch = spatial.pitch.clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
-        self.spatial.quaternion =
-            Quat::from_rotation_y(self.spatial.yaw) * Quat::from_rotation_x(self.spatial.pitch);
+        spatial.quaternion =
+            Quat::from_rotation_y(spatial.yaw) * Quat::from_rotation_x(spatial.pitch);
 
-        let velocity_xz = Vec3::new(self.kinematic.velocity.x, 0.0, self.kinematic.velocity.z);
+        let velocity_xz = Vec3::new(kinematic.velocity.x, 0.0, kinematic.velocity.z);
         let speed = velocity_xz.length_squared();
 
         if speed > 1e-12 {
-            let forward = self.spatial.quaternion * Vec3::Z;
+            let forward = spatial.quaternion * Vec3::Z;
             let new_velocity_xz = forward.normalize() * speed;
 
-            self.kinematic.velocity.x = new_velocity_xz.x;
-            self.kinematic.velocity.z = new_velocity_xz.z;
+            kinematic.velocity.x = new_velocity_xz.x;
+            kinematic.velocity.z = new_velocity_xz.z;
         }
     }
 

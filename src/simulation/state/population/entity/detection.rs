@@ -19,8 +19,7 @@ impl Detection {
         }
     }
 
-    pub fn set_world_position(&mut self, world_position: Vec3) {
-        self.body
-            .set_bottom_center(world_position.x, world_position.y, world_position.z);
+    pub fn set_world_position(world_position: Vec3, body_aabb: &mut AABB) {
+        body_aabb.set_bottom_center(world_position.x, world_position.y, world_position.z);
     }
 }

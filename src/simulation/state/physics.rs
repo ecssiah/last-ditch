@@ -110,6 +110,10 @@ impl Physics {
     }
 
     fn sync_judge(judge: &mut Judge) {
-        judge.set_world_position(judge.detection.body.bottom_center());
+        Judge::set_world_position(
+            judge.detection.body.bottom_center(),
+            &mut judge.spatial,
+            &mut judge.detection,
+        );
     }
 }
