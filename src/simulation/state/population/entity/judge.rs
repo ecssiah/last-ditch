@@ -2,59 +2,50 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        population::entity::{self, Detection, Kinematic, Nation, Spatial},
-        receiver::action::{JudgeAction, JumpAction, MovementData},
+        population::entity::{self, Detection, Info, Kinematic, Nation, Spatial},
+        receiver::action::{JumpAction, MovementData},
         world::{chunk, World},
     },
 };
 use glam::{Quat, Vec3};
 
 pub struct Judge {
-    pub id: entity::ID,
-    pub chunk_id: chunk::ID,
-    pub chunk_updated: bool,
-    pub action_vec: Vec<JudgeAction>,
+    pub info: entity::Info,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub detection: Detection,
-    pub kind: entity::Kind,
-    pub nation: Nation,
 }
 
 impl Judge {
     pub fn new() -> Self {
-        Self {
-            id: entity::ID::allocate(),
+        let info = entity::Info {
+            entity_id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            action_vec: Vec::new(),
-            spatial: Spatial::new(),
-            kinematic: Kinematic::new(),
-            detection: Detection::new(),
             kind: entity::Kind::Eagle,
             nation: Nation {
                 kind: entity::Kind::Eagle,
             },
+        };
+
+        Self {
+            info,
+            spatial: Spatial::new(),
+            kinematic: Kinematic::new(),
+            detection: Detection::new(),
         }
     }
 
     pub fn tick(judge: &mut Judge, world: &World) {
-        let chunk_id = world.grid.world_to_chunk_id(judge.spatial.world_position);
+        Self::track_current_chunk(world, &judge.spatial, &mut judge.info);
+    }
 
-        if chunk_id != judge.chunk_id {
-            judge.chunk_updated = true;
-            judge.chunk_id = chunk_id;
-        }
+    fn track_current_chunk(world: &World, spatial: &Spatial, info: &mut Info) {
+        let chunk_id = world.grid.world_to_chunk_id(spatial.world_position);
 
-        let action_vec = std::mem::take(&mut judge.action_vec);
-
-        for action in action_vec {
-            match action {
-                JudgeAction::Movement(movement_data) => {
-                    Judge::apply_movement_data(judge, &movement_data)
-                }
-                JudgeAction::Jump(jump_action) => Judge::apply_jump_action(judge, &jump_action),
-            }
+        if chunk_id != info.chunk_id {
+            info.chunk_updated = true;
+            info.chunk_id = chunk_id;
         }
     }
 
@@ -101,11 +92,7 @@ impl Judge {
         self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
     }
 
-    pub fn receive_action(&mut self, judge_action: &JudgeAction) {
-        self.action_vec.push(*judge_action);
-    }
-
-    pub fn apply_movement_data(judge: &mut Judge, movement_data: &MovementData) {
+    pub fn apply_movement_data(movement_data: &MovementData, judge: &mut Judge) {
         if movement_data.rotation.y.abs() > 1e-6 || movement_data.rotation.z.abs() > 1e-6 {
             judge.spatial.yaw += movement_data.rotation.y;
             judge.spatial.pitch += movement_data.rotation.z;
@@ -135,7 +122,7 @@ impl Judge {
         }
     }
 
-    pub fn apply_jump_action(judge: &mut Judge, jump_action: &JumpAction) {
+    pub fn apply_jump_action(jump_action: &JumpAction, judge: &mut Judge) {
         if let JumpAction::Start = jump_action {
             judge.kinematic.velocity.y = JUDGE_SPEED_Y;
         }

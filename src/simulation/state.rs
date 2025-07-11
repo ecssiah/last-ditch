@@ -27,7 +27,7 @@ use crate::simulation::{
 
 pub struct State {
     pub kind: simulation::Kind,
-    pub result_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
+    pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
     pub compute: Compute,
     pub time: Time,
@@ -38,7 +38,7 @@ pub struct State {
 
 impl State {
     pub fn new(kind: simulation::Kind) -> Self {
-        let result_rx = None;
+        let construct_rx = None;
 
         let admin = Admin::new();
         let compute = Compute::new();
@@ -49,7 +49,7 @@ impl State {
 
         Self {
             kind,
-            result_rx,
+            construct_rx,
             admin,
             compute,
             time,
@@ -85,7 +85,7 @@ impl State {
         let world = std::mem::replace(&mut state.world, World::placeholder());
         let population = std::mem::replace(&mut state.population, Population::placeholder());
 
-        let (result_tx, result_rx) = tokio::sync::mpsc::channel(1);
+        let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
 
         tokio::task::spawn_blocking(move || {
             let mut world = world;
@@ -94,18 +94,18 @@ impl State {
             World::setup(kind, &mut world);
             Population::setup(kind, &mut population, &world);
 
-            let _ = result_tx.blocking_send((world, population));
+            let _ = construct_tx.blocking_send((world, population));
         });
 
-        state.result_rx = Some(result_rx);
+        state.construct_rx = Some(construct_rx);
 
         state.admin.mode = admin::Mode::Load;
         state.admin.message = "Construction in Progress...".to_string();
     }
 
     fn tick_load(state: &mut State, _action_vec: Vec<Action>) {
-        if let Some(result_rx) = &mut state.result_rx {
-            if let Ok((world, population)) = result_rx.try_recv() {
+        if let Some(construct_rx) = &mut state.construct_rx {
+            if let Ok((world, population)) = construct_rx.try_recv() {
                 state.world = world;
                 state.population = population;
 
@@ -116,14 +116,23 @@ impl State {
     }
 
     fn tick_simulate(state: &mut State, action_vec: Vec<Action>) {
+        Self::apply_simulate_actions(state, action_vec);
+
+        Time::tick(&mut state.time);
+        Population::tick(&mut state.population, &mut state.compute, &mut state.world);
+        Physics::tick(&state.physics, &state.world, &mut state.population);
+        Compute::tick(&mut state.compute, &mut state.population);
+    }
+
+    fn apply_simulate_actions(state: &mut State, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
                 Action::Judge(judge_action) => match judge_action {
                     JudgeAction::Movement(movement_data) => {
-                        Judge::apply_movement_data(&mut state.population.judge, &movement_data);
+                        Judge::apply_movement_data(&movement_data, &mut state.population.judge);
                     }
                     JudgeAction::Jump(jump_action) => {
-                        Judge::apply_jump_action(&mut state.population.judge, &jump_action);
+                        Judge::apply_jump_action(&jump_action, &mut state.population.judge);
                     }
                 },
                 Action::Test(test_action) => match test_action {
@@ -137,11 +146,6 @@ impl State {
                 }
             }
         }
-
-        Time::tick(&mut state.time);
-        Population::tick(&mut state.population, &mut state.compute, &mut state.world);
-        Physics::tick(&state.physics, &state.world, &mut state.population);
-        Compute::tick(&mut state.compute, &mut state.population);
     }
 
     fn tick_shutdown(_state: &mut State, _action_vec: Vec<Action>) {}

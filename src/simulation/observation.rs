@@ -48,7 +48,7 @@ impl Observation {
         let world_view = Self::update_world_view(&state);
 
         let view = View {
-            judge_id: state.population.judge.id,
+            entity_id: state.population.judge.info.entity_id,
             admin_view,
             time_view,
             population_view,
@@ -78,17 +78,17 @@ impl Observation {
 
         let mut population_view = PopulationView {
             judge_view: JudgeView {
-                id: judge.id,
+                entity_id: judge.info.entity_id,
                 position: state
                     .world
                     .grid
                     .world_to_position(judge.spatial.world_position),
                 world_position: judge.spatial.world_position,
-                chunk_id: judge.chunk_id,
+                chunk_id: judge.info.chunk_id,
                 chunk_coordinates: state
                     .world
                     .grid
-                    .chunk_id_to_chunk_coordinates(judge.chunk_id),
+                    .chunk_id_to_chunk_coordinates(judge.info.chunk_id),
                 size: judge.size(),
                 quaternion: judge.spatial.quaternion,
             },

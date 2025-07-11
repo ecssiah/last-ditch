@@ -18,7 +18,7 @@ use crate::simulation::state::population::entity;
 
 #[derive(Clone)]
 pub struct View {
-    pub judge_id: entity::ID,
+    pub entity_id: entity::ID,
     pub admin_view: AdminView,
     pub time_view: TimeView,
     pub population_view: PopulationView,
@@ -28,7 +28,7 @@ pub struct View {
 impl View {
     pub fn new() -> Self {
         Self {
-            judge_id: entity::ID::MAX,
+            entity_id: entity::ID::MAX,
             admin_view: AdminView::new(),
             time_view: TimeView::new(),
             population_view: PopulationView::new(),
