@@ -101,80 +101,96 @@ impl Compute {
     ) -> compute::Result {
         match task.kind {
             task::Kind::PathRegion => {
-                let mut task_data = {
-                    let mut task_store = task_store_arc_lock.write().unwrap();
-
-                    task_store
-                        .path_region_data_map
-                        .remove(&task.id)
-                        .expect("Task is missing PathRegion data")
-                };
-
-                let node_vec = Graph::find_region_path(
-                    task_data.start_position,
-                    task_data.end_position,
-                    &task_data.level_0,
-                    &mut task_data.search_level,
-                );
-
-                let position_vec = node_vec.iter().map(|node| node.position).collect();
-
-                let result_data = compute::result::data::path::Region {
-                    plan_id: task_data.plan_id,
-                    entity_id: task_data.entity_id,
-                    position_vec,
-                };
-
-                let result = compute::Result::new(compute::result::Kind::RegionPath);
-
-                {
-                    let mut result_store = result_store_arc_lock.write().unwrap();
-
-                    result_store
-                        .path_region_data_map
-                        .insert(result.id, result_data);
-                }
-
-                result
+                Self::execute_path_region_task(task, task_store_arc_lock, result_store_arc_lock)
             }
             task::Kind::PathLocal => {
-                let task_data = {
-                    let mut task_store = task_store_arc_lock.write().unwrap();
-
-                    task_store
-                        .path_local_data_map
-                        .remove(&task.id)
-                        .expect("Task is missing PathLocal data")
-                };
-
-                let node_vec = Graph::find_local_path(
-                    task_data.start_position,
-                    task_data.end_position,
-                    &task_data.level_0,
-                );
-
-                let position_vec = node_vec.iter().map(|node| node.position).collect();
-
-                let result = compute::Result::new(compute::result::Kind::LocalPath);
-
-                let result_data = compute::result::data::path::Local {
-                    plan_id: task_data.plan_id,
-                    entity_id: task_data.entity_id,
-                    chunk_id: task_data.chunk_id,
-                    position_vec,
-                };
-
-                {
-                    let mut result_store = result_store_arc_lock.write().unwrap();
-
-                    result_store
-                        .path_local_data_map
-                        .insert(result.id, result_data);
-                }
-
-                result
+                Self::execute_path_local_task(task, task_store_arc_lock, result_store_arc_lock)
             }
         }
+    }
+
+    fn execute_path_region_task(
+        task: Task,
+        task_store_arc_lock: Arc<RwLock<task::Store>>,
+        result_store_arc_lock: Arc<RwLock<result::Store>>,
+    ) -> compute::Result {
+        let mut task_data = {
+            let mut task_store = task_store_arc_lock.write().unwrap();
+
+            task_store
+                .path_region_data_map
+                .remove(&task.id)
+                .expect("Task is missing PathRegion data")
+        };
+
+        let node_vec = Graph::find_region_path(
+            task_data.start_position,
+            task_data.end_position,
+            &task_data.level_0,
+            &mut task_data.search_level,
+        );
+
+        let position_vec = node_vec.iter().map(|node| node.position).collect();
+
+        let result_data = compute::result::data::path::Region {
+            plan_id: task_data.plan_id,
+            entity_id: task_data.entity_id,
+            position_vec,
+        };
+
+        let result = compute::Result::new(compute::result::Kind::RegionPath);
+
+        {
+            let mut result_store = result_store_arc_lock.write().unwrap();
+
+            result_store
+                .path_region_data_map
+                .insert(result.id, result_data);
+        }
+
+        result
+    }
+
+    fn execute_path_local_task(
+        task: Task,
+        task_store_arc_lock: Arc<RwLock<task::Store>>,
+        result_store_arc_lock: Arc<RwLock<result::Store>>,
+    ) -> compute::Result {
+        let task_data = {
+            let mut task_store = task_store_arc_lock.write().unwrap();
+
+            task_store
+                .path_local_data_map
+                .remove(&task.id)
+                .expect("Task is missing PathLocal data")
+        };
+
+        let node_vec = Graph::find_local_path(
+            task_data.start_position,
+            task_data.end_position,
+            &task_data.level_0,
+        );
+
+        let position_vec = node_vec.iter().map(|node| node.position).collect();
+
+        let result = compute::Result::new(compute::result::Kind::LocalPath);
+
+        let result_data = compute::result::data::path::Local {
+            plan_id: task_data.plan_id,
+            entity_id: task_data.entity_id,
+            chunk_id: task_data.chunk_id,
+            position_vec,
+        };
+
+        {
+            let mut result_store = result_store_arc_lock.write().unwrap();
+
+            result_store
+                .path_local_data_map
+                .insert(result.id, result_data);
+        }
+
+        result
     }
 
     fn distribute_results(
@@ -185,45 +201,61 @@ impl Compute {
         while let Ok(result) = result_rx.try_recv() {
             match result.kind {
                 compute::result::Kind::RegionPath => {
-                    let mut result_store = result_store_arc_lock.write().unwrap();
-
-                    let result_data = result_store
-                        .path_region_data_map
-                        .remove(&result.id)
-                        .unwrap();
-
-                    if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
-                        let travel_data = agent
-                            .decision
-                            .plan_store
-                            .travel_data_map
-                            .get_mut(&result_data.plan_id)
-                            .unwrap();
-
-                        travel_data.state = plan::State::Active;
-                        travel_data.region_path_found = true;
-                        travel_data.region_path_vec = result_data.position_vec;
-                    }
+                    Self::distribute_region_path_results(result, result_store_arc_lock, agent_map)
                 }
                 compute::result::Kind::LocalPath => {
-                    let mut result_store = result_store_arc_lock.write().unwrap();
-
-                    let result_data = result_store.path_local_data_map.remove(&result.id).unwrap();
-
-                    if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
-                        let travel_data = agent
-                            .decision
-                            .plan_store
-                            .travel_data_map
-                            .get_mut(&result_data.plan_id)
-                            .unwrap();
-
-                        travel_data.state = plan::State::Active;
-                        travel_data.local_path_found = true;
-                        travel_data.local_path_vec = result_data.position_vec;
-                    }
+                    Self::distribute_local_path_results(result, result_store_arc_lock, agent_map)
                 }
             }
+        }
+    }
+
+    fn distribute_region_path_results(
+        result: compute::Result,
+        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+        agent_map: &mut HashMap<entity::ID, Agent>,
+    ) {
+        let mut result_store = result_store_arc_lock.write().unwrap();
+
+        let result_data = result_store
+            .path_region_data_map
+            .remove(&result.id)
+            .unwrap();
+
+        if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
+            let travel_data = agent
+                .decision
+                .plan_store
+                .travel_data_map
+                .get_mut(&result_data.plan_id)
+                .unwrap();
+
+            travel_data.state = plan::State::Active;
+            travel_data.region_path_found = true;
+            travel_data.region_path_vec = result_data.position_vec;
+        }
+    }
+
+    fn distribute_local_path_results(
+        result: compute::Result,
+        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+        agent_map: &mut HashMap<entity::ID, Agent>,
+    ) {
+        let mut result_store = result_store_arc_lock.write().unwrap();
+
+        let result_data = result_store.path_local_data_map.remove(&result.id).unwrap();
+
+        if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
+            let travel_data = agent
+                .decision
+                .plan_store
+                .travel_data_map
+                .get_mut(&result_data.plan_id)
+                .unwrap();
+
+            travel_data.state = plan::State::Active;
+            travel_data.local_path_found = true;
+            travel_data.local_path_vec = result_data.position_vec;
         }
     }
 }
