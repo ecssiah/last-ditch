@@ -11,7 +11,6 @@ use glam::IVec3;
 struct NodeValidationCase {
     description: String,
     position: IVec3,
-    region_position: IVec3,
     expected_node: Option<Node>,
 }
 
@@ -24,11 +23,7 @@ impl NodeValidationCase {
 
         assert!(!level_0.region_node_map.is_empty());
 
-        let node = Level::get_node(
-            self.position,
-            self.region_position,
-            &level_0.region_node_map,
-        );
+        let node = Level::get_node(self.position, &level_0);
 
         assert_eq!(node, self.expected_node.as_ref(), "{:?}", self.description);
     }
@@ -45,13 +40,11 @@ fn node_validation() {
         NodeValidationCase {
             description: "valid node 1".to_string(),
             position: IVec3::new(0, -3, 0),
-            region_position: IVec3::new(0, -3, 0),
             expected_node: Some(Node::new(IVec3::new(0, -3, 0), IVec3::new(0, -3, 0), 0)),
         },
         NodeValidationCase {
             description: "invalid node 1".to_string(),
             position: IVec3::new(0, -2, 0),
-            region_position: IVec3::new(0, -2, 0),
             expected_node: None,
         },
     ];

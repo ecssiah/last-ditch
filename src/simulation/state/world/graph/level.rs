@@ -1,4 +1,4 @@
-use crate::simulation::state::world::graph::{Edge, Node};
+use crate::simulation::state::world::graph::{Edge, Graph, Node};
 use glam::IVec3;
 use std::collections::HashMap;
 
@@ -26,12 +26,11 @@ impl Level {
         }
     }
 
-    pub fn get_node(
-        position: IVec3,
-        region_position: IVec3,
-        region_node_map: &HashMap<IVec3, HashMap<IVec3, Node>>,
-    ) -> Option<&Node> {
-        let node_map = region_node_map.get(&region_position)?;
+    pub fn get_node(position: IVec3, level: &Level) -> Option<&Node> {
+        let region_position =
+            Graph::get_region_position(position, level.region_size, level.world_limit);
+
+        let node_map = level.region_node_map.get(&region_position)?;
 
         node_map.get(&position)
     }

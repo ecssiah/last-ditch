@@ -35,7 +35,7 @@ impl Agent {
         let mut decision = Decision::new();
 
         let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
-        let idle_plan_data = plan::data::Idle::new(Tick::new(40));
+        let idle_plan_data = plan::data::Idle::new(Tick::new(160));
 
         decision
             .plan_store

@@ -63,30 +63,11 @@ impl Graph {
         end_position: IVec3,
         level_0: &Level,
     ) -> Vec<Node> {
-        let start_node = Level::get_node(
-            start_position,
-            Graph::get_region_position(start_position, level_0.region_size, level_0.world_limit),
-            &level_0.region_node_map,
-        );
-
-        if start_node.is_none() {
-            return Vec::new();
-        }
-
-        let end_node = Level::get_node(
-            end_position,
-            Graph::get_region_position(end_position, level_0.region_size, level_0.world_limit),
-            &level_0.region_node_map,
-        );
-
-        if end_node.is_none() {
-            return Vec::new();
-        }
-
-        let start_node = start_node.unwrap();
-        let end_node = end_node.unwrap();
-
-        Self::get_path(*start_node, *end_node, level_0)
+        Level::get_node(start_position, level_0)
+            .zip(Level::get_node(end_position, level_0))
+            .map_or(Vec::new(), |(&start_node, &end_node)| {
+                Self::get_path(start_node, end_node, level_0)
+            })
     }
 
     fn create_node(position: IVec3, level: &Level) -> Node {
@@ -540,13 +521,11 @@ impl Graph {
         for (_, node_map) in &level_1.region_node_map {
             for (index, (_, &node1)) in node_map.iter().enumerate() {
                 for (_, &node2) in node_map.iter().skip(index + 1) {
-                    let node1_level_0 =
-                        Level::get_node(node1.position, node1.position, &level_0.region_node_map)
-                            .expect("Level 0 Node 1 should exist");
+                    let node1_level_0 = Level::get_node(node1.position, &level_0)
+                        .expect("Level 0 Node 1 should exist");
 
-                    let node2_level_0 =
-                        Level::get_node(node2.position, node2.position, &level_0.region_node_map)
-                            .expect("Level 0 Node 2 should exist");
+                    let node2_level_0 = Level::get_node(node2.position, &level_0)
+                        .expect("Level 0 Node 2 should exist");
 
                     let cost = Self::get_path_cost(*node1_level_0, *node2_level_0, level_0);
 

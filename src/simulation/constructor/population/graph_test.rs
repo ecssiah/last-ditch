@@ -19,7 +19,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent1.info.kind = entity::Kind::Eagle;
 
     pathfinding_agent1.set_world_position(Vec3::new(-9.0, -3.0, 0.0));
-    pathfinding_agent1.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
+    pathfinding_agent1.set_size(Vec3::new(0.3, 1.8, 0.3));
 
     agent_map.insert(pathfinding_agent1.info.entity_id, pathfinding_agent1);
 
@@ -27,7 +27,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent2.info.kind = entity::Kind::Wolf;
 
     pathfinding_agent2.set_world_position(Vec3::new(9.0, -3.0, 0.0));
-    pathfinding_agent2.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
+    pathfinding_agent2.set_size(Vec3::new(0.2, 2.0, 0.2));
 
     agent_map.insert(pathfinding_agent2.info.entity_id, pathfinding_agent2);
 
@@ -35,7 +35,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent3.info.kind = entity::Kind::Lion;
 
     pathfinding_agent3.set_world_position(Vec3::new(0.0, -3.0, -9.0));
-    pathfinding_agent3.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
+    pathfinding_agent3.set_size(Vec3::new(0.4, 2.4, 0.4));
 
     agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
 }
