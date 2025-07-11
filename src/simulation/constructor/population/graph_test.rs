@@ -20,6 +20,8 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent.set_world_position(Vec3::new(-9.0, -3.0, 0.0));
     pathfinding_agent.set_size(Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z));
 
+    
+
     agent_map.insert(pathfinding_agent.id, pathfinding_agent);
 }
 

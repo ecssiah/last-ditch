@@ -8,6 +8,7 @@ use crate::simulation::{
         compute::Task,
         population::entity::{Agent, Judge},
         world::World,
+        Compute,
     },
 };
 use std::collections::HashMap;
@@ -66,9 +67,9 @@ impl Population {
         }
     }
 
-    pub fn tick(population: &mut Population, world: &World) {
+    pub fn tick(population: &mut Population, compute: &mut Compute, world: &World) {
         for agent in population.agent_map.values_mut() {
-            Agent::tick(agent, &mut population.task_vec, world);
+            Agent::tick(agent, compute, world);
         }
 
         Judge::tick(&mut population.judge, world);

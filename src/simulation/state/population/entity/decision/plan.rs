@@ -3,29 +3,28 @@ pub mod id;
 pub mod kind;
 pub mod priority;
 pub mod state;
+pub mod store;
 
-pub use data::Data;
 pub use id::ID;
 pub use kind::Kind;
 pub use priority::Priority;
 pub use state::State;
+pub use store::Store;
 
 use std::cmp::Ordering;
 
 pub struct Plan {
     pub id: ID,
-    pub priority: Priority,
     pub kind: Kind,
-    pub state: State,
+    pub priority: Priority,
 }
 
 impl Plan {
     pub fn new(priority: Priority, kind: Kind) -> Self {
         Self {
             id: ID::allocate(),
-            priority,
             kind,
-            state: State::Init,
+            priority,
         }
     }
 }

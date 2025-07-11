@@ -139,7 +139,7 @@ impl State {
         }
 
         Time::tick(&mut state.time);
-        Population::tick(&mut state.population, &mut state.world);
+        Population::tick(&mut state.population, &mut state.compute, &mut state.world);
         Physics::tick(&state.physics, &state.world, &mut state.population);
         Compute::tick(&mut state.compute, &mut state.population, &state.world);
     }

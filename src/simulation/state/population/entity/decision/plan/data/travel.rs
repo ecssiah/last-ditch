@@ -1,6 +1,18 @@
+use crate::simulation::state::population::entity::decision::plan;
 use glam::IVec3;
 
 pub struct Travel {
-    pub regional_path_vec: Vec<IVec3>,
+    pub state: plan::State,
+    pub region_path_vec: Vec<IVec3>,
     pub local_path_vec: Vec<IVec3>,
+}
+
+impl Travel {
+    pub fn new() -> Self {
+        Self {
+            state: plan::State::Init,
+            region_path_vec: Vec::new(),
+            local_path_vec: Vec::new(),
+        }
+    }
 }

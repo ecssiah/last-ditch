@@ -1,49 +1,49 @@
-pub mod path;
+pub mod data;
+pub mod id;
+pub mod kind;
+pub mod priority;
+pub mod store;
 
-use crate::simulation::state::{compute, world::graph::Graph};
+pub use id::ID;
+pub use kind::Kind;
+pub use priority::Priority;
+pub use store::Store;
+
+use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
-pub enum Task {
-    Path(path::Kind),
+pub struct Task {
+    pub id: ID,
+    pub priority: Priority,
+    pub kind: Kind,
 }
 
 impl Task {
-    pub fn execute(task: &mut Task) -> compute::Result {
-        match task {
-            Task::Path(ref mut kind) => match kind {
-                path::Kind::Local(ref mut task_data) => {
-                    let result_data = compute::result::path::data::Local {
-                        agent_id: task_data.agent_id,
-                        chunk_id: task_data.chunk_id,
-                        position_vec: Vec::new(),
-                    };
-
-                    let result =
-                        compute::Result::Path(compute::result::path::Kind::Local(result_data));
-
-                    result
-                }
-                path::Kind::Regional(ref mut task_data) => {
-                    let node_vec = Graph::find_path(
-                        task_data.start_position,
-                        task_data.end_position,
-                        &task_data.level_0,
-                        &mut task_data.search_level,
-                    );
-
-                    let position_vec = node_vec.iter().map(|node| node.position).collect();
-
-                    let result_data = compute::result::path::data::Regional {
-                        agent_id: task_data.agent_id,
-                        position_vec,
-                    };
-
-                    let result =
-                        compute::Result::Path(compute::result::path::Kind::Regional(result_data));
-
-                    result
-                }
-            },
+    pub fn new(priority: Priority, kind: Kind) -> Self {
+        Self {
+            id: ID::allocate(),
+            priority,
+            kind,
         }
+    }
+}
+
+impl PartialEq for Task {
+    fn eq(&self, other: &Self) -> bool {
+        self.priority == other.priority
+    }
+}
+
+impl Eq for Task {}
+
+impl PartialOrd for Task {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Task {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.priority.cmp(&other.priority)
     }
 }
