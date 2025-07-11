@@ -110,7 +110,7 @@ impl Compute {
                         .expect("Task is missing PathRegion data")
                 };
 
-                let node_vec = Graph::find_path(
+                let node_vec = Graph::find_region_path(
                     task_data.start_position,
                     task_data.end_position,
                     &task_data.level_0,
@@ -147,13 +147,21 @@ impl Compute {
                         .expect("Task is missing PathLocal data")
                 };
 
+                let node_vec = Graph::find_local_path(
+                    task_data.start_position,
+                    task_data.end_position,
+                    &task_data.level_0,
+                );
+
+                let position_vec = node_vec.iter().map(|node| node.position).collect();
+
                 let result = compute::Result::new(compute::result::Kind::LocalPath);
 
                 let result_data = compute::result::data::path::Local {
                     plan_id: task_data.plan_id,
                     agent_id: task_data.agent_id,
                     chunk_id: task_data.chunk_id,
-                    position_vec: Vec::new(),
+                    position_vec,
                 };
 
                 {
@@ -193,6 +201,7 @@ impl Compute {
                             .unwrap();
 
                         travel_data.state = plan::State::Active;
+                        travel_data.region_path_found = true;
                         travel_data.region_path_vec = result_data.position_vec;
                     }
                 }
@@ -210,6 +219,7 @@ impl Compute {
                             .unwrap();
 
                         travel_data.state = plan::State::Active;
+                        travel_data.local_path_found = true;
                         travel_data.local_path_vec = result_data.position_vec;
                     }
                 }

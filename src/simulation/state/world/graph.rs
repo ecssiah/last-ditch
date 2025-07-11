@@ -41,47 +41,7 @@ impl Graph {
         }
     }
 
-    pub fn test_full_path(level_0: &Level, level_vec: &mut [Level]) {
-        let level_1_path_vec = Self::find_path(
-            IVec3::new(0, -3, 0),
-            IVec3::new(0, 6, 9),
-            &level_0,
-            &mut level_vec[1],
-        );
-
-        println!("Level 1 Path:");
-        for node in &level_1_path_vec {
-            println!("  {:?}", node);
-        }
-
-        for index in 1..level_1_path_vec.len() {
-            println!("Level 0 Path:");
-            let level1_node1 = level_1_path_vec[index - 1];
-            let level1_node2 = level_1_path_vec[index];
-
-            let node1 = Level::get_node(
-                level1_node1.position,
-                level1_node1.position,
-                &level_0.region_node_map,
-            )
-            .unwrap();
-
-            let node2 = Level::get_node(
-                level1_node2.position,
-                level1_node2.position,
-                &level_0.region_node_map,
-            )
-            .unwrap();
-
-            let level_0_path_vec = Self::get_path(*node1, *node2, level_0);
-
-            for node in &level_0_path_vec {
-                println!("  {:?}", node);
-            }
-        }
-    }
-
-    pub fn find_path(
+    pub fn find_region_path(
         start_position: IVec3,
         end_position: IVec3,
         level_0: &Level,
@@ -96,6 +56,37 @@ impl Graph {
         Self::connect_node(end_node, level_0, search_level);
 
         Self::get_path(start_node, end_node, search_level)
+    }
+
+    pub fn find_local_path(
+        start_position: IVec3,
+        end_position: IVec3,
+        level_0: &Level,
+    ) -> Vec<Node> {
+        let start_node = Level::get_node(
+            start_position,
+            Graph::get_region_position(start_position, level_0.region_size, level_0.world_limit),
+            &level_0.region_node_map,
+        );
+
+        if start_node.is_none() {
+            return Vec::new();
+        }
+
+        let end_node = Level::get_node(
+            end_position,
+            Graph::get_region_position(end_position, level_0.region_size, level_0.world_limit),
+            &level_0.region_node_map,
+        );
+
+        if end_node.is_none() {
+            return Vec::new();
+        }
+
+        let start_node = start_node.unwrap();
+        let end_node = end_node.unwrap();
+
+        Self::get_path(*start_node, *end_node, level_0)
     }
 
     fn create_node(position: IVec3, level: &Level) -> Node {
@@ -620,7 +611,7 @@ impl Graph {
         u32::MAX
     }
 
-    fn get_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Node> {
+    pub fn get_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Node> {
         let mut heap = BinaryHeap::new();
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();

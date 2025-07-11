@@ -26,11 +26,23 @@ pub struct Agent {
 
 impl Agent {
     pub fn new() -> Self {
+        let mut decision = Decision::new();
+
+        let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
+        let idle_plan_data = plan::data::Idle::new(Tick::new(40));
+
+        decision
+            .plan_store
+            .idle_data_map
+            .insert(idle_plan.id, idle_plan_data);
+
+        decision.plan_heap.push(idle_plan);
+
         Self {
             id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            decision: Decision::new(),
+            decision,
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             detection: Detection::new(),
@@ -43,7 +55,13 @@ impl Agent {
 
     pub fn tick(agent: &mut Agent, compute: &mut Compute, world: &World) {
         Self::track_current_chunk(agent, world);
-        Self::act(agent, compute, world);
+        Self::act(
+            agent.id,
+            &mut agent.spatial,
+            &mut agent.decision,
+            compute,
+            world,
+        );
     }
 
     fn track_current_chunk(agent: &mut Agent, world: &World) {
@@ -55,37 +73,25 @@ impl Agent {
         }
     }
 
-    fn act(agent: &mut Agent, compute: &mut Compute, world: &World) {
-        if agent.decision.plan_heap.is_empty() {
-            let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
-            let idle_plan_data = plan::data::Idle::new(Tick::new(60));
-
-            agent
-                .decision
-                .plan_store
-                .idle_data_map
-                .insert(idle_plan.id, idle_plan_data);
-
-            agent.decision.plan_heap.push(idle_plan);
-        }
-
-        let mut current_plans: Vec<_> = agent.decision.plan_heap.drain().collect();
+    fn act(
+        agent_id: entity::ID,
+        spatial: &mut Spatial,
+        decision: &mut Decision,
+        compute: &mut Compute,
+        world: &World,
+    ) {
+        let mut current_plans: Vec<_> = decision.plan_heap.drain().collect();
 
         while let Some(plan) = current_plans.pop() {
             match plan.kind {
                 plan::Kind::Idle => {
-                    let plan_data = agent
-                        .decision
-                        .plan_store
-                        .idle_data_map
-                        .get_mut(&plan.id)
-                        .unwrap();
+                    let plan_data = decision.plan_store.idle_data_map.get_mut(&plan.id).unwrap();
 
                     match plan_data.state {
                         plan::State::Init => {
                             plan_data.state = plan::State::Active;
 
-                            agent.decision.plan_heap.push(plan);
+                            decision.plan_heap.push(plan);
                         }
                         plan::State::Active => {
                             plan_data.tick_count += 1;
@@ -94,33 +100,31 @@ impl Agent {
                                 plan_data.state = plan::State::Success;
                             }
 
-                            agent.decision.plan_heap.push(plan);
+                            decision.plan_heap.push(plan);
                         }
                         plan::State::Success => {
                             let travel_plan = Plan::new(plan::Priority::High, plan::Kind::Travel);
                             let travel_data = plan::data::Travel::new();
 
-                            agent
-                                .decision
+                            decision
                                 .plan_store
                                 .travel_data_map
                                 .insert(travel_plan.id, travel_data);
 
-                            agent.decision.plan_heap.push(travel_plan);
+                            decision.plan_heap.push(travel_plan);
                         }
                         plan::State::Fail => todo!(),
                         plan::State::Cancel => todo!(),
                     }
                 }
                 plan::Kind::Travel => {
-                    let plan_data = agent
-                        .decision
+                    let travel_data = decision
                         .plan_store
                         .travel_data_map
                         .get_mut(&plan.id)
                         .unwrap();
 
-                    match plan_data.state {
+                    match travel_data.state {
                         plan::State::Init => {
                             let graph_buffer = world.graph_buffer_lock.read().unwrap();
                             let graph = graph_buffer.get();
@@ -132,10 +136,10 @@ impl Agent {
 
                             let task_data = compute::task::data::path::Region {
                                 plan_id: plan.id,
-                                agent_id: agent.id,
+                                agent_id: agent_id,
                                 start_position: world
                                     .grid
-                                    .world_to_position(agent.spatial.world_position),
+                                    .world_to_position(spatial.world_position),
                                 end_position: IVec3::new(0, 6, 9),
                                 level_0: graph.level_0.clone(),
                                 search_level: graph.level_vec[0].clone(),
@@ -146,33 +150,113 @@ impl Agent {
 
                             compute.task_heap.push(task);
 
-                            plan_data.state = plan::State::Active;
+                            travel_data.state = plan::State::Active;
 
-                            agent.decision.plan_heap.push(plan);
+                            decision.plan_heap.push(plan);
                         }
                         plan::State::Active => {
-                            if !plan_data.region_path_vec.is_empty() {
-                                let target_position = plan_data.region_path_vec.last().unwrap();
+                            if travel_data.region_path_found {
+                                travel_data.region_path_found = false;
+                                travel_data.region_path_tracking = true;
 
-                                let distance_vector =
-                                    target_position.as_vec3() - agent.spatial.world_position;
+                                let task = compute::Task::new(
+                                    compute::task::Priority::High,
+                                    compute::task::Kind::PathLocal,
+                                );
 
-                                if distance_vector.length_squared() >= 0.01 {
-                                    let direction_vector = distance_vector.normalize();
+                                let task_data = {
+                                    let graph_buffer = world.graph_buffer_lock.read().unwrap();
+                                    let graph = graph_buffer.get();
 
-                                    agent.set_world_position(
-                                        agent.spatial.world_position + 0.4 * direction_vector,
-                                    );
-                                } else {
-                                    plan_data.region_path_vec.pop();
+                                    let start_position = travel_data.region_path_vec.pop().unwrap();
+                                    let end_position = travel_data.region_path_vec.pop().unwrap();
 
-                                    if plan_data.region_path_vec.is_empty() {
-                                        plan_data.state = plan::State::Success;
+                                    compute::task::data::path::Local {
+                                        plan_id: plan.id,
+                                        agent_id: agent_id,
+                                        chunk_id: chunk::ID::MAX,
+                                        start_position,
+                                        end_position,
+                                        level_0: graph.level_0.clone(),
+                                    }
+                                };
+
+                                let mut task_store = compute.task_store_arc_lock.write().unwrap();
+
+                                task_store.path_local_data_map.insert(task.id, task_data);
+
+                                compute.task_heap.push(task);
+                            }
+
+                            if travel_data.local_path_found {
+                                travel_data.local_path_found = false;
+                                travel_data.local_path_tracking = true;
+                            }
+
+                            if travel_data.region_path_tracking {
+                                if travel_data.local_path_tracking {
+                                    let target_position =
+                                        travel_data.local_path_vec.last().unwrap().as_vec3();
+
+                                    let distance_vector = target_position - spatial.world_position;
+
+                                    if distance_vector.length_squared() >= 0.01 {
+                                        let direction_vector = distance_vector.normalize();
+
+                                        spatial.world_position += 0.1 * direction_vector;
+                                    } else {
+                                        travel_data.local_path_vec.pop();
+
+                                        if travel_data.local_path_vec.is_empty() {
+                                            if travel_data.region_path_vec.is_empty() {
+                                                travel_data.state = plan::State::Success;
+                                                travel_data.region_path_tracking = false;
+                                                travel_data.region_path_complete = true;
+                                            } else {
+                                                travel_data.local_path_tracking = false;
+
+                                                let task = compute::Task::new(
+                                                    compute::task::Priority::High,
+                                                    compute::task::Kind::PathLocal,
+                                                );
+
+                                                let task_data = {
+                                                    let graph_buffer =
+                                                        world.graph_buffer_lock.read().unwrap();
+                                                    let graph = graph_buffer.get();
+
+                                                    let start_position =
+                                                        travel_data.region_path_vec.pop().unwrap();
+                                                    let end_position =
+                                                        travel_data.region_path_vec.pop().unwrap();
+
+                                                    compute::task::data::path::Local {
+                                                        plan_id: plan.id,
+                                                        agent_id: agent_id,
+                                                        chunk_id: chunk::ID::MAX,
+                                                        start_position,
+                                                        end_position,
+                                                        level_0: graph.level_0.clone(),
+                                                    }
+                                                };
+
+                                                let mut task_store =
+                                                    compute.task_store_arc_lock.write().unwrap();
+
+                                                task_store
+                                                    .path_local_data_map
+                                                    .insert(task.id, task_data);
+
+                                                compute.task_heap.push(task);
+                                            }
+                                        }
                                     }
                                 }
                             }
 
-                            agent.decision.plan_heap.push(plan);
+                            if !travel_data.region_path_complete {
+                                decision.plan_heap.push(plan);
+                            }
                         }
                         plan::State::Success => {
                             println!("Travel Success!");
