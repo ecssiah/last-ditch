@@ -121,7 +121,7 @@ impl Compute {
 
                 let result_data = compute::result::data::path::Region {
                     plan_id: task_data.plan_id,
-                    agent_id: task_data.agent_id,
+                    entity_id: task_data.entity_id,
                     position_vec,
                 };
 
@@ -159,7 +159,7 @@ impl Compute {
 
                 let result_data = compute::result::data::path::Local {
                     plan_id: task_data.plan_id,
-                    agent_id: task_data.agent_id,
+                    entity_id: task_data.entity_id,
                     chunk_id: task_data.chunk_id,
                     position_vec,
                 };
@@ -192,7 +192,7 @@ impl Compute {
                         .remove(&result.id)
                         .unwrap();
 
-                    if let Some(agent) = agent_map.get_mut(&result_data.agent_id) {
+                    if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
                         let travel_data = agent
                             .decision
                             .plan_store
@@ -210,7 +210,7 @@ impl Compute {
 
                     let result_data = result_store.path_local_data_map.remove(&result.id).unwrap();
 
-                    if let Some(agent) = agent_map.get_mut(&result_data.agent_id) {
+                    if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
                         let travel_data = agent
                             .decision
                             .plan_store

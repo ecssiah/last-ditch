@@ -4,7 +4,7 @@ use crate::simulation::state::{
     population::entity::{
         self,
         decision::{plan, Plan},
-        Decision, Detection, Kinematic, Nation, Spatial,
+        Decision, Detection, Info, Kinematic, Nation, Spatial,
     },
     time::Tick,
     world::{chunk, World},
@@ -13,19 +13,25 @@ use crate::simulation::state::{
 use glam::{IVec3, Vec3};
 
 pub struct Agent {
-    pub id: entity::ID,
-    pub chunk_id: chunk::ID,
-    pub chunk_updated: bool,
+    pub info: Info,
     pub decision: Decision,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub detection: Detection,
-    pub kind: entity::Kind,
-    pub nation: Nation,
 }
 
 impl Agent {
     pub fn new() -> Self {
+        let info = Info {
+            entity_id: entity::ID::allocate(),
+            chunk_id: chunk::ID(0),
+            chunk_updated: false,
+            kind: entity::Kind::Eagle,
+            nation: Nation {
+                kind: entity::Kind::Eagle,
+            },
+        };
+
         let mut decision = Decision::new();
 
         let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
@@ -39,24 +45,19 @@ impl Agent {
         decision.plan_heap.push(idle_plan);
 
         Self {
-            id: entity::ID::allocate(),
-            chunk_id: chunk::ID(0),
-            chunk_updated: false,
+            info,
             decision,
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             detection: Detection::new(),
-            kind: entity::Kind::Eagle,
-            nation: Nation {
-                kind: entity::Kind::Eagle,
-            },
         }
     }
 
     pub fn tick(agent: &mut Agent, compute: &mut Compute, world: &World) {
-        Self::track_current_chunk(agent, world);
+        Self::track_current_chunk(&mut agent.info, &mut agent.spatial, world);
+
         Self::act(
-            agent.id,
+            &agent.info,
             &mut agent.spatial,
             &mut agent.decision,
             compute,
@@ -64,17 +65,17 @@ impl Agent {
         );
     }
 
-    fn track_current_chunk(agent: &mut Agent, world: &World) {
-        let chunk_id = world.grid.world_to_chunk_id(agent.spatial.world_position);
+    fn track_current_chunk(info: &mut Info, spatial: &Spatial, world: &World) {
+        let chunk_id = world.grid.world_to_chunk_id(spatial.world_position);
 
-        if chunk_id != agent.chunk_id {
-            agent.chunk_updated = true;
-            agent.chunk_id = chunk_id;
+        if chunk_id != info.chunk_id {
+            info.chunk_updated = true;
+            info.chunk_id = chunk_id;
         }
     }
 
     fn act(
-        agent_id: entity::ID,
+        info: &Info,
         spatial: &mut Spatial,
         decision: &mut Decision,
         compute: &mut Compute,
@@ -136,7 +137,7 @@ impl Agent {
 
                             let task_data = compute::task::data::path::Region {
                                 plan_id: plan.id,
-                                agent_id: agent_id,
+                                entity_id: info.entity_id,
                                 start_position: world
                                     .grid
                                     .world_to_position(spatial.world_position),
@@ -173,7 +174,7 @@ impl Agent {
 
                                     compute::task::data::path::Local {
                                         plan_id: plan.id,
-                                        agent_id: agent_id,
+                                        entity_id: info.entity_id,
                                         chunk_id: chunk::ID::MAX,
                                         start_position,
                                         end_position,
@@ -203,7 +204,7 @@ impl Agent {
                                     if distance_vector.length_squared() >= 0.01 {
                                         let direction_vector = distance_vector.normalize();
 
-                                        spatial.world_position += 0.1 * direction_vector;
+                                        spatial.world_position += 0.06 * direction_vector;
                                     } else {
                                         travel_data.local_path_vec.pop();
 
@@ -232,7 +233,7 @@ impl Agent {
 
                                                     compute::task::data::path::Local {
                                                         plan_id: plan.id,
-                                                        agent_id: agent_id,
+                                                        entity_id: info.entity_id,
                                                         chunk_id: chunk::ID::MAX,
                                                         start_position,
                                                         end_position,

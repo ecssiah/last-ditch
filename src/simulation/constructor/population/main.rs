@@ -45,7 +45,7 @@ fn setup_agents(population: &mut Population, world: &World) {
 
                 let mut agent = Agent::new();
 
-                agent.kind = kind;
+                agent.info.kind = kind;
                 agent.set_world_position(world_position);
                 agent.set_size(Vec3::new(
                     0.6,
@@ -53,7 +53,7 @@ fn setup_agents(population: &mut Population, world: &World) {
                     0.6,
                 ));
 
-                population.agent_map.insert(agent.id, agent);
+                population.agent_map.insert(agent.info.entity_id, agent);
             }
         }
     }

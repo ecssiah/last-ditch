@@ -105,14 +105,16 @@ impl Observation {
             }
 
             let agent_view = AgentView {
-                id: agent.id,
-                kind: agent.kind,
+                id: agent.info.entity_id,
+                kind: agent.info.kind,
                 spatial: agent.spatial,
                 kinematic: agent.kinematic,
                 detection: agent.detection,
             };
 
-            population_view.agent_view_map.insert(agent.id, agent_view);
+            population_view
+                .agent_view_map
+                .insert(agent.info.entity_id, agent_view);
         }
 
         population_view
