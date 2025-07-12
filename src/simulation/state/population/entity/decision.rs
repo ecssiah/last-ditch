@@ -4,6 +4,8 @@ pub use plan::Plan;
 
 use std::collections::{BinaryHeap, HashMap};
 
+use crate::simulation::state::{population::entity::Agent, World};
+
 pub struct Decision {
     pub max_choices: u32,
     pub max_actions: u32,
@@ -33,4 +35,6 @@ impl Decision {
             plan_store,
         }
     }
+
+    pub fn tick(_world: &World, _agent: &mut Agent) {}
 }

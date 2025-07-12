@@ -2,15 +2,17 @@ pub mod data;
 pub mod id;
 pub mod kind;
 pub mod priority;
-pub mod state;
+pub mod stage;
 pub mod store;
 
 pub use id::ID;
 pub use kind::Kind;
 pub use priority::Priority;
-pub use state::State;
+pub use stage::Stage;
 pub use store::Store;
 
+use crate::simulation::state::population::entity::decision::plan;
+use glam::IVec3;
 use std::cmp::Ordering;
 
 #[derive(Clone)]
@@ -29,20 +31,28 @@ impl Plan {
         }
     }
 
-    pub fn create_idle_plan() -> Self {
-        Self {
+    pub fn create_idle_plan(tick_duration: u32) -> (Self, plan::data::Idle) {
+        let idle_plan = Self {
             id: ID::allocate(),
             kind: Kind::Idle,
             priority: Priority::Medium,
-        }
+        };
+
+        let idle_data = plan::data::Idle::new(tick_duration);
+
+        (idle_plan, idle_data)
     }
 
-    pub fn create_travel_plan() -> Self {
-        Self {
+    pub fn create_travel_plan(target_position: IVec3) -> (Self, plan::data::Travel) {
+        let travel_plan = Self {
             id: ID::allocate(),
             kind: Kind::Travel,
             priority: Priority::Medium,
-        }
+        };
+
+        let travel_data = plan::data::Travel::new(target_position);
+
+        (travel_plan, travel_data)
     }
 }
 

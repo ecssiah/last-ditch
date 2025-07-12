@@ -1,4 +1,4 @@
-pub enum State {
+pub enum Stage {
     Init,
     Active,
     Success,

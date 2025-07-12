@@ -9,7 +9,7 @@ pub use task::Task;
 use crate::simulation::state::{
     compute,
     population::{
-        entity::{self, decision::plan, Agent},
+        entity::{self, Agent},
         Population,
     },
     world::graph::Graph,
@@ -230,9 +230,14 @@ impl Compute {
                 .get_mut(&result_data.plan_id)
                 .unwrap();
 
-            travel_data.state = plan::State::Active;
-            travel_data.region_path_found = true;
+            travel_data.path_found = true;
+            travel_data.path_index = 1;
             travel_data.region_path_vec = result_data.position_vec;
+
+            println!("Region Path: ");
+            for position in &travel_data.region_path_vec {
+                println!("{:?}", position);
+            }
         }
     }
 
@@ -253,8 +258,8 @@ impl Compute {
                 .get_mut(&result_data.plan_id)
                 .unwrap();
 
-            travel_data.state = plan::State::Active;
             travel_data.local_path_found = true;
+            travel_data.local_path_index = 0;
             travel_data.local_path_vec = result_data.position_vec;
         }
     }

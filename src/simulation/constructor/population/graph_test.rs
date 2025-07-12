@@ -32,7 +32,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent1.info.kind = entity::Kind::Eagle;
 
     Agent::set_world_position(
-        Vec3::new(0.0, 6.0, 9.0),
+        Vec3::new(-9.0, -3.0, 0.0),
         &mut pathfinding_agent1.spatial,
         &mut pathfinding_agent1.detection,
     );
@@ -41,42 +41,42 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
 
     agent_map.insert(pathfinding_agent1.info.entity_id, pathfinding_agent1);
 
-    let mut pathfinding_agent2 = Agent::new();
-    pathfinding_agent2.info.kind = entity::Kind::Wolf;
+    // let mut pathfinding_agent2 = Agent::new();
+    // pathfinding_agent2.info.kind = entity::Kind::Wolf;
 
-    Agent::set_world_position(
-        Vec3::new(0.0, 6.0, 9.0),
-        &mut pathfinding_agent2.spatial,
-        &mut pathfinding_agent2.detection,
-    );
+    // Agent::set_world_position(
+    //     Vec3::new(9.0, -3.0, 0.0),
+    //     &mut pathfinding_agent2.spatial,
+    //     &mut pathfinding_agent2.detection,
+    // );
 
-    Agent::set_size(Vec3::new(0.3, 2.4, 0.3), &mut pathfinding_agent2.detection);
+    // Agent::set_size(Vec3::new(0.3, 2.4, 0.3), &mut pathfinding_agent2.detection);
 
-    agent_map.insert(pathfinding_agent2.info.entity_id, pathfinding_agent2);
+    // agent_map.insert(pathfinding_agent2.info.entity_id, pathfinding_agent2);
 
-    let mut pathfinding_agent3 = Agent::new();
-    pathfinding_agent3.info.kind = entity::Kind::Lion;
+    // let mut pathfinding_agent3 = Agent::new();
+    // pathfinding_agent3.info.kind = entity::Kind::Lion;
 
-    Agent::set_world_position(
-        Vec3::new(0.0, 6.0, 9.0),
-        &mut pathfinding_agent3.spatial,
-        &mut pathfinding_agent3.detection,
-    );
+    // Agent::set_world_position(
+    //     Vec3::new(0.0, -3.0, -9.0),
+    //     &mut pathfinding_agent3.spatial,
+    //     &mut pathfinding_agent3.detection,
+    // );
 
-    Agent::set_size(Vec3::new(0.3, 2.8, 0.3), &mut pathfinding_agent3.detection);
+    // Agent::set_size(Vec3::new(0.3, 2.8, 0.3), &mut pathfinding_agent3.detection);
 
-    agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
+    // agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
 
-    let mut pathfinding_agent4 = Agent::new();
-    pathfinding_agent4.info.kind = entity::Kind::Horse;
+    // let mut pathfinding_agent4 = Agent::new();
+    // pathfinding_agent4.info.kind = entity::Kind::Horse;
 
-    Agent::set_world_position(
-        Vec3::new(0.0, 6.0, 9.0),
-        &mut pathfinding_agent4.spatial,
-        &mut pathfinding_agent4.detection,
-    );
+    // Agent::set_world_position(
+    //     Vec3::new(0.0, -3.0, 9.0),
+    //     &mut pathfinding_agent4.spatial,
+    //     &mut pathfinding_agent4.detection,
+    // );
 
-    Agent::set_size(Vec3::new(0.1, 2.1, 0.1), &mut pathfinding_agent4.detection);
+    // Agent::set_size(Vec3::new(0.1, 2.1, 0.1), &mut pathfinding_agent4.detection);
 
-    agent_map.insert(pathfinding_agent4.info.entity_id, pathfinding_agent4);
+    // agent_map.insert(pathfinding_agent4.info.entity_id, pathfinding_agent4);
 }

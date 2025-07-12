@@ -1,17 +1,17 @@
 use crate::simulation::state::{population::entity::decision::plan, time::Tick};
 
 pub struct Idle {
-    pub state: plan::State,
+    pub stage: plan::Stage,
     pub tick_count: Tick,
-    pub duration: Tick,
+    pub tick_duration: Tick,
 }
 
 impl Idle {
-    pub fn new(duration: Tick) -> Self {
+    pub fn new(tick_duration: u32) -> Self {
         Self {
-            state: plan::State::Init,
+            stage: plan::Stage::Init,
             tick_count: Tick::ZERO,
-            duration,
+            tick_duration: Tick::new(tick_duration),
         }
     }
 }

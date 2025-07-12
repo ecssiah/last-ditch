@@ -245,7 +245,12 @@ impl Interface<'_> {
         let view = simulation::observation::Observation::get_view(&observation.view_buffer_lock);
 
         if !self.dispatch_actions(&view) {
-            event_loop.exit();
+            let admin_action = simulation::state::receiver::action::AdminAction::Exit;
+            let action = simulation::state::receiver::action::Action::Admin(admin_action);
+
+            log::info!("Interface Exit");
+
+            let _ = self.dispatch.send(action);
         } else {
             self.apply_view(event_loop, &view);
         }
