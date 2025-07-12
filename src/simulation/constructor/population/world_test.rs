@@ -1,10 +1,10 @@
 use crate::simulation::{
     consts::*,
-    state::{population::entity::Judge, Population, World},
+    state::{population::entity::Judge, Population},
 };
 use glam::Vec3;
 
-pub fn construct(population: &mut Population, _world: &World) {
+pub fn construct(population: &mut Population) {
     setup_judge(population);
 }
 

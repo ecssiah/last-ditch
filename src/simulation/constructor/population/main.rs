@@ -11,9 +11,9 @@ use crate::simulation::{
 use glam::Vec3;
 use rand::Rng;
 
-pub fn construct(population: &mut Population, world: &World) {
+pub fn construct(world: &World, population: &mut Population) {
     setup_judge(population);
-    setup_agents(population, world);
+    setup_agent_map(world, population);
 }
 
 fn setup_judge(population: &mut Population) {
@@ -33,7 +33,7 @@ fn setup_judge(population: &mut Population) {
     Judge::set_rotation(0.0, 0.0, &mut judge.spatial, &mut judge.kinematic);
 }
 
-fn setup_agents(population: &mut Population, world: &World) {
+fn setup_agent_map(world: &World, population: &mut Population) {
     let mut rng = rand::thread_rng();
 
     let agent_initial_population = 16;

@@ -49,27 +49,27 @@ impl Population {
         }
     }
 
-    pub fn setup(kind: simulation::Kind, population: &mut Population, world: &World) {
+    pub fn setup(kind: simulation::Kind, world: &World, population: &mut Population) {
         match kind {
             simulation::Kind::Main => {
-                constructor::population::main::construct(population, world);
+                constructor::population::main::construct(world, population);
             }
             simulation::Kind::Empty => {
-                constructor::population::empty::construct(population, world);
+                constructor::population::empty::construct();
             }
             simulation::Kind::WorldTest => {
-                constructor::population::world_test::construct(population, world);
+                constructor::population::world_test::construct(population);
             }
             simulation::Kind::GraphTest => {
-                constructor::population::graph_test::construct(population, world);
+                constructor::population::graph_test::construct(population);
             }
             simulation::Kind::Placeholder => (),
         }
     }
 
-    pub fn tick(population: &mut Population, compute: &mut Compute, world: &World) {
+    pub fn tick(world: &World, population: &mut Population, compute: &mut Compute) {
         for agent in population.agent_map.values_mut() {
-            Agent::tick(agent, compute, world);
+            Agent::tick(world, agent, compute);
         }
 
         Judge::tick(&mut population.judge, world);

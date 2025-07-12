@@ -38,8 +38,9 @@ impl Agent {
         let mut decision = Decision::new();
 
         let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
-        let idle_plan_data =
-            plan::data::Idle::new(Tick::new(rand::thread_rng().gen_range(60..240)));
+        
+        let idle_wait_tick_count = Tick::new(rand::thread_rng().gen_range(60..240));
+        let idle_plan_data = plan::data::Idle::new(idle_wait_tick_count);
 
         decision
             .plan_store
@@ -57,7 +58,7 @@ impl Agent {
         }
     }
 
-    pub fn tick(agent: &mut Agent, compute: &mut Compute, world: &World) {
+    pub fn tick(world: &World, agent: &mut Agent, compute: &mut Compute) {
         Self::track_current_chunk(world, &agent.spatial, &mut agent.info);
 
         Self::act(

@@ -61,14 +61,14 @@ impl State {
 
     pub fn tick(state: &mut State, action_vec: Vec<Action>) {
         match state.admin.mode {
-            admin::Mode::Menu => Self::tick_menu(state, action_vec),
-            admin::Mode::Load => Self::tick_load(state, action_vec),
-            admin::Mode::Simulate => Self::tick_simulate(state, action_vec),
-            admin::Mode::Shutdown => Self::tick_shutdown(state, action_vec),
+            admin::Mode::Menu => Self::tick_menu(action_vec, state),
+            admin::Mode::Load => Self::tick_load(state),
+            admin::Mode::Simulate => Self::tick_simulate(action_vec, state),
+            admin::Mode::Shutdown => Self::tick_shutdown(state),
         }
     }
 
-    fn tick_menu(state: &mut State, action_vec: Vec<Action>) {
+    fn tick_menu(action_vec: Vec<Action>, state: &mut State) {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
@@ -93,7 +93,7 @@ impl State {
             let mut population = population;
 
             World::setup(kind, &mut world);
-            Population::setup(kind, &mut population, &world);
+            Population::setup(kind, &world, &mut population);
 
             let _ = construct_tx.blocking_send((world, population));
         });
@@ -104,7 +104,7 @@ impl State {
         state.admin.message = "Construction in Progress...".to_string();
     }
 
-    fn tick_load(state: &mut State, _action_vec: Vec<Action>) {
+    fn tick_load(state: &mut State) {
         if let Some(construct_rx) = &mut state.construct_rx {
             if let Ok((world, population)) = construct_rx.try_recv() {
                 state.world = world;
@@ -116,11 +116,11 @@ impl State {
         }
     }
 
-    fn tick_simulate(state: &mut State, action_vec: Vec<Action>) {
+    fn tick_simulate(action_vec: Vec<Action>, state: &mut State) {
         Self::apply_simulate_actions(state, action_vec);
 
         Time::tick(&mut state.time);
-        Population::tick(&mut state.population, &mut state.compute, &mut state.world);
+        Population::tick(&state.world, &mut state.population, &mut state.compute);
         Physics::tick(&state.physics, &state.world, &mut state.population);
         Compute::tick(&mut state.compute, &mut state.population);
     }
@@ -161,7 +161,7 @@ impl State {
         state.admin.mode = admin::Mode::Shutdown;
     }
 
-    fn tick_shutdown(state: &mut State, _action_vec: Vec<Action>) {
+    fn tick_shutdown(state: &mut State) {
         state.admin.message = "Shutting down...".to_string();
     }
 }
