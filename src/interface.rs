@@ -15,11 +15,7 @@ use crate::{
     },
     simulation::{self},
 };
-use std::{
-    ops::Deref,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{ops::Deref, sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalSize,
@@ -29,8 +25,6 @@ use winit::{
 };
 
 pub struct Interface<'window> {
-    dt: Duration,
-    instant: Instant,
     last_instant: Instant,
     gpu_context: GPUContext<'window>,
     observation_arc: Arc<simulation::observation::Observation>,
@@ -47,8 +41,6 @@ impl Interface<'_> {
         action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
         observation_arc: Arc<simulation::observation::Observation>,
     ) -> Self {
-        let dt = Duration::ZERO;
-        let instant = Instant::now();
         let last_instant = Instant::now();
 
         let monitor = event_loop
@@ -163,8 +155,6 @@ impl Interface<'_> {
         gpu_context.window_arc.request_redraw();
 
         Self {
-            dt,
-            instant,
             last_instant,
             observation_arc,
             gpu_context,
@@ -281,11 +271,11 @@ impl Interface<'_> {
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
-        self.hud.prepare_menu(view);
+        self.hud.apply_menu_view(view);
     }
 
     fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
-        self.hud.prepare_load(view);
+        self.hud.apply_load_view(view);
     }
 
     fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
@@ -295,22 +285,19 @@ impl Interface<'_> {
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
 
-        self.hud.prepare_simulate(view);
-
-        self.dt = self.instant.elapsed();
-        self.instant = Instant::now();
+        self.hud.apply_simulate_view(view);
 
         self.camera
-            .update(&self.gpu_context.queue, &view.population_view.judge_view);
+            .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        self.render.prepare_agent_view_map(
+        self.render.apply_population_view(
             &self.gpu_context.device,
             &self.gpu_context.queue,
             &view.population_view.agent_view_map,
         );
 
         self.render
-            .prepare_world_view(&self.gpu_context.device, &view.world_view);
+            .apply_world_view(&self.gpu_context.device, &view.world_view);
     }
 
     fn apply_shutdown_view(
@@ -318,7 +305,7 @@ impl Interface<'_> {
         view: &simulation::observation::view::View,
         event_loop: &ActiveEventLoop,
     ) {
-        self.hud.prepare_shutdown(view);
+        self.hud.apply_shutdown_view(view);
 
         event_loop.exit();
     }

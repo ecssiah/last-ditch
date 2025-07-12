@@ -66,7 +66,7 @@ impl Render {
         }
     }
 
-    pub fn prepare_agent_view_map(
+    pub fn apply_population_view(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
@@ -103,7 +103,7 @@ impl Render {
         );
     }
 
-    pub fn prepare_world_view(
+    pub fn apply_world_view(
         &mut self,
         device: &wgpu::Device,
         world_view: &simulation::observation::view::WorldView,

@@ -52,7 +52,7 @@ impl Camera {
         }
     }
 
-    pub fn update(
+    pub fn apply_judge_view(
         &mut self,
         queue: &wgpu::Queue,
         judge_view: &simulation::observation::view::JudgeView,

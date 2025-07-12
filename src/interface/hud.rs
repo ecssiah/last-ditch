@@ -110,7 +110,7 @@ impl HUD {
         std::mem::take(&mut self.action_vec)
     }
 
-    pub fn prepare_menu(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_menu_view(&mut self, view: &simulation::observation::view::View) {
         let menu_data = mode::MenuData {
             message: view.admin_view.message.clone(),
         };
@@ -118,7 +118,7 @@ impl HUD {
         self.mode = Mode::Menu(menu_data);
     }
 
-    pub fn prepare_load(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
         let load_data = mode::LoadData {
             message: view.admin_view.message.clone(),
         };
@@ -126,7 +126,7 @@ impl HUD {
         self.mode = Mode::Load(load_data);
     }
 
-    pub fn prepare_simulate(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
         let judge_view = &view.population_view.judge_view;
 
         let world_position_string = format!(
@@ -157,7 +157,7 @@ impl HUD {
         self.mode = Mode::Simulate(simulate_data);
     }
 
-    pub fn prepare_shutdown(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_shutdown_view(&mut self, view: &simulation::observation::view::View) {
         let shutdown_data = mode::ShutdownData {
             message: view.admin_view.message.clone(),
         };
