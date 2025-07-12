@@ -20,11 +20,27 @@ pub struct Plan {
 }
 
 impl Plan {
-    pub fn new(priority: Priority, kind: Kind) -> Self {
+    pub fn new(kind: Kind, priority: Priority) -> Self {
         Self {
             id: ID::allocate(),
             kind,
             priority,
+        }
+    }
+
+    pub fn create_idle_plan() -> Self {
+        Self {
+            id: ID::allocate(),
+            kind: Kind::Idle,
+            priority: Priority::Medium,
+        }
+    }
+
+    pub fn create_travel_plan() -> Self {
+        Self {
+            id: ID::allocate(),
+            kind: Kind::Travel,
+            priority: Priority::Medium,
         }
     }
 }
