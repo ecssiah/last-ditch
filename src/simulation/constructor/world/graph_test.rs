@@ -1,4 +1,8 @@
-use crate::simulation::state::world::{block, grid, World};
+use crate::simulation::state::world::{
+    block,
+    grid::{self, Grid},
+    World,
+};
 use glam::IVec3;
 
 pub fn construct(world: &mut World) {
@@ -16,7 +20,7 @@ pub fn construct(world: &mut World) {
 
 fn build_center_room(world: &mut World) {
     let chunk_coordinates = IVec3::new(0, 0, 0);
-    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
+    let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
 
     let entrances = Vec::from([
         grid::Direction::XpYoZo,
@@ -65,7 +69,7 @@ fn build_constricted_entrance_room(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates = IVec3::new(-1, 0, 0);
-    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
+    let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
 
     let entrances = Vec::from([
         grid::Direction::XnYoZo,
@@ -98,7 +102,7 @@ fn build_expanded_entrance_room(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates = IVec3::new(1, 0, 0);
-    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
+    let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
 
     let entrances = Vec::from([
         grid::Direction::XpYoZo,
@@ -140,7 +144,7 @@ fn build_multiple_entrance_room(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates = IVec3::new(0, 0, -1);
-    let chunk_position = world.grid.chunk_coordinates_to_position(chunk_coordinates);
+    let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
 
     let entrances = vec![
         grid::Direction::XpYoZo,
@@ -173,9 +177,8 @@ fn build_vertical_entrance_room(world: &mut World) {
     let chunk_radius = world.grid.chunk_radius as i32;
 
     let chunk_coordinates_001 = IVec3::new(0, 0, 1);
-    let chunk_position_001 = world
-        .grid
-        .chunk_coordinates_to_position(chunk_coordinates_001);
+    let chunk_position_001 =
+        Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates_001);
 
     let entrance_vec = vec![
         grid::Direction::XpYoZo,
@@ -192,9 +195,8 @@ fn build_vertical_entrance_room(world: &mut World) {
     );
 
     let chunk_coordinates_011 = IVec3::new(0, 1, 1);
-    let chunk_position_011 = world
-        .grid
-        .chunk_coordinates_to_position(chunk_coordinates_011);
+    let chunk_position_011 =
+        Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates_011);
 
     let entrance_vec = vec![];
 

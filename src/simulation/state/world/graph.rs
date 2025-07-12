@@ -192,7 +192,8 @@ impl Graph {
             for y in -world_radius..world_radius {
                 for z in -world_radius..world_radius {
                     let chunk_coordinates = IVec3::new(x, y, z);
-                    let chunk_position = grid.chunk_coordinates_to_position(chunk_coordinates);
+                    let chunk_position =
+                        Grid::chunk_coordinates_to_position(grid, chunk_coordinates);
 
                     let x_entrance_vec =
                         Self::setup_x_entrance_vec(grid, chunk_position, chunk_vec_slice);

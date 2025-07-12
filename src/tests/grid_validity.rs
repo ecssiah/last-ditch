@@ -1,6 +1,6 @@
 use crate::simulation::{
     self,
-    state::world::{block, chunk, World},
+    state::world::{block, chunk, grid::Grid, World},
 };
 use glam::IVec3;
 
@@ -12,7 +12,7 @@ struct BlockIDValidCase {
 
 impl BlockIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = world.grid.block_id_valid(self.block_id);
+        let valid = Grid::block_id_valid(&world.grid, self.block_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -56,7 +56,7 @@ struct ChunkIDValidCase {
 
 impl ChunkIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = world.grid.chunk_id_valid(self.chunk_id);
+        let valid = Grid::chunk_id_valid(&world.grid, self.chunk_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -100,7 +100,7 @@ struct PositionValidCase {
 
 impl PositionValidCase {
     pub fn check(&self, world: &World) {
-        let valid = world.grid.position_valid(self.position);
+        let valid = Grid::position_valid(&world.grid, self.position);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }

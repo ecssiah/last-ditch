@@ -12,7 +12,7 @@ use crate::simulation::state::{
         Decision, Detection, Info, Kinematic, Nation, Spatial,
     },
     time::Tick,
-    world::{chunk, World},
+    world::{chunk, grid::Grid, World},
     Compute,
 };
 use glam::{IVec3, Vec3};
@@ -50,7 +50,8 @@ impl Agent {
             .idle_data_map
             .insert(idle_plan.id, idle_plan_data);
 
-        decision.plan_heap.push(idle_plan);
+        decision.active_plan_id = Some(idle_plan.id);
+        decision.plan_map.insert(idle_plan.id, idle_plan);
 
         Self {
             info,
@@ -62,108 +63,99 @@ impl Agent {
     }
 
     pub fn tick(world: &World, agent: &mut Agent, compute: &mut Compute) {
-        Self::track_current_chunk(world, &agent.spatial, &mut agent.info);
+        Info::update_chunk_id(&agent.spatial, &world.grid, &mut agent.info);
 
-        Self::act(
-            world,
-            &agent.info,
-            &mut agent.spatial,
-            &mut agent.decision,
-            compute,
-        );
-    }
-
-    fn track_current_chunk(world: &World, spatial: &Spatial, info: &mut Info) {
-        let chunk_id = world.grid.world_to_chunk_id(spatial.world_position);
-
-        if chunk_id != info.chunk_id {
-            info.chunk_updated = true;
-            info.chunk_id = chunk_id;
+        if let Some(plan) = agent
+            .decision
+            .active_plan_id
+            .and_then(|plan_id| agent.decision.plan_map.get(&plan_id))
+            .cloned()
+        {
+            Self::act(
+                plan,
+                world,
+                &agent.info,
+                &mut agent.spatial,
+                &mut agent.decision,
+                compute,
+            );
         }
     }
 
     fn act(
+        plan: Plan,
         world: &World,
         info: &Info,
         spatial: &mut Spatial,
         decision: &mut Decision,
         compute: &mut Compute,
     ) {
-        let mut current_plans: Vec<_> = decision.plan_heap.drain().collect();
-
-        while let Some(plan) = current_plans.pop() {
-            match plan.kind {
-                plan::Kind::Idle => Self::act_idle(
-                    plan,
-                    &mut decision.plan_heap,
-                    &mut decision.plan_store.idle_data_map,
-                    &mut decision.plan_store.travel_data_map,
-                ),
-                plan::Kind::Travel => Self::act_travel(
-                    plan,
-                    info,
-                    world,
-                    spatial,
-                    &mut decision.plan_heap,
-                    &mut decision.plan_store.travel_data_map,
-                    compute,
-                ),
-            }
+        match plan.kind {
+            plan::Kind::Idle => Self::act_idle(
+                plan,
+                &mut decision.active_plan_id,
+                &mut decision.plan_map,
+                &mut decision.plan_store.idle_data_map,
+                &mut decision.plan_store.travel_data_map,
+            ),
+            plan::Kind::Travel => Self::act_travel(
+                plan,
+                info,
+                world,
+                spatial,
+                &mut decision.active_plan_id,
+                &mut decision.plan_map,
+                &mut decision.plan_store.travel_data_map,
+                &mut compute.task_heap,
+                &compute.task_store_arc_lock,
+            ),
         }
     }
 
     fn act_idle(
         plan: Plan,
-        plan_heap: &mut BinaryHeap<Plan>,
+        active_plan_id: &mut Option<plan::ID>,
+        plan_map: &mut HashMap<plan::ID, Plan>,
         idle_data_map: &mut HashMap<plan::ID, plan::data::Idle>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
     ) {
         let idle_data = idle_data_map.get_mut(&plan.id).unwrap();
 
         match idle_data.state {
-            plan::State::Init => Self::act_idle_init(plan, idle_data, plan_heap),
-            plan::State::Active => Self::act_idle_active(plan, idle_data, plan_heap),
+            plan::State::Init => Self::act_idle_init(idle_data),
+            plan::State::Active => Self::act_idle_active(idle_data),
             plan::State::Success => {
-                Self::act_idle_success(travel_data_map, plan_heap);
+                Self::act_idle_success(active_plan_id, plan_map, travel_data_map)
             }
             plan::State::Fail => todo!(),
             plan::State::Cancel => todo!(),
         }
     }
 
-    fn act_idle_init(
-        plan: Plan,
-        idle_data: &mut plan::data::Idle,
-        plan_heap: &mut BinaryHeap<Plan>,
-    ) {
+    fn act_idle_init(idle_data: &mut plan::data::Idle) {
         idle_data.state = plan::State::Active;
-
-        plan_heap.push(plan);
     }
 
-    fn act_idle_active(
-        plan: Plan,
-        idle_data: &mut plan::data::Idle,
-        plan_heap: &mut BinaryHeap<Plan>,
-    ) {
+    fn act_idle_active(idle_data: &mut plan::data::Idle) {
         idle_data.tick_count += 1;
 
         if idle_data.tick_count >= idle_data.duration {
             idle_data.state = plan::State::Success;
         }
-
-        plan_heap.push(plan);
     }
 
     fn act_idle_success(
+        active_plan_id: &mut Option<plan::ID>,
+        plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
-        plan_heap: &mut BinaryHeap<Plan>,
     ) {
         let travel_plan = Plan::create_travel_plan();
         let travel_data = plan::data::Travel::new();
 
+        *active_plan_id = Some(travel_plan.id);
+
         travel_data_map.insert(travel_plan.id, travel_data);
-        plan_heap.push(travel_plan);
+        plan_map.insert(travel_plan.id, travel_plan);
     }
 
     fn act_travel(
@@ -171,9 +163,11 @@ impl Agent {
         info: &Info,
         world: &World,
         spatial: &mut Spatial,
-        plan_heap: &mut BinaryHeap<Plan>,
+        active_plan_id: &mut Option<plan::ID>,
+        plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
-        compute: &mut Compute,
+        task_heap: &mut BinaryHeap<compute::Task>,
+        task_store_arc_lock: &Arc<RwLock<task::Store>>,
     ) {
         let travel_data = travel_data_map.get_mut(&plan.id).unwrap();
 
@@ -184,9 +178,8 @@ impl Agent {
                 world,
                 spatial,
                 travel_data,
-                plan_heap,
-                &mut compute.task_heap,
-                &compute.task_store_arc_lock,
+                task_heap,
+                task_store_arc_lock,
             ),
             plan::State::Active => Self::act_travel_active(
                 plan,
@@ -194,15 +187,16 @@ impl Agent {
                 world,
                 spatial,
                 travel_data,
-                plan_heap,
-                &mut compute.task_heap,
-                &compute.task_store_arc_lock,
+                task_heap,
+                task_store_arc_lock,
             ),
-            plan::State::Success => {
-                println!("Travel Success!");
+            plan::State::Success => Self::act_travel_success(active_plan_id, plan_map),
+            plan::State::Fail => {
+                println!("Travel Fail!");
             }
-            plan::State::Fail => todo!(),
-            plan::State::Cancel => todo!(),
+            plan::State::Cancel => {
+                println!("Travel Cancel!");
+            }
         }
     }
 
@@ -212,7 +206,6 @@ impl Agent {
         world: &World,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        plan_heap: &mut BinaryHeap<Plan>,
         task_heap: &mut BinaryHeap<compute::Task>,
         task_store_arc_lock: &Arc<RwLock<task::Store>>,
     ) {
@@ -238,7 +231,7 @@ impl Agent {
         let task_data = compute::task::data::path::Region {
             plan_id: plan.id,
             entity_id: info.entity_id,
-            start_position: world.grid.world_to_position(spatial.world_position),
+            start_position: Grid::world_to_position(&world.grid, spatial.world_position),
             end_position,
             level_0: level_0_clone,
             search_level: search_level_clone,
@@ -250,7 +243,6 @@ impl Agent {
         }
 
         task_heap.push(task);
-        plan_heap.push(plan);
 
         travel_data.state = plan::State::Active;
     }
@@ -261,7 +253,6 @@ impl Agent {
         world: &World,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        plan_heap: &mut BinaryHeap<Plan>,
         task_heap: &mut BinaryHeap<compute::Task>,
         task_store_arc_lock: &Arc<RwLock<task::Store>>,
     ) {
@@ -308,14 +299,6 @@ impl Agent {
 
         if travel_data.region_path_tracking {
             if travel_data.local_path_tracking {
-                // TODO: Fix this guard against a panic at last().unwrap()
-                if travel_data.local_path_vec.is_empty() {
-                    plan_heap.push(plan);
-                    travel_data.local_path_tracking = false;
-
-                    return;
-                }
-
                 let target_position = travel_data.local_path_vec.last().unwrap().as_vec3();
 
                 let distance_vector = target_position - spatial.world_position;
@@ -377,9 +360,20 @@ impl Agent {
             }
         }
 
-        if !travel_data.region_path_complete {
-            plan_heap.push(plan);
+        if travel_data.region_path_complete {
+            travel_data.state = plan::State::Success;
         }
+    }
+
+    fn act_travel_success(
+        active_plan_id: &mut Option<plan::ID>,
+        plan_map: &mut HashMap<plan::ID, Plan>,
+    ) {
+        if let Some(active_plan_id) = active_plan_id {
+            plan_map.remove(active_plan_id);
+        }
+
+        *active_plan_id = None;
     }
 
     pub fn set_world_position(

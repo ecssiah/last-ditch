@@ -1,6 +1,6 @@
 use crate::simulation::{
     self,
-    state::world::{block, chunk, World},
+    state::world::{block, chunk, grid::Grid, World},
 };
 use glam::{IVec3, Vec3};
 
@@ -12,7 +12,7 @@ struct BlockIDToBlockCoordinatesCase {
 
 impl BlockIDToBlockCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let block_coordinates = world.grid.block_id_to_block_coordinates(self.block_id);
+        let block_coordinates = Grid::block_id_to_block_coordinates(&world.grid, self.block_id);
 
         assert_ne!(block_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
@@ -63,9 +63,7 @@ struct BlockCoordinatesToBlockIDCase {
 
 impl BlockCoordinatesToBlockIDCase {
     pub fn check(&self, world: &World) {
-        let block_id = world
-            .grid
-            .block_coordinates_to_block_id(self.block_coordinates);
+        let block_id = Grid::block_coordinates_to_block_id(&world.grid, self.block_coordinates);
 
         assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
         assert_eq!(block_id, self.expected_block_id, "{:?}", self.description);
@@ -112,7 +110,7 @@ struct ChunkIDToChunkCoordinates {
 
 impl ChunkIDToChunkCoordinates {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = world.grid.chunk_id_to_chunk_coordinates(self.chunk_id);
+        let chunk_coordinates = Grid::chunk_id_to_chunk_coordinates(&world.grid, self.chunk_id);
 
         assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
@@ -163,9 +161,7 @@ struct ChunkCoordinatesToChunkIDCase {
 
 impl ChunkCoordinatesToChunkIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = world
-            .grid
-            .chunk_coordinates_to_chunk_id(self.chunk_coordinates);
+        let chunk_id = Grid::chunk_coordinates_to_chunk_id(&world.grid, self.chunk_coordinates);
 
         assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
         assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
@@ -212,9 +208,7 @@ struct ChunkCoordinatesToPositionCase {
 
 impl ChunkCoordinatesToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = world
-            .grid
-            .chunk_coordinates_to_position(self.chunk_coordinates);
+        let position = Grid::chunk_coordinates_to_position(&world.grid, self.chunk_coordinates);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -263,7 +257,7 @@ struct ChunkIDToPositionCase {
 
 impl ChunkIDToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = world.grid.chunk_id_to_position(self.chunk_id);
+        let position = Grid::chunk_id_to_position(&world.grid, self.chunk_id);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -311,7 +305,7 @@ struct PositionToChunkCoordinatesCase {
 
 impl PositionToChunkCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = world.grid.position_to_chunk_coordinates(self.position);
+        let chunk_coordinates = Grid::position_to_chunk_coordinates(&world.grid, self.position);
 
         assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
@@ -364,7 +358,7 @@ struct PositionToBlockCoordinatesCase {
 
 impl PositionToBlockCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let block_coordinates = world.grid.position_to_block_coordinates(self.position);
+        let block_coordinates = Grid::position_to_block_coordinates(&world.grid, self.position);
 
         assert_ne!(block_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
@@ -447,7 +441,7 @@ struct PositionToChunkIDCase {
 
 impl PositionToChunkIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = world.grid.position_to_chunk_id(self.position);
+        let chunk_id = Grid::position_to_chunk_id(&world.grid, self.position);
 
         assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
         assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
@@ -494,7 +488,7 @@ struct PositionToBlockIDCase {
 
 impl PositionToBlockIDCase {
     pub fn check(&self, world: &World) {
-        let block_id = world.grid.position_to_block_id(self.position);
+        let block_id = Grid::position_to_block_id(&world.grid, self.position);
 
         assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
         assert_eq!(block_id, self.expected_block_id, "{:?}", self.description);
@@ -542,7 +536,7 @@ struct IDsToPositionCase {
 
 impl IDsToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = world.grid.ids_to_position(self.chunk_id, self.block_id);
+        let position = Grid::ids_to_position(&world.grid, self.chunk_id, self.block_id);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -592,7 +586,7 @@ struct PositionToIDsCase {
 
 impl PositionToIDsCase {
     pub fn check(&self, world: &World) {
-        let (chunk_id, block_id) = world.grid.position_to_ids(self.position);
+        let (chunk_id, block_id) = Grid::position_to_ids(&world.grid, self.position);
 
         assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
         assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
@@ -651,7 +645,7 @@ struct WorldToPositionCase {
 
 impl WorldToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = world.grid.world_to_position(self.world_position);
+        let position = Grid::world_to_position(&world.grid, self.world_position);
 
         assert_eq!(position, self.expected_position, "{:?}", self.description,);
     }
@@ -712,7 +706,7 @@ struct WorldToChunkIDCase {
 
 impl WorldToChunkIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = world.grid.world_to_chunk_id(self.world_position);
+        let chunk_id = Grid::world_to_chunk_id(&world.grid, self.world_position);
 
         assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
     }
@@ -768,7 +762,7 @@ struct WorldToChunkCoordinates {
 
 impl WorldToChunkCoordinates {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = world.grid.world_to_chunk_coordinates(self.world_position);
+        let chunk_coordinates = Grid::world_to_chunk_coordinates(&world.grid, self.world_position);
 
         assert_eq!(
             chunk_coordinates, self.expected_chunk_coordinates,
@@ -819,7 +813,7 @@ struct WorldToBlockIDCase {
 
 impl WorldToBlockIDCase {
     pub fn check(&self, world: &World) {
-        let block_id = world.grid.world_to_block_id(self.world_position);
+        let block_id = Grid::world_to_block_id(&world.grid, self.world_position);
 
         assert_eq!(block_id, self.expected_block_id, "{:?}", self.description);
     }
@@ -875,7 +869,7 @@ struct WorldToBlockCoordinates {
 
 impl WorldToBlockCoordinates {
     pub fn check(&self, world: &World) {
-        let block_coordinates = world.grid.world_to_block_coordinates(self.world_position);
+        let block_coordinates = Grid::world_to_block_coordinates(&world.grid, self.world_position);
 
         assert_eq!(
             block_coordinates, self.expected_block_coordinates,

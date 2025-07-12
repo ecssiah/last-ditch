@@ -3,7 +3,10 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        world::{grid, World},
+        world::{
+            grid::{self, Grid},
+            World,
+        },
     },
 };
 use glam::Vec3;
@@ -16,8 +19,8 @@ struct OverlappingAABBCase {
 }
 
 impl OverlappingAABBCase {
-    pub fn check(&self, world: &World) {
-        let aabb_vec = world.grid.blocks_overlapping(self.aabb);
+    pub fn check(&self) {
+        let aabb_vec = Grid::blocks_overlapping(self.aabb);
 
         let is_equal = AABB::approx_set_eq(&aabb_vec, &self.expected_aabb_vec, EPSILON);
 
@@ -197,6 +200,6 @@ fn directions() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }

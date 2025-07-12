@@ -37,16 +37,7 @@ impl Judge {
     }
 
     pub fn tick(judge: &mut Judge, world: &World) {
-        Self::track_current_chunk(world, &judge.spatial, &mut judge.info);
-    }
-
-    fn track_current_chunk(world: &World, spatial: &Spatial, info: &mut Info) {
-        let chunk_id = world.grid.world_to_chunk_id(spatial.world_position);
-
-        if chunk_id != info.chunk_id {
-            info.chunk_updated = true;
-            info.chunk_id = chunk_id;
-        }
+        Info::update_chunk_id(&judge.spatial, &world.grid, &mut judge.info);
     }
 
     pub fn set_world_position(

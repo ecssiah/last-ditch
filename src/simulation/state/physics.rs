@@ -7,7 +7,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::{entity::Judge, Population},
-        world::grid,
+        world::grid::{self, Grid},
         World,
     },
 };
@@ -94,9 +94,7 @@ impl Physics {
     }
 
     fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        world
-            .grid
-            .blocks_overlapping(aabb)
+        Grid::blocks_overlapping(aabb)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();

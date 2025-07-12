@@ -1,4 +1,8 @@
-use crate::simulation::{self, consts::*, state::world::World};
+use crate::simulation::{
+    self,
+    consts::*,
+    state::world::{grid::Grid, World},
+};
 use glam::IVec3;
 
 struct GetClearanceCase {
@@ -10,9 +14,8 @@ struct GetClearanceCase {
 
 impl GetClearanceCase {
     pub fn check(&self, world: &World) {
-        let chunk_position = world
-            .grid
-            .chunk_coordinates_to_position(self.chunk_coordinates);
+        let chunk_position =
+            Grid::chunk_coordinates_to_position(&world.grid, self.chunk_coordinates);
 
         assert_ne!(chunk_position, IVec3::MAX, "{:?}", self.description);
 

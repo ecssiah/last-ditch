@@ -13,6 +13,7 @@ pub use store::Store;
 
 use std::cmp::Ordering;
 
+#[derive(Clone)]
 pub struct Plan {
     pub id: ID,
     pub kind: Kind,
