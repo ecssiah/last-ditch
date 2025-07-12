@@ -18,7 +18,7 @@ impl Receiver {
         let mut action_vec = Vec::new();
 
         while let Ok(action) = receiver.action_rx.try_recv() {
-            if matches!(action, Action::Admin(action::AdminAction::Shutdown)) {
+            if matches!(action, Action::Admin(action::AdminAction::Exit)) {
                 return None;
             }
 

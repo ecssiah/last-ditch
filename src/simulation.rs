@@ -74,7 +74,10 @@ impl Simulation {
 
                         Timing::update_frame(timing);
                     }
-                    None => return,
+                    None => {
+                        log::info!("Simulation Exit");
+                        return;
+                    }
                 }
             }
 

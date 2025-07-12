@@ -19,7 +19,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent1.info.kind = entity::Kind::Eagle;
 
     Agent::set_world_position(
-        Vec3::new(-9.0, -3.0, 0.0),
+        Vec3::new(0.0, 6.0, 9.0),
         &mut pathfinding_agent1.spatial,
         &mut pathfinding_agent1.detection,
     );
@@ -32,7 +32,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent2.info.kind = entity::Kind::Wolf;
 
     Agent::set_world_position(
-        Vec3::new(9.0, -3.0, 0.0),
+        Vec3::new(0.0, 6.0, 9.0),
         &mut pathfinding_agent2.spatial,
         &mut pathfinding_agent2.detection,
     );
@@ -45,7 +45,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent3.info.kind = entity::Kind::Lion;
 
     Agent::set_world_position(
-        Vec3::new(0.0, -3.0, -9.0),
+        Vec3::new(0.0, 6.0, 9.0),
         &mut pathfinding_agent3.spatial,
         &mut pathfinding_agent3.detection,
     );
@@ -58,7 +58,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     pathfinding_agent4.info.kind = entity::Kind::Horse;
 
     Agent::set_world_position(
-        Vec3::new(0.0, -3.0, 9.0),
+        Vec3::new(0.0, 6.0, 9.0),
         &mut pathfinding_agent4.spatial,
         &mut pathfinding_agent4.detection,
     );
@@ -70,7 +70,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
 
 fn setup_judge(judge: &mut Judge) {
     Judge::set_world_position(
-        Vec3::new(-3.0, -2.0, -3.0),
+        Vec3::new(-0.0, -2.0, -0.0),
         &mut judge.spatial,
         &mut judge.detection,
     );

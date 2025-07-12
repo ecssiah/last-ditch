@@ -111,7 +111,7 @@ impl Input {
     }
 
     fn handle_close_requested(&mut self) -> Option<simulation::state::receiver::action::Action> {
-        let admin_action = simulation::state::receiver::action::AdminAction::Shutdown;
+        let admin_action = simulation::state::receiver::action::AdminAction::Quit;
         let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
         Some(action)
@@ -125,7 +125,7 @@ impl Input {
     ) -> Option<simulation::state::receiver::action::Action> {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                let admin_action = simulation::state::receiver::action::AdminAction::Shutdown;
+                let admin_action = simulation::state::receiver::action::AdminAction::Quit;
                 let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
                 Some(action)

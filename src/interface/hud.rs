@@ -196,7 +196,7 @@ impl HUD {
         }
 
         if exit_clicked {
-            let admin_action = simulation::state::receiver::action::AdminAction::Shutdown;
+            let admin_action = simulation::state::receiver::action::AdminAction::Quit;
             let action = simulation::state::receiver::action::Action::Admin(admin_action);
 
             action_vec.push(action);

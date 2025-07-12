@@ -13,6 +13,7 @@ use crate::simulation::state::{
     Compute,
 };
 use glam::{IVec3, Vec3};
+use rand::Rng;
 
 pub struct Agent {
     pub info: Info,
@@ -37,7 +38,8 @@ impl Agent {
         let mut decision = Decision::new();
 
         let idle_plan = Plan::new(plan::Priority::High, plan::Kind::Idle);
-        let idle_plan_data = plan::data::Idle::new(Tick::new(160));
+        let idle_plan_data =
+            plan::data::Idle::new(Tick::new(rand::thread_rng().gen_range(60..240)));
 
         decision
             .plan_store
@@ -204,11 +206,18 @@ impl Agent {
             compute::task::Kind::PathRegion,
         );
 
+        let end_position = match info.kind {
+            entity::Kind::Lion => IVec3::new(-9, -3, 0),
+            entity::Kind::Eagle => IVec3::new(9, -3, 0),
+            entity::Kind::Wolf => IVec3::new(0, -3, -9),
+            entity::Kind::Horse => IVec3::new(0, -3, 9),
+        };
+
         let task_data = compute::task::data::path::Region {
             plan_id: plan.id,
             entity_id: info.entity_id,
             start_position: world.grid.world_to_position(spatial.world_position),
-            end_position: IVec3::new(0, 6, 9),
+            end_position,
             level_0: graph.level_0.clone(),
             search_level: graph.level_vec[0].clone(),
         };
@@ -241,21 +250,23 @@ impl Agent {
                 compute::task::Kind::PathLocal,
             );
 
-            let task_data = {
+            let level_0_clone = {
                 let graph_buffer = world.graph_buffer_lock.read().unwrap();
                 let graph = graph_buffer.get();
 
-                let start_position = travel_data.region_path_vec.pop().unwrap();
-                let end_position = travel_data.region_path_vec.pop().unwrap();
+                graph.level_0.clone()
+            };
 
-                compute::task::data::path::Local {
-                    plan_id: plan.id,
-                    entity_id: info.entity_id,
-                    chunk_id: chunk::ID::MAX,
-                    start_position,
-                    end_position,
-                    level_0: graph.level_0.clone(),
-                }
+            let start_position = travel_data.region_path_vec.pop().unwrap();
+            let end_position = travel_data.region_path_vec.pop().unwrap();
+
+            let task_data = compute::task::data::path::Local {
+                plan_id: plan.id,
+                entity_id: info.entity_id,
+                chunk_id: chunk::ID::MAX,
+                start_position,
+                end_position,
+                level_0: level_0_clone,
             };
 
             let mut task_store = compute.task_store_arc_lock.write().unwrap();
@@ -272,6 +283,14 @@ impl Agent {
 
         if travel_data.region_path_tracking {
             if travel_data.local_path_tracking {
+                // TODO: Fix this guard against a panic at last().unwrap()
+                if travel_data.local_path_vec.is_empty() {
+                    plan_heap.push(plan);
+                    travel_data.local_path_tracking = false;
+
+                    return;
+                }
+
                 let target_position = travel_data.local_path_vec.last().unwrap().as_vec3();
 
                 let distance_vector = target_position - spatial.world_position;
@@ -296,28 +315,44 @@ impl Agent {
                                 compute::task::Kind::PathLocal,
                             );
 
-                            let task_data = {
+                            let level_0_clone = {
                                 let graph_buffer = world.graph_buffer_lock.read().unwrap();
                                 let graph = graph_buffer.get();
 
-                                let start_position = travel_data.region_path_vec.pop().unwrap();
-                                let end_position = travel_data.region_path_vec.pop().unwrap();
+                                graph.level_0.clone()
+                            };
 
-                                compute::task::data::path::Local {
+                            if info.kind == entity::Kind::Eagle {
+                                println!("{:?}", info);
+                                for position in &travel_data.region_path_vec {
+                                    print!("{:?} | ", position);
+                                }
+                                println!("\n");
+                            }
+
+                            let start_position = travel_data.region_path_vec.pop();
+                            let end_position = travel_data.region_path_vec.pop();
+
+                            if start_position.is_some() && end_position.is_some() {
+                                let task_data = compute::task::data::path::Local {
                                     plan_id: plan.id,
                                     entity_id: info.entity_id,
                                     chunk_id: chunk::ID::MAX,
-                                    start_position,
-                                    end_position,
-                                    level_0: graph.level_0.clone(),
-                                }
-                            };
+                                    start_position: start_position.unwrap(),
+                                    end_position: end_position.unwrap(),
+                                    level_0: level_0_clone,
+                                };
 
-                            let mut task_store = compute.task_store_arc_lock.write().unwrap();
+                                let mut task_store = compute.task_store_arc_lock.write().unwrap();
 
-                            task_store.path_local_data_map.insert(task.id, task_data);
+                                task_store.path_local_data_map.insert(task.id, task_data);
 
-                            compute.task_heap.push(task);
+                                compute.task_heap.push(task);
+                            } else {
+                                travel_data.region_path_complete = true;
+
+                                log::warn!("Missing region positions");
+                            }
                         }
                     }
                 }

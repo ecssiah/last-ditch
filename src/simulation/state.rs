@@ -72,7 +72,8 @@ impl State {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
-                    AdminAction::Start => Self::initialize_load(state),
+                    AdminAction::Start => Self::init_load(state),
+                    AdminAction::Quit => Self::init_shutdown(state),
                     _ => log::warn!("Received an invalid AdminAction in Menu mode: {:?}", action),
                 },
                 _ => log::warn!("Received an invalid Action in Menu mode: {:?}", action),
@@ -80,7 +81,7 @@ impl State {
         }
     }
 
-    fn initialize_load(state: &mut State) {
+    fn init_load(state: &mut State) {
         let kind = state.kind;
         let world = std::mem::replace(&mut state.world, World::placeholder());
         let population = std::mem::replace(&mut state.population, Population::placeholder());
@@ -127,6 +128,15 @@ impl State {
     fn apply_simulate_actions(state: &mut State, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
+                Action::Admin(admin_action) => match admin_action {
+                    AdminAction::Quit => Self::init_shutdown(state),
+                    _ => {
+                        log::warn!(
+                            "Received an invalid AdminAction in Simulate mode: {:?}",
+                            action
+                        );
+                    }
+                },
                 Action::Judge(judge_action) => match judge_action {
                     JudgeAction::Movement(movement_data) => {
                         Judge::apply_movement_data(&movement_data, &mut state.population.judge);
@@ -141,12 +151,17 @@ impl State {
                     TestAction::Test3 => println!("Test Action 3"),
                     TestAction::Test4 => println!("Test Action 4"),
                 },
-                _ => {
-                    log::warn!("Received an invalid Action in Simulate mode: {:?}", action)
-                }
             }
         }
     }
 
-    fn tick_shutdown(_state: &mut State, _action_vec: Vec<Action>) {}
+    fn init_shutdown(state: &mut State) {
+        log::info!("Simulation Shutdown");
+
+        state.admin.mode = admin::Mode::Shutdown;
+    }
+
+    fn tick_shutdown(state: &mut State, _action_vec: Vec<Action>) {
+        state.admin.message = "Shutting down...".to_string();
+    }
 }

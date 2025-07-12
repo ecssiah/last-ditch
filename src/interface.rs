@@ -340,7 +340,14 @@ impl Interface<'_> {
                 action_vec.extend(input_actions);
                 action_vec.extend(hud_actions);
             }
-            simulation::state::admin::Mode::Shutdown => {}
+            simulation::state::admin::Mode::Shutdown => {
+                let admin_action = simulation::state::receiver::action::AdminAction::Exit;
+                let action = simulation::state::receiver::action::Action::Admin(admin_action);
+
+                log::info!("Interface Exit");
+
+                action_vec.push(action);
+            }
         }
 
         for action in action_vec {
