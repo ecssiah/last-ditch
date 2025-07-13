@@ -3,6 +3,7 @@ pub mod entrance;
 pub mod level;
 pub mod node;
 pub mod node_entry;
+pub mod path;
 pub mod transition;
 
 pub use edge::Edge;
@@ -10,6 +11,7 @@ pub use entrance::Entrance;
 pub use level::Level;
 pub use node::Node;
 pub use node_entry::NodeEntry;
+pub use path::Path;
 pub use transition::Transition;
 
 use crate::simulation::{
@@ -46,7 +48,7 @@ impl Graph {
         end_position: IVec3,
         level_0: &Level,
         search_level: &mut Level,
-    ) -> Vec<Node> {
+    ) -> Path {
         search_level.reset();
 
         let start_node = Self::create_node(start_position, search_level);
@@ -58,14 +60,10 @@ impl Graph {
         Self::get_path(start_node, end_node, search_level)
     }
 
-    pub fn find_local_path(
-        start_position: IVec3,
-        end_position: IVec3,
-        level_0: &Level,
-    ) -> Vec<Node> {
+    pub fn find_local_path(start_position: IVec3, end_position: IVec3, level_0: &Level) -> Path {
         Level::get_node(start_position, level_0)
             .zip(Level::get_node(end_position, level_0))
-            .map_or(Vec::new(), |(&start_node, &end_node)| {
+            .map_or(Path::new(path::Kind::Local), |(&start_node, &end_node)| {
                 Self::get_path(start_node, end_node, level_0)
             })
     }
@@ -591,7 +589,15 @@ impl Graph {
         u32::MAX
     }
 
-    pub fn get_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Node> {
+    pub fn get_path(start_node: Node, end_node: Node, level: &Level) -> Path {
+        let path_kind = if level.depth > 0 {
+            path::Kind::Region
+        } else {
+            path::Kind::Local
+        };
+
+        let mut path = Path::new(path_kind);
+
         let mut heap = BinaryHeap::new();
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
@@ -602,15 +608,18 @@ impl Graph {
 
         while let Some(NodeEntry { cost, node }) = heap.pop() {
             if node == end_node {
-                let mut path = Vec::new();
+                let mut node_vec = Vec::new();
                 let mut current = Some(node);
 
                 while let Some(test_node) = current {
-                    path.push(test_node);
+                    node_vec.push(test_node);
                     current = came_from.get(&test_node).cloned().flatten();
                 }
 
-                path.reverse();
+                node_vec.reverse();
+
+                path.valid = true;
+                path.position_vec = node_vec.iter().map(|node| node.position).collect();
 
                 return path;
             }
@@ -638,7 +647,7 @@ impl Graph {
             }
         }
 
-        Vec::new()
+        path
     }
 
     fn manhattan_distance(position1: IVec3, position2: IVec3) -> u32 {

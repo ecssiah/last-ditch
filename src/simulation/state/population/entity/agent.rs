@@ -251,10 +251,11 @@ impl Agent {
         task_heap: &mut BinaryHeap<compute::Task>,
         task_store_arc_lock: &Arc<RwLock<task::Store>>,
     ) {
-        if travel_data.path_found {
+        if travel_data.region_path_found {
             if travel_data.local_path_found {
                 if let Some(target_position) = travel_data
-                    .local_path_vec
+                    .local_path
+                    .position_vec
                     .get(travel_data.local_path_index)
                     .map(|target_position| target_position.as_vec3())
                 {
@@ -270,49 +271,55 @@ impl Agent {
                         spatial.world_position = target_position;
                     }
                 } else {
-                    travel_data.path_index += 1;
+                    travel_data.region_path_index += 2;
                     travel_data.local_path_found = false;
 
-                    if travel_data.path_index >= travel_data.region_path_vec.len() {
-                        travel_data.path_complete = true;
+                    if travel_data.region_path_index >= travel_data.region_path.position_vec.len() {
+                        travel_data.region_path_complete = true;
                     }
                 }
             } else {
-                let task = compute::Task::new(
-                    compute::task::Priority::High,
-                    compute::task::Kind::PathLocal,
-                );
+                if travel_data.region_path_index >= travel_data.region_path.position_vec.len() {
+                    travel_data.region_path_complete = true;
+                } else {
+                    let task = compute::Task::new(
+                        compute::task::Priority::High,
+                        compute::task::Kind::PathLocal,
+                    );
 
-                let level_0_clone = {
-                    let graph_buffer = world.graph_buffer_lock.read().unwrap();
-                    let graph = graph_buffer.get();
+                    let level_0_clone = {
+                        let graph_buffer = world.graph_buffer_lock.read().unwrap();
+                        let graph = graph_buffer.get();
 
-                    graph.level_0.clone()
-                };
+                        graph.level_0.clone()
+                    };
 
-                let task_data = compute::task::data::path::Local {
-                    plan_id: plan.id,
-                    entity_id: info.entity_id,
-                    chunk_id: chunk::ID::MAX,
-                    start_position: travel_data.region_path_vec[travel_data.path_index - 1],
-                    end_position: travel_data.region_path_vec[travel_data.path_index],
-                    level_0: level_0_clone,
-                };
+                    let start_position =
+                        travel_data.region_path.position_vec[travel_data.region_path_index - 1];
 
-                println!("Path Index: {:?}", travel_data.path_index);
-                println!("Start: {:?}", task_data.start_position);
-                println!("End: {:?}\n", task_data.end_position);
+                    let end_position =
+                        travel_data.region_path.position_vec[travel_data.region_path_index];
 
-                {
-                    let mut task_store = task_store_arc_lock.write().unwrap();
-                    task_store.path_local_data_map.insert(task.id, task_data);
+                    let task_data = compute::task::data::path::Local {
+                        plan_id: plan.id,
+                        entity_id: info.entity_id,
+                        chunk_id: chunk::ID::MAX,
+                        start_position,
+                        end_position,
+                        level_0: level_0_clone,
+                    };
+
+                    {
+                        let mut task_store = task_store_arc_lock.write().unwrap();
+                        task_store.path_local_data_map.insert(task.id, task_data);
+                    }
+
+                    task_heap.push(task);
                 }
-
-                task_heap.push(task);
             }
         }
 
-        if travel_data.path_complete {
+        if travel_data.region_path_complete {
             travel_data.stage = plan::Stage::Success;
         }
     }

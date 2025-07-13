@@ -9,7 +9,7 @@ pub use task::Task;
 use crate::simulation::state::{
     compute,
     population::{
-        entity::{self, Agent},
+        entity::{self, decision::plan, Agent},
         Population,
     },
     world::graph::Graph,
@@ -123,19 +123,17 @@ impl Compute {
                 .expect("Task is missing PathRegion data")
         };
 
-        let node_vec = Graph::find_region_path(
+        let path = Graph::find_region_path(
             task_data.start_position,
             task_data.end_position,
             &task_data.level_0,
             &mut task_data.search_level,
         );
 
-        let position_vec = node_vec.iter().map(|node| node.position).collect();
-
         let result_data = compute::result::data::path::Region {
             plan_id: task_data.plan_id,
             entity_id: task_data.entity_id,
-            position_vec,
+            path,
         };
 
         let result = compute::Result::new(compute::result::Kind::RegionPath);
@@ -165,13 +163,11 @@ impl Compute {
                 .expect("Task is missing PathLocal data")
         };
 
-        let node_vec = Graph::find_local_path(
+        let path = Graph::find_local_path(
             task_data.start_position,
             task_data.end_position,
             &task_data.level_0,
         );
-
-        let position_vec = node_vec.iter().map(|node| node.position).collect();
 
         let result = compute::Result::new(compute::result::Kind::LocalPath);
 
@@ -179,7 +175,7 @@ impl Compute {
             plan_id: task_data.plan_id,
             entity_id: task_data.entity_id,
             chunk_id: task_data.chunk_id,
-            position_vec,
+            path,
         };
 
         {
@@ -230,13 +226,13 @@ impl Compute {
                 .get_mut(&result_data.plan_id)
                 .unwrap();
 
-            travel_data.path_found = true;
-            travel_data.path_index = 1;
-            travel_data.region_path_vec = result_data.position_vec;
-
-            println!("Region Path: ");
-            for position in &travel_data.region_path_vec {
-                println!("{:?}", position);
+            if result_data.path.valid {
+                travel_data.region_path_found = true;
+                travel_data.region_path_index = 1;
+                travel_data.region_path = result_data.path;
+            } else {
+                travel_data.region_path_found = false;
+                travel_data.stage = plan::Stage::Fail;
             }
         }
     }
@@ -258,9 +254,14 @@ impl Compute {
                 .get_mut(&result_data.plan_id)
                 .unwrap();
 
-            travel_data.local_path_found = true;
-            travel_data.local_path_index = 0;
-            travel_data.local_path_vec = result_data.position_vec;
+            if result_data.path.valid {
+                travel_data.local_path_found = true;
+                travel_data.local_path_index = 0;
+                travel_data.local_path = result_data.path;
+            } else {
+                travel_data.local_path_found = false;
+                travel_data.stage = plan::Stage::Fail;
+            }
         }
     }
 }
