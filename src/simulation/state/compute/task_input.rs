@@ -12,13 +12,13 @@ pub use store::Store;
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
-pub struct Task {
+pub struct TaskInput {
     pub id: ID,
     pub priority: Priority,
     pub kind: Kind,
 }
 
-impl Task {
+impl TaskInput {
     pub fn new(priority: Priority, kind: Kind) -> Self {
         Self {
             id: ID::allocate(),
@@ -28,21 +28,21 @@ impl Task {
     }
 }
 
-impl PartialEq for Task {
+impl PartialEq for TaskInput {
     fn eq(&self, other: &Self) -> bool {
         self.priority == other.priority
     }
 }
 
-impl Eq for Task {}
+impl Eq for TaskInput {}
 
-impl PartialOrd for Task {
+impl PartialOrd for TaskInput {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Task {
+impl Ord for TaskInput {
     fn cmp(&self, other: &Self) -> Ordering {
         self.priority.cmp(&other.priority)
     }

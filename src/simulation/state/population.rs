@@ -5,7 +5,7 @@ pub mod entity;
 use crate::simulation::{
     self, constructor,
     state::{
-        compute::Task,
+        compute::TaskInput,
         population::entity::{Agent, Judge},
         world::World,
         Compute,
@@ -17,20 +17,20 @@ pub struct Population {
     pub kind: simulation::Kind,
     pub judge: Judge,
     pub agent_map: HashMap<entity::ID, Agent>,
-    pub task_vec: Vec<Task>,
+    pub task_input_vec: Vec<TaskInput>,
 }
 
 impl Population {
     pub fn new(kind: simulation::Kind) -> Self {
         let judge = Judge::new();
         let agent_map = HashMap::new();
-        let task_vec = Vec::new();
+        let task_input_vec = Vec::new();
 
         Self {
             kind,
             judge,
             agent_map,
-            task_vec,
+            task_input_vec,
         }
     }
 
@@ -39,13 +39,13 @@ impl Population {
 
         let judge = Judge::new();
         let agent_map = HashMap::new();
-        let task_vec = Vec::new();
+        let task_input_vec = Vec::new();
 
         Self {
             kind,
             judge,
             agent_map,
-            task_vec,
+            task_input_vec,
         }
     }
 

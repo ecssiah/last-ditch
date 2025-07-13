@@ -1,13 +1,19 @@
-use crate::simulation::state::{
-    compute::{self, task},
-    physics::aabb::AABB,
-    population::entity::{
-        self,
-        decision::{plan, Plan},
-        Decision, Detection, Info, Kinematic, Nation, Spatial,
+use crate::simulation::{
+    consts::SIMULATION_TICK_IN_SECONDS,
+    state::{
+        compute::{
+            self,
+            task_input::{self, TaskInput},
+        },
+        physics::aabb::AABB,
+        population::entity::{
+            self,
+            decision::{plan, Plan},
+            Decision, Detection, Info, Kinematic, Nation, Spatial,
+        },
+        world::{chunk, grid::Grid, World},
+        Compute,
     },
-    world::{chunk, grid::Grid, World},
-    Compute,
 };
 use glam::{IVec3, Vec3};
 use rand::Rng;
@@ -95,12 +101,13 @@ impl Agent {
                     plan,
                     &agent.info,
                     world,
+                    &agent.kinematic,
                     &mut agent.spatial,
                     &mut agent.decision.active_plan_id,
                     &mut agent.decision.plan_map,
                     &mut agent.decision.plan_store.travel_data_map,
-                    &mut compute.task_heap,
-                    &compute.task_store_arc_lock,
+                    &mut compute.task_input_heap,
+                    &compute.task_input_store_arc_lock,
                 ),
             }
         }
@@ -163,12 +170,13 @@ impl Agent {
         plan: Plan,
         info: &Info,
         world: &World,
+        kinematic: &Kinematic,
         spatial: &mut Spatial,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
-        task_heap: &mut BinaryHeap<compute::Task>,
-        task_store_arc_lock: &Arc<RwLock<task::Store>>,
+        task_input_heap: &mut BinaryHeap<TaskInput>,
+        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
     ) {
         let travel_data = travel_data_map.get_mut(&plan.id).unwrap();
 
@@ -179,17 +187,18 @@ impl Agent {
                 world,
                 spatial,
                 travel_data,
-                task_heap,
-                task_store_arc_lock,
+                task_input_heap,
+                task_input_store_arc_lock,
             ),
             plan::Stage::Active => Self::follow_travel_plan_active_stage(
                 plan,
                 info,
                 world,
+                kinematic,
                 spatial,
                 travel_data,
-                task_heap,
-                task_store_arc_lock,
+                task_input_heap,
+                task_input_store_arc_lock,
             ),
             plan::Stage::Success => {
                 Self::follow_travel_plan_success_stage(active_plan_id, plan_map)
@@ -209,8 +218,8 @@ impl Agent {
         world: &World,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        task_heap: &mut BinaryHeap<compute::Task>,
-        task_store_arc_lock: &Arc<RwLock<task::Store>>,
+        task_input_heap: &mut BinaryHeap<TaskInput>,
+        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
     ) {
         let (level_0_clone, search_level_clone) = {
             let graph_buffer = world.graph_buffer_lock.read().unwrap();
@@ -219,12 +228,9 @@ impl Agent {
             (graph.level_0.clone(), graph.level_vec[0].clone())
         };
 
-        let task = compute::Task::new(
-            compute::task::Priority::High,
-            compute::task::Kind::PathRegion,
-        );
+        let task_input = TaskInput::new(task_input::Priority::High, task_input::Kind::PathRegion);
 
-        let task_data = compute::task::data::path::Region {
+        let task_input_data = compute::task_input::data::path::Region {
             plan_id: plan.id,
             entity_id: info.entity_id,
             start_position: Grid::world_to_position(&world.grid, spatial.world_position),
@@ -234,11 +240,13 @@ impl Agent {
         };
 
         {
-            let mut task_store = task_store_arc_lock.write().unwrap();
-            task_store.path_region_data_map.insert(task.id, task_data);
+            let mut task_input_store = task_input_store_arc_lock.write().unwrap();
+            task_input_store
+                .path_region_data_map
+                .insert(task_input.id, task_input_data);
         }
 
-        task_heap.push(task);
+        task_input_heap.push(task_input);
         travel_data.stage = plan::Stage::Active;
     }
 
@@ -246,10 +254,11 @@ impl Agent {
         plan: Plan,
         info: &Info,
         world: &World,
+        kinematic: &Kinematic,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        task_heap: &mut BinaryHeap<compute::Task>,
-        task_store_arc_lock: &Arc<RwLock<task::Store>>,
+        task_input_heap: &mut BinaryHeap<TaskInput>,
+        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
     ) {
         if travel_data.region_path_found {
             if travel_data.local_path_found {
@@ -260,15 +269,22 @@ impl Agent {
                     .map(|target_position| target_position.as_vec3())
                 {
                     let distance_vector = target_position - spatial.world_position;
+                    let distance_squared = distance_vector.length_squared();
 
-                    if distance_vector.length_squared() >= 0.01 {
-                        let direction_vector = distance_vector.normalize();
-
-                        spatial.world_position += 0.06 * direction_vector;
-                    } else {
-                        travel_data.local_path_index += 1;
-
+                    if distance_squared < f32::EPSILON * f32::EPSILON {
                         spatial.world_position = target_position;
+                        travel_data.local_path_index += 1;
+                    } else {
+                        let direction_vector = distance_vector.normalize();
+                        let displacement_vector =
+                            kinematic.speed * SIMULATION_TICK_IN_SECONDS * direction_vector;
+
+                        if displacement_vector.length_squared() >= distance_squared {
+                            spatial.world_position = target_position;
+                            travel_data.local_path_index += 1;
+                        } else {
+                            spatial.world_position += displacement_vector;
+                        }
                     }
                 } else {
                     travel_data.region_path_index += 2;
@@ -282,10 +298,8 @@ impl Agent {
                 if travel_data.region_path_index >= travel_data.region_path.position_vec.len() {
                     travel_data.region_path_complete = true;
                 } else {
-                    let task = compute::Task::new(
-                        compute::task::Priority::High,
-                        compute::task::Kind::PathLocal,
-                    );
+                    let task_input =
+                        TaskInput::new(task_input::Priority::Medium, task_input::Kind::PathLocal);
 
                     let level_0_clone = {
                         let graph_buffer = world.graph_buffer_lock.read().unwrap();
@@ -300,7 +314,7 @@ impl Agent {
                     let end_position =
                         travel_data.region_path.position_vec[travel_data.region_path_index];
 
-                    let task_data = compute::task::data::path::Local {
+                    let task_input_data = compute::task_input::data::path::Local {
                         plan_id: plan.id,
                         entity_id: info.entity_id,
                         chunk_id: chunk::ID::MAX,
@@ -310,11 +324,13 @@ impl Agent {
                     };
 
                     {
-                        let mut task_store = task_store_arc_lock.write().unwrap();
-                        task_store.path_local_data_map.insert(task.id, task_data);
+                        let mut task_input_store = task_input_store_arc_lock.write().unwrap();
+                        task_input_store
+                            .path_local_data_map
+                            .insert(task_input.id, task_input_data);
                     }
 
-                    task_heap.push(task);
+                    task_input_heap.push(task_input);
                 }
             }
         }

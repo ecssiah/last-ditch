@@ -1,10 +1,10 @@
 //! Agent task processing
 
-pub mod result;
-pub mod task;
+pub mod task_input;
+pub mod task_output;
 
-pub use result::Result;
-pub use task::Task;
+pub use task_input::TaskInput;
+pub use task_output::TaskOutput;
 
 use crate::simulation::state::{
     compute,
@@ -23,103 +23,106 @@ use std::{
 
 pub struct Compute {
     pub thread_pool: rayon::ThreadPool,
-    pub result_tx: Sender<compute::Result>,
-    pub result_rx: Receiver<compute::Result>,
-    pub task_heap: BinaryHeap<compute::Task>,
-    pub task_store_arc_lock: Arc<RwLock<task::Store>>,
-    pub result_store_arc_lock: Arc<RwLock<result::Store>>,
+    pub task_output_tx: Sender<TaskOutput>,
+    pub task_output_rx: Receiver<TaskOutput>,
+    pub task_input_heap: BinaryHeap<TaskInput>,
+    pub task_input_store_arc_lock: Arc<RwLock<task_input::Store>>,
+    pub task_output_store_arc_lock: Arc<RwLock<task_output::Store>>,
 }
 
 impl Compute {
     pub fn new() -> Self {
         let thread_pool = ThreadPoolBuilder::new().build().unwrap();
-        let (result_tx, result_rx) = unbounded::<compute::Result>();
+        let (task_output_tx, task_output_rx) = unbounded::<TaskOutput>();
 
-        let task_heap = BinaryHeap::new();
-
-        let task_store_arc_lock = Arc::new(RwLock::new(task::Store::new()));
-        let result_store_arc_lock = Arc::new(RwLock::new(result::Store::new()));
+        let task_input_heap = BinaryHeap::new();
+        let task_input_store_arc_lock = Arc::new(RwLock::new(task_input::Store::new()));
+        let task_output_store_arc_lock = Arc::new(RwLock::new(task_output::Store::new()));
 
         Self {
             thread_pool,
-            result_tx,
-            result_rx,
-            task_heap,
-            task_store_arc_lock,
-            result_store_arc_lock,
+            task_output_tx,
+            task_output_rx,
+            task_input_heap,
+            task_input_store_arc_lock,
+            task_output_store_arc_lock,
         }
     }
 
     pub fn tick(compute: &mut Compute, population: &mut Population) {
         Self::process_tasks(
             &compute.thread_pool,
-            &compute.result_tx,
-            &mut compute.task_heap,
-            &compute.task_store_arc_lock,
-            &compute.result_store_arc_lock,
+            &compute.task_output_tx,
+            &mut compute.task_input_heap,
+            &compute.task_input_store_arc_lock,
+            &compute.task_output_store_arc_lock,
         );
 
-        Self::distribute_results(
-            &compute.result_rx,
-            &compute.result_store_arc_lock,
+        Self::distribute_task_outputs(
+            &compute.task_output_rx,
+            &compute.task_output_store_arc_lock,
             &mut population.agent_map,
         );
     }
 
     fn process_tasks(
         thread_pool: &rayon::ThreadPool,
-        result_tx: &Sender<compute::Result>,
-        task_heap: &mut BinaryHeap<compute::Task>,
-        task_store_arc_lock: &Arc<RwLock<task::Store>>,
-        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+        task_output_tx: &Sender<TaskOutput>,
+        task_input_heap: &mut BinaryHeap<TaskInput>,
+        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
+        task_output_store_arc_lock: &Arc<RwLock<task_output::Store>>,
     ) {
-        let mut current_tasks: Vec<_> = task_heap.drain().collect();
+        let mut task_input_vec: Vec<_> = task_input_heap.drain().collect();
 
-        while let Some(task) = current_tasks.pop() {
-            let result_tx_clone = result_tx.clone();
-            let task_store_arc_lock_clone = task_store_arc_lock.clone();
-            let result_store_arc_lock_clone = result_store_arc_lock.clone();
+        while let Some(task_input) = task_input_vec.pop() {
+            let task_output_tx_clone = task_output_tx.clone();
+            let task_input_store_arc_lock_clone = task_input_store_arc_lock.clone();
+            let task_output_store_arc_lock_clone = task_output_store_arc_lock.clone();
 
             thread_pool.spawn(move || {
-                let result = Self::execute_task(
-                    task,
-                    task_store_arc_lock_clone,
-                    result_store_arc_lock_clone,
+                let task_output = Self::execute_task_input(
+                    task_input,
+                    task_input_store_arc_lock_clone,
+                    task_output_store_arc_lock_clone,
                 );
 
-                if let Err(err) = result_tx_clone.send(result) {
-                    log::error!("Failed to send result: {:?}", err);
+                if let Err(err) = task_output_tx_clone.send(task_output) {
+                    log::error!("Failed to send TaskOutput: {:?}", err);
                 }
             });
         }
     }
 
-    fn execute_task(
-        task: compute::Task,
-        task_store_arc_lock: Arc<RwLock<task::Store>>,
-        result_store_arc_lock: Arc<RwLock<result::Store>>,
-    ) -> compute::Result {
-        match task.kind {
-            task::Kind::PathRegion => {
-                Self::execute_path_region_task(task, task_store_arc_lock, result_store_arc_lock)
-            }
-            task::Kind::PathLocal => {
-                Self::execute_path_local_task(task, task_store_arc_lock, result_store_arc_lock)
-            }
+    fn execute_task_input(
+        task_input: TaskInput,
+        task_input_store_arc_lock: Arc<RwLock<task_input::Store>>,
+        task_output_store_arc_lock: Arc<RwLock<task_output::Store>>,
+    ) -> TaskOutput {
+        match task_input.kind {
+            task_input::Kind::PathRegion => Self::execute_path_region_task_input(
+                task_input,
+                task_input_store_arc_lock,
+                task_output_store_arc_lock,
+            ),
+            task_input::Kind::PathLocal => Self::execute_path_local_task_input(
+                task_input,
+                task_input_store_arc_lock,
+                task_output_store_arc_lock,
+            ),
         }
     }
 
-    fn execute_path_region_task(
-        task: compute::Task,
-        task_store_arc_lock: Arc<RwLock<task::Store>>,
-        result_store_arc_lock: Arc<RwLock<result::Store>>,
-    ) -> compute::Result {
+    fn execute_path_region_task_input(
+        task_input: TaskInput,
+        task_input_store_arc_lock: Arc<RwLock<task_input::Store>>,
+        task_output_store_arc_lock: Arc<RwLock<task_output::Store>>,
+    ) -> TaskOutput {
         let mut task_data = {
-            let mut task_store = task_store_arc_lock.write().unwrap();
+            let mut task_input_store = task_input_store_arc_lock.write().unwrap();
 
-            task_store
+            task_input_store
                 .path_region_data_map
-                .remove(&task.id)
+                .remove(&task_input.id)
                 .expect("Task is missing PathRegion data")
         };
 
@@ -130,36 +133,36 @@ impl Compute {
             &mut task_data.search_level,
         );
 
-        let result_data = compute::result::data::path::Region {
+        let task_output = TaskOutput::new(compute::task_output::Kind::RegionPath);
+
+        let task_output_data = compute::task_output::data::path::Region {
             plan_id: task_data.plan_id,
             entity_id: task_data.entity_id,
             path,
         };
 
-        let result = compute::Result::new(compute::result::Kind::RegionPath);
-
         {
-            let mut result_store = result_store_arc_lock.write().unwrap();
+            let mut task_output_store = task_output_store_arc_lock.write().unwrap();
 
-            result_store
+            task_output_store
                 .path_region_data_map
-                .insert(result.id, result_data);
+                .insert(task_output.id, task_output_data);
         }
 
-        result
+        task_output
     }
 
-    fn execute_path_local_task(
-        task: compute::Task,
-        task_store_arc_lock: Arc<RwLock<task::Store>>,
-        result_store_arc_lock: Arc<RwLock<result::Store>>,
-    ) -> compute::Result {
+    fn execute_path_local_task_input(
+        task_input: TaskInput,
+        task_input_store_arc_lock: Arc<RwLock<task_input::Store>>,
+        task_output_store_arc_lock: Arc<RwLock<task_output::Store>>,
+    ) -> TaskOutput {
         let task_data = {
-            let mut task_store = task_store_arc_lock.write().unwrap();
+            let mut task_input_store = task_input_store_arc_lock.write().unwrap();
 
-            task_store
+            task_input_store
                 .path_local_data_map
-                .remove(&task.id)
+                .remove(&task_input.id)
                 .expect("Task is missing PathLocal data")
         };
 
@@ -169,9 +172,9 @@ impl Compute {
             &task_data.level_0,
         );
 
-        let result = compute::Result::new(compute::result::Kind::LocalPath);
+        let task_output = TaskOutput::new(task_output::Kind::LocalPath);
 
-        let result_data = compute::result::data::path::Local {
+        let task_output_data = task_output::data::path::Local {
             plan_id: task_data.plan_id,
             entity_id: task_data.entity_id,
             chunk_id: task_data.chunk_id,
@@ -179,57 +182,61 @@ impl Compute {
         };
 
         {
-            let mut result_store = result_store_arc_lock.write().unwrap();
+            let mut task_output_store = task_output_store_arc_lock.write().unwrap();
 
-            result_store
+            task_output_store
                 .path_local_data_map
-                .insert(result.id, result_data);
+                .insert(task_output.id, task_output_data);
         }
 
-        result
+        task_output
     }
 
-    fn distribute_results(
-        result_rx: &Receiver<compute::Result>,
-        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+    fn distribute_task_outputs(
+        task_output_rx: &Receiver<TaskOutput>,
+        task_output_store_arc_lock: &Arc<RwLock<task_output::Store>>,
         agent_map: &mut HashMap<entity::ID, Agent>,
     ) {
-        while let Ok(result) = result_rx.try_recv() {
-            match result.kind {
-                compute::result::Kind::RegionPath => {
-                    Self::distribute_region_path_results(result, result_store_arc_lock, agent_map)
-                }
-                compute::result::Kind::LocalPath => {
-                    Self::distribute_local_path_results(result, result_store_arc_lock, agent_map)
-                }
+        while let Ok(task_output) = task_output_rx.try_recv() {
+            match task_output.kind {
+                task_output::Kind::RegionPath => Self::distribute_task_outputs_region_path(
+                    task_output,
+                    task_output_store_arc_lock,
+                    agent_map,
+                ),
+                task_output::Kind::LocalPath => Self::distribute_task_outputs_local_path(
+                    task_output,
+                    task_output_store_arc_lock,
+                    agent_map,
+                ),
             }
         }
     }
 
-    fn distribute_region_path_results(
-        result: compute::Result,
-        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+    fn distribute_task_outputs_region_path(
+        task_output: TaskOutput,
+        task_output_store_arc_lock: &Arc<RwLock<task_output::Store>>,
         agent_map: &mut HashMap<entity::ID, Agent>,
     ) {
-        let mut result_store = result_store_arc_lock.write().unwrap();
+        let mut task_output_store = task_output_store_arc_lock.write().unwrap();
 
-        let result_data = result_store
+        let task_output_data = task_output_store
             .path_region_data_map
-            .remove(&result.id)
+            .remove(&task_output.id)
             .unwrap();
 
-        if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
+        if let Some(agent) = agent_map.get_mut(&task_output_data.entity_id) {
             let travel_data = agent
                 .decision
                 .plan_store
                 .travel_data_map
-                .get_mut(&result_data.plan_id)
+                .get_mut(&task_output_data.plan_id)
                 .unwrap();
 
-            if result_data.path.valid {
+            if task_output_data.path.valid {
                 travel_data.region_path_found = true;
                 travel_data.region_path_index = 1;
-                travel_data.region_path = result_data.path;
+                travel_data.region_path = task_output_data.path;
             } else {
                 travel_data.region_path_found = false;
                 travel_data.stage = plan::Stage::Fail;
@@ -237,27 +244,30 @@ impl Compute {
         }
     }
 
-    fn distribute_local_path_results(
-        result: compute::Result,
-        result_store_arc_lock: &Arc<RwLock<result::Store>>,
+    fn distribute_task_outputs_local_path(
+        task_output: TaskOutput,
+        task_output_store_arc_lock: &Arc<RwLock<task_output::Store>>,
         agent_map: &mut HashMap<entity::ID, Agent>,
     ) {
-        let mut result_store = result_store_arc_lock.write().unwrap();
+        let mut task_output_store = task_output_store_arc_lock.write().unwrap();
 
-        let result_data = result_store.path_local_data_map.remove(&result.id).unwrap();
+        let task_output_data = task_output_store
+            .path_local_data_map
+            .remove(&task_output.id)
+            .unwrap();
 
-        if let Some(agent) = agent_map.get_mut(&result_data.entity_id) {
+        if let Some(agent) = agent_map.get_mut(&task_output_data.entity_id) {
             let travel_data = agent
                 .decision
                 .plan_store
                 .travel_data_map
-                .get_mut(&result_data.plan_id)
+                .get_mut(&task_output_data.plan_id)
                 .unwrap();
 
-            if result_data.path.valid {
+            if task_output_data.path.valid {
                 travel_data.local_path_found = true;
                 travel_data.local_path_index = 0;
-                travel_data.local_path = result_data.path;
+                travel_data.local_path = task_output_data.path;
             } else {
                 travel_data.local_path_found = false;
                 travel_data.stage = plan::Stage::Fail;

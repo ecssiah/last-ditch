@@ -14,6 +14,9 @@ pub struct Travel {
     pub local_path_found: bool,
     pub local_path_index: usize,
     pub local_path: Path,
+    pub next_local_path_found: bool,
+    pub next_local_path_index: usize,
+    pub next_local_path: Path,
 }
 
 impl Travel {
@@ -28,6 +31,9 @@ impl Travel {
             local_path_found: false,
             local_path_index: 0,
             local_path: Path::new(path::Kind::Local),
+            next_local_path_found: false,
+            next_local_path_index: 0,
+            next_local_path: Path::new(path::Kind::Local),
         }
     }
 }

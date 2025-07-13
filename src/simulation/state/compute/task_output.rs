@@ -8,12 +8,12 @@ pub use kind::Kind;
 pub use store::Store;
 
 #[derive(Clone, Debug)]
-pub struct Result {
+pub struct TaskOutput {
     pub id: ID,
     pub kind: Kind,
 }
 
-impl Result {
+impl TaskOutput {
     pub fn new(kind: Kind) -> Self {
         Self {
             id: ID::allocate(),

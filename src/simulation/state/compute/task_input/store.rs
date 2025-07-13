@@ -1,9 +1,9 @@
-use crate::simulation::state::compute::result;
+use crate::simulation::state::compute::task_input;
 use std::collections::HashMap;
 
 pub struct Store {
-    pub path_region_data_map: HashMap<result::ID, result::data::path::Region>,
-    pub path_local_data_map: HashMap<result::ID, result::data::path::Local>,
+    pub path_region_data_map: HashMap<task_input::ID, task_input::data::path::Region>,
+    pub path_local_data_map: HashMap<task_input::ID, task_input::data::path::Local>,
 }
 
 impl Store {
