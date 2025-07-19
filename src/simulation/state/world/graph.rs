@@ -48,7 +48,7 @@ impl Graph {
         end_position: IVec3,
         level_0: &Level,
         search_level: &mut Level,
-    ) -> Path {
+    ) -> Vec<Edge> {
         search_level.reset();
 
         let start_node = Self::create_node(start_position, search_level);
@@ -57,14 +57,18 @@ impl Graph {
         Self::connect_node(start_node, level_0, search_level);
         Self::connect_node(end_node, level_0, search_level);
 
-        Self::get_path(start_node, end_node, search_level)
+        Self::get_edge_path(start_node, end_node, &search_level)
     }
 
-    pub fn find_local_path(start_position: IVec3, end_position: IVec3, level_0: &Level) -> Path {
+    pub fn find_local_path(
+        start_position: IVec3,
+        end_position: IVec3,
+        level_0: &Level,
+    ) -> Vec<Edge> {
         Level::get_node(start_position, level_0)
             .zip(Level::get_node(end_position, level_0))
-            .map_or(Path::new(path::Kind::Local), |(&start_node, &end_node)| {
-                Self::get_path(start_node, end_node, level_0)
+            .map_or(Vec::new(), |(&start_node, &end_node)| {
+                Self::get_edge_path(start_node, end_node, level_0)
             })
     }
 
@@ -87,7 +91,7 @@ impl Graph {
                 }
 
                 let cost = Self::get_path_cost(node, region_node, level_0);
-                let edge = Edge::new(node, region_node, level_1.depth, cost, edge::Kind::Internal);
+                let edge = Edge::new(node, region_node, edge::Kind::Internal, cost, level_1.depth);
 
                 edge_vec.push(edge);
             }
@@ -153,7 +157,7 @@ impl Graph {
                                         };
 
                                         let edge =
-                                            Edge::new(node1, node2, 0, cost, edge::Kind::External);
+                                            Edge::new(node1, node2, edge::Kind::External, cost, 0);
 
                                         Level::attach_edge(edge, &mut level_0.edge_map);
                                     }
@@ -509,7 +513,7 @@ impl Graph {
                 Level::attach_node(node1, &mut level_1.region_node_map);
                 Level::attach_node(node2, &mut level_1.region_node_map);
 
-                let edge = Edge::new(node1, node2, 1, 10, edge::Kind::External);
+                let edge = Edge::new(node1, node2, edge::Kind::External, 10, 1);
 
                 Level::attach_edge(edge, &mut level_1.edge_map);
             }
@@ -529,7 +533,7 @@ impl Graph {
                     let cost = Self::get_path_cost(*node1_level_0, *node2_level_0, level_0);
 
                     if cost < u32::MAX {
-                        let edge = Edge::new(node1, node2, 1, cost, edge::Kind::Internal);
+                        let edge = Edge::new(node1, node2, edge::Kind::Internal, cost, 1);
 
                         Level::attach_edge(edge, &mut level_1.edge_map);
                     }
@@ -589,15 +593,7 @@ impl Graph {
         u32::MAX
     }
 
-    pub fn get_path(start_node: Node, end_node: Node, level: &Level) -> Path {
-        let path_kind = if level.depth > 0 {
-            path::Kind::Region
-        } else {
-            path::Kind::Local
-        };
-
-        let mut path = Path::new(path_kind);
-
+    pub fn get_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Node> {
         let mut heap = BinaryHeap::new();
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
@@ -618,10 +614,7 @@ impl Graph {
 
                 node_vec.reverse();
 
-                path.valid = true;
-                path.position_vec = node_vec.iter().map(|node| node.position).collect();
-
-                return path;
+                return node_vec;
             }
 
             for edge in Level::edge_vec(node.position, &level.edge_map) {
@@ -647,7 +640,70 @@ impl Graph {
             }
         }
 
-        path
+        Vec::new()
+    }
+
+    pub fn get_edge_path(start_node: Node, end_node: Node, level: &Level) -> Vec<Edge> {
+        let mut heap = BinaryHeap::new();
+        let mut came_from: HashMap<Node, Option<Node>> = HashMap::new();
+        let mut cost_so_far = HashMap::new();
+
+        heap.push(NodeEntry::new(0, start_node));
+        came_from.insert(start_node, None);
+        cost_so_far.insert(start_node, 0);
+
+        while let Some(NodeEntry { cost, node }) = heap.pop() {
+            if node == end_node {
+                let mut edge_vec = Vec::new();
+                let mut current = Some(node);
+
+                while let Some(test_node) = current {
+                    if let Some(Some(prev_node)) = came_from.get(&test_node) {
+                        if let Some(test_edge) =
+                            Level::edge_vec(prev_node.position, &level.edge_map)
+                                .into_iter()
+                                .find(|edge| {
+                                    (edge.node1 == *prev_node && edge.node2 == test_node)
+                                        || (edge.node2 == *prev_node && edge.node1 == test_node)
+                                })
+                        {
+                            edge_vec.push(test_edge);
+                        }
+                        current = Some(*prev_node);
+                    } else {
+                        current = None;
+                    }
+                }
+
+                edge_vec.reverse();
+
+                return edge_vec;
+            }
+
+            for edge in Level::edge_vec(node.position, &level.edge_map) {
+                if let Some(next_cost) = cost.checked_add(edge.weight) {
+                    let neighbor_node = if node.position == edge.node1.position {
+                        edge.node2
+                    } else {
+                        edge.node1
+                    };
+
+                    let neighbor_cost = *cost_so_far.get(&neighbor_node).unwrap_or(&u32::MAX);
+
+                    if next_cost < neighbor_cost {
+                        cost_so_far.insert(neighbor_node, next_cost);
+                        came_from.insert(neighbor_node, Some(node));
+
+                        let priority = next_cost
+                            + Self::manhattan_distance(neighbor_node.position, end_node.position);
+
+                        heap.push(NodeEntry::new(priority, neighbor_node));
+                    }
+                }
+            }
+        }
+
+        Vec::new()
     }
 
     fn manhattan_distance(position1: IVec3, position2: IVec3) -> u32 {

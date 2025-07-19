@@ -91,9 +91,9 @@ fn edge_validation() {
             expected_edge: Some(Edge::new(
                 Node::new(IVec3::new(0, -3, 0), IVec3::new(0, -3, 0), 0),
                 Node::new(IVec3::new(1, -3, 0), IVec3::new(1, -3, 0), 0),
-                0,
-                MOVEMENT_COST_STRAIGHT,
                 edge::Kind::External,
+                MOVEMENT_COST_STRAIGHT,
+                0,
             )),
         },
         EdgeValidationCase {
@@ -103,9 +103,9 @@ fn edge_validation() {
             expected_edge: Some(Edge::new(
                 Node::new(IVec3::new(-2, -2, 11), IVec3::new(-2, -2, 11), 0),
                 Node::new(IVec3::new(-1, -3, 11), IVec3::new(-1, -3, 11), 0),
-                0,
-                MOVEMENT_COST_DIAGONAL,
                 edge::Kind::External,
+                MOVEMENT_COST_DIAGONAL,
+                0,
             )),
         },
         EdgeValidationCase {
@@ -115,9 +115,9 @@ fn edge_validation() {
             expected_edge: Some(Edge::new(
                 Node::new(IVec3::new(4, -3, 0), IVec3::new(4, -3, 0), 0),
                 Node::new(IVec3::new(5, -4, 0), IVec3::new(5, -4, 0), 0),
-                0,
-                MOVEMENT_COST_DIAGONAL,
                 edge::Kind::External,
+                MOVEMENT_COST_DIAGONAL,
+                0,
             )),
         },
         EdgeValidationCase {

@@ -1,48 +1,47 @@
 pub mod data;
 pub mod id;
-pub mod kind;
 pub mod priority;
 pub mod store;
 
 pub use id::ID;
-pub use kind::Kind;
 pub use priority::Priority;
 pub use store::Store;
 
 use std::cmp::Ordering;
+use crate::simulation::state::compute::task;
 
 #[derive(Clone, Debug)]
-pub struct TaskInput {
+pub struct Input {
     pub id: ID,
     pub priority: Priority,
-    pub kind: Kind,
+    pub kind: task::Kind,
 }
 
-impl TaskInput {
-    pub fn new(priority: Priority, kind: Kind) -> Self {
+impl Input {
+    pub fn new(kind: task::Kind) -> Self {
         Self {
             id: ID::allocate(),
-            priority,
+            priority: Priority::Medium,
             kind,
         }
     }
 }
 
-impl PartialEq for TaskInput {
+impl PartialEq for Input {
     fn eq(&self, other: &Self) -> bool {
         self.priority == other.priority
     }
 }
 
-impl Eq for TaskInput {}
+impl Eq for Input {}
 
-impl PartialOrd for TaskInput {
+impl PartialOrd for Input {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for TaskInput {
+impl Ord for Input {
     fn cmp(&self, other: &Self) -> Ordering {
         self.priority.cmp(&other.priority)
     }

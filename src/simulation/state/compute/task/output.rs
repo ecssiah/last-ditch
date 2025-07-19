@@ -1,20 +1,20 @@
 pub mod data;
 pub mod id;
-pub mod kind;
 pub mod store;
 
 pub use id::ID;
-pub use kind::Kind;
 pub use store::Store;
 
+use crate::simulation::state::compute::task;
+
 #[derive(Clone, Debug)]
-pub struct TaskOutput {
+pub struct Output {
     pub id: ID,
-    pub kind: Kind,
+    pub kind: task::Kind,
 }
 
-impl TaskOutput {
-    pub fn new(kind: Kind) -> Self {
+impl Output {
+    pub fn new(kind: task::Kind) -> Self {
         Self {
             id: ID::allocate(),
             kind,

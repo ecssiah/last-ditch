@@ -1,10 +1,7 @@
 use crate::simulation::{
-    consts::SIMULATION_TICK_IN_SECONDS,
+    consts::*,
     state::{
-        compute::{
-            self,
-            task_input::{self, TaskInput},
-        },
+        compute::task,
         physics::aabb::AABB,
         population::entity::{
             self,
@@ -31,15 +28,13 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new() -> Self {
+    pub fn new(kind: entity::Kind) -> Self {
         let info = Info {
             entity_id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            kind: entity::Kind::Eagle,
-            nation: Nation {
-                kind: entity::Kind::Eagle,
-            },
+            kind,
+            nation: Nation::new(kind),
         };
 
         let mut decision = Decision::new();
@@ -92,6 +87,7 @@ impl Agent {
             match plan.kind {
                 plan::Kind::Idle => Self::follow_idle_plan(
                     plan,
+                    &agent.info,
                     &mut agent.decision.active_plan_id,
                     &mut agent.decision.plan_map,
                     &mut agent.decision.plan_store.idle_data_map,
@@ -106,8 +102,8 @@ impl Agent {
                     &mut agent.decision.active_plan_id,
                     &mut agent.decision.plan_map,
                     &mut agent.decision.plan_store.travel_data_map,
-                    &mut compute.task_input_heap,
-                    &compute.task_input_store_arc_lock,
+                    &mut compute.input_heap,
+                    &compute.input_store_arc_lock,
                 ),
             }
         }
@@ -115,6 +111,7 @@ impl Agent {
 
     fn follow_idle_plan(
         plan: Plan,
+        info: &Info,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
         idle_data_map: &mut HashMap<plan::ID, plan::data::Idle>,
@@ -125,9 +122,12 @@ impl Agent {
         match idle_data.stage {
             plan::Stage::Init => Self::follow_idle_plan_init_stage(idle_data),
             plan::Stage::Active => Self::follow_idle_plan_active_stage(idle_data),
-            plan::Stage::Success => {
-                Self::follow_idle_plan_success_stage(active_plan_id, plan_map, travel_data_map)
-            }
+            plan::Stage::Success => Self::follow_idle_plan_success_stage(
+                info,
+                active_plan_id,
+                plan_map,
+                travel_data_map,
+            ),
             plan::Stage::Fail => Self::follow_idle_plan_fail_stage(),
             plan::Stage::Cancel => Self::follow_idle_plan_cancel_stage(),
         }
@@ -146,11 +146,19 @@ impl Agent {
     }
 
     fn follow_idle_plan_success_stage(
+        info: &Info,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
     ) {
-        let (travel_plan, travel_data) = Plan::create_travel_plan(IVec3::new(0, 6, 9));
+        let target_position = match info.kind {
+            entity::Kind::Lion => IVec3::new(-9, -3, 0),
+            entity::Kind::Eagle => IVec3::new(9, -3, 0),
+            entity::Kind::Wolf => IVec3::new(0, -3, -9),
+            entity::Kind::Horse => IVec3::new(0, -3, 9),
+        };
+
+        let (travel_plan, travel_data) = Plan::create_travel_plan(target_position);
 
         *active_plan_id = Some(travel_plan.id);
 
@@ -175,8 +183,8 @@ impl Agent {
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
-        task_input_heap: &mut BinaryHeap<TaskInput>,
-        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
+        input_heap: &mut BinaryHeap<task::Input>,
+        input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
         let travel_data = travel_data_map.get_mut(&plan.id).unwrap();
 
@@ -187,8 +195,8 @@ impl Agent {
                 world,
                 spatial,
                 travel_data,
-                task_input_heap,
-                task_input_store_arc_lock,
+                input_heap,
+                input_store_arc_lock,
             ),
             plan::Stage::Active => Self::follow_travel_plan_active_stage(
                 plan,
@@ -197,14 +205,14 @@ impl Agent {
                 kinematic,
                 spatial,
                 travel_data,
-                task_input_heap,
-                task_input_store_arc_lock,
+                input_heap,
+                input_store_arc_lock,
             ),
             plan::Stage::Success => {
                 Self::follow_travel_plan_success_stage(active_plan_id, plan_map)
             }
             plan::Stage::Fail => {
-                Self::follow_travel_plan_fail_stage();
+                Self::follow_travel_plan_fail_stage(active_plan_id, plan_map);
             }
             plan::Stage::Cancel => {
                 Self::follow_travel_plan_cancel_stage();
@@ -218,8 +226,8 @@ impl Agent {
         world: &World,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        task_input_heap: &mut BinaryHeap<TaskInput>,
-        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
+        input_heap: &mut BinaryHeap<task::Input>,
+        input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
         let (level_0_clone, search_level_clone) = {
             let graph_buffer = world.graph_buffer_lock.read().unwrap();
@@ -228,9 +236,9 @@ impl Agent {
             (graph.level_0.clone(), graph.level_vec[0].clone())
         };
 
-        let task_input = TaskInput::new(task_input::Priority::High, task_input::Kind::PathRegion);
+        let input = task::Input::new(task::Kind::PathRegion);
 
-        let task_input_data = compute::task_input::data::path::Region {
+        let input_data = task::input::data::path::Region {
             plan_id: plan.id,
             entity_id: info.entity_id,
             start_position: Grid::world_to_position(&world.grid, spatial.world_position),
@@ -240,13 +248,13 @@ impl Agent {
         };
 
         {
-            let mut task_input_store = task_input_store_arc_lock.write().unwrap();
-            task_input_store
+            let mut input_store = input_store_arc_lock.write().unwrap();
+            input_store
                 .path_region_data_map
-                .insert(task_input.id, task_input_data);
+                .insert(input.id, input_data);
         }
 
-        task_input_heap.push(task_input);
+        input_heap.push(input);
         travel_data.stage = plan::Stage::Active;
     }
 
@@ -257,87 +265,10 @@ impl Agent {
         kinematic: &Kinematic,
         spatial: &mut Spatial,
         travel_data: &mut plan::data::Travel,
-        task_input_heap: &mut BinaryHeap<TaskInput>,
-        task_input_store_arc_lock: &Arc<RwLock<task_input::Store>>,
+        task_input_heap: &mut BinaryHeap<task::Input>,
+        task_input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
-        if travel_data.region_path_found {
-            if travel_data.local_path_found {
-                if let Some(target_position) = travel_data
-                    .local_path
-                    .position_vec
-                    .get(travel_data.local_path_index)
-                    .map(|target_position| target_position.as_vec3())
-                {
-                    let distance_vector = target_position - spatial.world_position;
-                    let distance_squared = distance_vector.length_squared();
-
-                    if distance_squared < f32::EPSILON * f32::EPSILON {
-                        spatial.world_position = target_position;
-                        travel_data.local_path_index += 1;
-                    } else {
-                        let direction_vector = distance_vector.normalize();
-                        let displacement_vector =
-                            kinematic.speed * SIMULATION_TICK_IN_SECONDS * direction_vector;
-
-                        if displacement_vector.length_squared() >= distance_squared {
-                            spatial.world_position = target_position;
-                            travel_data.local_path_index += 1;
-                        } else {
-                            spatial.world_position += displacement_vector;
-                        }
-                    }
-                } else {
-                    travel_data.region_path_index += 2;
-                    travel_data.local_path_found = false;
-
-                    if travel_data.region_path_index >= travel_data.region_path.position_vec.len() {
-                        travel_data.region_path_complete = true;
-                    }
-                }
-            } else {
-                if travel_data.region_path_index >= travel_data.region_path.position_vec.len() {
-                    travel_data.region_path_complete = true;
-                } else {
-                    let task_input =
-                        TaskInput::new(task_input::Priority::Medium, task_input::Kind::PathLocal);
-
-                    let level_0_clone = {
-                        let graph_buffer = world.graph_buffer_lock.read().unwrap();
-                        let graph = graph_buffer.get();
-
-                        graph.level_0.clone()
-                    };
-
-                    let start_position =
-                        travel_data.region_path.position_vec[travel_data.region_path_index - 1];
-
-                    let end_position =
-                        travel_data.region_path.position_vec[travel_data.region_path_index];
-
-                    let task_input_data = compute::task_input::data::path::Local {
-                        plan_id: plan.id,
-                        entity_id: info.entity_id,
-                        chunk_id: chunk::ID::MAX,
-                        start_position,
-                        end_position,
-                        level_0: level_0_clone,
-                    };
-
-                    {
-                        let mut task_input_store = task_input_store_arc_lock.write().unwrap();
-                        task_input_store
-                            .path_local_data_map
-                            .insert(task_input.id, task_input_data);
-                    }
-
-                    task_input_heap.push(task_input);
-                }
-            }
-        }
-
-        if travel_data.region_path_complete {
-            travel_data.stage = plan::Stage::Success;
-        }
+        
     }
 
     fn follow_travel_plan_success_stage(
@@ -351,8 +282,17 @@ impl Agent {
         *active_plan_id = None;
     }
 
-    fn follow_travel_plan_fail_stage() {
+    fn follow_travel_plan_fail_stage(
+        active_plan_id: &mut Option<plan::ID>,
+        plan_map: &mut HashMap<plan::ID, Plan>,
+    ) {
         println!("Travel Plan Fail");
+
+        if let Some(active_plan_id) = active_plan_id {
+            plan_map.remove(active_plan_id);
+        }
+
+        *active_plan_id = None;
     }
 
     fn follow_travel_plan_cancel_stage() {

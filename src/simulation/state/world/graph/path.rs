@@ -1,24 +1,41 @@
+use crate::simulation::state::world::graph::{self, Edge};
 use glam::IVec3;
+use std::fmt;
 
-#[derive(Clone, Debug)]
-pub enum Kind {
-    Region,
-    Local,
+#[derive(Clone)]
+pub struct Step {
+    pub edge: graph::Edge,
+    pub index: usize,
+    pub position_vec: Option<Vec<IVec3>>,
 }
 
-#[derive(Clone, Debug)]
+impl Step {
+    pub fn new(edge: Edge) -> Self {
+        Self {
+            edge,
+            index: 0,
+            position_vec: None,
+        }
+    }
+}
+
 pub struct Path {
-    pub valid: bool,
-    pub kind: Kind,
-    pub position_vec: Vec<IVec3>,
+    pub current_step: usize,
+    pub step_vec: Vec<Step>,
 }
 
 impl Path {
-    pub fn new(kind: Kind) -> Self {
+    pub fn new() -> Self {
         Self {
-            valid: false,
-            kind,
-            position_vec: Vec::new(),
+            current_step: 0,
+            step_vec: Vec::new(),
         }
+    }
+}
+
+impl fmt::Debug for Path {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(formatter, "Path")?;
+        write!(formatter, "")
     }
 }

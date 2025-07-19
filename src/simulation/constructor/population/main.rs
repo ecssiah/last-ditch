@@ -52,9 +52,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
                 let world_position = flag_position + offset;
 
-                let mut agent = Agent::new();
-
-                agent.info.kind = kind;
+                let mut agent = Agent::new(kind);
 
                 Agent::set_world_position(world_position, &mut agent.spatial, &mut agent.detection);
 
