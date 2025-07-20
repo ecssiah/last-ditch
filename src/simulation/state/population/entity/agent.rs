@@ -8,7 +8,12 @@ use crate::simulation::{
             decision::{plan, Plan},
             Decision, Detection, Info, Kinematic, Nation, Spatial,
         },
-        world::{chunk, grid::Grid, World},
+        world::{
+            chunk,
+            graph::{edge, Edge},
+            grid::Grid,
+            World,
+        },
         Compute,
     },
 };
@@ -270,13 +275,12 @@ impl Agent {
         task_input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
         if let Some(path) = &mut travel_data.path {
-            if path.step_index < path.step_vec.len() {
-                let step = &mut path.step_vec[path.step_index];
-
+            if let Some(step) = path.step_vec.get_mut(path.step_index) {
                 if let Some(edge_vec) = &step.edge_vec {
-                    if step.edge_index < edge_vec.len() {
-                        let target_position = edge_vec[step.edge_index].node2.position.as_vec3();
+                    if let Some(edge) = edge_vec.get(step.edge_index) {
+                        let target_position = edge.node2.position.as_vec3();
                         let displacement = target_position - spatial.world_position;
+
                         let direction = displacement.normalize_or(Vec3::ZERO);
                         let translation = kinematic.speed * SIMULATION_TICK_IN_SECONDS * direction;
 
@@ -290,34 +294,50 @@ impl Agent {
                         path.step_index += 1;
                     }
                 } else if !step.pending {
-                    let level_0_clone = {
-                        let graph_buffer = world.graph_buffer_lock.read().unwrap();
-                        let graph = graph_buffer.get();
+                    match step.edge.kind {
+                        edge::Kind::External => {
+                            let edge_vec = vec![Edge::new(
+                                step.edge.node1,
+                                step.edge.node2,
+                                edge::Kind::External,
+                                10,
+                                0,
+                            )];
 
-                        graph.level_0.clone()
-                    };
+                            step.edge_vec = Some(edge_vec);
+                        }
+                        edge::Kind::Internal => {
+                            let level_0_clone = {
+                                let graph_buffer = world.graph_buffer_lock.read().unwrap();
+                                let graph = graph_buffer.get();
 
-                    let task_input = task::Input::new(task::Kind::PathLocal);
+                                graph.level_0.clone()
+                            };
 
-                    let task_input_data = task::input::data::path::Local {
-                        plan_id: plan.id,
-                        entity_id: info.entity_id,
-                        step_index: path.step_index,
-                        start_position: step.edge.node1.position,
-                        end_position: step.edge.node2.position,
-                        level_0: level_0_clone,
-                    };
+                            let task_input = task::Input::new(task::Kind::PathLocal);
 
-                    {
-                        let mut task_input_store = task_input_store_arc_lock.write().unwrap();
+                            let task_input_data = task::input::data::path::Local {
+                                plan_id: plan.id,
+                                entity_id: info.entity_id,
+                                step_index: path.step_index,
+                                start_position: step.edge.node1.position,
+                                end_position: step.edge.node2.position,
+                                level_0: level_0_clone,
+                            };
 
-                        task_input_store
-                            .path_local_data_map
-                            .insert(task_input.id, task_input_data);
+                            {
+                                let mut task_input_store =
+                                    task_input_store_arc_lock.write().unwrap();
+
+                                task_input_store
+                                    .path_local_data_map
+                                    .insert(task_input.id, task_input_data);
+                            }
+
+                            step.pending = true;
+                            task_input_heap.push(task_input);
+                        }
                     }
-
-                    step.pending = true;
-                    task_input_heap.push(task_input);
                 }
             } else {
                 travel_data.stage = plan::Stage::Success;

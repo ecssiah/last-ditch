@@ -8,7 +8,7 @@ use crate::simulation::state::{
         Population,
     },
     world::graph::{
-        path::{self, Step},
+        path::{self},
         Graph, Path,
     },
 };
