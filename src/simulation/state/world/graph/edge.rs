@@ -33,8 +33,13 @@ impl Edge {
 
 impl PartialEq for Edge {
     fn eq(&self, other: &Self) -> bool {
-        (self.node1 == other.node1 && self.node2 == other.node2)
-            || (self.node1 == other.node2 && self.node2 == other.node1)
+        let nodes_match = (self.node1 == other.node1 && self.node2 == other.node2)
+            || (self.node1 == other.node2 && self.node2 == other.node1);
+
+        nodes_match
+            && self.kind == other.kind
+            && self.weight == other.weight
+            && self.depth == other.depth
     }
 }
 

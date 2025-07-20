@@ -1,6 +1,6 @@
 use crate::simulation::{
     self,
-    consts::MOVEMENT_COST_STRAIGHT,
+    consts::{MOVEMENT_COST_DIAGONAL, MOVEMENT_COST_STRAIGHT},
     state::{
         world::graph::{edge, Edge, Graph, Node},
         World,
@@ -90,7 +90,7 @@ fn path_local_edge_vec() {
             description: "test case 1".to_string(),
             start_position: IVec3::new(0, -3, 0),
             end_position: IVec3::new(4, -3, 0),
-            expected_edge_vec: Vec::from([
+            expected_edge_vec: vec![
                 Edge::new(
                     Node::new(IVec3::new(0, -3, 0), IVec3::new(0, -3, 0), 0),
                     Node::new(IVec3::new(1, -3, 0), IVec3::new(1, -3, 0), 0),
@@ -119,13 +119,13 @@ fn path_local_edge_vec() {
                     MOVEMENT_COST_STRAIGHT,
                     0,
                 ),
-            ]),
+            ],
         },
         PathLocalEdgeVecCase {
             description: "test case 2".to_string(),
             start_position: IVec3::new(0, -3, 0),
             end_position: IVec3::new(-4, -3, 0),
-            expected_edge_vec: Vec::from([
+            expected_edge_vec: vec![
                 Edge::new(
                     Node::new(IVec3::new(0, -3, 0), IVec3::new(0, -3, 0), 0),
                     Node::new(IVec3::new(-1, -3, 0), IVec3::new(-1, -3, 0), 0),
@@ -154,13 +154,13 @@ fn path_local_edge_vec() {
                     MOVEMENT_COST_STRAIGHT,
                     0,
                 ),
-            ]),
+            ],
         },
         PathLocalEdgeVecCase {
             description: "test case 2".to_string(),
             start_position: IVec3::new(9, -3, 0),
             end_position: IVec3::new(5, -4, 0),
-            expected_edge_vec: Vec::from([
+            expected_edge_vec: vec![
                 Edge::new(
                     Node::new(IVec3::new(9, -3, 0), IVec3::new(9, -3, 0), 0),
                     Node::new(IVec3::new(8, -3, 0), IVec3::new(8, -3, 0), 0),
@@ -172,7 +172,7 @@ fn path_local_edge_vec() {
                     Node::new(IVec3::new(8, -3, 0), IVec3::new(8, -3, 0), 0),
                     Node::new(IVec3::new(7, -4, 0), IVec3::new(7, -4, 0), 0),
                     edge::Kind::External,
-                    MOVEMENT_COST_STRAIGHT,
+                    MOVEMENT_COST_DIAGONAL,
                     0,
                 ),
                 Edge::new(
@@ -189,7 +189,7 @@ fn path_local_edge_vec() {
                     MOVEMENT_COST_STRAIGHT,
                     0,
                 ),
-            ]),
+            ],
         },
     ];
 
