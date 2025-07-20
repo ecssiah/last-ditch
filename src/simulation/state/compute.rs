@@ -130,7 +130,7 @@ impl Compute {
 
         let task_output = task::Output::new(task::Kind::PathRegion);
 
-        let task_output_data = task::output::data::path::Region {
+        let task_output_data = task::output::data::path::RegionData {
             plan_id: task_input_data.plan_id,
             entity_id: task_input_data.entity_id,
             edge_vec,
@@ -169,7 +169,7 @@ impl Compute {
 
         let task_output = task::Output::new(task::Kind::PathLocal);
 
-        let task_output_data = task::output::data::path::Local {
+        let task_output_data = task::output::data::path::LocalData {
             plan_id: task_input_data.plan_id,
             entity_id: task_input_data.entity_id,
             step_index: task_input_data.step_index,

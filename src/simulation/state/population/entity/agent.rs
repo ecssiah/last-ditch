@@ -5,7 +5,13 @@ use crate::simulation::{
         physics::aabb::AABB,
         population::entity::{
             self,
-            decision::{plan, Plan},
+            decision::{
+                plan::{
+                    self,
+                    data::{IdleData, TravelData},
+                },
+                Plan,
+            },
             Decision, Detection, Info, Kinematic, Nation, Spatial,
         },
         world::{
@@ -119,8 +125,8 @@ impl Agent {
         info: &Info,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
-        idle_data_map: &mut HashMap<plan::ID, plan::data::Idle>,
-        travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
+        idle_data_map: &mut HashMap<plan::ID, IdleData>,
+        travel_data_map: &mut HashMap<plan::ID, TravelData>,
     ) {
         let idle_data = idle_data_map.get_mut(&plan.id).unwrap();
 
@@ -138,11 +144,11 @@ impl Agent {
         }
     }
 
-    fn follow_idle_plan_init_stage(idle_data: &mut plan::data::Idle) {
+    fn follow_idle_plan_init_stage(idle_data: &mut plan::data::IdleData) {
         idle_data.stage = plan::Stage::Active;
     }
 
-    fn follow_idle_plan_active_stage(idle_data: &mut plan::data::Idle) {
+    fn follow_idle_plan_active_stage(idle_data: &mut plan::data::IdleData) {
         idle_data.tick_count += 1;
 
         if idle_data.tick_count >= idle_data.tick_duration {
@@ -154,7 +160,7 @@ impl Agent {
         info: &Info,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
-        travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
+        travel_data_map: &mut HashMap<plan::ID, plan::data::TravelData>,
     ) {
         let target_position = match info.kind {
             entity::Kind::Lion => IVec3::new(-9, -3, 0),
@@ -187,7 +193,7 @@ impl Agent {
         spatial: &mut Spatial,
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
-        travel_data_map: &mut HashMap<plan::ID, plan::data::Travel>,
+        travel_data_map: &mut HashMap<plan::ID, plan::data::TravelData>,
         input_heap: &mut BinaryHeap<task::Input>,
         input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
@@ -230,7 +236,7 @@ impl Agent {
         info: &Info,
         world: &World,
         spatial: &mut Spatial,
-        travel_data: &mut plan::data::Travel,
+        travel_data: &mut plan::data::TravelData,
         task_input_heap: &mut BinaryHeap<task::Input>,
         task_input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
@@ -243,7 +249,7 @@ impl Agent {
 
         let task_input = task::Input::new(task::Kind::PathRegion);
 
-        let task_input_data = task::input::data::path::Region {
+        let task_input_data = task::input::data::path::RegionData {
             plan_id: plan.id,
             entity_id: info.entity_id,
             start_position: Grid::world_to_position(&world.grid, spatial.world_position),
@@ -270,7 +276,7 @@ impl Agent {
         world: &World,
         kinematic: &Kinematic,
         spatial: &mut Spatial,
-        travel_data: &mut plan::data::Travel,
+        travel_data: &mut plan::data::TravelData,
         task_input_heap: &mut BinaryHeap<task::Input>,
         task_input_store_arc_lock: &Arc<RwLock<task::input::Store>>,
     ) {
@@ -316,7 +322,7 @@ impl Agent {
 
                             let task_input = task::Input::new(task::Kind::PathLocal);
 
-                            let task_input_data = task::input::data::path::Local {
+                            let task_input_data = task::input::data::path::LocalData {
                                 plan_id: plan.id,
                                 entity_id: info.entity_id,
                                 step_index: path.step_index,
@@ -360,8 +366,6 @@ impl Agent {
         active_plan_id: &mut Option<plan::ID>,
         plan_map: &mut HashMap<plan::ID, Plan>,
     ) {
-        println!("Travel Plan Fail");
-
         if let Some(active_plan_id) = active_plan_id {
             plan_map.remove(active_plan_id);
         }

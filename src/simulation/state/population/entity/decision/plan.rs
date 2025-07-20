@@ -31,26 +31,26 @@ impl Plan {
         }
     }
 
-    pub fn create_idle_plan(tick_duration: u32) -> (Self, plan::data::Idle) {
+    pub fn create_idle_plan(tick_duration: u32) -> (Self, plan::data::IdleData) {
         let idle_plan = Self {
             id: ID::allocate(),
             kind: Kind::Idle,
             priority: Priority::Medium,
         };
 
-        let idle_data = plan::data::Idle::new(tick_duration);
+        let idle_data = plan::data::IdleData::new(tick_duration);
 
         (idle_plan, idle_data)
     }
 
-    pub fn create_travel_plan(target_position: IVec3) -> (Self, plan::data::Travel) {
+    pub fn create_travel_plan(target_position: IVec3) -> (Self, plan::data::TravelData) {
         let travel_plan = Self {
             id: ID::allocate(),
             kind: Kind::Travel,
             priority: Priority::Medium,
         };
 
-        let travel_data = plan::data::Travel::new(target_position);
+        let travel_data = plan::data::TravelData::new(target_position);
 
         (travel_plan, travel_data)
     }
