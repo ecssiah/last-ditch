@@ -23,11 +23,6 @@ impl NodeValidationCase {
 
         assert!(!level_0.region_node_map.is_empty());
 
-        for (region_position, node_map) in &level_0.region_node_map {
-            println!("{:?}", region_position);
-            println!("{:?}", node_map);
-        }
-
         let node = Level::get_node(self.position, &level_0);
 
         assert_eq!(node, self.expected_node.as_ref(), "{:?}", self.description);

@@ -119,6 +119,50 @@ impl Graph {
         }
     }
 
+    fn align_edge_vec(start_node: Node, end_node: Node, edge_vec: Vec<Edge>) -> Vec<Edge> {
+        if edge_vec.is_empty() {
+            return edge_vec;
+        }
+
+        let start_edge = if edge_vec[0].node2.position == start_node.position {
+            Edge::flip(&edge_vec[0])
+        } else {
+            edge_vec[0]
+        };
+
+        let mut edge_vec_normalized = Vec::new();
+        edge_vec_normalized.push(start_edge);
+
+        if edge_vec.len() == 1 {
+            return edge_vec_normalized;
+        }
+
+        for index in 1..edge_vec.len() {
+            let edge1 = edge_vec[index - 1];
+            let edge2 = edge_vec[index];
+
+            if edge2.node2.position == edge1.node1.position {
+                edge_vec_normalized.push(Edge::flip(&edge2));
+            } else if edge2.node2.position == edge1.node2.position {
+                edge_vec_normalized.push(Edge::flip(&edge2));
+            } else if edge1.node1.position == edge2.node1.position {
+                edge_vec_normalized.push(edge2);
+            } else if edge1.node2.position == edge2.node1.position {
+                edge_vec_normalized.push(edge2);
+            } else {
+                panic!("Disjoint path: \n{:?}\n\n |\n\n{:?}", edge1, edge2);
+            }
+        }
+
+        let end_edge = edge_vec_normalized[edge_vec.len() - 1];
+
+        if end_edge.node2.position != end_node.position {
+            panic!("End Edge does not contain End Node");
+        }
+
+        edge_vec_normalized
+    }
+
     fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
         let mut level_0 = Level::new(0, 1, grid.world_limit as usize);
 
@@ -173,13 +217,7 @@ impl Graph {
                                                     node2.position,
                                                 );
 
-                                                if node1.position == IVec3::new(4, -3, 0) {
-                                                    println!("{:?}", node2.position);
-                                                    println!("{:?} {:?}", chunk_id1, chunk_id2);
-                                                }
-
                                                 if chunk_id1 != chunk_id2 {
-                                                    println!("Continuing");
                                                     continue;
                                                 }
 
@@ -717,7 +755,7 @@ impl Graph {
 
                 edge_vec.reverse();
 
-                return edge_vec;
+                return Self::align_edge_vec(start_node, end_node, edge_vec);
             }
 
             for edge in Level::edge_vec(node.position, &level.edge_map) {

@@ -273,16 +273,16 @@ impl Agent {
             if path.step_index < path.step_vec.len() {
                 let step = &mut path.step_vec[path.step_index];
 
-                if let Some(position_vec) = &step.position_vec {
-                    if step.position_index < position_vec.len() {
-                        let target_position = position_vec[step.position_index].as_vec3();
+                if let Some(edge_vec) = &step.edge_vec {
+                    if step.edge_index < edge_vec.len() {
+                        let target_position = edge_vec[step.edge_index].node2.position.as_vec3();
                         let displacement = target_position - spatial.world_position;
                         let direction = displacement.normalize_or(Vec3::ZERO);
                         let translation = kinematic.speed * SIMULATION_TICK_IN_SECONDS * direction;
 
                         if displacement.length_squared() < translation.length_squared() {
                             spatial.world_position = target_position;
-                            step.position_index += 1;
+                            step.edge_index += 1;
                         } else {
                             spatial.world_position += translation;
                         }
@@ -303,11 +303,8 @@ impl Agent {
                         plan_id: plan.id,
                         entity_id: info.entity_id,
                         step_index: path.step_index,
-                        start_position: Grid::world_to_position(
-                            &world.grid,
-                            spatial.world_position,
-                        ),
-                        end_position: travel_data.target_position,
+                        start_position: step.edge.node1.position,
+                        end_position: step.edge.node2.position,
                         level_0: level_0_clone,
                     };
 

@@ -7,7 +7,10 @@ use crate::simulation::state::{
         entity::{self, decision::plan, Agent},
         Population,
     },
-    world::graph::{path, Graph, Path},
+    world::graph::{
+        path::{self, Step},
+        Graph, Path,
+    },
 };
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use rayon::ThreadPoolBuilder;
@@ -266,21 +269,9 @@ impl Compute {
 
             if let Some(path) = &mut travel_data.path {
                 if let Some(step) = path.step_vec.get_mut(task_output_data.step_index) {
-                    let position_vec = if task_output_data.edge_vec.is_empty() {
-                        Vec::new()
-                    } else {
-                        std::iter::once(task_output_data.edge_vec[0].node1.position)
-                            .chain(
-                                task_output_data
-                                    .edge_vec
-                                    .iter()
-                                    .map(|edge| edge.node2.position),
-                            )
-                            .collect()
-                    };
-
                     step.pending = false;
-                    step.position_vec = Some(position_vec);
+                    step.edge_index = 0;
+                    step.edge_vec = Some(task_output_data.edge_vec);
                 }
             }
         }

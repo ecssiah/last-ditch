@@ -6,7 +6,7 @@ pub enum Kind {
     External,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct Edge {
     pub node1: Node,
     pub node2: Node,
@@ -17,12 +17,6 @@ pub struct Edge {
 
 impl Edge {
     pub fn new(node1: Node, node2: Node, kind: Kind, weight: u32, depth: usize) -> Self {
-        let (node1, node2) = if node1.position.to_array() <= node2.position.to_array() {
-            (node1, node2)
-        } else {
-            (node2, node1)
-        };
-
         Self {
             node1,
             node2,
@@ -31,4 +25,17 @@ impl Edge {
             kind,
         }
     }
+
+    pub fn flip(edge: &Edge) -> Edge {
+        Edge::new(edge.node2, edge.node1, edge.kind, edge.weight, edge.depth)
+    }
 }
+
+impl PartialEq for Edge {
+    fn eq(&self, other: &Self) -> bool {
+        (self.node1 == other.node1 && self.node2 == other.node2)
+            || (self.node1 == other.node2 && self.node2 == other.node1)
+    }
+}
+
+impl Eq for Edge {}
