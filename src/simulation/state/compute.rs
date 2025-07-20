@@ -7,10 +7,7 @@ use crate::simulation::state::{
         entity::{self, decision::plan, Agent},
         Population,
     },
-    world::graph::{
-        path::{self},
-        Graph, Path,
-    },
+    world::graph::{Graph, Path, Step},
 };
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use rayon::ThreadPoolBuilder;
@@ -237,7 +234,7 @@ impl Compute {
                 let mut path = Path::new();
 
                 for edge in task_output_data.edge_vec {
-                    let step = path::Step::new(edge);
+                    let step = Step::new(edge);
 
                     path.step_vec.push(step);
                 }

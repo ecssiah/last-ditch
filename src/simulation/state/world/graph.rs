@@ -4,6 +4,7 @@ pub mod level;
 pub mod node;
 pub mod node_entry;
 pub mod path;
+pub mod step;
 pub mod transition;
 
 pub use edge::Edge;
@@ -12,6 +13,7 @@ pub use level::Level;
 pub use node::Node;
 pub use node_entry::NodeEntry;
 pub use path::Path;
+pub use step::Step;
 pub use transition::Transition;
 
 use crate::simulation::{

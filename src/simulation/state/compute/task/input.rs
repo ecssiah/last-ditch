@@ -7,8 +7,8 @@ pub use id::ID;
 pub use priority::Priority;
 pub use store::Store;
 
-use std::cmp::Ordering;
 use crate::simulation::state::compute::task;
+use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
 pub struct Input {
