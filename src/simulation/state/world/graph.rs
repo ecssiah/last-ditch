@@ -122,7 +122,9 @@ impl Graph {
     fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
         let mut level_0 = Level::new(0, 1, grid.world_limit as usize);
 
+        let chunk_radius = grid.chunk_radius as i32;
         let chunk_size = grid.chunk_size as i32;
+        let world_radius = grid.world_radius as i32;
         let world_limit = grid.world_limit as i32;
 
         for x in -world_limit..world_limit {
@@ -131,38 +133,76 @@ impl Graph {
                     let position = IVec3::new(x, y, z);
                     let clearance = World::get_clearance(position, grid, chunk_vec_slice);
 
-                    let on_region_boundary = ((x + world_limit % chunk_size) == (chunk_size - 1))
-                        || ((y + world_limit % chunk_size) == (chunk_size - 1))
-                        || ((z + world_limit % chunk_size) == (chunk_size - 1));
-
                     if clearance >= MINIMUM_CLEARANCE {
                         let node1 = Self::create_node(position, &level_0);
                         Level::attach_node(node1, &mut level_0.region_node_map);
+                    }
+                }
+            }
+        }
 
-                        for direction_offset in grid::Direction::axis_offset_array() {
-                            for vertical_offset in [IVec3::NEG_Y, IVec3::ZERO, IVec3::Y] {
-                                let test_position = position + direction_offset + vertical_offset;
-                                let test_clearance =
-                                    World::get_clearance(test_position, grid, chunk_vec_slice);
+        for cx in -world_radius..=world_radius {
+            for cy in -world_radius..=world_radius {
+                for cz in -world_radius..=world_radius {
+                    let chunk_position = IVec3::new(cx, cy, cz) * chunk_size;
 
-                                if test_clearance >= MINIMUM_CLEARANCE {
-                                    let node2 = Self::create_node(test_position, &level_0);
-                                    Level::attach_node(node2, &mut level_0.region_node_map);
+                    for bx in -chunk_radius..=chunk_radius {
+                        for by in -chunk_radius..=chunk_radius {
+                            for bz in -chunk_radius..=chunk_radius {
+                                let node1_position = chunk_position + IVec3::new(bx, by, bz);
 
-                                    if !on_region_boundary {
-                                        let cost = if node1.position.y == node2.position.y {
-                                            MOVEMENT_COST_STRAIGHT
-                                        } else {
-                                            MOVEMENT_COST_DIAGONAL
-                                        };
+                                if let Some(node1) =
+                                    Level::get_node(node1_position, &level_0).cloned()
+                                {
+                                    for direction_offset in grid::Direction::cardinal_offset_array()
+                                    {
+                                        for vertical_offset in [IVec3::NEG_Y, IVec3::ZERO, IVec3::Y]
+                                        {
+                                            let node2_position =
+                                                node1_position + direction_offset + vertical_offset;
 
-                                        let edge =
-                                            Edge::new(node1, node2, edge::Kind::External, cost, 0);
+                                            if let Some(node2) =
+                                                Level::get_node(node2_position, &level_0).cloned()
+                                            {
+                                                let chunk_id1 = Grid::position_to_chunk_id(
+                                                    grid,
+                                                    node1.position,
+                                                );
+                                                let chunk_id2 = Grid::position_to_chunk_id(
+                                                    grid,
+                                                    node2.position,
+                                                );
 
-                                        Level::attach_edge(edge, &mut level_0.edge_map);
+                                                if node1.position == IVec3::new(4, -3, 0) {
+                                                    println!("{:?}", node2.position);
+                                                    println!("{:?} {:?}", chunk_id1, chunk_id2);
+                                                }
+
+                                                if chunk_id1 != chunk_id2 {
+                                                    println!("Continuing");
+                                                    continue;
+                                                }
+
+                                                let cost = if node1.position.y == node2.position.y {
+                                                    MOVEMENT_COST_STRAIGHT
+                                                } else {
+                                                    MOVEMENT_COST_DIAGONAL
+                                                };
+
+                                                let edge = Edge::new(
+                                                    node1,
+                                                    node2,
+                                                    edge::Kind::External,
+                                                    cost,
+                                                    0,
+                                                );
+
+                                                Level::attach_edge(edge, &mut level_0.edge_map);
+
+                                                break;
+                                            }
+                                        }
                                     }
-
-                                    break;
                                 }
                             }
                         }

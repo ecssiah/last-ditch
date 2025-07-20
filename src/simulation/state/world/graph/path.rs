@@ -5,7 +5,8 @@ use std::fmt;
 #[derive(Clone)]
 pub struct Step {
     pub edge: graph::Edge,
-    pub index: usize,
+    pub pending: bool,
+    pub position_index: usize,
     pub position_vec: Option<Vec<IVec3>>,
 }
 
@@ -13,21 +14,41 @@ impl Step {
     pub fn new(edge: Edge) -> Self {
         Self {
             edge,
-            index: 0,
+            pending: false,
+            position_index: 0,
             position_vec: None,
         }
     }
 }
 
+impl fmt::Debug for Step {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(formatter, "STEP")?;
+        writeln!(formatter, "  Pending: {:?}", self.pending)?;
+        writeln!(formatter, "  Edge: {:?}", self.edge)?;
+        writeln!(formatter, "")?;
+
+        if let Some(position_vec) = &self.position_vec {
+            for position in position_vec {
+                writeln!(formatter, "{:?}", position)?;
+            }
+        } else {
+            writeln!(formatter, "  EMPTY")?;
+        }
+
+        write!(formatter, "")
+    }
+}
+
 pub struct Path {
-    pub current_step: usize,
+    pub step_index: usize,
     pub step_vec: Vec<Step>,
 }
 
 impl Path {
     pub fn new() -> Self {
         Self {
-            current_step: 0,
+            step_index: 0,
             step_vec: Vec::new(),
         }
     }
@@ -35,7 +56,17 @@ impl Path {
 
 impl fmt::Debug for Path {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(formatter, "Path")?;
+        writeln!(formatter, "Path:")?;
+
+        if self.step_vec.is_empty() {
+            writeln!(formatter, "  EMPTY")?;
+        } else {
+            for step_index in 0..self.step_vec.len() {
+                writeln!(formatter, "{:?}", step_index)?;
+                writeln!(formatter, "{:?}", self.step_vec[step_index])?;
+            }
+        }
+
         write!(formatter, "")
     }
 }

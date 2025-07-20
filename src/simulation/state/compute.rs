@@ -4,7 +4,7 @@ pub mod task;
 
 use crate::simulation::state::{
     population::{
-        entity::{self, Agent},
+        entity::{self, decision::plan, Agent},
         Population,
     },
     world::graph::{path, Graph, Path},
@@ -82,7 +82,7 @@ impl Compute {
                 );
 
                 if let Err(err) = task_output_tx_clone.send(task_output) {
-                    log::error!("Failed to send Output: {:?}", err);
+                    log::error!("Failed to send Task output: {:?}", err);
                 }
             });
         }
@@ -172,7 +172,7 @@ impl Compute {
         let task_output_data = task::output::data::path::Local {
             plan_id: task_input_data.plan_id,
             entity_id: task_input_data.entity_id,
-            path_index: task_input_data.path_index,
+            step_index: task_input_data.step_index,
             edge_vec,
         };
 
@@ -228,15 +228,19 @@ impl Compute {
                 .get_mut(&task_output_data.plan_id)
                 .unwrap();
 
-            let mut path = Path::new();
+            if task_output_data.edge_vec.is_empty() {
+                travel_data.stage = plan::Stage::Fail;
+            } else {
+                let mut path = Path::new();
 
-            for edge in task_output_data.edge_vec {
-                let step = path::Step::new(edge);
+                for edge in task_output_data.edge_vec {
+                    let step = path::Step::new(edge);
 
-                path.step_vec.push(step);
+                    path.step_vec.push(step);
+                }
+
+                travel_data.path = Some(path);
             }
-
-            travel_data.path = Some(path);
         }
     }
 
@@ -261,16 +265,21 @@ impl Compute {
                 .unwrap();
 
             if let Some(path) = &mut travel_data.path {
-                if let Some(step) = path.step_vec.get_mut(task_output_data.path_index) {
-                    let position_vec = std::iter::once(task_output_data.edge_vec[0].node1.position)
-                        .chain(
-                            task_output_data
-                                .edge_vec
-                                .iter()
-                                .map(|edge| edge.node2.position),
-                        )
-                        .collect();
+                if let Some(step) = path.step_vec.get_mut(task_output_data.step_index) {
+                    let position_vec = if task_output_data.edge_vec.is_empty() {
+                        Vec::new()
+                    } else {
+                        std::iter::once(task_output_data.edge_vec[0].node1.position)
+                            .chain(
+                                task_output_data
+                                    .edge_vec
+                                    .iter()
+                                    .map(|edge| edge.node2.position),
+                            )
+                            .collect()
+                    };
 
+                    step.pending = false;
                     step.position_vec = Some(position_vec);
                 }
             }

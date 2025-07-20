@@ -16,12 +16,17 @@ struct NodeValidationCase {
 
 impl NodeValidationCase {
     pub fn check(&self, world: &World) {
-        let graph_buffer = world.graph_buffer_lock.write().unwrap();
+        let graph_buffer = world.graph_buffer_lock.read().unwrap();
         let graph = graph_buffer.get();
 
-        let level_0 = &graph.level_vec[0];
+        let level_0 = &graph.level_0;
 
         assert!(!level_0.region_node_map.is_empty());
+
+        for (region_position, node_map) in &level_0.region_node_map {
+            println!("{:?}", region_position);
+            println!("{:?}", node_map);
+        }
 
         let node = Level::get_node(self.position, &level_0);
 
@@ -66,7 +71,7 @@ impl EdgeValidationCase {
         let graph_buffer = world.graph_buffer_lock.write().unwrap();
         let graph = graph_buffer.get();
 
-        let level_0 = &graph.level_vec[0];
+        let level_0 = &graph.level_0;
 
         assert!(!level_0.edge_map.is_empty());
 
@@ -85,7 +90,7 @@ fn edge_validation() {
 
     let test_cases = vec![
         EdgeValidationCase {
-            description: "valid edge 1".to_string(),
+            description: "test case 1".to_string(),
             position1: IVec3::new(0, -3, 0),
             position2: IVec3::new(1, -3, 0),
             expected_edge: Some(Edge::new(
@@ -97,7 +102,7 @@ fn edge_validation() {
             )),
         },
         EdgeValidationCase {
-            description: "valid edge 2".to_string(),
+            description: "test case 2".to_string(),
             position1: IVec3::new(-2, -2, 11),
             position2: IVec3::new(-1, -3, 11),
             expected_edge: Some(Edge::new(
@@ -109,19 +114,13 @@ fn edge_validation() {
             )),
         },
         EdgeValidationCase {
-            description: "valid edge 3 - between regions".to_string(),
+            description: "test case 3".to_string(),
             position1: IVec3::new(4, -3, 0),
             position2: IVec3::new(5, -4, 0),
-            expected_edge: Some(Edge::new(
-                Node::new(IVec3::new(4, -3, 0), IVec3::new(4, -3, 0), 0),
-                Node::new(IVec3::new(5, -4, 0), IVec3::new(5, -4, 0), 0),
-                edge::Kind::External,
-                MOVEMENT_COST_DIAGONAL,
-                0,
-            )),
+            expected_edge: None,
         },
         EdgeValidationCase {
-            description: "invalid edge 1".to_string(),
+            description: "test case 4".to_string(),
             position1: IVec3::new(0, -3, 0),
             position2: IVec3::new(0, -2, 0),
             expected_edge: None,

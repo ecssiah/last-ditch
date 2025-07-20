@@ -5,6 +5,8 @@ mod aabb_overlapping;
 mod aabb_sweep;
 mod graph_level_0;
 mod graph_level_1;
+mod graph_local_path;
+mod graph_region_path;
 mod grid_conversions;
 mod grid_intermediate_positions;
 mod grid_overlapping_aabb_vec;
