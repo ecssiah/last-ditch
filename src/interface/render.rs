@@ -42,7 +42,7 @@ impl Render {
         pollster::block_on(textures.load_texture_atlas(
             device,
             queue,
-            "assets/textures/atlas.png",
+            "assets/textures/structure/atlas.png",
             "atlas",
         ));
 
