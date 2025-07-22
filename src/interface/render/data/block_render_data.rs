@@ -1,20 +1,21 @@
 use crate::simulation::{self};
+use glam::IVec2;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct BlockRenderData {
+pub struct BlockAtlasData {
     pub tile_index_array: [[u32; 2]; 6],
 }
 
-impl BlockRenderData {
+impl BlockAtlasData {
     #[rustfmt::skip]
-    pub fn setup() -> HashMap<simulation::state::world::block::Kind, BlockRenderData> {
+    pub fn setup() -> HashMap<simulation::state::world::block::Kind, BlockAtlasData> {
         use simulation::state::world::block::Kind;
 
         HashMap::from([
             (
                 Kind::Engraved1,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 0],
                         [0, 0],
@@ -27,7 +28,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Engraved2,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 0],
                         [1, 0],
@@ -40,7 +41,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Stone1,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 1],
                         [0, 1],
@@ -53,7 +54,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Stone2,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 1],
                         [1, 1],
@@ -66,7 +67,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Polished1,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 2],
                         [0, 2],
@@ -79,7 +80,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Polished2,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 2],
                         [1, 2],
@@ -92,7 +93,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Icon1,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 3],
                         [0, 3],
@@ -105,7 +106,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Icon2,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 3],
                         [1, 3],
@@ -118,7 +119,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Icon3,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [2, 3],
                         [2, 3],
@@ -131,7 +132,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::Icon4,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [3, 3],
                         [3, 3],
@@ -144,7 +145,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::MagentaStone,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 4],
                         [0, 4],
@@ -157,7 +158,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::PurpleStone,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 4],
                         [1, 4],
@@ -170,7 +171,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::TealStone,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [2, 4],
                         [2, 4],
@@ -183,7 +184,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::CrimsonStone,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [3, 4],
                         [3, 4],
@@ -196,7 +197,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::North,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 5],
                         [0, 5],
@@ -209,7 +210,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::West,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [1, 5],
                         [1, 5],
@@ -222,7 +223,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::South,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [2, 5],
                         [2, 5],
@@ -235,7 +236,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::East,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [3, 5],
                         [3, 5],
@@ -248,7 +249,7 @@ impl BlockRenderData {
             ),
             (
                 Kind::EsayaBlock,
-                BlockRenderData {
+                BlockAtlasData {
                     tile_index_array: [
                         [0, 6],
                         [0, 6],
@@ -262,13 +263,34 @@ impl BlockRenderData {
         ])
     }
 
-    pub fn direction_to_index(
-        &self,
-        direction: simulation::state::world::grid::Direction,
+    pub fn uv_coordinates(
+        tile_coordinates: IVec2,
+        tile_size: i32,
+        tile_atlas_size: IVec2,
+    ) -> [[f32; 2]; 4] {
+        let block_size = simulation::consts::BLOCK_SIZE as i32;
+
+        let u_min = (tile_coordinates.x * tile_size) as f32 / tile_atlas_size.x as f32;
+        let v_min = (tile_coordinates.y * tile_size) as f32 / tile_atlas_size.y as f32;
+        let u_max =
+            ((tile_coordinates.x + block_size) * tile_size) as f32 / tile_atlas_size.x as f32;
+        let v_max =
+            ((tile_coordinates.y + block_size) * tile_size) as f32 / tile_atlas_size.y as f32;
+
+        [
+            [u_max, v_max],
+            [u_min, v_max],
+            [u_min, v_min],
+            [u_max, v_min],
+        ]
+    }
+
+    pub fn face_direction_to_index(
+        face_direction: simulation::state::world::grid::Direction,
     ) -> usize {
         use simulation::state::world::grid::Direction;
 
-        match direction {
+        match face_direction {
             Direction::XpYoZo => 0,
             Direction::XnYoZo => 1,
             Direction::XoYpZo => 2,

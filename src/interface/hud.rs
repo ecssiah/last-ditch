@@ -32,9 +32,9 @@ impl HUD {
 
     pub fn update(
         &mut self,
+        surface_texture_view: &wgpu::TextureView,
         encoder: &mut wgpu::CommandEncoder,
         gpu_context: &mut GPUContext,
-        texture_view: &wgpu::TextureView,
     ) {
         let raw_input = gpu_context
             .egui_winit_state
@@ -87,7 +87,7 @@ impl HUD {
         let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("EGUI Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: texture_view,
+                view: surface_texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,

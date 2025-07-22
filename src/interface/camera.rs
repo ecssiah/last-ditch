@@ -15,7 +15,7 @@ pub struct Camera {
 impl Camera {
     pub fn new(device: &wgpu::Device) -> Self {
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("View Projection Buffer"),
+            label: Some("Camera View Projection Buffer"),
             size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
@@ -23,7 +23,7 @@ impl Camera {
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Uniform Bind Group Layout"),
+                label: Some("Camera Uniform Bind Group Layout"),
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,

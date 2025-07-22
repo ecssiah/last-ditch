@@ -9,23 +9,23 @@ pub struct MeshData {
 }
 
 impl MeshData {
-    pub fn new(device: &wgpu::Device, vertices: Vec<VertexData>, indices: Vec<u32>) -> Self {
+    pub fn new(device: &wgpu::Device, vertex_vec: Vec<VertexData>, index_vec: Vec<u32>) -> Self {
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Interface Chunk Vertex Buffer"),
-            contents: bytemuck::cast_slice(&vertices),
+            contents: bytemuck::cast_slice(&vertex_vec),
             usage: wgpu::BufferUsages::VERTEX,
         });
 
         let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Interface Chunk Index Buffer"),
-            contents: bytemuck::cast_slice(&indices),
+            contents: bytemuck::cast_slice(&index_vec),
             usage: wgpu::BufferUsages::INDEX,
         });
 
         Self {
             vertex_buffer,
             index_buffer,
-            index_count: indices.len() as u32,
+            index_count: index_vec.len() as u32,
         }
     }
 }

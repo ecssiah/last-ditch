@@ -24,6 +24,7 @@ itertools = "0.12"
 log = "0.4"
 nalgebra = { version = "0.33", features = ["convert-glam029"] }
 noise = "0.8"
+obj-rs = "0.7"
 once_cell = "1.21.0"
 pollster = "0.4"
 rand = "0.8"

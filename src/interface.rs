@@ -10,8 +10,13 @@ pub mod render;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, dispatch::Dispatch, gpu_context::GPUContext, hud::HUD,
-        input::Input, render::Render,
+        camera::Camera,
+        consts::*,
+        dispatch::Dispatch,
+        gpu_context::GPUContext,
+        hud::HUD,
+        input::Input,
+        render::{mesh_render::RenderType, Render},
     },
     simulation::{self},
 };
@@ -142,14 +147,7 @@ impl Interface<'_> {
         let dispatch = Dispatch::new(action_tx);
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
-
-        let render = Render::new(
-            &gpu_context.device,
-            &gpu_context.queue,
-            &surface_format,
-            &camera,
-        );
-
+        let render = Render::new(&gpu_context, &camera);
         let hud = HUD::new();
 
         gpu_context.window_arc.request_redraw();
@@ -216,15 +214,21 @@ impl Interface<'_> {
             .get_current_texture()
             .expect("failed to acquire next swapchain texture");
 
-        let texture_view = surface_texture
+        let surface_texture_view = surface_texture
             .texture
             .create_view(&self.gpu_context.texture_view_descriptor);
 
-        self.render
-            .update(&mut encoder, &self.gpu_context, &texture_view, &self.camera);
+        Render::update(
+            &self.gpu_context,
+            &self.render.mesh_render,
+            &self.camera,
+            &surface_texture_view,
+            &self.render.render_pipeline,
+            &mut encoder,
+        );
 
         self.hud
-            .update(&mut encoder, &mut self.gpu_context, &texture_view);
+            .update(&surface_texture_view, &mut encoder, &mut self.gpu_context);
 
         self.gpu_context.queue.submit([encoder.finish()]);
         self.gpu_context.window_arc.pre_present_notify();
@@ -295,14 +299,23 @@ impl Interface<'_> {
         self.camera
             .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        self.render.apply_population_view(
+        Render::apply_population_view(
             &self.gpu_context.device,
             &self.gpu_context.queue,
-            &view.population_view.agent_view_map,
+            &view.population_view,
         );
 
-        self.render
-            .apply_world_view(&self.gpu_context.device, &view.world_view);
+        Render::apply_world_view(
+            &self.gpu_context.device,
+            &view.world_view,
+            &self.render.texture_bind_group_map,
+            &self.render.block_atlas_data_map,
+            self.render
+                .mesh_render
+                .render_data_map
+                .get_mut(&RenderType::Block)
+                .unwrap(),
+        );
     }
 
     fn apply_shutdown_view(
