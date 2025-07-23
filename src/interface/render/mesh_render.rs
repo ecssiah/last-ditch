@@ -5,7 +5,8 @@ use crate::{
     },
     simulation::state::population::entity,
 };
-use std::collections::HashMap;
+use obj::load_obj;
+use std::{collections::HashMap, fs::File, io::BufReader};
 
 #[derive(PartialEq, Eq, Hash)]
 pub enum RenderType {
@@ -17,16 +18,13 @@ pub enum RenderType {
 pub struct MeshRender {
     pub mesh_data_map: HashMap<entity::Kind, MeshData>,
     pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_map: HashMap<String, wgpu::BindGroup>,
     pub render_data_map: HashMap<RenderType, Vec<RenderData>>,
 }
 
 impl MeshRender {
     pub fn new(gpu_context: &GPUContext) -> Self {
-        let mesh_data_map = Self::load_mesh_data_map(&gpu_context);
-
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
-        let texture_bind_group_map = HashMap::new();
+        let mesh_data_map = Self::load_mesh_data_map(&gpu_context);
 
         let render_data_map = HashMap::from([
             (RenderType::Block, Vec::new()),
@@ -37,7 +35,6 @@ impl MeshRender {
         Self {
             mesh_data_map,
             texture_bind_group_layout,
-            texture_bind_group_map,
             render_data_map,
         }
     }
@@ -45,43 +42,35 @@ impl MeshRender {
     fn load_mesh_data_map(gpu_context: &GPUContext) -> HashMap<entity::Kind, MeshData> {
         let mut mesh_data_map = HashMap::new();
 
-        let models_path = std::path::Path::new("assets/models");
-        let textures_path = std::path::Path::new("assets/textures");
+        let entity_models_path = std::path::Path::new("assets/models/entity");
 
-        for entry in std::fs::read_dir(models_path).expect("Failed to read models directory") {
-            if let Ok(entry) = entry {
-                let path = entry.path();
+        let mut entity_model_entries =
+            std::fs::read_dir(entity_models_path).expect("Failed to read entity models directory");
 
-                if path.extension().and_then(|e| e.to_str()) == Some("obj") {
-                    let file_stem = path.file_stem().unwrap().to_str().unwrap();
+        while let Some(Ok(entity_model_entry)) = entity_model_entries.next() {
+            let path = entity_model_entry.path();
 
-                    let texture_path = textures_path.join(format!("{file_stem}.png"));
+            if path.extension().and_then(|extension| extension.to_str()) == Some("obj") {
+                let file_stem = path.file_stem().unwrap().to_str().unwrap();
 
-                    let vertex_vec = ;
-                    let index_vec = ;
+                if let Ok(model_file) = File::open(&path) {
+                    let model_file_reader = BufReader::new(model_file);
 
-                    let mesh_data =
-                        MeshData::new(&gpu_context.device, vertex_vec, index_vec);
+                    match load_obj(model_file_reader) {
+                        Ok(model) => {
+                            let vertex_vec = model.vertices;
+                            let index_vec = model.indices;
 
-                    let texture_data = pollster::block_on(Self::load_texture_data(
-                        &gpu_context.device,
-                        &gpu_context.queue,
-                        texture_path.to_str().unwrap(),
-                        file_stem,
-                    ));
+                            let mesh_data =
+                                MeshData::new(&gpu_context.device, vertex_vec, index_vec);
 
-                    let texture_bind_group =
-                        Self::create_texture_bind_group(&gpu_context.device, &texture_data);
-
-                    let full_mesh_data = MeshData {
-                        vertex_buffer: mesh_data.vertex_buffer,
-                        index_buffer: mesh_data.index_buffer,
-                        index_count: mesh_data.index_count,
-                        texture_bind_group,
-                    };
-
-                    if let Ok(kind) = entity::Kind::try_from(file_stem) {
-                        mesh_data_map.insert(kind, full_mesh_data);
+                            if let Some(kind) = entity::Kind::from_string(file_stem) {
+                                mesh_data_map.insert(kind, mesh_data);
+                            }
+                        }
+                        Err(err) => {
+                            log::error!("{:?}", err);
+                        }
                     }
                 }
             }

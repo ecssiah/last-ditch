@@ -5,8 +5,6 @@ use bytemuck::{Pod, Zeroable};
 pub struct VertexData {
     pub position: [f32; 3],
     pub normal: [f32; 3],
-    pub uv: [f32; 2],
-    pub light: f32,
 }
 
 impl VertexData {

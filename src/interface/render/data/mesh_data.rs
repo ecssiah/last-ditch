@@ -9,10 +9,18 @@ pub struct MeshData {
 }
 
 impl MeshData {
-    pub fn new(device: &wgpu::Device, vertex_vec: Vec<VertexData>, index_vec: Vec<u32>) -> Self {
+    pub fn new(device: &wgpu::Device, vertex_vec: Vec<obj::Vertex>, index_vec: Vec<u32>) -> Self {
+        let vertex_data_vec: Vec<VertexData> = vertex_vec
+            .iter()
+            .map(|v| VertexData {
+                position: v.position,
+                normal: v.normal,
+            })
+            .collect();
+
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Interface Chunk Vertex Buffer"),
-            contents: bytemuck::cast_slice(&vertex_vec),
+            contents: bytemuck::cast_slice(&vertex_data_vec),
             usage: wgpu::BufferUsages::VERTEX,
         });
 
