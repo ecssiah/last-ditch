@@ -17,7 +17,7 @@ impl TextureAtlas {
         }
     }
 
-    pub fn uv_coordinates(&self, tile_x: u32, tile_y: u32) -> [[f32; 2]; 4] {
+    pub fn tile_uv_coordinates(&self, tile_x: u32, tile_y: u32) -> [[f32; 2]; 4] {
         let block_size = simulation::consts::BLOCK_SIZE as u32;
 
         let u_min = (tile_x * self.tile_size) as f32 / self.width as f32;

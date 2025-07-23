@@ -6,19 +6,14 @@ pub mod dispatch;
 pub mod gpu_context;
 pub mod hud;
 pub mod input;
-pub mod render;
+pub mod mesh_render;
 
 use crate::{
     interface::{
-        camera::Camera,
-        consts::*,
-        dispatch::Dispatch,
-        gpu_context::GPUContext,
-        hud::HUD,
-        input::Input,
-        render::{mesh_render::RenderType, Render},
+        camera::Camera, consts::*, dispatch::Dispatch, gpu_context::GPUContext, hud::HUD,
+        input::Input, mesh_render::MeshRender,
     },
-    simulation::{self, state::population::entity},
+    simulation::{self},
 };
 use std::{ops::Deref, sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
@@ -31,16 +26,16 @@ use winit::{
 
 pub struct Interface<'window> {
     last_instant: Instant,
-    gpu_context: GPUContext<'window>,
     observation_arc: Arc<simulation::observation::Observation>,
     dispatch: Dispatch,
     input: Input,
     camera: Camera,
-    render: Render,
     hud: HUD,
+    mesh_render: MeshRender,
+    gpu_context: GPUContext<'window>,
 }
 
-impl Interface<'_> {
+impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
@@ -147,20 +142,20 @@ impl Interface<'_> {
         let dispatch = Dispatch::new(action_tx);
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
-        let render = Render::new(&gpu_context, &camera);
         let hud = HUD::new();
+        let mesh_render = MeshRender::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
         Self {
             last_instant,
             observation_arc,
-            gpu_context,
+            dispatch,
             input,
             camera,
-            dispatch,
-            render,
             hud,
+            mesh_render,
+            gpu_context,
         }
     }
 
@@ -218,12 +213,12 @@ impl Interface<'_> {
             .texture
             .create_view(&self.gpu_context.texture_view_descriptor);
 
-        Render::update(
+        MeshRender::render(
             &self.gpu_context,
-            &self.render.mesh_render,
-            &self.camera,
             &surface_texture_view,
-            &self.render.render_pipeline,
+            &self.camera.uniform_bind_group,
+            &self.mesh_render.render_pipeline,
+            &self.mesh_render.render_data_map,
             &mut encoder,
         );
 
@@ -299,12 +294,19 @@ impl Interface<'_> {
         self.camera
             .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        Render::apply_population_view(&view.population_view, &mut self.render.mesh_render);
+        MeshRender::apply_population_view(
+            &view.population_view,
+            &self.mesh_render.mesh_data_map,
+            &self.mesh_render.texture_bind_group_map,
+            &mut self.mesh_render.render_data_map,
+        );
 
-        Render::apply_world_view(
+        MeshRender::apply_world_view(
+            &self.gpu_context.device,
             &view.world_view,
-            &self.render.block_atlas_data_map,
-            &self.render.mesh_render,
+            &self.mesh_render.block_render_info_map,
+            &self.mesh_render.texture_bind_group_map,
+            &mut self.mesh_render.render_data_map,
         );
     }
 

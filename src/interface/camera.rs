@@ -1,7 +1,7 @@
 //! Translates Simulation viewpoint for Interface
 
 use crate::{
-    interface::{consts::*, render::data::CameraUniformData},
+    interface::{consts::*, mesh_render::data::CameraUniformData},
     simulation::{self},
 };
 use glam::{Mat4, Vec3};

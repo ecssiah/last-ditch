@@ -124,9 +124,7 @@ impl World {
                     },
                     position,
                     aabb: AABB::new(position.as_vec3(), Vec3::splat(grid.chunk_size as f32)),
-                    geometry: chunk::Geometry::new(),
                     block_vec: Self::setup_block_vec(grid, chunk_id),
-                    visibility_vec: (0..grid.chunk_volume).map(|_| Vec::new()).collect(),
                 }
             })
             .collect()

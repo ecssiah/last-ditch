@@ -1,4 +1,4 @@
-use crate::interface::render::data::VertexData;
+use crate::interface::mesh_render::data::VertexData;
 use wgpu::util::DeviceExt;
 
 #[derive(Clone, Debug)]
@@ -22,6 +22,9 @@ impl MeshData {
                 uv: [vertex.texture[0], vertex.texture[1]],
             })
             .collect();
+
+        assert!(!vertex_data_vec.is_empty(), "Vertex buffer is empty!");
+        assert!(!index_vec.is_empty(), "Index buffer is empty!");
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,

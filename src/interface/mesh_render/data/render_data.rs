@@ -1,4 +1,4 @@
-use crate::interface::render::data::MeshData;
+use crate::interface::mesh_render::data::MeshData;
 use glam::Mat4;
 
 pub struct RenderData {

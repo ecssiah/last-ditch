@@ -3,8 +3,7 @@
 
 struct FragmentInput {
     @location(0) uv: vec2<f32>,
-    @location(1) light: f32,
-    @location(2) world_position: vec3<f32>,
+    @location(1) world_position: vec3<f32>,
 }
 
 struct FragmentOutput {
@@ -16,9 +15,8 @@ fn main(input: FragmentInput) -> FragmentOutput {
     var output: FragmentOutput;
     
     let sampled_color = textureSample(mesh_texture, mesh_sampler, input.uv).rgb;
-    let lit_color = sampled_color * input.light;
     
-    let gamma_corrected_color = linear_to_srgb(lit_color);
+    let gamma_corrected_color = linear_to_srgb(sampled_color);
 
     output.color = vec4<f32>(gamma_corrected_color, 1.0);
     
