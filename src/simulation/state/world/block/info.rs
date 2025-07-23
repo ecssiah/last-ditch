@@ -2,131 +2,131 @@ use crate::simulation::state::world::block;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
-pub struct Meta {
+pub struct Info {
     pub solid: bool,
 }
 
-impl Meta {
+impl Info {
     #[rustfmt::skip]
-    pub fn setup() -> HashMap<block::Kind, Meta> {
+    pub fn setup() -> HashMap<block::Kind, Info> {
         HashMap::from([
             (
                 block::Kind::Empty,
-                Meta {
+                Info {
                     solid: false
                 },
             ),
             (
                 block::Kind::Engraved1,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Engraved2,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Stone1,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Stone2,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Polished1,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Polished2,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::MagentaStone,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::PurpleStone,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::TealStone,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::CrimsonStone,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Icon1,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Icon2,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Icon3,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Icon4,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::North,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::West,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::South,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::East,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),
             (
                 block::Kind::EsayaBlock,
-                Meta {
+                Info {
                     solid: true,
                 },
             ),

@@ -1,16 +1,16 @@
-use crate::simulation::state::world::chunk;
+use crate::simulation::state::world::{block::Block, chunk};
 
 #[derive(Clone, Debug)]
 pub struct ChunkView {
     pub id: chunk::ID,
-    pub geometry: chunk::Geometry,
+    pub block_vec: Vec<Block>,
 }
 
 impl ChunkView {
     pub fn new() -> Self {
         Self {
             id: chunk::ID::MAX,
-            geometry: chunk::Geometry::new(),
+            block_vec: Vec::new(),
         }
     }
 }

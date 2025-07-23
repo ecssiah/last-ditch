@@ -18,7 +18,7 @@ use crate::{
         input::Input,
         render::{mesh_render::RenderType, Render},
     },
-    simulation::{self},
+    simulation::{self, state::population::entity},
 };
 use std::{ops::Deref, sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
@@ -299,22 +299,12 @@ impl Interface<'_> {
         self.camera
             .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        Render::apply_population_view(
-            &self.gpu_context.device,
-            &self.gpu_context.queue,
-            &view.population_view,
-        );
+        Render::apply_population_view(&view.population_view, &mut self.render.mesh_render);
 
         Render::apply_world_view(
-            &self.gpu_context.device,
             &view.world_view,
-            &self.render.texture_bind_group_map,
             &self.render.block_atlas_data_map,
-            self.render
-                .mesh_render
-                .render_data_map
-                .get_mut(&RenderType::Block)
-                .unwrap(),
+            &self.render.mesh_render,
         );
     }
 

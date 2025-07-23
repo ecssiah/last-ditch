@@ -11,17 +11,17 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::entity::{self, Judge},
-        world::{chunk::Chunk, graph::Graph, grid::Grid},
+        world::{block::Block, chunk::Chunk, graph::Graph, grid::Grid},
     },
     utils::buffer::Buffer,
 };
-use glam::{IVec3, Vec3, Vec4};
+use glam::{IVec3, Vec3};
 use std::{collections::HashMap, sync::RwLock};
 
 pub struct World {
     pub kind: simulation::Kind,
     pub grid: Grid,
-    pub block_meta_map: HashMap<block::Kind, block::Meta>,
+    pub block_info_map: HashMap<block::Kind, block::Info>,
     pub chunk_vec: Vec<chunk::Chunk>,
     pub graph_buffer_lock: RwLock<Buffer<Graph>>,
     pub flag_position_map: HashMap<entity::Kind, IVec3>,
@@ -30,7 +30,7 @@ pub struct World {
 impl World {
     pub fn new(kind: simulation::Kind) -> Self {
         let grid = Grid::new(kind);
-        let block_meta_map = block::Meta::setup();
+        let block_info_map = block::Info::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
 
         let graph = Graph::new(&grid, 1);
@@ -46,7 +46,7 @@ impl World {
         Self {
             kind,
             grid,
-            block_meta_map,
+            block_info_map,
             chunk_vec,
             graph_buffer_lock,
             flag_position_map,
@@ -57,7 +57,7 @@ impl World {
         let kind = simulation::Kind::Placeholder;
 
         let grid = Grid::new(kind);
-        let block_meta_map = HashMap::default();
+        let block_info_map = HashMap::default();
         let chunk_vec = Vec::default();
 
         let graph = Graph::new(&grid, 1);
@@ -68,7 +68,7 @@ impl World {
         Self {
             kind,
             grid,
-            block_meta_map,
+            block_info_map,
             chunk_vec,
             graph_buffer_lock,
             flag_position_map,
@@ -144,9 +144,17 @@ impl World {
                     position,
                     kind: block::Kind::Empty,
                     solid: false,
+                    face_array: Block::face_array(),
                 }
             })
             .collect()
+    }
+
+    pub fn get_chunk<'a>(
+        chunk_id: chunk::ID,
+        chunk_vec_slice: &'a [Chunk],
+    ) -> Option<&'a chunk::Chunk> {
+        chunk_vec_slice.get(usize::from(chunk_id))
     }
 
     pub fn get_chunk_at<'a>(
@@ -280,20 +288,19 @@ impl World {
         position: IVec3,
         kind: block::Kind,
         grid: &Grid,
-        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         chunk_vec_slice: &mut [Chunk],
     ) -> bool {
         let (chunk_id, block_id) = Grid::position_to_ids(grid, position);
 
         if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-            let block_meta = block_meta_map.get(&kind).cloned().unwrap();
+            let block_info = block_info_map.get(&kind).cloned().unwrap();
 
             if let Some(block) = Self::get_block_mut(chunk_id, block_id, chunk_vec_slice) {
                 block.kind = kind;
-                block.solid = block_meta.solid;
+                block.solid = block_info.solid;
             }
 
-            Self::update_visibility_vecs(chunk_id, block_id, position, grid, chunk_vec_slice);
             Self::mark_updates(position, grid, chunk_vec_slice);
 
             true
@@ -313,7 +320,7 @@ impl World {
         position2: IVec3,
         kind: block::Kind,
         grid: &Grid,
-        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         chunk_vec_slice: &mut [Chunk],
     ) {
         let min = position1.min(position2);
@@ -339,13 +346,13 @@ impl World {
                     let position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block_kind(position, kind, grid, block_meta_map, chunk_vec_slice);
+                        Self::set_block_kind(position, kind, grid, block_info_map, chunk_vec_slice);
                     } else {
                         Self::set_block_kind(
                             position,
                             block::Kind::Empty,
                             grid,
-                            block_meta_map,
+                            block_info_map,
                             chunk_vec_slice,
                         );
                     }
@@ -359,7 +366,7 @@ impl World {
         position2: IVec3,
         kind: block::Kind,
         grid: &Grid,
-        block_meta_map: &HashMap<block::Kind, block::Meta>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         chunk_vec_slice: &mut [Chunk],
     ) {
         let min = position1.min(position2);
@@ -370,248 +377,51 @@ impl World {
                 for z in min.z..=max.z {
                     let position = IVec3::new(x, y, z);
 
-                    Self::set_block_kind(position, kind, grid, block_meta_map, chunk_vec_slice);
+                    Self::set_block_kind(position, kind, grid, block_info_map, chunk_vec_slice);
                 }
             }
         }
     }
 
     pub fn update_chunks(grid: &Grid, chunk_vec_slice: &mut [Chunk]) {
-        let mut chunk_geometry_update_vec = Vec::new();
-        let mut chunk_boundary_update_vec = Vec::new();
-
-        for chunk in chunk_vec_slice.iter_mut() {
-            if chunk.modified.block {
-                let chunk_geometry = Self::update_chunk_geometry(chunk, grid);
-
-                chunk_geometry_update_vec.push((chunk.id, chunk_geometry));
-            }
-
-            if chunk.modified.boundary {
-                chunk_boundary_update_vec.push(chunk.id);
-            }
-        }
-
-        for (chunk_id, geometry) in chunk_geometry_update_vec {
-            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
-                chunk.geometry = geometry;
-
-                chunk.modified.block = false;
-            }
-        }
-
-        for chunk_id in chunk_boundary_update_vec {
-            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
-                chunk.modified.boundary = false;
-            }
+        for chunk_id in Grid::chunk_ids(grid) {
+            Self::update_chunk(grid, chunk_id, chunk_vec_slice);
         }
     }
 
-    fn update_chunk_geometry(chunk: &chunk::Chunk, grid: &Grid) -> chunk::Geometry {
-        let mut chunk_geometry = chunk::Geometry::new();
+    fn update_chunk(grid: &Grid, chunk_id: chunk::ID, chunk_vec_slice: &mut [Chunk]) {
+        if Self::get_chunk(chunk_id, chunk_vec_slice).map_or(false, |chunk| chunk.modified.block) {
+            for block_id in Grid::block_ids(grid) {
+                let block = Self::get_block(chunk_id, block_id, chunk_vec_slice).unwrap();
+                let face_exposure =
+                    Self::compute_face_exposure(block.position, grid, chunk_vec_slice);
 
-        for block_id in Grid::block_ids(grid) {
-            if let Some(block) = chunk.block_vec.get(usize::from(block_id)) {
-                if block.solid {
-                    let visibility_vec = &chunk.visibility_vec[usize::from(block_id)];
-                    let position = Grid::ids_to_position(grid, chunk.id, block_id);
-
-                    for direction in grid::Direction::face_array() {
-                        if visibility_vec.contains(&direction) {
-                            let mut face = block::Face::new(position, direction, block.kind);
-
-                            let (edges, corners) =
-                                Self::get_face_neighbors(direction, visibility_vec);
-
-                            face.light = Self::calculate_face_light(edges, corners);
-
-                            chunk_geometry.face_vec.push(face);
-                        }
-                    }
-                }
-            }
-        }
-
-        chunk_geometry
-    }
-
-    fn update_visibility_vecs(
-        chunk_id: chunk::ID,
-        block_id: block::ID,
-        position: IVec3,
-        grid: &Grid,
-        chunk_vec_slice: &mut [Chunk],
-    ) {
-        let mut visibility_updates_map: HashMap<chunk::ID, Vec<(block::ID, Vec<grid::Direction>)>> =
-            HashMap::new();
-
-        if Self::get_block(chunk_id, block_id, chunk_vec_slice)
-            .is_some_and(|block| block.kind != block::Kind::Empty)
-        {
-            let visibility_vec = Self::compute_visibility_vec(position, grid, chunk_vec_slice);
-
-            visibility_updates_map
-                .entry(chunk_id)
-                .or_default()
-                .push((block_id, visibility_vec));
-        }
-
-        for offset in grid::Direction::face_offset_array() {
-            let neighbor_position = position + offset;
-
-            let (chunk_id, block_id) = Grid::position_to_ids(grid, neighbor_position);
-
-            if chunk_id != chunk::ID::MAX && block_id != block::ID::MAX {
-                if Self::get_block(chunk_id, block_id, chunk_vec_slice)
-                    .is_some_and(|block| block.kind != block::Kind::Empty)
-                {
-                    let visibility_vec =
-                        Self::compute_visibility_vec(neighbor_position, grid, chunk_vec_slice);
-
-                    visibility_updates_map
-                        .entry(chunk_id)
-                        .or_default()
-                        .push((block_id, visibility_vec));
-                }
-            }
-        }
-
-        for (chunk_id, visibility_update_vec) in visibility_updates_map {
-            if let Some(chunk) = chunk_vec_slice.get_mut(usize::from(chunk_id)) {
-                for (block_id, visibility_vec) in visibility_update_vec {
-                    chunk.visibility_vec[usize::from(block_id)] = visibility_vec;
+                if let Some(block) = Self::get_block_mut(chunk_id, block_id, chunk_vec_slice) {
+                    Self::update_block_faces(block, face_exposure);
                 }
             }
         }
     }
 
-    fn compute_visibility_vec(
-        position: IVec3,
-        grid: &Grid,
-        chunk_vec_slice: &[Chunk],
-    ) -> Vec<grid::Direction> {
-        grid::Direction::face_array()
-            .iter()
-            .filter_map(|&direction| {
-                let neighbor_position = position + direction.offset();
-                let block = Self::get_block_at(neighbor_position, grid, chunk_vec_slice);
+    fn compute_face_exposure(position: IVec3, grid: &Grid, chunk_vec_slice: &[Chunk]) -> [bool; 6] {
+        let mut face_exposure = [false; 6];
 
-                block
-                    .filter(|block| block.kind == block::Kind::Empty)
-                    .map(|_| direction)
-            })
-            .collect()
-    }
+        for (index, direction) in grid::Direction::face_array().iter().enumerate() {
+            let neighbor_pos = position + direction.offset();
 
-    fn get_face_neighbors(
-        direction: grid::Direction,
-        visibility_vec: &[grid::Direction],
-    ) -> ([bool; 4], [bool; 4]) {
-        match direction {
-            grid::Direction::XpYoZo => (
-                [
-                    visibility_vec.contains(&grid::Direction::XpYnZo),
-                    visibility_vec.contains(&grid::Direction::XpYoZn),
-                    visibility_vec.contains(&grid::Direction::XpYpZo),
-                    visibility_vec.contains(&grid::Direction::XpYoZp),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XpYnZn),
-                    visibility_vec.contains(&grid::Direction::XpYpZn),
-                    visibility_vec.contains(&grid::Direction::XpYpZp),
-                    visibility_vec.contains(&grid::Direction::XpYnZp),
-                ],
-            ),
-            grid::Direction::XnYoZo => (
-                [
-                    visibility_vec.contains(&grid::Direction::XnYnZo),
-                    visibility_vec.contains(&grid::Direction::XnYoZp),
-                    visibility_vec.contains(&grid::Direction::XnYpZo),
-                    visibility_vec.contains(&grid::Direction::XnYoZn),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XnYnZp),
-                    visibility_vec.contains(&grid::Direction::XnYpZp),
-                    visibility_vec.contains(&grid::Direction::XnYpZn),
-                    visibility_vec.contains(&grid::Direction::XnYnZn),
-                ],
-            ),
-            grid::Direction::XoYpZo => (
-                [
-                    visibility_vec.contains(&grid::Direction::XoYpZn),
-                    visibility_vec.contains(&grid::Direction::XnYpZo),
-                    visibility_vec.contains(&grid::Direction::XoYpZp),
-                    visibility_vec.contains(&grid::Direction::XpYpZo),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XnYpZn),
-                    visibility_vec.contains(&grid::Direction::XnYpZp),
-                    visibility_vec.contains(&grid::Direction::XpYpZp),
-                    visibility_vec.contains(&grid::Direction::XpYpZn),
-                ],
-            ),
-            grid::Direction::XoYnZo => (
-                [
-                    visibility_vec.contains(&grid::Direction::XoYnZn),
-                    visibility_vec.contains(&grid::Direction::XpYnZo),
-                    visibility_vec.contains(&grid::Direction::XoYnZp),
-                    visibility_vec.contains(&grid::Direction::XnYnZo),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XpYnZn),
-                    visibility_vec.contains(&grid::Direction::XpYnZp),
-                    visibility_vec.contains(&grid::Direction::XnYnZp),
-                    visibility_vec.contains(&grid::Direction::XnYnZn),
-                ],
-            ),
-            grid::Direction::XoYoZp => (
-                [
-                    visibility_vec.contains(&grid::Direction::XoYnZp),
-                    visibility_vec.contains(&grid::Direction::XpYoZp),
-                    visibility_vec.contains(&grid::Direction::XoYpZp),
-                    visibility_vec.contains(&grid::Direction::XnYoZp),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XpYnZp),
-                    visibility_vec.contains(&grid::Direction::XpYpZp),
-                    visibility_vec.contains(&grid::Direction::XnYpZp),
-                    visibility_vec.contains(&grid::Direction::XnYnZp),
-                ],
-            ),
-            grid::Direction::XoYoZn => (
-                [
-                    visibility_vec.contains(&grid::Direction::XoYnZn),
-                    visibility_vec.contains(&grid::Direction::XnYoZn),
-                    visibility_vec.contains(&grid::Direction::XoYpZn),
-                    visibility_vec.contains(&grid::Direction::XpYoZn),
-                ],
-                [
-                    visibility_vec.contains(&grid::Direction::XnYnZn),
-                    visibility_vec.contains(&grid::Direction::XnYpZn),
-                    visibility_vec.contains(&grid::Direction::XpYpZn),
-                    visibility_vec.contains(&grid::Direction::XpYnZn),
-                ],
-            ),
-            _ => panic!("Invalid Direction: {:?}", direction),
+            if let Some(neighbor_block) = World::get_block_at(neighbor_pos, grid, chunk_vec_slice) {
+                face_exposure[index] = neighbor_block.kind == block::Kind::Empty;
+            } else {
+                face_exposure[index] = true;
+            }
         }
+
+        face_exposure
     }
 
-    fn calculate_face_light(edges: [bool; 4], corners: [bool; 4]) -> Vec4 {
-        Vec4::new(
-            Self::calculate_vertex_light(edges[3], edges[0], corners[3]),
-            Self::calculate_vertex_light(edges[0], edges[1], corners[0]),
-            Self::calculate_vertex_light(edges[1], edges[2], corners[1]),
-            Self::calculate_vertex_light(edges[2], edges[3], corners[2]),
-        )
-    }
-
-    fn calculate_vertex_light(edge1: bool, edge2: bool, corner: bool) -> f32 {
-        if edge1 && edge2 {
-            AMBIENT_LIGHT_LEVELS[0]
-        } else if corner || edge1 || edge2 {
-            AMBIENT_LIGHT_LEVELS[1]
-        } else {
-            AMBIENT_LIGHT_LEVELS[2]
+    fn update_block_faces(block: &mut Block, face_exposure: [bool; 6]) {
+        for (face, &exposed) in block.face_array.iter_mut().zip(face_exposure.iter()) {
+            face.exposed = exposed;
         }
     }
 
@@ -649,12 +459,5 @@ impl World {
         }
 
         visible_chunk_id_vec
-    }
-
-    pub fn block_aabb(x: i32, y: i32, z: i32) -> AABB {
-        AABB::new(
-            Vec3::new(x as f32, y as f32, z as f32),
-            Vec3::splat(BLOCK_SIZE),
-        )
     }
 }

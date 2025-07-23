@@ -36,7 +36,7 @@ fn build_center_room(world: &mut World) {
         center_position + IVec3::Z * 2,
         block::Kind::North,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -44,7 +44,7 @@ fn build_center_room(world: &mut World) {
         center_position - IVec3::Z * 2,
         block::Kind::South,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -52,7 +52,7 @@ fn build_center_room(world: &mut World) {
         center_position + IVec3::X * 2,
         block::Kind::East,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -60,7 +60,7 @@ fn build_center_room(world: &mut World) {
         center_position - IVec3::X * 2,
         block::Kind::West,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }
@@ -84,7 +84,7 @@ fn build_constricted_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(chunk_radius, -2, 0),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -93,7 +93,7 @@ fn build_constricted_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(chunk_radius + 1, -3, 1),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }
@@ -117,7 +117,7 @@ fn build_expanded_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(-chunk_radius + 2, -4, 2),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -126,7 +126,7 @@ fn build_expanded_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(-chunk_radius - 1, -3, 1),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -135,7 +135,7 @@ fn build_expanded_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(-chunk_radius + 2, -5, 2),
         block::Kind::Polished2,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }
@@ -159,7 +159,7 @@ fn build_multiple_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(-chunk_radius + 2, -3, chunk_radius + 1),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -168,7 +168,7 @@ fn build_multiple_entrance_room(world: &mut World) {
         chunk_position + IVec3::new(chunk_radius - 1, -3, chunk_radius + 1),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }
@@ -212,7 +212,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(chunk_radius - 1, chunk_radius + 1, chunk_radius - 1),
         block::Kind::Empty,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -221,7 +221,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, -3, -3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -230,7 +230,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, -2, -1),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -239,7 +239,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, -1, 0),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -248,7 +248,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, 0, 1),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -257,7 +257,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, 1, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -266,7 +266,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(1, 2, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -275,7 +275,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(0, 3, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -284,7 +284,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-1, 4, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -293,7 +293,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-2, 5, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -302,7 +302,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-3, -3, 3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -311,7 +311,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-3, -2, 1),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -320,7 +320,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-3, -1, 0),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -329,7 +329,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-3, 0, -1),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -338,7 +338,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-3, 1, -3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -347,7 +347,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(-1, 2, -3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -356,7 +356,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(0, 3, -3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -365,7 +365,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(1, 4, -3),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -374,7 +374,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(3, 5, 0),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -383,7 +383,7 @@ fn build_vertical_entrance_room(world: &mut World) {
         chunk_position_001 + IVec3::new(1, 5, 0),
         block::Kind::CrimsonStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }
@@ -401,7 +401,7 @@ fn build_chunk_room(
         position + IVec3::splat(chunk_radius),
         kind,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -409,7 +409,7 @@ fn build_chunk_room(
         position - IVec3::Y * chunk_radius,
         block::Kind::TealStone,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -419,7 +419,7 @@ fn build_chunk_room(
             position + IVec3::new(chunk_radius, -3, -1),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -430,7 +430,7 @@ fn build_chunk_room(
             position + IVec3::new(-chunk_radius, -3, -1),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -441,7 +441,7 @@ fn build_chunk_room(
             position + IVec3::new(-1, -3, chunk_radius),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -452,7 +452,7 @@ fn build_chunk_room(
             position + IVec3::new(-1, -3, -chunk_radius),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -463,7 +463,7 @@ fn build_chunk_room(
             position + IVec3::new(1, chunk_radius, 1),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -474,7 +474,7 @@ fn build_chunk_room(
             position + IVec3::new(1, -chunk_radius, 1),
             block::Kind::Empty,
             &world.grid,
-            &world.block_meta_map,
+            &world.block_info_map,
             &mut world.chunk_vec,
         );
     }
@@ -489,7 +489,7 @@ fn _build_floor(world: &mut World) {
         IVec3::new(2 * chunk_size, -chunk_radius - 1, 2 * chunk_size),
         block::Kind::Polished1,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 
@@ -497,7 +497,7 @@ fn _build_floor(world: &mut World) {
         IVec3::new(13, 12, 13),
         block::Kind::EsayaBlock,
         &world.grid,
-        &world.block_meta_map,
+        &world.block_info_map,
         &mut world.chunk_vec,
     );
 }

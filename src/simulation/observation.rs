@@ -132,7 +132,7 @@ impl Observation {
             if let Some(chunk) = state.world.chunk_vec.get(usize::from(chunk_id)) {
                 let chunk_view = ChunkView {
                     id: chunk.id,
-                    geometry: chunk.geometry.clone(),
+                    block_vec: chunk.block_vec.clone(),
                 };
 
                 world_view.chunk_view_map.insert(chunk.id, chunk_view);

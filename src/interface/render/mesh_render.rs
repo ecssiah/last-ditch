@@ -11,35 +11,39 @@ use std::{collections::HashMap, fs::File, io::BufReader};
 #[derive(PartialEq, Eq, Hash)]
 pub enum RenderType {
     Block,
-    Item,
     Entity,
+    Item,
 }
 
 pub struct MeshRender {
     pub mesh_data_map: HashMap<entity::Kind, MeshData>,
     pub texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub texture_bind_group_map: HashMap<String, wgpu::BindGroup>,
     pub render_data_map: HashMap<RenderType, Vec<RenderData>>,
 }
 
 impl MeshRender {
     pub fn new(gpu_context: &GPUContext) -> Self {
+        let mesh_data_map = Self::load_mesh_data_map(&gpu_context.device);
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
-        let mesh_data_map = Self::load_mesh_data_map(&gpu_context);
+        let texture_bind_group_map =
+            Self::load_texture_bind_group_map(&gpu_context.device, &gpu_context.queue);
 
         let render_data_map = HashMap::from([
             (RenderType::Block, Vec::new()),
-            (RenderType::Block, Vec::new()),
-            (RenderType::Block, Vec::new()),
+            (RenderType::Entity, Vec::new()),
+            (RenderType::Item, Vec::new()),
         ]);
 
         Self {
             mesh_data_map,
             texture_bind_group_layout,
+            texture_bind_group_map,
             render_data_map,
         }
     }
 
-    fn load_mesh_data_map(gpu_context: &GPUContext) -> HashMap<entity::Kind, MeshData> {
+    fn load_mesh_data_map(device: &wgpu::Device) -> HashMap<entity::Kind, MeshData> {
         let mut mesh_data_map = HashMap::new();
 
         let entity_models_path = std::path::Path::new("assets/models/entity");
@@ -61,8 +65,7 @@ impl MeshRender {
                             let vertex_vec = model.vertices;
                             let index_vec = model.indices;
 
-                            let mesh_data =
-                                MeshData::new(&gpu_context.device, vertex_vec, index_vec);
+                            let mesh_data = MeshData::new(device, vertex_vec, index_vec);
 
                             if let Some(kind) = entity::Kind::from_string(file_stem) {
                                 mesh_data_map.insert(kind, mesh_data);
@@ -101,6 +104,39 @@ impl MeshRender {
                 },
             ],
         })
+    }
+
+    fn load_texture_bind_group_map(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+    ) -> HashMap<String, wgpu::BindGroup> {
+        let mut texture_bind_group_map = HashMap::new();
+
+        let entity_textures_path = std::path::Path::new("assets/textures/entity");
+
+        let mut entity_texture_entries_itr = std::fs::read_dir(entity_textures_path)
+            .expect("Failed to read entity models directory");
+
+        while let Some(Ok(entity_texture_entry)) = entity_texture_entries_itr.next() {
+            let path = entity_texture_entry.path();
+
+            if path.extension().and_then(|extension| extension.to_str()) == Some("png") {
+                let file_stem = path.file_stem().unwrap().to_str().unwrap();
+
+                let texture_data = pollster::block_on(Self::load_texture_data(
+                    device,
+                    queue,
+                    path.to_str().unwrap(),
+                    file_stem,
+                ));
+
+                let texture_bind_group = Self::create_texture_bind_group(device, &texture_data);
+
+                texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
+            }
+        }
+
+        texture_bind_group_map
     }
 
     pub fn render(

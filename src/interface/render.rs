@@ -11,9 +11,9 @@ use crate::{
         camera::Camera,
         consts::*,
         gpu_context::GPUContext,
-        render::data::{AgentInstanceData, BlockAtlasData, MeshData, RenderData, VertexData},
+        render::data::{BlockAtlasData, MeshData, RenderData, VertexData},
     },
-    simulation::{self, observation::view::PopulationView},
+    simulation::{self, observation::view::PopulationView, state::population::entity},
 };
 use glam::{IVec2, Mat4};
 use std::collections::HashMap;
@@ -28,23 +28,21 @@ impl Render {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let block_atlas_data_map = BlockAtlasData::setup();
 
-        let mesh_render = MeshRender::new();
+        let mesh_render = MeshRender::new(gpu_context);
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &texture_bind_group_layout,
+            &mesh_render.texture_bind_group_layout,
         );
 
         Self {
             block_atlas_data_map,
-            texture_bind_group_layout,
-            texture_bind_group_map,
             mesh_render,
             render_pipeline,
         }
     }
-    
+
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
@@ -126,20 +124,28 @@ impl Render {
             })
     }
 
-    pub fn apply_population_view(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        population_view: &PopulationView,
-        texture_bind_group_map: &HashMap<String, wgpu::BindGroup>,
-        entity_kind_mesh_data_map: &HashMap<String, MeshData>,
-        entity_render_data_vec: &mut Vec<RenderData>,
-    ) {
+    pub fn apply_population_view(population_view: &PopulationView, mesh_render: &mut MeshRender) {
+        let entity_render_data_vec = mesh_render
+            .render_data_map
+            .get_mut(&mesh_render::RenderType::Entity)
+            .unwrap();
+
         entity_render_data_vec.clear();
 
         for agent_view in population_view.agent_view_map.values() {
-            let mesh_data = entity_kind_mesh_data_map.get(&agent_view.kind).unwrap();
+            let mesh_data = mesh_render
+                .mesh_data_map
+                .get(&agent_view.kind)
+                .unwrap()
+                .clone();
+
             let transform = Mat4::from_translation(agent_view.spatial.world_position);
-            let texture_bind_group = texture_bind_group_map.get(&agent_view.kind).unwrap();
+
+            let texture_bind_group = mesh_render
+                .texture_bind_group_map
+                .get(&format!("agent_{:?}", agent_view.kind))
+                .unwrap()
+                .clone();
 
             let render_data = RenderData {
                 mesh_data,
@@ -191,7 +197,6 @@ impl Render {
                         position: vertex.to_array(),
                         normal: face.normal().as_vec3().to_array(),
                         uv: uv_coordinates[index],
-                        light: face.light[index],
                     });
                 }
 
