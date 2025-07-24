@@ -1,7 +1,5 @@
-use crate::interface::mesh_render::data::VertexData;
-use wgpu::util::DeviceExt;
+use crate::interface::vertex_data::VertexData;
 
-#[derive(Clone, Debug)]
 pub struct MeshData {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
@@ -26,17 +24,23 @@ impl MeshData {
         assert!(!vertex_data_vec.is_empty(), "Vertex buffer is empty!");
         assert!(!index_vec.is_empty(), "Index buffer is empty!");
 
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None,
-            contents: bytemuck::cast_slice(&vertex_data_vec),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
+        let vertex_buffer = wgpu::util::DeviceExt::create_buffer_init(
+            device,
+            &wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::cast_slice(&vertex_data_vec),
+                usage: wgpu::BufferUsages::VERTEX,
+            },
+        );
 
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None,
-            contents: bytemuck::cast_slice(&index_vec),
-            usage: wgpu::BufferUsages::INDEX,
-        });
+        let index_buffer = wgpu::util::DeviceExt::create_buffer_init(
+            device,
+            &wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::cast_slice(&index_vec),
+                usage: wgpu::BufferUsages::INDEX,
+            },
+        );
 
         Self {
             vertex_buffer,

@@ -6,12 +6,18 @@ pub mod dispatch;
 pub mod gpu_context;
 pub mod hud;
 pub mod input;
-pub mod mesh_render;
+pub mod item_render;
+pub mod mesh_data;
+pub mod population_render;
+pub mod texture_data;
+pub mod vertex_data;
+pub mod world_render;
 
 use crate::{
     interface::{
         camera::Camera, consts::*, dispatch::Dispatch, gpu_context::GPUContext, hud::HUD,
-        input::Input, mesh_render::MeshRender,
+        input::Input, item_render::ItemRender, population_render::PopulationRender,
+        world_render::WorldRender,
     },
     simulation::{self},
 };
@@ -31,7 +37,9 @@ pub struct Interface<'window> {
     input: Input,
     camera: Camera,
     hud: HUD,
-    mesh_render: MeshRender,
+    world_render: WorldRender,
+    item_render: ItemRender,
+    population_render: PopulationRender,
     gpu_context: GPUContext<'window>,
 }
 
@@ -143,7 +151,9 @@ impl<'window> Interface<'window> {
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
         let hud = HUD::new();
-        let mesh_render = MeshRender::new(&gpu_context, &camera);
+        let world_render = WorldRender::new(&gpu_context, &camera);
+        let item_render = ItemRender::new(&gpu_context, &camera);
+        let population_render = PopulationRender::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -154,7 +164,9 @@ impl<'window> Interface<'window> {
             input,
             camera,
             hud,
-            mesh_render,
+            world_render,
+            item_render,
+            population_render,
             gpu_context,
         }
     }
@@ -213,17 +225,51 @@ impl<'window> Interface<'window> {
             .texture
             .create_view(&self.gpu_context.texture_view_descriptor);
 
-        MeshRender::render(
-            &self.gpu_context,
+        let depth_texture_view =
+            Self::create_depth_texture(&self.gpu_context.device, &self.gpu_context.surface_config);
+
+        WorldRender::render(
             &surface_texture_view,
+            &depth_texture_view,
             &self.camera.uniform_bind_group,
-            &self.mesh_render.render_pipeline,
-            &self.mesh_render.render_data_map,
+            &self.world_render,
             &mut encoder,
         );
 
-        self.hud
-            .update(&surface_texture_view, &mut encoder, &mut self.gpu_context);
+        ItemRender::render(
+            &self.gpu_context,
+            &surface_texture_view,
+            &depth_texture_view,
+            &self.camera.uniform_bind_group,
+            &self.item_render,
+            &mut encoder,
+        );
+
+        PopulationRender::render(
+            &self.gpu_context,
+            &surface_texture_view,
+            &depth_texture_view,
+            &self.camera.uniform_bind_group,
+            &self.population_render,
+            &mut encoder,
+        );
+
+        let full_output = self.hud.get_full_output(
+            Arc::clone(&self.gpu_context.window_arc),
+            &self.gpu_context.egui_context,
+            &mut self.gpu_context.egui_winit_state,
+        );
+
+        HUD::render(
+            full_output,
+            &self.gpu_context.device,
+            &self.gpu_context.queue,
+            Arc::clone(&self.gpu_context.window_arc),
+            &surface_texture_view,
+            &self.gpu_context.egui_context,
+            &mut self.gpu_context.egui_renderer,
+            &mut encoder,
+        );
 
         self.gpu_context.queue.submit([encoder.finish()]);
         self.gpu_context.window_arc.pre_present_notify();
@@ -294,19 +340,19 @@ impl<'window> Interface<'window> {
         self.camera
             .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        MeshRender::apply_population_view(
+        PopulationRender::apply_population_view(
             &view.population_view,
-            &self.mesh_render.mesh_data_map,
-            &self.mesh_render.texture_bind_group_map,
-            &mut self.mesh_render.render_data_map,
+            &self.population_render.mesh_data_arc_map,
+            &self.population_render.texture_bind_group_arc_map,
+            &mut self.population_render.entity_render_data_vec,
         );
 
-        MeshRender::apply_world_view(
+        WorldRender::apply_world_view(
             &self.gpu_context.device,
             &view.world_view,
-            &self.mesh_render.block_render_info_map,
-            &self.mesh_render.texture_bind_group_map,
-            &mut self.mesh_render.render_data_map,
+            &self.world_render.block_render_info,
+            &self.world_render.block_tile_coordinates_map,
+            &mut self.world_render.chunk_render_data_vec,
         );
     }
 
@@ -359,5 +405,29 @@ impl<'window> Interface<'window> {
         }
 
         true
+    }
+
+    fn create_depth_texture(
+        device: &wgpu::Device,
+        config: &wgpu::SurfaceConfiguration,
+    ) -> wgpu::TextureView {
+        let depth_texture_descriptor = wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: config.width,
+                height: config.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        };
+
+        let depth_texture = device.create_texture(&depth_texture_descriptor);
+
+        depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 }

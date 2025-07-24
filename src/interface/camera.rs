@@ -1,7 +1,9 @@
 //! Translates Simulation viewpoint for Interface
 
+pub mod camera_uniform_data;
+
 use crate::{
-    interface::{consts::*, mesh_render::data::CameraUniformData},
+    interface::{camera::camera_uniform_data::CameraUniformData, consts::*},
     simulation::{self},
 };
 use glam::{Mat4, Vec3};

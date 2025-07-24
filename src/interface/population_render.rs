@@ -1,72 +1,149 @@
-pub mod block_render_info;
-pub mod data;
+pub mod entity_render_data;
 
 use crate::{
     include_assets,
     interface::{
-        camera::Camera,
-        consts::*,
-        gpu_context::GPUContext,
-        mesh_render::{
-            block_render_info::BlockRenderInfo,
-            data::{MeshData, RenderData, TextureData, VertexData},
-        },
+        camera::Camera, gpu_context::GPUContext, mesh_data::MeshData,
+        population_render::entity_render_data::EntityRenderData, texture_data::TextureData,
+        vertex_data::VertexData,
     },
-    simulation::{self, observation::view::PopulationView, state::population::entity},
+    simulation::{
+        consts::SIMULATION_MAX_ENTITIES, observation::view::PopulationView,
+        state::population::entity,
+    },
 };
-use glam::{IVec2, Mat4};
+use glam::Mat4;
 use obj::load_obj;
-use std::{collections::HashMap, fs::File, io::BufReader};
+use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
-#[derive(PartialEq, Eq, Hash)]
-pub enum RenderType {
-    Block,
-    Entity,
-    Item,
-}
-
-pub struct MeshRender {
-    pub mesh_data_map: HashMap<entity::Kind, MeshData>,
+pub struct PopulationRender {
+    pub entity_index_buffer: wgpu::Buffer,
+    pub entity_index_bind_group_layout: wgpu::BindGroupLayout,
+    pub entity_index_bind_group: wgpu::BindGroup,
+    pub entity_transform_buffer: wgpu::Buffer,
+    pub entity_transform_bind_group_layout: wgpu::BindGroupLayout,
+    pub entity_transform_bind_group: wgpu::BindGroup,
     pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_map: HashMap<String, wgpu::BindGroup>,
-    pub block_render_info_map: HashMap<simulation::state::world::block::Kind, BlockRenderInfo>,
-    pub render_data_map: HashMap<RenderType, Vec<RenderData>>,
+    pub texture_bind_group_arc_map: HashMap<entity::Kind, Arc<wgpu::BindGroup>>,
+    pub mesh_data_arc_map: HashMap<entity::Kind, Arc<MeshData>>,
     pub render_pipeline: wgpu::RenderPipeline,
+    pub entity_render_data_vec: Vec<EntityRenderData>,
 }
 
-impl MeshRender {
+impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let block_render_info_map = BlockRenderInfo::setup();
+        let entity_index_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Entity Index Uniform Buffer"),
+            size: std::mem::size_of::<u32>() as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
 
-        let mesh_data_map = Self::load_mesh_data_map(&gpu_context.device);
+        let entity_index_bind_group_layout = gpu_context.device.create_bind_group_layout(
+            &wgpu::BindGroupLayoutDescriptor {
+                label: Some("Entity Index Bind Group Layout"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: wgpu::BufferSize::new(std::mem::size_of::<u32>() as _),
+                    },
+                    count: None,
+                }],
+            },
+        );
+
+        let entity_index_bind_group =
+            gpu_context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Texture and Sampler Bind Group"),
+                    layout: &entity_index_bind_group_layout,
+                    entries: &[wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                            buffer: &entity_index_buffer,
+                            offset: 0,
+                            size: Some(
+                                std::num::NonZeroU64::new(std::mem::size_of::<u32>() as u64)
+                                    .unwrap(),
+                            ),
+                        }),
+                    }],
+                });
+
+        let entity_transform_buffer_size =
+            (SIMULATION_MAX_ENTITIES * std::mem::size_of::<[[f32; 4]; 4]>()) as wgpu::BufferAddress;
+
+        let entity_transform_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Entity Transform Storage Buffer"),
+            size: entity_transform_buffer_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let entity_transform_bind_group_layout = gpu_context.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Entity Transform Bind Group Layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
+                    min_binding_size: wgpu::BufferSize::new(std::mem::size_of::<[[f32; 4]; 4]>() as _),
+                },
+                count: None,
+            }],
+        });
+
+        let entity_transform_bind_group = gpu_context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Entity Transform Bind Group"),
+            layout: &entity_transform_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: &entity_transform_buffer,
+                    offset: 0,
+                    size: None,
+                }),
+            }],
+        });
+
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
-        let texture_bind_group_map =
-            Self::load_texture_bind_group_map(&gpu_context.device, &gpu_context.queue);
+        let texture_bind_group_arc_map =
+            Self::load_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
+
+        let mesh_data_arc_map = Self::load_mesh_data_arc_map(&gpu_context.device);
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
+            &entity_index_bind_group_layout,
+            &entity_transform_bind_group_layout,
             &texture_bind_group_layout,
         );
 
-        let render_data_map = HashMap::from([
-            (RenderType::Block, Vec::new()),
-            (RenderType::Entity, Vec::new()),
-            (RenderType::Item, Vec::new()),
-        ]);
+        let entity_render_data_vec = Vec::new();
 
         Self {
-            block_render_info_map,
-            mesh_data_map,
+            entity_index_buffer,
+            entity_index_bind_group_layout,
+            entity_index_bind_group,
+            entity_transform_buffer,
+            entity_transform_bind_group_layout,
+            entity_transform_bind_group,
+            mesh_data_arc_map,
             texture_bind_group_layout,
-            texture_bind_group_map,
+            texture_bind_group_arc_map,
             render_pipeline,
-            render_data_map,
+            entity_render_data_vec,
         }
     }
 
-    fn load_mesh_data_map(device: &wgpu::Device) -> HashMap<entity::Kind, MeshData> {
-        let mut mesh_data_map = HashMap::new();
+    fn load_mesh_data_arc_map(device: &wgpu::Device) -> HashMap<entity::Kind, Arc<MeshData>> {
+        let mut mesh_data_arc_map = HashMap::new();
 
         let entity_models_path = std::path::Path::new("assets/models/entity");
 
@@ -87,11 +164,11 @@ impl MeshRender {
                             let vertex_vec = model.vertices;
                             let index_vec = model.indices;
 
-                            let mesh_data = MeshData::new(device, vertex_vec, index_vec);
+                            let mesh_data = Arc::new(MeshData::new(device, vertex_vec, index_vec));
 
                             if let Some(kind) = entity::Kind::from_string(file_stem) {
                                 log::info!("{:?} model loaded", file_stem);
-                                mesh_data_map.insert(kind, mesh_data);
+                                mesh_data_arc_map.insert(kind, mesh_data);
                             }
                         }
                         Err(err) => {
@@ -102,12 +179,12 @@ impl MeshRender {
             }
         }
 
-        mesh_data_map
+        mesh_data_arc_map
     }
 
     fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Texture BindGroupLayout"),
+            label: None,
             entries: &[
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -129,28 +206,11 @@ impl MeshRender {
         })
     }
 
-    fn load_texture_bind_group_map(
+    fn load_texture_bind_group_arc_map(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-    ) -> HashMap<String, wgpu::BindGroup> {
+    ) -> HashMap<entity::Kind, Arc<wgpu::BindGroup>> {
         let mut texture_bind_group_map = HashMap::new();
-
-        let tile_atlas_texture_data = pollster::block_on(Self::load_texture_data(
-            device,
-            queue,
-            "assets/textures/block/tile_atlas.png",
-            "block",
-        ));
-
-        let tile_atlas_texture_bind_group_key = "block".to_string();
-
-        let tile_atlas_texture_bind_group =
-            Self::create_texture_bind_group(device, &tile_atlas_texture_data);
-
-        texture_bind_group_map.insert(
-            tile_atlas_texture_bind_group_key,
-            tile_atlas_texture_bind_group,
-        );
 
         let entity_textures_path = std::path::Path::new("assets/textures/entity");
 
@@ -170,77 +230,16 @@ impl MeshRender {
                     file_stem,
                 ));
 
-                let texture_bind_group_key = file_stem.to_string();
-                let texture_bind_group = Self::create_texture_bind_group(device, &texture_data);
+                let texture_bind_group =
+                    Arc::new(Self::create_texture_bind_group(device, &texture_data));
 
-                texture_bind_group_map.insert(texture_bind_group_key, texture_bind_group);
+                if let Some(kind) = entity::Kind::from_string(file_stem) {
+                    texture_bind_group_map.insert(kind, texture_bind_group);
+                }
             }
         }
 
         texture_bind_group_map
-    }
-
-    pub fn render(
-        gpu_context: &GPUContext,
-        surface_texture_view: &wgpu::TextureView,
-        camera_uniform_bind_group: &wgpu::BindGroup,
-        render_pipeline: &wgpu::RenderPipeline,
-        render_data_map: &HashMap<RenderType, Vec<RenderData>>,
-        encoder: &mut wgpu::CommandEncoder,
-    ) {
-        let depth_texture_view =
-            MeshRender::create_depth_texture(&gpu_context.device, &gpu_context.surface_config);
-
-        let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
-            view: surface_texture_view,
-            resolve_target: None,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(wgpu::Color {
-                    r: WINDOW_CLEAR_COLOR[0],
-                    g: WINDOW_CLEAR_COLOR[1],
-                    b: WINDOW_CLEAR_COLOR[2],
-                    a: WINDOW_CLEAR_COLOR[3],
-                }),
-                store: wgpu::StoreOp::Store,
-            },
-        });
-
-        let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
-            view: &depth_texture_view,
-            depth_ops: Some(wgpu::Operations {
-                load: wgpu::LoadOp::Clear(1.0),
-                store: wgpu::StoreOp::Store,
-            }),
-            stencil_ops: None,
-        });
-
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Mesh Render Pass"),
-            color_attachments: &[render_pass_color_attachment],
-            depth_stencil_attachment,
-            timestamp_writes: None,
-            occlusion_query_set: None,
-        });
-
-        render_pass.set_pipeline(&render_pipeline);
-        render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-
-        for render_data_vec in render_data_map.values() {
-            for render_data in render_data_vec {
-                render_pass.set_bind_group(1, &render_data.texture_bind_group, &[]);
-
-                render_pass.set_vertex_buffer(0, render_data.mesh_data.vertex_buffer.slice(..));
-
-                render_pass.set_index_buffer(
-                    render_data.mesh_data.index_buffer.slice(..),
-                    wgpu::IndexFormat::Uint32,
-                );
-
-                render_pass.draw_indexed(0..render_data.mesh_data.index_count, 0, 0..1);
-            }
-        }
-
-        drop(render_pass);
     }
 
     pub fn create_texture_bind_group(
@@ -283,28 +282,6 @@ impl MeshRender {
                 },
             ],
         })
-    }
-
-    pub fn create_depth_texture(
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
-    ) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("Depth Texture"),
-            size: wgpu::Extent3d {
-                width: config.width,
-                height: config.height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-
-        depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 
     pub async fn load_texture_data(
@@ -355,7 +332,7 @@ impl MeshRender {
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: Some("texture_atlas_sampler"),
+            label: None,
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,
@@ -375,24 +352,17 @@ impl MeshRender {
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
+        entity_index_bind_group_layout: &wgpu::BindGroupLayout,
+        entity_transform_bind_group_layout: &wgpu::BindGroupLayout,
         texture_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
-        let pipeline_layout =
-            gpu_context
-                .device
-                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Render Pipeline Layout"),
-                    bind_group_layouts: &[&camera_bind_group_layout, &texture_bind_group_layout],
-                    push_constant_ranges: &[],
-                });
-
         let vert_shader_module =
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Vert Shader Module"),
+                    label: Some("Population Vert Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/mesh.vert.wgsl").into(),
+                        include_assets!("shaders/population.vert.wgsl").into(),
                     ),
                 });
 
@@ -400,16 +370,30 @@ impl MeshRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Frag Shader Module"),
+                    label: Some("Population Frag Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/mesh.frag.wgsl").into(),
+                        include_assets!("shaders/population.frag.wgsl").into(),
                     ),
+                });
+
+        let pipeline_layout =
+            gpu_context
+                .device
+                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("Population Render Pipeline Layout"),
+                    bind_group_layouts: &[
+                        &camera_bind_group_layout,
+                        &entity_index_bind_group_layout,
+                        &entity_transform_bind_group_layout,
+                        &texture_bind_group_layout,
+                    ],
+                    push_constant_ranges: &[],
                 });
 
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Primary Render Pipeline"),
+                label: Some("Population Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
@@ -455,116 +439,92 @@ impl MeshRender {
 
     pub fn apply_population_view(
         population_view: &PopulationView,
-        mesh_data_map: &HashMap<entity::Kind, MeshData>,
-        texture_bind_group_map: &HashMap<String, wgpu::BindGroup>,
-        render_data_map: &mut HashMap<RenderType, Vec<RenderData>>,
+        mesh_data_arc_map: &HashMap<entity::Kind, Arc<MeshData>>,
+        texture_bind_group_map: &HashMap<entity::Kind, Arc<wgpu::BindGroup>>,
+        entity_render_data_vec: &mut Vec<EntityRenderData>,
     ) {
-        let entity_render_data_vec = render_data_map.get_mut(&RenderType::Entity).unwrap();
-
         entity_render_data_vec.clear();
 
         for agent_view in population_view.agent_view_map.values() {
-            let mesh_data = mesh_data_map.get(&agent_view.kind).unwrap().clone();
+            let mesh_data_arc = Arc::clone(mesh_data_arc_map.get(&agent_view.kind).unwrap());
 
             let transform = Mat4::from_translation(agent_view.spatial.world_position);
 
-            let texture_bind_group = texture_bind_group_map
-                .get(&format!("agent_{:?}", agent_view.kind).to_lowercase())
-                .unwrap()
-                .clone();
+            let texture_bind_group_arc =
+                Arc::clone(texture_bind_group_map.get(&agent_view.kind).unwrap());
 
-            let render_data = RenderData {
-                mesh_data,
+            let render_data = EntityRenderData {
+                entity_id: agent_view.id,
                 transform,
-                texture_bind_group,
+                mesh_data_arc,
+                texture_bind_group_arc,
             };
 
             entity_render_data_vec.push(render_data);
         }
     }
 
-    pub fn apply_world_view(
-        device: &wgpu::Device,
-        world_view: &simulation::observation::view::WorldView,
-        block_render_info_map: &HashMap<simulation::state::world::block::Kind, BlockRenderInfo>,
-        texture_bind_group_map: &HashMap<String, wgpu::BindGroup>,
-        render_data_map: &mut HashMap<RenderType, Vec<RenderData>>,
+    pub fn render(
+        gpu_context: &GPUContext,
+        surface_texture_view: &wgpu::TextureView,
+        depth_texture_view: &wgpu::TextureView,
+        camera_uniform_bind_group: &wgpu::BindGroup,
+        population_render: &PopulationRender,
+        encoder: &mut wgpu::CommandEncoder,
     ) {
-        let block_render_data_vec = render_data_map.get_mut(&RenderType::Block).unwrap();
+        let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+            view: surface_texture_view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: wgpu::StoreOp::Store,
+            },
+        });
 
-        let block_texture_bind_group = &texture_bind_group_map["block"];
+        let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
+            view: &depth_texture_view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: wgpu::StoreOp::Store,
+            }),
+            stencil_ops: None,
+        });
 
-        block_render_data_vec.clear();
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: None,
+            color_attachments: &[render_pass_color_attachment],
+            depth_stencil_attachment,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+        });
 
-        for chunk_view in world_view.chunk_view_map.values() {
-            let mut vertex_vec = Vec::new();
-            let mut index_vec = Vec::new();
-            let mut index_offset = 0;
+        render_pass.set_pipeline(&population_render.render_pipeline);
+        render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
-            for block in &chunk_view.block_vec {
-                if block.kind == simulation::state::world::block::Kind::Empty {
-                    continue;
-                }
+        for entity_render_data in &population_render.entity_render_data_vec {
+            let entity_index = u32::from(entity_render_data.entity_id);
+            
+            gpu_context.queue.write_buffer(
+                &population_render.entity_index_buffer,
+                0,
+                bytemuck::bytes_of(&entity_index),
+            );
+            
+            render_pass.set_bind_group(1, &population_render.entity_index_bind_group, &[]);
+            render_pass.set_bind_group(2, &population_render.entity_transform_bind_group, &[]);
+            render_pass.set_bind_group(3, entity_render_data.texture_bind_group_arc.deref(), &[]);
 
-                let block_render_info = block_render_info_map.get(&block.kind).unwrap();
+            render_pass
+                .set_vertex_buffer(0, entity_render_data.mesh_data_arc.vertex_buffer.slice(..));
 
-                for face in &block.face_array {
-                    let face_vertex_array =
-                        BlockRenderInfo::face_vertices(block.position, face.direction);
+            render_pass.set_index_buffer(
+                entity_render_data.mesh_data_arc.index_buffer.slice(..),
+                wgpu::IndexFormat::Uint32,
+            );
 
-                    let tile_face_index = BlockRenderInfo::face_direction_to_index(face.direction);
-
-                    let tile_coordinates = IVec2::new(
-                        block_render_info.tile_index_array[tile_face_index][0] as i32,
-                        block_render_info.tile_index_array[tile_face_index][1] as i32,
-                    );
-
-                    let tile_size = 64;
-                    let tile_atlas_size = IVec2::new(32, 32);
-
-                    let tile_uv_coordinates = BlockRenderInfo::tile_uv_coordinates(
-                        tile_coordinates,
-                        tile_size,
-                        tile_atlas_size,
-                    );
-
-                    for (index, &position) in face_vertex_array.iter().enumerate() {
-                        let normal = face.direction.offset().as_vec3().to_array();
-                        let texture = [
-                            tile_uv_coordinates[index][0],
-                            tile_uv_coordinates[index][1],
-                            0.0,
-                        ];
-
-                        let textured_vertex = obj::TexturedVertex {
-                            position,
-                            normal,
-                            texture,
-                        };
-
-                        vertex_vec.push(textured_vertex);
-                    }
-
-                    index_vec.push(index_offset);
-                    index_vec.push(index_offset + 1);
-                    index_vec.push(index_offset + 2);
-                    index_vec.push(index_offset);
-                    index_vec.push(index_offset + 2);
-                    index_vec.push(index_offset + 3);
-
-                    index_offset += 4;
-                }
-            }
-
-            if vertex_vec.len() > 0 {
-                let render_data = RenderData {
-                    mesh_data: MeshData::new(device, vertex_vec, index_vec),
-                    transform: Mat4::IDENTITY,
-                    texture_bind_group: block_texture_bind_group.clone(),
-                };
-
-                block_render_data_vec.push(render_data);
-            }
+            render_pass.draw_indexed(0..entity_render_data.mesh_data_arc.index_count, 0, 0..1);
         }
+
+        drop(render_pass);
     }
 }

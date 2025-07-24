@@ -2,6 +2,8 @@
 
 pub mod mode;
 
+use std::sync::Arc;
+
 pub use mode::Mode;
 use winit::event::{DeviceEvent, WindowEvent};
 
@@ -30,59 +32,54 @@ impl HUD {
         Self { action_vec, mode }
     }
 
-    pub fn update(
+    pub fn get_full_output(
         &mut self,
-        surface_texture_view: &wgpu::TextureView,
-        encoder: &mut wgpu::CommandEncoder,
-        gpu_context: &mut GPUContext,
-    ) {
-        let raw_input = gpu_context
-            .egui_winit_state
-            .take_egui_input(&gpu_context.window_arc);
+        window_arc: Arc<winit::window::Window>,
+        egui_context: &egui::Context,
+        egui_winit_state: &mut egui_winit::State,
+    ) -> FullOutput {
+        let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
         let mut action_vec = std::mem::take(&mut self.action_vec);
 
-        let full_output: FullOutput =
-            gpu_context
-                .egui_context
-                .run(raw_input, |context| match &self.mode {
-                    Mode::Menu(menu_data) => self.draw_menu(context, menu_data, &mut action_vec),
-                    Mode::Load(load_data) => self.draw_load(context, load_data, &mut action_vec),
-                    Mode::Simulate(simulate_data) => {
-                        self.draw_simulate(context, simulate_data, &mut action_vec)
-                    }
-                    Mode::Shutdown(shutdown_data) => {
-                        self.draw_shutdown(context, shutdown_data, &mut action_vec)
-                    }
-                });
+        let full_output: FullOutput = egui_context.run(raw_input, |context| match &self.mode {
+            Mode::Menu(menu_data) => self.draw_menu(context, menu_data, &mut action_vec),
+            Mode::Load(load_data) => self.draw_load(context, load_data, &mut action_vec),
+            Mode::Simulate(simulate_data) => {
+                self.draw_simulate(context, simulate_data, &mut action_vec)
+            }
+            Mode::Shutdown(shutdown_data) => {
+                self.draw_shutdown(context, shutdown_data, &mut action_vec)
+            }
+        });
 
         self.action_vec = action_vec;
 
-        let paint_jobs = gpu_context
-            .egui_context
-            .tessellate(full_output.shapes, full_output.pixels_per_point);
+        full_output
+    }
+
+    pub fn render(
+        full_output: FullOutput,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        window_arc: Arc<winit::window::Window>,
+        surface_texture_view: &wgpu::TextureView,
+        egui_context: &egui::Context,
+        egui_renderer: &mut egui_wgpu::Renderer,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
         let screen_descriptor = egui_wgpu::ScreenDescriptor {
-            size_in_pixels: gpu_context.window_arc.inner_size().into(),
-            pixels_per_point: gpu_context.window_arc.scale_factor() as f32,
+            size_in_pixels: window_arc.inner_size().into(),
+            pixels_per_point: window_arc.scale_factor() as f32,
         };
 
         for (id, image_delta) in &full_output.textures_delta.set {
-            gpu_context.egui_renderer.update_texture(
-                &gpu_context.device,
-                &gpu_context.queue,
-                *id,
-                image_delta,
-            );
+            egui_renderer.update_texture(device, queue, *id, image_delta);
         }
 
-        gpu_context.egui_renderer.update_buffers(
-            &gpu_context.device,
-            &gpu_context.queue,
-            encoder,
-            &paint_jobs,
-            &screen_descriptor,
-        );
+        egui_renderer.update_buffers(device, queue, encoder, &paint_jobs, &screen_descriptor);
 
         let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("EGUI Render Pass"),
@@ -99,7 +96,7 @@ impl HUD {
             timestamp_writes: None,
         });
 
-        gpu_context.egui_renderer.render(
+        egui_renderer.render(
             &mut render_pass.forget_lifetime(),
             &paint_jobs,
             &screen_descriptor,
