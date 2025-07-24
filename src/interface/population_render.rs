@@ -490,6 +490,18 @@ impl PopulationRender {
             stencil_ops: None,
         });
 
+        let mut transform_vec: Vec<[[f32; 4]; 4]> = Vec::with_capacity(population_render.entity_render_data_vec.len());
+
+        for entity_render_data in &population_render.entity_render_data_vec {
+            transform_vec.push(entity_render_data.transform.to_cols_array_2d());
+        }
+        
+        gpu_context.queue.write_buffer(
+            &population_render.entity_transform_buffer,
+            0,
+            bytemuck::cast_slice(&transform_vec),
+        );
+
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[render_pass_color_attachment],

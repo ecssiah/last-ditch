@@ -29,7 +29,7 @@ pub struct WorldRender {
 
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let block_render_info = BlockRenderInfo::new(64, 32, 32);
+        let block_render_info = BlockRenderInfo::new(64, 2048, 2048);
         let block_tile_coordinates_map = BlockRenderInfo::setup_tile_coordinates_map();
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
@@ -237,6 +237,8 @@ impl WorldRender {
                         block_render_info.tile_size,
                         block_render_info.tile_atlas_size,
                     );
+
+                    log::info!("{:?}", tile_uv_array);
 
                     let face_vertex_position_array =
                         BlockRenderInfo::face_vertex_position_array(block.position, face.direction);
