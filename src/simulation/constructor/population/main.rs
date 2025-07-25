@@ -2,8 +2,8 @@ use crate::simulation::{
     consts::*,
     state::{
         population::{
-            entity::{self, Agent, Judge},
-            Population,
+            entity::{Agent, Judge},
+            nation, Population,
         },
         world::World,
     },
@@ -39,8 +39,8 @@ fn setup_agent_map(world: &World, population: &mut Population) {
     let agent_initial_population = 16;
     let agent_size_bounds = (0.6, 2.2);
 
-    for kind in entity::Kind::all() {
-        if let Some(flag_position) = world.flag_position_map.get(&kind) {
+    for nation_kind in nation::Kind::all() {
+        if let Some(flag_position) = world.flag_position_map.get(&nation_kind) {
             let flag_position = flag_position.as_vec3();
 
             for _ in 0..agent_initial_population {
@@ -52,7 +52,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
                 let world_position = flag_position + offset;
 
-                let mut agent = Agent::new(kind);
+                let mut agent = Agent::new(nation_kind);
 
                 Agent::set_world_position(world_position, &mut agent.spatial, &mut agent.detection);
 

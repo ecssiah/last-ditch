@@ -42,10 +42,10 @@ impl Observation {
     }
 
     fn update_view(view_buffer_lock: &RwLock<Buffer<View>>, state: &State) {
-        let admin_view = Self::update_admin_view(&state);
-        let time_view = Self::update_time_view(&state);
-        let population_view = Self::update_population_view(&state);
-        let world_view = Self::update_world_view(&state);
+        let admin_view = Self::update_admin_view(state);
+        let time_view = Self::update_time_view(state);
+        let population_view = Self::update_population_view(state);
+        let world_view = Self::update_world_view(state);
 
         let view = View {
             entity_id: state.population.judge.info.entity_id,
@@ -103,7 +103,8 @@ impl Observation {
 
             let agent_view = AgentView {
                 id: agent.info.entity_id,
-                kind: agent.info.kind,
+                entity_kind: agent.info.entity_kind,
+                nation_kind: agent.info.nation_kind,
                 spatial: agent.spatial,
                 kinematic: agent.kinematic,
                 detection: agent.detection,

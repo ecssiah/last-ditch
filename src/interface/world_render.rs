@@ -157,7 +157,7 @@ impl WorldRender {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("World Render Pipeline Layout"),
-                    bind_group_layouts: &[&camera_bind_group_layout, &texture_bind_group_layout],
+                    bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
                     push_constant_ranges: &[],
                 });
 
@@ -266,7 +266,7 @@ impl WorldRender {
                 }
             }
 
-            if vertex_vec.len() > 0 {
+            if !vertex_vec.is_empty() {
                 let chunk_render_data = ChunkRenderData {
                     chunk_id: chunk_view.id,
                     mesh_data: MeshData::new(device, vertex_vec, index_vec),
@@ -348,7 +348,7 @@ impl WorldRender {
         camera_uniform_bind_group: &wgpu::BindGroup,
         world_render: &WorldRender,
         encoder: &mut wgpu::CommandEncoder,
-    ) {        
+    ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: surface_texture_view,
             resolve_target: None,

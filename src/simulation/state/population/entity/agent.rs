@@ -3,16 +3,19 @@ use crate::simulation::{
     state::{
         compute::task,
         physics::aabb::AABB,
-        population::entity::{
-            self,
-            decision::{
-                plan::{
-                    self,
-                    data::{IdleData, TravelData},
+        population::{
+            entity::{
+                self,
+                decision::{
+                    plan::{
+                        self,
+                        data::{IdleData, TravelData},
+                    },
+                    Plan,
                 },
-                Plan,
+                Decision, Detection, Info, Kinematic, Spatial,
             },
-            Decision, Detection, Info, Kinematic, Nation, Spatial,
+            nation,
         },
         world::{
             chunk,
@@ -39,13 +42,13 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new(kind: entity::Kind) -> Self {
+    pub fn new(nation_kind: nation::Kind) -> Self {
         let info = Info {
             entity_id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            kind,
-            nation: Nation::new(kind),
+            entity_kind: entity::Kind::Agent,
+            nation_kind,
         };
 
         let mut decision = Decision::new();
@@ -106,8 +109,8 @@ impl Agent {
                 ),
                 plan::Kind::Travel => Self::follow_travel_plan(
                     plan,
-                    &agent.info,
                     world,
+                    &agent.info,
                     &agent.kinematic,
                     &mut agent.spatial,
                     &mut agent.decision.active_plan_id,
@@ -162,11 +165,11 @@ impl Agent {
         plan_map: &mut HashMap<plan::ID, Plan>,
         travel_data_map: &mut HashMap<plan::ID, plan::data::TravelData>,
     ) {
-        let target_position = match info.kind {
-            entity::Kind::Lion => IVec3::new(-9, -3, 0),
-            entity::Kind::Eagle => IVec3::new(9, -3, 0),
-            entity::Kind::Wolf => IVec3::new(0, -3, -9),
-            entity::Kind::Horse => IVec3::new(0, -3, 9),
+        let target_position = match info.nation_kind {
+            nation::Kind::Lion => IVec3::new(-9, -3, 0),
+            nation::Kind::Eagle => IVec3::new(9, -3, 0),
+            nation::Kind::Wolf => IVec3::new(0, -3, -9),
+            nation::Kind::Horse => IVec3::new(0, -3, 9),
         };
 
         let (travel_plan, travel_data) = Plan::create_travel_plan(target_position);
@@ -187,8 +190,8 @@ impl Agent {
 
     fn follow_travel_plan(
         plan: Plan,
-        info: &Info,
         world: &World,
+        info: &Info,
         kinematic: &Kinematic,
         spatial: &mut Spatial,
         active_plan_id: &mut Option<plan::ID>,

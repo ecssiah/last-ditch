@@ -2,7 +2,10 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        population::entity::{self, Detection, Info, Kinematic, Nation, Spatial},
+        population::{
+            entity::{self, Detection, Info, Kinematic, Spatial},
+            nation,
+        },
         receiver::action::{JumpAction, MovementData},
         world::{chunk, World},
     },
@@ -22,10 +25,8 @@ impl Judge {
             entity_id: entity::ID::allocate(),
             chunk_id: chunk::ID(0),
             chunk_updated: false,
-            kind: entity::Kind::Eagle,
-            nation: Nation {
-                kind: entity::Kind::Eagle,
-            },
+            entity_kind: entity::Kind::Judge,
+            nation_kind: nation::Kind::Eagle,
         };
 
         Self {

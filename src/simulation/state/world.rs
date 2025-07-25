@@ -10,7 +10,10 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        population::entity::{self, Judge},
+        population::{
+            entity::{self, Judge},
+            nation,
+        },
         world::{block::Block, chunk::Chunk, graph::Graph, grid::Grid},
     },
     utils::buffer::Buffer,
@@ -24,7 +27,7 @@ pub struct World {
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub chunk_vec: Vec<chunk::Chunk>,
     pub graph_buffer_lock: RwLock<Buffer<Graph>>,
-    pub flag_position_map: HashMap<entity::Kind, IVec3>,
+    pub flag_position_map: HashMap<nation::Kind, IVec3>,
 }
 
 impl World {
@@ -37,10 +40,10 @@ impl World {
         let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
         let flag_position_map = HashMap::from([
-            (entity::Kind::Lion, IVec3::ZERO),
-            (entity::Kind::Eagle, IVec3::ZERO),
-            (entity::Kind::Horse, IVec3::ZERO),
-            (entity::Kind::Wolf, IVec3::ZERO),
+            (nation::Kind::Lion, IVec3::ZERO),
+            (nation::Kind::Eagle, IVec3::ZERO),
+            (nation::Kind::Horse, IVec3::ZERO),
+            (nation::Kind::Wolf, IVec3::ZERO),
         ]);
 
         Self {

@@ -1,5 +1,5 @@
 use crate::simulation::state::{
-    population::entity::{self, Agent, Spatial},
+    population::{entity::{self, Agent, Spatial}, nation},
     world::{chunk, grid::Grid},
     World,
 };
@@ -9,8 +9,8 @@ pub struct Info {
     pub entity_id: entity::ID,
     pub chunk_id: chunk::ID,
     pub chunk_updated: bool,
-    pub kind: entity::Kind,
-    pub nation: entity::Nation,
+    pub entity_kind: entity::Kind,
+    pub nation_kind: nation::Kind,
 }
 
 impl Info {

@@ -315,10 +315,10 @@ impl<'window> Interface<'window> {
         view: &simulation::observation::view::View,
     ) {
         match view.admin_view.mode {
-            simulation::state::admin::Mode::Menu => self.apply_menu_view(&view),
-            simulation::state::admin::Mode::Load => self.apply_load_view(&view),
-            simulation::state::admin::Mode::Simulate => self.apply_simulate_view(&view),
-            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(&view, event_loop),
+            simulation::state::admin::Mode::Menu => self.apply_menu_view(view),
+            simulation::state::admin::Mode::Load => self.apply_load_view(view),
+            simulation::state::admin::Mode::Simulate => self.apply_simulate_view(view),
+            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(view, event_loop),
         }
     }
 
@@ -348,19 +348,17 @@ impl<'window> Interface<'window> {
         self.camera
             .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
 
-        PopulationRender::apply_population_view(
-            &view.population_view,
-            &self.population_render.mesh_data_arc_map,
-            &self.population_render.texture_bind_group_arc_map,
-            &mut self.population_render.entity_render_data_vec,
-        );
-
         WorldRender::apply_world_view(
             &self.gpu_context.device,
             &view.world_view,
             &self.world_render.block_render_info,
             &self.world_render.block_tile_coordinates_map,
             &mut self.world_render.chunk_render_data_vec,
+        );
+
+        PopulationRender::apply_population_view(
+            &view.population_view,
+            &mut self.population_render.entity_render_data_group_vec,
         );
     }
 

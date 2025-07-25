@@ -1,5 +1,5 @@
 use crate::simulation::state::{
-    population::entity::{self},
+    population::nation,
     world::{block, grid::Grid, World},
 };
 use glam::IVec3;
@@ -7,10 +7,10 @@ use glam::IVec3;
 pub fn construct(world: &mut World) {
     build_ground(world);
     build_compass(world);
-    build_temple(0, 0, 34, entity::Kind::Eagle, world);
-    build_temple(-34, 0, 0, entity::Kind::Lion, world);
-    build_temple(0, 0, -34, entity::Kind::Horse, world);
-    build_temple(34, 0, 0, entity::Kind::Wolf, world);
+    build_temple(0, 0, 34, nation::Kind::Eagle, world);
+    build_temple(-34, 0, 0, nation::Kind::Lion, world);
+    build_temple(0, 0, -34, nation::Kind::Horse, world);
+    build_temple(34, 0, 0, nation::Kind::Wolf, world);
 
     build_observation_deck(world);
 
@@ -84,14 +84,14 @@ fn build_compass(world: &mut World) {
     );
 }
 
-fn build_temple(x: i32, y: i32, z: i32, kind: entity::Kind, world: &mut World) {
+fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut World) {
     world
         .flag_position_map
-        .insert(kind, IVec3::new(x, y + 3, z));
+        .insert(nation_kind, IVec3::new(x, y + 3, z));
 
     World::set_block_kind(
         IVec3::new(x, y + 6, z),
-        kind.icon(),
+        nation_kind.icon(),
         &world.grid,
         &world.block_info_map,
         &mut world.chunk_vec,

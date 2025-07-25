@@ -1,10 +1,8 @@
-use crate::{interface::mesh_data::MeshData, simulation::state::population::entity};
-use glam::Mat4;
-use std::sync::Arc;
+use crate::simulation::state::population::entity;
+use glam::Vec3;
 
 pub struct EntityRenderData {
     pub entity_id: entity::ID,
-    pub transform: Mat4,
-    pub mesh_data_arc: Arc<MeshData>,
-    pub texture_bind_group_arc: Arc<wgpu::BindGroup>,
+    pub world_position: Vec3,
+    pub rotation: f32,
 }

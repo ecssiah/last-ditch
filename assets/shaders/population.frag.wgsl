@@ -1,5 +1,5 @@
-@group(3) @binding(0) var mesh_texture: texture_2d<f32>;
-@group(3) @binding(1) var mesh_sampler: sampler;
+@group(1) @binding(0) var mesh_texture: texture_2d<f32>;
+@group(1) @binding(1) var mesh_sampler: sampler;
 
 struct FragmentInput {
     @location(0) uv: vec2<f32>,

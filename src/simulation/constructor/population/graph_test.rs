@@ -1,7 +1,10 @@
 use crate::simulation::{
     consts::*,
     state::{
-        population::entity::{self, Agent, Judge},
+        population::{
+            entity::{self, Agent, Judge},
+            nation,
+        },
         Population,
     },
 };
@@ -28,7 +31,7 @@ fn setup_judge(judge: &mut Judge) {
 }
 
 fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
-    let mut pathfinding_agent1 = Agent::new(entity::Kind::Eagle);
+    let mut pathfinding_agent1 = Agent::new(nation::Kind::Eagle);
 
     Agent::set_world_position(
         Vec3::new(0.0, 6.0, 9.0),
@@ -40,7 +43,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
 
     agent_map.insert(pathfinding_agent1.info.entity_id, pathfinding_agent1);
 
-    let mut pathfinding_agent2 = Agent::new(entity::Kind::Wolf);
+    let mut pathfinding_agent2 = Agent::new(nation::Kind::Wolf);
 
     Agent::set_world_position(
         Vec3::new(0.0, 6.0, 9.0),
@@ -52,7 +55,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
 
     agent_map.insert(pathfinding_agent2.info.entity_id, pathfinding_agent2);
 
-    let mut pathfinding_agent3 = Agent::new(entity::Kind::Lion);
+    let mut pathfinding_agent3 = Agent::new(nation::Kind::Lion);
 
     Agent::set_world_position(
         Vec3::new(0.0, 6.0, 9.0),
@@ -64,7 +67,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
 
     agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
 
-    let mut pathfinding_agent4 = Agent::new(entity::Kind::Horse);
+    let mut pathfinding_agent4 = Agent::new(nation::Kind::Horse);
 
     Agent::set_world_position(
         Vec3::new(0.0, 6.0, 9.0),

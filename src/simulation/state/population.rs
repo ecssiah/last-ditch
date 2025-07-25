@@ -1,6 +1,7 @@
 //! Entities acting in the simulated environment
 
 pub mod entity;
+pub mod nation;
 
 use crate::simulation::{
     self, constructor,

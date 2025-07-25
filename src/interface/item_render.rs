@@ -85,7 +85,7 @@ impl ItemRender {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Item Render Pipeline Layout"),
-                    bind_group_layouts: &[&camera_bind_group_layout, &texture_bind_group_layout],
+                    bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
                     push_constant_ranges: &[],
                 });
 
@@ -154,7 +154,7 @@ impl ItemRender {
         });
 
         let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
-            view: &depth_texture_view,
+            view: depth_texture_view,
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: wgpu::StoreOp::Store,
