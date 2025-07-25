@@ -84,32 +84,40 @@ impl PopulationRender {
             mapped_at_creation: false,
         });
 
-        let entity_transform_bind_group_layout = gpu_context.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Entity Transform Bind Group Layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false,
-                    min_binding_size: wgpu::BufferSize::new(std::mem::size_of::<[[f32; 4]; 4]>() as _),
-                },
-                count: None,
-            }],
-        });
+        let entity_transform_bind_group_layout =
+            gpu_context
+                .device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("Entity Transform Bind Group Layout"),
+                    entries: &[wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::VERTEX,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: true },
+                            has_dynamic_offset: false,
+                            min_binding_size: wgpu::BufferSize::new(
+                                std::mem::size_of::<[[f32; 4]; 4]>() as _,
+                            ),
+                        },
+                        count: None,
+                    }],
+                });
 
-        let entity_transform_bind_group = gpu_context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Entity Transform Bind Group"),
-            layout: &entity_transform_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer: &entity_transform_buffer,
-                    offset: 0,
-                    size: None,
-                }),
-            }],
-        });
+        let entity_transform_bind_group =
+            gpu_context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Entity Transform Bind Group"),
+                    layout: &entity_transform_bind_group_layout,
+                    entries: &[wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                            buffer: &entity_transform_buffer,
+                            offset: 0,
+                            size: None,
+                        }),
+                    }],
+                });
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
         let texture_bind_group_arc_map =
@@ -490,12 +498,13 @@ impl PopulationRender {
             stencil_ops: None,
         });
 
-        let mut transform_vec: Vec<[[f32; 4]; 4]> = Vec::with_capacity(population_render.entity_render_data_vec.len());
+        let mut transform_vec: Vec<[[f32; 4]; 4]> =
+            Vec::with_capacity(population_render.entity_render_data_vec.len());
 
         for entity_render_data in &population_render.entity_render_data_vec {
             transform_vec.push(entity_render_data.transform.to_cols_array_2d());
         }
-        
+
         gpu_context.queue.write_buffer(
             &population_render.entity_transform_buffer,
             0,
@@ -515,13 +524,13 @@ impl PopulationRender {
 
         for entity_render_data in &population_render.entity_render_data_vec {
             let entity_index = u32::from(entity_render_data.entity_id);
-            
+
             gpu_context.queue.write_buffer(
                 &population_render.entity_index_buffer,
                 0,
                 bytemuck::bytes_of(&entity_index),
             );
-            
+
             render_pass.set_bind_group(1, &population_render.entity_index_bind_group, &[]);
             render_pass.set_bind_group(2, &population_render.entity_transform_bind_group, &[]);
             render_pass.set_bind_group(3, entity_render_data.texture_bind_group_arc.deref(), &[]);
@@ -536,6 +545,7 @@ impl PopulationRender {
 
             render_pass.draw_indexed(0..entity_render_data.mesh_data_arc.index_count, 0, 0..1);
         }
+
 
         drop(render_pass);
     }

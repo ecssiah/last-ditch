@@ -238,8 +238,6 @@ impl WorldRender {
                         block_render_info.tile_atlas_size,
                     );
 
-                    log::info!("{:?}", tile_uv_array);
-
                     let face_vertex_position_array =
                         BlockRenderInfo::face_vertex_position_array(block.position, face.direction);
 
@@ -350,7 +348,7 @@ impl WorldRender {
         camera_uniform_bind_group: &wgpu::BindGroup,
         world_render: &WorldRender,
         encoder: &mut wgpu::CommandEncoder,
-    ) {
+    ) {        
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: surface_texture_view,
             resolve_target: None,
