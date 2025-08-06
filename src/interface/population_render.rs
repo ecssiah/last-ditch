@@ -14,7 +14,7 @@ use crate::{
         vertex_data::VertexData,
     },
     simulation::{
-        consts::SIMULATION_MAX_ENTITIES,
+        consts::{BLOCK_RADIUS, SIMULATION_MAX_ENTITIES},
         observation::view::PopulationView,
         state::population::{entity, nation},
     },
@@ -436,12 +436,12 @@ impl PopulationRender {
         for (kind, entity_render_data_vec) in &population_render.entity_render_data_group_vec {
             let entity_instance_data_vec: Vec<_> = entity_render_data_vec
                 .iter()
-                .map(|erd| EntityInstanceData {
+                .map(|entity_instance_data| EntityInstanceData {
                     position_and_yaw: [
-                        erd.world_position.x,
-                        erd.world_position.y,
-                        erd.world_position.z,
-                        erd.rotation,
+                        entity_instance_data.world_position.x,
+                        entity_instance_data.world_position.y - BLOCK_RADIUS,
+                        entity_instance_data.world_position.z,
+                        entity_instance_data.rotation,
                     ],
                 })
                 .collect();
