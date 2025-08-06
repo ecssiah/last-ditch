@@ -86,7 +86,7 @@ impl Observation {
                     &state.world.grid,
                     judge.info.chunk_id,
                 ),
-                size: judge.size(),
+                size: judge.spatial.size,
                 quaternion: judge.spatial.quaternion,
             },
             agent_view_map: HashMap::new(),

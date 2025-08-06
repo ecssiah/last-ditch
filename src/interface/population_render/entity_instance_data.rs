@@ -1,12 +1,17 @@
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct EntityInstanceData {
-    pub position_and_yaw: [f32; 4],
+    pub world_position: [f32; 3],
+    pub size_y: f32,
+    pub yaw: f32,
+    pub _padding: [f32; 3],
 }
 
 impl EntityInstanceData {
-    const ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![
-        3 => Float32x4,
+    const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
+        3 => Float32x3,
+        4 => Float32,
+        5 => Float32,
     ];
 
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {

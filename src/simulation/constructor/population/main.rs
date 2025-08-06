@@ -27,6 +27,7 @@ fn setup_judge(population: &mut Population) {
 
     Judge::set_size(
         Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z),
+        &mut judge.spatial,
         &mut judge.detection,
     );
 
@@ -37,7 +38,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
     let mut rng = rand::thread_rng();
 
     let agent_initial_population = 16;
-    let agent_size_bounds = (0.6, 2.2);
+    let agent_size_bounds = (1.0, 1.0);
 
     for nation_kind in nation::Kind::all() {
         if let Some(flag_position) = world.flag_position_map.get(&nation_kind) {
@@ -56,12 +57,11 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
                 Agent::set_world_position(world_position, &mut agent.spatial, &mut agent.detection);
 
+                let agent_height = rng.gen_range(agent_size_bounds.0..=agent_size_bounds.1);
+
                 Agent::set_size(
-                    Vec3::new(
-                        0.6,
-                        rng.gen_range(agent_size_bounds.0..=agent_size_bounds.1),
-                        0.6,
-                    ),
+                    Vec3::new(0.6, agent_height, 0.6),
+                    &mut agent.spatial,
                     &mut agent.detection,
                 );
 

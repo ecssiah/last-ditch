@@ -84,7 +84,8 @@ impl Agent {
         Detection::set_world_position(world_position, &mut detection.body);
     }
 
-    pub fn set_size(size: Vec3, detection: &mut Detection) {
+    pub fn set_size(size: Vec3, spatial: &mut Spatial, detection: &mut Detection) {
+        spatial.size = size;
         detection.body = AABB::new(detection.body.center(), size);
     }
 

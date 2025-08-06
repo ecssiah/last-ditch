@@ -51,11 +51,8 @@ impl Judge {
         Detection::set_world_position(world_position, &mut detection.body);
     }
 
-    pub fn size(&self) -> Vec3 {
-        self.detection.body.size()
-    }
-
-    pub fn set_size(size: Vec3, detection: &mut Detection) {
+    pub fn set_size(size: Vec3, spatial: &mut Spatial, detection: &mut Detection) {
+        spatial.size = size;
         detection.body = AABB::new(detection.body.center(), size);
     }
 
@@ -81,7 +78,7 @@ impl Judge {
     }
 
     pub fn eye(&self) -> Vec3 {
-        self.spatial.world_position + self.spatial.up() * 0.9 * self.size().y
+        self.spatial.world_position + self.spatial.up() * 0.9 * self.spatial.size.y
     }
 
     pub fn apply_movement_data(movement_data: &MovementData, judge: &mut Judge) {

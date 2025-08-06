@@ -19,6 +19,7 @@ fn setup_judge(population: &mut Population) {
 
     Judge::set_size(
         Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z),
+        &mut judge.spatial,
         &mut judge.detection,
     );
 }

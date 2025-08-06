@@ -1,16 +1,10 @@
 pub mod entity_instance_data;
-pub mod entity_render_data;
 
 use crate::{
     include_assets,
     interface::{
-        camera::Camera,
-        gpu_context::GPUContext,
-        mesh_data::MeshData,
-        population_render::{
-            entity_instance_data::EntityInstanceData, entity_render_data::EntityRenderData,
-        },
-        texture_data::TextureData,
+        camera::Camera, gpu_context::GPUContext, mesh_data::MeshData,
+        population_render::entity_instance_data::EntityInstanceData, texture_data::TextureData,
         vertex_data::VertexData,
     },
     simulation::{
@@ -28,7 +22,8 @@ pub struct PopulationRender {
     pub texture_bind_group_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<wgpu::BindGroup>>,
     pub mesh_data_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<MeshData>>,
     pub render_pipeline: wgpu::RenderPipeline,
-    pub entity_render_data_group_vec: Vec<((entity::Kind, nation::Kind), Vec<EntityRenderData>)>,
+    pub entity_instance_data_group_vec:
+        Vec<((entity::Kind, nation::Kind), Vec<EntityInstanceData>)>,
 }
 
 impl PopulationRender {
@@ -53,7 +48,7 @@ impl PopulationRender {
             &texture_bind_group_layout,
         );
 
-        let entity_render_data_group_vec = Vec::new();
+        let entity_instance_data_group_vec = Vec::new();
 
         Self {
             entity_instance_buffer,
@@ -61,7 +56,7 @@ impl PopulationRender {
             texture_bind_group_layout,
             texture_bind_group_arc_map,
             render_pipeline,
-            entity_render_data_group_vec,
+            entity_instance_data_group_vec,
         }
     }
 
@@ -365,33 +360,35 @@ impl PopulationRender {
 
     pub fn apply_population_view(
         population_view: &PopulationView,
-        entity_render_data_group_vec: &mut Vec<(
+        entity_instance_data_group_vec: &mut Vec<(
             (entity::Kind, nation::Kind),
-            Vec<EntityRenderData>,
+            Vec<EntityInstanceData>,
         )>,
     ) {
-        entity_render_data_group_vec.clear();
+        entity_instance_data_group_vec.clear();
 
-        let mut group_map: HashMap<(entity::Kind, nation::Kind), Vec<EntityRenderData>> =
+        let mut group_map: HashMap<(entity::Kind, nation::Kind), Vec<EntityInstanceData>> =
             HashMap::new();
 
         for agent_view in population_view.agent_view_map.values() {
-            let world_position = agent_view.spatial.world_position;
-            let rotation = agent_view.spatial.yaw;
-            let entity_kind = agent_view.entity_kind;
-            let nation_kind = agent_view.nation_kind;
+            let entity_instance_data = EntityInstanceData {
+                world_position: [
+                    agent_view.spatial.world_position.x,
+                    agent_view.spatial.world_position.y - BLOCK_RADIUS,
+                    agent_view.spatial.world_position.z,
+                ],
+                size_y: agent_view.spatial.size.y,
+                yaw: agent_view.spatial.yaw,
+                _padding: [0.0, 0.0, 0.0],
+            };
 
             group_map
-                .entry((entity_kind, nation_kind))
+                .entry((agent_view.entity_kind, agent_view.nation_kind))
                 .or_default()
-                .push(EntityRenderData {
-                    entity_id: agent_view.id,
-                    world_position,
-                    rotation,
-                });
+                .push(entity_instance_data);
         }
 
-        entity_render_data_group_vec.extend(group_map.into_iter());
+        entity_instance_data_group_vec.extend(group_map.into_iter());
     }
 
     pub fn render(
@@ -433,19 +430,7 @@ impl PopulationRender {
 
         let mut offset_bytes = 0;
 
-        for (kind, entity_render_data_vec) in &population_render.entity_render_data_group_vec {
-            let entity_instance_data_vec: Vec<_> = entity_render_data_vec
-                .iter()
-                .map(|entity_instance_data| EntityInstanceData {
-                    position_and_yaw: [
-                        entity_instance_data.world_position.x,
-                        entity_instance_data.world_position.y - BLOCK_RADIUS,
-                        entity_instance_data.world_position.z,
-                        entity_instance_data.rotation,
-                    ],
-                })
-                .collect();
-
+        for (kind, entity_instance_data_vec) in &population_render.entity_instance_data_group_vec {
             let byte_len = (entity_instance_data_vec.len()
                 * std::mem::size_of::<EntityInstanceData>())
                 as wgpu::BufferAddress;
