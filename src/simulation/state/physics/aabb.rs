@@ -32,6 +32,14 @@ impl AABB {
         self.max - self.min
     }
 
+    pub fn set_size(&mut self, size: Vec3) {
+        let center = self.center();
+        let half_size = size * 0.5;
+
+        self.min = center - half_size;
+        self.max = center + half_size;
+    }
+
     pub fn center(&self) -> Vec3 {
         (self.min + self.max) * 0.5
     }

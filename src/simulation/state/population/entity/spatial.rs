@@ -31,4 +31,8 @@ impl Spatial {
     pub fn right(&self) -> Vec3 {
         self.quaternion * Vec3::X
     }
+
+    pub fn eye(&self) -> Vec3 {
+        self.world_position + self.up() * 0.9 * self.size.y
+    }
 }

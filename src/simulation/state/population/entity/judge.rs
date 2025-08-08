@@ -48,11 +48,12 @@ impl Judge {
     ) {
         spatial.world_position = world_position;
 
-        Detection::set_world_position(world_position, &mut detection.body);
+        Detection::set_world_position(world_position, detection);
     }
 
     pub fn set_size(size: Vec3, spatial: &mut Spatial, detection: &mut Detection) {
         spatial.size = size;
+        
         detection.body = AABB::new(detection.body.center(), size);
     }
 
@@ -75,10 +76,6 @@ impl Judge {
             kinematic.velocity.x = new_velocity_xz.x;
             kinematic.velocity.z = new_velocity_xz.z;
         }
-    }
-
-    pub fn eye(&self) -> Vec3 {
-        self.spatial.world_position + self.spatial.up() * 0.9 * self.spatial.size.y
     }
 
     pub fn apply_movement_data(movement_data: &MovementData, judge: &mut Judge) {

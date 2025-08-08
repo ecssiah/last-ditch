@@ -2,7 +2,6 @@ use crate::simulation::{
     consts::*,
     state::{
         compute::task,
-        physics::aabb::AABB,
         population::{
             entity::{
                 self,
@@ -81,12 +80,13 @@ impl Agent {
     ) {
         spatial.world_position = world_position;
 
-        Detection::set_world_position(world_position, &mut detection.body);
+        Detection::set_world_position(world_position, detection);
     }
 
     pub fn set_size(size: Vec3, spatial: &mut Spatial, detection: &mut Detection) {
         spatial.size = size;
-        detection.body = AABB::new(detection.body.center(), size);
+
+        Detection::set_size(size, detection);
     }
 
     pub fn tick(world: &World, agent: &mut Agent, compute: &mut Compute) {

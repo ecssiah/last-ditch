@@ -438,7 +438,7 @@ impl World {
 
         let view_radius = 6;
         let view_direction = judge.spatial.forward();
-        let view_origin = judge.eye() + judge.spatial.forward() * -8.0;
+        let view_origin = judge.spatial.eye() + judge.spatial.forward() * -8.0;
 
         for x in -view_radius..=view_radius {
             for y in -view_radius + 1..=view_radius - 1 {

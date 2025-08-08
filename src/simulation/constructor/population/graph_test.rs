@@ -43,7 +43,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     );
 
     Agent::set_size(
-        Vec3::new(0.3, 4.0, 0.3),
+        Vec3::new(0.3, 2.5, 0.3),
         &mut pathfinding_agent1.spatial,
         &mut pathfinding_agent1.detection,
     );
@@ -55,7 +55,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     );
 
     Agent::set_size(
-        Vec3::new(0.3, 3.0, 0.3),
+        Vec3::new(0.3, 2.0, 0.3),
         &mut pathfinding_agent2.spatial,
         &mut pathfinding_agent2.detection,
     );
@@ -67,7 +67,7 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     );
 
     Agent::set_size(
-        Vec3::new(0.3, 2.0, 0.3),
+        Vec3::new(0.3, 1.5, 0.3),
         &mut pathfinding_agent3.spatial,
         &mut pathfinding_agent3.detection,
     );

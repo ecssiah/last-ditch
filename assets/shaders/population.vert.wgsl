@@ -22,7 +22,12 @@ struct VertexOutput {
 
 @vertex
 fn main(input: VertexInput) -> VertexOutput {
-    let model_matrix = get_model_matrix(input.instance_world_position, input.instance_size_y, input.instance_yaw);
+    let model_matrix = get_model_matrix(
+        input.instance_world_position, 
+        input.instance_size_y, 
+        input.instance_yaw
+    );
+
     let mvp_matrix = camera_uniform_data.view_projection_matrix * model_matrix;
 
     var output: VertexOutput;
@@ -33,14 +38,14 @@ fn main(input: VertexInput) -> VertexOutput {
     return output;
 }
 
-fn get_model_matrix(position: vec3<f32>, size_y: f32, yaw: f32) -> mat4x4<f32> {
-    let cos_y = cos(yaw);
-    let sin_y = sin(yaw);
+fn get_model_matrix(world_position: vec3<f32>, size_y: f32, yaw: f32) -> mat4x4<f32> {
+    let cos_yaw = cos(yaw);
+    let sin_yaw = sin(yaw);
 
     let rotation = mat4x4<f32>(
-        vec4<f32>(cos_y, 0.0, -sin_y, 0.0),
+        vec4<f32>(cos_yaw, 0.0, -sin_yaw, 0.0),
         vec4<f32>(0.0, 1.0, 0.0, 0.0),
-        vec4<f32>(sin_y, 0.0, cos_y, 0.0),
+        vec4<f32>(sin_yaw, 0.0, cos_yaw, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0),
     );
 
@@ -48,7 +53,7 @@ fn get_model_matrix(position: vec3<f32>, size_y: f32, yaw: f32) -> mat4x4<f32> {
         vec4<f32>(1.0, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, 1.0, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, 1.0, 0.0),
-        vec4<f32>(position, 1.0),
+        vec4<f32>(world_position, 1.0),
     );
 
     let scale_x = size_y;
