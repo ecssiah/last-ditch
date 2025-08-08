@@ -2,6 +2,8 @@
 
 use std::{f32::consts::FRAC_PI_2, time::Duration};
 
+pub const GOLDEN_ANGLE: f32 = 2.3999632;
+
 pub const TESTING: bool = true;
 
 pub const PROJECT_TITLE: &str = "Last Ditch";

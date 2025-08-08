@@ -6,6 +6,7 @@ pub mod info;
 pub mod judge;
 pub mod kind;
 pub mod kinematic;
+pub mod sight;
 pub mod spatial;
 
 pub use agent::Agent;
@@ -16,4 +17,5 @@ pub use info::Info;
 pub use judge::Judge;
 pub use kind::Kind;
 pub use kinematic::Kinematic;
+pub use sight::Sight;
 pub use spatial::Spatial;

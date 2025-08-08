@@ -3,7 +3,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::{
-            entity::{self, Detection, Info, Kinematic, Spatial},
+            entity::{self, Detection, Info, Kinematic, Sight, Spatial},
             nation,
         },
         receiver::action::{JumpAction, MovementData},
@@ -16,6 +16,7 @@ pub struct Judge {
     pub info: entity::Info,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
+    pub sight: Sight,
     pub detection: Detection,
 }
 
@@ -29,16 +30,23 @@ impl Judge {
             nation_kind: nation::Kind::Eagle,
         };
 
+        let spatial = Spatial::new();
+        let kinematic = Kinematic::new();
+        let sight = Sight::new(100.0, 60.0);
+        let detection = Detection::new();
+
         Self {
             info,
-            spatial: Spatial::new(),
-            kinematic: Kinematic::new(),
-            detection: Detection::new(),
+            spatial,
+            kinematic,
+            sight,
+            detection,
         }
     }
 
-    pub fn tick(judge: &mut Judge, world: &World) {
-        Info::update_chunk_id(&judge.spatial, &world.grid, &mut judge.info);
+    pub fn tick(world: &World, judge: &mut Judge) {
+        Info::tick(world, &judge.spatial, &mut judge.info);
+        Sight::tick(world, &judge.spatial, &mut judge.sight);
     }
 
     pub fn set_world_position(
@@ -53,7 +61,7 @@ impl Judge {
 
     pub fn set_size(size: Vec3, spatial: &mut Spatial, detection: &mut Detection) {
         spatial.size = size;
-        
+
         detection.body = AABB::new(detection.body.center(), size);
     }
 

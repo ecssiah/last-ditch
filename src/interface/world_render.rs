@@ -23,8 +23,8 @@ pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
     pub block_tile_coordinates_map: HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
-    pub render_pipeline: wgpu::RenderPipeline,
     pub chunk_render_data_vec: Vec<ChunkRenderData>,
+    pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl WorldRender {
@@ -44,20 +44,20 @@ impl WorldRender {
         let tile_atlas_texture_bind_group =
             Self::create_texture_bind_group(&gpu_context.device, &tile_atlas_texture_data);
 
+        let chunk_render_data_vec = Vec::new();
+
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
             &texture_bind_group_layout,
         );
 
-        let chunk_render_data_vec = Vec::new();
-
         Self {
             block_render_info,
             block_tile_coordinates_map,
             tile_atlas_texture_bind_group,
-            render_pipeline,
             chunk_render_data_vec,
+            render_pipeline,
         }
     }
 

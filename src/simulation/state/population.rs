@@ -72,6 +72,6 @@ impl Population {
             Agent::tick(world, agent, compute);
         }
 
-        Judge::tick(&mut population.judge, world);
+        Judge::tick(world, &mut population.judge);
     }
 }

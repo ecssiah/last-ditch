@@ -117,7 +117,7 @@ impl State {
     }
 
     fn tick_simulate(action_vec: Vec<Action>, state: &mut State) {
-        Self::apply_simulate_actions(state, action_vec);
+        Self::apply_simulate_action_vec(state, action_vec);
 
         Time::tick(&mut state.time);
         Population::tick(&state.world, &mut state.population, &mut state.compute);
@@ -125,7 +125,7 @@ impl State {
         Compute::tick(&mut state.compute, &mut state.population);
     }
 
-    fn apply_simulate_actions(state: &mut State, action_vec: Vec<Action>) {
+    fn apply_simulate_action_vec(state: &mut State, action_vec: Vec<Action>) {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {

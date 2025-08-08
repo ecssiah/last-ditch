@@ -17,17 +17,19 @@ use obj::load_obj;
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
-    pub entity_instance_buffer: wgpu::Buffer,
-    pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<wgpu::BindGroup>>,
     pub mesh_data_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<MeshData>>,
-    pub render_pipeline: wgpu::RenderPipeline,
+    pub entity_instance_buffer: wgpu::Buffer,
     pub entity_instance_data_group_vec:
         Vec<((entity::Kind, nation::Kind), Vec<EntityInstanceData>)>,
+    pub texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub texture_bind_group_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<wgpu::BindGroup>>,
+    pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
+        let mesh_data_arc_map = Self::load_mesh_data_arc_map(&gpu_context.device);
+
         let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Entity Instance Buffer"),
             size: (SIMULATION_MAX_ENTITIES * std::mem::size_of::<EntityInstanceData>())
@@ -36,11 +38,11 @@ impl PopulationRender {
             mapped_at_creation: false,
         });
 
+        let entity_instance_data_group_vec = Vec::new();
+
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
         let texture_bind_group_arc_map =
             Self::load_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
-
-        let mesh_data_arc_map = Self::load_mesh_data_arc_map(&gpu_context.device);
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -48,15 +50,13 @@ impl PopulationRender {
             &texture_bind_group_layout,
         );
 
-        let entity_instance_data_group_vec = Vec::new();
-
         Self {
-            entity_instance_buffer,
             mesh_data_arc_map,
+            entity_instance_buffer,
+            entity_instance_data_group_vec,
             texture_bind_group_layout,
             texture_bind_group_arc_map,
             render_pipeline,
-            entity_instance_data_group_vec,
         }
     }
 

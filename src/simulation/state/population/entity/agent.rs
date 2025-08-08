@@ -90,7 +90,7 @@ impl Agent {
     }
 
     pub fn tick(world: &World, agent: &mut Agent, compute: &mut Compute) {
-        Info::tick(world, agent);
+        Info::tick(world, &agent.spatial, &mut agent.info);
         Decision::tick(world, agent);
 
         if let Some(plan) = agent

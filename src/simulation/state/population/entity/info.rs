@@ -1,5 +1,8 @@
 use crate::simulation::state::{
-    population::{entity::{self, Agent, Spatial}, nation},
+    population::{
+        entity::{self, Spatial},
+        nation,
+    },
     world::{chunk, grid::Grid},
     World,
 };
@@ -14,11 +17,11 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn tick(world: &World, agent: &mut Agent) {
-        Self::update_chunk_id(&agent.spatial, &world.grid, &mut agent.info);
+    pub fn tick(world: &World, spatial: &Spatial, info: &mut Info) {
+        Self::update_chunk_id(&world.grid, spatial, info);
     }
 
-    pub fn update_chunk_id(spatial: &Spatial, grid: &Grid, info: &mut Info) {
+    pub fn update_chunk_id(grid: &Grid, spatial: &Spatial, info: &mut Info) {
         let chunk_id = Grid::world_to_chunk_id(grid, spatial.world_position);
 
         if chunk_id != info.chunk_id {
