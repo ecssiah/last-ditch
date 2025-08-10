@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::grid::{self, VoxelSample},
+    world::grid::{self, BlockSample, Grid},
     World,
 };
 use glam::{IVec3, Vec3};
@@ -11,18 +11,15 @@ pub struct WorldRayIter<'w> {
     origin: Vec3,
     direction: Vec3,
     max_t: f32,
-    voxel_indices: IVec3,
+    position: IVec3,
     step: IVec3,
     t_remaining: Vec3,
     t_delta: Vec3,
-    block_size: f32,
-    block_extent: f32,
-    world_aabb: AABB,
     done: bool,
 }
 
 impl<'w> WorldRayIter<'w> {
-    /// Walk voxels intersected by origin + t*dir for t ∈ [0, distance], world-bounds clipped.
+    /// Walk voxels intersected by origin + t * direction for t ∈ [0, distance], world-bounds clipped.
     pub fn new(world: &'w World, origin: Vec3, direction: Vec3, distance: f32) -> Option<Self> {
         if !direction.is_finite() || direction == Vec3::ZERO || distance <= 0.0 {
             return None;
@@ -32,8 +29,10 @@ impl<'w> WorldRayIter<'w> {
         let block_size = grid.block_size;
         let block_extent = grid.block_extent;
 
-        let world_aabb = AABB::new(Vec3::ZERO, Vec3::splat(grid.world_size_units));
-        let (mut t0, mut t1) = ray_box_slab(origin, direction, world_aabb.min, world_aabb.max);
+        let world_center = Vec3::ZERO;
+        let world_aabb = AABB::new(world_center, Vec3::splat(grid.world_size_units));
+
+        let (mut t0, mut t1) = ray_box_slab(origin, direction, &world_aabb);
 
         if !t0.is_finite() || !t1.is_finite() {
             return None;
@@ -46,42 +45,57 @@ impl<'w> WorldRayIter<'w> {
             return None;
         }
 
-        let eps = 1e-4;
-        let mut t = (t0 + eps).min(t1);
-        let p = origin + direction * t;
+        let epsilon = 1e-4;
+        let t_start = (t0 + epsilon).min(t1);
+        let world_position = origin + direction * t_start;
 
-        let (ix, iy, iz) = grid.world_pos_to_world_ixyz(p)?; // returns (i32,i32,i32) in 0..Wx/Hx/Dx
+        let position = Grid::world_to_position(&world.grid, world_position);
 
-        let voxel_indices = IVec3::default();
-        let step = IVec3::default();
-        let t_remaining = Vec3::default();
-        let t_delta = Vec3::default();
+        let (sx, tdx, tx) = dda_axis_setup(
+            position.x,
+            world_position.x,
+            direction.x,
+            block_extent,
+            block_size,
+        );
 
-        // Per-axis DDA setup in world coords
-        let (sx, tdx, tx) = dda_axis_setup(p.x, direction.x, block_size, block_extent);
-        let (sy, tdy, ty) = dda_axis_setup(p.y, direction.y, block_size, block_extent);
-        let (sz, tdz, tz) = dda_axis_setup(p.z, direction.z, block_size, block_extent);
+        let (sy, tdy, ty) = dda_axis_setup(
+            position.y,
+            world_position.y,
+            direction.y,
+            block_extent,
+            block_size,
+        );
+
+        let (sz, tdz, tz) = dda_axis_setup(
+            position.z,
+            world_position.z,
+            direction.z,
+            block_extent,
+            block_size,
+        );
+
+        let step = IVec3::new(sx, sy, sz);
+        let t_remaining = Vec3::new(tx, ty, tz);
+        let t_delta = Vec3::new(tdx, tdy, tdz);
 
         Some(Self {
             world,
+            t: t_start,
             origin,
             direction,
-            t,
             max_t: t1,
-            voxel_indices,
+            position,
             step,
             t_delta,
             t_remaining,
-            block_size,
-            block_extent,
-            world_aabb,
             done: false,
         })
     }
 }
 
 impl<'w> Iterator for WorldRayIter<'w> {
-    type Item = VoxelSample;
+    type Item = BlockSample;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done {
@@ -91,15 +105,16 @@ impl<'w> Iterator for WorldRayIter<'w> {
         let grid = &self.world.grid;
 
         loop {
-            // Stop when we exceed the permitted segment
-            if !self.tx.is_finite() && !self.ty.is_finite() && !self.tz.is_finite() {
+            if !self.t_remaining.x.is_finite()
+                && !self.t_remaining.y.is_finite()
+                && !self.t_remaining.z.is_finite()
+            {
                 self.done = true;
                 return None;
             }
 
-            // Choose next boundary crossing (X→Y→Z tiebreak)
-            let (axis, step, tnext) =
-                min3_axis(self.tx, self.ty, self.tz, self.sx, self.sy, self.sz);
+            let (axis, step_axis, tnext) = min3_axis(self.t_remaining, self.step);
+
             if !tnext.is_finite() || tnext > self.max_t {
                 self.done = true;
                 return None;
@@ -107,55 +122,39 @@ impl<'w> Iterator for WorldRayIter<'w> {
 
             self.t = tnext;
 
-            // Advance accumulators and world voxel index
             match axis {
                 0 => {
-                    self.tx += self.tdx;
-                    self.ix += self.sx;
+                    self.t_remaining.x += self.t_delta.x;
+                    self.position.x += step_axis;
                 }
                 1 => {
-                    self.ty += self.tdy;
-                    self.iy += self.sy;
+                    self.t_remaining.y += self.t_delta.y;
+                    self.position.y += step_axis;
                 }
                 _ => {
-                    self.tz += self.tdz;
-                    self.iz += self.sz;
+                    self.t_remaining.z += self.t_delta.z;
+                    self.position.z += step_axis;
                 }
             }
 
-            // Bounds check in WORLD voxel space
-            if !grid.world_ixyz_in_bounds(self.ix, self.iy, self.iz) {
+            if !Grid::position_valid(grid, self.position) {
                 self.done = true;
                 return None;
             }
 
-            // Face we just entered (opposite of step)
-            let enter_face = face_from_axis_step(
-                axis,
-                match axis {
-                    0 => self.sx,
-                    1 => self.sy,
-                    _ => self.sz,
-                },
-            );
+            let enter_face_direction = face_from_axis_step(axis, step_axis);
 
-            // Derive chunk + chunk-local from WORLD voxel coord (no branching here)
-            let cid = grid.chunk_id_from_world_ixyz(self.ix, self.iy, self.iz);
-            let (lx, ly, lz) = grid.chunk_local_from_world_ixyz(self.ix, self.iy, self.iz);
-            let n = grid.chunk_size_blocks as usize;
-            let local_id = (lx as usize) + (ly as usize) * n + (lz as usize) * n * n;
+            let (chunk_id, block_id) = Grid::position_to_ids(grid, self.position);
 
-            let pos = self.origin + self.dir * self.t;
+            let world_position = self.origin + self.direction * self.t;
 
-            return Some(VoxelSample {
-                chunk_id: cid,
-                ix: lx,
-                iy: ly,
-                iz: lz, // expose chunk-local here (aligns with the rest of your code)
-                local_id,
-                enter_face,
+            return Some(BlockSample {
                 t: self.t,
-                pos,
+                position: self.position,
+                world_position,
+                chunk_id,
+                block_id,
+                enter_face_direction,
             });
         }
     }
@@ -164,29 +163,29 @@ impl<'w> Iterator for WorldRayIter<'w> {
 /* ================= helpers (private) ================= */
 
 #[inline]
-fn ray_box_slab(origin: Vec3, dir: Vec3, bmin: Vec3, bmax: Vec3) -> (f32, f32) {
-    // (standard slab test; same as we discussed earlier)
-    let (tx0, tx1) = axis_slab(origin.x, dir.x, bmin.x, bmax.x)?;
-    let (ty0, ty1) = axis_slab(origin.y, dir.y, bmin.y, bmax.y)?;
-    let (tz0, tz1) = axis_slab(origin.z, dir.z, bmin.z, bmax.z)?;
+fn ray_box_slab(origin: Vec3, direction: Vec3, slab_aabb: &AABB) -> (f32, f32) {
+    let (tx0, tx1) = axis_slab(origin.x, direction.x, slab_aabb.min.x, slab_aabb.max.x);
+    let (ty0, ty1) = axis_slab(origin.y, direction.y, slab_aabb.min.y, slab_aabb.max.y);
+    let (tz0, tz1) = axis_slab(origin.z, direction.z, slab_aabb.min.z, slab_aabb.max.z);
 
     let t_enter = tx0.max(ty0).max(tz0);
     let t_exit = tx1.min(ty1).min(tz1);
 
-    if t_enter > t_exit {
+    if !t_enter.is_finite() || !t_exit.is_finite() || t_enter > t_exit {
         return (f32::NAN, f32::NAN);
     }
 
     (t_enter, t_exit)
 }
+
 #[inline]
-fn axis_slab(o: f32, d: f32, mn: f32, mx: f32) -> Option<(f32, f32)> {
+fn axis_slab(o: f32, d: f32, mn: f32, mx: f32) -> (f32, f32) {
     if d == 0.0 {
-        return if o < mn || o > mx {
-            None
+        if o < mn || o > mx {
+            return (f32::NAN, f32::NAN);
         } else {
-            Some((f32::NEG_INFINITY, f32::INFINITY))
-        };
+            return (f32::NEG_INFINITY, f32::INFINITY);
+        }
     }
 
     let inv = 1.0 / d;
@@ -197,71 +196,77 @@ fn axis_slab(o: f32, d: f32, mn: f32, mx: f32) -> Option<(f32, f32)> {
         core::mem::swap(&mut t0, &mut t1);
     }
 
-    Some((t0, t1))
+    (t0, t1)
 }
 
 #[inline]
-fn dda_axis_setup(pos: f32, dir: f32, block_size: f32, r: f32) -> (i32, f32, f32) {
+fn dda_axis_setup(
+    axis_position: i32,
+    axis_world_position: f32,
+    axis_direction: f32,
+    block_extent: f32,
+    block_size: f32,
+) -> (i32, f32, f32) {
     use core::f32::INFINITY;
 
-    let step = if dir > 0.0 {
+    let step = if axis_direction > 0.0 {
         1
-    } else if dir < 0.0 {
+    } else if axis_direction < 0.0 {
         -1
     } else {
         return (0, INFINITY, INFINITY);
     };
 
-    // first plane ahead in step direction (planes at k±r)
-    let next_face = if step > 0 {
-        (pos - r).ceil() + r
-    } else {
-        (pos + r).floor() - r
-    };
+    let next_face_world_position = (axis_position as f32)
+        + if step > 0 {
+            block_extent
+        } else {
+            -block_extent
+        };
 
-    let t_max = (next_face - pos) / dir;
-    let t_delta = block_size / dir.abs();
+    let t_max = (next_face_world_position - axis_world_position) / axis_direction;
+    let t_delta = block_size / axis_direction.abs();
 
     (step, t_delta, t_max)
 }
 
 #[inline]
-fn min3_axis(tx: f32, ty: f32, tz: f32, sx: i32, sy: i32, sz: i32) -> (u8, i32, f32) {
-    let txp = if sx == 0 || !tx.is_finite() {
+fn min3_axis(t_remaining: Vec3, step: IVec3) -> (u8, i32, f32) {
+    let txp = if step.x == 0 || !t_remaining.x.is_finite() {
         f32::INFINITY
     } else {
-        tx
+        t_remaining.x
     };
 
-    let typ = if sy == 0 || !ty.is_finite() {
+    let typ = if step.y == 0 || !t_remaining.y.is_finite() {
         f32::INFINITY
     } else {
-        ty
+        t_remaining.y
     };
 
-    let tzp = if sz == 0 || !tz.is_finite() {
+    let tzp = if step.z == 0 || !t_remaining.z.is_finite() {
         f32::INFINITY
     } else {
-        tz
+        t_remaining.z
     };
 
     let mut axis: u8 = 0;
-    let mut step = sx;
+    let mut step_axis = step.x;
     let mut tnext = txp;
 
     if typ < tnext {
         axis = 1;
-        step = sy;
+        step_axis = step.y;
         tnext = typ;
     }
 
     if tzp < tnext {
         axis = 2;
-        step = sz;
+        step_axis = step.z;
         tnext = tzp;
     }
 
-    (axis, step, tnext)
+    (axis, step_axis, tnext)
 }
 
 #[inline]

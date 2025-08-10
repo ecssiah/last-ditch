@@ -4,9 +4,8 @@ use crate::simulation::{
         physics::aabb::AABB,
         population::entity::{self, Spatial},
         world::{
-            block::{self, Block},
             chunk,
-            grid::{self, Grid},
+            grid::{self},
         },
         World,
     },

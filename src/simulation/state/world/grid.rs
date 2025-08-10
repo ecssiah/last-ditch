@@ -1,11 +1,11 @@
 pub mod axis;
+pub mod block_sample;
 pub mod direction;
-pub mod voxel_sample;
 pub mod world_ray_iter;
 
 pub use axis::Axis;
+pub use block_sample::BlockSample;
 pub use direction::Direction;
-pub use voxel_sample::VoxelSample;
 pub use world_ray_iter::WorldRayIter;
 
 use crate::simulation::{
@@ -127,7 +127,7 @@ impl Grid {
         let world_volume_chunks = world_size_chunks * world_size_chunks * world_size_chunks;
 
         let world_extent_blocks = world_extent_chunks * chunk_size_blocks + chunk_extent_blocks;
-        let world_size_blocks = world_size_chunks * chunk_extent_blocks;
+        let world_size_blocks = world_size_chunks * chunk_size_blocks;
         let world_area_blocks = world_size_blocks * world_size_blocks;
         let world_volume_blocks = world_size_blocks * world_size_blocks * world_size_blocks;
 
