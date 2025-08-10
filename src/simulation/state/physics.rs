@@ -94,7 +94,7 @@ impl Physics {
     }
 
     fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        Grid::blocks_overlapping(aabb)
+        Grid::blocks_overlapping(&world.grid, aabb)
             .into_iter()
             .filter(|block_aabb| {
                 let block_position = block_aabb.center().as_ivec3();

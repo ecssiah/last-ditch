@@ -20,10 +20,7 @@ pub const SIMULATION_MAX_ENTITIES: usize = 500;
 pub const MOVEMENT_COST_STRAIGHT: u32 = 10;
 pub const MOVEMENT_COST_DIAGONAL: u32 = 14;
 
-pub const BLOCK_RADIUS: f32 = 0.5;
-pub const BLOCK_SIZE: f32 = 2.0 * BLOCK_RADIUS;
-pub const BLOCK_AREA: f32 = BLOCK_SIZE * BLOCK_SIZE;
-pub const BLOCK_VOLUME: f32 = BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE;
+pub const BLOCK_EXTENT: f32 = 0.5;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
 

@@ -1,4 +1,4 @@
-use crate::simulation::{consts::*, state::physics::aabb::AABB};
+use crate::simulation::state::physics::aabb::AABB;
 use glam::Vec3;
 use std::f32::EPSILON;
 
@@ -19,43 +19,31 @@ impl ApproxEqCase {
 
 #[test]
 fn approx_eq() {
-    let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE));
+    let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
 
     let test_cases = vec![
         ApproxEqCase {
             description: String::from("Equivalent AABBs"),
             aabb1,
-            aabb2: AABB::new(
-                Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
             expected_is_equal: true,
         },
         ApproxEqCase {
             description: "AABBs that differ only by 2.0 * EPSILON in center.x".to_string(),
             aabb1,
-            aabb2: AABB::new(
-                Vec3::new(2.0 * EPSILON, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb2: AABB::new(Vec3::new(2.0 * EPSILON, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
             expected_is_equal: false,
         },
         ApproxEqCase {
             description: "AABBs that differ only by 2.0 * EPSILON in center.y".to_string(),
             aabb1,
-            aabb2: AABB::new(
-                Vec3::new(0.0, 2.0 * EPSILON, 0.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb2: AABB::new(Vec3::new(0.0, 2.0 * EPSILON, 0.0), Vec3::new(1.0, 1.0, 1.0)),
             expected_is_equal: false,
         },
         ApproxEqCase {
             description: "AABBs that differ only by 2.0 * EPSILON in center.z".to_string(),
             aabb1,
-            aabb2: AABB::new(
-                Vec3::new(0.0, 0.0, 2.0 * EPSILON),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 2.0 * EPSILON), Vec3::new(1.0, 1.0, 1.0)),
             expected_is_equal: false,
         },
         ApproxEqCase {
@@ -63,7 +51,7 @@ fn approx_eq() {
             aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE + 4.0 * EPSILON, BLOCK_SIZE, BLOCK_SIZE),
+                Vec3::new(1.0 + 4.0 * EPSILON, 1.0, 1.0),
             ),
             expected_is_equal: false,
         },
@@ -72,7 +60,7 @@ fn approx_eq() {
             aabb1,
             aabb2: AABB::new(
                 Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE - 4.0 * EPSILON, BLOCK_SIZE, BLOCK_SIZE),
+                Vec3::new(1.0 - 4.0 * EPSILON, 1.0, 1.0),
             ),
             expected_is_equal: false,
         },

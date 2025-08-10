@@ -40,7 +40,7 @@ impl Graph {
     pub fn new(grid: &Grid, max_depth: usize) -> Self {
         Self {
             max_depth,
-            level_0: Level::new(0, grid.chunk_size as usize, grid.world_limit as usize),
+            level_0: Level::new(0, grid.chunk_size_blocks as usize, grid.world_extent_blocks as usize),
             level_vec: Vec::new(),
         }
     }
@@ -76,7 +76,7 @@ impl Graph {
 
     fn create_node(position: IVec3, level: &Level) -> Node {
         let region_position =
-            Self::get_region_position(position, level.region_size, level.world_limit);
+            Self::get_region_position(position, level.region_size, level.world_extent_blocks);
 
         let node = Node::new(position, region_position, level.depth);
 
@@ -166,16 +166,16 @@ impl Graph {
     }
 
     fn setup_level_0(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Level {
-        let mut level_0 = Level::new(0, 1, grid.world_limit as usize);
+        let mut level_0 = Level::new(0, 1, grid.world_extent_blocks as usize);
 
-        let chunk_radius = grid.chunk_radius as i32;
-        let chunk_size = grid.chunk_size as i32;
-        let world_radius = grid.world_radius as i32;
-        let world_limit = grid.world_limit as i32;
+        let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
+        let chunk_size_blocks = grid.chunk_size_blocks as i32;
+        let world_extent_chunks = grid.world_extent_chunks as i32;
+        let world_extent_blocks = grid.world_extent_blocks as i32;
 
-        for x in -world_limit..world_limit {
-            for y in -world_limit..world_limit {
-                for z in -world_limit..world_limit {
+        for x in -world_extent_blocks..world_extent_blocks {
+            for y in -world_extent_blocks..world_extent_blocks {
+                for z in -world_extent_blocks..world_extent_blocks {
                     let position = IVec3::new(x, y, z);
                     let clearance = World::get_clearance(position, grid, chunk_vec_slice);
 
@@ -187,14 +187,14 @@ impl Graph {
             }
         }
 
-        for cx in -world_radius..=world_radius {
-            for cy in -world_radius..=world_radius {
-                for cz in -world_radius..=world_radius {
-                    let chunk_position = IVec3::new(cx, cy, cz) * chunk_size;
+        for cx in -world_extent_chunks..=world_extent_chunks {
+            for cy in -world_extent_chunks..=world_extent_chunks {
+                for cz in -world_extent_chunks..=world_extent_chunks {
+                    let chunk_position = IVec3::new(cx, cy, cz) * chunk_size_blocks;
 
-                    for bx in -chunk_radius..=chunk_radius {
-                        for by in -chunk_radius..=chunk_radius {
-                            for bz in -chunk_radius..=chunk_radius {
+                    for bx in -chunk_extent_blocks..=chunk_extent_blocks {
+                        for by in -chunk_extent_blocks..=chunk_extent_blocks {
+                            for bz in -chunk_extent_blocks..=chunk_extent_blocks {
                                 let node1_position = chunk_position + IVec3::new(bx, by, bz);
 
                                 if let Some(node1) =
@@ -255,7 +255,7 @@ impl Graph {
     }
 
     fn setup_level_1(grid: &Grid, chunk_vec_slice: &[Chunk], level_0: &Level) -> Level {
-        let mut level = Level::new(1, grid.chunk_size as usize, grid.world_limit as usize);
+        let mut level = Level::new(1, grid.chunk_size_blocks as usize, grid.world_extent_blocks as usize);
 
         let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
 
@@ -268,11 +268,11 @@ impl Graph {
     fn setup_entrance_vec(grid: &Grid, chunk_vec_slice: &[Chunk]) -> Vec<Entrance> {
         let mut entrance_vec = Vec::new();
 
-        let world_radius = grid.world_radius as i32;
+        let world_extent_chunks = grid.world_extent_chunks as i32;
 
-        for x in -world_radius..world_radius {
-            for y in -world_radius..world_radius {
-                for z in -world_radius..world_radius {
+        for x in -world_extent_chunks..world_extent_chunks {
+            for y in -world_extent_chunks..world_extent_chunks {
+                for z in -world_extent_chunks..world_extent_chunks {
                     let chunk_coordinates = IVec3::new(x, y, z);
                     let chunk_position =
                         Grid::chunk_coordinates_to_position(grid, chunk_coordinates);
@@ -303,16 +303,16 @@ impl Graph {
     ) -> Vec<Entrance> {
         let mut entrance_vec = Vec::new();
 
-        let chunk_radius = grid.chunk_radius as i32;
-        let chunk_size = grid.chunk_size as i32;
-        let world_limit = grid.world_limit as i32;
+        let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
+        let chunk_size_blocks = grid.chunk_size_blocks as i32;
+        let world_extent_blocks = grid.world_extent_blocks as i32;
 
         let mut entrance_active = false;
         let mut visited_set = HashSet::new();
 
-        for by in -chunk_radius..=chunk_radius {
-            for bz in -chunk_radius..=chunk_radius {
-                let block_coordinates = IVec3::new(chunk_radius, by, bz);
+        for by in -chunk_extent_blocks..=chunk_extent_blocks {
+            for bz in -chunk_extent_blocks..=chunk_extent_blocks {
+                let block_coordinates = IVec3::new(chunk_extent_blocks, by, bz);
                 let block_position = chunk_position + block_coordinates;
 
                 if visited_set.contains(&block_position) {
@@ -345,14 +345,14 @@ impl Graph {
                             if !entrance_active {
                                 let region_position1 = Self::get_region_position(
                                     block_position,
-                                    chunk_size as usize,
-                                    world_limit as usize,
+                                    chunk_size_blocks as usize,
+                                    world_extent_blocks as usize,
                                 );
 
                                 let region_position2 = Self::get_region_position(
                                     test_position,
-                                    chunk_size as usize,
-                                    world_limit as usize,
+                                    chunk_size_blocks as usize,
+                                    world_extent_blocks as usize,
                                 );
 
                                 let entrance = Entrance::new(region_position1, region_position2);
@@ -394,15 +394,15 @@ impl Graph {
     ) -> Vec<Entrance> {
         let mut entrance_vec = Vec::new();
 
-        let chunk_radius = grid.chunk_radius as i32;
-        let chunk_size = grid.chunk_size as i32;
-        let world_limit = grid.world_limit as i32;
+        let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
+        let chunk_size_blocks = grid.chunk_size_blocks as i32;
+        let world_extent_blocks = grid.world_extent_blocks as i32;
 
         let mut candidate_map = HashMap::new();
 
-        for bz in -chunk_radius..=chunk_radius {
-            for bx in -chunk_radius..=chunk_radius {
-                let block_position = chunk_position + IVec3::new(bx, chunk_radius, bz);
+        for bz in -chunk_extent_blocks..=chunk_extent_blocks {
+            for bx in -chunk_extent_blocks..=chunk_extent_blocks {
+                let block_position = chunk_position + IVec3::new(bx, chunk_extent_blocks, bz);
                 let block_clearance = World::get_clearance(block_position, grid, chunk_vec_slice);
 
                 if block_clearance >= MINIMUM_CLEARANCE {
@@ -465,14 +465,14 @@ impl Graph {
 
             let region_position1 = Self::get_region_position(
                 start_position,
-                chunk_size as usize,
-                world_limit as usize,
+                chunk_size_blocks as usize,
+                world_extent_blocks as usize,
             );
 
             let region_position2 = Self::get_region_position(
                 start_position + IVec3::Y,
-                chunk_size as usize,
-                world_limit as usize,
+                chunk_size_blocks as usize,
+                world_extent_blocks as usize,
             );
 
             let mut entrance = Entrance::new(region_position1, region_position2);
@@ -500,16 +500,16 @@ impl Graph {
     ) -> Vec<Entrance> {
         let mut entrance_vec = Vec::new();
 
-        let chunk_radius = grid.chunk_radius as i32;
-        let chunk_size = grid.chunk_size as i32;
-        let world_limit = grid.world_limit as i32;
+        let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
+        let chunk_size_blocks = grid.chunk_size_blocks as i32;
+        let world_extent_blocks = grid.world_extent_blocks as i32;
 
         let mut entrance_active = false;
         let mut visited_set = HashSet::new();
 
-        for by in -chunk_radius..=chunk_radius {
-            for bx in -chunk_radius..=chunk_radius {
-                let block_coordinates = IVec3::new(bx, by, chunk_radius);
+        for by in -chunk_extent_blocks..=chunk_extent_blocks {
+            for bx in -chunk_extent_blocks..=chunk_extent_blocks {
+                let block_coordinates = IVec3::new(bx, by, chunk_extent_blocks);
                 let block_position = chunk_position + block_coordinates;
 
                 if visited_set.contains(&block_position) {
@@ -542,14 +542,14 @@ impl Graph {
                             if !entrance_active {
                                 let region_position1 = Self::get_region_position(
                                     block_position,
-                                    chunk_size as usize,
-                                    world_limit as usize,
+                                    chunk_size_blocks as usize,
+                                    world_extent_blocks as usize,
                                 );
 
                                 let region_position2 = Self::get_region_position(
                                     test_position,
-                                    chunk_size as usize,
-                                    world_limit as usize,
+                                    chunk_size_blocks as usize,
+                                    world_extent_blocks as usize,
                                 );
 
                                 let entrance = Entrance::new(region_position1, region_position2);
@@ -622,17 +622,17 @@ impl Graph {
         }
     }
 
-    fn get_region_position(node_position: IVec3, region_size: usize, world_limit: usize) -> IVec3 {
+    fn get_region_position(node_position: IVec3, region_size: usize, world_extent_blocks: usize) -> IVec3 {
         if region_size == 1 {
             node_position
         } else {
             let region_size = region_size as i32;
-            let world_limit = world_limit as i32;
+            let world_extent_blocks = world_extent_blocks as i32;
 
-            let node_position_indexable = node_position + world_limit;
+            let node_position_indexable = node_position + world_extent_blocks;
             let region_coordinates = (node_position_indexable / region_size) * region_size;
 
-            region_coordinates - world_limit
+            region_coordinates - world_extent_blocks
         }
     }
 

@@ -33,12 +33,12 @@ fn block_id_valid() {
         },
         BlockIDValidCase {
             description: "block_id max".to_string(),
-            block_id: block::ID(world.grid.block_index_max),
+            block_id: block::ID(world.grid.world_volume_blocks - 1),
             expected_valid: true,
         },
         BlockIDValidCase {
             description: "block_id max + 1".to_string(),
-            block_id: block::ID(world.grid.block_index_max + 1),
+            block_id: block::ID(world.grid.world_volume_blocks - 1 + 1),
             expected_valid: false,
         },
     ];
@@ -77,12 +77,12 @@ fn chunk_id_valid() {
         },
         ChunkIDValidCase {
             description: "chunk_id max".to_string(),
-            chunk_id: chunk::ID(world.grid.chunk_index_max),
+            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
             expected_valid: true,
         },
         ChunkIDValidCase {
             description: "chunk_id max + 1".to_string(),
-            chunk_id: chunk::ID(world.grid.chunk_index_max + 1),
+            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1 + 1),
             expected_valid: false,
         },
     ];
@@ -113,7 +113,7 @@ fn position_valid() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_limit = world.grid.world_limit as i32;
+    let world_extent_blocks = world.grid.world_extent_blocks as i32;
 
     let test_cases = vec![
         PositionValidCase {
@@ -122,23 +122,23 @@ fn position_valid() {
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_limit, world_limit, world_limit)".to_string(),
-            position: IVec3::splat(world_limit),
+            description: "(world_extent_blocks, world_extent_blocks, world_extent_blocks)".to_string(),
+            position: IVec3::splat(world_extent_blocks),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(-world_limit, -world_limit, -world_limit)".to_string(),
-            position: IVec3::splat(-world_limit),
+            description: "(-world_extent_blocks, -world_extent_blocks, -world_extent_blocks)".to_string(),
+            position: IVec3::splat(-world_extent_blocks),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_limit + 1, world_limit + 1, world_limit + 1)".to_string(),
-            position: IVec3::splat(world_limit + 1),
+            description: "(world_extent_blocks + 1, world_extent_blocks + 1, world_extent_blocks + 1)".to_string(),
+            position: IVec3::splat(world_extent_blocks + 1),
             expected_valid: false,
         },
         PositionValidCase {
-            description: "(-world_limit - 1, -world_limit - 1, -world_limit - 1)".to_string(),
-            position: IVec3::splat(-world_limit - 1),
+            description: "(-world_extent_blocks - 1, -world_extent_blocks - 1, -world_extent_blocks - 1)".to_string(),
+            position: IVec3::splat(-world_extent_blocks - 1),
             expected_valid: false,
         },
     ];

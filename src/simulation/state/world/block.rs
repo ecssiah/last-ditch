@@ -8,13 +8,10 @@ pub use id::ID;
 pub use info::Info;
 pub use kind::Kind;
 
-use crate::simulation::{
-    consts::BLOCK_SIZE,
-    state::{
+use crate::simulation::state::{
         physics::aabb::AABB,
-        world::{chunk, grid},
-    },
-};
+        world::{chunk, grid::{self, Grid}},
+    };
 use glam::{IVec3, Vec3};
 
 #[derive(Clone, Debug)]
@@ -39,10 +36,22 @@ impl Block {
         ]
     }
 
-    pub fn aabb(x: i32, y: i32, z: i32) -> AABB {
+    pub fn get_face(direction: grid::Direction, face_array: &[Face; 6]) -> &Face {
+        match direction {
+            grid::Direction::XpYoZo => &face_array[0],
+            grid::Direction::XnYoZo => &face_array[1],
+            grid::Direction::XoYpZo => &face_array[2],
+            grid::Direction::XoYnZo => &face_array[3],
+            grid::Direction::XoYoZp => &face_array[4],
+            grid::Direction::XoYoZn => &face_array[5],
+            _ => panic!("Requested a non-existent Face"),
+        }
+    }
+
+    pub fn aabb(x: i32, y: i32, z: i32, grid: &Grid) -> AABB {
         AABB::new(
             Vec3::new(x as f32, y as f32, z as f32),
-            Vec3::splat(BLOCK_SIZE),
+            Vec3::splat(grid.block_size),
         )
     }
 }

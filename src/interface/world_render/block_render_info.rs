@@ -1,4 +1,4 @@
-use crate::simulation::{self, consts::BLOCK_RADIUS, state::world::grid};
+use crate::simulation::{self, consts::BLOCK_EXTENT, state::world::grid};
 use glam::{IVec3, UVec2};
 use std::collections::HashMap;
 
@@ -239,40 +239,40 @@ impl BlockRenderInfo {
 
         match direction {
             grid::Direction::XpYoZo => [
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
             ],
             grid::Direction::XnYoZo => [
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
             ],
             grid::Direction::XoYpZo => [
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
             ],
             grid::Direction::XoYnZo => [
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
             ],
             grid::Direction::XoYoZp => [
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z + BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z + BLOCK_RADIUS],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
             ],
             grid::Direction::XoYoZn => [
-                [position.x + BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x + BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y - BLOCK_RADIUS, position.z - BLOCK_RADIUS],
-                [position.x - BLOCK_RADIUS, position.y + BLOCK_RADIUS, position.z - BLOCK_RADIUS],
+                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
             ],
             _ => panic!("Invalid face direction"),
         }
@@ -283,14 +283,10 @@ impl BlockRenderInfo {
         tile_size: u32,
         tile_atlas_size: UVec2,
     ) -> [[f32; 2]; 4] {
-        let block_size = simulation::consts::BLOCK_SIZE as u32;
-
         let u_min = (tile_coordinates[0] * tile_size) as f32 / tile_atlas_size.x as f32;
         let v_min = (tile_coordinates[1] * tile_size) as f32 / tile_atlas_size.y as f32;
-        let u_max =
-            ((tile_coordinates[0] + block_size) * tile_size) as f32 / tile_atlas_size.x as f32;
-        let v_max =
-            ((tile_coordinates[1] + block_size) * tile_size) as f32 / tile_atlas_size.y as f32;
+        let u_max = ((tile_coordinates[0] + 1) * tile_size) as f32 / tile_atlas_size.x as f32;
+        let v_max = ((tile_coordinates[1] + 1) * tile_size) as f32 / tile_atlas_size.y as f32;
 
         [
             [u_max, v_max],

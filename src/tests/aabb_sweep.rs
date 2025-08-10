@@ -1,4 +1,4 @@
-use crate::simulation::{consts::*, state::physics::aabb::AABB};
+use crate::simulation::state::physics::aabb::AABB;
 use glam::Vec3;
 use std::f32::EPSILON;
 
@@ -24,30 +24,21 @@ fn equal() {
     let test_cases = vec![
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (-1, -1, -1) to block at (-1, -1, -1)".to_string(),
-            aabb1: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(-1.0, -1.0, -1.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (1, 1, 1) to block at (1, 1, 1)".to_string(),
-            aabb1: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(1.0, 1.0, 1.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0)),
         },
     ];
 
@@ -61,48 +52,33 @@ fn x_axis() {
     let test_cases = vec![
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0.5, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.25, 0.0, 0.0),
-                Vec3::new(1.5 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.25, 0.0, 0.0), Vec3::new(1.5 * 1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (1, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.5, 0.0, 0.0),
-                Vec3::new(2.0 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::new(2.0 * 1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (2.0, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(2.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(1.0, 0.0, 0.0),
-                Vec3::new(3.0 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(2.0, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::new(3.0 * 1.0, 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (-1, 0, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(-0.5, 0.0, 0.0),
-                Vec3::new(2.0 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::new(2.0 * 1.0, 1.0, 1.0)),
         },
     ];
 
@@ -116,39 +92,27 @@ fn y_axis() {
     let test_cases = vec![
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0.5, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.25, 0.0),
-                Vec3::new(BLOCK_SIZE, 1.5 * BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.25, 0.0), Vec3::new(1.0, 1.5 * 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.5, 0.0),
-                Vec3::new(BLOCK_SIZE, 2.0 * BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::new(1.0, 2.0 * 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 1, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 2.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 1.0, 0.0),
-                Vec3::new(BLOCK_SIZE, 3.0 * BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 2.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::new(1.0, 3.0 * 1.0, 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, -1, 0)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, -0.5, 0.0),
-                Vec3::new(BLOCK_SIZE, 2.0 * BLOCK_SIZE, BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::new(1.0, 2.0 * 1.0, 1.0)),
         },
     ];
 
@@ -162,39 +126,27 @@ fn z_axis() {
     let test_cases = vec![
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 0.5)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, 0.25),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 1.5 * BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, 0.25), Vec3::new(1.0, 1.0, 1.5 * 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 1)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, 0.5),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 2.0 * BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::new(1.0, 1.0, 2.0 * 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, 2)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 2.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, 1.0),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 3.0 * BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 2.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::new(1.0, 1.0, 3.0 * 1.0)),
         },
         SweepCase {
             description: "Sweep block at (0, 0, 0) to block at (0, 0, -1)".to_string(),
-            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(BLOCK_SIZE)),
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(BLOCK_SIZE)),
-            expected_aabb: AABB::new(
-                Vec3::new(0.0, 0.0, -0.5),
-                Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 2.0 * BLOCK_SIZE),
-            ),
+            aabb1: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(1.0)),
+            expected_aabb: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::new(1.0, 1.0, 2.0 * 1.0)),
         },
     ];
 

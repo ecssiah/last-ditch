@@ -1,8 +1,12 @@
 pub mod axis;
 pub mod direction;
+pub mod voxel_sample;
+pub mod world_ray_iter;
 
 pub use axis::Axis;
 pub use direction::Direction;
+pub use voxel_sample::VoxelSample;
+pub use world_ray_iter::WorldRayIter;
 
 use crate::simulation::{
     self,
@@ -72,73 +76,114 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
 
 #[derive(Clone, Copy)]
 pub struct Grid {
-    pub chunk_radius: u32,
-    pub chunk_size: u32,
-    pub chunk_area: u32,
-    pub chunk_volume: u32,
-    pub world_radius: u32,
-    pub world_size: u32,
-    pub world_area: u32,
-    pub world_volume: u32,
-    pub world_limit: u32,
-    pub block_index_max: u32,
-    pub chunk_index_max: u32,
+    pub block_extent: f32,
+    pub block_size: f32,
+    pub block_area: f32,
+    pub block_volume: f32,
+    pub chunk_extent_blocks: u32,
+    pub chunk_size_blocks: u32,
+    pub chunk_area_blocks: u32,
+    pub chunk_volume_blocks: u32,
+    pub chunk_extent_units: f32,
+    pub chunk_size_units: f32,
+    pub chunk_area_units: f32,
+    pub chunk_volume_units: f32,
+    pub world_extent_chunks: u32,
+    pub world_size_chunks: u32,
+    pub world_area_chunks: u32,
+    pub world_volume_chunks: u32,
+    pub world_extent_blocks: u32,
+    pub world_size_blocks: u32,
+    pub world_area_blocks: u32,
+    pub world_volume_blocks: u32,
+    pub world_extent_units: f32,
+    pub world_size_units: f32,
+    pub world_area_units: f32,
+    pub world_volume_units: f32,
 }
 
 impl Grid {
     pub fn new(kind: simulation::Kind) -> Self {
         let config = kind.config();
 
-        let world_radius = config.world_radius;
-        let world_size = 2 * config.world_radius + 1;
-        let world_area = world_size * world_size;
-        let world_volume = world_size * world_size * world_size;
+        let block_extent = BLOCK_EXTENT;
+        let block_size = 2.0 * block_extent;
+        let block_area = block_size * block_size;
+        let block_volume = block_size * block_size * block_size;
 
-        let chunk_radius = config.chunk_radius;
-        let chunk_size = 2 * config.chunk_radius + 1;
-        let chunk_area = chunk_size * chunk_size;
-        let chunk_volume = chunk_size * chunk_size * chunk_size;
+        let chunk_extent_blocks = config.chunk_extent_blocks;
+        let chunk_size_blocks = 2 * config.chunk_extent_blocks + 1;
+        let chunk_area_blocks = chunk_size_blocks * chunk_size_blocks;
+        let chunk_volume_blocks = chunk_size_blocks * chunk_size_blocks * chunk_size_blocks;
 
-        let world_limit = chunk_radius + world_radius * chunk_size;
+        let chunk_extent_units = chunk_extent_blocks as f32 * block_size + block_extent;
+        let chunk_size_units = chunk_size_blocks as f32 * block_size;
+        let chunk_area_units = chunk_size_units * chunk_size_units;
+        let chunk_volume_units = chunk_size_units * chunk_size_units * chunk_size_units;
 
-        let block_index_max = chunk_volume - 1;
-        let chunk_index_max = world_volume - 1;
+        let world_extent_chunks = config.world_extent_chunks;
+        let world_size_chunks = 2 * config.world_extent_chunks + 1;
+        let world_area_chunks = world_size_chunks * world_size_chunks;
+        let world_volume_chunks = world_size_chunks * world_size_chunks * world_size_chunks;
+
+        let world_extent_blocks = world_extent_chunks * chunk_size_blocks + chunk_extent_blocks;
+        let world_size_blocks = world_size_chunks * chunk_extent_blocks;
+        let world_area_blocks = world_size_blocks * world_size_blocks;
+        let world_volume_blocks = world_size_blocks * world_size_blocks * world_size_blocks;
+
+        let world_extent_units = world_extent_blocks as f32 * block_size + block_extent;
+        let world_size_units = world_size_blocks as f32 * block_size;
+        let world_area_units = world_size_units * world_size_units;
+        let world_volume_units = world_size_units * world_size_units * world_size_units;
 
         Self {
-            world_radius,
-            world_size,
-            world_area,
-            world_volume,
-            chunk_radius,
-            chunk_size,
-            chunk_area,
-            chunk_volume,
-            world_limit,
-            block_index_max,
-            chunk_index_max,
+            block_extent,
+            block_size,
+            block_area,
+            block_volume,
+            chunk_extent_blocks,
+            chunk_size_blocks,
+            chunk_area_blocks,
+            chunk_volume_blocks,
+            chunk_extent_units,
+            chunk_size_units,
+            chunk_area_units,
+            chunk_volume_units,
+            world_extent_chunks,
+            world_size_chunks,
+            world_area_chunks,
+            world_volume_chunks,
+            world_extent_blocks,
+            world_size_blocks,
+            world_area_blocks,
+            world_volume_blocks,
+            world_extent_units,
+            world_size_units,
+            world_area_units,
+            world_volume_units,
         }
     }
 
     pub fn block_ids(grid: &Grid) -> Vec<block::ID> {
-        (0u32..grid.chunk_volume).map(block::ID).collect()
+        (0u32..grid.chunk_volume_blocks).map(block::ID).collect()
     }
 
     pub fn chunk_ids(grid: &Grid) -> Vec<chunk::ID> {
-        (0u32..grid.world_volume).map(chunk::ID).collect()
+        (0u32..grid.world_volume_chunks).map(chunk::ID).collect()
     }
 
     pub fn chunk_id_valid(grid: &Grid, chunk_id: chunk::ID) -> bool {
-        (0u32..grid.world_volume).contains(&u32::from(chunk_id))
+        (0u32..grid.world_volume_chunks).contains(&u32::from(chunk_id))
     }
 
     pub fn block_id_valid(grid: &Grid, block_id: block::ID) -> bool {
-        (0u32..grid.chunk_volume).contains(&u32::from(block_id))
+        (0u32..grid.chunk_volume_blocks).contains(&u32::from(block_id))
     }
 
     pub fn position_valid(grid: &Grid, position: IVec3) -> bool {
-        let in_x_range = position.x.unsigned_abs() <= grid.world_limit;
-        let in_y_range = position.y.unsigned_abs() <= grid.world_limit;
-        let in_z_range = position.z.unsigned_abs() <= grid.world_limit;
+        let in_x_range = position.x.unsigned_abs() <= grid.world_extent_blocks;
+        let in_y_range = position.y.unsigned_abs() <= grid.world_extent_blocks;
+        let in_z_range = position.z.unsigned_abs() <= grid.world_extent_blocks;
 
         in_x_range && in_y_range && in_z_range
     }
@@ -146,7 +191,8 @@ impl Grid {
     pub fn block_id_to_block_coordinates(grid: &Grid, block_id: block::ID) -> IVec3 {
         if Grid::block_id_valid(grid, block_id) {
             let block_index = u32::from(block_id);
-            let block_coordinates = indexing::index_to_vector(block_index, grid.chunk_radius);
+            let block_coordinates =
+                indexing::index_to_vector(block_index, grid.chunk_extent_blocks);
 
             block_coordinates
         } else {
@@ -156,11 +202,11 @@ impl Grid {
 
     pub fn block_coordinates_to_block_id(grid: &Grid, block_coordinates: IVec3) -> block::ID {
         let block_coordinates_indexable =
-            indexing::indexable_vector(block_coordinates, grid.chunk_radius);
+            indexing::indexable_vector(block_coordinates, grid.chunk_extent_blocks);
 
         if block_coordinates_indexable != IVec3::MAX {
             let block_index =
-                indexing::vector_to_index(block_coordinates_indexable, grid.chunk_radius);
+                indexing::vector_to_index(block_coordinates_indexable, grid.chunk_extent_blocks);
 
             block::ID(block_index)
         } else {
@@ -171,7 +217,8 @@ impl Grid {
     pub fn chunk_id_to_chunk_coordinates(grid: &Grid, chunk_id: chunk::ID) -> IVec3 {
         if Grid::chunk_id_valid(grid, chunk_id) {
             let chunk_index = u32::from(chunk_id);
-            let chunk_coordinates = indexing::index_to_vector(chunk_index, grid.world_radius);
+            let chunk_coordinates =
+                indexing::index_to_vector(chunk_index, grid.world_extent_chunks);
 
             chunk_coordinates
         } else {
@@ -181,11 +228,11 @@ impl Grid {
 
     pub fn chunk_coordinates_to_chunk_id(grid: &Grid, chunk_coordinates: IVec3) -> chunk::ID {
         let chunk_coordinates_indexable =
-            indexing::indexable_vector(chunk_coordinates, grid.world_radius);
+            indexing::indexable_vector(chunk_coordinates, grid.world_extent_chunks);
 
         if chunk_coordinates_indexable != IVec3::MAX {
             let chunk_index =
-                indexing::vector_to_index(chunk_coordinates_indexable, grid.world_radius);
+                indexing::vector_to_index(chunk_coordinates_indexable, grid.world_extent_chunks);
 
             chunk::ID(chunk_index)
         } else {
@@ -194,7 +241,7 @@ impl Grid {
     }
 
     pub fn chunk_coordinates_to_position(grid: &Grid, chunk_coordinates: IVec3) -> IVec3 {
-        let position = chunk_coordinates * grid.chunk_size as i32;
+        let position = chunk_coordinates * grid.chunk_size_blocks as i32;
 
         if Grid::position_valid(grid, position) {
             position
@@ -215,13 +262,14 @@ impl Grid {
 
     pub fn position_to_chunk_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
         if Grid::position_valid(grid, position) {
-            let position_indexable = indexing::indexable_vector(position, grid.world_limit);
+            let position_indexable = indexing::indexable_vector(position, grid.world_extent_blocks);
 
             if position_indexable != IVec3::MAX {
-                let chunk_coordinates_indexable = position_indexable / grid.chunk_size as i32;
+                let chunk_coordinates_indexable =
+                    position_indexable / grid.chunk_size_blocks as i32;
 
                 let chunk_coordinates =
-                    chunk_coordinates_indexable - IVec3::splat(grid.world_radius as i32);
+                    chunk_coordinates_indexable - IVec3::splat(grid.world_extent_chunks as i32);
 
                 chunk_coordinates
             } else {
@@ -234,13 +282,14 @@ impl Grid {
 
     pub fn position_to_block_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
         if Grid::position_valid(grid, position) {
-            let position_indexable = indexing::indexable_vector(position, grid.world_limit);
+            let position_indexable = indexing::indexable_vector(position, grid.world_extent_blocks);
 
             if position_indexable != IVec3::MAX {
-                let block_coordinates_indexable = position_indexable % grid.chunk_size as i32;
+                let block_coordinates_indexable =
+                    position_indexable % grid.chunk_size_blocks as i32;
 
                 let block_coordinates =
-                    block_coordinates_indexable - IVec3::splat(grid.chunk_radius as i32);
+                    block_coordinates_indexable - IVec3::splat(grid.chunk_extent_blocks as i32);
 
                 block_coordinates
             } else {
@@ -283,7 +332,7 @@ impl Grid {
         let block_coordinates = Grid::block_id_to_block_coordinates(grid, block_id);
 
         if chunk_coordinates != IVec3::MAX && block_coordinates != IVec3::MAX {
-            grid.chunk_size as i32 * chunk_coordinates + block_coordinates
+            grid.chunk_size_blocks as i32 * chunk_coordinates + block_coordinates
         } else {
             IVec3::MAX
         }
@@ -339,13 +388,13 @@ impl Grid {
         }
     }
 
-    pub fn blocks_overlapping(aabb: AABB) -> Vec<AABB> {
+    pub fn blocks_overlapping(grid: &Grid, aabb: AABB) -> Vec<AABB> {
         let mut aabb_vec = Vec::new();
 
         let min = aabb.min.round().as_ivec3();
         let max = aabb.max.round().as_ivec3();
 
-        let size = Vec3::splat(BLOCK_SIZE);
+        let size = Vec3::splat(grid.block_size);
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -369,20 +418,20 @@ impl Grid {
         if block_coordinates == IVec3::MAX {
             true
         } else {
-            let chunk_radius = grid.chunk_radius as i32;
+            let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
 
-            block_coordinates.x.abs() == chunk_radius
-                || block_coordinates.y.abs() == chunk_radius
-                || block_coordinates.z.abs() == chunk_radius
+            block_coordinates.x.abs() == chunk_extent_blocks
+                || block_coordinates.y.abs() == chunk_extent_blocks
+                || block_coordinates.z.abs() == chunk_extent_blocks
         }
     }
 
-    pub fn on_world_limit(grid: &Grid, position: IVec3) -> bool {
-        let world_limit = grid.world_limit as i32;
+    pub fn on_world_extent_blocks(grid: &Grid, position: IVec3) -> bool {
+        let world_extent_blocks = grid.world_extent_blocks as i32;
 
-        position.x.abs() == world_limit
-            || position.y.abs() == world_limit
-            || position.z.abs() == world_limit
+        position.x.abs() == world_extent_blocks
+            || position.y.abs() == world_extent_blocks
+            || position.z.abs() == world_extent_blocks
     }
 
     pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {

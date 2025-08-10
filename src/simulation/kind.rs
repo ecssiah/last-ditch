@@ -14,32 +14,32 @@ impl Kind {
         match self {
             Kind::Main => simulation::Config {
                 kind: *self,
-                world_radius: 4,
-                chunk_radius: 8,
+                world_extent_chunks: 4,
+                chunk_extent_blocks: 8,
                 seed: 0,
             },
             Kind::Empty => simulation::Config {
                 kind: *self,
-                world_radius: 1,
-                chunk_radius: 2,
+                world_extent_chunks: 1,
+                chunk_extent_blocks: 2,
                 seed: 0,
             },
             Kind::WorldTest => simulation::Config {
                 kind: *self,
-                world_radius: 3,
-                chunk_radius: 4,
+                world_extent_chunks: 3,
+                chunk_extent_blocks: 4,
                 seed: 0,
             },
             Kind::GraphTest => simulation::Config {
                 kind: *self,
-                world_radius: 2,
-                chunk_radius: 4,
+                world_extent_chunks: 2,
+                chunk_extent_blocks: 4,
                 seed: 0,
             },
             Kind::Placeholder => simulation::Config {
                 kind: *self,
-                world_radius: 0,
-                chunk_radius: 0,
+                world_extent_chunks: 0,
+                chunk_extent_blocks: 0,
                 seed: 0,
             },
         }

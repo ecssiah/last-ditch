@@ -18,7 +18,7 @@ pub fn construct(world: &mut World) {
 }
 
 fn build_ground(world: &mut World) {
-    let ground_boundary = (world.grid.world_limit - world.grid.chunk_size) as isize;
+    let ground_boundary = (world.grid.world_extent_blocks - world.grid.chunk_size_blocks) as isize;
 
     for x in -ground_boundary..=ground_boundary {
         for y in -1..=0 {
@@ -180,11 +180,11 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
 }
 
 fn build_observation_deck(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
-    let chunk_size = world.grid.chunk_size as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let chunk_size_blocks = world.grid.chunk_size_blocks as i32;
 
     let height = 16;
-    let center = 3 * chunk_size;
+    let center = 3 * chunk_size_blocks;
 
     World::set_cube(
         IVec3::new(-center + 1, height, -center + 1),
@@ -223,8 +223,8 @@ fn build_observation_deck(world: &mut World) {
     );
 
     World::set_cube(
-        IVec3::new(-center - chunk_radius, height, -center - chunk_radius),
-        IVec3::new(center + chunk_radius, height, center + chunk_radius),
+        IVec3::new(-center - chunk_extent_blocks, height, -center - chunk_extent_blocks),
+        IVec3::new(center + chunk_extent_blocks, height, center + chunk_extent_blocks),
         block::Kind::Polished1,
         &world.grid,
         &world.block_info_map,
@@ -233,11 +233,11 @@ fn build_observation_deck(world: &mut World) {
 
     World::set_cube(
         IVec3::new(
-            -center + chunk_radius + 1,
+            -center + chunk_extent_blocks + 1,
             height,
-            -center + chunk_radius + 1,
+            -center + chunk_extent_blocks + 1,
         ),
-        IVec3::new(center - chunk_radius - 1, height, center - chunk_radius - 1),
+        IVec3::new(center - chunk_extent_blocks - 1, height, center - chunk_extent_blocks - 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,

@@ -66,7 +66,7 @@ fn build_center_room(world: &mut World) {
 }
 
 fn build_constricted_entrance_room(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
 
     let chunk_coordinates = IVec3::new(-1, 0, 0);
     let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
@@ -80,8 +80,8 @@ fn build_constricted_entrance_room(world: &mut World) {
     build_chunk_room(chunk_position, entrances, block::Kind::Polished2, world);
 
     World::set_cube(
-        chunk_position + IVec3::new(chunk_radius, 0, 0),
-        chunk_position + IVec3::new(chunk_radius, -2, 0),
+        chunk_position + IVec3::new(chunk_extent_blocks, 0, 0),
+        chunk_position + IVec3::new(chunk_extent_blocks, -2, 0),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -89,8 +89,8 @@ fn build_constricted_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        chunk_position + IVec3::new(chunk_radius + 1, 1, -1),
-        chunk_position + IVec3::new(chunk_radius + 1, -3, 1),
+        chunk_position + IVec3::new(chunk_extent_blocks + 1, 1, -1),
+        chunk_position + IVec3::new(chunk_extent_blocks + 1, -3, 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -99,7 +99,7 @@ fn build_constricted_entrance_room(world: &mut World) {
 }
 
 fn build_expanded_entrance_room(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
 
     let chunk_coordinates = IVec3::new(1, 0, 0);
     let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
@@ -113,8 +113,8 @@ fn build_expanded_entrance_room(world: &mut World) {
     build_chunk_room(chunk_position, entrances, block::Kind::Polished2, world);
 
     World::set_cube(
-        chunk_position + IVec3::new(-chunk_radius, 1, -2),
-        chunk_position + IVec3::new(-chunk_radius + 2, -4, 2),
+        chunk_position + IVec3::new(-chunk_extent_blocks, 1, -2),
+        chunk_position + IVec3::new(-chunk_extent_blocks + 2, -4, 2),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -122,8 +122,8 @@ fn build_expanded_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        chunk_position + IVec3::new(-chunk_radius - 1, 0, -1),
-        chunk_position + IVec3::new(-chunk_radius - 1, -3, 1),
+        chunk_position + IVec3::new(-chunk_extent_blocks - 1, 0, -1),
+        chunk_position + IVec3::new(-chunk_extent_blocks - 1, -3, 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -131,8 +131,8 @@ fn build_expanded_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        chunk_position + IVec3::new(-chunk_radius, -5, -2),
-        chunk_position + IVec3::new(-chunk_radius + 2, -5, 2),
+        chunk_position + IVec3::new(-chunk_extent_blocks, -5, -2),
+        chunk_position + IVec3::new(-chunk_extent_blocks + 2, -5, 2),
         block::Kind::Polished2,
         &world.grid,
         &world.block_info_map,
@@ -141,7 +141,7 @@ fn build_expanded_entrance_room(world: &mut World) {
 }
 
 fn build_multiple_entrance_room(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
 
     let chunk_coordinates = IVec3::new(0, 0, -1);
     let chunk_position = Grid::chunk_coordinates_to_position(&world.grid, chunk_coordinates);
@@ -155,8 +155,8 @@ fn build_multiple_entrance_room(world: &mut World) {
     build_chunk_room(chunk_position, entrances, block::Kind::Polished2, world);
 
     World::set_cube(
-        chunk_position + IVec3::new(-chunk_radius + 1, 0, chunk_radius),
-        chunk_position + IVec3::new(-chunk_radius + 2, -3, chunk_radius + 1),
+        chunk_position + IVec3::new(-chunk_extent_blocks + 1, 0, chunk_extent_blocks),
+        chunk_position + IVec3::new(-chunk_extent_blocks + 2, -3, chunk_extent_blocks + 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -164,8 +164,8 @@ fn build_multiple_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        chunk_position + IVec3::new(chunk_radius - 2, 0, chunk_radius),
-        chunk_position + IVec3::new(chunk_radius - 1, -3, chunk_radius + 1),
+        chunk_position + IVec3::new(chunk_extent_blocks - 2, 0, chunk_extent_blocks),
+        chunk_position + IVec3::new(chunk_extent_blocks - 1, -3, chunk_extent_blocks + 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -174,7 +174,7 @@ fn build_multiple_entrance_room(world: &mut World) {
 }
 
 fn build_vertical_entrance_room(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
 
     let chunk_coordinates_001 = IVec3::new(0, 0, 1);
     let chunk_position_001 =
@@ -208,8 +208,8 @@ fn build_vertical_entrance_room(world: &mut World) {
     );
 
     World::set_box(
-        chunk_position_001 + IVec3::new(-chunk_radius + 1, chunk_radius, -chunk_radius + 1),
-        chunk_position_001 + IVec3::new(chunk_radius - 1, chunk_radius + 1, chunk_radius - 1),
+        chunk_position_001 + IVec3::new(-chunk_extent_blocks + 1, chunk_extent_blocks, -chunk_extent_blocks + 1),
+        chunk_position_001 + IVec3::new(chunk_extent_blocks - 1, chunk_extent_blocks + 1, chunk_extent_blocks - 1),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -394,11 +394,11 @@ fn build_chunk_room(
     kind: block::Kind,
     world: &mut World,
 ) {
-    let chunk_radius = world.grid.chunk_radius as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
 
     World::set_box(
-        position - IVec3::splat(chunk_radius),
-        position + IVec3::splat(chunk_radius),
+        position - IVec3::splat(chunk_extent_blocks),
+        position + IVec3::splat(chunk_extent_blocks),
         kind,
         &world.grid,
         &world.block_info_map,
@@ -406,7 +406,7 @@ fn build_chunk_room(
     );
 
     World::set_block_kind(
-        position - IVec3::Y * chunk_radius,
+        position - IVec3::Y * chunk_extent_blocks,
         block::Kind::TealStone,
         &world.grid,
         &world.block_info_map,
@@ -415,8 +415,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XpYoZo) {
         World::set_cube(
-            position + IVec3::new(chunk_radius, 0, 1),
-            position + IVec3::new(chunk_radius, -3, -1),
+            position + IVec3::new(chunk_extent_blocks, 0, 1),
+            position + IVec3::new(chunk_extent_blocks, -3, -1),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -426,8 +426,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XnYoZo) {
         World::set_cube(
-            position + IVec3::new(-chunk_radius, 0, 1),
-            position + IVec3::new(-chunk_radius, -3, -1),
+            position + IVec3::new(-chunk_extent_blocks, 0, 1),
+            position + IVec3::new(-chunk_extent_blocks, -3, -1),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -437,8 +437,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XoYoZp) {
         World::set_cube(
-            position + IVec3::new(1, 0, chunk_radius),
-            position + IVec3::new(-1, -3, chunk_radius),
+            position + IVec3::new(1, 0, chunk_extent_blocks),
+            position + IVec3::new(-1, -3, chunk_extent_blocks),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -448,8 +448,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XoYoZn) {
         World::set_cube(
-            position + IVec3::new(1, 0, -chunk_radius),
-            position + IVec3::new(-1, -3, -chunk_radius),
+            position + IVec3::new(1, 0, -chunk_extent_blocks),
+            position + IVec3::new(-1, -3, -chunk_extent_blocks),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -459,8 +459,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XoYpZo) {
         World::set_cube(
-            position + IVec3::new(-1, chunk_radius, -1),
-            position + IVec3::new(1, chunk_radius, 1),
+            position + IVec3::new(-1, chunk_extent_blocks, -1),
+            position + IVec3::new(1, chunk_extent_blocks, 1),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -470,8 +470,8 @@ fn build_chunk_room(
 
     if entrance_vec.contains(&grid::Direction::XoYnZo) {
         World::set_cube(
-            position + IVec3::new(-1, -chunk_radius, -1),
-            position + IVec3::new(1, -chunk_radius, 1),
+            position + IVec3::new(-1, -chunk_extent_blocks, -1),
+            position + IVec3::new(1, -chunk_extent_blocks, 1),
             block::Kind::Empty,
             &world.grid,
             &world.block_info_map,
@@ -481,12 +481,12 @@ fn build_chunk_room(
 }
 
 fn _build_floor(world: &mut World) {
-    let chunk_radius = world.grid.chunk_radius as i32;
-    let chunk_size = world.grid.chunk_size as i32;
+    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let chunk_size_blocks = world.grid.chunk_size_blocks as i32;
 
     World::set_cube(
-        IVec3::new(-2 * chunk_size, -chunk_radius - 1, -2 * chunk_size),
-        IVec3::new(2 * chunk_size, -chunk_radius - 1, 2 * chunk_size),
+        IVec3::new(-2 * chunk_size_blocks, -chunk_extent_blocks - 1, -2 * chunk_size_blocks),
+        IVec3::new(2 * chunk_size_blocks, -chunk_extent_blocks - 1, 2 * chunk_size_blocks),
         block::Kind::Polished1,
         &world.grid,
         &world.block_info_map,

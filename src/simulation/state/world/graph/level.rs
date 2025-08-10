@@ -5,7 +5,7 @@ use std::collections::HashMap;
 #[derive(Clone, Debug)]
 pub struct Level {
     pub depth: usize,
-    pub world_limit: usize,
+    pub world_extent_blocks: usize,
     pub region_size: usize,
     pub region_node_map: HashMap<IVec3, HashMap<IVec3, Node>>,
     pub edge_map: HashMap<(IVec3, IVec3), Edge>,
@@ -14,10 +14,10 @@ pub struct Level {
 }
 
 impl Level {
-    pub fn new(depth: usize, region_size: usize, world_limit: usize) -> Self {
+    pub fn new(depth: usize, region_size: usize, world_extent_blocks: usize) -> Self {
         Self {
             depth,
-            world_limit,
+            world_extent_blocks,
             region_size,
             region_node_map: HashMap::new(),
             edge_map: HashMap::new(),
@@ -28,7 +28,7 @@ impl Level {
 
     pub fn get_node(position: IVec3, level: &Level) -> Option<&Node> {
         let region_position =
-            Graph::get_region_position(position, level.region_size, level.world_limit);
+            Graph::get_region_position(position, level.region_size, level.world_extent_blocks);
 
         let node_map = level.region_node_map.get(&region_position)?;
 
