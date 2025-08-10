@@ -5,8 +5,8 @@ use crate::simulation::state::{
 };
 use glam::{IVec3, Vec3};
 
-pub struct WorldRayIter<'w> {
-    world: &'w World,
+pub struct WorldRayIter<'world> {
+    world: &'world World,
     done: bool,
     t: f32,
     origin: Vec3,
@@ -18,9 +18,9 @@ pub struct WorldRayIter<'w> {
     t_delta: Vec3,
 }
 
-impl<'w> WorldRayIter<'w> {
+impl<'world> WorldRayIter<'world> {
     pub fn from_ray(
-        world: &'w World,
+        world: &'world World,
         origin: Vec3,
         direction: Vec3,
         distance: f32,
