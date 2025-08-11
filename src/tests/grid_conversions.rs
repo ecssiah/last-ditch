@@ -40,12 +40,12 @@ fn block_id_to_block_coordinates() {
         },
         BlockIDToBlockCoordinatesCase {
             description: "block id at origin".to_string(),
-            block_id: block::ID((world.grid.world_volume_blocks - 1) / 2),
+            block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
             expected_block_coordinates: IVec3::splat(0),
         },
         BlockIDToBlockCoordinatesCase {
             description: "block id max".to_string(),
-            block_id: block::ID(world.grid.world_volume_blocks - 1),
+            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
             expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
         },
     ];
@@ -88,12 +88,12 @@ fn block_coordinates_to_block_id() {
         BlockCoordinatesToBlockIDCase {
             description: "block coordinates origin".to_string(),
             block_coordinates: IVec3::splat(0),
-            expected_block_id: block::ID((world.grid.world_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
         },
         BlockCoordinatesToBlockIDCase {
             description: "block coordinates max".to_string(),
             block_coordinates: IVec3::splat(chunk_extent_blocks),
-            expected_block_id: block::ID(world.grid.world_volume_blocks - 1),
+            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
         },
     ];
 
@@ -513,12 +513,12 @@ fn position_to_block_id() {
         PositionToBlockIDCase {
             description: "position origin".to_string(),
             position: IVec3::splat(0),
-            expected_block_id: block::ID((world.grid.world_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
         },
         PositionToBlockIDCase {
             description: "position max".to_string(),
             position: IVec3::splat(chunk_extent_blocks),
-            expected_block_id: block::ID(world.grid.world_volume_blocks - 1),
+            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
         },
     ];
 
@@ -562,13 +562,13 @@ fn ids_to_position() {
         IDsToPositionCase {
             description: "ids at origin".to_string(),
             chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
-            block_id: block::ID((world.grid.world_volume_blocks - 1) / 2),
+            block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
             expected_position: IVec3::splat(0),
         },
         IDsToPositionCase {
             description: "ids at max".to_string(),
             chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
-            block_id: block::ID(world.grid.world_volume_blocks - 1),
+            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
             expected_position: IVec3::splat(world_extent_blocks),
         },
     ];
@@ -619,7 +619,7 @@ fn position_to_ids() {
             position: IVec3::splat(0),
             expected_ids: (
                 chunk::ID((world.grid.world_volume_chunks - 1) / 2),
-                block::ID((world.grid.world_volume_blocks - 1) / 2),
+                block::ID((world.grid.chunk_volume_blocks - 1) / 2),
             ),
         },
         PositionToIDsCase {
@@ -627,7 +627,7 @@ fn position_to_ids() {
             position: IVec3::splat(world_extent_blocks),
             expected_ids: (
                 chunk::ID(world.grid.world_volume_chunks - 1),
-                block::ID(world.grid.world_volume_blocks - 1),
+                block::ID(world.grid.chunk_volume_blocks - 1),
             ),
         },
     ];
@@ -842,12 +842,12 @@ fn world_to_block_id() {
         WorldToBlockIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_block_id: block::ID((world.grid.world_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
         },
         WorldToBlockIDCase {
             description: "world max".to_string(),
             world_position: Vec3::splat(world_extent_blocks),
-            expected_block_id: block::ID(world.grid.world_volume_blocks - 1),
+            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
         },
         WorldToBlockIDCase {
             description: "world max + 1.0".to_string(),

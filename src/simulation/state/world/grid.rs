@@ -434,10 +434,10 @@ impl Grid {
             || position.z.abs() == world_extent_blocks
     }
 
-    pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
-        (-radius..=radius).flat_map(move |x| {
-            (-radius..=radius)
-                .flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
+    pub fn offsets_in(extent: i32) -> impl Iterator<Item = IVec3> {
+        (-extent..=extent).flat_map(move |x| {
+            (-extent..=extent)
+                .flat_map(move |y| (-extent..=extent).map(move |z| IVec3::new(x, y, z)))
         })
     }
 

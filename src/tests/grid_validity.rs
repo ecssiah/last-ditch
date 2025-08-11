@@ -33,12 +33,12 @@ fn block_id_valid() {
         },
         BlockIDValidCase {
             description: "block_id max".to_string(),
-            block_id: block::ID(world.grid.world_volume_blocks - 1),
+            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
             expected_valid: true,
         },
         BlockIDValidCase {
             description: "block_id max + 1".to_string(),
-            block_id: block::ID(world.grid.world_volume_blocks - 1 + 1),
+            block_id: block::ID(world.grid.chunk_volume_blocks - 1 + 1),
             expected_valid: false,
         },
     ];

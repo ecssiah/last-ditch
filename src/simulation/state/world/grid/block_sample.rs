@@ -1,6 +1,7 @@
 use crate::simulation::state::world::{block, chunk, grid};
 use glam::{IVec3, Vec3};
 
+#[derive(Debug)]
 pub struct BlockSample {
     pub t: f32,
     pub position: IVec3,
