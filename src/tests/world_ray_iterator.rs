@@ -17,30 +17,38 @@ struct WorldRayIteratorCase {
 
 impl WorldRayIteratorCase {
     pub fn check(case: &WorldRayIteratorCase, world: &World) {
-        let eps = 1e-3;
-        let mut got = Vec::new();
+        let epsilon = 1e-3;
+        let mut block_sample_vec = Vec::new();
 
         if let Some(iter) =
             WorldRayIter::from_ray(&world, case.origin, case.direction, case.distance)
         {
-            for s in iter {
-                got.push(s);
+            for block_sample in iter {
+                block_sample_vec.push(block_sample);
             }
         }
 
-        assert_eq!(got.len(), case.expected_block_info_vec.len());
+        println!("{:?}", case.description);
 
-        for (i, (t, position, enter_face_direction)) in
+        assert_eq!(block_sample_vec.len(), case.expected_block_info_vec.len());
+
+        for (index, (t, position, enter_face_direction)) in
             case.expected_block_info_vec.iter().enumerate()
         {
             assert!(
-                (got[i].t - *t).abs() <= eps,
-                "i={i}, got t={}, want {t}",
-                got[i].t
+                (block_sample_vec[index].t - *t).abs() <= epsilon,
+                "i={}, got t={}, want {}",
+                index,
+                block_sample_vec[index].t,
+                t
             );
 
-            assert_eq!(got[i].position, *position);
-            assert_eq!(got[i].enter_face_direction, *enter_face_direction);
+            assert_eq!(block_sample_vec[index].position, *position);
+
+            assert_eq!(
+                block_sample_vec[index].enter_face_direction,
+                *enter_face_direction
+            );
         }
     }
 }

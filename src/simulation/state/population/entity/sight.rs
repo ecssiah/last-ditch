@@ -2,7 +2,7 @@ use crate::simulation::{
     consts::GOLDEN_ANGLE,
     state::{
         population::entity::{self, Spatial},
-        world::chunk,
+        world::{chunk, grid::WorldRayIter},
         World,
     },
 };
@@ -20,6 +20,7 @@ pub struct Sight {
 impl Sight {
     pub fn new(distance: f32, fov_angle: f32) -> Self {
         let direction_vec = Self::generate_fibonacci_cone_direction_vec(90.0_f32.to_radians(), 100);
+
         let chunk_id_set = HashSet::new();
         let entity_id_set = HashSet::new();
 
@@ -35,20 +36,12 @@ impl Sight {
     pub fn tick(world: &World, spatial: &Spatial, sight: &mut Sight) {
         let broadphase_chunk_id_set = Self::broadphase_filter(world, spatial, sight);
 
-        let rotated_cone_direction_vec =
-            Sight::rotated_direction_vec(spatial.forward(), &sight.direction_vec);
+        let narrowphase_chunk_id_set =
+            Self::narrowphase_filter(&broadphase_chunk_id_set, world, spatial, sight);
 
-        println!("Broad: {:?}", broadphase_chunk_id_set.len());
+        sight.chunk_id_set = narrowphase_chunk_id_set;
 
-        let narrowphase_chunk_id_set = Self::narrowphase_filter(
-            &broadphase_chunk_id_set,
-            rotated_cone_direction_vec,
-            world,
-            spatial,
-            sight,
-        );
-
-        println!("Narrow: {:?}", narrowphase_chunk_id_set.len());
+        println!("{:?}", sight.chunk_id_set.iter().len());
     }
 
     fn broadphase_filter(world: &World, spatial: &Spatial, sight: &Sight) -> HashSet<chunk::ID> {
@@ -94,13 +87,41 @@ impl Sight {
     }
 
     fn narrowphase_filter(
-        chunk_id_vec: &HashSet<chunk::ID>,
-        cone_direction_vec: Vec<Vec3>,
+        broadphase_chunk_id_set: &HashSet<chunk::ID>,
         world: &World,
         spatial: &Spatial,
         sight: &Sight,
     ) -> HashSet<chunk::ID> {
-        HashSet::new()
+        let mut chunk_id_set = HashSet::new();
+
+        let rotated_cone_direction_vec =
+            Sight::rotated_direction_vec(spatial.forward(), &sight.direction_vec);
+
+        for direction_vec in rotated_cone_direction_vec {
+            let t_epsilon = world.grid.block_extent * 0.01;
+            let ray_origin = spatial.eye() + direction_vec * t_epsilon;
+
+            if let Some(mut world_ray_iter) =
+                WorldRayIter::from_ray(world, ray_origin, direction_vec, sight.distance)
+            {
+                while let Some(block_sample) = world_ray_iter.next() {
+                    if broadphase_chunk_id_set.contains(&block_sample.chunk_id) {
+                        if let Some(block) = World::get_block(
+                            block_sample.chunk_id,
+                            block_sample.block_id,
+                            &world.chunk_vec,
+                        ) {
+                            if block.solid {
+                                chunk_id_set.insert(block_sample.chunk_id);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        chunk_id_set
     }
 
     fn compute_rotation_matrix(forward: Vec3) -> glam::Mat3 {

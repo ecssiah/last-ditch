@@ -123,14 +123,8 @@ impl Observation {
             chunk_view_map: HashMap::new(),
         };
 
-        let visible_chunk_id_vec = World::get_visible_chunk_id_vec(
-            &state.population.judge,
-            &state.world.grid,
-            &state.world.chunk_vec,
-        );
-
-        for chunk_id in visible_chunk_id_vec {
-            if let Some(chunk) = state.world.chunk_vec.get(usize::from(chunk_id)) {
+        for chunk_id in &state.population.judge.sight.chunk_id_set {
+            if let Some(chunk) = state.world.chunk_vec.get(usize::from(*chunk_id)) {
                 let chunk_view = ChunkView {
                     id: chunk.id,
                     block_vec: chunk.block_vec.clone(),

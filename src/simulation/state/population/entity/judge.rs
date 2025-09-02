@@ -32,7 +32,7 @@ impl Judge {
 
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
-        let sight = Sight::new(100.0, 60.0);
+        let sight = Sight::new(200.0, 70.0);
         let detection = Detection::new();
 
         Self {
