@@ -30,7 +30,7 @@ fn build_center_room(world: &mut World) {
 
     build_chunk_room(chunk_position, entrances, block::Kind::Polished1, world);
 
-    let center_position = IVec3::new(0, -4, 0);
+    let center_position = IVec3::new(0, -3, 0);
 
     World::set_block_kind(
         center_position + IVec3::Z * 2,
@@ -208,8 +208,18 @@ fn build_vertical_entrance_room(world: &mut World) {
     );
 
     World::set_box(
-        chunk_position_001 + IVec3::new(-chunk_extent_blocks + 1, chunk_extent_blocks, -chunk_extent_blocks + 1),
-        chunk_position_001 + IVec3::new(chunk_extent_blocks - 1, chunk_extent_blocks + 1, chunk_extent_blocks - 1),
+        chunk_position_001
+            + IVec3::new(
+                -chunk_extent_blocks + 1,
+                chunk_extent_blocks,
+                -chunk_extent_blocks + 1,
+            ),
+        chunk_position_001
+            + IVec3::new(
+                chunk_extent_blocks - 1,
+                chunk_extent_blocks + 1,
+                chunk_extent_blocks - 1,
+            ),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,
@@ -485,8 +495,16 @@ fn _build_floor(world: &mut World) {
     let chunk_size_blocks = world.grid.chunk_size_blocks as i32;
 
     World::set_cube(
-        IVec3::new(-2 * chunk_size_blocks, -chunk_extent_blocks - 1, -2 * chunk_size_blocks),
-        IVec3::new(2 * chunk_size_blocks, -chunk_extent_blocks - 1, 2 * chunk_size_blocks),
+        IVec3::new(
+            -2 * chunk_size_blocks,
+            -chunk_extent_blocks - 1,
+            -2 * chunk_size_blocks,
+        ),
+        IVec3::new(
+            2 * chunk_size_blocks,
+            -chunk_extent_blocks - 1,
+            2 * chunk_size_blocks,
+        ),
         block::Kind::Polished1,
         &world.grid,
         &world.block_info_map,

@@ -1,3 +1,1 @@
-pub struct ItemRenderData {
-    
-}
+pub struct ItemRenderData {}

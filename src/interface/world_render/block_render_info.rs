@@ -289,10 +289,10 @@ impl BlockRenderInfo {
         let v_max = ((tile_coordinates[1] + 1) * tile_size) as f32 / tile_atlas_size.y as f32;
 
         [
+            [u_max, v_min],
             [u_max, v_max],
             [u_min, v_max],
             [u_min, v_min],
-            [u_max, v_min],
         ]
     }
 }

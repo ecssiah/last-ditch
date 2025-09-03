@@ -40,7 +40,11 @@ impl Graph {
     pub fn new(grid: &Grid, max_depth: usize) -> Self {
         Self {
             max_depth,
-            level_0: Level::new(0, grid.chunk_size_blocks as usize, grid.world_extent_blocks as usize),
+            level_0: Level::new(
+                0,
+                grid.chunk_size_blocks as usize,
+                grid.world_extent_blocks as usize,
+            ),
             level_vec: Vec::new(),
         }
     }
@@ -255,7 +259,11 @@ impl Graph {
     }
 
     fn setup_level_1(grid: &Grid, chunk_vec_slice: &[Chunk], level_0: &Level) -> Level {
-        let mut level = Level::new(1, grid.chunk_size_blocks as usize, grid.world_extent_blocks as usize);
+        let mut level = Level::new(
+            1,
+            grid.chunk_size_blocks as usize,
+            grid.world_extent_blocks as usize,
+        );
 
         let entrance_vec = Self::setup_entrance_vec(grid, chunk_vec_slice);
 
@@ -622,7 +630,11 @@ impl Graph {
         }
     }
 
-    fn get_region_position(node_position: IVec3, region_size: usize, world_extent_blocks: usize) -> IVec3 {
+    fn get_region_position(
+        node_position: IVec3,
+        region_size: usize,
+        world_extent_blocks: usize,
+    ) -> IVec3 {
         if region_size == 1 {
             node_position
         } else {

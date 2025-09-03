@@ -88,5 +88,4 @@ fn setup_agent_map(agent_map: &mut HashMap<entity::ID, Agent>) {
     agent_map.insert(pathfinding_agent2.info.entity_id, pathfinding_agent2);
     agent_map.insert(pathfinding_agent3.info.entity_id, pathfinding_agent3);
     agent_map.insert(pathfinding_agent4.info.entity_id, pathfinding_agent4);
-
 }

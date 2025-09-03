@@ -1,13 +1,13 @@
 use crate::simulation::{
     self,
     state::{
-        world::grid::{self, WorldRayIter},
+        world::grid::{self, WorldRayIterator},
         World,
     },
 };
 use glam::{IVec3, Vec3};
 
-struct WorldRayIteratorCase {
+struct WorldRayIteratoratorCase {
     pub description: String,
     pub origin: Vec3,
     pub direction: Vec3,
@@ -15,13 +15,13 @@ struct WorldRayIteratorCase {
     pub expected_block_info_vec: Vec<(f32, IVec3, grid::Direction)>,
 }
 
-impl WorldRayIteratorCase {
-    pub fn check(case: &WorldRayIteratorCase, world: &World) {
+impl WorldRayIteratoratorCase {
+    pub fn check(case: &WorldRayIteratoratorCase, world: &World) {
         let epsilon = 1e-3;
         let mut block_sample_vec = Vec::new();
 
         if let Some(iter) =
-            WorldRayIter::from_ray(&world, case.origin, case.direction, case.distance)
+            WorldRayIterator::from_ray(&world, case.origin, case.direction, case.distance)
         {
             for block_sample in iter {
                 block_sample_vec.push(block_sample);
@@ -61,7 +61,7 @@ fn general_ray_tests() {
     World::setup(kind, &mut world);
 
     let test_cases = vec![
-        WorldRayIteratorCase {
+        WorldRayIteratoratorCase {
             description: "case 1".to_string(),
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 1.0),
@@ -81,7 +81,7 @@ fn general_ray_tests() {
                 (3.5, IVec3::new(4, 4, 4), grid::Direction::XoYoZn),
             ],
         },
-        WorldRayIteratorCase {
+        WorldRayIteratoratorCase {
             description: "case 2".to_string(),
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
@@ -97,7 +97,7 @@ fn general_ray_tests() {
                 (3.5, IVec3::new(4, 4, 0), grid::Direction::XoYnZo),
             ],
         },
-        WorldRayIteratorCase {
+        WorldRayIteratoratorCase {
             description: "case 3".to_string(),
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
@@ -107,6 +107,6 @@ fn general_ray_tests() {
     ];
 
     for case in &test_cases {
-        WorldRayIteratorCase::check(case, &world);
+        WorldRayIteratoratorCase::check(case, &world);
     }
 }

@@ -9,9 +9,12 @@ pub use info::Info;
 pub use kind::Kind;
 
 use crate::simulation::state::{
-        physics::aabb::AABB,
-        world::{chunk, grid::{self, Grid}},
-    };
+    physics::aabb::AABB,
+    world::{
+        chunk,
+        grid::{self, Grid},
+    },
+};
 use glam::{IVec3, Vec3};
 
 #[derive(Clone, Debug)]

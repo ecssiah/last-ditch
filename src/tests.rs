@@ -11,5 +11,6 @@ mod grid_conversions;
 mod grid_intermediate_positions;
 mod grid_overlapping_aabb_vec;
 mod grid_validity;
+mod sight;
 mod world_clearance;
 mod world_ray_iterator;

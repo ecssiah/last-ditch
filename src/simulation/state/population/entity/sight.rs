@@ -2,7 +2,7 @@ use crate::simulation::{
     consts::GOLDEN_ANGLE,
     state::{
         population::entity::{self, Spatial},
-        world::{chunk, grid::WorldRayIter},
+        world::{chunk, grid::WorldRayIterator},
         World,
     },
 };
@@ -12,14 +12,14 @@ use std::collections::HashSet;
 pub struct Sight {
     pub distance: f32,
     pub fov_angle: f32,
-    pub direction_vec: Vec<Vec3>,
+    pub view_ray_vec: Vec<Vec3>,
     pub chunk_id_set: HashSet<chunk::ID>,
     pub entity_id_set: HashSet<entity::ID>,
 }
 
 impl Sight {
     pub fn new(distance: f32, fov_angle: f32) -> Self {
-        let direction_vec = Self::generate_fibonacci_cone_direction_vec(90.0_f32.to_radians(), 100);
+        let view_ray_vec = Self::generate_view_ray_vec(fov_angle, 5);
 
         let chunk_id_set = HashSet::new();
         let entity_id_set = HashSet::new();
@@ -27,7 +27,7 @@ impl Sight {
         Self {
             distance,
             fov_angle,
-            direction_vec,
+            view_ray_vec,
             chunk_id_set,
             entity_id_set,
         }
@@ -94,17 +94,16 @@ impl Sight {
     ) -> HashSet<chunk::ID> {
         let mut chunk_id_set = HashSet::new();
 
-        let rotated_cone_direction_vec =
-            Sight::rotated_direction_vec(spatial.forward(), &sight.direction_vec);
+        let view_ray_vec_local = Sight::rotate_view_ray_vec(spatial.forward(), &sight.view_ray_vec);
 
-        for direction_vec in rotated_cone_direction_vec {
+        for ray in view_ray_vec_local {
             let t_epsilon = world.grid.block_extent * 0.01;
-            let ray_origin = spatial.eye() + direction_vec * t_epsilon;
+            let ray_origin = spatial.eye() + ray * t_epsilon;
 
-            if let Some(mut world_ray_iter) =
-                WorldRayIter::from_ray(world, ray_origin, direction_vec, sight.distance)
+            if let Some(mut world_ray_iterator) =
+                WorldRayIterator::from_ray(world, ray_origin, ray, sight.distance)
             {
-                while let Some(block_sample) = world_ray_iter.next() {
+                while let Some(block_sample) = world_ray_iterator.next() {
                     if broadphase_chunk_id_set.contains(&block_sample.chunk_id) {
                         if let Some(block) = World::get_block(
                             block_sample.chunk_id,
@@ -153,33 +152,45 @@ impl Sight {
         }
     }
 
-    pub fn rotated_direction_vec(forward: Vec3, direction_vec: &Vec<Vec3>) -> Vec<Vec3> {
+    pub fn rotate_view_ray_vec(forward: Vec3, view_ray_vec: &Vec<Vec3>) -> Vec<Vec3> {
         let rotation_matrix = Self::compute_rotation_matrix(forward);
 
-        direction_vec
+        view_ray_vec
             .iter()
-            .map(|direction| rotation_matrix * *direction)
+            .map(|ray| rotation_matrix * *ray)
             .collect()
     }
 
-    pub fn generate_fibonacci_cone_direction_vec(angle: f32, ray_count: usize) -> Vec<Vec3> {
-        let mut direction_vec = Vec::with_capacity(ray_count);
-        let angle_cos = angle.cos();
+    pub fn generate_view_ray_vec(fov_angle: f32, ray_count: usize) -> Vec<Vec3> {
+        debug_assert!(ray_count > 0, "view ray count is zero");
 
-        for i in 0..ray_count {
-            let i = i as f32;
-            let count = ray_count as f32;
+        let ray_count_f32 = ray_count as f32;
+        let mut ray_vec = Vec::with_capacity(ray_count);
 
-            let z = angle_cos + (1.0 - angle_cos) * ((i + 0.5) / count);
-            let radius = (1.0 - z * z).sqrt();
-            let phi = GOLDEN_ANGLE * i;
+        let half_fov_angle = fov_angle * 0.5;
+        let cos_half_fov_angle = half_fov_angle.to_radians().cos();
 
-            let x = radius * phi.cos();
-            let y = radius * phi.sin();
+        let dz = (1.0 - cos_half_fov_angle) / ray_count_f32;
+        let mut z = cos_half_fov_angle + dz * 0.5;
 
-            direction_vec.push(Vec3::new(x, y, z));
+        for ray_index in 0..ray_count {
+            let phi = GOLDEN_ANGLE * ray_index as f32;
+
+            let z_clamped = z.clamp(-1.0, 1.0);
+            let radius = (1.0 - z_clamped * z_clamped).sqrt();
+
+            let (phi_sin, phi_cos) = phi.sin_cos();
+
+            let x = radius * phi_cos;
+            let y = radius * phi_sin;
+
+            let ray = Vec3::new(x, y, z_clamped).normalize();
+
+            ray_vec.push(ray);
+
+            z += dz;
         }
 
-        direction_vec
+        ray_vec
     }
 }

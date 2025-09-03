@@ -126,7 +126,10 @@ impl World {
                         boundary: false,
                     },
                     position,
-                    aabb: AABB::new(position.as_vec3(), Vec3::splat(grid.chunk_size_blocks as f32)),
+                    aabb: AABB::new(
+                        position.as_vec3(),
+                        Vec3::splat(grid.chunk_size_blocks as f32),
+                    ),
                     block_vec: Self::setup_block_vec(grid, chunk_id),
                 }
             })

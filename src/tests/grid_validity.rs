@@ -122,22 +122,28 @@ fn position_valid() {
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_extent_blocks, world_extent_blocks, world_extent_blocks)".to_string(),
+            description: "(world_extent_blocks, world_extent_blocks, world_extent_blocks)"
+                .to_string(),
             position: IVec3::splat(world_extent_blocks),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(-world_extent_blocks, -world_extent_blocks, -world_extent_blocks)".to_string(),
+            description: "(-world_extent_blocks, -world_extent_blocks, -world_extent_blocks)"
+                .to_string(),
             position: IVec3::splat(-world_extent_blocks),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_extent_blocks + 1, world_extent_blocks + 1, world_extent_blocks + 1)".to_string(),
+            description:
+                "(world_extent_blocks + 1, world_extent_blocks + 1, world_extent_blocks + 1)"
+                    .to_string(),
             position: IVec3::splat(world_extent_blocks + 1),
             expected_valid: false,
         },
         PositionValidCase {
-            description: "(-world_extent_blocks - 1, -world_extent_blocks - 1, -world_extent_blocks - 1)".to_string(),
+            description:
+                "(-world_extent_blocks - 1, -world_extent_blocks - 1, -world_extent_blocks - 1)"
+                    .to_string(),
             position: IVec3::splat(-world_extent_blocks - 1),
             expected_valid: false,
         },

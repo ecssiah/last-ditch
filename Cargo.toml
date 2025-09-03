@@ -10,6 +10,7 @@ readme = "README.md"
 [build-dependencies]
 
 [dependencies]
+approx = "0.5"
 bytemuck = { version = "1.14", features = ["derive"] }
 crossbeam = "0.8.4"
 egui = "0.31.1"
@@ -17,7 +18,7 @@ egui-winit = "0.31.1"
 egui-wgpu = "0.31.1"
 env_logger = "0.11.6"
 flexi_logger = "0.27"
-glam = "0.29.0"
+glam = { version = "0.29.0", features = ["approx"] }
 image = "0.25.6"
 itertools = "0.12"
 log = "0.4"

@@ -223,8 +223,16 @@ fn build_observation_deck(world: &mut World) {
     );
 
     World::set_cube(
-        IVec3::new(-center - chunk_extent_blocks, height, -center - chunk_extent_blocks),
-        IVec3::new(center + chunk_extent_blocks, height, center + chunk_extent_blocks),
+        IVec3::new(
+            -center - chunk_extent_blocks,
+            height,
+            -center - chunk_extent_blocks,
+        ),
+        IVec3::new(
+            center + chunk_extent_blocks,
+            height,
+            center + chunk_extent_blocks,
+        ),
         block::Kind::Polished1,
         &world.grid,
         &world.block_info_map,
@@ -237,7 +245,11 @@ fn build_observation_deck(world: &mut World) {
             height,
             -center + chunk_extent_blocks + 1,
         ),
-        IVec3::new(center - chunk_extent_blocks - 1, height, center - chunk_extent_blocks - 1),
+        IVec3::new(
+            center - chunk_extent_blocks - 1,
+            height,
+            center - chunk_extent_blocks - 1,
+        ),
         block::Kind::Empty,
         &world.grid,
         &world.block_info_map,

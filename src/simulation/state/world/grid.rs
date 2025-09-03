@@ -1,12 +1,12 @@
 pub mod axis;
 pub mod block_sample;
 pub mod direction;
-pub mod world_ray_iter;
+pub mod world_ray_iterator;
 
 pub use axis::Axis;
 pub use block_sample::BlockSample;
 pub use direction::Direction;
-pub use world_ray_iter::WorldRayIter;
+pub use world_ray_iterator::WorldRayIterator;
 
 use crate::simulation::{
     self,

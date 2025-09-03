@@ -5,7 +5,7 @@ use crate::simulation::state::{
 };
 use glam::{IVec3, Vec3};
 
-pub struct WorldRayIter<'world> {
+pub struct WorldRayIterator<'world> {
     world: &'world World,
     done: bool,
     t: f32,
@@ -18,7 +18,7 @@ pub struct WorldRayIter<'world> {
     t_delta: Vec3,
 }
 
-impl<'world> WorldRayIter<'world> {
+impl<'world> WorldRayIterator<'world> {
     pub fn from_ray(
         world: &'world World,
         origin: Vec3,
@@ -83,7 +83,7 @@ impl<'world> WorldRayIter<'world> {
         let t_delta = Vec3::new(t_delta_x, t_delta_y, t_delta_z);
         let t_remaining = Vec3::new(t_remaining_x, t_remaining_y, t_remaining_z);
 
-        let world_ray_iter = Self {
+        let world_ray_iterator = Self {
             world,
             done: false,
             t: t_start,
@@ -96,11 +96,11 @@ impl<'world> WorldRayIter<'world> {
             t_remaining,
         };
 
-        Some(world_ray_iter)
+        Some(world_ray_iterator)
     }
 }
 
-impl<'w> Iterator for WorldRayIter<'w> {
+impl<'w> Iterator for WorldRayIterator<'w> {
     type Item = BlockSample;
 
     fn next(&mut self) -> Option<Self::Item> {
