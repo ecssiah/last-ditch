@@ -392,9 +392,9 @@ impl PopulationRender {
     }
 
     pub fn render(
-        gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
+        gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
         population_render: &PopulationRender,
         encoder: &mut wgpu::CommandEncoder,

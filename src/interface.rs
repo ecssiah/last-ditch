@@ -245,36 +245,31 @@ impl<'window> Interface<'window> {
         );
 
         ItemRender::render(
-            &self.gpu_context,
             &surface_texture_view,
             &depth_texture_view,
+            &self.gpu_context,
             &self.camera.uniform_bind_group,
             &self.item_render,
             &mut encoder,
         );
 
         PopulationRender::render(
-            &self.gpu_context,
             &surface_texture_view,
             &depth_texture_view,
+            &self.gpu_context,
             &self.camera.uniform_bind_group,
             &self.population_render,
             &mut encoder,
         );
 
-        let full_output = self.hud.get_full_output(
-            Arc::clone(&self.gpu_context.window_arc),
-            &self.gpu_context.egui_context,
-            &mut self.gpu_context.egui_winit_state,
-        );
-
         HUD::render(
-            full_output,
+            &surface_texture_view,
+            Arc::clone(&self.gpu_context.window_arc),
             &self.gpu_context.device,
             &self.gpu_context.queue,
-            Arc::clone(&self.gpu_context.window_arc),
-            &surface_texture_view,
             &self.gpu_context.egui_context,
+            &mut self.hud,
+            &mut self.gpu_context.egui_winit_state,
             &mut self.gpu_context.egui_renderer,
             &mut encoder,
         );

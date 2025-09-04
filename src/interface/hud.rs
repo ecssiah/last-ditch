@@ -59,15 +59,22 @@ impl HUD {
     }
 
     pub fn render(
-        full_output: FullOutput,
+        surface_texture_view: &wgpu::TextureView,
+        window_arc: Arc<winit::window::Window>,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        window_arc: Arc<winit::window::Window>,
-        surface_texture_view: &wgpu::TextureView,
         egui_context: &egui::Context,
+        hud: &mut HUD,
+        egui_winit_state: &mut egui_winit::State,
         egui_renderer: &mut egui_wgpu::Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
+        let full_output = hud.get_full_output(
+            Arc::clone(&window_arc),
+            egui_context,
+            egui_winit_state,
+        );
+
         let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
         let screen_descriptor = egui_wgpu::ScreenDescriptor {

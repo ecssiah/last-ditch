@@ -137,9 +137,9 @@ impl ItemRender {
     }
 
     pub fn render(
-        _gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
+        _gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
         item_render: &ItemRender,
         encoder: &mut wgpu::CommandEncoder,
