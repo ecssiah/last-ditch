@@ -7,7 +7,7 @@ use crate::simulation::{
     observation::view::{
         AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
     },
-    state::{world::grid::Grid, State, World},
+    state::{world::grid::Grid, State},
     utils::buffer::Buffer,
 };
 use std::{
@@ -88,6 +88,8 @@ impl Observation {
                 ),
                 size: judge.spatial.size,
                 quaternion: judge.spatial.quaternion,
+                eye: judge.spatial.eye(),
+                view_ray_vec: judge.sight.view_ray_vec.clone(),
             },
             agent_view_map: HashMap::new(),
         };

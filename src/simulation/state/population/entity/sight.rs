@@ -12,14 +12,16 @@ use std::collections::HashSet;
 pub struct Sight {
     pub distance: f32,
     pub fov_angle: f32,
+    pub view_ray_vec_reference: Vec<Vec3>,
     pub view_ray_vec: Vec<Vec3>,
     pub chunk_id_set: HashSet<chunk::ID>,
     pub entity_id_set: HashSet<entity::ID>,
 }
 
 impl Sight {
-    pub fn new(distance: f32, fov_angle: f32) -> Self {
-        let view_ray_vec = Self::generate_view_ray_vec(fov_angle, 5);
+    pub fn new(fov_angle: f32, distance: f32) -> Self {
+        let view_ray_vec_reference = Self::generate_view_ray_vec_reference(fov_angle, 320);
+        let view_ray_vec = Vec::new();
 
         let chunk_id_set = HashSet::new();
         let entity_id_set = HashSet::new();
@@ -27,6 +29,7 @@ impl Sight {
         Self {
             distance,
             fov_angle,
+            view_ray_vec_reference,
             view_ray_vec,
             chunk_id_set,
             entity_id_set,
@@ -36,16 +39,19 @@ impl Sight {
     pub fn tick(world: &World, spatial: &Spatial, sight: &mut Sight) {
         let broadphase_chunk_id_set = Self::broadphase_filter(world, spatial, sight);
 
+        sight.view_ray_vec =
+            Sight::rotate_view_ray_vec(spatial.forward(), &sight.view_ray_vec_reference);
+
         let narrowphase_chunk_id_set =
             Self::narrowphase_filter(&broadphase_chunk_id_set, world, spatial, sight);
 
         sight.chunk_id_set = narrowphase_chunk_id_set;
-
-        println!("{:?}", sight.chunk_id_set.iter().len());
     }
 
     fn broadphase_filter(world: &World, spatial: &Spatial, sight: &Sight) -> HashSet<chunk::ID> {
-        let half_fov_angle = sight.fov_angle / 2.0;
+        let fov_angle_radians = sight.fov_angle.to_radians();
+
+        let half_fov_angle = fov_angle_radians / 2.0;
         let (sin_a, cos_a) = half_fov_angle.sin_cos();
         let chunk_sphere_radius =
             world.grid.chunk_extent_blocks as f32 * world.grid.block_extent * 3.0_f32.sqrt();
@@ -72,6 +78,14 @@ impl Sight {
                 continue;
             }
 
+            let near_ring_multiplier = 2.5_f32;
+            let near_distance = chunk_sphere_radius * near_ring_multiplier;
+            
+            if eye_to_center_length <= near_distance {
+                chunk_id_set.insert(chunk.id);
+                continue;
+            }
+
             let angular_pad = (chunk_sphere_radius / eye_to_center_length).min(1.0);
             let cos_b = (1.0 - angular_pad * angular_pad).max(0.0).sqrt();
             let rhs = cos_a * cos_b - sin_a * angular_pad;
@@ -94,9 +108,7 @@ impl Sight {
     ) -> HashSet<chunk::ID> {
         let mut chunk_id_set = HashSet::new();
 
-        let view_ray_vec_local = Sight::rotate_view_ray_vec(spatial.forward(), &sight.view_ray_vec);
-
-        for ray in view_ray_vec_local {
+        for &ray in &sight.view_ray_vec {
             let t_epsilon = world.grid.block_extent * 0.01;
             let ray_origin = spatial.eye() + ray * t_epsilon;
 
@@ -123,52 +135,41 @@ impl Sight {
         chunk_id_set
     }
 
-    fn compute_rotation_matrix(forward: Vec3) -> glam::Mat3 {
-        let from = Vec3::Z;
-        let to = forward.normalize();
-
-        let from_cross_to = from.cross(to);
-        let from_dot_to = from.dot(to);
-
-        if from_cross_to.length_squared() < 1e-6 {
-            if from_dot_to > 0.0 {
-                glam::Mat3::IDENTITY
-            } else {
-                glam::Mat3::from_axis_angle(Vec3::X, std::f32::consts::PI)
-            }
-        } else {
-            let from_cross_to_magnitude = from_cross_to.length();
-
-            let k_matrix = glam::Mat3::from_cols(
-                Vec3::new(0.0, -from_cross_to.z, from_cross_to.y),
-                Vec3::new(from_cross_to.z, 0.0, -from_cross_to.x),
-                Vec3::new(-from_cross_to.y, from_cross_to.x, 0.0),
-            );
-
-            glam::Mat3::IDENTITY
-                + k_matrix
-                + (k_matrix * k_matrix)
-                    * ((1.0 - from_dot_to) / (from_cross_to_magnitude * from_cross_to_magnitude))
+    fn basis_from_forward(forward: Vec3, up_hint: Vec3) -> glam::Mat3 {
+        let f = forward.normalize();
+        if f.length_squared() == 0.0 {
+            return glam::Mat3::IDENTITY;
         }
+
+        let mut r = up_hint.cross(f);
+
+        if r.length_squared() < 1e-6 {
+            let alt = if f.y.abs() < 0.9 { Vec3::Y } else { Vec3::X };
+            r = alt.cross(f);
+        }
+        r = r.normalize();
+
+        let u = f.cross(r);
+
+        glam::Mat3::from_cols(r, u, f)
     }
 
     pub fn rotate_view_ray_vec(forward: Vec3, view_ray_vec: &Vec<Vec3>) -> Vec<Vec3> {
-        let rotation_matrix = Self::compute_rotation_matrix(forward);
+        let basis = Self::basis_from_forward(forward, Vec3::Y);
 
-        view_ray_vec
-            .iter()
-            .map(|ray| rotation_matrix * *ray)
-            .collect()
+        view_ray_vec.iter().map(|ray| basis * *ray).collect()
     }
 
-    pub fn generate_view_ray_vec(fov_angle: f32, ray_count: usize) -> Vec<Vec3> {
+    pub fn generate_view_ray_vec_reference(fov_angle: f32, ray_count: usize) -> Vec<Vec3> {
         debug_assert!(ray_count > 0, "view ray count is zero");
+
+        let fov_angle_radians = fov_angle.to_radians();
 
         let ray_count_f32 = ray_count as f32;
         let mut ray_vec = Vec::with_capacity(ray_count);
 
-        let half_fov_angle = fov_angle * 0.5;
-        let cos_half_fov_angle = half_fov_angle.to_radians().cos();
+        let half_fov_angle = fov_angle_radians * 0.5;
+        let cos_half_fov_angle = half_fov_angle.cos();
 
         let dz = (1.0 - cos_half_fov_angle) / ray_count_f32;
         let mut z = cos_half_fov_angle + dz * 0.5;

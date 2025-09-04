@@ -4,6 +4,8 @@ use std::{f32::consts::PI, time::Duration};
 
 pub const FULLSCREEN: bool = false;
 
+pub const DEBUG_RENDER: bool = false;
+
 pub const INTERFACE_FRAME_FREQUENCY: u64 = 60;
 pub const INTERFACE_FRAME_DURATION: Duration =
     Duration::from_nanos(1_000_000_000 / INTERFACE_FRAME_FREQUENCY);

@@ -11,9 +11,13 @@ struct SightCase {
 
 impl SightCase {
     pub fn check(case: &SightCase) {
-        let view_ray_vec = Sight::generate_view_ray_vec(case.fov_angle, case.ray_count);
+        let view_ray_vec_reference =
+            Sight::generate_view_ray_vec_reference(case.fov_angle, case.ray_count);
 
-        for (&ray, &expected_ray) in view_ray_vec.iter().zip(case.expected_view_ray_vec.iter()) {
+        for (&ray, &expected_ray) in view_ray_vec_reference
+            .iter()
+            .zip(case.expected_view_ray_vec.iter())
+        {
             let dot_product = ray.normalize().dot(expected_ray.normalize());
 
             assert_abs_diff_eq!(dot_product, 1.0, epsilon = 1e-3);

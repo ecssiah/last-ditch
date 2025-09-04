@@ -13,6 +13,8 @@ pub struct JudgeView {
     pub chunk_coordinates: IVec3,
     pub size: Vec3,
     pub quaternion: Quat,
+    pub eye: Vec3,
+    pub view_ray_vec: Vec<Vec3>,
 }
 
 impl JudgeView {
@@ -25,6 +27,8 @@ impl JudgeView {
             chunk_coordinates: IVec3::ZERO,
             size: Vec3::ZERO,
             quaternion: Quat::IDENTITY,
+            eye: Vec3::ZERO,
+            view_ray_vec: Vec::new(),
         }
     }
 }

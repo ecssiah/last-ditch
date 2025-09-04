@@ -2,6 +2,7 @@
 
 pub mod camera;
 pub mod consts;
+pub mod debug;
 pub mod dispatch;
 pub mod gpu_context;
 pub mod hud;
@@ -15,12 +16,13 @@ pub mod world_render;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, dispatch::Dispatch, gpu_context::GPUContext, hud::HUD,
-        input::Input, item_render::ItemRender, population_render::PopulationRender,
+        camera::Camera, consts::*, debug::DebugRender, dispatch::Dispatch, gpu_context::GPUContext,
+        hud::HUD, input::Input, item_render::ItemRender, population_render::PopulationRender,
         world_render::WorldRender,
     },
     simulation::{self},
 };
+use glam::Vec3;
 use std::{ops::Deref, sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
@@ -40,6 +42,7 @@ pub struct Interface<'window> {
     world_render: WorldRender,
     item_render: ItemRender,
     population_render: PopulationRender,
+    debug_render: DebugRender,
     gpu_context: GPUContext<'window>,
 }
 
@@ -162,6 +165,7 @@ impl<'window> Interface<'window> {
         let world_render = WorldRender::new(&gpu_context, &camera);
         let item_render = ItemRender::new(&gpu_context, &camera);
         let population_render = PopulationRender::new(&gpu_context, &camera);
+        let debug_render = DebugRender::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -175,6 +179,7 @@ impl<'window> Interface<'window> {
             world_render,
             item_render,
             population_render,
+            debug_render,
             gpu_context,
         }
     }
@@ -274,6 +279,18 @@ impl<'window> Interface<'window> {
             &mut encoder,
         );
 
+        if DEBUG_RENDER {
+            self.debug_render.add_axes(Vec3::new(0.0, 0.0, 0.0), 1.0);
+
+            DebugRender::render(
+                &surface_texture_view,
+                &depth_texture_view,
+                &self.gpu_context,
+                &mut self.debug_render,
+                &mut encoder,
+            );
+        }
+
         self.gpu_context.queue.submit([encoder.finish()]);
         self.gpu_context.window_arc.pre_present_notify();
 
@@ -355,6 +372,13 @@ impl<'window> Interface<'window> {
             &view.population_view,
             &mut self.population_render.entity_instance_data_group_vec,
         );
+
+        for ray in &view.population_view.judge_view.view_ray_vec {
+            let start = view.population_view.judge_view.eye;
+            let end = start + (*ray * 2.0);
+
+            self.debug_render.add_line(start, end, [1.0, 1.0, 1.0]);
+        }
     }
 
     fn apply_shutdown_view(
