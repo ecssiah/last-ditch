@@ -33,3 +33,4 @@ specs = "0.20.0"
 tokio = { version = "1.0", features = ["full"] }
 wgpu = "24.0.0"
 winit = "0.30.8"
+bitflags = "2.9.4"

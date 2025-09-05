@@ -74,7 +74,7 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
     ])
 });
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Grid {
     pub block_extent: f32,
     pub block_size: f32,

@@ -1,17 +1,23 @@
 use crate::{
     include_assets,
     interface::{
-        camera::Camera, debug::debug_vertex_data::DebugVertexData, gpu_context::GPUContext,
+        camera::Camera,
+        debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
+        gpu_context::GPUContext,
     },
+    simulation::{observation::view::View, state::world::grid::Grid},
 };
 use glam::Vec3;
 
 pub struct DebugRender {
-    render_pipeline: wgpu::RenderPipeline,
-    bind_group: wgpu::BindGroup,
-    vertex_buffer: wgpu::Buffer,
-    vertex_capacity: usize,
-    vertex_vec: Vec<DebugVertexData>,
+    pub visible: bool,
+    pub debug_visibility: DebugVisibility,
+    pub channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    pub render_pipeline: wgpu::RenderPipeline,
+    pub camera_bind_group: wgpu::BindGroup,
+    pub vertex_buffer: wgpu::Buffer,
+    pub vertex_capacity: usize,
+    pub vertex_vec: Vec<DebugVertexData>,
 }
 
 impl DebugRender {
@@ -97,47 +103,93 @@ impl DebugRender {
             mapped_at_creation: false,
         });
 
+        let visible = true;
+        let debug_visibility = DebugVisibility::CHUNK_BORDERS;
+
+        let channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()] =
+            std::array::from_fn(|_| Vec::new());
+
+        let vertex_vec = Vec::new();
+
         Self {
+            visible,
+            debug_visibility,
+            channel_vertex_vec_array,
             render_pipeline,
-            bind_group: camera.uniform_bind_group.clone(),
+            camera_bind_group: camera.uniform_bind_group.clone(),
             vertex_buffer,
             vertex_capacity: initial_capacity,
-            vertex_vec: Vec::new(),
+            vertex_vec,
         }
     }
 
     #[inline]
-    pub fn clear(&mut self) {
-        self.vertex_vec.clear();
+    pub fn clear_channel_vertex_vec(&mut self) {
+        for vertex_vec in &mut self.channel_vertex_vec_array {
+            vertex_vec.clear();
+        }
     }
 
-    pub fn add_line(&mut self, position1: Vec3, position2: Vec3, color: [f32; 3]) {
-        self.vertex_vec.push(DebugVertexData {
+    pub fn add_line(
+        &mut self,
+        debug_channel: DebugChannel,
+        position1: Vec3,
+        position2: Vec3,
+        color: [f32; 3],
+    ) {
+        let vertex_vec = &mut self.channel_vertex_vec_array[debug_channel.index()];
+
+        vertex_vec.push(DebugVertexData {
             position: position1.into(),
             color,
         });
 
-        self.vertex_vec.push(DebugVertexData {
+        vertex_vec.push(DebugVertexData {
             position: position2.into(),
             color,
         });
     }
 
-    pub fn add_ray(&mut self, origin: Vec3, direction: Vec3, length: f32, color: [f32; 3]) {
+    pub fn add_ray(
+        &mut self,
+        debug_channel: DebugChannel,
+        origin: Vec3,
+        direction: Vec3,
+        length: f32,
+        color: [f32; 3],
+    ) {
         self.add_line(
+            debug_channel,
             origin,
             origin + direction.normalize_or_zero() * length,
             color,
         );
     }
 
-    pub fn add_axes(&mut self, origin: Vec3, scale: f32) {
-        self.add_line(origin, origin + Vec3::X * scale, [1.0, 0.1, 0.1]);
-        self.add_line(origin, origin + Vec3::Y * scale, [0.1, 1.0, 0.1]);
-        self.add_line(origin, origin + Vec3::Z * scale, [0.1, 0.1, 1.0]);
+    pub fn add_axes(&mut self, debug_channel: DebugChannel, origin: Vec3, scale: f32) {
+        self.add_line(
+            debug_channel,
+            origin,
+            origin + Vec3::X * scale,
+            [1.0, 0.1, 0.1],
+        );
+
+        self.add_line(
+            debug_channel,
+            origin,
+            origin + Vec3::Y * scale,
+            [0.1, 1.0, 0.1],
+        );
+
+        self.add_line(
+            debug_channel,
+            origin,
+            origin + Vec3::Z * scale,
+            [0.1, 0.1, 1.0],
+        );
     }
 
-    pub fn add_box(&mut self, min: Vec3, max: Vec3, color: [f32; 3]) {
+    pub fn add_box(&mut self, debug_channel: DebugChannel, min: Vec3, max: Vec3, color: [f32; 3]) {
         let (x0, y0, z0) = (min.x, min.y, min.z);
         let (x1, y1, z1) = (max.x, max.y, max.z);
 
@@ -157,7 +209,81 @@ impl DebugRender {
         ];
 
         for (position1, position2) in edge_array {
-            self.add_line(position1, position2, color);
+            self.add_line(debug_channel, position1, position2, color);
+        }
+    }
+
+    pub fn apply_debug_view(view: &View, debug_render: &mut DebugRender) {
+        if debug_render
+            .debug_visibility
+            .contains(DebugVisibility::CHANNEL1)
+        {
+            // for ray in &view.population_view.judge_view.view_ray_vec {
+            //     let start = view.population_view.judge_view.eye;
+            //     let end = start + (*ray * 2.0);
+
+            //     debug_render.add_line(DebugChannel::Channel1, start, end, [1.0, 1.0, 1.0]);
+            // }
+        }
+
+        if debug_render
+            .debug_visibility
+            .contains(DebugVisibility::CHUNK_BORDERS)
+        {
+            let extent = view.world_view.grid.world_extent_chunks as i32;
+
+            // Get chunk size in world units. Replace this call with your actual getter/const if different.
+            let chunk_size: f32 = view.world_view.grid.chunk_size_units;
+
+            // World bounds (min/max coordinates) assuming the world is centered on the origin
+            // and chunks are centered at integer coordinates. The outer faces lie at +/- (extent + 0.5) * chunk_size.
+            let half_span = (extent as f32 + 0.5) * chunk_size;
+            let min = Vec3::splat(-half_span);
+            let max = Vec3::splat(half_span);
+
+            // Boundary positions occur midway between chunk centers: (k + 0.5) * chunk_size for k in [-extent..=extent]
+            let mut bounds: Vec<f32> = Vec::with_capacity((2 * extent as usize + 1));
+            for k in -extent..=extent {
+                bounds.push((k as f32 + 0.5) * chunk_size);
+            }
+
+            let chan = DebugChannel::ChunkBorders;
+
+            // X-axis lines across the whole world, at every Y/Z chunk boundary intersection
+            for &y in &bounds {
+                for &z in &bounds {
+                    debug_render.add_line(
+                        chan,
+                        Vec3::new(min.x, y, z),
+                        Vec3::new(max.x, y, z),
+                        [1.0, 0.0, 0.0],
+                    );
+                }
+            }
+
+            // Y-axis lines across the whole world, at every X/Z chunk boundary intersection
+            for &x in &bounds {
+                for &z in &bounds {
+                    debug_render.add_line(
+                        chan,
+                        Vec3::new(x, min.y, z),
+                        Vec3::new(x, max.y, z),
+                        [0.0, 1.0, 0.0],
+                    );
+                }
+            }
+
+            // Z-axis lines across the whole world, at every X/Y chunk boundary intersection
+            for &x in &bounds {
+                for &y in &bounds {
+                    debug_render.add_line(
+                        chan,
+                        Vec3::new(x, y, min.z),
+                        Vec3::new(x, y, max.z),
+                        [0.0, 0.0, 1.0],
+                    );
+                }
+            }
         }
     }
 
@@ -168,6 +294,16 @@ impl DebugRender {
         debug_render: &mut DebugRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
+        debug_render.vertex_vec.clear();
+
+        for (index, vertex_vec) in debug_render.channel_vertex_vec_array.iter().enumerate() {
+            let mask = DebugChannel::ALL[index].mask();
+
+            if debug_render.debug_visibility.contains(mask) {
+                debug_render.vertex_vec.extend_from_slice(&vertex_vec);
+            }
+        }
+
         if debug_render.vertex_vec.is_empty() {
             return;
         }
@@ -214,10 +350,10 @@ impl DebugRender {
         });
 
         render_pass.set_pipeline(&debug_render.render_pipeline);
-        render_pass.set_bind_group(0, &debug_render.bind_group, &[]);
+        render_pass.set_bind_group(0, &debug_render.camera_bind_group, &[]);
         render_pass.set_vertex_buffer(0, debug_render.vertex_buffer.slice(..));
         render_pass.draw(0..(debug_render.vertex_vec.len() as u32), 0..1);
 
-        debug_render.clear();
+        debug_render.clear_channel_vertex_vec();
     }
 }

@@ -2,6 +2,8 @@
 
 pub mod view;
 
+use glam::Vec3;
+
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::view::{
@@ -122,6 +124,7 @@ impl Observation {
 
     fn update_world_view(state: &State) -> WorldView {
         let mut world_view = WorldView {
+            grid: state.world.grid,
             chunk_view_map: HashMap::new(),
         };
 
@@ -129,6 +132,8 @@ impl Observation {
             if let Some(chunk) = state.world.chunk_vec.get(usize::from(*chunk_id)) {
                 let chunk_view = ChunkView {
                     id: chunk.id,
+                    world_position: chunk.position.as_vec3(),
+                    extent: Vec3::splat(state.world.grid.chunk_extent_units),
                     block_vec: chunk.block_vec.clone(),
                 };
 

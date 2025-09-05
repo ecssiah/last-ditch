@@ -16,8 +16,15 @@ pub mod world_render;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, debug::DebugRender, dispatch::Dispatch, gpu_context::GPUContext,
-        hud::HUD, input::Input, item_render::ItemRender, population_render::PopulationRender,
+        camera::Camera,
+        consts::*,
+        debug::{DebugChannel, DebugRender},
+        dispatch::Dispatch,
+        gpu_context::GPUContext,
+        hud::HUD,
+        input::Input,
+        item_render::ItemRender,
+        population_render::PopulationRender,
         world_render::WorldRender,
     },
     simulation::{self},
@@ -279,9 +286,7 @@ impl<'window> Interface<'window> {
             &mut encoder,
         );
 
-        if DEBUG_RENDER {
-            self.debug_render.add_axes(Vec3::new(0.0, 0.0, 0.0), 1.0);
-
+        if self.debug_render.visible {
             DebugRender::render(
                 &surface_texture_view,
                 &depth_texture_view,
@@ -373,12 +378,7 @@ impl<'window> Interface<'window> {
             &mut self.population_render.entity_instance_data_group_vec,
         );
 
-        for ray in &view.population_view.judge_view.view_ray_vec {
-            let start = view.population_view.judge_view.eye;
-            let end = start + (*ray * 2.0);
-
-            self.debug_render.add_line(start, end, [1.0, 1.0, 1.0]);
-        }
+        DebugRender::apply_debug_view(&view, &mut self.debug_render);
     }
 
     fn apply_shutdown_view(

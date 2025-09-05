@@ -14,6 +14,8 @@ impl SightCase {
         let view_ray_vec_reference =
             Sight::generate_view_ray_vec_reference(case.fov_angle, case.ray_count);
 
+        println!("{:?}", case.description);
+
         for (&ray, &expected_ray) in view_ray_vec_reference
             .iter()
             .zip(case.expected_view_ray_vec.iter())
