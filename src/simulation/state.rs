@@ -59,7 +59,7 @@ impl State {
         }
     }
 
-    pub fn tick(state: &mut State, action_vec: Vec<Action>) {
+    pub fn tick(action_vec: Vec<Action>, state: &mut State) {
         match state.admin.mode {
             admin::Mode::Menu => Self::tick_menu(action_vec, state),
             admin::Mode::Load => Self::tick_load(state),

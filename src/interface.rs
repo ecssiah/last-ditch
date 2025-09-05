@@ -16,21 +16,20 @@ pub mod world_render;
 
 use crate::{
     interface::{
-        camera::Camera,
-        consts::*,
-        debug::{DebugChannel, DebugRender},
-        dispatch::Dispatch,
-        gpu_context::GPUContext,
-        hud::HUD,
-        input::Input,
-        item_render::ItemRender,
-        population_render::PopulationRender,
+        camera::Camera, consts::*, debug::DebugRender, dispatch::Dispatch, gpu_context::GPUContext,
+        hud::HUD, input::Input, item_render::ItemRender, population_render::PopulationRender,
         world_render::WorldRender,
     },
-    simulation::{self},
+    simulation::{
+        self,
+        observation::{view::View, Observation},
+        state::{
+            admin,
+            receiver::action::{Action, AdminAction},
+        },
+    },
 };
-use glam::Vec3;
-use std::{ops::Deref, sync::Arc, time::Instant};
+use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalSize,
@@ -40,24 +39,24 @@ use winit::{
 };
 
 pub struct Interface<'window> {
-    last_instant: Instant,
-    observation_arc: Arc<simulation::observation::Observation>,
-    dispatch: Dispatch,
-    input: Input,
-    camera: Camera,
-    hud: HUD,
-    world_render: WorldRender,
-    item_render: ItemRender,
-    population_render: PopulationRender,
-    debug_render: DebugRender,
-    gpu_context: GPUContext<'window>,
+    pub last_instant: Instant,
+    pub dispatch: Dispatch,
+    pub input: Input,
+    pub camera: Camera,
+    pub hud: HUD,
+    pub world_render: WorldRender,
+    pub item_render: ItemRender,
+    pub population_render: PopulationRender,
+    pub debug_render: DebugRender,
+    pub gpu_context: GPUContext<'window>,
+    pub view_output_buffer: triple_buffer::Output<View>,
 }
 
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
-        observation_arc: Arc<simulation::observation::Observation>,
+        view_output_buffer: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();
 
@@ -178,7 +177,6 @@ impl<'window> Interface<'window> {
 
         Self {
             last_instant,
-            observation_arc,
             dispatch,
             input,
             camera,
@@ -188,15 +186,39 @@ impl<'window> Interface<'window> {
             population_render,
             debug_render,
             gpu_context,
+            view_output_buffer,
         }
     }
 
-    pub fn handle_about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    pub fn handle_about_to_wait(
+        event_loop: &ActiveEventLoop,
+        gpu_context: &GPUContext,
+        dispatch: &Dispatch,
+        last_instant: &mut Instant,
+        camera: &mut Camera,
+        hud: &mut HUD,
+        input: &mut Input,
+        world_render: &mut WorldRender,
+        population_render: &mut PopulationRender,
+        debug_render: &mut DebugRender,
+        view_output_buffer: &mut triple_buffer::Output<View>,
+    ) {
         let instant = Instant::now();
-        let next_instant = self.last_instant + INTERFACE_FRAME_DURATION;
-        self.last_instant = instant;
+        let next_instant = *last_instant + INTERFACE_FRAME_DURATION;
+        *last_instant = instant;
 
-        self.update(event_loop);
+        Self::update(
+            event_loop,
+            dispatch,
+            gpu_context,
+            camera,
+            hud,
+            input,
+            world_render,
+            population_render,
+            debug_render,
+            view_output_buffer,
+        );
 
         let instant = Instant::now();
 
@@ -204,213 +226,282 @@ impl<'window> Interface<'window> {
             event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
         };
 
-        self.gpu_context.window_arc.request_redraw();
+        gpu_context.window_arc.request_redraw();
     }
 
-    pub fn handle_device_event(&mut self, event: &DeviceEvent) {
-        let hud_handled = self.hud.handle_device_event(event, &mut self.gpu_context);
+    pub fn handle_device_event(
+        event: &DeviceEvent,
+        gpu_context: &mut GPUContext,
+        hud: &mut HUD,
+        input: &mut Input,
+    ) {
+        let hud_handled = hud.handle_device_event(event, gpu_context);
 
         if !hud_handled {
-            self.input.handle_device_event(event);
+            input.handle_device_event(event);
         }
     }
 
-    pub fn handle_window_event(&mut self, event: &WindowEvent) {
+    pub fn handle_window_event(
+        event: &WindowEvent,
+        camera: &Camera,
+        gpu_context: &mut GPUContext,
+        input: &mut Input,
+        hud: &mut HUD,
+        world_render: &mut WorldRender,
+        population_render: &mut PopulationRender,
+        item_render: &mut ItemRender,
+        debug_render: &mut DebugRender,
+    ) {
         match event {
-            WindowEvent::RedrawRequested => self.handle_redraw_requested(),
-            WindowEvent::Resized(size) => self.handle_resized(*size),
+            WindowEvent::RedrawRequested => Self::handle_redraw_requested(
+                camera,
+                gpu_context,
+                hud,
+                world_render,
+                item_render,
+                population_render,
+                debug_render,
+            ),
+            WindowEvent::Resized(size) => Self::handle_resized(*size, gpu_context),
             _ => {
-                let hud_handled = self.hud.handle_window_event(event, &mut self.gpu_context);
+                let hud_handled = hud.handle_window_event(event, gpu_context);
 
                 if !hud_handled {
-                    self.input.handle_window_event(event);
+                    input.handle_window_event(event);
                 }
             }
         }
     }
 
-    fn handle_redraw_requested(&mut self) {
-        let mut encoder = self
-            .gpu_context
+    fn handle_redraw_requested(
+        camera: &Camera,
+        gpu_context: &mut GPUContext,
+        hud: &mut HUD,
+        world_render: &mut WorldRender,
+        item_render: &mut ItemRender,
+        population_render: &mut PopulationRender,
+        debug_render: &mut DebugRender,
+    ) {
+        let mut encoder = gpu_context
             .device
             .create_command_encoder(&Default::default());
 
-        let surface_texture = self
-            .gpu_context
+        let surface_texture = gpu_context
             .surface
             .get_current_texture()
             .expect("failed to acquire next swapchain texture");
 
         let surface_texture_view = surface_texture
             .texture
-            .create_view(&self.gpu_context.texture_view_descriptor);
+            .create_view(&gpu_context.texture_view_descriptor);
 
         let depth_texture_view =
-            Self::create_depth_texture(&self.gpu_context.device, &self.gpu_context.surface_config);
+            Self::create_depth_texture(&gpu_context.device, &gpu_context.surface_config);
 
         WorldRender::render(
             &surface_texture_view,
             &depth_texture_view,
-            &self.camera.uniform_bind_group,
-            &self.world_render,
+            &camera.uniform_bind_group,
+            world_render,
             &mut encoder,
         );
 
         ItemRender::render(
             &surface_texture_view,
             &depth_texture_view,
-            &self.gpu_context,
-            &self.camera.uniform_bind_group,
-            &self.item_render,
+            gpu_context,
+            &camera.uniform_bind_group,
+            item_render,
             &mut encoder,
         );
 
         PopulationRender::render(
             &surface_texture_view,
             &depth_texture_view,
-            &self.gpu_context,
-            &self.camera.uniform_bind_group,
-            &self.population_render,
+            gpu_context,
+            &camera.uniform_bind_group,
+            population_render,
             &mut encoder,
         );
 
         HUD::render(
             &surface_texture_view,
-            Arc::clone(&self.gpu_context.window_arc),
-            &self.gpu_context.device,
-            &self.gpu_context.queue,
-            &self.gpu_context.egui_context,
-            &mut self.hud,
-            &mut self.gpu_context.egui_winit_state,
-            &mut self.gpu_context.egui_renderer,
+            Arc::clone(&gpu_context.window_arc),
+            &gpu_context.device,
+            &gpu_context.queue,
+            &gpu_context.egui_context,
+            hud,
+            &mut gpu_context.egui_winit_state,
+            &mut gpu_context.egui_renderer,
             &mut encoder,
         );
 
-        if self.debug_render.visible {
+        if debug_render.visible {
             DebugRender::render(
                 &surface_texture_view,
                 &depth_texture_view,
-                &self.gpu_context,
-                &mut self.debug_render,
+                gpu_context,
+                debug_render,
                 &mut encoder,
             );
         }
 
-        self.gpu_context.queue.submit([encoder.finish()]);
-        self.gpu_context.window_arc.pre_present_notify();
+        gpu_context.queue.submit([encoder.finish()]);
+        gpu_context.window_arc.pre_present_notify();
 
         surface_texture.present();
     }
 
-    fn handle_resized(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.gpu_context.size = new_size;
+    fn handle_resized(size: winit::dpi::PhysicalSize<u32>, gpu_context: &mut GPUContext) {
+        gpu_context.size = size;
 
-        self.gpu_context
+        gpu_context
             .surface
-            .configure(&self.gpu_context.device, &self.gpu_context.surface_config);
+            .configure(&gpu_context.device, &gpu_context.surface_config);
     }
 
-    fn update(&mut self, event_loop: &ActiveEventLoop) {
-        let observation = self.observation_arc.deref();
-        let view = simulation::observation::Observation::get_view(&observation.view_buffer_lock);
+    fn update(
+        event_loop: &ActiveEventLoop,
+        dispatch: &Dispatch,
+        gpu_context: &GPUContext,
+        camera: &mut Camera,
+        hud: &mut HUD,
+        input: &mut Input,
+        world_render: &mut WorldRender,
+        population_render: &mut PopulationRender,
+        debug_render: &mut DebugRender,
+        view_output_buffer: &mut triple_buffer::Output<View>,
+    ) {
+        let view = Observation::get_view(view_output_buffer);
 
-        if !self.dispatch_actions(&view) {
-            let admin_action = simulation::state::receiver::action::AdminAction::Exit;
-            let action = simulation::state::receiver::action::Action::Admin(admin_action);
+        if !Self::dispatch_actions(view, dispatch, hud, input) {
+            let admin_action = AdminAction::Exit;
+            let action = Action::Admin(admin_action);
 
             log::info!("Interface Exit");
 
-            let _ = self.dispatch.send(action);
+            let _ = dispatch.send(action);
         } else {
-            self.apply_view(event_loop, &view);
+            Self::apply_view(
+                event_loop,
+                gpu_context,
+                camera,
+                hud,
+                world_render,
+                population_render,
+                debug_render,
+                view,
+            );
         }
     }
 
     fn apply_view(
-        &mut self,
         event_loop: &ActiveEventLoop,
-        view: &simulation::observation::view::View,
+        gpu_context: &GPUContext,
+        camera: &mut Camera,
+        hud: &mut HUD,
+        world_render: &mut WorldRender,
+        population_render: &mut PopulationRender,
+        debug_render: &mut DebugRender,
+        view: &View,
     ) {
         match view.admin_view.mode {
-            simulation::state::admin::Mode::Menu => self.apply_menu_view(view),
-            simulation::state::admin::Mode::Load => self.apply_load_view(view),
-            simulation::state::admin::Mode::Simulate => self.apply_simulate_view(view),
-            simulation::state::admin::Mode::Shutdown => self.apply_shutdown_view(view, event_loop),
+            admin::Mode::Menu => Self::apply_menu_view(view, gpu_context, hud),
+            admin::Mode::Load => Self::apply_load_view(view, hud),
+            admin::Mode::Simulate => Self::apply_simulate_view(
+                view,
+                gpu_context,
+                camera,
+                hud,
+                world_render,
+                population_render,
+                debug_render,
+            ),
+            admin::Mode::Shutdown => Self::apply_shutdown_view(view, event_loop, hud),
         }
     }
 
-    fn apply_menu_view(&mut self, view: &simulation::observation::view::View) {
-        self.gpu_context.window_arc.set_cursor_visible(true);
-        self.gpu_context
+    fn apply_menu_view(view: &View, gpu_context: &GPUContext, hud: &mut HUD) {
+        gpu_context.window_arc.set_cursor_visible(true);
+        gpu_context
             .window_arc
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
-        self.hud.apply_menu_view(view);
+        hud.apply_menu_view(view);
     }
 
-    fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
-        self.hud.apply_load_view(view);
+    fn apply_load_view(view: &View, hud: &mut HUD) {
+        hud.apply_load_view(view);
     }
 
-    fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
-        self.gpu_context.window_arc.set_cursor_visible(false);
-        self.gpu_context
+    fn apply_simulate_view(
+        view: &View,
+        gpu_context: &GPUContext,
+        camera: &mut Camera,
+        hud: &mut HUD,
+        world_render: &mut WorldRender,
+        population_render: &mut PopulationRender,
+        debug_render: &mut DebugRender,
+    ) {
+        gpu_context.window_arc.set_cursor_visible(false);
+        gpu_context
             .window_arc
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
 
-        self.hud.apply_simulate_view(view);
+        hud.apply_simulate_view(view);
 
-        self.camera
-            .apply_judge_view(&self.gpu_context.queue, &view.population_view.judge_view);
+        camera.apply_judge_view(&gpu_context.queue, &view.population_view.judge_view);
 
         WorldRender::apply_world_view(
-            &self.gpu_context.device,
+            &gpu_context.device,
             &view.world_view,
-            &self.world_render.block_render_info,
-            &self.world_render.block_tile_coordinates_map,
-            &mut self.world_render.chunk_render_data_vec,
+            &world_render.block_render_info,
+            &world_render.block_tile_coordinates_map,
+            &mut world_render.chunk_render_data_vec,
         );
 
         PopulationRender::apply_population_view(
             &view.population_view,
-            &mut self.population_render.entity_instance_data_group_vec,
+            &mut population_render.entity_instance_data_group_vec,
         );
 
-        DebugRender::apply_debug_view(&view, &mut self.debug_render);
+        DebugRender::apply_debug_view(&view, debug_render);
     }
 
-    fn apply_shutdown_view(
-        &mut self,
-        view: &simulation::observation::view::View,
-        event_loop: &ActiveEventLoop,
-    ) {
-        self.hud.apply_shutdown_view(view);
+    fn apply_shutdown_view(view: &View, event_loop: &ActiveEventLoop, hud: &mut HUD) {
+        hud.apply_shutdown_view(view);
 
         event_loop.exit();
     }
 
-    fn dispatch_actions(&mut self, view: &simulation::observation::view::View) -> bool {
+    fn dispatch_actions(
+        view: &View,
+        dispatch: &Dispatch,
+        hud: &mut HUD,
+        input: &mut Input,
+    ) -> bool {
         let mut action_vec = Vec::new();
 
         match view.admin_view.mode {
-            simulation::state::admin::Mode::Menu => {
-                let hud_actions = self.hud.get_actions();
+            admin::Mode::Menu => {
+                let hud_actions = hud.get_actions();
 
                 action_vec.extend(hud_actions);
             }
-            simulation::state::admin::Mode::Load => {}
-            simulation::state::admin::Mode::Simulate => {
-                let input_actions = self.input.get_actions();
-                let hud_actions = self.hud.get_actions();
+            admin::Mode::Load => {}
+            admin::Mode::Simulate => {
+                let input_actions = input.get_actions();
+                let hud_actions = hud.get_actions();
 
                 action_vec.extend(input_actions);
                 action_vec.extend(hud_actions);
             }
-            simulation::state::admin::Mode::Shutdown => {
-                let admin_action = simulation::state::receiver::action::AdminAction::Exit;
-                let action = simulation::state::receiver::action::Action::Admin(admin_action);
+            admin::Mode::Shutdown => {
+                let admin_action = AdminAction::Exit;
+                let action = Action::Admin(admin_action);
 
                 log::info!("Interface Exit");
 
@@ -419,7 +510,7 @@ impl<'window> Interface<'window> {
         }
 
         for action in action_vec {
-            match self.dispatch.send(action) {
+            match dispatch.send(action) {
                 Ok(()) => (),
                 Err(_) => {
                     log::error!("Send Failed: {:?}", action);

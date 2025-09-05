@@ -2,64 +2,50 @@
 
 pub mod view;
 
-use glam::Vec3;
-
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::view::{
         AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
     },
     state::{world::grid::Grid, State},
-    utils::buffer::Buffer,
 };
-use std::{
-    collections::HashMap,
-    ops::Deref,
-    sync::{Arc, RwLock},
-};
+use glam::Vec3;
+use std::collections::HashMap;
 
-pub struct Observation {
-    pub view_buffer_lock: RwLock<Buffer<View>>,
-}
+pub struct Observation {}
 
 impl Observation {
     pub fn new() -> Self {
-        let view = View::new();
-        let view_buffer_lock = RwLock::new(Buffer::new(view));
-
-        Self { view_buffer_lock }
+        Self {}
     }
 
-    pub fn tick(observation_arc: Arc<Observation>, state: &State) {
-        let observation = observation_arc.deref();
-
-        Observation::update_view(&observation.view_buffer_lock, state);
+    pub fn tick(state: &State, view_input_buffer: &mut triple_buffer::Input<View>) {
+        Observation::update_view(state, view_input_buffer);
     }
 
-    pub fn get_view(view_buffer_lock: &RwLock<Buffer<View>>) -> View {
-        let view_buffer = view_buffer_lock.read().unwrap();
-        let view = view_buffer.get();
+    pub fn get_view(view_output_buffer: &mut triple_buffer::Output<View>) -> &View {
+        view_output_buffer.update();
 
-        (*view).clone()
+        let view = view_output_buffer.peek_output_buffer();
+
+        &view
     }
 
-    fn update_view(view_buffer_lock: &RwLock<Buffer<View>>, state: &State) {
+    fn update_view(state: &State, view_input_buffer: &mut triple_buffer::Input<View>) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
         let population_view = Self::update_population_view(state);
         let world_view = Self::update_world_view(state);
 
-        let view = View {
-            entity_id: state.population.judge.info.entity_id,
-            admin_view,
-            time_view,
-            population_view,
-            world_view,
-        };
+        let view = view_input_buffer.input_buffer_mut();
 
-        let mut view_buffer = view_buffer_lock.write().unwrap();
+        view.entity_id = state.population.judge.info.entity_id;
+        view.admin_view = admin_view;
+        view.time_view = time_view;
+        view.population_view = population_view;
+        view.world_view = world_view;
 
-        view_buffer.update(view.clone());
+        view_input_buffer.publish();
     }
 
     fn update_admin_view(state: &State) -> AdminView {

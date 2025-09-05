@@ -18,8 +18,8 @@ impl DebugChannel {
         DebugChannel::ChunkBorders,
     ];
 
-    pub fn mask(self) -> DebugVisibility {
-        match self {
+    pub fn mask(debug_channel: DebugChannel) -> DebugVisibility {
+        match debug_channel {
             DebugChannel::Channel1 => DebugVisibility::CHANNEL1,
             DebugChannel::Channel2 => DebugVisibility::CHANNEL2,
             DebugChannel::Channel3 => DebugVisibility::CHANNEL3,
@@ -28,7 +28,7 @@ impl DebugChannel {
         }
     }
 
-    pub fn index(self) -> usize {
-        self as usize
+    pub fn index(debug_channel: DebugChannel) -> usize {
+        debug_channel as usize
     }
 }

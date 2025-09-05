@@ -5,7 +5,7 @@ use crate::{
         debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
         gpu_context::GPUContext,
     },
-    simulation::{observation::view::View, state::world::grid::Grid},
+    simulation::observation::view::View,
 };
 use glam::Vec3;
 
@@ -124,20 +124,22 @@ impl DebugRender {
     }
 
     #[inline]
-    pub fn clear_channel_vertex_vec(&mut self) {
-        for vertex_vec in &mut self.channel_vertex_vec_array {
+    pub fn clear_channel_vertex_vec(
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    ) {
+        for vertex_vec in channel_vertex_vec_array {
             vertex_vec.clear();
         }
     }
 
     pub fn add_line(
-        &mut self,
         debug_channel: DebugChannel,
         position1: Vec3,
         position2: Vec3,
         color: [f32; 3],
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
     ) {
-        let vertex_vec = &mut self.channel_vertex_vec_array[debug_channel.index()];
+        let vertex_vec = &mut channel_vertex_vec_array[DebugChannel::index(debug_channel)];
 
         vertex_vec.push(DebugVertexData {
             position: position1.into(),
@@ -151,45 +153,60 @@ impl DebugRender {
     }
 
     pub fn add_ray(
-        &mut self,
         debug_channel: DebugChannel,
         origin: Vec3,
         direction: Vec3,
         length: f32,
         color: [f32; 3],
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
     ) {
-        self.add_line(
+        Self::add_line(
             debug_channel,
             origin,
             origin + direction.normalize_or_zero() * length,
             color,
+            channel_vertex_vec_array,
         );
     }
 
-    pub fn add_axes(&mut self, debug_channel: DebugChannel, origin: Vec3, scale: f32) {
-        self.add_line(
+    pub fn add_axes(
+        debug_channel: DebugChannel,
+        origin: Vec3,
+        scale: f32,
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    ) {
+        Self::add_line(
             debug_channel,
             origin,
             origin + Vec3::X * scale,
             [1.0, 0.1, 0.1],
+            channel_vertex_vec_array,
         );
 
-        self.add_line(
+        Self::add_line(
             debug_channel,
             origin,
             origin + Vec3::Y * scale,
             [0.1, 1.0, 0.1],
+            channel_vertex_vec_array,
         );
 
-        self.add_line(
+        Self::add_line(
             debug_channel,
             origin,
             origin + Vec3::Z * scale,
             [0.1, 0.1, 1.0],
+            channel_vertex_vec_array,
         );
     }
 
-    pub fn add_box(&mut self, debug_channel: DebugChannel, min: Vec3, max: Vec3, color: [f32; 3]) {
+    pub fn add_box(
+        debug_channel: DebugChannel,
+        min: Vec3,
+        max: Vec3,
+        color: [f32; 3],
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    ) {
         let (x0, y0, z0) = (min.x, min.y, min.z);
         let (x1, y1, z1) = (max.x, max.y, max.z);
 
@@ -209,7 +226,13 @@ impl DebugRender {
         ];
 
         for (position1, position2) in edge_array {
-            self.add_line(debug_channel, position1, position2, color);
+            Self::add_line(
+                debug_channel,
+                position1,
+                position2,
+                color,
+                channel_vertex_vec_array,
+            );
         }
     }
 
@@ -222,7 +245,13 @@ impl DebugRender {
                 let start = view.population_view.judge_view.eye;
                 let end = start + (*ray * 2.0);
 
-                debug_render.add_line(DebugChannel::Channel1, start, end, [1.0, 1.0, 1.0]);
+                Self::add_line(
+                    DebugChannel::Channel1,
+                    start,
+                    end,
+                    [1.0, 1.0, 1.0],
+                    &mut debug_render.channel_vertex_vec_array,
+                );
             }
         }
 
@@ -237,43 +266,44 @@ impl DebugRender {
             let min = Vec3::splat(-half_span);
             let max = Vec3::splat(half_span);
 
-            let mut bounds: Vec<f32> = Vec::with_capacity((2 * extent as usize + 1));
+            let mut bounds: Vec<f32> = Vec::with_capacity(2 * extent as usize + 1);
 
             for k in -extent..=extent {
                 bounds.push((k as f32 + 0.5) * chunk_size);
             }
 
-            let debug_channel = DebugChannel::ChunkBorders;
-
             for &y in &bounds {
                 for &z in &bounds {
-                    debug_render.add_line(
-                        debug_channel,
+                    Self::add_line(
+                        DebugChannel::ChunkBorders,
                         Vec3::new(min.x, y, z),
                         Vec3::new(max.x, y, z),
                         [1.0, 0.0, 0.0],
+                        &mut debug_render.channel_vertex_vec_array,
                     );
                 }
             }
 
             for &x in &bounds {
                 for &z in &bounds {
-                    debug_render.add_line(
-                        debug_channel,
+                    Self::add_line(
+                        DebugChannel::ChunkBorders,
                         Vec3::new(x, min.y, z),
                         Vec3::new(x, max.y, z),
                         [0.0, 1.0, 0.0],
+                        &mut debug_render.channel_vertex_vec_array,
                     );
                 }
             }
 
             for &x in &bounds {
                 for &y in &bounds {
-                    debug_render.add_line(
-                        debug_channel,
+                    Self::add_line(
+                        DebugChannel::ChunkBorders,
                         Vec3::new(x, y, min.z),
                         Vec3::new(x, y, max.z),
                         [0.0, 0.0, 1.0],
+                        &mut debug_render.channel_vertex_vec_array,
                     );
                 }
             }
@@ -290,7 +320,7 @@ impl DebugRender {
         debug_render.vertex_vec.clear();
 
         for (index, vertex_vec) in debug_render.channel_vertex_vec_array.iter().enumerate() {
-            let mask = DebugChannel::ALL[index].mask();
+            let mask = DebugChannel::mask(DebugChannel::ALL[index]);
 
             if debug_render.debug_visibility.contains(mask) {
                 debug_render.vertex_vec.extend_from_slice(&vertex_vec);
@@ -321,7 +351,7 @@ impl DebugRender {
         );
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Debug Renderpass"),
+            label: Some("Debug Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: surface_texture_view,
                 resolve_target: None,
@@ -347,6 +377,6 @@ impl DebugRender {
         render_pass.set_vertex_buffer(0, debug_render.vertex_buffer.slice(..));
         render_pass.draw(0..(debug_render.vertex_vec.len() as u32), 0..1);
 
-        debug_render.clear_channel_vertex_vec();
+        Self::clear_channel_vertex_vec(&mut debug_render.channel_vertex_vec_array);
     }
 }

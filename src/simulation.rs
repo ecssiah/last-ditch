@@ -13,11 +13,10 @@ pub use config::Config;
 pub use kind::Kind;
 
 use crate::simulation::{
-    observation::Observation,
+    observation::{view::View, Observation},
     state::{receiver::action::Action, Receiver, State},
     timing::Timing,
 };
-use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
@@ -25,41 +24,33 @@ pub struct Simulation {
     pub timing: Timing,
     pub receiver: Receiver,
     pub state: State,
-    pub observation_arc: Arc<Observation>,
+    pub view_input_buffer: triple_buffer::Input<View>,
 }
 
 impl Simulation {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
+    pub fn new(
+        action_rx: UnboundedReceiver<Action>,
+        view_input_buffer: triple_buffer::Input<View>,
+    ) -> Self {
         let kind = Kind::GraphTest;
-
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
-        let observation_arc = Arc::new(Observation::new());
         let state = State::new(kind);
 
         Self {
             kind,
             timing,
             receiver,
-            observation_arc,
             state,
+            view_input_buffer,
         }
     }
 
     pub fn run(
         timing: &mut Timing,
         receiver: &mut Receiver,
-        observation_arc: Arc<Observation>,
         state: &mut State,
-    ) {
-        Self::execute(timing, receiver, observation_arc, state);
-    }
-
-    fn execute(
-        timing: &mut Timing,
-        receiver: &mut Receiver,
-        observation_arc: Arc<Observation>,
-        state: &mut State,
+        view_input_buffer: &mut triple_buffer::Input<View>,
     ) {
         Timing::init(timing);
 
@@ -69,8 +60,8 @@ impl Simulation {
             while Timing::has_work(timing) {
                 match Receiver::listen(receiver) {
                     Some(action_vec) => {
-                        State::tick(state, action_vec);
-                        Observation::tick(observation_arc.clone(), state);
+                        State::tick(action_vec, state);
+                        Observation::tick(state, view_input_buffer);
 
                         Timing::update_frame(timing);
                     }

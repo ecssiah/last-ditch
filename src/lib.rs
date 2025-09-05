@@ -11,7 +11,7 @@ mod tests;
 
 use crate::{
     interface::Interface,
-    simulation::{consts::PROJECT_TITLE, Simulation},
+    simulation::{consts::PROJECT_TITLE, observation::view::View, Simulation},
 };
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -32,15 +32,17 @@ impl ApplicationHandler for App<'_> {
         let (action_tx, action_rx) =
             unbounded_channel::<simulation::state::receiver::action::Action>();
 
-        let mut simulation = Box::new(Simulation::new(action_rx));
-        let interface = Interface::new(event_loop, action_tx, simulation.observation_arc.clone());
+        let (view_input_buffer, view_output_buffer) = triple_buffer::triple_buffer(&View::new());
+
+        let mut simulation = Box::new(Simulation::new(action_rx, view_input_buffer));
+        let interface = Interface::new(event_loop, action_tx, view_output_buffer);
 
         self.simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
                 &mut simulation.timing,
                 &mut simulation.receiver,
-                simulation.observation_arc.clone(),
                 &mut simulation.state,
+                &mut simulation.view_input_buffer,
             )
         }));
 
@@ -48,15 +50,37 @@ impl ApplicationHandler for App<'_> {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        let interface = self.interface.as_mut().unwrap();
-
-        interface.handle_about_to_wait(event_loop);
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_about_to_wait(
+                event_loop,
+                &interface.gpu_context,
+                &interface.dispatch,
+                &mut interface.last_instant,
+                &mut interface.camera,
+                &mut interface.hud,
+                &mut interface.input,
+                &mut interface.world_render,
+                &mut interface.population_render,
+                &mut interface.debug_render,
+                &mut interface.view_output_buffer,
+            );
+        }
     }
 
     fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
-        let interface = self.interface.as_mut().unwrap();
-
-        interface.handle_window_event(&event);
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_window_event(
+                &event,
+                &interface.camera,
+                &mut interface.gpu_context,
+                &mut interface.input,
+                &mut interface.hud,
+                &mut interface.world_render,
+                &mut interface.population_render,
+                &mut interface.item_render,
+                &mut interface.debug_render,
+            );
+        }
     }
 
     fn device_event(
@@ -65,9 +89,14 @@ impl ApplicationHandler for App<'_> {
         _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
-        let interface = self.interface.as_mut().unwrap();
-
-        interface.handle_device_event(&event);
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_device_event(
+                &event,
+                &mut interface.gpu_context,
+                &mut interface.hud,
+                &mut interface.input,
+            );
+        }
     }
 }
 
