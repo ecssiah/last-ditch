@@ -218,12 +218,12 @@ impl DebugRender {
             .debug_visibility
             .contains(DebugVisibility::CHANNEL1)
         {
-            // for ray in &view.population_view.judge_view.view_ray_vec {
-            //     let start = view.population_view.judge_view.eye;
-            //     let end = start + (*ray * 2.0);
+            for ray in &view.population_view.judge_view.view_ray_vec {
+                let start = view.population_view.judge_view.eye;
+                let end = start + (*ray * 2.0);
 
-            //     debug_render.add_line(DebugChannel::Channel1, start, end, [1.0, 1.0, 1.0]);
-            // }
+                debug_render.add_line(DebugChannel::Channel1, start, end, [1.0, 1.0, 1.0]);
+            }
         }
 
         if debug_render
@@ -231,29 +231,24 @@ impl DebugRender {
             .contains(DebugVisibility::CHUNK_BORDERS)
         {
             let extent = view.world_view.grid.world_extent_chunks as i32;
-
-            // Get chunk size in world units. Replace this call with your actual getter/const if different.
             let chunk_size: f32 = view.world_view.grid.chunk_size_units;
 
-            // World bounds (min/max coordinates) assuming the world is centered on the origin
-            // and chunks are centered at integer coordinates. The outer faces lie at +/- (extent + 0.5) * chunk_size.
             let half_span = (extent as f32 + 0.5) * chunk_size;
             let min = Vec3::splat(-half_span);
             let max = Vec3::splat(half_span);
 
-            // Boundary positions occur midway between chunk centers: (k + 0.5) * chunk_size for k in [-extent..=extent]
             let mut bounds: Vec<f32> = Vec::with_capacity((2 * extent as usize + 1));
+
             for k in -extent..=extent {
                 bounds.push((k as f32 + 0.5) * chunk_size);
             }
 
-            let chan = DebugChannel::ChunkBorders;
+            let debug_channel = DebugChannel::ChunkBorders;
 
-            // X-axis lines across the whole world, at every Y/Z chunk boundary intersection
             for &y in &bounds {
                 for &z in &bounds {
                     debug_render.add_line(
-                        chan,
+                        debug_channel,
                         Vec3::new(min.x, y, z),
                         Vec3::new(max.x, y, z),
                         [1.0, 0.0, 0.0],
@@ -261,11 +256,10 @@ impl DebugRender {
                 }
             }
 
-            // Y-axis lines across the whole world, at every X/Z chunk boundary intersection
             for &x in &bounds {
                 for &z in &bounds {
                     debug_render.add_line(
-                        chan,
+                        debug_channel,
                         Vec3::new(x, min.y, z),
                         Vec3::new(x, max.y, z),
                         [0.0, 1.0, 0.0],
@@ -273,11 +267,10 @@ impl DebugRender {
                 }
             }
 
-            // Z-axis lines across the whole world, at every X/Y chunk boundary intersection
             for &x in &bounds {
                 for &y in &bounds {
                     debug_render.add_line(
-                        chan,
+                        debug_channel,
                         Vec3::new(x, y, min.z),
                         Vec3::new(x, y, max.z),
                         [0.0, 0.0, 1.0],
