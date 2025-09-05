@@ -55,7 +55,7 @@ pub struct Interface<'window> {
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
-        action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
+        action_tx: UnboundedSender<Action>,
         view_output_buffer: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();

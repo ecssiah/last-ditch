@@ -1,6 +1,11 @@
 //! User input processing
 
-use crate::{interface::consts::*, simulation};
+use crate::{
+    interface::consts::*,
+    simulation::state::receiver::action::{
+        Action, AdminAction, JudgeAction, JumpAction, MovementData, TestAction,
+    },
+};
 use glam::{Vec2, Vec3};
 use winit::{
     event::{
@@ -22,7 +27,7 @@ pub struct MouseInputs {
 }
 
 pub struct Input {
-    pub action_vec: Vec<simulation::state::receiver::action::Action>,
+    pub action_vec: Vec<Action>,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
 }
@@ -47,14 +52,14 @@ impl Input {
         }
     }
 
-    pub fn get_actions(&mut self) -> Vec<simulation::state::receiver::action::Action> {
+    pub fn get_actions(&mut self) -> Vec<Action> {
         let movement_action = self.get_movement_action();
         self.action_vec.push(movement_action);
 
         std::mem::take(&mut self.action_vec)
     }
 
-    pub fn get_movement_action(&mut self) -> simulation::state::receiver::action::Action {
+    pub fn get_movement_action(&mut self) -> Action {
         let direction = Vec3::new(
             self.key_inputs.key_a + self.key_inputs.key_d,
             0.0,
@@ -69,15 +74,14 @@ impl Input {
 
         self.mouse_inputs.delta = Vec2::ZERO;
 
-        let movement_data = simulation::state::receiver::action::MovementData {
+        let movement_data = MovementData {
             direction,
             rotation,
         };
 
-        let judge_action =
-            simulation::state::receiver::action::JudgeAction::Movement(movement_data);
+        let judge_action = JudgeAction::Movement(movement_data);
 
-        simulation::state::receiver::action::Action::Judge(judge_action)
+        Action::Judge(judge_action)
     }
 
     pub fn handle_window_event(&mut self, event: &WindowEvent) {
@@ -110,9 +114,9 @@ impl Input {
         }
     }
 
-    fn handle_close_requested(&mut self) -> Option<simulation::state::receiver::action::Action> {
-        let admin_action = simulation::state::receiver::action::AdminAction::Quit;
-        let action = simulation::state::receiver::action::Action::Admin(admin_action);
+    fn handle_close_requested(&mut self) -> Option<Action> {
+        let admin_action = AdminAction::Quit;
+        let action = Action::Admin(admin_action);
 
         Some(action)
     }
@@ -122,18 +126,18 @@ impl Input {
         _device_id: &DeviceId,
         key_event: &KeyEvent,
         _is_synthetic: &bool,
-    ) -> Option<simulation::state::receiver::action::Action> {
+    ) -> Option<Action> {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                let admin_action = simulation::state::receiver::action::AdminAction::Quit;
-                let action = simulation::state::receiver::action::Action::Admin(admin_action);
+                let admin_action = AdminAction::Quit;
+                let action = Action::Admin(admin_action);
 
                 Some(action)
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = simulation::state::receiver::action::TestAction::Test1;
-                    let action = simulation::state::receiver::action::Action::Test(test_action);
+                    let test_action = TestAction::Test1;
+                    let action = Action::Test(test_action);
 
                     Some(action)
                 } else {
@@ -142,8 +146,8 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = simulation::state::receiver::action::TestAction::Test2;
-                    let action = simulation::state::receiver::action::Action::Test(test_action);
+                    let test_action = TestAction::Test2;
+                    let action = Action::Test(test_action);
 
                     Some(action)
                 } else {
@@ -152,8 +156,8 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = simulation::state::receiver::action::TestAction::Test3;
-                    let action = simulation::state::receiver::action::Action::Test(test_action);
+                    let test_action = TestAction::Test3;
+                    let action = Action::Test(test_action);
 
                     Some(action)
                 } else {
@@ -162,8 +166,8 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = simulation::state::receiver::action::TestAction::Test4;
-                    let action = simulation::state::receiver::action::Action::Test(test_action);
+                    let test_action = TestAction::Test4;
+                    let action = Action::Test(test_action);
 
                     Some(action)
                 } else {
@@ -208,17 +212,15 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    let jump_action = simulation::state::receiver::action::JumpAction::Start;
-                    let judge_action =
-                        simulation::state::receiver::action::JudgeAction::Jump(jump_action);
-                    let action = simulation::state::receiver::action::Action::Judge(judge_action);
+                    let jump_action = JumpAction::Start;
+                    let judge_action = JudgeAction::Jump(jump_action);
+                    let action = Action::Judge(judge_action);
 
                     Some(action)
                 } else if key_event.state == ElementState::Released {
-                    let jump_action = simulation::state::receiver::action::JumpAction::End;
-                    let judge_action =
-                        simulation::state::receiver::action::JudgeAction::Jump(jump_action);
-                    let action = simulation::state::receiver::action::Action::Judge(judge_action);
+                    let jump_action = JumpAction::End;
+                    let judge_action = JudgeAction::Jump(jump_action);
+                    let action = Action::Judge(judge_action);
 
                     Some(action)
                 } else {
@@ -234,7 +236,7 @@ impl Input {
         _device_id: &DeviceId,
         state: &ElementState,
         button: &MouseButton,
-    ) -> Option<simulation::state::receiver::action::Action> {
+    ) -> Option<Action> {
         log::info!("{:?} {:?}", state, button);
 
         None
@@ -245,17 +247,13 @@ impl Input {
         _device_id: &DeviceId,
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
-    ) -> Option<simulation::state::receiver::action::Action> {
+    ) -> Option<Action> {
         log::info!("{:?} {:?}", delta, phase);
 
         None
     }
 
-    fn handle_mouse_motion(
-        &mut self,
-        dx: f64,
-        dy: f64,
-    ) -> Option<simulation::state::receiver::action::Action> {
+    fn handle_mouse_motion(&mut self, dx: f64, dy: f64) -> Option<Action> {
         let delta = Vec2::new(dx as f32, dy as f32);
 
         self.mouse_inputs.delta += delta;

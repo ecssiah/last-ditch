@@ -80,7 +80,7 @@ impl Sight {
 
             let near_ring_multiplier = 2.5_f32;
             let near_distance = chunk_sphere_radius * near_ring_multiplier;
-            
+
             if eye_to_center_length <= near_distance {
                 chunk_id_set.insert(chunk.id);
                 continue;

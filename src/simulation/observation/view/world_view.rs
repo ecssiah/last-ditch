@@ -1,4 +1,8 @@
-use crate::simulation::{self, observation::view::chunk_view::ChunkView, state::world::{chunk, grid::Grid}};
+use crate::simulation::{
+    self,
+    observation::view::chunk_view::ChunkView,
+    state::world::{chunk, grid::Grid},
+};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

@@ -1,21 +1,18 @@
 //! Allows Interface to send messages to Simulation
 
-use crate::simulation;
+use crate::simulation::state::receiver::action::Action;
 use tokio::sync::mpsc::{error::SendError, UnboundedSender};
 
 pub struct Dispatch {
-    action_tx: UnboundedSender<simulation::state::receiver::action::Action>,
+    action_tx: UnboundedSender<Action>,
 }
 
 impl Dispatch {
-    pub fn new(action_tx: UnboundedSender<simulation::state::receiver::action::Action>) -> Self {
+    pub fn new(action_tx: UnboundedSender<Action>) -> Self {
         Self { action_tx }
     }
 
-    pub fn send(
-        &self,
-        action: simulation::state::receiver::action::Action,
-    ) -> Result<(), SendError<simulation::state::receiver::action::Action>> {
+    pub fn send(&self, action: Action) -> Result<(), SendError<Action>> {
         self.action_tx.send(action)
     }
 }

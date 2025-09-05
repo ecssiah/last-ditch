@@ -4,7 +4,7 @@ pub mod camera_uniform_data;
 
 use crate::{
     interface::{camera::camera_uniform_data::CameraUniformData, consts::*},
-    simulation::{self},
+    simulation::observation::view::JudgeView,
 };
 use glam::{Mat4, Vec3};
 
@@ -54,11 +54,7 @@ impl Camera {
         }
     }
 
-    pub fn apply_judge_view(
-        &mut self,
-        queue: &wgpu::Queue,
-        judge_view: &simulation::observation::view::JudgeView,
-    ) {
+    pub fn apply_judge_view(&mut self, queue: &wgpu::Queue, judge_view: &JudgeView) {
         let camera_uniform_data = Self::setup_camera_uniform_data(judge_view);
 
         queue.write_buffer(
@@ -68,9 +64,7 @@ impl Camera {
         );
     }
 
-    fn setup_camera_uniform_data(
-        judge_view: &simulation::observation::view::JudgeView,
-    ) -> CameraUniformData {
+    fn setup_camera_uniform_data(judge_view: &JudgeView) -> CameraUniformData {
         let projection =
             Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 

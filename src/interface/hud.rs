@@ -12,14 +12,14 @@ use crate::{
         gpu_context::GPUContext,
         hud::mode::{LoadData, MenuData, ShutdownData, SimulateData},
     },
-    simulation::{self},
+    simulation::{self, observation::view::View, state::receiver::action::Action},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use glam::Vec2;
 
 pub struct HUD {
     mode: Mode,
-    action_vec: Vec<simulation::state::receiver::action::Action>,
+    action_vec: Vec<Action>,
 }
 
 impl HUD {
@@ -69,11 +69,8 @@ impl HUD {
         egui_renderer: &mut egui_wgpu::Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        let full_output = hud.get_full_output(
-            Arc::clone(&window_arc),
-            egui_context,
-            egui_winit_state,
-        );
+        let full_output =
+            hud.get_full_output(Arc::clone(&window_arc), egui_context, egui_winit_state);
 
         let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
@@ -110,11 +107,11 @@ impl HUD {
         )
     }
 
-    pub fn get_actions(&mut self) -> Vec<simulation::state::receiver::action::Action> {
+    pub fn get_actions(&mut self) -> Vec<Action> {
         std::mem::take(&mut self.action_vec)
     }
 
-    pub fn apply_menu_view(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_menu_view(&mut self, view: &View) {
         let menu_data = mode::MenuData {
             message: view.admin_view.message.clone(),
         };
@@ -122,7 +119,7 @@ impl HUD {
         self.mode = Mode::Menu(menu_data);
     }
 
-    pub fn apply_load_view(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_load_view(&mut self, view: &View) {
         let load_data = mode::LoadData {
             message: view.admin_view.message.clone(),
         };
@@ -130,7 +127,7 @@ impl HUD {
         self.mode = Mode::Load(load_data);
     }
 
-    pub fn apply_simulate_view(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_simulate_view(&mut self, view: &View) {
         let judge_view = &view.population_view.judge_view;
 
         let world_position_string = format!(
@@ -161,7 +158,7 @@ impl HUD {
         self.mode = Mode::Simulate(simulate_data);
     }
 
-    pub fn apply_shutdown_view(&mut self, view: &simulation::observation::view::View) {
+    pub fn apply_shutdown_view(&mut self, view: &View) {
         let shutdown_data = mode::ShutdownData {
             message: view.admin_view.message.clone(),
         };
@@ -173,7 +170,7 @@ impl HUD {
         &self,
         context: &egui::Context,
         _menu_data: &MenuData,
-        action_vec: &mut Vec<simulation::state::receiver::action::Action>,
+        action_vec: &mut Vec<Action>,
     ) {
         let mut start_clicked = false;
         let mut exit_clicked = false;
@@ -194,14 +191,14 @@ impl HUD {
 
         if start_clicked {
             let admin_action = simulation::state::receiver::action::AdminAction::Start;
-            let action = simulation::state::receiver::action::Action::Admin(admin_action);
+            let action = Action::Admin(admin_action);
 
             action_vec.push(action);
         }
 
         if exit_clicked {
             let admin_action = simulation::state::receiver::action::AdminAction::Quit;
-            let action = simulation::state::receiver::action::Action::Admin(admin_action);
+            let action = Action::Admin(admin_action);
 
             action_vec.push(action);
         }
@@ -211,7 +208,7 @@ impl HUD {
         &self,
         context: &egui::Context,
         load_data: &LoadData,
-        _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
+        _action_vec: &mut Vec<Action>,
     ) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
@@ -224,7 +221,7 @@ impl HUD {
         &self,
         context: &egui::Context,
         simulate_data: &SimulateData,
-        _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
+        _action_vec: &mut Vec<Action>,
     ) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
@@ -237,7 +234,7 @@ impl HUD {
         &self,
         context: &egui::Context,
         shutdown_data: &ShutdownData,
-        _action_vec: &mut Vec<simulation::state::receiver::action::Action>,
+        _action_vec: &mut Vec<Action>,
     ) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
