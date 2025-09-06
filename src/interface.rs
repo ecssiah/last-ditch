@@ -238,7 +238,7 @@ impl<'window> Interface<'window> {
         let hud_handled = hud.handle_device_event(event, gpu_context);
 
         if !hud_handled {
-            input.handle_device_event(event);
+            Input::handle_device_event(event, &mut input.mouse_inputs);
         }
     }
 
@@ -265,10 +265,10 @@ impl<'window> Interface<'window> {
             ),
             WindowEvent::Resized(size) => Self::handle_resized(*size, gpu_context),
             _ => {
-                let hud_handled = hud.handle_window_event(event, gpu_context);
+                let hud_handled = HUD::handle_window_event(event, &hud.mode, gpu_context);
 
                 if !hud_handled {
-                    input.handle_window_event(event);
+                    Input::handle_window_event(event, &mut input.key_inputs, &mut input.action_vec);
                 }
             }
         }
@@ -487,17 +487,21 @@ impl<'window> Interface<'window> {
 
         match view.admin_view.mode {
             admin::Mode::Menu => {
-                let hud_actions = hud.get_actions();
+                let hud_action_vec = std::mem::take(&mut hud.action_vec);
 
-                action_vec.extend(hud_actions);
+                action_vec.extend(hud_action_vec);
             }
             admin::Mode::Load => {}
             admin::Mode::Simulate => {
-                let input_actions = input.get_actions();
-                let hud_actions = hud.get_actions();
+                let input_action_vec = Input::get_action_vec(
+                    &input.key_inputs,
+                    &mut input.mouse_inputs,
+                    &mut input.action_vec,
+                );
+                let hud_action_vec = std::mem::take(&mut hud.action_vec);
 
-                action_vec.extend(input_actions);
-                action_vec.extend(hud_actions);
+                action_vec.extend(input_action_vec);
+                action_vec.extend(hud_action_vec);
             }
             admin::Mode::Shutdown => {
                 let admin_action = AdminAction::Exit;

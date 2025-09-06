@@ -2,10 +2,7 @@
 
 pub mod mode;
 
-use std::sync::Arc;
-
 pub use mode::Mode;
-use winit::event::{DeviceEvent, WindowEvent};
 
 use crate::{
     interface::{
@@ -16,10 +13,12 @@ use crate::{
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use glam::Vec2;
+use std::sync::Arc;
+use winit::event::{DeviceEvent, WindowEvent};
 
 pub struct HUD {
-    mode: Mode,
-    action_vec: Vec<Action>,
+    pub mode: Mode,
+    pub action_vec: Vec<Action>,
 }
 
 impl HUD {
@@ -33,27 +32,28 @@ impl HUD {
     }
 
     pub fn get_full_output(
-        &mut self,
         window_arc: Arc<winit::window::Window>,
+        mode: &Mode,
         egui_context: &egui::Context,
         egui_winit_state: &mut egui_winit::State,
+        action_vec: &mut Vec<Action>,
     ) -> FullOutput {
         let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
-        let mut action_vec = std::mem::take(&mut self.action_vec);
+        let mut action_vec_ = std::mem::take(action_vec);
 
-        let full_output: FullOutput = egui_context.run(raw_input, |context| match &self.mode {
-            Mode::Menu(menu_data) => self.draw_menu(context, menu_data, &mut action_vec),
-            Mode::Load(load_data) => self.draw_load(context, load_data, &mut action_vec),
+        let full_output: FullOutput = egui_context.run(raw_input, |context| match &mode {
+            Mode::Menu(menu_data) => Self::draw_menu(context, menu_data, &mut action_vec_),
+            Mode::Load(load_data) => Self::draw_load(context, load_data, &mut action_vec_),
             Mode::Simulate(simulate_data) => {
-                self.draw_simulate(context, simulate_data, &mut action_vec)
+                Self::draw_simulate(context, simulate_data, &mut action_vec_)
             }
             Mode::Shutdown(shutdown_data) => {
-                self.draw_shutdown(context, shutdown_data, &mut action_vec)
+                Self::draw_shutdown(context, shutdown_data, &mut action_vec_)
             }
         });
 
-        self.action_vec = action_vec;
+        *action_vec = action_vec_;
 
         full_output
     }
@@ -69,8 +69,13 @@ impl HUD {
         egui_renderer: &mut egui_wgpu::Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        let full_output =
-            hud.get_full_output(Arc::clone(&window_arc), egui_context, egui_winit_state);
+        let full_output = Self::get_full_output(
+            Arc::clone(&window_arc),
+            &hud.mode,
+            egui_context,
+            egui_winit_state,
+            &mut hud.action_vec,
+        );
 
         let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
@@ -105,10 +110,6 @@ impl HUD {
             &paint_jobs,
             &screen_descriptor,
         )
-    }
-
-    pub fn get_actions(&mut self) -> Vec<Action> {
-        std::mem::take(&mut self.action_vec)
     }
 
     pub fn apply_menu_view(&mut self, view: &View) {
@@ -166,12 +167,7 @@ impl HUD {
         self.mode = Mode::Shutdown(shutdown_data);
     }
 
-    fn draw_menu(
-        &self,
-        context: &egui::Context,
-        _menu_data: &MenuData,
-        action_vec: &mut Vec<Action>,
-    ) {
+    fn draw_menu(context: &egui::Context, _menu_data: &MenuData, action_vec: &mut Vec<Action>) {
         let mut start_clicked = false;
         let mut exit_clicked = false;
 
@@ -204,12 +200,7 @@ impl HUD {
         }
     }
 
-    fn draw_load(
-        &self,
-        context: &egui::Context,
-        load_data: &LoadData,
-        _action_vec: &mut Vec<Action>,
-    ) {
+    fn draw_load(context: &egui::Context, load_data: &LoadData, _action_vec: &mut Vec<Action>) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
             .show(context, |ui| {
@@ -218,7 +209,6 @@ impl HUD {
     }
 
     fn draw_simulate(
-        &self,
         context: &egui::Context,
         simulate_data: &SimulateData,
         _action_vec: &mut Vec<Action>,
@@ -231,7 +221,6 @@ impl HUD {
     }
 
     fn draw_shutdown(
-        &self,
         context: &egui::Context,
         shutdown_data: &ShutdownData,
         _action_vec: &mut Vec<Action>,
@@ -289,11 +278,11 @@ impl HUD {
     }
 
     pub fn handle_window_event(
-        &mut self,
         event: &WindowEvent,
+        mode: &Mode,
         gpu_context: &mut GPUContext,
     ) -> bool {
-        match &self.mode {
+        match mode {
             Mode::Menu(_) => {
                 let _event_response = gpu_context
                     .egui_winit_state
