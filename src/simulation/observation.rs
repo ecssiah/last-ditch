@@ -19,25 +19,25 @@ impl Observation {
         Self {}
     }
 
-    pub fn tick(state: &State, view_input_buffer: &mut triple_buffer::Input<View>) {
-        Observation::update_view(state, view_input_buffer);
+    pub fn tick(state: &State, view_input: &mut triple_buffer::Input<View>) {
+        Self::update_view(state, view_input);
     }
 
-    pub fn get_view(view_output_buffer: &mut triple_buffer::Output<View>) -> &View {
-        view_output_buffer.update();
+    pub fn get_view(view_output: &mut triple_buffer::Output<View>) -> &View {
+        view_output.update();
 
-        let view = view_output_buffer.peek_output_buffer();
+        let view = view_output.peek_output_buffer();
 
         &view
     }
 
-    fn update_view(state: &State, view_input_buffer: &mut triple_buffer::Input<View>) {
+    fn update_view(state: &State, view_input: &mut triple_buffer::Input<View>) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
         let population_view = Self::update_population_view(state);
         let world_view = Self::update_world_view(state);
 
-        let view = view_input_buffer.input_buffer_mut();
+        let view = view_input.input_buffer_mut();
 
         view.entity_id = state.population.judge.info.entity_id;
         view.admin_view = admin_view;
@@ -45,7 +45,7 @@ impl Observation {
         view.population_view = population_view;
         view.world_view = world_view;
 
-        view_input_buffer.publish();
+        view_input.publish();
     }
 
     fn update_admin_view(state: &State) -> AdminView {
