@@ -112,23 +112,23 @@ impl HUD {
         )
     }
 
-    pub fn apply_menu_view(&mut self, view: &View) {
+    pub fn apply_menu_view(view: &View, mode: &mut Mode) {
         let menu_data = mode::MenuData {
             message: view.admin_view.message.clone(),
         };
 
-        self.mode = Mode::Menu(menu_data);
+        *mode = Mode::Menu(menu_data);
     }
 
-    pub fn apply_load_view(&mut self, view: &View) {
+    pub fn apply_load_view(view: &View, mode: &mut Mode) {
         let load_data = mode::LoadData {
             message: view.admin_view.message.clone(),
         };
 
-        self.mode = Mode::Load(load_data);
+        *mode = Mode::Load(load_data);
     }
 
-    pub fn apply_simulate_view(&mut self, view: &View) {
+    pub fn apply_simulate_view(view: &View, mode: &mut Mode) {
         let judge_view = &view.population_view.judge_view;
 
         let world_position_string = format!(
@@ -156,15 +156,15 @@ impl HUD {
 
         let simulate_data = mode::SimulateData { message };
 
-        self.mode = Mode::Simulate(simulate_data);
+        *mode = Mode::Simulate(simulate_data);
     }
 
-    pub fn apply_shutdown_view(&mut self, view: &View) {
+    pub fn apply_shutdown_view(view: &View, mode: &mut Mode) {
         let shutdown_data = mode::ShutdownData {
             message: view.admin_view.message.clone(),
         };
 
-        self.mode = Mode::Shutdown(shutdown_data);
+        *mode = Mode::Shutdown(shutdown_data);
     }
 
     fn draw_menu(context: &egui::Context, _menu_data: &MenuData, action_vec: &mut Vec<Action>) {
@@ -253,11 +253,11 @@ impl HUD {
     }
 
     pub fn handle_device_event(
-        &mut self,
         event: &DeviceEvent,
+        mode: &Mode,
         gpu_context: &mut GPUContext,
     ) -> bool {
-        match &self.mode {
+        match mode {
             Mode::Menu(_) => {
                 if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
                     gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))

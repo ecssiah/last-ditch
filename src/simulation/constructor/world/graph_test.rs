@@ -30,7 +30,7 @@ fn build_center_room(world: &mut World) {
 
     build_chunk_room(chunk_position, entrances, block::Kind::Polished1, world);
 
-    let center_position = IVec3::new(0, -3, 0);
+    let center_position = IVec3::new(0, -4, 0);
 
     World::set_block_kind(
         center_position + IVec3::Z * 2,

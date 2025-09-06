@@ -54,11 +54,15 @@ impl Camera {
         }
     }
 
-    pub fn apply_judge_view(&mut self, queue: &wgpu::Queue, judge_view: &JudgeView) {
+    pub fn apply_judge_view(
+        queue: &wgpu::Queue,
+        judge_view: &JudgeView,
+        uniform_buffer: &wgpu::Buffer,
+    ) {
         let camera_uniform_data = Self::setup_camera_uniform_data(judge_view);
 
         queue.write_buffer(
-            &self.uniform_buffer,
+            uniform_buffer,
             0,
             bytemuck::cast_slice(&[camera_uniform_data]),
         );

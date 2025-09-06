@@ -235,9 +235,9 @@ impl<'window> Interface<'window> {
         input: &mut Input,
         hud: &mut HUD,
     ) {
-        let hud_handled = hud.handle_device_event(event, gpu_context);
+        let is_handled = HUD::handle_device_event(event, &hud.mode, gpu_context);
 
-        if !hud_handled {
+        if !is_handled {
             Input::handle_device_event(event, &mut input.mouse_inputs);
         }
     }
@@ -265,9 +265,9 @@ impl<'window> Interface<'window> {
             ),
             WindowEvent::Resized(size) => Self::handle_resized(*size, gpu_context),
             _ => {
-                let hud_handled = HUD::handle_window_event(event, &hud.mode, gpu_context);
+                let is_handled = HUD::handle_window_event(event, &hud.mode, gpu_context);
 
-                if !hud_handled {
+                if !is_handled {
                     Input::handle_window_event(event, &mut input.key_inputs, &mut input.action_vec);
                 }
             }
@@ -429,11 +429,11 @@ impl<'window> Interface<'window> {
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
-        hud.apply_menu_view(view);
+        HUD::apply_menu_view(view, &mut hud.mode);
     }
 
     fn apply_load_view(view: &View, hud: &mut HUD) {
-        hud.apply_load_view(view);
+        HUD::apply_load_view(view, &mut hud.mode);
     }
 
     fn apply_simulate_view(
@@ -451,9 +451,13 @@ impl<'window> Interface<'window> {
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .expect("Failed to grab cursor");
 
-        hud.apply_simulate_view(view);
+        HUD::apply_simulate_view(view, &mut hud.mode);
 
-        camera.apply_judge_view(&gpu_context.queue, &view.population_view.judge_view);
+        Camera::apply_judge_view(
+            &gpu_context.queue,
+            &view.population_view.judge_view,
+            &camera.uniform_buffer,
+        );
 
         WorldRender::apply_world_view(
             &gpu_context.device,
@@ -472,7 +476,7 @@ impl<'window> Interface<'window> {
     }
 
     fn apply_shutdown_view(view: &View, event_loop: &ActiveEventLoop, hud: &mut HUD) {
-        hud.apply_shutdown_view(view);
+        HUD::apply_shutdown_view(view, &mut hud.mode);
 
         event_loop.exit();
     }
