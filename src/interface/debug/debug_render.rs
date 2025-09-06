@@ -87,7 +87,11 @@ impl DebugRender {
                         depth_write_enabled: false,
                         depth_compare: wgpu::CompareFunction::LessEqual,
                         stencil: wgpu::StencilState::default(),
-                        bias: wgpu::DepthBiasState::default(),
+                        bias: wgpu::DepthBiasState {
+                            constant: -2,
+                            slope_scale: -1.0,
+                            clamp: 0.0,
+                        },
                     }),
                     multisample: wgpu::MultisampleState::default(),
                     multiview: None,
@@ -266,9 +270,9 @@ impl DebugRender {
             let min = Vec3::splat(-half_span);
             let max = Vec3::splat(half_span);
 
-            let mut bounds: Vec<f32> = Vec::with_capacity(2 * extent as usize + 1);
+            let mut bounds: Vec<f32> = Vec::with_capacity(2 * extent as usize + 2);
 
-            for k in -extent..=extent {
+            for k in -(extent + 1)..=extent {
                 bounds.push((k as f32 + 0.5) * chunk_size);
             }
 
