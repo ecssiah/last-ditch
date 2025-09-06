@@ -32,17 +32,17 @@ impl ApplicationHandler for App<'_> {
         let (action_tx, action_rx) =
             unbounded_channel::<simulation::state::receiver::action::Action>();
 
-        let (view_input_buffer, view_output_buffer) = triple_buffer::triple_buffer(&View::new());
+        let (view_input, view_output) = triple_buffer::triple_buffer(&View::new());
 
-        let mut simulation = Box::new(Simulation::new(action_rx, view_input_buffer));
-        let interface = Interface::new(event_loop, action_tx, view_output_buffer);
+        let mut simulation = Box::new(Simulation::new(action_rx, view_input));
+        let interface = Interface::new(event_loop, action_tx, view_output);
 
         self.simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
                 &mut simulation.timing,
                 &mut simulation.receiver,
                 &mut simulation.state,
-                &mut simulation.view_input_buffer,
+                &mut simulation.view_input,
             )
         }));
 
@@ -57,12 +57,12 @@ impl ApplicationHandler for App<'_> {
                 &interface.dispatch,
                 &mut interface.last_instant,
                 &mut interface.camera,
-                &mut interface.hud,
                 &mut interface.input,
+                &mut interface.hud,
                 &mut interface.world_render,
                 &mut interface.population_render,
                 &mut interface.debug_render,
-                &mut interface.view_output_buffer,
+                &mut interface.view_output,
             );
         }
     }
@@ -93,8 +93,8 @@ impl ApplicationHandler for App<'_> {
             Interface::handle_device_event(
                 &event,
                 &mut interface.gpu_context,
-                &mut interface.hud,
                 &mut interface.input,
+                &mut interface.hud,
             );
         }
     }

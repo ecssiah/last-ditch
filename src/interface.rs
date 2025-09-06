@@ -49,14 +49,14 @@ pub struct Interface<'window> {
     pub population_render: PopulationRender,
     pub debug_render: DebugRender,
     pub gpu_context: GPUContext<'window>,
-    pub view_output_buffer: triple_buffer::Output<View>,
+    pub view_output: triple_buffer::Output<View>,
 }
 
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
         action_tx: UnboundedSender<Action>,
-        view_output_buffer: triple_buffer::Output<View>,
+        view_output: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();
 
@@ -186,7 +186,7 @@ impl<'window> Interface<'window> {
             population_render,
             debug_render,
             gpu_context,
-            view_output_buffer,
+            view_output,
         }
     }
 
@@ -196,12 +196,12 @@ impl<'window> Interface<'window> {
         dispatch: &Dispatch,
         last_instant: &mut Instant,
         camera: &mut Camera,
-        hud: &mut HUD,
         input: &mut Input,
+        hud: &mut HUD,
         world_render: &mut WorldRender,
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
-        view_output_buffer: &mut triple_buffer::Output<View>,
+        view_output: &mut triple_buffer::Output<View>,
     ) {
         let instant = Instant::now();
         let next_instant = *last_instant + INTERFACE_FRAME_DURATION;
@@ -217,7 +217,7 @@ impl<'window> Interface<'window> {
             world_render,
             population_render,
             debug_render,
-            view_output_buffer,
+            view_output,
         );
 
         let instant = Instant::now();
@@ -232,8 +232,8 @@ impl<'window> Interface<'window> {
     pub fn handle_device_event(
         event: &DeviceEvent,
         gpu_context: &mut GPUContext,
-        hud: &mut HUD,
         input: &mut Input,
+        hud: &mut HUD,
     ) {
         let hud_handled = hud.handle_device_event(event, gpu_context);
 
@@ -371,9 +371,9 @@ impl<'window> Interface<'window> {
         world_render: &mut WorldRender,
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
-        view_output_buffer: &mut triple_buffer::Output<View>,
+        view_output: &mut triple_buffer::Output<View>,
     ) {
-        let view = Observation::get_view(view_output_buffer);
+        let view = Observation::get_view(view_output);
 
         if !Self::dispatch_actions(view, dispatch, hud, input) {
             let admin_action = AdminAction::Exit;
