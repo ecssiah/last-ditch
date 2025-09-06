@@ -375,7 +375,7 @@ impl<'window> Interface<'window> {
     ) {
         let view = Observation::get_view(view_output);
 
-        if !Self::dispatch_actions(view, dispatch, hud, input) {
+        if !Self::dispatch_action_vec(view, dispatch, hud, input) {
             let admin_action = AdminAction::Exit;
             let action = Action::Admin(admin_action);
 
@@ -385,26 +385,26 @@ impl<'window> Interface<'window> {
         } else {
             Self::apply_view(
                 event_loop,
+                view,
                 gpu_context,
                 camera,
                 hud,
                 world_render,
                 population_render,
                 debug_render,
-                view,
             );
         }
     }
 
     fn apply_view(
         event_loop: &ActiveEventLoop,
+        view: &View,
         gpu_context: &GPUContext,
         camera: &mut Camera,
         hud: &mut HUD,
         world_render: &mut WorldRender,
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
-        view: &View,
     ) {
         match view.admin_view.mode {
             admin::Mode::Menu => Self::apply_menu_view(view, gpu_context, hud),
@@ -446,6 +446,7 @@ impl<'window> Interface<'window> {
         debug_render: &mut DebugRender,
     ) {
         gpu_context.window_arc.set_cursor_visible(false);
+
         gpu_context
             .window_arc
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
@@ -472,7 +473,7 @@ impl<'window> Interface<'window> {
             &mut population_render.entity_instance_data_group_vec,
         );
 
-        DebugRender::apply_debug_view(&view, debug_render);
+        DebugRender::apply_debug_view(view, debug_render);
     }
 
     fn apply_shutdown_view(view: &View, event_loop: &ActiveEventLoop, hud: &mut HUD) {
@@ -481,7 +482,7 @@ impl<'window> Interface<'window> {
         event_loop.exit();
     }
 
-    fn dispatch_actions(
+    fn dispatch_action_vec(
         view: &View,
         dispatch: &Dispatch,
         hud: &mut HUD,
@@ -491,7 +492,7 @@ impl<'window> Interface<'window> {
 
         match view.admin_view.mode {
             admin::Mode::Menu => {
-                let hud_action_vec = std::mem::take(&mut hud.action_vec);
+                let hud_action_vec = HUD::get_action_vec(&mut hud.action_vec);
 
                 action_vec.extend(hud_action_vec);
             }
@@ -502,7 +503,8 @@ impl<'window> Interface<'window> {
                     &mut input.mouse_inputs,
                     &mut input.action_vec,
                 );
-                let hud_action_vec = std::mem::take(&mut hud.action_vec);
+
+                let hud_action_vec = HUD::get_action_vec(&mut hud.action_vec);
 
                 action_vec.extend(input_action_vec);
                 action_vec.extend(hud_action_vec);

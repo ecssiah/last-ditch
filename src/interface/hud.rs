@@ -31,6 +31,10 @@ impl HUD {
         Self { action_vec, mode }
     }
 
+    pub fn get_action_vec(action_vec: &mut Vec<Action>) -> Vec<Action> {
+        std::mem::take(action_vec)
+    }
+
     pub fn get_full_output(
         window_arc: Arc<winit::window::Window>,
         mode: &Mode,
