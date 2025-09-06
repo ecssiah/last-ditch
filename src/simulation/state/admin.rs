@@ -8,6 +8,7 @@ pub use mode::Mode;
 pub struct Admin {
     pub mode: Mode,
     pub message: String,
+    pub debug_active: bool,
 }
 
 impl Admin {
@@ -15,6 +16,7 @@ impl Admin {
         Self {
             mode: Mode::Menu,
             message: "NO MESSAGE SET".to_string(),
+            debug_active: false,
         }
     }
 }

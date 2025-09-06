@@ -4,6 +4,7 @@ use crate::simulation::state::admin::Mode;
 pub struct AdminView {
     pub mode: Mode,
     pub message: String,
+    pub debug_active: bool,
 }
 
 impl AdminView {
@@ -11,6 +12,7 @@ impl AdminView {
         Self {
             mode: Mode::Load,
             message: "NO MESSAGE SET".to_string(),
+            debug_active: false,
         }
     }
 }

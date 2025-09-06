@@ -129,6 +129,9 @@ impl State {
         for action in action_vec {
             match action {
                 Action::Admin(admin_action) => match admin_action {
+                    AdminAction::Debug => {
+                        state.admin.debug_active = !state.admin.debug_active;
+                    }
                     AdminAction::Quit => Self::init_shutdown(state),
                     _ => {
                         log::warn!(

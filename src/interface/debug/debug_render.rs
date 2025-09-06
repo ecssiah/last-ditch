@@ -241,6 +241,10 @@ impl DebugRender {
     }
 
     pub fn apply_debug_view(view: &View, debug_render: &mut DebugRender) {
+        if !view.admin_view.debug_active {
+            return;
+        }
+
         if debug_render
             .debug_visibility
             .contains(DebugVisibility::CHANNEL1)

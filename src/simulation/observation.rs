@@ -52,6 +52,7 @@ impl Observation {
         AdminView {
             mode: state.admin.mode,
             message: state.admin.message.clone(),
+            debug_active: state.admin.debug_active,
         }
     }
 

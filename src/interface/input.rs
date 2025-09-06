@@ -143,6 +143,16 @@ impl Input {
 
                 Some(action)
             }
+            PhysicalKey::Code(KeyCode::Backquote) => {
+                if key_event.state == ElementState::Released {
+                    let admin_action = AdminAction::Debug;
+                    let action = Action::Admin(admin_action);
+
+                    Some(action)
+                } else {
+                    None
+                }
+            }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
                     let test_action = TestAction::Test1;
