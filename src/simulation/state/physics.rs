@@ -94,15 +94,15 @@ impl Physics {
     }
 
     fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        Grid::blocks_overlapping(&world.grid, aabb)
+        Grid::cells_overlapping(&world.grid, aabb)
             .into_iter()
-            .filter(|block_aabb| {
-                let block_position = block_aabb.center().as_ivec3();
+            .filter(|cell_aabb| {
+                let cell_position = cell_aabb.center().as_ivec3();
 
-                if let Some(block) =
-                    World::get_block_at(block_position, &world.grid, &world.sector_vec)
+                if let Some(cell) =
+                    World::get_cell_at(cell_position, &world.grid, &world.sector_vec)
                 {
-                    block.solid
+                    cell.solid
                 } else {
                     true
                 }

@@ -12,41 +12,41 @@ struct WorldRayIteratoratorCase {
     pub origin: Vec3,
     pub direction: Vec3,
     pub distance: f32,
-    pub expected_block_info_vec: Vec<(f32, IVec3, grid::Direction)>,
+    pub expected_cell_info_vec: Vec<(f32, IVec3, grid::Direction)>,
 }
 
 impl WorldRayIteratoratorCase {
     pub fn check(case: &WorldRayIteratoratorCase, world: &World) {
         let epsilon = 1e-3;
-        let mut block_sample_vec = Vec::new();
+        let mut cell_sample_vec = Vec::new();
 
         if let Some(iter) =
             WorldRayIterator::from_ray(&world, case.origin, case.direction, case.distance)
         {
-            for block_sample in iter {
-                block_sample_vec.push(block_sample);
+            for cell_sample in iter {
+                cell_sample_vec.push(cell_sample);
             }
         }
 
         println!("{:?}", case.description);
 
-        assert_eq!(block_sample_vec.len(), case.expected_block_info_vec.len());
+        assert_eq!(cell_sample_vec.len(), case.expected_cell_info_vec.len());
 
         for (index, (t, position, enter_face_direction)) in
-            case.expected_block_info_vec.iter().enumerate()
+            case.expected_cell_info_vec.iter().enumerate()
         {
             assert!(
-                (block_sample_vec[index].t - *t).abs() <= epsilon,
+                (cell_sample_vec[index].t - *t).abs() <= epsilon,
                 "i={}, got t={}, want {}",
                 index,
-                block_sample_vec[index].t,
+                cell_sample_vec[index].t,
                 t
             );
 
-            assert_eq!(block_sample_vec[index].position, *position);
+            assert_eq!(cell_sample_vec[index].position, *position);
 
             assert_eq!(
-                block_sample_vec[index].enter_face_direction,
+                cell_sample_vec[index].enter_face_direction,
                 *enter_face_direction
             );
         }
@@ -66,7 +66,7 @@ fn general_ray_tests() {
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 1.0),
             distance: 4.0,
-            expected_block_info_vec: vec![
+            expected_cell_info_vec: vec![
                 (0.5, IVec3::new(1, 0, 0), grid::Direction::XnYoZo),
                 (0.5, IVec3::new(1, 1, 0), grid::Direction::XoYnZo),
                 (0.5, IVec3::new(1, 1, 1), grid::Direction::XoYoZn),
@@ -86,7 +86,7 @@ fn general_ray_tests() {
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
             distance: 4.0,
-            expected_block_info_vec: vec![
+            expected_cell_info_vec: vec![
                 (0.5, IVec3::new(1, 0, 0), grid::Direction::XnYoZo),
                 (0.5, IVec3::new(1, 1, 0), grid::Direction::XoYnZo),
                 (1.5, IVec3::new(2, 1, 0), grid::Direction::XnYoZo),
@@ -102,7 +102,7 @@ fn general_ray_tests() {
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
             distance: 0.0,
-            expected_block_info_vec: vec![],
+            expected_cell_info_vec: vec![],
         },
     ];
 

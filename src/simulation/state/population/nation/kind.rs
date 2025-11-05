@@ -1,4 +1,4 @@
-use crate::simulation::state::world::block;
+use crate::simulation::state::world::cell;
 use glam::IVec3;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -14,12 +14,12 @@ impl Kind {
         [Kind::Eagle, Kind::Lion, Kind::Horse, Kind::Wolf]
     }
 
-    pub fn icon(&self) -> block::Kind {
+    pub fn icon(&self) -> cell::Kind {
         match self {
-            Kind::Eagle => block::Kind::Icon2,
-            Kind::Lion => block::Kind::Icon1,
-            Kind::Horse => block::Kind::Icon4,
-            Kind::Wolf => block::Kind::Icon3,
+            Kind::Eagle => cell::Kind::Icon2,
+            Kind::Lion => cell::Kind::Icon1,
+            Kind::Horse => cell::Kind::Icon4,
+            Kind::Wolf => cell::Kind::Icon3,
         }
     }
 

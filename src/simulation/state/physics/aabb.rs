@@ -93,21 +93,21 @@ impl AABB {
             && self.max.z > other.min.z
     }
 
-    pub fn overlap_axis(&self, axis_index: usize, block_aabb: AABB) -> f32 {
+    pub fn overlap_axis(&self, axis_index: usize, cell_aabb: AABB) -> f32 {
         let min = self.min[axis_index];
         let max = self.max[axis_index];
 
-        let block_min = block_aabb.min[axis_index];
-        let block_max = block_aabb.max[axis_index];
+        let cell_min = cell_aabb.min[axis_index];
+        let cell_max = cell_aabb.max[axis_index];
 
-        if max > block_min && min < block_max {
-            let offset_positive = block_max - min;
-            let offset_negative = max - block_min;
+        if max > cell_min && min < cell_max {
+            let offset_positive = cell_max - min;
+            let offset_negative = max - cell_min;
 
             let center = (min + max) * 0.5;
-            let block_center = (block_min + block_max) * 0.5;
+            let cell_center = (cell_min + cell_max) * 0.5;
 
-            if center < block_center {
+            if center < cell_center {
                 offset_positive
             } else {
                 -offset_negative

@@ -1,44 +1,44 @@
 use crate::simulation::{
     self,
-    state::world::{block, grid::Grid, sector, World},
+    state::world::{cell, grid::Grid, sector, World},
 };
 use glam::IVec3;
 
-struct BlockIDValidCase {
+struct CellIDValidCase {
     description: String,
-    block_id: block::ID,
+    cell_id: cell::ID,
     expected_valid: bool,
 }
 
-impl BlockIDValidCase {
+impl CellIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = Grid::block_id_valid(&world.grid, self.block_id);
+        let valid = Grid::cell_id_valid(&world.grid, self.cell_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
 }
 
 #[test]
-fn block_id_valid() {
+fn cell_id_valid() {
     let kind = simulation::Kind::WorldTest;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
     let test_cases = vec![
-        BlockIDValidCase {
-            description: "block_id 0".to_string(),
-            block_id: block::ID(0),
+        CellIDValidCase {
+            description: "cell_id 0".to_string(),
+            cell_id: cell::ID(0),
             expected_valid: true,
         },
-        BlockIDValidCase {
-            description: "block_id max".to_string(),
-            block_id: block::ID(world.grid.sector_volume_in_cells - 1),
+        CellIDValidCase {
+            description: "cell_id max".to_string(),
+            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
             expected_valid: true,
         },
-        BlockIDValidCase {
-            description: "block_id max + 1".to_string(),
-            block_id: block::ID(world.grid.sector_volume_in_cells - 1 + 1),
+        CellIDValidCase {
+            description: "cell_id max + 1".to_string(),
+            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1 + 1),
             expected_valid: false,
         },
     ];

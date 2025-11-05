@@ -463,8 +463,8 @@ impl<'window> Interface<'window> {
         WorldRender::apply_world_view(
             &gpu_context.device,
             &view.world_view,
-            &world_render.block_render_info,
-            &world_render.block_tile_coordinates_map,
+            &world_render.cell_render_info,
+            &world_render.cell_tile_coordinates_map,
             &mut world_render.sector_render_data_vec,
         );
 

@@ -1,4 +1,4 @@
-use crate::simulation::state::world::{block::Block, sector};
+use crate::simulation::state::world::{cell::Cell, sector};
 use glam::Vec3;
 
 #[derive(Clone, Debug)]
@@ -6,7 +6,7 @@ pub struct SectorView {
     pub id: sector::ID,
     pub world_position: Vec3,
     pub extent: Vec3,
-    pub block_vec: Vec<Block>,
+    pub cell_vec: Vec<Cell>,
 }
 
 impl SectorView {
@@ -15,7 +15,7 @@ impl SectorView {
             id: sector::ID::MAX,
             world_position: Vec3::ZERO,
             extent: Vec3::ZERO,
-            block_vec: Vec::new(),
+            cell_vec: Vec::new(),
         }
     }
 }

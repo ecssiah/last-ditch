@@ -116,15 +116,15 @@ impl Sight {
             if let Some(mut world_ray_iterator) =
                 WorldRayIterator::from_ray(world, ray_origin, ray, sight.distance)
             {
-                while let Some(block_sample) = world_ray_iterator.next() {
-                    if broadphase_sector_id_set.contains(&block_sample.sector_id) {
-                        if let Some(block) = World::get_block(
-                            block_sample.sector_id,
-                            block_sample.block_id,
+                while let Some(cell_sample) = world_ray_iterator.next() {
+                    if broadphase_sector_id_set.contains(&cell_sample.sector_id) {
+                        if let Some(cell) = World::get_cell(
+                            cell_sample.sector_id,
+                            cell_sample.cell_id,
                             &world.sector_vec,
                         ) {
-                            if block.solid {
-                                sector_id_set.insert(block_sample.sector_id);
+                            if cell.solid {
+                                sector_id_set.insert(cell_sample.sector_id);
                                 break;
                             }
                         }

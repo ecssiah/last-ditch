@@ -1,10 +1,10 @@
 pub mod axis;
-pub mod block_sample;
+pub mod cell_sample;
 pub mod direction;
 pub mod world_ray_iterator;
 
 pub use axis::Axis;
-pub use block_sample::BlockSample;
+pub use cell_sample::CellSample;
 pub use direction::Direction;
 pub use world_ray_iterator::WorldRayIterator;
 
@@ -13,7 +13,7 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        world::{block, sector},
+        world::{cell, sector},
     },
     utils::indexing,
 };
@@ -175,8 +175,8 @@ impl Grid {
         }
     }
 
-    pub fn block_ids(grid: &Grid) -> Vec<block::ID> {
-        (0u32..grid.sector_volume_in_cells).map(block::ID).collect()
+    pub fn cell_ids(grid: &Grid) -> Vec<cell::ID> {
+        (0u32..grid.sector_volume_in_cells).map(cell::ID).collect()
     }
 
     pub fn sector_ids(grid: &Grid) -> Vec<sector::ID> {
@@ -189,8 +189,8 @@ impl Grid {
         (0u32..grid.world_volume_in_sectors).contains(&u32::from(sector_id))
     }
 
-    pub fn block_id_valid(grid: &Grid, block_id: block::ID) -> bool {
-        (0u32..grid.sector_volume_in_cells).contains(&u32::from(block_id))
+    pub fn cell_id_valid(grid: &Grid, cell_id: cell::ID) -> bool {
+        (0u32..grid.sector_volume_in_cells).contains(&u32::from(cell_id))
     }
 
     pub fn position_valid(grid: &Grid, position: IVec3) -> bool {
@@ -201,29 +201,29 @@ impl Grid {
         in_x_range && in_y_range && in_z_range
     }
 
-    pub fn block_id_to_block_coordinates(grid: &Grid, block_id: block::ID) -> IVec3 {
-        if Grid::block_id_valid(grid, block_id) {
-            let block_index = u32::from(block_id);
-            let block_coordinates =
-                indexing::index_to_vector(block_index, grid.sector_radius_in_cells);
+    pub fn cell_id_to_cell_coordinates(grid: &Grid, cell_id: cell::ID) -> IVec3 {
+        if Grid::cell_id_valid(grid, cell_id) {
+            let cell_index = u32::from(cell_id);
+            let cell_coordinates =
+                indexing::index_to_vector(cell_index, grid.sector_radius_in_cells);
 
-            block_coordinates
+            cell_coordinates
         } else {
             IVec3::MAX
         }
     }
 
-    pub fn block_coordinates_to_block_id(grid: &Grid, block_coordinates: IVec3) -> block::ID {
-        let block_coordinates_indexable =
-            indexing::indexable_vector(block_coordinates, grid.sector_radius_in_cells);
+    pub fn cell_coordinates_to_cell_id(grid: &Grid, cell_coordinates: IVec3) -> cell::ID {
+        let cell_coordinates_indexable =
+            indexing::indexable_vector(cell_coordinates, grid.sector_radius_in_cells);
 
-        if block_coordinates_indexable != IVec3::MAX {
-            let block_index =
-                indexing::vector_to_index(block_coordinates_indexable, grid.sector_radius_in_cells);
+        if cell_coordinates_indexable != IVec3::MAX {
+            let cell_index =
+                indexing::vector_to_index(cell_coordinates_indexable, grid.sector_radius_in_cells);
 
-            block::ID(block_index)
+            cell::ID(cell_index)
         } else {
-            block::ID::MAX
+            cell::ID::MAX
         }
     }
 
@@ -296,19 +296,19 @@ impl Grid {
         }
     }
 
-    pub fn position_to_block_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
+    pub fn position_to_cell_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
         if Grid::position_valid(grid, position) {
             let position_indexable =
                 indexing::indexable_vector(position, grid.world_radius_in_cells);
 
             if position_indexable != IVec3::MAX {
-                let block_coordinates_indexable =
+                let cell_coordinates_indexable =
                     position_indexable % grid.sector_size_in_cells as i32;
 
-                let block_coordinates =
-                    block_coordinates_indexable - IVec3::splat(grid.sector_radius_in_cells as i32);
+                let cell_coordinates =
+                    cell_coordinates_indexable - IVec3::splat(grid.sector_radius_in_cells as i32);
 
-                block_coordinates
+                cell_coordinates
             } else {
                 IVec3::MAX
             }
@@ -327,29 +327,29 @@ impl Grid {
         }
     }
 
-    pub fn position_to_block_id(grid: &Grid, position: IVec3) -> block::ID {
-        let block_coordinates = Grid::position_to_block_coordinates(grid, position);
+    pub fn position_to_cell_id(grid: &Grid, position: IVec3) -> cell::ID {
+        let cell_coordinates = Grid::position_to_cell_coordinates(grid, position);
 
-        if block_coordinates != IVec3::MAX {
-            Grid::block_coordinates_to_block_id(grid, block_coordinates)
+        if cell_coordinates != IVec3::MAX {
+            Grid::cell_coordinates_to_cell_id(grid, cell_coordinates)
         } else {
-            block::ID::MAX
+            cell::ID::MAX
         }
     }
 
-    pub fn position_to_ids(grid: &Grid, position: IVec3) -> (sector::ID, block::ID) {
+    pub fn position_to_ids(grid: &Grid, position: IVec3) -> (sector::ID, cell::ID) {
         let sector_id = Grid::position_to_sector_id(grid, position);
-        let block_id = Grid::position_to_block_id(grid, position);
+        let cell_id = Grid::position_to_cell_id(grid, position);
 
-        (sector_id, block_id)
+        (sector_id, cell_id)
     }
 
-    pub fn ids_to_position(grid: &Grid, sector_id: sector::ID, block_id: block::ID) -> IVec3 {
+    pub fn ids_to_position(grid: &Grid, sector_id: sector::ID, cell_id: cell::ID) -> IVec3 {
         let sector_coordinates = Grid::sector_id_to_sector_coordinates(grid, sector_id);
-        let block_coordinates = Grid::block_id_to_block_coordinates(grid, block_id);
+        let cell_coordinates = Grid::cell_id_to_cell_coordinates(grid, cell_id);
 
-        if sector_coordinates != IVec3::MAX && block_coordinates != IVec3::MAX {
-            grid.sector_size_in_cells as i32 * sector_coordinates + block_coordinates
+        if sector_coordinates != IVec3::MAX && cell_coordinates != IVec3::MAX {
+            grid.sector_size_in_cells as i32 * sector_coordinates + cell_coordinates
         } else {
             IVec3::MAX
         }
@@ -385,27 +385,27 @@ impl Grid {
         }
     }
 
-    pub fn world_to_block_id(grid: &Grid, world_position: Vec3) -> block::ID {
+    pub fn world_to_cell_id(grid: &Grid, world_position: Vec3) -> cell::ID {
         let position = Grid::world_to_position(grid, world_position);
 
         if Grid::position_valid(grid, position) {
-            Grid::position_to_block_id(grid, position)
+            Grid::position_to_cell_id(grid, position)
         } else {
-            block::ID::MAX
+            cell::ID::MAX
         }
     }
 
-    pub fn world_to_block_coordinates(grid: &Grid, world_position: Vec3) -> IVec3 {
+    pub fn world_to_cell_coordinates(grid: &Grid, world_position: Vec3) -> IVec3 {
         let position = Grid::world_to_position(grid, world_position);
 
         if Grid::position_valid(grid, position) {
-            Grid::position_to_block_coordinates(grid, position)
+            Grid::position_to_cell_coordinates(grid, position)
         } else {
             IVec3::MAX
         }
     }
 
-    pub fn blocks_overlapping(grid: &Grid, aabb: AABB) -> Vec<AABB> {
+    pub fn cells_overlapping(grid: &Grid, aabb: AABB) -> Vec<AABB> {
         let mut aabb_vec = Vec::new();
 
         let min = aabb.min.round().as_ivec3();
@@ -416,11 +416,11 @@ impl Grid {
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
-                    let block_position = IVec3::new(x, y, z);
-                    let block_aabb = AABB::new(block_position.as_vec3(), size);
+                    let cell_position = IVec3::new(x, y, z);
+                    let cell_aabb = AABB::new(cell_position.as_vec3(), size);
 
-                    if block_aabb.overlaps(aabb) {
-                        aabb_vec.push(block_aabb);
+                    if cell_aabb.overlaps(aabb) {
+                        aabb_vec.push(cell_aabb);
                     }
                 }
             }
@@ -430,16 +430,16 @@ impl Grid {
     }
 
     pub fn on_sector_boundary(grid: &Grid, position: IVec3) -> bool {
-        let block_coordinates = Grid::position_to_block_coordinates(grid, position);
+        let cell_coordinates = Grid::position_to_cell_coordinates(grid, position);
 
-        if block_coordinates == IVec3::MAX {
+        if cell_coordinates == IVec3::MAX {
             true
         } else {
             let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
 
-            block_coordinates.x.abs() == sector_radius_in_cells
-                || block_coordinates.y.abs() == sector_radius_in_cells
-                || block_coordinates.z.abs() == sector_radius_in_cells
+            cell_coordinates.x.abs() == sector_radius_in_cells
+                || cell_coordinates.y.abs() == sector_radius_in_cells
+                || cell_coordinates.z.abs() == sector_radius_in_cells
         }
     }
 

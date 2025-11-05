@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::grid::{self, BlockSample, Grid},
+    world::grid::{self, CellSample, Grid},
     World,
 };
 use glam::{IVec3, Vec3};
@@ -101,7 +101,7 @@ impl<'world> WorldRayIterator<'world> {
 }
 
 impl<'w> Iterator for WorldRayIterator<'w> {
-    type Item = BlockSample;
+    type Item = CellSample;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done {
@@ -120,7 +120,7 @@ impl<'w> Iterator for WorldRayIterator<'w> {
             }
 
             let (axis, step_direction_axis, t_next) =
-                get_next_block_boundary_info(self.step_direction, self.t_remaining);
+                get_next_cell_boundary_info(self.step_direction, self.t_remaining);
 
             if !t_next.is_finite() || t_next > self.t_max {
                 self.done = true;
@@ -151,20 +151,20 @@ impl<'w> Iterator for WorldRayIterator<'w> {
 
             let enter_face_direction = get_face_direction(axis, step_direction_axis);
 
-            let (sector_id, block_id) = Grid::position_to_ids(grid, self.position);
+            let (sector_id, cell_id) = Grid::position_to_ids(grid, self.position);
 
             let world_position = self.origin + self.direction * self.t;
 
-            let block_sample = BlockSample {
+            let cell_sample = CellSample {
                 t: self.t,
                 position: self.position,
                 world_position,
                 sector_id,
-                block_id,
+                cell_id,
                 enter_face_direction,
             };
 
-            return Some(block_sample);
+            return Some(cell_sample);
         }
     }
 }
@@ -246,10 +246,7 @@ fn dda_axis_setup(
 }
 
 #[inline]
-fn get_next_block_boundary_info(
-    step_direction: IVec3,
-    t_remaining: Vec3,
-) -> (grid::Axis, i32, f32) {
+fn get_next_cell_boundary_info(step_direction: IVec3, t_remaining: Vec3) -> (grid::Axis, i32, f32) {
     let txp = if step_direction.x == 0 || !t_remaining.x.is_finite() {
         f32::INFINITY
     } else {

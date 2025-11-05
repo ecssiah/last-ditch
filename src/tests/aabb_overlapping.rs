@@ -21,7 +21,7 @@ impl OverlapsAABBCase {
 }
 
 #[test]
-fn blocks_overlap_when_overlapping() {
+fn cells_overlap_when_overlapping() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
 
     let test_cases = vec![
@@ -81,7 +81,7 @@ fn blocks_overlap_when_overlapping() {
 }
 
 #[test]
-fn blocks_do_not_overlap_when_intersecting() {
+fn cells_do_not_overlap_when_intersecting() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
 
     let test_cases = vec![
@@ -141,7 +141,7 @@ fn blocks_do_not_overlap_when_intersecting() {
 }
 
 #[test]
-fn blocks_do_not_overlap_when_separated() {
+fn cells_do_not_overlap_when_separated() {
     let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
 
     let test_cases = vec![

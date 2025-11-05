@@ -121,7 +121,7 @@ impl Observation {
                     id: sector.id,
                     world_position: sector.position.as_vec3(),
                     extent: Vec3::splat(state.world.grid.sector_radius_in_meters),
-                    block_vec: sector.block_vec.clone(),
+                    cell_vec: sector.cell_vec.clone(),
                 };
 
                 world_view.sector_view_map.insert(sector.id, sector_view);

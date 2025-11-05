@@ -18,7 +18,7 @@ use crate::simulation::state::{
 use glam::{IVec3, Vec3};
 
 #[derive(Clone, Debug)]
-pub struct Block {
+pub struct Cell {
     pub id: ID,
     pub sector_id: sector::ID,
     pub position: IVec3,
@@ -27,7 +27,7 @@ pub struct Block {
     pub face_array: [Face; 6],
 }
 
-impl Block {
+impl Cell {
     pub fn face_array() -> [Face; 6] {
         [
             Face::new(grid::Direction::XpYoZo),

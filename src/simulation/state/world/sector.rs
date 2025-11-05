@@ -6,7 +6,7 @@ pub use modified::Modified;
 
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::{block, sector},
+    world::{cell, sector},
 };
 use glam::IVec3;
 
@@ -15,5 +15,5 @@ pub struct Sector {
     pub modified: Modified,
     pub position: IVec3,
     pub aabb: AABB,
-    pub block_vec: Vec<block::Block>,
+    pub cell_vec: Vec<cell::Cell>,
 }
