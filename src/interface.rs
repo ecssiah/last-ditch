@@ -1,4 +1,4 @@
-//! Interactions with the User
+//! User interaction
 
 pub mod camera;
 pub mod consts;

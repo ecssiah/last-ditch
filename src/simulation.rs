@@ -1,4 +1,4 @@
-//! Evolution of the simulated environment.
+//! Simulation evolution
 
 pub mod config;
 pub mod constructor;

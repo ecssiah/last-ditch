@@ -2,7 +2,6 @@
 
 pub mod block;
 pub mod chunk;
-pub mod graph;
 pub mod grid;
 
 use crate::simulation::{
@@ -14,19 +13,17 @@ use crate::simulation::{
             entity::{self, Judge},
             nation,
         },
-        world::{block::Block, chunk::Chunk, graph::Graph, grid::Grid},
+        world::{block::Block, chunk::Chunk, grid::Grid},
     },
-    utils::buffer::Buffer,
 };
 use glam::{IVec3, Vec3};
-use std::{collections::HashMap, sync::RwLock};
+use std::collections::HashMap;
 
 pub struct World {
     pub kind: simulation::Kind,
     pub grid: Grid,
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub chunk_vec: Vec<chunk::Chunk>,
-    pub graph_buffer_lock: RwLock<Buffer<Graph>>,
     pub flag_position_map: HashMap<nation::Kind, IVec3>,
 }
 
@@ -35,9 +32,6 @@ impl World {
         let grid = Grid::new(kind);
         let block_info_map = block::Info::setup();
         let chunk_vec = Self::setup_chunk_vec(&grid);
-
-        let graph = Graph::new(&grid, 1);
-        let graph_buffer_lock = RwLock::new(Buffer::new(graph));
 
         let flag_position_map = HashMap::from([
             (nation::Kind::Lion, IVec3::ZERO),
@@ -51,7 +45,6 @@ impl World {
             grid,
             block_info_map,
             chunk_vec,
-            graph_buffer_lock,
             flag_position_map,
         }
     }
@@ -63,9 +56,6 @@ impl World {
         let block_info_map = HashMap::default();
         let chunk_vec = Vec::default();
 
-        let graph = Graph::new(&grid, 1);
-        let graph_buffer_lock = RwLock::new(Buffer::new(graph));
-
         let flag_position_map = HashMap::default();
 
         Self {
@@ -73,7 +63,6 @@ impl World {
             grid,
             block_info_map,
             chunk_vec,
-            graph_buffer_lock,
             flag_position_map,
         }
     }
@@ -89,11 +78,6 @@ impl World {
         match kind {
             simulation::Kind::Main => {
                 constructor::world::main::construct(world);
-
-                let graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
-
-                let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
-                graph_buffer.update(graph);
             }
             simulation::Kind::Empty => {
                 constructor::world::empty::construct(world);
@@ -103,11 +87,6 @@ impl World {
             }
             simulation::Kind::GraphTest => {
                 constructor::world::graph_test::construct(world);
-
-                let graph = Graph::construct(&world.grid, &world.chunk_vec, 1);
-
-                let mut graph_buffer = world.graph_buffer_lock.write().unwrap();
-                graph_buffer.update(graph);
             }
             simulation::Kind::Placeholder => (),
         }

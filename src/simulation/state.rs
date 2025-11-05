@@ -1,7 +1,6 @@
 //! Current state of the simulation
 
 pub mod admin;
-pub mod compute;
 pub mod physics;
 pub mod population;
 pub mod receiver;
@@ -9,7 +8,6 @@ pub mod time;
 pub mod world;
 
 pub use admin::Admin;
-pub use compute::Compute;
 pub use physics::Physics;
 pub use population::Population;
 pub use receiver::Receiver;
@@ -29,7 +27,6 @@ pub struct State {
     pub kind: simulation::Kind,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
-    pub compute: Compute,
     pub time: Time,
     pub physics: Physics,
     pub world: World,
@@ -41,7 +38,6 @@ impl State {
         let construct_rx = None;
 
         let admin = Admin::new();
-        let compute = Compute::new();
         let time = Time::new();
         let physics = Physics::new();
         let world = World::new(kind);
@@ -51,7 +47,6 @@ impl State {
             kind,
             construct_rx,
             admin,
-            compute,
             time,
             physics,
             world,
@@ -120,9 +115,8 @@ impl State {
         Self::apply_simulate_action_vec(state, action_vec);
 
         Time::tick(&mut state.time);
-        Population::tick(&state.world, &mut state.population, &mut state.compute);
+        Population::tick(&state.world, &mut state.population);
         Physics::tick(&state.physics, &state.world, &mut state.population);
-        Compute::tick(&mut state.compute, &mut state.population);
     }
 
     fn apply_simulate_action_vec(state: &mut State, action_vec: Vec<Action>) {

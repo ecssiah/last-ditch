@@ -1,5 +1,4 @@
 pub mod agent;
-pub mod decision;
 pub mod detection;
 pub mod id;
 pub mod info;
@@ -10,7 +9,6 @@ pub mod sight;
 pub mod spatial;
 
 pub use agent::Agent;
-pub use decision::Decision;
 pub use detection::Detection;
 pub use id::ID;
 pub use info::Info;

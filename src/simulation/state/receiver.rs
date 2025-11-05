@@ -1,4 +1,4 @@
-//! Processes Actions
+//! Action processor
 
 pub mod action;
 

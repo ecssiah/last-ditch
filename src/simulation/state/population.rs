@@ -6,10 +6,8 @@ pub mod nation;
 use crate::simulation::{
     self, constructor,
     state::{
-        compute::task,
         population::entity::{Agent, Judge},
         world::World,
-        Compute,
     },
 };
 use std::collections::HashMap;
@@ -18,20 +16,17 @@ pub struct Population {
     pub kind: simulation::Kind,
     pub judge: Judge,
     pub agent_map: HashMap<entity::ID, Agent>,
-    pub task_input_vec: Vec<task::Input>,
 }
 
 impl Population {
     pub fn new(kind: simulation::Kind) -> Self {
         let judge = Judge::new();
         let agent_map = HashMap::new();
-        let task_input_vec = Vec::new();
 
         Self {
             kind,
             judge,
             agent_map,
-            task_input_vec,
         }
     }
 
@@ -39,13 +34,11 @@ impl Population {
         let kind = simulation::Kind::Placeholder;
         let judge = Judge::new();
         let agent_map = HashMap::new();
-        let task_input_vec = Vec::new();
 
         Self {
             kind,
             judge,
             agent_map,
-            task_input_vec,
         }
     }
 
@@ -67,9 +60,9 @@ impl Population {
         }
     }
 
-    pub fn tick(world: &World, population: &mut Population, compute: &mut Compute) {
+    pub fn tick(world: &World, population: &mut Population) {
         for agent in population.agent_map.values_mut() {
-            Agent::tick(world, agent, compute);
+            Agent::tick(world, agent);
         }
 
         Judge::tick(world, &mut population.judge);
