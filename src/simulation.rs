@@ -32,7 +32,7 @@ impl Simulation {
         action_rx: UnboundedReceiver<Action>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
-        let kind = Kind::GraphTest;
+        let kind = Kind::Main;
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
         let state = State::new(kind);

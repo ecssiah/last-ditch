@@ -1,6 +1,6 @@
 use crate::simulation::{
     self,
-    state::world::{block, chunk, grid::Grid, World},
+    state::world::{block, grid::Grid, sector, World},
 };
 use glam::IVec3;
 
@@ -33,12 +33,12 @@ fn block_id_valid() {
         },
         BlockIDValidCase {
             description: "block_id max".to_string(),
-            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
+            block_id: block::ID(world.grid.sector_volume_in_cells - 1),
             expected_valid: true,
         },
         BlockIDValidCase {
             description: "block_id max + 1".to_string(),
-            block_id: block::ID(world.grid.chunk_volume_blocks - 1 + 1),
+            block_id: block::ID(world.grid.sector_volume_in_cells - 1 + 1),
             expected_valid: false,
         },
     ];
@@ -48,41 +48,41 @@ fn block_id_valid() {
     }
 }
 
-struct ChunkIDValidCase {
+struct SectorIDValidCase {
     description: String,
-    chunk_id: chunk::ID,
+    sector_id: sector::ID,
     expected_valid: bool,
 }
 
-impl ChunkIDValidCase {
+impl SectorIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = Grid::chunk_id_valid(&world.grid, self.chunk_id);
+        let valid = Grid::sector_id_valid(&world.grid, self.sector_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
 }
 
 #[test]
-fn chunk_id_valid() {
+fn sector_id_valid() {
     let kind = simulation::Kind::WorldTest;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
     let test_cases = vec![
-        ChunkIDValidCase {
-            description: "chunk_id 0".to_string(),
-            chunk_id: chunk::ID(0),
+        SectorIDValidCase {
+            description: "sector_id 0".to_string(),
+            sector_id: sector::ID(0),
             expected_valid: true,
         },
-        ChunkIDValidCase {
-            description: "chunk_id max".to_string(),
-            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
+        SectorIDValidCase {
+            description: "sector_id max".to_string(),
+            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
             expected_valid: true,
         },
-        ChunkIDValidCase {
-            description: "chunk_id max + 1".to_string(),
-            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1 + 1),
+        SectorIDValidCase {
+            description: "sector_id max + 1".to_string(),
+            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1 + 1),
             expected_valid: false,
         },
     ];
@@ -113,7 +113,7 @@ fn position_valid() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
         PositionValidCase {
@@ -122,29 +122,29 @@ fn position_valid() {
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(world_extent_blocks, world_extent_blocks, world_extent_blocks)"
+            description: "(world_radius_in_cells, world_radius_in_cells, world_radius_in_cells)"
                 .to_string(),
-            position: IVec3::splat(world_extent_blocks),
+            position: IVec3::splat(world_radius_in_cells),
             expected_valid: true,
         },
         PositionValidCase {
-            description: "(-world_extent_blocks, -world_extent_blocks, -world_extent_blocks)"
+            description: "(-world_radius_in_cells, -world_radius_in_cells, -world_radius_in_cells)"
                 .to_string(),
-            position: IVec3::splat(-world_extent_blocks),
+            position: IVec3::splat(-world_radius_in_cells),
             expected_valid: true,
         },
         PositionValidCase {
             description:
-                "(world_extent_blocks + 1, world_extent_blocks + 1, world_extent_blocks + 1)"
+                "(world_radius_in_cells + 1, world_radius_in_cells + 1, world_radius_in_cells + 1)"
                     .to_string(),
-            position: IVec3::splat(world_extent_blocks + 1),
+            position: IVec3::splat(world_radius_in_cells + 1),
             expected_valid: false,
         },
         PositionValidCase {
             description:
-                "(-world_extent_blocks - 1, -world_extent_blocks - 1, -world_extent_blocks - 1)"
+                "(-world_radius_in_cells - 1, -world_radius_in_cells - 1, -world_radius_in_cells - 1)"
                     .to_string(),
-            position: IVec3::splat(-world_extent_blocks - 1),
+            position: IVec3::splat(-world_radius_in_cells - 1),
             expected_valid: false,
         },
     ];

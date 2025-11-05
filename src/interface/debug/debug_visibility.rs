@@ -5,6 +5,6 @@ bitflags::bitflags! {
         const CHANNEL2              = 1 << 1;
         const CHANNEL3              = 1 << 2;
         const CHANNEL4              = 1 << 3;
-        const CHUNK_BORDERS         = 1 << 4;
+        const SECTOR_BORDERS         = 1 << 4;
     }
 }

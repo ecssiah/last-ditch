@@ -145,18 +145,18 @@ impl HUD {
             judge_view.position.x, judge_view.position.y, judge_view.position.z,
         );
 
-        let chunk_string = format!(
-            "Chunk: ({:.0}, {:.0}, {:.0}) ID {:?}",
-            judge_view.chunk_coordinates.x,
-            judge_view.chunk_coordinates.y,
-            judge_view.chunk_coordinates.z,
-            usize::from(judge_view.chunk_id),
+        let sector_string = format!(
+            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}",
+            judge_view.sector_coordinates.x,
+            judge_view.sector_coordinates.y,
+            judge_view.sector_coordinates.z,
+            usize::from(judge_view.sector_id),
         );
 
         let mut message = String::new();
         message.push_str(&world_position_string);
         message.push_str(&position_string);
-        message.push_str(&chunk_string);
+        message.push_str(&sector_string);
 
         let simulate_data = mode::SimulateData { message };
 

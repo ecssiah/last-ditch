@@ -1,5 +1,5 @@
 pub mod block_render_info;
-pub mod chunk_render_data;
+pub mod sector_render_data;
 
 use crate::{
     include_assets,
@@ -10,7 +10,7 @@ use crate::{
         mesh_data::MeshData,
         texture_data::TextureData,
         vertex_data::VertexData,
-        world_render::{block_render_info::BlockRenderInfo, chunk_render_data::ChunkRenderData},
+        world_render::{block_render_info::BlockRenderInfo, sector_render_data::SectorRenderData},
     },
     simulation::{
         observation::view::WorldView,
@@ -23,7 +23,7 @@ pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
     pub block_tile_coordinates_map: HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
-    pub chunk_render_data_vec: Vec<ChunkRenderData>,
+    pub sector_render_data_vec: Vec<SectorRenderData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -44,7 +44,7 @@ impl WorldRender {
         let tile_atlas_texture_bind_group =
             Self::create_texture_bind_group(&gpu_context.device, &tile_atlas_texture_data);
 
-        let chunk_render_data_vec = Vec::new();
+        let sector_render_data_vec = Vec::new();
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -56,7 +56,7 @@ impl WorldRender {
             block_render_info,
             block_tile_coordinates_map,
             tile_atlas_texture_bind_group,
-            chunk_render_data_vec,
+            sector_render_data_vec,
             render_pipeline,
         }
     }
@@ -213,16 +213,16 @@ impl WorldRender {
         world_view: &WorldView,
         block_render_info: &BlockRenderInfo,
         block_tile_coordinates_map: &HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
-        chunk_render_data_vec: &mut Vec<ChunkRenderData>,
+        sector_render_data_vec: &mut Vec<SectorRenderData>,
     ) {
-        chunk_render_data_vec.clear();
+        sector_render_data_vec.clear();
 
-        for chunk_view in world_view.chunk_view_map.values() {
+        for sector_view in world_view.sector_view_map.values() {
             let mut vertex_vec = Vec::new();
             let mut index_vec = Vec::new();
             let mut index_offset = 0;
 
-            for block in &chunk_view.block_vec {
+            for block in &sector_view.block_vec {
                 if block.kind == block::Kind::Empty {
                     continue;
                 }
@@ -267,12 +267,12 @@ impl WorldRender {
             }
 
             if !vertex_vec.is_empty() {
-                let chunk_render_data = ChunkRenderData {
-                    chunk_id: chunk_view.id,
+                let sector_render_data = SectorRenderData {
+                    sector_id: sector_view.id,
                     mesh_data: MeshData::new(device, vertex_vec, index_vec),
                 };
 
-                chunk_render_data_vec.push(chunk_render_data);
+                sector_render_data_vec.push(sector_render_data);
             }
         }
     }
@@ -383,17 +383,17 @@ impl WorldRender {
         render_pass.set_pipeline(&world_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
-        for chunk_render_data in &world_render.chunk_render_data_vec {
+        for sector_render_data in &world_render.sector_render_data_vec {
             render_pass.set_bind_group(1, &world_render.tile_atlas_texture_bind_group, &[]);
 
-            render_pass.set_vertex_buffer(0, chunk_render_data.mesh_data.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
 
             render_pass.set_index_buffer(
-                chunk_render_data.mesh_data.index_buffer.slice(..),
+                sector_render_data.mesh_data.index_buffer.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
 
-            render_pass.draw_indexed(0..chunk_render_data.mesh_data.index_count, 0, 0..1);
+            render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
         }
 
         drop(render_pass);

@@ -100,7 +100,7 @@ impl Physics {
                 let block_position = block_aabb.center().as_ivec3();
 
                 if let Some(block) =
-                    World::get_block_at(block_position, &world.grid, &world.chunk_vec)
+                    World::get_block_at(block_position, &world.grid, &world.sector_vec)
                 {
                     block.solid
                 } else {

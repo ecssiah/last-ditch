@@ -13,7 +13,7 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        world::{block, chunk},
+        world::{block, sector},
     },
     utils::indexing,
 };
@@ -76,114 +76,127 @@ static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|
 
 #[derive(Clone, Copy, Debug)]
 pub struct Grid {
-    pub block_extent: f32,
-    pub block_size: f32,
-    pub block_area: f32,
-    pub block_volume: f32,
-    pub chunk_extent_blocks: u32,
-    pub chunk_size_blocks: u32,
-    pub chunk_area_blocks: u32,
-    pub chunk_volume_blocks: u32,
-    pub chunk_extent_units: f32,
-    pub chunk_size_units: f32,
-    pub chunk_area_units: f32,
-    pub chunk_volume_units: f32,
-    pub world_extent_chunks: u32,
-    pub world_size_chunks: u32,
-    pub world_area_chunks: u32,
-    pub world_volume_chunks: u32,
-    pub world_extent_blocks: u32,
-    pub world_size_blocks: u32,
-    pub world_area_blocks: u32,
-    pub world_volume_blocks: u32,
-    pub world_extent_units: f32,
-    pub world_size_units: f32,
-    pub world_area_units: f32,
-    pub world_volume_units: f32,
+    pub cell_radius_in_meters: f32,
+    pub cell_size_in_meters: f32,
+    pub cell_area_in_meters: f32,
+    pub cell_volume_in_meters: f32,
+
+    pub sector_radius_in_cells: u32,
+    pub sector_size_in_cells: u32,
+    pub sector_area_in_cells: u32,
+    pub sector_volume_in_cells: u32,
+    pub sector_radius_in_meters: f32,
+    pub sector_size_in_meters: f32,
+    pub sector_area_in_meters: f32,
+    pub sector_volume_in_meters: f32,
+
+    pub world_radius_in_cells: u32,
+    pub world_size_in_cells: u32,
+    pub world_area_in_cells: u32,
+    pub world_volume_in_cells: u32,
+    pub world_radius_in_sectors: u32,
+    pub world_size_in_sectors: u32,
+    pub world_area_in_sectors: u32,
+    pub world_volume_in_sectors: u32,
+    pub world_radius_in_meters: f32,
+    pub world_size_in_meters: f32,
+    pub world_area_in_meters: f32,
+    pub world_volume_in_meters: f32,
 }
 
 impl Grid {
     pub fn new(kind: simulation::Kind) -> Self {
         let config = kind.config();
 
-        let block_extent = BLOCK_EXTENT;
-        let block_size = 2.0 * block_extent;
-        let block_area = block_size * block_size;
-        let block_volume = block_size * block_size * block_size;
+        let cell_radius_in_meters = CELL_RADIUS;
+        let cell_size_in_meters = 2.0 * cell_radius_in_meters;
+        let cell_area_in_meters = cell_size_in_meters * cell_size_in_meters;
+        let cell_volume_in_meters = cell_size_in_meters * cell_size_in_meters * cell_size_in_meters;
 
-        let chunk_extent_blocks = config.chunk_extent_blocks;
-        let chunk_size_blocks = 2 * config.chunk_extent_blocks + 1;
-        let chunk_area_blocks = chunk_size_blocks * chunk_size_blocks;
-        let chunk_volume_blocks = chunk_size_blocks * chunk_size_blocks * chunk_size_blocks;
+        let sector_radius_in_cells = config.sector_radius_in_cells;
+        let sector_size_in_cells = 2 * config.sector_radius_in_cells + 1;
+        let sector_area_in_cells = sector_size_in_cells * sector_size_in_cells;
+        let sector_volume_in_cells =
+            sector_size_in_cells * sector_size_in_cells * sector_size_in_cells;
 
-        let chunk_extent_units = chunk_extent_blocks as f32 * block_size + block_extent;
-        let chunk_size_units = chunk_size_blocks as f32 * block_size;
-        let chunk_area_units = chunk_size_units * chunk_size_units;
-        let chunk_volume_units = chunk_size_units * chunk_size_units * chunk_size_units;
+        let sector_radius_in_meters =
+            sector_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
+        let sector_size_in_meters = sector_size_in_cells as f32 * cell_size_in_meters;
+        let sector_area_in_meters = sector_size_in_meters * sector_size_in_meters;
+        let sector_volume_in_meters =
+            sector_size_in_meters * sector_size_in_meters * sector_size_in_meters;
 
-        let world_extent_chunks = config.world_extent_chunks;
-        let world_size_chunks = 2 * config.world_extent_chunks + 1;
-        let world_area_chunks = world_size_chunks * world_size_chunks;
-        let world_volume_chunks = world_size_chunks * world_size_chunks * world_size_chunks;
+        let world_radius_in_sectors = config.world_radius_in_sectors;
+        let world_size_in_sectors = 2 * config.world_radius_in_sectors + 1;
+        let world_area_in_sectors = world_size_in_sectors * world_size_in_sectors;
+        let world_volume_in_sectors =
+            world_size_in_sectors * world_size_in_sectors * world_size_in_sectors;
 
-        let world_extent_blocks = world_extent_chunks * chunk_size_blocks + chunk_extent_blocks;
-        let world_size_blocks = world_size_chunks * chunk_size_blocks;
-        let world_area_blocks = world_size_blocks * world_size_blocks;
-        let world_volume_blocks = world_size_blocks * world_size_blocks * world_size_blocks;
+        let world_radius_in_cells =
+            world_radius_in_sectors * sector_size_in_cells + sector_radius_in_cells;
+        let world_size_in_cells = world_size_in_sectors * sector_size_in_cells;
+        let world_area_in_cells = world_size_in_cells * world_size_in_cells;
+        let world_volume_in_cells = world_size_in_cells * world_size_in_cells * world_size_in_cells;
 
-        let world_extent_units = world_extent_blocks as f32 * block_size + block_extent;
-        let world_size_units = world_size_blocks as f32 * block_size;
-        let world_area_units = world_size_units * world_size_units;
-        let world_volume_units = world_size_units * world_size_units * world_size_units;
+        let world_radius_in_meters =
+            world_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
+        let world_size_in_meters = world_size_in_cells as f32 * cell_size_in_meters;
+        let world_area_in_meters = world_size_in_meters * world_size_in_meters;
+        let world_volume_in_meters =
+            world_size_in_meters * world_size_in_meters * world_size_in_meters;
 
         Self {
-            block_extent,
-            block_size,
-            block_area,
-            block_volume,
-            chunk_extent_blocks,
-            chunk_size_blocks,
-            chunk_area_blocks,
-            chunk_volume_blocks,
-            chunk_extent_units,
-            chunk_size_units,
-            chunk_area_units,
-            chunk_volume_units,
-            world_extent_chunks,
-            world_size_chunks,
-            world_area_chunks,
-            world_volume_chunks,
-            world_extent_blocks,
-            world_size_blocks,
-            world_area_blocks,
-            world_volume_blocks,
-            world_extent_units,
-            world_size_units,
-            world_area_units,
-            world_volume_units,
+            cell_radius_in_meters,
+            cell_size_in_meters,
+            cell_area_in_meters,
+            cell_volume_in_meters,
+
+            sector_radius_in_cells,
+            sector_size_in_cells,
+            sector_area_in_cells,
+            sector_volume_in_cells,
+            sector_radius_in_meters,
+            sector_size_in_meters,
+            sector_area_in_meters,
+            sector_volume_in_meters,
+
+            world_radius_in_cells,
+            world_size_in_cells,
+            world_area_in_cells,
+            world_volume_in_cells,
+            world_radius_in_sectors,
+            world_size_in_sectors,
+            world_area_in_sectors,
+            world_volume_in_sectors,
+            world_radius_in_meters,
+            world_size_in_meters,
+            world_area_in_meters,
+            world_volume_in_meters,
         }
     }
 
     pub fn block_ids(grid: &Grid) -> Vec<block::ID> {
-        (0u32..grid.chunk_volume_blocks).map(block::ID).collect()
+        (0u32..grid.sector_volume_in_cells).map(block::ID).collect()
     }
 
-    pub fn chunk_ids(grid: &Grid) -> Vec<chunk::ID> {
-        (0u32..grid.world_volume_chunks).map(chunk::ID).collect()
+    pub fn sector_ids(grid: &Grid) -> Vec<sector::ID> {
+        (0u32..grid.world_volume_in_sectors)
+            .map(sector::ID)
+            .collect()
     }
 
-    pub fn chunk_id_valid(grid: &Grid, chunk_id: chunk::ID) -> bool {
-        (0u32..grid.world_volume_chunks).contains(&u32::from(chunk_id))
+    pub fn sector_id_valid(grid: &Grid, sector_id: sector::ID) -> bool {
+        (0u32..grid.world_volume_in_sectors).contains(&u32::from(sector_id))
     }
 
     pub fn block_id_valid(grid: &Grid, block_id: block::ID) -> bool {
-        (0u32..grid.chunk_volume_blocks).contains(&u32::from(block_id))
+        (0u32..grid.sector_volume_in_cells).contains(&u32::from(block_id))
     }
 
     pub fn position_valid(grid: &Grid, position: IVec3) -> bool {
-        let in_x_range = position.x.unsigned_abs() <= grid.world_extent_blocks;
-        let in_y_range = position.y.unsigned_abs() <= grid.world_extent_blocks;
-        let in_z_range = position.z.unsigned_abs() <= grid.world_extent_blocks;
+        let in_x_range = position.x.unsigned_abs() <= grid.world_radius_in_cells;
+        let in_y_range = position.y.unsigned_abs() <= grid.world_radius_in_cells;
+        let in_z_range = position.z.unsigned_abs() <= grid.world_radius_in_cells;
 
         in_x_range && in_y_range && in_z_range
     }
@@ -192,7 +205,7 @@ impl Grid {
         if Grid::block_id_valid(grid, block_id) {
             let block_index = u32::from(block_id);
             let block_coordinates =
-                indexing::index_to_vector(block_index, grid.chunk_extent_blocks);
+                indexing::index_to_vector(block_index, grid.sector_radius_in_cells);
 
             block_coordinates
         } else {
@@ -202,11 +215,11 @@ impl Grid {
 
     pub fn block_coordinates_to_block_id(grid: &Grid, block_coordinates: IVec3) -> block::ID {
         let block_coordinates_indexable =
-            indexing::indexable_vector(block_coordinates, grid.chunk_extent_blocks);
+            indexing::indexable_vector(block_coordinates, grid.sector_radius_in_cells);
 
         if block_coordinates_indexable != IVec3::MAX {
             let block_index =
-                indexing::vector_to_index(block_coordinates_indexable, grid.chunk_extent_blocks);
+                indexing::vector_to_index(block_coordinates_indexable, grid.sector_radius_in_cells);
 
             block::ID(block_index)
         } else {
@@ -214,34 +227,36 @@ impl Grid {
         }
     }
 
-    pub fn chunk_id_to_chunk_coordinates(grid: &Grid, chunk_id: chunk::ID) -> IVec3 {
-        if Grid::chunk_id_valid(grid, chunk_id) {
-            let chunk_index = u32::from(chunk_id);
-            let chunk_coordinates =
-                indexing::index_to_vector(chunk_index, grid.world_extent_chunks);
+    pub fn sector_id_to_sector_coordinates(grid: &Grid, sector_id: sector::ID) -> IVec3 {
+        if Grid::sector_id_valid(grid, sector_id) {
+            let sector_index = u32::from(sector_id);
+            let sector_coordinates =
+                indexing::index_to_vector(sector_index, grid.world_radius_in_sectors);
 
-            chunk_coordinates
+            sector_coordinates
         } else {
             IVec3::MAX
         }
     }
 
-    pub fn chunk_coordinates_to_chunk_id(grid: &Grid, chunk_coordinates: IVec3) -> chunk::ID {
-        let chunk_coordinates_indexable =
-            indexing::indexable_vector(chunk_coordinates, grid.world_extent_chunks);
+    pub fn sector_coordinates_to_sector_id(grid: &Grid, sector_coordinates: IVec3) -> sector::ID {
+        let sector_coordinates_indexable =
+            indexing::indexable_vector(sector_coordinates, grid.world_radius_in_sectors);
 
-        if chunk_coordinates_indexable != IVec3::MAX {
-            let chunk_index =
-                indexing::vector_to_index(chunk_coordinates_indexable, grid.world_extent_chunks);
+        if sector_coordinates_indexable != IVec3::MAX {
+            let sector_index = indexing::vector_to_index(
+                sector_coordinates_indexable,
+                grid.world_radius_in_sectors,
+            );
 
-            chunk::ID(chunk_index)
+            sector::ID(sector_index)
         } else {
-            chunk::ID::MAX
+            sector::ID::MAX
         }
     }
 
-    pub fn chunk_coordinates_to_position(grid: &Grid, chunk_coordinates: IVec3) -> IVec3 {
-        let position = chunk_coordinates * grid.chunk_size_blocks as i32;
+    pub fn sector_coordinates_to_position(grid: &Grid, sector_coordinates: IVec3) -> IVec3 {
+        let position = sector_coordinates * grid.sector_size_in_cells as i32;
 
         if Grid::position_valid(grid, position) {
             position
@@ -250,28 +265,29 @@ impl Grid {
         }
     }
 
-    pub fn chunk_id_to_position(grid: &Grid, chunk_id: chunk::ID) -> IVec3 {
-        let chunk_coordinates = Grid::chunk_id_to_chunk_coordinates(grid, chunk_id);
+    pub fn sector_id_to_position(grid: &Grid, sector_id: sector::ID) -> IVec3 {
+        let sector_coordinates = Grid::sector_id_to_sector_coordinates(grid, sector_id);
 
-        if chunk_coordinates != IVec3::MAX {
-            Grid::chunk_coordinates_to_position(grid, chunk_coordinates)
+        if sector_coordinates != IVec3::MAX {
+            Grid::sector_coordinates_to_position(grid, sector_coordinates)
         } else {
             IVec3::MAX
         }
     }
 
-    pub fn position_to_chunk_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
+    pub fn position_to_sector_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
         if Grid::position_valid(grid, position) {
-            let position_indexable = indexing::indexable_vector(position, grid.world_extent_blocks);
+            let position_indexable =
+                indexing::indexable_vector(position, grid.world_radius_in_cells);
 
             if position_indexable != IVec3::MAX {
-                let chunk_coordinates_indexable =
-                    position_indexable / grid.chunk_size_blocks as i32;
+                let sector_coordinates_indexable =
+                    position_indexable / grid.sector_size_in_cells as i32;
 
-                let chunk_coordinates =
-                    chunk_coordinates_indexable - IVec3::splat(grid.world_extent_chunks as i32);
+                let sector_coordinates = sector_coordinates_indexable
+                    - IVec3::splat(grid.world_radius_in_sectors as i32);
 
-                chunk_coordinates
+                sector_coordinates
             } else {
                 IVec3::MAX
             }
@@ -282,14 +298,15 @@ impl Grid {
 
     pub fn position_to_block_coordinates(grid: &Grid, position: IVec3) -> IVec3 {
         if Grid::position_valid(grid, position) {
-            let position_indexable = indexing::indexable_vector(position, grid.world_extent_blocks);
+            let position_indexable =
+                indexing::indexable_vector(position, grid.world_radius_in_cells);
 
             if position_indexable != IVec3::MAX {
                 let block_coordinates_indexable =
-                    position_indexable % grid.chunk_size_blocks as i32;
+                    position_indexable % grid.sector_size_in_cells as i32;
 
                 let block_coordinates =
-                    block_coordinates_indexable - IVec3::splat(grid.chunk_extent_blocks as i32);
+                    block_coordinates_indexable - IVec3::splat(grid.sector_radius_in_cells as i32);
 
                 block_coordinates
             } else {
@@ -300,13 +317,13 @@ impl Grid {
         }
     }
 
-    pub fn position_to_chunk_id(grid: &Grid, position: IVec3) -> chunk::ID {
-        let chunk_coordinates = Grid::position_to_chunk_coordinates(grid, position);
+    pub fn position_to_sector_id(grid: &Grid, position: IVec3) -> sector::ID {
+        let sector_coordinates = Grid::position_to_sector_coordinates(grid, position);
 
-        if chunk_coordinates != IVec3::MAX {
-            Grid::chunk_coordinates_to_chunk_id(grid, chunk_coordinates)
+        if sector_coordinates != IVec3::MAX {
+            Grid::sector_coordinates_to_sector_id(grid, sector_coordinates)
         } else {
-            chunk::ID::MAX
+            sector::ID::MAX
         }
     }
 
@@ -320,19 +337,19 @@ impl Grid {
         }
     }
 
-    pub fn position_to_ids(grid: &Grid, position: IVec3) -> (chunk::ID, block::ID) {
-        let chunk_id = Grid::position_to_chunk_id(grid, position);
+    pub fn position_to_ids(grid: &Grid, position: IVec3) -> (sector::ID, block::ID) {
+        let sector_id = Grid::position_to_sector_id(grid, position);
         let block_id = Grid::position_to_block_id(grid, position);
 
-        (chunk_id, block_id)
+        (sector_id, block_id)
     }
 
-    pub fn ids_to_position(grid: &Grid, chunk_id: chunk::ID, block_id: block::ID) -> IVec3 {
-        let chunk_coordinates = Grid::chunk_id_to_chunk_coordinates(grid, chunk_id);
+    pub fn ids_to_position(grid: &Grid, sector_id: sector::ID, block_id: block::ID) -> IVec3 {
+        let sector_coordinates = Grid::sector_id_to_sector_coordinates(grid, sector_id);
         let block_coordinates = Grid::block_id_to_block_coordinates(grid, block_id);
 
-        if chunk_coordinates != IVec3::MAX && block_coordinates != IVec3::MAX {
-            grid.chunk_size_blocks as i32 * chunk_coordinates + block_coordinates
+        if sector_coordinates != IVec3::MAX && block_coordinates != IVec3::MAX {
+            grid.sector_size_in_cells as i32 * sector_coordinates + block_coordinates
         } else {
             IVec3::MAX
         }
@@ -348,21 +365,21 @@ impl Grid {
         }
     }
 
-    pub fn world_to_chunk_id(grid: &Grid, world_position: Vec3) -> chunk::ID {
+    pub fn world_to_sector_id(grid: &Grid, world_position: Vec3) -> sector::ID {
         let position = Grid::world_to_position(grid, world_position);
 
         if Grid::position_valid(grid, position) {
-            Grid::position_to_chunk_id(grid, position)
+            Grid::position_to_sector_id(grid, position)
         } else {
-            chunk::ID::MAX
+            sector::ID::MAX
         }
     }
 
-    pub fn world_to_chunk_coordinates(grid: &Grid, world_position: Vec3) -> IVec3 {
+    pub fn world_to_sector_coordinates(grid: &Grid, world_position: Vec3) -> IVec3 {
         let position = Grid::world_to_position(grid, world_position);
 
         if Grid::position_valid(grid, position) {
-            Grid::position_to_chunk_coordinates(grid, position)
+            Grid::position_to_sector_coordinates(grid, position)
         } else {
             IVec3::MAX
         }
@@ -394,7 +411,7 @@ impl Grid {
         let min = aabb.min.round().as_ivec3();
         let max = aabb.max.round().as_ivec3();
 
-        let size = Vec3::splat(grid.block_size);
+        let size = Vec3::splat(grid.cell_size_in_meters);
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -412,26 +429,26 @@ impl Grid {
         aabb_vec
     }
 
-    pub fn on_chunk_boundary(grid: &Grid, position: IVec3) -> bool {
+    pub fn on_sector_boundary(grid: &Grid, position: IVec3) -> bool {
         let block_coordinates = Grid::position_to_block_coordinates(grid, position);
 
         if block_coordinates == IVec3::MAX {
             true
         } else {
-            let chunk_extent_blocks = grid.chunk_extent_blocks as i32;
+            let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
 
-            block_coordinates.x.abs() == chunk_extent_blocks
-                || block_coordinates.y.abs() == chunk_extent_blocks
-                || block_coordinates.z.abs() == chunk_extent_blocks
+            block_coordinates.x.abs() == sector_radius_in_cells
+                || block_coordinates.y.abs() == sector_radius_in_cells
+                || block_coordinates.z.abs() == sector_radius_in_cells
         }
     }
 
-    pub fn on_world_extent_blocks(grid: &Grid, position: IVec3) -> bool {
-        let world_extent_blocks = grid.world_extent_blocks as i32;
+    pub fn on_world_radius(grid: &Grid, position: IVec3) -> bool {
+        let world_radius_in_cells = grid.world_radius_in_cells as i32;
 
-        position.x.abs() == world_extent_blocks
-            || position.y.abs() == world_extent_blocks
-            || position.z.abs() == world_extent_blocks
+        position.x.abs() == world_radius_in_cells
+            || position.y.abs() == world_radius_in_cells
+            || position.z.abs() == world_radius_in_cells
     }
 
     pub fn offsets_in(extent: i32) -> impl Iterator<Item = IVec3> {

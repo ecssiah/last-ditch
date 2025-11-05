@@ -2,7 +2,7 @@ use crate::simulation::{
     consts::GOLDEN_ANGLE,
     state::{
         population::entity::{self, Spatial},
-        world::{chunk, grid::WorldRayIterator},
+        world::{grid::WorldRayIterator, sector},
         World,
     },
 };
@@ -14,7 +14,7 @@ pub struct Sight {
     pub fov_angle: f32,
     pub view_ray_vec_reference: Vec<Vec3>,
     pub view_ray_vec: Vec<Vec3>,
-    pub chunk_id_set: HashSet<chunk::ID>,
+    pub sector_id_set: HashSet<sector::ID>,
     pub entity_id_set: HashSet<entity::ID>,
 }
 
@@ -23,7 +23,7 @@ impl Sight {
         let view_ray_vec_reference = Self::generate_view_ray_vec_reference(fov_angle, 320);
         let view_ray_vec = Vec::new();
 
-        let chunk_id_set = HashSet::new();
+        let sector_id_set = HashSet::new();
         let entity_id_set = HashSet::new();
 
         Self {
@@ -31,99 +31,100 @@ impl Sight {
             fov_angle,
             view_ray_vec_reference,
             view_ray_vec,
-            chunk_id_set,
+            sector_id_set,
             entity_id_set,
         }
     }
 
     pub fn tick(world: &World, spatial: &Spatial, sight: &mut Sight) {
-        let broadphase_chunk_id_set = Self::broadphase_filter(world, spatial, sight);
+        let broadphase_sector_id_set = Self::broadphase_filter(world, spatial, sight);
 
         sight.view_ray_vec =
             Sight::rotate_view_ray_vec(spatial.forward(), &sight.view_ray_vec_reference);
 
-        let narrowphase_chunk_id_set =
-            Self::narrowphase_filter(&broadphase_chunk_id_set, world, spatial, sight);
+        let narrowphase_sector_id_set =
+            Self::narrowphase_filter(&broadphase_sector_id_set, world, spatial, sight);
 
-        sight.chunk_id_set = narrowphase_chunk_id_set;
+        sight.sector_id_set = narrowphase_sector_id_set;
     }
 
-    fn broadphase_filter(world: &World, spatial: &Spatial, sight: &Sight) -> HashSet<chunk::ID> {
+    fn broadphase_filter(world: &World, spatial: &Spatial, sight: &Sight) -> HashSet<sector::ID> {
         let fov_angle_radians = sight.fov_angle.to_radians();
 
         let half_fov_angle = fov_angle_radians / 2.0;
         let (sin_a, cos_a) = half_fov_angle.sin_cos();
-        let chunk_sphere_radius =
-            world.grid.chunk_extent_blocks as f32 * world.grid.block_extent * 3.0_f32.sqrt();
+        let sector_sphere_radius = world.grid.sector_radius_in_cells as f32
+            * world.grid.cell_radius_in_meters
+            * 3.0_f32.sqrt();
 
-        let mut chunk_id_set = HashSet::new();
+        let mut sector_id_set = HashSet::new();
 
-        for chunk in &world.chunk_vec {
-            let eye_to_center = chunk.position.as_vec3() - spatial.eye();
+        for sector in &world.sector_vec {
+            let eye_to_center = sector.position.as_vec3() - spatial.eye();
             let eye_to_center_length_squared = eye_to_center.length_squared();
 
             if eye_to_center_length_squared == 0.0 {
-                chunk_id_set.insert(chunk.id);
+                sector_id_set.insert(sector.id);
                 continue;
             }
 
             let eye_to_center_length = eye_to_center.length();
 
-            if eye_to_center_length > sight.distance + chunk_sphere_radius {
+            if eye_to_center_length > sight.distance + sector_sphere_radius {
                 continue;
             }
 
-            if eye_to_center_length <= chunk_sphere_radius {
-                chunk_id_set.insert(chunk.id);
+            if eye_to_center_length <= sector_sphere_radius {
+                sector_id_set.insert(sector.id);
                 continue;
             }
 
             let near_ring_multiplier = 2.5_f32;
-            let near_distance = chunk_sphere_radius * near_ring_multiplier;
+            let near_distance = sector_sphere_radius * near_ring_multiplier;
 
             if eye_to_center_length <= near_distance {
-                chunk_id_set.insert(chunk.id);
+                sector_id_set.insert(sector.id);
                 continue;
             }
 
-            let angular_pad = (chunk_sphere_radius / eye_to_center_length).min(1.0);
+            let angular_pad = (sector_sphere_radius / eye_to_center_length).min(1.0);
             let cos_b = (1.0 - angular_pad * angular_pad).max(0.0).sqrt();
             let rhs = cos_a * cos_b - sin_a * angular_pad;
 
             let dot = spatial.forward().dot(eye_to_center / eye_to_center_length);
 
             if dot >= rhs {
-                chunk_id_set.insert(chunk.id);
+                sector_id_set.insert(sector.id);
             }
         }
 
-        chunk_id_set
+        sector_id_set
     }
 
     fn narrowphase_filter(
-        broadphase_chunk_id_set: &HashSet<chunk::ID>,
+        broadphase_sector_id_set: &HashSet<sector::ID>,
         world: &World,
         spatial: &Spatial,
         sight: &Sight,
-    ) -> HashSet<chunk::ID> {
-        let mut chunk_id_set = HashSet::new();
+    ) -> HashSet<sector::ID> {
+        let mut sector_id_set = HashSet::new();
 
         for &ray in &sight.view_ray_vec {
-            let t_epsilon = world.grid.block_extent * 0.01;
+            let t_epsilon = world.grid.cell_radius_in_meters * 0.01;
             let ray_origin = spatial.eye() + ray * t_epsilon;
 
             if let Some(mut world_ray_iterator) =
                 WorldRayIterator::from_ray(world, ray_origin, ray, sight.distance)
             {
                 while let Some(block_sample) = world_ray_iterator.next() {
-                    if broadphase_chunk_id_set.contains(&block_sample.chunk_id) {
+                    if broadphase_sector_id_set.contains(&block_sample.sector_id) {
                         if let Some(block) = World::get_block(
-                            block_sample.chunk_id,
+                            block_sample.sector_id,
                             block_sample.block_id,
-                            &world.chunk_vec,
+                            &world.sector_vec,
                         ) {
                             if block.solid {
-                                chunk_id_set.insert(block_sample.chunk_id);
+                                sector_id_set.insert(block_sample.sector_id);
                                 break;
                             }
                         }
@@ -132,7 +133,7 @@ impl Sight {
             }
         }
 
-        chunk_id_set
+        sector_id_set
     }
 
     fn basis_from_forward(forward: Vec3, up_hint: Vec3) -> glam::Mat3 {

@@ -1,5 +1,5 @@
 use crate::simulation::{
-    consts::BLOCK_EXTENT,
+    consts::CELL_RADIUS,
     state::world::{block, grid},
 };
 use glam::{IVec3, UVec2};
@@ -240,40 +240,40 @@ impl BlockRenderInfo {
 
         match direction {
             grid::Direction::XpYoZo => [
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             grid::Direction::XnYoZo => [
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XoYpZo => [
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XoYnZo => [
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             grid::Direction::XoYoZp => [
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z + BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z + BLOCK_EXTENT],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XoYoZn => [
-                [position.x + BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x + BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y - BLOCK_EXTENT, position.z - BLOCK_EXTENT],
-                [position.x - BLOCK_EXTENT, position.y + BLOCK_EXTENT, position.z - BLOCK_EXTENT],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             _ => panic!("Invalid face direction"),
         }

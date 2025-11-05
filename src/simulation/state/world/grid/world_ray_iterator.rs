@@ -30,10 +30,10 @@ impl<'world> WorldRayIterator<'world> {
         }
 
         let grid = &world.grid;
-        let block_size = grid.block_size;
-        let block_extent = grid.block_extent;
+        let cell_size_in_meters = grid.cell_size_in_meters;
+        let cell_radius_in_meters = grid.cell_radius_in_meters;
 
-        let world_aabb = AABB::new(Vec3::ZERO, Vec3::splat(grid.world_size_units));
+        let world_aabb = AABB::new(Vec3::ZERO, Vec3::splat(grid.world_size_in_meters));
 
         let (mut t0, mut t1) = slab_test(origin, direction, &world_aabb);
 
@@ -59,24 +59,24 @@ impl<'world> WorldRayIterator<'world> {
             position.x,
             world_position.x,
             direction.x,
-            block_extent,
-            block_size,
+            cell_radius_in_meters,
+            cell_size_in_meters,
         );
 
         let (step_direction_y, t_delta_y, t_remaining_y) = dda_axis_setup(
             position.y,
             world_position.y,
             direction.y,
-            block_extent,
-            block_size,
+            cell_radius_in_meters,
+            cell_size_in_meters,
         );
 
         let (step_direction_z, t_delta_z, t_remaining_z) = dda_axis_setup(
             position.z,
             world_position.z,
             direction.z,
-            block_extent,
-            block_size,
+            cell_radius_in_meters,
+            cell_size_in_meters,
         );
 
         let step_direction = IVec3::new(step_direction_x, step_direction_y, step_direction_z);
@@ -151,7 +151,7 @@ impl<'w> Iterator for WorldRayIterator<'w> {
 
             let enter_face_direction = get_face_direction(axis, step_direction_axis);
 
-            let (chunk_id, block_id) = Grid::position_to_ids(grid, self.position);
+            let (sector_id, block_id) = Grid::position_to_ids(grid, self.position);
 
             let world_position = self.origin + self.direction * self.t;
 
@@ -159,7 +159,7 @@ impl<'w> Iterator for WorldRayIterator<'w> {
                 t: self.t,
                 position: self.position,
                 world_position,
-                chunk_id,
+                sector_id,
                 block_id,
                 enter_face_direction,
             };
@@ -219,8 +219,8 @@ fn dda_axis_setup(
     position_axis: i32,
     world_position_axis: f32,
     direction_axis: f32,
-    block_extent: f32,
-    block_size: f32,
+    cell_radius_in_meters: f32,
+    cell_size_in_meters: f32,
 ) -> (i32, f32, f32) {
     use core::f32::INFINITY;
 
@@ -234,12 +234,12 @@ fn dda_axis_setup(
 
     let next_face_world_position = (position_axis as f32)
         + if step_direction > 0 {
-            block_extent
+            cell_radius_in_meters
         } else {
-            -block_extent
+            -cell_radius_in_meters
         };
 
-    let t_delta = block_size / direction_axis.abs();
+    let t_delta = cell_size_in_meters / direction_axis.abs();
     let t_max = (next_face_world_position - world_position_axis) / direction_axis;
 
     (step_direction, t_delta, t_max)

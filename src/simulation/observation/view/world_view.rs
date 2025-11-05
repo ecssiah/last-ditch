@@ -1,21 +1,21 @@
 use crate::simulation::{
     self,
-    observation::view::chunk_view::ChunkView,
-    state::world::{chunk, grid::Grid},
+    observation::view::sector_view::SectorView,
+    state::world::{grid::Grid, sector},
 };
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct WorldView {
     pub grid: Grid,
-    pub chunk_view_map: HashMap<chunk::ID, ChunkView>,
+    pub sector_view_map: HashMap<sector::ID, SectorView>,
 }
 
 impl WorldView {
     pub fn new() -> Self {
         Self {
             grid: Grid::new(simulation::Kind::Empty),
-            chunk_view_map: HashMap::new(),
+            sector_view_map: HashMap::new(),
         }
     }
 }

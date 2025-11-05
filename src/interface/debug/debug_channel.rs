@@ -6,7 +6,7 @@ pub enum DebugChannel {
     Channel2,
     Channel3,
     Channel4,
-    ChunkBorders,
+    SectorBorders,
 }
 
 impl DebugChannel {
@@ -15,7 +15,7 @@ impl DebugChannel {
         DebugChannel::Channel2,
         DebugChannel::Channel3,
         DebugChannel::Channel4,
-        DebugChannel::ChunkBorders,
+        DebugChannel::SectorBorders,
     ];
 
     pub fn mask(debug_channel: DebugChannel) -> DebugVisibility {
@@ -24,7 +24,7 @@ impl DebugChannel {
             DebugChannel::Channel2 => DebugVisibility::CHANNEL2,
             DebugChannel::Channel3 => DebugVisibility::CHANNEL3,
             DebugChannel::Channel4 => DebugVisibility::CHANNEL4,
-            DebugChannel::ChunkBorders => DebugVisibility::CHUNK_BORDERS,
+            DebugChannel::SectorBorders => DebugVisibility::SECTOR_BORDERS,
         }
     }
 

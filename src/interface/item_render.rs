@@ -173,15 +173,15 @@ impl ItemRender {
         render_pass.set_pipeline(&item_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
-        for _chunk_render_data in &item_render.item_render_data_vec {
-            // render_pass.set_vertex_buffer(0, chunk_render_data.mesh_data.vertex_buffer.slice(..));
+        for _sector_render_data in &item_render.item_render_data_vec {
+            // render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
 
             // render_pass.set_index_buffer(
-            //     chunk_render_data.mesh_data.index_buffer.slice(..),
+            //     sector_render_data.mesh_data.index_buffer.slice(..),
             //     wgpu::IndexFormat::Uint32,
             // );
 
-            // render_pass.draw_indexed(0..chunk_render_data.mesh_data.index_count, 0, 0..1);
+            // render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
         }
 
         drop(render_pass);

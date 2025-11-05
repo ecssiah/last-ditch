@@ -3,30 +3,30 @@ use crate::simulation::state::{
         entity::{self, Spatial},
         nation,
     },
-    world::{chunk, grid::Grid},
+    world::{grid::Grid, sector},
     World,
 };
 
 #[derive(Debug)]
 pub struct Info {
     pub entity_id: entity::ID,
-    pub chunk_id: chunk::ID,
-    pub chunk_updated: bool,
+    pub sector_id: sector::ID,
+    pub sector_updated: bool,
     pub entity_kind: entity::Kind,
     pub nation_kind: nation::Kind,
 }
 
 impl Info {
     pub fn tick(world: &World, spatial: &Spatial, info: &mut Info) {
-        Self::update_chunk_id(&world.grid, spatial, info);
+        Self::update_sector_id(&world.grid, spatial, info);
     }
 
-    pub fn update_chunk_id(grid: &Grid, spatial: &Spatial, info: &mut Info) {
-        let chunk_id = Grid::world_to_chunk_id(grid, spatial.world_position);
+    pub fn update_sector_id(grid: &Grid, spatial: &Spatial, info: &mut Info) {
+        let sector_id = Grid::world_to_sector_id(grid, spatial.world_position);
 
-        if chunk_id != info.chunk_id {
-            info.chunk_updated = true;
-            info.chunk_id = chunk_id;
+        if sector_id != info.sector_id {
+            info.sector_updated = true;
+            info.sector_id = sector_id;
         }
     }
 }

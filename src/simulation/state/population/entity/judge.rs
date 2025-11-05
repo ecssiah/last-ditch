@@ -7,7 +7,7 @@ use crate::simulation::{
             nation,
         },
         receiver::action::{JumpAction, MovementData},
-        world::{chunk, World},
+        world::{sector, World},
     },
 };
 use glam::{Quat, Vec3};
@@ -24,8 +24,8 @@ impl Judge {
     pub fn new() -> Self {
         let info = entity::Info {
             entity_id: entity::ID::allocate(),
-            chunk_id: chunk::ID(0),
-            chunk_updated: false,
+            sector_id: sector::ID(0),
+            sector_updated: false,
             entity_kind: entity::Kind::Judge,
             nation_kind: nation::Kind::Eagle,
         };

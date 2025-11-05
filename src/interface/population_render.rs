@@ -8,7 +8,7 @@ use crate::{
         vertex_data::VertexData,
     },
     simulation::{
-        consts::{BLOCK_EXTENT, SIMULATION_MAX_ENTITIES},
+        consts::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
         observation::view::PopulationView,
         state::population::{entity, nation},
     },
@@ -374,7 +374,7 @@ impl PopulationRender {
             let entity_instance_data = EntityInstanceData {
                 world_position: [
                     agent_view.spatial.world_position.x,
-                    agent_view.spatial.world_position.y - BLOCK_EXTENT,
+                    agent_view.spatial.world_position.y - CELL_RADIUS,
                     agent_view.spatial.world_position.z,
                 ],
                 size_y: agent_view.spatial.size.y,

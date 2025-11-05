@@ -465,7 +465,7 @@ impl<'window> Interface<'window> {
             &view.world_view,
             &world_render.block_render_info,
             &world_render.block_tile_coordinates_map,
-            &mut world_render.chunk_render_data_vec,
+            &mut world_render.sector_render_data_vec,
         );
 
         PopulationRender::apply_population_view(

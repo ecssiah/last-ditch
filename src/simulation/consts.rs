@@ -3,6 +3,8 @@
 use std::{f32::consts::FRAC_PI_2, time::Duration};
 
 pub const GOLDEN_ANGLE: f32 = 2.3999632;
+
+pub const SQRT_2: f32 = std::f32::consts::SQRT_2;
 pub const SQRT_3: f32 = 1.7320508;
 
 pub const TESTING: bool = true;
@@ -21,7 +23,7 @@ pub const SIMULATION_MAX_ENTITIES: usize = 500;
 pub const MOVEMENT_COST_STRAIGHT: u32 = 10;
 pub const MOVEMENT_COST_DIAGONAL: u32 = 14;
 
-pub const BLOCK_EXTENT: f32 = 0.5;
+pub const CELL_RADIUS: f32 = 0.5;
 
 pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
 

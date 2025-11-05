@@ -40,7 +40,7 @@ fn directions() {
             description: String::from("XoYoZo"),
             aabb: AABB::new(
                 grid::Direction::XoYoZo.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![Block::aabb(0, 0, 0, &world.grid)],
         },
@@ -48,7 +48,7 @@ fn directions() {
             description: String::from("XpYpZp"),
             aabb: AABB::new(
                 grid::Direction::XpYpZp.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, 0, 0, &world.grid),
@@ -65,7 +65,7 @@ fn directions() {
             description: String::from("XpYpZn"),
             aabb: AABB::new(
                 grid::Direction::XpYpZn.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, 0, -1, &world.grid),
@@ -82,7 +82,7 @@ fn directions() {
             description: String::from("XpYnZp"),
             aabb: AABB::new(
                 grid::Direction::XpYnZp.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, -1, 0, &world.grid),
@@ -99,7 +99,7 @@ fn directions() {
             description: String::from("XpYnZn"),
             aabb: AABB::new(
                 grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, -1, -1, &world.grid),
@@ -116,7 +116,7 @@ fn directions() {
             description: String::from("XpYnZn"),
             aabb: AABB::new(
                 grid::Direction::XpYnZn.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, -1, -1, &world.grid),
@@ -133,7 +133,7 @@ fn directions() {
             description: String::from("XnYpZp"),
             aabb: AABB::new(
                 grid::Direction::XnYpZp.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(-1, 0, 0, &world.grid),
@@ -150,7 +150,7 @@ fn directions() {
             description: String::from("XnYpZn"),
             aabb: AABB::new(
                 grid::Direction::XnYpZn.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(-1, 0, -1, &world.grid),
@@ -167,7 +167,7 @@ fn directions() {
             description: String::from("XnYnZp"),
             aabb: AABB::new(
                 grid::Direction::XnYnZp.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(-1, -1, 0, &world.grid),
@@ -184,7 +184,7 @@ fn directions() {
             description: String::from("XnYnZn"),
             aabb: AABB::new(
                 grid::Direction::XnYnZn.offset().as_vec3() * 0.5,
-                Vec3::splat(world.grid.block_size),
+                Vec3::splat(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
                 Block::aabb(0, 0, 0, &world.grid),

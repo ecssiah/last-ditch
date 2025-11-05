@@ -5,7 +5,7 @@ pub mod view;
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::view::{
-        AdminView, AgentView, ChunkView, JudgeView, PopulationView, TimeView, View, WorldView,
+        AdminView, AgentView, JudgeView, PopulationView, SectorView, TimeView, View, WorldView,
     },
     state::{world::grid::Grid, State},
 };
@@ -70,10 +70,10 @@ impl Observation {
                 entity_id: judge.info.entity_id,
                 position: Grid::world_to_position(&state.world.grid, judge.spatial.world_position),
                 world_position: judge.spatial.world_position,
-                chunk_id: judge.info.chunk_id,
-                chunk_coordinates: Grid::chunk_id_to_chunk_coordinates(
+                sector_id: judge.info.sector_id,
+                sector_coordinates: Grid::sector_id_to_sector_coordinates(
                     &state.world.grid,
-                    judge.info.chunk_id,
+                    judge.info.sector_id,
                 ),
                 size: judge.spatial.size,
                 quaternion: judge.spatial.quaternion,
@@ -112,19 +112,19 @@ impl Observation {
     fn update_world_view(state: &State) -> WorldView {
         let mut world_view = WorldView {
             grid: state.world.grid,
-            chunk_view_map: HashMap::new(),
+            sector_view_map: HashMap::new(),
         };
 
-        for chunk_id in &state.population.judge.sight.chunk_id_set {
-            if let Some(chunk) = state.world.chunk_vec.get(usize::from(*chunk_id)) {
-                let chunk_view = ChunkView {
-                    id: chunk.id,
-                    world_position: chunk.position.as_vec3(),
-                    extent: Vec3::splat(state.world.grid.chunk_extent_units),
-                    block_vec: chunk.block_vec.clone(),
+        for sector_id in &state.population.judge.sight.sector_id_set {
+            if let Some(sector) = state.world.sector_vec.get(usize::from(*sector_id)) {
+                let sector_view = SectorView {
+                    id: sector.id,
+                    world_position: sector.position.as_vec3(),
+                    extent: Vec3::splat(state.world.grid.sector_radius_in_meters),
+                    block_vec: sector.block_vec.clone(),
                 };
 
-                world_view.chunk_view_map.insert(chunk.id, chunk_view);
+                world_view.sector_view_map.insert(sector.id, sector_view);
             }
         }
 

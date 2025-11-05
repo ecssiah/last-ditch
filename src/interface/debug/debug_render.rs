@@ -108,7 +108,7 @@ impl DebugRender {
         });
 
         let visible = true;
-        let debug_visibility = DebugVisibility::CHUNK_BORDERS;
+        let debug_visibility = DebugVisibility::SECTOR_BORDERS;
 
         let channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()] =
             std::array::from_fn(|_| Vec::new());
@@ -265,25 +265,25 @@ impl DebugRender {
 
         if debug_render
             .debug_visibility
-            .contains(DebugVisibility::CHUNK_BORDERS)
+            .contains(DebugVisibility::SECTOR_BORDERS)
         {
-            let extent = view.world_view.grid.world_extent_chunks as i32;
-            let chunk_size: f32 = view.world_view.grid.chunk_size_units;
+            let extent = view.world_view.grid.world_radius_in_sectors as i32;
+            let sector_size_in_cells: f32 = view.world_view.grid.sector_size_in_meters;
 
-            let half_span = (extent as f32 + 0.5) * chunk_size;
+            let half_span = (extent as f32 + 0.5) * sector_size_in_cells;
             let min = Vec3::splat(-half_span);
             let max = Vec3::splat(half_span);
 
             let mut bounds: Vec<f32> = Vec::with_capacity(2 * extent as usize + 2);
 
             for k in -(extent + 1)..=extent {
-                bounds.push((k as f32 + 0.5) * chunk_size);
+                bounds.push((k as f32 + 0.5) * sector_size_in_cells);
             }
 
             for &y in &bounds {
                 for &z in &bounds {
                     Self::add_line(
-                        DebugChannel::ChunkBorders,
+                        DebugChannel::SectorBorders,
                         Vec3::new(min.x, y, z),
                         Vec3::new(max.x, y, z),
                         [1.0, 0.0, 0.0],
@@ -295,7 +295,7 @@ impl DebugRender {
             for &x in &bounds {
                 for &z in &bounds {
                     Self::add_line(
-                        DebugChannel::ChunkBorders,
+                        DebugChannel::SectorBorders,
                         Vec3::new(x, min.y, z),
                         Vec3::new(x, max.y, z),
                         [0.0, 1.0, 0.0],
@@ -307,7 +307,7 @@ impl DebugRender {
             for &x in &bounds {
                 for &y in &bounds {
                     Self::add_line(
-                        DebugChannel::ChunkBorders,
+                        DebugChannel::SectorBorders,
                         Vec3::new(x, y, min.z),
                         Vec3::new(x, y, max.z),
                         [0.0, 0.0, 1.0],

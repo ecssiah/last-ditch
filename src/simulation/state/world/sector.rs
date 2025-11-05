@@ -6,12 +6,12 @@ pub use modified::Modified;
 
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::{block, chunk},
+    world::{block, sector},
 };
 use glam::IVec3;
 
-pub struct Chunk {
-    pub id: chunk::ID,
+pub struct Sector {
+    pub id: sector::ID,
     pub modified: Modified,
     pub position: IVec3,
     pub aabb: AABB,

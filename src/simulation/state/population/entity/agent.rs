@@ -3,7 +3,7 @@ use crate::simulation::state::{
         entity::{self, Detection, Info, Kinematic, Spatial},
         nation,
     },
-    world::{chunk, World},
+    world::{sector, World},
 };
 use glam::Vec3;
 
@@ -18,8 +18,8 @@ impl Agent {
     pub fn new(nation_kind: nation::Kind) -> Self {
         let info = Info {
             entity_id: entity::ID::allocate(),
-            chunk_id: chunk::ID(0),
-            chunk_updated: false,
+            sector_id: sector::ID(0),
+            sector_updated: false,
             entity_kind: entity::Kind::Agent,
             nation_kind,
         };

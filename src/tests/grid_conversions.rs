@@ -1,6 +1,6 @@
 use crate::simulation::{
     self,
-    state::world::{block, chunk, grid::Grid, World},
+    state::world::{block, grid::Grid, sector, World},
 };
 use glam::{IVec3, Vec3};
 
@@ -30,23 +30,23 @@ fn block_id_to_block_coordinates() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let test_cases = vec![
         BlockIDToBlockCoordinatesCase {
             description: "block id min".to_string(),
             block_id: block::ID(0),
-            expected_block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            expected_block_coordinates: IVec3::splat(-sector_radius_in_cells),
         },
         BlockIDToBlockCoordinatesCase {
             description: "block id at origin".to_string(),
-            block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+            block_id: block::ID((world.grid.sector_volume_in_cells - 1) / 2),
             expected_block_coordinates: IVec3::splat(0),
         },
         BlockIDToBlockCoordinatesCase {
             description: "block id max".to_string(),
-            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
-            expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
+            block_id: block::ID(world.grid.sector_volume_in_cells - 1),
+            expected_block_coordinates: IVec3::splat(sector_radius_in_cells),
         },
     ];
 
@@ -77,23 +77,23 @@ fn block_coordinates_to_block_id() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let test_cases = vec![
         BlockCoordinatesToBlockIDCase {
             description: "block coordinates min".to_string(),
-            block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            block_coordinates: IVec3::splat(-sector_radius_in_cells),
             expected_block_id: block::ID(0),
         },
         BlockCoordinatesToBlockIDCase {
             description: "block coordinates origin".to_string(),
             block_coordinates: IVec3::splat(0),
-            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         BlockCoordinatesToBlockIDCase {
             description: "block coordinates max".to_string(),
-            block_coordinates: IVec3::splat(chunk_extent_blocks),
-            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
+            block_coordinates: IVec3::splat(sector_radius_in_cells),
+            expected_block_id: block::ID(world.grid.sector_volume_in_cells - 1),
         },
     ];
 
@@ -102,19 +102,19 @@ fn block_coordinates_to_block_id() {
     }
 }
 
-struct ChunkIDToChunkCoordinates {
+struct SectorIDToSectorCoordinates {
     description: String,
-    chunk_id: chunk::ID,
-    expected_chunk_coordinates: IVec3,
+    sector_id: sector::ID,
+    expected_sector_coordinates: IVec3,
 }
 
-impl ChunkIDToChunkCoordinates {
+impl SectorIDToSectorCoordinates {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = Grid::chunk_id_to_chunk_coordinates(&world.grid, self.chunk_id);
+        let sector_coordinates = Grid::sector_id_to_sector_coordinates(&world.grid, self.sector_id);
 
-        assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(sector_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
-            chunk_coordinates, self.expected_chunk_coordinates,
+            sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
             self.description
         );
@@ -122,29 +122,29 @@ impl ChunkIDToChunkCoordinates {
 }
 
 #[test]
-fn chunk_id_to_chunk_coordinates() {
+fn sector_id_to_sector_coordinates() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_chunks = world.grid.world_extent_chunks as i32;
+    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
 
     let test_cases = vec![
-        ChunkIDToChunkCoordinates {
-            description: "chunk id min".to_string(),
-            chunk_id: chunk::ID(0),
-            expected_chunk_coordinates: IVec3::splat(-world_extent_chunks),
+        SectorIDToSectorCoordinates {
+            description: "sector id min".to_string(),
+            sector_id: sector::ID(0),
+            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
         },
-        ChunkIDToChunkCoordinates {
-            description: "chunk id at origin".to_string(),
-            chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
-            expected_chunk_coordinates: IVec3::splat(0),
+        SectorIDToSectorCoordinates {
+            description: "sector id at origin".to_string(),
+            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            expected_sector_coordinates: IVec3::splat(0),
         },
-        ChunkIDToChunkCoordinates {
-            description: "chunk id max".to_string(),
-            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
-            expected_chunk_coordinates: IVec3::splat(world_extent_chunks),
+        SectorIDToSectorCoordinates {
+            description: "sector id max".to_string(),
+            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
         },
     ];
 
@@ -153,45 +153,45 @@ fn chunk_id_to_chunk_coordinates() {
     }
 }
 
-struct ChunkCoordinatesToChunkIDCase {
+struct SectorCoordinatesToSectorIDCase {
     description: String,
-    chunk_coordinates: IVec3,
-    expected_chunk_id: chunk::ID,
+    sector_coordinates: IVec3,
+    expected_sector_id: sector::ID,
 }
 
-impl ChunkCoordinatesToChunkIDCase {
+impl SectorCoordinatesToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = Grid::chunk_coordinates_to_chunk_id(&world.grid, self.chunk_coordinates);
+        let sector_id = Grid::sector_coordinates_to_sector_id(&world.grid, self.sector_coordinates);
 
-        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
-        assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
+        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
+        assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
 
 #[test]
-fn chunk_coordinates_to_chunk_id() {
+fn sector_coordinates_to_sector_id() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_chunks = world.grid.world_extent_chunks as i32;
+    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
 
     let test_cases = vec![
-        ChunkCoordinatesToChunkIDCase {
-            description: "chunk coordinates min".to_string(),
-            chunk_coordinates: IVec3::splat(-world_extent_chunks),
-            expected_chunk_id: chunk::ID(0),
+        SectorCoordinatesToSectorIDCase {
+            description: "sector coordinates min".to_string(),
+            sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            expected_sector_id: sector::ID(0),
         },
-        ChunkCoordinatesToChunkIDCase {
-            description: "chunk coordinates origin".to_string(),
-            chunk_coordinates: IVec3::splat(0),
-            expected_chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
+        SectorCoordinatesToSectorIDCase {
+            description: "sector coordinates origin".to_string(),
+            sector_coordinates: IVec3::splat(0),
+            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
-        ChunkCoordinatesToChunkIDCase {
-            description: "chunk coordinates max".to_string(),
-            chunk_coordinates: IVec3::splat(world_extent_chunks),
-            expected_chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
+        SectorCoordinatesToSectorIDCase {
+            description: "sector coordinates max".to_string(),
+            sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
     ];
 
@@ -200,15 +200,15 @@ fn chunk_coordinates_to_chunk_id() {
     }
 }
 
-struct ChunkCoordinatesToPositionCase {
+struct SectorCoordinatesToPositionCase {
     description: String,
-    chunk_coordinates: IVec3,
+    sector_coordinates: IVec3,
     expected_position: IVec3,
 }
 
-impl ChunkCoordinatesToPositionCase {
+impl SectorCoordinatesToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::chunk_coordinates_to_position(&world.grid, self.chunk_coordinates);
+        let position = Grid::sector_coordinates_to_position(&world.grid, self.sector_coordinates);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -216,31 +216,31 @@ impl ChunkCoordinatesToPositionCase {
 }
 
 #[test]
-fn chunk_coordinates_to_position() {
+fn sector_coordinates_to_position() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
-    let world_extent_chunks = world.grid.world_extent_chunks as i32;
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
-        ChunkCoordinatesToPositionCase {
-            description: "chunk min".to_string(),
-            chunk_coordinates: IVec3::splat(-world_extent_chunks),
-            expected_position: IVec3::splat(-world_extent_blocks + chunk_extent_blocks),
+        SectorCoordinatesToPositionCase {
+            description: "sector min".to_string(),
+            sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            expected_position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
         },
-        ChunkCoordinatesToPositionCase {
-            description: "chunk origin".to_string(),
-            chunk_coordinates: IVec3::splat(0),
+        SectorCoordinatesToPositionCase {
+            description: "sector origin".to_string(),
+            sector_coordinates: IVec3::splat(0),
             expected_position: IVec3::splat(0),
         },
-        ChunkCoordinatesToPositionCase {
-            description: "chunk max".to_string(),
-            chunk_coordinates: IVec3::splat(world_extent_chunks),
-            expected_position: IVec3::splat(world_extent_blocks - chunk_extent_blocks),
+        SectorCoordinatesToPositionCase {
+            description: "sector max".to_string(),
+            sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            expected_position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
         },
     ];
 
@@ -249,15 +249,15 @@ fn chunk_coordinates_to_position() {
     }
 }
 
-struct ChunkIDToPositionCase {
+struct SectorIDToPositionCase {
     description: String,
-    chunk_id: chunk::ID,
+    sector_id: sector::ID,
     expected_position: IVec3,
 }
 
-impl ChunkIDToPositionCase {
+impl SectorIDToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::chunk_id_to_position(&world.grid, self.chunk_id);
+        let position = Grid::sector_id_to_position(&world.grid, self.sector_id);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -265,30 +265,30 @@ impl ChunkIDToPositionCase {
 }
 
 #[test]
-fn chunk_id_to_position() {
+fn sector_id_to_position() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let test_cases = vec![
-        ChunkIDToPositionCase {
-            description: "chunk_id min".to_string(),
-            chunk_id: chunk::ID(0),
-            expected_position: IVec3::splat(-world_extent_blocks + chunk_extent_blocks),
+        SectorIDToPositionCase {
+            description: "sector_id min".to_string(),
+            sector_id: sector::ID(0),
+            expected_position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
         },
-        ChunkIDToPositionCase {
-            description: "chunk_id origin".to_string(),
-            chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
+        SectorIDToPositionCase {
+            description: "sector_id origin".to_string(),
+            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
             expected_position: IVec3::splat(0),
         },
-        ChunkIDToPositionCase {
-            description: "chunk_id max".to_string(),
-            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
-            expected_position: IVec3::splat(world_extent_blocks - chunk_extent_blocks),
+        SectorIDToPositionCase {
+            description: "sector_id max".to_string(),
+            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            expected_position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
         },
     ];
 
@@ -297,19 +297,19 @@ fn chunk_id_to_position() {
     }
 }
 
-struct PositionToChunkCoordinatesCase {
+struct PositionToSectorCoordinatesCase {
     description: String,
     position: IVec3,
-    expected_chunk_coordinates: IVec3,
+    expected_sector_coordinates: IVec3,
 }
 
-impl PositionToChunkCoordinatesCase {
+impl PositionToSectorCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = Grid::position_to_chunk_coordinates(&world.grid, self.position);
+        let sector_coordinates = Grid::position_to_sector_coordinates(&world.grid, self.position);
 
-        assert_ne!(chunk_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(sector_coordinates, IVec3::MAX, "{:?}", self.description);
         assert_eq!(
-            chunk_coordinates, self.expected_chunk_coordinates,
+            sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
             self.description
         );
@@ -317,31 +317,31 @@ impl PositionToChunkCoordinatesCase {
 }
 
 #[test]
-fn position_to_chunk_coordinates() {
+fn position_to_sector_coordinates() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
-    let world_extent_chunks = world.grid.world_extent_chunks as i32;
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
-        PositionToChunkCoordinatesCase {
-            description: "chunk min".to_string(),
-            position: IVec3::splat(-world_extent_blocks + chunk_extent_blocks),
-            expected_chunk_coordinates: IVec3::splat(-world_extent_chunks),
+        PositionToSectorCoordinatesCase {
+            description: "sector min".to_string(),
+            position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
+            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
         },
-        PositionToChunkCoordinatesCase {
-            description: "chunk origin".to_string(),
+        PositionToSectorCoordinatesCase {
+            description: "sector origin".to_string(),
             position: IVec3::splat(0),
-            expected_chunk_coordinates: IVec3::splat(0),
+            expected_sector_coordinates: IVec3::splat(0),
         },
-        PositionToChunkCoordinatesCase {
-            description: "chunk max".to_string(),
-            position: IVec3::splat(world_extent_blocks - chunk_extent_blocks),
-            expected_chunk_coordinates: IVec3::splat(world_extent_chunks),
+        PositionToSectorCoordinatesCase {
+            description: "sector max".to_string(),
+            position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
+            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
         },
     ];
 
@@ -376,55 +376,55 @@ fn position_to_block_coordinates() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
-    let chunk_size_blocks = world.grid.chunk_size_blocks as i32;
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let sector_size_in_cells = world.grid.sector_size_in_cells as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
         PositionToBlockCoordinatesCase {
-            description: "origin chunk min".to_string(),
-            position: IVec3::splat(-chunk_extent_blocks),
-            expected_block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            description: "origin sector min".to_string(),
+            position: IVec3::splat(-sector_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(-sector_radius_in_cells),
         },
         PositionToBlockCoordinatesCase {
-            description: "origin chunk origin".to_string(),
+            description: "origin sector origin".to_string(),
             position: IVec3::splat(0),
             expected_block_coordinates: IVec3::splat(0),
         },
         PositionToBlockCoordinatesCase {
-            description: "origin chunk max".to_string(),
-            position: IVec3::splat(chunk_extent_blocks),
-            expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
+            description: "origin sector max".to_string(),
+            position: IVec3::splat(sector_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(sector_radius_in_cells),
         },
         PositionToBlockCoordinatesCase {
-            description: "world min chunk min".to_string(),
-            position: IVec3::splat(-world_extent_blocks),
-            expected_block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            description: "world min sector min".to_string(),
+            position: IVec3::splat(-world_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(-sector_radius_in_cells),
         },
         PositionToBlockCoordinatesCase {
-            description: "world min chunk origin".to_string(),
-            position: IVec3::splat(-world_extent_blocks + chunk_extent_blocks),
+            description: "world min sector origin".to_string(),
+            position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
             expected_block_coordinates: IVec3::splat(0),
         },
         PositionToBlockCoordinatesCase {
-            description: "world min chunk max".to_string(),
-            position: IVec3::splat(-world_extent_blocks + chunk_size_blocks - 1),
-            expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
+            description: "world min sector max".to_string(),
+            position: IVec3::splat(-world_radius_in_cells + sector_size_in_cells - 1),
+            expected_block_coordinates: IVec3::splat(sector_radius_in_cells),
         },
         PositionToBlockCoordinatesCase {
-            description: "world max chunk min".to_string(),
-            position: IVec3::splat(world_extent_blocks - chunk_size_blocks + 1),
-            expected_block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            description: "world max sector min".to_string(),
+            position: IVec3::splat(world_radius_in_cells - sector_size_in_cells + 1),
+            expected_block_coordinates: IVec3::splat(-sector_radius_in_cells),
         },
         PositionToBlockCoordinatesCase {
-            description: "world max chunk origin".to_string(),
-            position: IVec3::splat(world_extent_blocks - chunk_extent_blocks),
+            description: "world max sector origin".to_string(),
+            position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
             expected_block_coordinates: IVec3::splat(0),
         },
         PositionToBlockCoordinatesCase {
-            description: "world max chunk max".to_string(),
-            position: IVec3::splat(world_extent_blocks),
-            expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
+            description: "world max sector max".to_string(),
+            position: IVec3::splat(world_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(sector_radius_in_cells),
         },
     ];
 
@@ -433,45 +433,45 @@ fn position_to_block_coordinates() {
     }
 }
 
-struct PositionToChunkIDCase {
+struct PositionToSectorIDCase {
     description: String,
     position: IVec3,
-    expected_chunk_id: chunk::ID,
+    expected_sector_id: sector::ID,
 }
 
-impl PositionToChunkIDCase {
+impl PositionToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = Grid::position_to_chunk_id(&world.grid, self.position);
+        let sector_id = Grid::position_to_sector_id(&world.grid, self.position);
 
-        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
-        assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
+        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
+        assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
 
 #[test]
-fn position_to_chunk_id() {
+fn position_to_sector_id() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
-        PositionToChunkIDCase {
+        PositionToSectorIDCase {
             description: "position min".to_string(),
-            position: IVec3::splat(-world_extent_blocks),
-            expected_chunk_id: chunk::ID(0),
+            position: IVec3::splat(-world_radius_in_cells),
+            expected_sector_id: sector::ID(0),
         },
-        PositionToChunkIDCase {
+        PositionToSectorIDCase {
             description: "position origin".to_string(),
             position: IVec3::splat(0),
-            expected_chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
+            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
-        PositionToChunkIDCase {
+        PositionToSectorIDCase {
             description: "position max".to_string(),
-            position: IVec3::splat(world_extent_blocks),
-            expected_chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
+            position: IVec3::splat(world_radius_in_cells),
+            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
     ];
 
@@ -502,23 +502,23 @@ fn position_to_block_id() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let test_cases = vec![
         PositionToBlockIDCase {
             description: "position min".to_string(),
-            position: IVec3::splat(-chunk_extent_blocks),
+            position: IVec3::splat(-sector_radius_in_cells),
             expected_block_id: block::ID(0),
         },
         PositionToBlockIDCase {
             description: "position origin".to_string(),
             position: IVec3::splat(0),
-            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         PositionToBlockIDCase {
             description: "position max".to_string(),
-            position: IVec3::splat(chunk_extent_blocks),
-            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
+            position: IVec3::splat(sector_radius_in_cells),
+            expected_block_id: block::ID(world.grid.sector_volume_in_cells - 1),
         },
     ];
 
@@ -529,14 +529,14 @@ fn position_to_block_id() {
 
 struct IDsToPositionCase {
     description: String,
-    chunk_id: chunk::ID,
+    sector_id: sector::ID,
     block_id: block::ID,
     expected_position: IVec3,
 }
 
 impl IDsToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::ids_to_position(&world.grid, self.chunk_id, self.block_id);
+        let position = Grid::ids_to_position(&world.grid, self.sector_id, self.block_id);
 
         assert_ne!(position, IVec3::MAX, "{:?}", self.description);
         assert_eq!(position, self.expected_position, "{:?}", self.description);
@@ -550,26 +550,26 @@ fn ids_to_position() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
         IDsToPositionCase {
             description: "ids at min".to_string(),
-            chunk_id: chunk::ID(0),
+            sector_id: sector::ID(0),
             block_id: block::ID(0),
-            expected_position: IVec3::splat(-world_extent_blocks),
+            expected_position: IVec3::splat(-world_radius_in_cells),
         },
         IDsToPositionCase {
             description: "ids at origin".to_string(),
-            chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
-            block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            block_id: block::ID((world.grid.sector_volume_in_cells - 1) / 2),
             expected_position: IVec3::splat(0),
         },
         IDsToPositionCase {
             description: "ids at max".to_string(),
-            chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
-            block_id: block::ID(world.grid.chunk_volume_blocks - 1),
-            expected_position: IVec3::splat(world_extent_blocks),
+            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            block_id: block::ID(world.grid.sector_volume_in_cells - 1),
+            expected_position: IVec3::splat(world_radius_in_cells),
         },
     ];
 
@@ -581,17 +581,17 @@ fn ids_to_position() {
 struct PositionToIDsCase {
     description: String,
     position: IVec3,
-    expected_ids: (chunk::ID, block::ID),
+    expected_ids: (sector::ID, block::ID),
 }
 
 impl PositionToIDsCase {
     pub fn check(&self, world: &World) {
-        let (chunk_id, block_id) = Grid::position_to_ids(&world.grid, self.position);
+        let (sector_id, block_id) = Grid::position_to_ids(&world.grid, self.position);
 
-        assert_ne!(chunk_id, chunk::ID::MAX, "{:?}", self.description);
+        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_ne!(block_id, block::ID::MAX, "{:?}", self.description);
         assert_eq!(
-            (chunk_id, block_id),
+            (sector_id, block_id),
             self.expected_ids,
             "{:?}",
             self.description
@@ -606,28 +606,28 @@ fn position_to_ids() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
     let test_cases = vec![
         PositionToIDsCase {
             description: "position at min".to_string(),
-            position: IVec3::splat(-world_extent_blocks),
-            expected_ids: (chunk::ID(0), block::ID(0)),
+            position: IVec3::splat(-world_radius_in_cells),
+            expected_ids: (sector::ID(0), block::ID(0)),
         },
         PositionToIDsCase {
             description: "position at origin".to_string(),
             position: IVec3::splat(0),
             expected_ids: (
-                chunk::ID((world.grid.world_volume_chunks - 1) / 2),
-                block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+                sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+                block::ID((world.grid.sector_volume_in_cells - 1) / 2),
             ),
         },
         PositionToIDsCase {
             description: "position at max".to_string(),
-            position: IVec3::splat(world_extent_blocks),
+            position: IVec3::splat(world_radius_in_cells),
             expected_ids: (
-                chunk::ID(world.grid.world_volume_chunks - 1),
-                block::ID(world.grid.chunk_volume_blocks - 1),
+                sector::ID(world.grid.world_volume_in_sectors - 1),
+                block::ID(world.grid.sector_volume_in_cells - 1),
             ),
         },
     ];
@@ -658,17 +658,17 @@ fn world_to_position() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as f32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
     let test_cases = vec![
         WorldToPositionCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks),
-            expected_position: IVec3::splat(-world_extent_blocks as i32),
+            world_position: Vec3::splat(-world_radius_in_cells),
+            expected_position: IVec3::splat(-world_radius_in_cells as i32),
         },
         WorldToPositionCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks - 1.0),
+            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
             expected_position: IVec3::MAX,
         },
         WorldToPositionCase {
@@ -678,12 +678,12 @@ fn world_to_position() {
         },
         WorldToPositionCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_extent_blocks),
-            expected_position: IVec3::splat(world_extent_blocks as i32),
+            world_position: Vec3::splat(world_radius_in_cells),
+            expected_position: IVec3::splat(world_radius_in_cells as i32),
         },
         WorldToPositionCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_extent_blocks + 1.0),
+            world_position: Vec3::splat(world_radius_in_cells + 1.0),
             expected_position: IVec3::MAX,
         },
         WorldToPositionCase {
@@ -698,54 +698,54 @@ fn world_to_position() {
     }
 }
 
-struct WorldToChunkIDCase {
+struct WorldToSectorIDCase {
     description: String,
     world_position: Vec3,
-    expected_chunk_id: chunk::ID,
+    expected_sector_id: sector::ID,
 }
 
-impl WorldToChunkIDCase {
+impl WorldToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let chunk_id = Grid::world_to_chunk_id(&world.grid, self.world_position);
+        let sector_id = Grid::world_to_sector_id(&world.grid, self.world_position);
 
-        assert_eq!(chunk_id, self.expected_chunk_id, "{:?}", self.description);
+        assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
 
 #[test]
-fn world_to_chunk_id() {
+fn world_to_sector_id() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as f32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
     let test_cases = vec![
-        WorldToChunkIDCase {
+        WorldToSectorIDCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks),
-            expected_chunk_id: chunk::ID(0),
+            world_position: Vec3::splat(-world_radius_in_cells),
+            expected_sector_id: sector::ID(0),
         },
-        WorldToChunkIDCase {
+        WorldToSectorIDCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks - 1.0),
-            expected_chunk_id: chunk::ID::MAX,
+            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
+            expected_sector_id: sector::ID::MAX,
         },
-        WorldToChunkIDCase {
+        WorldToSectorIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_chunk_id: chunk::ID((world.grid.world_volume_chunks - 1) / 2),
+            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
-        WorldToChunkIDCase {
+        WorldToSectorIDCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_extent_blocks),
-            expected_chunk_id: chunk::ID(world.grid.world_volume_chunks - 1),
+            world_position: Vec3::splat(world_radius_in_cells),
+            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
-        WorldToChunkIDCase {
+        WorldToSectorIDCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_extent_blocks + 1.0),
-            expected_chunk_id: chunk::ID::MAX,
+            world_position: Vec3::splat(world_radius_in_cells + 1.0),
+            expected_sector_id: sector::ID::MAX,
         },
     ];
 
@@ -754,18 +754,19 @@ fn world_to_chunk_id() {
     }
 }
 
-struct WorldToChunkCoordinates {
+struct WorldToSectorCoordinates {
     description: String,
     world_position: Vec3,
-    expected_chunk_coordinates: IVec3,
+    expected_sector_coordinates: IVec3,
 }
 
-impl WorldToChunkCoordinates {
+impl WorldToSectorCoordinates {
     pub fn check(&self, world: &World) {
-        let chunk_coordinates = Grid::world_to_chunk_coordinates(&world.grid, self.world_position);
+        let sector_coordinates =
+            Grid::world_to_sector_coordinates(&world.grid, self.world_position);
 
         assert_eq!(
-            chunk_coordinates, self.expected_chunk_coordinates,
+            sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
             self.description
         );
@@ -773,30 +774,30 @@ impl WorldToChunkCoordinates {
 }
 
 #[test]
-fn world_to_chunk_coordinates() {
+fn world_to_sector_coordinates() {
     let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_chunks = world.grid.world_extent_chunks as i32;
-    let world_extent_blocks = world.grid.world_extent_blocks as f32;
+    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
     let test_cases = vec![
-        WorldToChunkCoordinates {
+        WorldToSectorCoordinates {
             description: "world min".to_string(),
-            world_position: Vec3::splat(world_extent_blocks),
-            expected_chunk_coordinates: IVec3::splat(world_extent_chunks),
+            world_position: Vec3::splat(world_radius_in_cells),
+            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
         },
-        WorldToChunkCoordinates {
+        WorldToSectorCoordinates {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_chunk_coordinates: IVec3::splat(0),
+            expected_sector_coordinates: IVec3::splat(0),
         },
-        WorldToChunkCoordinates {
+        WorldToSectorCoordinates {
             description: "world max".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks),
-            expected_chunk_coordinates: IVec3::splat(-world_extent_chunks),
+            world_position: Vec3::splat(-world_radius_in_cells),
+            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
         },
     ];
 
@@ -826,32 +827,32 @@ fn world_to_block_id() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let world_extent_blocks = world.grid.world_extent_blocks as f32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
     let test_cases = vec![
         WorldToBlockIDCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks),
+            world_position: Vec3::splat(-world_radius_in_cells),
             expected_block_id: block::ID(0),
         },
         WorldToBlockIDCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks - 1.0),
+            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
             expected_block_id: block::ID::MAX,
         },
         WorldToBlockIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::splat(0.0),
-            expected_block_id: block::ID((world.grid.chunk_volume_blocks - 1) / 2),
+            expected_block_id: block::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         WorldToBlockIDCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_extent_blocks),
-            expected_block_id: block::ID(world.grid.chunk_volume_blocks - 1),
+            world_position: Vec3::splat(world_radius_in_cells),
+            expected_block_id: block::ID(world.grid.sector_volume_in_cells - 1),
         },
         WorldToBlockIDCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_extent_blocks + 1.0),
+            world_position: Vec3::splat(world_radius_in_cells + 1.0),
             expected_block_id: block::ID::MAX,
         },
     ];
@@ -886,14 +887,14 @@ fn world_to_block_coordinates() {
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
 
-    let chunk_extent_blocks = world.grid.chunk_extent_blocks as i32;
-    let world_extent_blocks = world.grid.world_extent_blocks as f32;
+    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
     let test_cases = vec![
         WorldToBlockCoordinates {
             description: "world min".to_string(),
-            world_position: Vec3::splat(world_extent_blocks),
-            expected_block_coordinates: IVec3::splat(chunk_extent_blocks),
+            world_position: Vec3::splat(world_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(sector_radius_in_cells),
         },
         WorldToBlockCoordinates {
             description: "world origin".to_string(),
@@ -902,8 +903,8 @@ fn world_to_block_coordinates() {
         },
         WorldToBlockCoordinates {
             description: "world max".to_string(),
-            world_position: Vec3::splat(-world_extent_blocks),
-            expected_block_coordinates: IVec3::splat(-chunk_extent_blocks),
+            world_position: Vec3::splat(-world_radius_in_cells),
+            expected_block_coordinates: IVec3::splat(-sector_radius_in_cells),
         },
     ];
 
