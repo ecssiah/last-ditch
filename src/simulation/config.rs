@@ -3,7 +3,7 @@ use crate::simulation;
 #[derive(Clone, Copy)]
 pub struct Config {
     pub kind: simulation::Kind,
-    pub world_radius_in_sectors: u32,
     pub sector_radius_in_cells: u32,
+    pub world_radius_in_sectors: u32,
     pub seed: u64,
 }

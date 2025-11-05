@@ -35,14 +35,14 @@ pub struct Grid {
     pub sector_area_in_meters: f32,
     pub sector_volume_in_meters: f32,
 
-    pub world_radius_in_cells: u32,
-    pub world_size_in_cells: u32,
-    pub world_area_in_cells: u32,
-    pub world_volume_in_cells: u32,
     pub world_radius_in_sectors: u32,
     pub world_size_in_sectors: u32,
     pub world_area_in_sectors: u32,
     pub world_volume_in_sectors: u32,
+    pub world_radius_in_cells: u32,
+    pub world_size_in_cells: u32,
+    pub world_area_in_cells: u32,
+    pub world_volume_in_cells: u32,
     pub world_radius_in_meters: f32,
     pub world_size_in_meters: f32,
     pub world_area_in_meters: f32,
@@ -55,40 +55,36 @@ impl Grid {
 
         let cell_radius_in_meters = CELL_RADIUS;
         let cell_size_in_meters = 2.0 * cell_radius_in_meters;
-        let cell_area_in_meters = cell_size_in_meters * cell_size_in_meters;
-        let cell_volume_in_meters = cell_size_in_meters * cell_size_in_meters * cell_size_in_meters;
+        let cell_area_in_meters = cell_size_in_meters.powi(2);
+        let cell_volume_in_meters = cell_size_in_meters.powi(3);
 
         let sector_radius_in_cells = config.sector_radius_in_cells;
-        let sector_size_in_cells = 2 * config.sector_radius_in_cells + 1;
-        let sector_area_in_cells = sector_size_in_cells * sector_size_in_cells;
-        let sector_volume_in_cells =
-            sector_size_in_cells * sector_size_in_cells * sector_size_in_cells;
+        let sector_size_in_cells = 2 * sector_radius_in_cells + 1;
+        let sector_area_in_cells = sector_size_in_cells.pow(2);
+        let sector_volume_in_cells = sector_size_in_cells.pow(3);
 
         let sector_radius_in_meters =
             sector_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
-        let sector_size_in_meters = sector_size_in_cells as f32 * cell_size_in_meters;
-        let sector_area_in_meters = sector_size_in_meters * sector_size_in_meters;
-        let sector_volume_in_meters =
-            sector_size_in_meters * sector_size_in_meters * sector_size_in_meters;
+        let sector_size_in_meters = 2.0 * sector_radius_in_meters;
+        let sector_area_in_meters = sector_size_in_meters.powi(2);
+        let sector_volume_in_meters = sector_size_in_meters.powi(3);
 
         let world_radius_in_sectors = config.world_radius_in_sectors;
-        let world_size_in_sectors = 2 * config.world_radius_in_sectors + 1;
-        let world_area_in_sectors = world_size_in_sectors * world_size_in_sectors;
-        let world_volume_in_sectors =
-            world_size_in_sectors * world_size_in_sectors * world_size_in_sectors;
+        let world_size_in_sectors = 2 * world_radius_in_sectors + 1;
+        let world_area_in_sectors = world_size_in_sectors.pow(2);
+        let world_volume_in_sectors = world_size_in_sectors.pow(3);
 
         let world_radius_in_cells =
             world_radius_in_sectors * sector_size_in_cells + sector_radius_in_cells;
-        let world_size_in_cells = world_size_in_sectors * sector_size_in_cells;
-        let world_area_in_cells = world_size_in_cells * world_size_in_cells;
-        let world_volume_in_cells = world_size_in_cells * world_size_in_cells * world_size_in_cells;
+        let world_size_in_cells = 2 * world_radius_in_cells + 1;
+        let world_area_in_cells = world_size_in_cells.pow(2);
+        let world_volume_in_cells = world_size_in_cells.pow(3);
 
         let world_radius_in_meters =
             world_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
-        let world_size_in_meters = world_size_in_cells as f32 * cell_size_in_meters;
-        let world_area_in_meters = world_size_in_meters * world_size_in_meters;
-        let world_volume_in_meters =
-            world_size_in_meters * world_size_in_meters * world_size_in_meters;
+        let world_size_in_meters = 2.0 * world_radius_in_meters;
+        let world_area_in_meters = world_size_in_meters.powi(2);
+        let world_volume_in_meters = world_size_in_meters.powi(3);
 
         Self {
             cell_radius_in_meters,

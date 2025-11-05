@@ -135,18 +135,18 @@ impl HUD {
     pub fn apply_simulate_view(view: &View, mode: &mut Mode) {
         let judge_view = &view.population_view.judge_view;
 
+        let position_string = format!(
+            "Cell: ({:.0}, {:.0}, {:.0})\n",
+            judge_view.position.x, judge_view.position.y, judge_view.position.z,
+        );
+
         let world_position_string = format!(
             "World: ({:.2}, {:.2}, {:.2})\n",
             judge_view.world_position.x, judge_view.world_position.y, judge_view.world_position.z,
         );
 
-        let position_string = format!(
-            "Pos: ({:.0}, {:.0}, {:.0})\n",
-            judge_view.position.x, judge_view.position.y, judge_view.position.z,
-        );
-
         let sector_string = format!(
-            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}",
+            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
             judge_view.sector_coordinates.x,
             judge_view.sector_coordinates.y,
             judge_view.sector_coordinates.z,
@@ -154,8 +154,8 @@ impl HUD {
         );
 
         let mut message = String::new();
-        message.push_str(&world_position_string);
         message.push_str(&position_string);
+        message.push_str(&world_position_string);
         message.push_str(&sector_string);
 
         let simulate_data = mode::SimulateData { message };
