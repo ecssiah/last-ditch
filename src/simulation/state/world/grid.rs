@@ -18,61 +18,6 @@ use crate::simulation::{
     utils::indexing,
 };
 use glam::{IVec3, Vec3};
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
-
-static INTERMEDIATE_POSITION_MAP: Lazy<HashMap<IVec3, [IVec3; 2]>> = Lazy::new(|| {
-    HashMap::from([
-        (
-            IVec3::new(1, 1, 1),
-            [IVec3::new(1, 1, 0), IVec3::new(0, 1, 1)],
-        ),
-        (
-            IVec3::new(-1, 1, 1),
-            [IVec3::new(-1, 1, 0), IVec3::new(0, 1, 1)],
-        ),
-        (
-            IVec3::new(1, 1, -1),
-            [IVec3::new(1, 1, 0), IVec3::new(0, 1, -1)],
-        ),
-        (
-            IVec3::new(-1, 1, -1),
-            [IVec3::new(-1, 1, 0), IVec3::new(0, 1, -1)],
-        ),
-        (
-            IVec3::new(1, 0, 1),
-            [IVec3::new(1, 0, 0), IVec3::new(0, 0, 1)],
-        ),
-        (
-            IVec3::new(-1, 0, 1),
-            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, 1)],
-        ),
-        (
-            IVec3::new(1, 0, -1),
-            [IVec3::new(1, 0, 0), IVec3::new(0, 0, -1)],
-        ),
-        (
-            IVec3::new(-1, 0, -1),
-            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, -1)],
-        ),
-        (
-            IVec3::new(1, -1, 1),
-            [IVec3::new(1, 0, 0), IVec3::new(0, 0, 1)],
-        ),
-        (
-            IVec3::new(-1, -1, 1),
-            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, 1)],
-        ),
-        (
-            IVec3::new(1, -1, -1),
-            [IVec3::new(1, 0, 0), IVec3::new(0, 0, -1)],
-        ),
-        (
-            IVec3::new(-1, -1, -1),
-            [IVec3::new(-1, 0, 0), IVec3::new(0, 0, -1)],
-        ),
-    ])
-});
 
 #[derive(Clone, Copy, Debug)]
 pub struct Grid {
@@ -456,14 +401,5 @@ impl Grid {
             (-extent..=extent)
                 .flat_map(move |y| (-extent..=extent).map(move |z| IVec3::new(x, y, z)))
         })
-    }
-
-    pub fn intermediate_positions(from_position: IVec3, to_position: IVec3) -> Vec<IVec3> {
-        let delta = to_position - from_position;
-
-        INTERMEDIATE_POSITION_MAP
-            .get(&delta)
-            .map(|[offset1, offset2]| vec![from_position + *offset1, from_position + *offset2])
-            .unwrap_or_default()
     }
 }
