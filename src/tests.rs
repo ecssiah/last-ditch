@@ -3,8 +3,6 @@ mod aabb_approx_set_eq;
 mod aabb_intersection;
 mod aabb_overlapping;
 mod aabb_sweep;
-mod graph_level_1;
-mod graph_region_path;
 mod grid_conversions;
 mod grid_intermediate_positions;
 mod grid_overlapping_aabb_vec;
