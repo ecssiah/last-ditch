@@ -1,9 +1,7 @@
 use crate::simulation::{
-    self,
-    state::{
-        world::grid::{self, WorldRayIterator},
-        World,
-    },
+    self, constructor, state::{
+        World, world::grid::{self, WorldRayIterator}
+    }
 };
 use glam::{IVec3, Vec3};
 
@@ -55,10 +53,10 @@ impl WorldRayIteratoratorCase {
 
 #[test]
 fn general_ray_tests() {
-    let kind = simulation::Kind::Test;
+    let simulation_kind = simulation::Kind::Test;
 
-    let mut world = World::new(kind);
-    World::setup(kind, &mut world);
+    let mut world = World::new(simulation_kind);
+    constructor::world::construct(simulation_kind, &mut world);
 
     let test_cases = vec![
         WorldRayIteratoratorCase {

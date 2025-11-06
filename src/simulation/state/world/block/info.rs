@@ -1,4 +1,4 @@
-use crate::simulation::state::world::cell;
+use crate::simulation::state::world::block;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
@@ -8,124 +8,124 @@ pub struct Info {
 
 impl Info {
     #[rustfmt::skip]
-    pub fn setup() -> HashMap<cell::Kind, Info> {
+    pub fn setup() -> HashMap<block::Kind, Info> {
         HashMap::from([
             (
-                cell::Kind::Empty,
+                block::Kind::None,
                 Info {
                     solid: false
                 },
             ),
             (
-                cell::Kind::Engraved1,
+                block::Kind::Engraved1,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Engraved2,
+                block::Kind::Engraved2,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Stone1,
+                block::Kind::Stone1,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Stone2,
+                block::Kind::Stone2,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Polished1,
+                block::Kind::Polished1,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Polished2,
+                block::Kind::Polished2,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::MagentaStone,
+                block::Kind::MagentaStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::PurpleStone,
+                block::Kind::PurpleStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::TealStone,
+                block::Kind::TealStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::CrimsonStone,
+                block::Kind::CrimsonStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Icon1,
+                block::Kind::Icon1,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Icon2,
+                block::Kind::Icon2,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Icon3,
+                block::Kind::Icon3,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::Icon4,
+                block::Kind::Icon4,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::North,
+                block::Kind::North,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::West,
+                block::Kind::West,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::South,
+                block::Kind::South,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::East,
+                block::Kind::East,
                 Info {
                     solid: true,
                 },
             ),
             (
-                cell::Kind::EsayaBlock,
+                block::Kind::EsayaBlock,
                 Info {
                     solid: true,
                 },

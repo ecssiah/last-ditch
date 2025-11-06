@@ -1,4 +1,4 @@
-pub mod cell_render_info;
+pub mod block_render_info;
 pub mod sector_render_data;
 
 use crate::{
@@ -10,18 +10,18 @@ use crate::{
         mesh_data::MeshData,
         texture_data::TextureData,
         vertex_data::VertexData,
-        world_render::{cell_render_info::CellRenderInfo, sector_render_data::SectorRenderData},
+        world_render::{block_render_info::BlockRenderInfo, sector_render_data::SectorRenderData},
     },
     simulation::{
         observation::view::WorldView,
-        state::world::{cell, grid},
+        state::world::{block, grid},
     },
 };
 use std::collections::HashMap;
 
 pub struct WorldRender {
-    pub cell_render_info: CellRenderInfo,
-    pub cell_tile_coordinates_map: HashMap<cell::Kind, HashMap<grid::Direction, [u32; 2]>>,
+    pub block_render_info: BlockRenderInfo,
+    pub block_tile_coordinates_map: HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
     pub sector_render_data_vec: Vec<SectorRenderData>,
     pub render_pipeline: wgpu::RenderPipeline,
@@ -29,8 +29,8 @@ pub struct WorldRender {
 
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let cell_render_info = CellRenderInfo::new(64, 2048, 2048);
-        let cell_tile_coordinates_map = CellRenderInfo::setup_tile_coordinates_map();
+        let block_render_info = BlockRenderInfo::new(64, 2048, 2048);
+        let block_tile_coordinates_map = BlockRenderInfo::setup_tile_coordinates_map();
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
 
@@ -53,8 +53,8 @@ impl WorldRender {
         );
 
         Self {
-            cell_render_info,
-            cell_tile_coordinates_map,
+            block_render_info,
+            block_tile_coordinates_map,
             tile_atlas_texture_bind_group,
             sector_render_data_vec,
             render_pipeline,
@@ -211,8 +211,8 @@ impl WorldRender {
     pub fn apply_world_view(
         device: &wgpu::Device,
         world_view: &WorldView,
-        cell_render_info: &CellRenderInfo,
-        cell_tile_coordinates_map: &HashMap<cell::Kind, HashMap<grid::Direction, [u32; 2]>>,
+        block_render_info: &BlockRenderInfo,
+        block_tile_coordinates_map: &HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
         sector_render_data_vec: &mut Vec<SectorRenderData>,
     ) {
         sector_render_data_vec.clear();
@@ -223,23 +223,24 @@ impl WorldRender {
             let mut index_offset = 0;
 
             for cell in &sector_view.cell_vec {
-                if cell.kind == cell::Kind::Empty {
+                if cell.block_kind == block::Kind::None {
                     continue;
                 }
 
-                let tile_coordinates_map = cell_tile_coordinates_map.get(&cell.kind).unwrap();
+                let tile_coordinates_map =
+                    block_tile_coordinates_map.get(&cell.block_kind).unwrap();
 
                 for face in &cell.face_array {
                     let tile_coordinates = tile_coordinates_map.get(&face.direction).unwrap();
 
-                    let tile_uv_array = CellRenderInfo::tile_uv_array(
+                    let tile_uv_array = BlockRenderInfo::tile_uv_array(
                         tile_coordinates,
-                        cell_render_info.tile_size,
-                        cell_render_info.tile_atlas_size,
+                        block_render_info.tile_size,
+                        block_render_info.tile_atlas_size,
                     );
 
                     let face_vertex_position_array =
-                        CellRenderInfo::face_vertex_position_array(cell.position, face.direction);
+                        BlockRenderInfo::face_vertex_position_array(cell.position, face.direction);
 
                     for (index, &position) in face_vertex_position_array.iter().enumerate() {
                         let normal = face.direction.offset().as_vec3().to_array();

@@ -256,16 +256,16 @@ impl DebugRender {
             .debug_visibility
             .contains(DebugVisibility::SECTOR_BORDERS)
         {
-            let extent = view.world_view.grid.world_radius_in_sectors as i32;
+            let radius = view.world_view.grid.world_radius_in_sectors as i32;
             let sector_size_in_cells: f32 = view.world_view.grid.sector_size_in_meters;
 
-            let half_span = (extent as f32 + 0.5) * sector_size_in_cells;
+            let half_span = (radius as f32 + 0.5) * sector_size_in_cells;
             let min = Vec3::splat(-half_span);
             let max = Vec3::splat(half_span);
 
-            let mut bounds: Vec<f32> = Vec::with_capacity(2 * extent as usize + 2);
+            let mut bounds: Vec<f32> = Vec::with_capacity(2 * radius as usize + 2);
 
-            for k in -(extent + 1)..=extent {
+            for k in -(radius + 1)..=radius {
                 bounds.push((k as f32 + 0.5) * sector_size_in_cells);
             }
 

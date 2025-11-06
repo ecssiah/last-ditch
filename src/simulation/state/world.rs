@@ -1,11 +1,12 @@
 //! The simulated environment
 
+pub mod block;
 pub mod cell;
 pub mod grid;
 pub mod sector;
 
 use crate::simulation::{
-    self, constructor,
+    self,
     consts::*,
     state::{
         physics::aabb::AABB,
@@ -22,7 +23,7 @@ use std::collections::HashMap;
 pub struct World {
     pub simulation_kind: simulation::Kind,
     pub grid: Grid,
-    pub cell_info_map: HashMap<cell::Kind, cell::Info>,
+    pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<sector::Sector>,
     pub flag_position_map: HashMap<nation::Kind, IVec3>,
 }
@@ -30,7 +31,7 @@ pub struct World {
 impl World {
     pub fn new(simulation_kind: simulation::Kind) -> Self {
         let grid = Grid::new(simulation_kind);
-        let cell_info_map = cell::Info::setup();
+        let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec(&grid);
 
         let flag_position_map = HashMap::from([
@@ -43,7 +44,7 @@ impl World {
         Self {
             simulation_kind,
             grid,
-            cell_info_map,
+            block_info_map,
             sector_vec,
             flag_position_map,
         }
@@ -53,7 +54,7 @@ impl World {
         let simulation_kind = simulation::Kind::Placeholder;
 
         let grid = Grid::new(simulation_kind);
-        let cell_info_map = HashMap::default();
+        let block_info_map = HashMap::default();
         let sector_vec = Vec::default();
 
         let flag_position_map = HashMap::default();
@@ -61,7 +62,7 @@ impl World {
         Self {
             simulation_kind,
             grid,
-            cell_info_map,
+            block_info_map,
             sector_vec,
             flag_position_map,
         }
@@ -72,24 +73,6 @@ impl World {
         flag_position_map: HashMap<entity::Kind, IVec3>,
     ) -> Option<IVec3> {
         flag_position_map.get(&kind).cloned()
-    }
-
-    pub fn setup(simulation_kind: simulation::Kind, world: &mut World) {
-        match simulation_kind {
-            simulation::Kind::Placeholder => (),
-            simulation::Kind::Empty => {
-                constructor::world::empty::construct(world);
-            }
-            simulation::Kind::Main => {
-                constructor::world::main::construct(world);
-            }
-            simulation::Kind::Test => {
-                constructor::world::world_test::construct(world);
-            }
-            simulation::Kind::Graph => {
-                constructor::world::graph_test::construct(world);
-            }
-        }
     }
 
     fn setup_sector_vec(grid: &Grid) -> Vec<sector::Sector> {
@@ -125,7 +108,7 @@ impl World {
                     cell_id,
                     sector_id,
                     position,
-                    kind: cell::Kind::Empty,
+                    block_kind: block::Kind::None,
                     solid: false,
                     face_array: Cell::face_array(),
                 }
@@ -267,21 +250,21 @@ impl World {
         }
     }
 
-    pub fn set_cell_kind(
+    pub fn set_block(
         position: IVec3,
-        kind: cell::Kind,
+        block_kind: block::Kind,
         grid: &Grid,
-        cell_info_map: &HashMap<cell::Kind, cell::Info>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) -> bool {
         let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
 
         if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
-            let cell_info = cell_info_map.get(&kind).cloned().unwrap();
+            let block_info = block_info_map.get(&block_kind).cloned().unwrap();
 
             if let Some(cell) = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice) {
-                cell.kind = kind;
-                cell.solid = cell_info.solid;
+                cell.block_kind = block_kind;
+                cell.solid = block_info.solid;
             }
 
             Self::mark_updates(position, grid, sector_vec_slice);
@@ -290,7 +273,7 @@ impl World {
         } else {
             log::info!(
                 "{:?} cell cannot be set at invalid location: {:?}",
-                kind,
+                block_kind,
                 position
             );
 
@@ -301,9 +284,9 @@ impl World {
     pub fn set_box(
         position1: IVec3,
         position2: IVec3,
-        kind: cell::Kind,
+        block_kind: block::Kind,
         grid: &Grid,
-        cell_info_map: &HashMap<cell::Kind, cell::Info>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = position1.min(position2);
@@ -329,13 +312,19 @@ impl World {
                     let position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_cell_kind(position, kind, grid, cell_info_map, sector_vec_slice);
-                    } else {
-                        Self::set_cell_kind(
+                        Self::set_block(
                             position,
-                            cell::Kind::Empty,
+                            block_kind,
                             grid,
-                            cell_info_map,
+                            block_info_map,
+                            sector_vec_slice,
+                        );
+                    } else {
+                        Self::set_block(
+                            position,
+                            block::Kind::None,
+                            grid,
+                            block_info_map,
                             sector_vec_slice,
                         );
                     }
@@ -347,9 +336,9 @@ impl World {
     pub fn set_cube(
         position1: IVec3,
         position2: IVec3,
-        kind: cell::Kind,
+        block_kind: block::Kind,
         grid: &Grid,
-        cell_info_map: &HashMap<cell::Kind, cell::Info>,
+        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = position1.min(position2);
@@ -360,7 +349,7 @@ impl World {
                 for z in min.z..=max.z {
                     let position = IVec3::new(x, y, z);
 
-                    Self::set_cell_kind(position, kind, grid, cell_info_map, sector_vec_slice);
+                    Self::set_block(position, block_kind, grid, block_info_map, sector_vec_slice);
                 }
             }
         }
@@ -399,7 +388,7 @@ impl World {
             let neighbor_pos = position + direction.offset();
 
             if let Some(neighbor_cell) = World::get_cell_at(neighbor_pos, grid, sector_vec_slice) {
-                face_exposure[index] = neighbor_cell.kind == cell::Kind::Empty;
+                face_exposure[index] = neighbor_cell.block_kind == block::Kind::None;
             } else {
                 face_exposure[index] = true;
             }

@@ -1,3 +1,7 @@
+//! Mesh Optimization
+//! 
+//! <https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/>
+
 use glam::IVec3;
 
 pub fn optimize(volume: Vec<i32>, dimensions: IVec3) {
@@ -11,8 +15,8 @@ pub fn optimize(volume: Vec<i32>, dimensions: IVec3) {
         let slice_cell_count =
             (dimensions[local_x_dimension_index] * dimensions[local_y_dimension_index]) as usize;
 
-        let mut mask = Vec::with_capacity(slice_cell_count);
-        mask.resize(slice_cell_count, 0i32);
+        let mut mask: Vec<i32> = Vec::with_capacity(slice_cell_count);
+        mask.resize(slice_cell_count, 0);
 
         let mut cursor_position = IVec3::ZERO;
 

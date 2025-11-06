@@ -15,7 +15,7 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::{
-    self,
+    self, constructor,
     consts::PROJECT_TITLE,
     state::{
         population::entity::Judge,
@@ -88,8 +88,8 @@ impl State {
             let mut world = world;
             let mut population = population;
 
-            World::setup(simulation_kind, &mut world);
-            Population::setup(simulation_kind, &world, &mut population);
+            constructor::world::construct(simulation_kind, &mut world);
+            constructor::population::construct(simulation_kind, &world, &mut population);
 
             let _ = construct_tx.blocking_send((world, population));
         });

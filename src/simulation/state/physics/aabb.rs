@@ -8,9 +8,9 @@ pub struct AABB {
 
 impl AABB {
     pub fn new(center: Vec3, size: Vec3) -> Self {
-        let extent = size * 0.5;
-        let min = center - extent;
-        let max = center + extent;
+        let radius = size * 0.5;
+        let min = center - radius;
+        let max = center + radius;
 
         Self { min, max }
     }
@@ -24,7 +24,7 @@ impl AABB {
             && point.z <= self.max.z
     }
 
-    pub fn extent(&self) -> Vec3 {
+    pub fn radius(&self) -> Vec3 {
         self.size() * 0.5
     }
 
@@ -46,10 +46,10 @@ impl AABB {
 
     pub fn set_center(&mut self, x: f32, y: f32, z: f32) {
         let center = Vec3::new(x, y, z);
-        let extent = (self.max - self.min) * 0.5;
+        let radius = (self.max - self.min) * 0.5;
 
-        self.min = center - extent;
-        self.max = center + extent;
+        self.min = center - radius;
+        self.max = center + radius;
     }
 
     pub fn bottom_center(&self) -> Vec3 {
@@ -62,10 +62,10 @@ impl AABB {
 
     pub fn set_bottom_center(&mut self, x: f32, y: f32, z: f32) {
         let size = self.size();
-        let xz_extent = size.xz() * 0.5;
+        let xz_radius = size.xz() * 0.5;
 
-        self.min = Vec3::new(x - xz_extent.x, y, z - xz_extent.y);
-        self.max = Vec3::new(x + xz_extent.x, y + size.y, z + xz_extent.y);
+        self.min = Vec3::new(x - xz_radius.x, y, z - xz_radius.y);
+        self.max = Vec3::new(x + xz_radius.x, y + size.y, z + xz_radius.y);
     }
 
     pub fn translate(&self, displacement: Vec3) -> AABB {

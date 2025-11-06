@@ -1,17 +1,17 @@
 use crate::simulation::{
     consts::CELL_RADIUS,
-    state::world::{cell, grid},
+    state::world::{block, grid},
 };
 use glam::{IVec3, UVec2};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct CellRenderInfo {
+pub struct BlockRenderInfo {
     pub tile_size: u32,
     pub tile_atlas_size: UVec2,
 }
 
-impl CellRenderInfo {
+impl BlockRenderInfo {
     pub fn new(tile_size: u32, tile_atlas_width: u32, tile_atlas_height: u32) -> Self {
         Self {
             tile_size,
@@ -20,10 +20,10 @@ impl CellRenderInfo {
     }
 
     #[rustfmt::skip]
-    pub fn setup_tile_coordinates_map() -> HashMap<cell::Kind, HashMap<grid::Direction, [u32; 2]>> {
+    pub fn setup_tile_coordinates_map() -> HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>> {
         HashMap::from([
             (
-                cell::Kind::Engraved1,
+                block::Kind::Engraved1,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 0]),
                     (grid::Direction::XnYoZo, [0, 0]),
@@ -34,7 +34,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Engraved2,
+                block::Kind::Engraved2,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 0]),
                     (grid::Direction::XnYoZo, [1, 0]),
@@ -45,7 +45,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Stone1,
+                block::Kind::Stone1,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 1]),
                     (grid::Direction::XnYoZo, [0, 1]),
@@ -56,7 +56,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Stone2,
+                block::Kind::Stone2,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 1]),
                     (grid::Direction::XnYoZo, [1, 1]),
@@ -67,7 +67,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Polished1,
+                block::Kind::Polished1,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 2]),
                     (grid::Direction::XnYoZo, [0, 2]),
@@ -78,7 +78,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Polished2,
+                block::Kind::Polished2,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 2]),
                     (grid::Direction::XnYoZo, [1, 2]),
@@ -89,7 +89,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Icon1,
+                block::Kind::Icon1,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 3]),
                     (grid::Direction::XnYoZo, [0, 3]),
@@ -100,7 +100,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Icon2,
+                block::Kind::Icon2,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 3]),
                     (grid::Direction::XnYoZo, [1, 3]),
@@ -111,7 +111,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Icon3,
+                block::Kind::Icon3,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [2, 3]),
                     (grid::Direction::XnYoZo, [2, 3]),
@@ -122,7 +122,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::Icon4,
+                block::Kind::Icon4,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [3, 3]),
                     (grid::Direction::XnYoZo, [3, 3]),
@@ -133,7 +133,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::MagentaStone,
+                block::Kind::MagentaStone,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 4]),
                     (grid::Direction::XnYoZo, [0, 4]),
@@ -144,7 +144,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::PurpleStone,
+                block::Kind::PurpleStone,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 4]),
                     (grid::Direction::XnYoZo, [1, 4]),
@@ -155,7 +155,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::TealStone,
+                block::Kind::TealStone,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [2, 4]),
                     (grid::Direction::XnYoZo, [2, 4]),
@@ -166,7 +166,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::CrimsonStone,
+                block::Kind::CrimsonStone,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [3, 4]),
                     (grid::Direction::XnYoZo, [3, 4]),
@@ -177,7 +177,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::North,
+                block::Kind::North,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 5]),
                     (grid::Direction::XnYoZo, [0, 5]),
@@ -188,7 +188,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::West,
+                block::Kind::West,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [1, 5]),
                     (grid::Direction::XnYoZo, [1, 5]),
@@ -199,7 +199,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::South,
+                block::Kind::South,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [2, 5]),
                     (grid::Direction::XnYoZo, [2, 5]),
@@ -210,7 +210,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::East,
+                block::Kind::East,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [3, 5]),
                     (grid::Direction::XnYoZo, [3, 5]),
@@ -221,7 +221,7 @@ impl CellRenderInfo {
                 ]),
             ),
             (
-                cell::Kind::EsayaBlock,
+                block::Kind::EsayaBlock,
                 HashMap::from([
                     (grid::Direction::XpYoZo, [0, 6]),
                     (grid::Direction::XnYoZo, [0, 6]),

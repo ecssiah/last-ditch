@@ -5,7 +5,7 @@ use glam::Vec3;
 pub struct SectorView {
     pub sector_id: sector::ID,
     pub world_position: Vec3,
-    pub extent: Vec3,
+    pub radius: Vec3,
     pub cell_vec: Vec<Cell>,
 }
 
@@ -14,7 +14,7 @@ impl SectorView {
         Self {
             sector_id: sector::ID::MAX,
             world_position: Vec3::ZERO,
-            extent: Vec3::ZERO,
+            radius: Vec3::ZERO,
             cell_vec: Vec::new(),
         }
     }

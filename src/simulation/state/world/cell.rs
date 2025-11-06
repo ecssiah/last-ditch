@@ -1,18 +1,13 @@
 pub mod face;
 pub mod id;
-pub mod info;
-pub mod kind;
 
 pub use face::Face;
 pub use id::ID;
-pub use info::Info;
-pub use kind::Kind;
 
 use crate::simulation::state::{
     physics::aabb::AABB,
     world::{
-        grid::{self, Grid},
-        sector,
+        block, grid::{self, Grid}, sector
     },
 };
 use glam::{IVec3, Vec3};
@@ -22,7 +17,7 @@ pub struct Cell {
     pub cell_id: ID,
     pub sector_id: sector::ID,
     pub position: IVec3,
-    pub kind: Kind,
+    pub block_kind: block::Kind,
     pub solid: bool,
     pub face_array: [Face; 6],
 }

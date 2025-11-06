@@ -14,31 +14,31 @@ impl Kind {
         match self {
             Kind::Placeholder => simulation::Config {
                 seed: 0,
-                simulation_kind: Kind::Placeholder,
+                simulation_kind: simulation::Kind::Placeholder,
                 sector_radius_in_cells: 0,
                 world_radius_in_sectors: 0,
             },
             Kind::Empty => simulation::Config {
                 seed: 0,
-                simulation_kind: Kind::Empty,
+                simulation_kind: simulation::Kind::Empty,
                 sector_radius_in_cells: 2,
                 world_radius_in_sectors: 1,
             },
             Kind::Main => simulation::Config {
                 seed: 0,
-                simulation_kind: Kind::Main,
+                simulation_kind: simulation::Kind::Main,
                 sector_radius_in_cells: 8,
                 world_radius_in_sectors: 4,
             },
             Kind::Test => simulation::Config {
                 seed: 0,
-                simulation_kind: Kind::Test,
+                simulation_kind: simulation::Kind::Test,
                 sector_radius_in_cells: 4,
                 world_radius_in_sectors: 3,
             },
             Kind::Graph => simulation::Config {
                 seed: 0,
-                simulation_kind: Kind::Graph,
+                simulation_kind: simulation::Kind::Graph,
                 sector_radius_in_cells: 4,
                 world_radius_in_sectors: 2,
             },

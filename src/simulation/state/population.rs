@@ -4,7 +4,7 @@ pub mod entity;
 pub mod nation;
 
 use crate::simulation::{
-    self, constructor,
+    self,
     state::{
         population::entity::{Agent, Judge},
         world::World,
@@ -39,24 +39,6 @@ impl Population {
             simulation_kind,
             judge,
             agent_map,
-        }
-    }
-
-    pub fn setup(simulation_kind: simulation::Kind, world: &World, population: &mut Population) {
-        match simulation_kind {
-            simulation::Kind::Placeholder => (),
-            simulation::Kind::Empty => {
-                constructor::population::empty::construct();
-            }
-            simulation::Kind::Main => {
-                constructor::population::main::construct(world, population);
-            }
-            simulation::Kind::Test => {
-                constructor::population::world_test::construct(population);
-            }
-            simulation::Kind::Graph => {
-                constructor::population::graph_test::construct(population);
-            }
         }
     }
 

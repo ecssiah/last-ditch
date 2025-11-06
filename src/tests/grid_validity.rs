@@ -1,6 +1,5 @@
 use crate::simulation::{
-    self,
-    state::world::{cell, grid::Grid, sector, World},
+    self, constructor, state::world::{World, cell, grid::Grid, sector}
 };
 use glam::IVec3;
 
@@ -20,10 +19,10 @@ impl CellIDValidCase {
 
 #[test]
 fn cell_id_valid() {
-    let kind = simulation::Kind::Test;
+    let simulation_kind = simulation::Kind::Test;
 
-    let mut world = World::new(kind);
-    World::setup(kind, &mut world);
+    let mut world = World::new(simulation_kind);
+    constructor::world::construct(simulation_kind, &mut world);
 
     let test_cases = vec![
         CellIDValidCase {
@@ -64,10 +63,10 @@ impl SectorIDValidCase {
 
 #[test]
 fn sector_id_valid() {
-    let kind = simulation::Kind::Test;
+    let simulation_kind = simulation::Kind::Test;
 
-    let mut world = World::new(kind);
-    World::setup(kind, &mut world);
+    let mut world = World::new(simulation_kind);
+    constructor::world::construct(simulation_kind, &mut world);
 
     let test_cases = vec![
         SectorIDValidCase {
@@ -108,10 +107,10 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let kind = simulation::Kind::Empty;
+    let simulation_kind = simulation::Kind::Empty;
 
-    let mut world = World::new(kind);
-    World::setup(kind, &mut world);
+    let mut world = World::new(simulation_kind);
+    constructor::world::construct(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 

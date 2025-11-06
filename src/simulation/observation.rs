@@ -133,7 +133,7 @@ impl Observation {
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
                             world_position: sector.position.as_vec3(),
-                            extent: Vec3::splat(state.world.grid.sector_radius_in_meters),
+                            radius: Vec3::splat(state.world.grid.sector_radius_in_meters),
                             cell_vec: sector.cell_vec.clone(),
                         };
 
