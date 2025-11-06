@@ -10,7 +10,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::{
-            entity::{self, Judge},
+            entity::{self},
             nation,
         },
         world::{cell::Cell, grid::Grid, sector::Sector},
@@ -99,7 +99,7 @@ impl World {
                 let position = Grid::sector_id_to_position(grid, sector_id);
 
                 sector::Sector {
-                    id: sector_id,
+                    sector_id,
                     modified: sector::Modified {
                         cell: false,
                         boundary: false,
@@ -115,14 +115,14 @@ impl World {
             .collect()
     }
 
-    fn setup_cell_vec(grid: &Grid, sector_id: sector::ID) -> Vec<cell::Cell> {
+    fn setup_cell_vec(grid: &Grid, sector_id: sector::ID) -> Vec<Cell> {
         Grid::cell_ids(grid)
             .into_iter()
             .map(|cell_id| {
                 let position = Grid::ids_to_position(grid, sector_id, cell_id);
 
-                cell::Cell {
-                    id: cell_id,
+                Cell {
+                    cell_id,
                     sector_id,
                     position,
                     kind: cell::Kind::Empty,
@@ -172,7 +172,7 @@ impl World {
         sector_id: sector::ID,
         cell_id: cell::ID,
         sector_vec_slice: &[Sector],
-    ) -> Option<&cell::Cell> {
+    ) -> Option<&Cell> {
         let sector = sector_vec_slice.get(usize::from(sector_id))?;
 
         sector.cell_vec.get(usize::from(cell_id))
@@ -182,7 +182,7 @@ impl World {
         sector_id: sector::ID,
         cell_id: cell::ID,
         sector_vec_slice: &mut [Sector],
-    ) -> Option<&mut cell::Cell> {
+    ) -> Option<&mut Cell> {
         let sector = sector_vec_slice.get_mut(usize::from(sector_id))?;
 
         sector.cell_vec.get_mut(usize::from(cell_id))
@@ -192,7 +192,7 @@ impl World {
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a cell::Cell> {
+    ) -> Option<&'a Cell> {
         let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
 
         if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
@@ -206,7 +206,7 @@ impl World {
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut cell::Cell> {
+    ) -> Option<&'a mut Cell> {
         let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
 
         if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
@@ -245,7 +245,7 @@ impl World {
         let mut sector1_id = None;
 
         if let Some(sector1) = Self::get_sector_at_mut(position1, grid, sector_vec_slice) {
-            sector1_id = Some(sector1.id);
+            sector1_id = Some(sector1.sector_id);
             sector1.modified.cell = true;
 
             if Grid::on_sector_boundary(grid, position1) {
@@ -412,41 +412,5 @@ impl World {
         for (face, &exposed) in cell.face_array.iter_mut().zip(face_exposure.iter()) {
             face.exposed = exposed;
         }
-    }
-
-    pub fn get_visible_sector_id_vec(
-        judge: &Judge,
-        grid: &Grid,
-        sector_vec_slice: &[Sector],
-    ) -> Vec<sector::ID> {
-        let mut visible_sector_id_vec = Vec::new();
-
-        let judge_sector_coordinates =
-            Grid::world_to_sector_coordinates(grid, judge.spatial.world_position);
-
-        let view_radius = 6;
-        let view_direction = judge.spatial.forward();
-        let view_origin = judge.spatial.eye() + judge.spatial.forward() * -8.0;
-
-        for x in -view_radius..=view_radius {
-            for y in -view_radius + 1..=view_radius - 1 {
-                for z in -view_radius..=view_radius {
-                    let sector_coordinates = judge_sector_coordinates + IVec3::new(x, y, z);
-                    let sector_id = Grid::sector_coordinates_to_sector_id(grid, sector_coordinates);
-
-                    if sector_id != sector::ID::MAX {
-                        if let Some(sector) = sector_vec_slice.get(usize::from(sector_id)) {
-                            let origin_to_center = sector.aabb.center() - view_origin;
-
-                            if view_direction.dot(origin_to_center) >= 0.0 {
-                                visible_sector_id_vec.push(sector_id);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        visible_sector_id_vec
     }
 }

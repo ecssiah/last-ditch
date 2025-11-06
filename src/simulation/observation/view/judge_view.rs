@@ -14,7 +14,6 @@ pub struct JudgeView {
     pub size: Vec3,
     pub quaternion: Quat,
     pub eye: Vec3,
-    pub view_ray_vec: Vec<Vec3>,
 }
 
 impl JudgeView {
@@ -28,7 +27,6 @@ impl JudgeView {
             size: Vec3::ZERO,
             quaternion: Quat::IDENTITY,
             eye: Vec3::ZERO,
-            view_ray_vec: Vec::new(),
         }
     }
 }

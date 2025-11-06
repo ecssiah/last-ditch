@@ -249,18 +249,7 @@ impl DebugRender {
             .debug_visibility
             .contains(DebugVisibility::CHANNEL1)
         {
-            for ray in &view.population_view.judge_view.view_ray_vec {
-                let start = view.population_view.judge_view.eye;
-                let end = start + (*ray * 2.0);
-
-                Self::add_line(
-                    DebugChannel::Channel1,
-                    start,
-                    end,
-                    [1.0, 1.0, 1.0],
-                    &mut debug_render.channel_vertex_vec_array,
-                );
-            }
+            
         }
 
         if debug_render

@@ -268,7 +268,7 @@ impl WorldRender {
 
             if !vertex_vec.is_empty() {
                 let sector_render_data = SectorRenderData {
-                    sector_id: sector_view.id,
+                    sector_id: sector_view.sector_id,
                     mesh_data: MeshData::new(device, vertex_vec, index_vec),
                 };
 

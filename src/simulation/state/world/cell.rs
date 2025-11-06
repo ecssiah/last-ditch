@@ -19,7 +19,7 @@ use glam::{IVec3, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct Cell {
-    pub id: ID,
+    pub cell_id: ID,
     pub sector_id: sector::ID,
     pub position: IVec3,
     pub kind: Kind,

@@ -9,7 +9,7 @@ use crate::simulation::{
     },
     state::{world::grid::Grid, State},
 };
-use glam::Vec3;
+use glam::{IVec3, Vec3};
 use std::collections::HashMap;
 
 pub struct Observation {}
@@ -78,7 +78,6 @@ impl Observation {
                 size: judge.spatial.size,
                 quaternion: judge.spatial.quaternion,
                 eye: judge.spatial.eye(),
-                view_ray_vec: judge.sight.view_ray_vec.clone(),
             },
             agent_view_map: HashMap::new(),
         };
@@ -115,16 +114,34 @@ impl Observation {
             sector_view_map: HashMap::new(),
         };
 
-        for sector_id in &state.population.judge.sight.sector_id_set {
-            if let Some(sector) = state.world.sector_vec.get(usize::from(*sector_id)) {
-                let sector_view = SectorView {
-                    id: sector.id,
-                    world_position: sector.position.as_vec3(),
-                    extent: Vec3::splat(state.world.grid.sector_radius_in_meters),
-                    cell_vec: sector.cell_vec.clone(),
-                };
+        const JUDGE_VIEW_RADIUS: i32 = 1;
 
-                world_view.sector_view_map.insert(sector.id, sector_view);
+        let judge_sector_coordinates = Grid::world_to_sector_coordinates(
+            &state.world.grid,
+            state.population.judge.spatial.world_position,
+        );
+
+        for dx in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
+            for dy in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
+                for dz in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
+                    let sector_id = Grid::sector_coordinates_to_sector_id(
+                        &state.world.grid,
+                        judge_sector_coordinates + IVec3::new(dx, dy, dz),
+                    );
+
+                    if let Some(sector) = state.world.sector_vec.get(usize::from(sector_id)) {
+                        let sector_view = SectorView {
+                            sector_id: sector.sector_id,
+                            world_position: sector.position.as_vec3(),
+                            extent: Vec3::splat(state.world.grid.sector_radius_in_meters),
+                            cell_vec: sector.cell_vec.clone(),
+                        };
+
+                        world_view
+                            .sector_view_map
+                            .insert(sector.sector_id, sector_view);
+                    }
+                }
             }
         }
 

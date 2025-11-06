@@ -3,7 +3,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::{
-            entity::{self, Detection, Info, Kinematic, Sight, Spatial},
+            entity::{self, Detection, Info, Kinematic, Spatial},
             nation,
         },
         receiver::action::{JumpAction, MovementData},
@@ -16,7 +16,6 @@ pub struct Judge {
     pub info: entity::Info,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
-    pub sight: Sight,
     pub detection: Detection,
 }
 
@@ -32,21 +31,18 @@ impl Judge {
 
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
-        let sight = Sight::new(120.0, 100.0);
         let detection = Detection::new();
 
         Self {
             info,
             spatial,
             kinematic,
-            sight,
             detection,
         }
     }
 
     pub fn tick(world: &World, judge: &mut Judge) {
         Info::tick(world, &judge.spatial, &mut judge.info);
-        Sight::tick(world, &judge.spatial, &mut judge.sight);
     }
 
     pub fn set_world_position(
