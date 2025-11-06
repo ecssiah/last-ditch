@@ -55,7 +55,7 @@ impl WorldRayIteratoratorCase {
 
 #[test]
 fn general_ray_tests() {
-    let kind = simulation::Kind::WorldTest;
+    let kind = simulation::Kind::TestWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);

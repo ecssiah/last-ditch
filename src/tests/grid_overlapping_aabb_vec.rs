@@ -30,7 +30,7 @@ impl OverlappingAABBCase {
 
 #[test]
 fn directions() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);

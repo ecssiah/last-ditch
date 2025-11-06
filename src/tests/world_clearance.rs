@@ -28,7 +28,7 @@ impl GetClearanceCase {
 
 #[test]
 fn get_clearance() {
-    let kind = simulation::Kind::WorldTest;
+    let kind = simulation::Kind::TestWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);

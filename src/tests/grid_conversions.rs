@@ -25,7 +25,7 @@ impl CellIDToCellCoordinatesCase {
 
 #[test]
 fn cell_id_to_cell_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -72,7 +72,7 @@ impl CellCoordinatesToCellIDCase {
 
 #[test]
 fn cell_coordinates_to_cell_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -123,7 +123,7 @@ impl SectorIDToSectorCoordinates {
 
 #[test]
 fn sector_id_to_sector_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -170,7 +170,7 @@ impl SectorCoordinatesToSectorIDCase {
 
 #[test]
 fn sector_coordinates_to_sector_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -217,7 +217,7 @@ impl SectorCoordinatesToPositionCase {
 
 #[test]
 fn sector_coordinates_to_position() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -266,7 +266,7 @@ impl SectorIDToPositionCase {
 
 #[test]
 fn sector_id_to_position() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -318,7 +318,7 @@ impl PositionToSectorCoordinatesCase {
 
 #[test]
 fn position_to_sector_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -371,7 +371,7 @@ impl PositionToCellCoordinatesCase {
 
 #[test]
 fn position_to_cell_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -450,7 +450,7 @@ impl PositionToSectorIDCase {
 
 #[test]
 fn position_to_sector_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -497,7 +497,7 @@ impl PositionToCellIDCase {
 
 #[test]
 fn position_to_cell_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -545,7 +545,7 @@ impl IDsToPositionCase {
 
 #[test]
 fn ids_to_position() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -601,7 +601,7 @@ impl PositionToIDsCase {
 
 #[test]
 fn position_to_ids() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -653,7 +653,7 @@ impl WorldToPositionCase {
 
 #[test]
 fn world_to_position() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -714,7 +714,7 @@ impl WorldToSectorIDCase {
 
 #[test]
 fn world_to_sector_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -775,7 +775,7 @@ impl WorldToSectorCoordinates {
 
 #[test]
 fn world_to_sector_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -822,7 +822,7 @@ impl WorldToCellIDCase {
 
 #[test]
 fn world_to_cell_id() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -882,7 +882,7 @@ impl WorldToCellCoordinates {
 
 #[test]
 fn world_to_cell_coordinates() {
-    let kind = simulation::Kind::Empty;
+    let kind = simulation::Kind::EmptyWorld;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);

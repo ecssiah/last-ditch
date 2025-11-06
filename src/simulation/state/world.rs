@@ -76,19 +76,19 @@ impl World {
 
     pub fn setup(kind: simulation::Kind, world: &mut World) {
         match kind {
-            simulation::Kind::Main => {
-                constructor::world::main::construct(world);
-            }
-            simulation::Kind::Empty => {
+            simulation::Kind::Placeholder => (),
+            simulation::Kind::EmptyWorld => {
                 constructor::world::empty::construct(world);
             }
-            simulation::Kind::WorldTest => {
+            simulation::Kind::MainWorld => {
+                constructor::world::main::construct(world);
+            }
+            simulation::Kind::TestWorld => {
                 constructor::world::world_test::construct(world);
             }
-            simulation::Kind::GraphTest => {
+            simulation::Kind::GraphWorld => {
                 constructor::world::graph_test::construct(world);
             }
-            simulation::Kind::Placeholder => (),
         }
     }
 

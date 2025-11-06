@@ -44,19 +44,19 @@ impl Population {
 
     pub fn setup(kind: simulation::Kind, world: &World, population: &mut Population) {
         match kind {
-            simulation::Kind::Main => {
-                constructor::population::main::construct(world, population);
-            }
-            simulation::Kind::Empty => {
+            simulation::Kind::Placeholder => (),
+            simulation::Kind::EmptyWorld => {
                 constructor::population::empty::construct();
             }
-            simulation::Kind::WorldTest => {
+            simulation::Kind::MainWorld => {
+                constructor::population::main::construct(world, population);
+            }
+            simulation::Kind::TestWorld => {
                 constructor::population::world_test::construct(population);
             }
-            simulation::Kind::GraphTest => {
+            simulation::Kind::GraphWorld => {
                 constructor::population::graph_test::construct(population);
             }
-            simulation::Kind::Placeholder => (),
         }
     }
 
