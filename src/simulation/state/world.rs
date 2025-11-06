@@ -20,7 +20,7 @@ use glam::{IVec3, Vec3};
 use std::collections::HashMap;
 
 pub struct World {
-    pub kind: simulation::Kind,
+    pub simulation_kind: simulation::Kind,
     pub grid: Grid,
     pub cell_info_map: HashMap<cell::Kind, cell::Info>,
     pub sector_vec: Vec<sector::Sector>,
@@ -28,8 +28,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(kind: simulation::Kind) -> Self {
-        let grid = Grid::new(kind);
+    pub fn new(simulation_kind: simulation::Kind) -> Self {
+        let grid = Grid::new(simulation_kind);
         let cell_info_map = cell::Info::setup();
         let sector_vec = Self::setup_sector_vec(&grid);
 
@@ -41,7 +41,7 @@ impl World {
         ]);
 
         Self {
-            kind,
+            simulation_kind,
             grid,
             cell_info_map,
             sector_vec,
@@ -50,16 +50,16 @@ impl World {
     }
 
     pub fn placeholder() -> Self {
-        let kind = simulation::Kind::Placeholder;
+        let simulation_kind = simulation::Kind::Placeholder;
 
-        let grid = Grid::new(kind);
+        let grid = Grid::new(simulation_kind);
         let cell_info_map = HashMap::default();
         let sector_vec = Vec::default();
 
         let flag_position_map = HashMap::default();
 
         Self {
-            kind,
+            simulation_kind,
             grid,
             cell_info_map,
             sector_vec,
@@ -74,19 +74,19 @@ impl World {
         flag_position_map.get(&kind).cloned()
     }
 
-    pub fn setup(kind: simulation::Kind, world: &mut World) {
-        match kind {
+    pub fn setup(simulation_kind: simulation::Kind, world: &mut World) {
+        match simulation_kind {
             simulation::Kind::Placeholder => (),
-            simulation::Kind::EmptyWorld => {
+            simulation::Kind::Empty => {
                 constructor::world::empty::construct(world);
             }
-            simulation::Kind::MainWorld => {
+            simulation::Kind::Main => {
                 constructor::world::main::construct(world);
             }
-            simulation::Kind::TestWorld => {
+            simulation::Kind::Test => {
                 constructor::world::world_test::construct(world);
             }
-            simulation::Kind::GraphWorld => {
+            simulation::Kind::Graph => {
                 constructor::world::graph_test::construct(world);
             }
         }

@@ -13,48 +13,48 @@ use crate::simulation::{
 use std::collections::HashMap;
 
 pub struct Population {
-    pub kind: simulation::Kind,
+    pub simulation_kind: simulation::Kind,
     pub judge: Judge,
     pub agent_map: HashMap<entity::ID, Agent>,
 }
 
 impl Population {
-    pub fn new(kind: simulation::Kind) -> Self {
+    pub fn new(simulation_kind: simulation::Kind) -> Self {
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            kind,
+            simulation_kind,
             judge,
             agent_map,
         }
     }
 
     pub fn placeholder() -> Self {
-        let kind = simulation::Kind::Placeholder;
+        let simulation_kind = simulation::Kind::Placeholder;
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            kind,
+            simulation_kind,
             judge,
             agent_map,
         }
     }
 
-    pub fn setup(kind: simulation::Kind, world: &World, population: &mut Population) {
-        match kind {
+    pub fn setup(simulation_kind: simulation::Kind, world: &World, population: &mut Population) {
+        match simulation_kind {
             simulation::Kind::Placeholder => (),
-            simulation::Kind::EmptyWorld => {
+            simulation::Kind::Empty => {
                 constructor::population::empty::construct();
             }
-            simulation::Kind::MainWorld => {
+            simulation::Kind::Main => {
                 constructor::population::main::construct(world, population);
             }
-            simulation::Kind::TestWorld => {
+            simulation::Kind::Test => {
                 constructor::population::world_test::construct(population);
             }
-            simulation::Kind::GraphWorld => {
+            simulation::Kind::Graph => {
                 constructor::population::graph_test::construct(population);
             }
         }

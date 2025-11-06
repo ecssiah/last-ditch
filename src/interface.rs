@@ -9,6 +9,7 @@ pub mod hud;
 pub mod input;
 pub mod item_render;
 pub mod mesh_data;
+pub mod mesh_optimizer;
 pub mod population_render;
 pub mod texture_data;
 pub mod vertex_data;

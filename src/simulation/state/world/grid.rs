@@ -50,8 +50,8 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(kind: simulation::Kind) -> Self {
-        let config = kind.config();
+    pub fn new(simulation_kind: simulation::Kind) -> Self {
+        let config = simulation_kind.config();
 
         let cell_radius_in_meters = CELL_RADIUS;
         let cell_size_in_meters = 2.0 * cell_radius_in_meters;

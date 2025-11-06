@@ -14,7 +14,7 @@ pub struct WorldView {
 impl WorldView {
     pub fn new() -> Self {
         Self {
-            grid: Grid::new(simulation::Kind::EmptyWorld),
+            grid: Grid::new(simulation::Kind::Empty),
             sector_view_map: HashMap::new(),
         }
     }

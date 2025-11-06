@@ -20,7 +20,7 @@ impl CellIDValidCase {
 
 #[test]
 fn cell_id_valid() {
-    let kind = simulation::Kind::TestWorld;
+    let kind = simulation::Kind::Test;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -64,7 +64,7 @@ impl SectorIDValidCase {
 
 #[test]
 fn sector_id_valid() {
-    let kind = simulation::Kind::TestWorld;
+    let kind = simulation::Kind::Test;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);
@@ -108,7 +108,7 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let kind = simulation::Kind::EmptyWorld;
+    let kind = simulation::Kind::Empty;
 
     let mut world = World::new(kind);
     World::setup(kind, &mut world);

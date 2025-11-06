@@ -24,7 +24,7 @@ use crate::simulation::{
 };
 
 pub struct State {
-    pub kind: simulation::Kind,
+    pub simulation_kind: simulation::Kind,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
     pub time: Time,
@@ -34,17 +34,17 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(kind: simulation::Kind) -> Self {
+    pub fn new(simulation_kind: simulation::Kind) -> Self {
         let construct_rx = None;
 
         let admin = Admin::new();
         let time = Time::new();
         let physics = Physics::new();
-        let world = World::new(kind);
-        let population = Population::new(kind);
+        let world = World::new(simulation_kind);
+        let population = Population::new(simulation_kind);
 
         Self {
-            kind,
+            simulation_kind,
             construct_rx,
             admin,
             time,
@@ -77,7 +77,8 @@ impl State {
     }
 
     fn init_load(state: &mut State) {
-        let kind = state.kind;
+        let simulation_kind = state.simulation_kind;
+        
         let world = std::mem::replace(&mut state.world, World::placeholder());
         let population = std::mem::replace(&mut state.population, Population::placeholder());
 
@@ -87,8 +88,8 @@ impl State {
             let mut world = world;
             let mut population = population;
 
-            World::setup(kind, &mut world);
-            Population::setup(kind, &world, &mut population);
+            World::setup(simulation_kind, &mut world);
+            Population::setup(simulation_kind, &world, &mut population);
 
             let _ = construct_tx.blocking_send((world, population));
         });
