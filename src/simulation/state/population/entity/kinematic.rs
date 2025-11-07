@@ -1,4 +1,4 @@
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Kinematic {
@@ -11,8 +11,8 @@ impl Kinematic {
     pub fn new() -> Self {
         Self {
             speed: 1.0,
-            velocity: Vec3::ZERO,
-            acceleration: Vec3::ZERO,
+            velocity: Vec3::broadcast(0.0),
+            acceleration: Vec3::broadcast(0.0),
         }
     }
 }

@@ -6,7 +6,7 @@ use crate::{
         Action, AdminAction, JudgeAction, JumpAction, MovementData, TestAction,
     },
 };
-use glam::{Vec2, Vec3};
+use ultraviolet::{Vec2, Vec3};
 use winit::{
     event::{
         DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
@@ -41,7 +41,9 @@ impl Input {
             key_d: 0.0,
         };
 
-        let mouse_inputs = MouseInputs { delta: Vec2::ZERO };
+        let mouse_inputs = MouseInputs {
+            delta: Vec2::broadcast(0.0),
+        };
 
         let action_vec = Vec::new();
 
@@ -77,7 +79,7 @@ impl Input {
             mouse_inputs.delta.y * MOUSE_SENSITIVITY,
         );
 
-        mouse_inputs.delta = Vec2::ZERO;
+        mouse_inputs.delta = Vec2::broadcast(0.0);
 
         let movement_data = MovementData {
             direction,
@@ -217,18 +219,18 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    key_inputs.key_a -= 1.0;
-                } else if key_event.state == ElementState::Released {
                     key_inputs.key_a += 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_a -= 1.0;
                 }
 
                 None
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    key_inputs.key_d += 1.0;
-                } else if key_event.state == ElementState::Released {
                     key_inputs.key_d -= 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_d += 1.0;
                 }
 
                 None

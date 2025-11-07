@@ -17,8 +17,8 @@ use crate::simulation::{
         world::{cell::Cell, grid::Grid, sector::Sector},
     },
 };
-use glam::{IVec3, Vec3};
 use std::collections::HashMap;
+use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
     pub simulation_kind: simulation::Kind,
@@ -35,10 +35,10 @@ impl World {
         let sector_vec = Self::setup_sector_vec(&grid);
 
         let flag_position_map = HashMap::from([
-            (nation::Kind::Lion, IVec3::ZERO),
-            (nation::Kind::Eagle, IVec3::ZERO),
-            (nation::Kind::Horse, IVec3::ZERO),
-            (nation::Kind::Wolf, IVec3::ZERO),
+            (nation::Kind::Lion, IVec3::new(0, 0, 0)),
+            (nation::Kind::Eagle, IVec3::new(0, 0, 0)),
+            (nation::Kind::Horse, IVec3::new(0, 0, 0)),
+            (nation::Kind::Wolf, IVec3::new(0, 0, 0)),
         ]);
 
         Self {
@@ -80,19 +80,21 @@ impl World {
             .into_iter()
             .map(|sector_id| {
                 let position = Grid::sector_id_to_position(grid, sector_id);
+                let modified = sector::Modified::new();
+
+                let aabb = AABB::new(
+                    Vec3::from(position),
+                    Vec3::broadcast(grid.sector_size_in_cells as f32),
+                );
+
+                let cell_vec = Self::setup_cell_vec(grid, sector_id);
 
                 sector::Sector {
                     sector_id,
-                    modified: sector::Modified {
-                        cell: false,
-                        boundary: false,
-                    },
+                    modified,
                     position,
-                    aabb: AABB::new(
-                        position.as_vec3(),
-                        Vec3::splat(grid.sector_size_in_cells as f32),
-                    ),
-                    cell_vec: Self::setup_cell_vec(grid, sector_id),
+                    aabb,
+                    cell_vec,
                 }
             })
             .collect()
@@ -200,8 +202,9 @@ impl World {
     }
 
     pub fn get_clearance(position: IVec3, grid: &Grid, sector_vec_slice: &[Sector]) -> u32 {
-        let ground_is_solid = Self::get_cell_at(position + IVec3::NEG_Y, grid, sector_vec_slice)
-            .is_some_and(|cell| cell.solid);
+        let ground_is_solid =
+            Self::get_cell_at(position + -1 * IVec3::unit_y(), grid, sector_vec_slice)
+                .is_some_and(|cell| cell.solid);
 
         let mut clearance = 0;
 
@@ -289,8 +292,17 @@ impl World {
         block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
-        let min = position1.min(position2);
-        let max = position1.max(position2);
+        let min = IVec3::new(
+            position1.x.min(position2.x),
+            position1.y.min(position2.y),
+            position1.z.min(position2.z),
+        );
+
+        let max = IVec3::new(
+            position1.x.max(position2.x),
+            position1.y.max(position2.y),
+            position1.z.max(position2.z),
+        );
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -341,8 +353,17 @@ impl World {
         block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
-        let min = position1.min(position2);
-        let max = position1.max(position2);
+        let min = IVec3::new(
+            position1.x.min(position2.x),
+            position1.y.min(position2.y),
+            position1.z.min(position2.z),
+        );
+
+        let max = IVec3::new(
+            position1.x.max(position2.x),
+            position1.y.max(position2.y),
+            position1.z.max(position2.z),
+        );
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
@@ -368,7 +389,7 @@ impl World {
             for cell_id in Grid::cell_ids(grid) {
                 let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice)
                     .expect("All grid cells should exist");
-                
+
                 let face_exposure =
                     Self::compute_face_exposure(cell.position, grid, sector_vec_slice);
 

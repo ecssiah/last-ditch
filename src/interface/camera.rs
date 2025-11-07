@@ -6,7 +6,7 @@ use crate::{
     interface::{camera::camera_uniform_data::CameraUniformData, consts::*},
     simulation::observation::view::JudgeView,
 };
-use glam::{Mat4, Vec3};
+use ultraviolet::{projection, Mat4, Vec3};
 
 pub struct Camera {
     pub uniform_buffer: wgpu::Buffer,
@@ -69,22 +69,30 @@ impl Camera {
     }
 
     fn setup_camera_uniform_data(judge_view: &JudgeView) -> CameraUniformData {
-        let projection =
-            Mat4::perspective_lh(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
+        let projection_matrix =
+            projection::perspective_gl(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let eye_offset = Vec3::Y * 0.9 * judge_view.size.y;
+        let eye_offset = Vec3::unit_y() * 0.9 * judge_view.size.y;
         let eye = judge_view.world_position + eye_offset;
 
-        let forward = judge_view.quaternion * Vec3::Z;
-        let up = judge_view.quaternion * Vec3::Y;
+        let forward = judge_view.rotor * Vec3::unit_z();
+        let up = judge_view.rotor * Vec3::unit_y();
+
         let target = eye + forward;
 
-        let view = Mat4::look_at_lh(eye, target, up);
-        let view_projection = projection * view;
+        let view_matrix = Mat4::look_at_lh(eye, target, up);
+        let view_projection_matrix = projection_matrix * view_matrix;
+
+        let view_projection_matrix_array = [
+            *view_projection_matrix.cols[0].as_array(),
+            *view_projection_matrix.cols[1].as_array(),
+            *view_projection_matrix.cols[2].as_array(),
+            *view_projection_matrix.cols[3].as_array(),
+        ];
 
         CameraUniformData {
-            view_projection_matrix: view_projection.to_cols_array_2d(),
-            camera_position: eye.to_array(),
+            view_projection_matrix: view_projection_matrix_array,
+            camera_position: *eye.as_array(),
             _padding: 0.0,
         }
     }

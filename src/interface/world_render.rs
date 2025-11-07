@@ -18,6 +18,7 @@ use crate::{
     },
 };
 use std::collections::HashMap;
+use ultraviolet::Vec3;
 
 pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
@@ -243,7 +244,7 @@ impl WorldRender {
                         BlockRenderInfo::face_vertex_position_array(cell.position, face.direction);
 
                     for (index, &position) in face_vertex_position_array.iter().enumerate() {
-                        let normal = face.direction.offset().as_vec3().to_array();
+                        let normal = *Vec3::from(face.direction.offset()).as_array();
 
                         let texture = [tile_uv_array[index][0], tile_uv_array[index][1], 0.0];
 

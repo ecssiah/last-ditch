@@ -5,7 +5,7 @@ use crate::simulation::state::{
     },
     world::{sector, World},
 };
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 pub struct Agent {
     pub info: Info,

@@ -17,7 +17,7 @@ use crate::simulation::{
     },
     utils::indexing,
 };
-use glam::{IVec3, Vec3};
+use ultraviolet::{IVec3, Vec3};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Grid {
@@ -150,7 +150,7 @@ impl Grid {
 
             cell_coordinates
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -158,7 +158,7 @@ impl Grid {
         let cell_coordinates_indexable =
             indexing::indexable_vector(cell_coordinates, grid.sector_radius_in_cells);
 
-        if cell_coordinates_indexable != IVec3::MAX {
+        if cell_coordinates_indexable != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             let cell_index =
                 indexing::vector_to_index(cell_coordinates_indexable, grid.sector_radius_in_cells);
 
@@ -176,7 +176,7 @@ impl Grid {
 
             sector_coordinates
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -184,7 +184,7 @@ impl Grid {
         let sector_coordinates_indexable =
             indexing::indexable_vector(sector_coordinates, grid.world_radius_in_sectors);
 
-        if sector_coordinates_indexable != IVec3::MAX {
+        if sector_coordinates_indexable != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             let sector_index = indexing::vector_to_index(
                 sector_coordinates_indexable,
                 grid.world_radius_in_sectors,
@@ -202,17 +202,17 @@ impl Grid {
         if Grid::position_valid(grid, position) {
             position
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
     pub fn sector_id_to_position(grid: &Grid, sector_id: sector::ID) -> IVec3 {
         let sector_coordinates = Grid::sector_id_to_sector_coordinates(grid, sector_id);
 
-        if sector_coordinates != IVec3::MAX {
+        if sector_coordinates != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             Grid::sector_coordinates_to_position(grid, sector_coordinates)
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -221,19 +221,19 @@ impl Grid {
             let position_indexable =
                 indexing::indexable_vector(position, grid.world_radius_in_cells);
 
-            if position_indexable != IVec3::MAX {
+            if position_indexable != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
                 let sector_coordinates_indexable =
                     position_indexable / grid.sector_size_in_cells as i32;
 
                 let sector_coordinates = sector_coordinates_indexable
-                    - IVec3::splat(grid.world_radius_in_sectors as i32);
+                    - IVec3::broadcast(grid.world_radius_in_sectors as i32);
 
                 sector_coordinates
             } else {
-                IVec3::MAX
+                IVec3::new(i32::MAX, i32::MAX, i32::MAX)
             }
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -242,26 +242,31 @@ impl Grid {
             let position_indexable =
                 indexing::indexable_vector(position, grid.world_radius_in_cells);
 
-            if position_indexable != IVec3::MAX {
-                let cell_coordinates_indexable =
-                    position_indexable % grid.sector_size_in_cells as i32;
+            if position_indexable != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
+                let sector_size_in_cells = grid.sector_size_in_cells as i32;
 
-                let cell_coordinates =
-                    cell_coordinates_indexable - IVec3::splat(grid.sector_radius_in_cells as i32);
+                let cell_coordinates_indexable = IVec3::new(
+                    position_indexable.x % sector_size_in_cells,
+                    position_indexable.y % sector_size_in_cells,
+                    position_indexable.z % sector_size_in_cells,
+                );
+
+                let cell_coordinates = cell_coordinates_indexable
+                    - IVec3::broadcast(grid.sector_radius_in_cells as i32);
 
                 cell_coordinates
             } else {
-                IVec3::MAX
+                IVec3::new(i32::MAX, i32::MAX, i32::MAX)
             }
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
     pub fn position_to_sector_id(grid: &Grid, position: IVec3) -> sector::ID {
         let sector_coordinates = Grid::position_to_sector_coordinates(grid, position);
 
-        if sector_coordinates != IVec3::MAX {
+        if sector_coordinates != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             Grid::sector_coordinates_to_sector_id(grid, sector_coordinates)
         } else {
             sector::ID::MAX
@@ -271,7 +276,7 @@ impl Grid {
     pub fn position_to_cell_id(grid: &Grid, position: IVec3) -> cell::ID {
         let cell_coordinates = Grid::position_to_cell_coordinates(grid, position);
 
-        if cell_coordinates != IVec3::MAX {
+        if cell_coordinates != IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             Grid::cell_coordinates_to_cell_id(grid, cell_coordinates)
         } else {
             cell::ID::MAX
@@ -289,20 +294,26 @@ impl Grid {
         let sector_coordinates = Grid::sector_id_to_sector_coordinates(grid, sector_id);
         let cell_coordinates = Grid::cell_id_to_cell_coordinates(grid, cell_id);
 
-        if sector_coordinates != IVec3::MAX && cell_coordinates != IVec3::MAX {
+        if sector_coordinates != IVec3::new(i32::MAX, i32::MAX, i32::MAX)
+            && cell_coordinates != IVec3::new(i32::MAX, i32::MAX, i32::MAX)
+        {
             grid.sector_size_in_cells as i32 * sector_coordinates + cell_coordinates
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
     pub fn world_to_position(grid: &Grid, world_position: Vec3) -> IVec3 {
-        let position = (world_position + Vec3::splat(0.5)).floor().as_ivec3();
+        let position = IVec3::new(
+            (world_position.x + 0.5).floor() as i32,
+            (world_position.y + 0.5).floor() as i32,
+            (world_position.z + 0.5).floor() as i32,
+        );
 
         if Grid::position_valid(grid, position) {
             position
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -322,7 +333,7 @@ impl Grid {
         if Grid::position_valid(grid, position) {
             Grid::position_to_sector_coordinates(grid, position)
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
@@ -342,23 +353,32 @@ impl Grid {
         if Grid::position_valid(grid, position) {
             Grid::position_to_cell_coordinates(grid, position)
         } else {
-            IVec3::MAX
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX)
         }
     }
 
     pub fn cells_overlapping(grid: &Grid, aabb: AABB) -> Vec<AABB> {
         let mut aabb_vec = Vec::new();
 
-        let min = aabb.min.round().as_ivec3();
-        let max = aabb.max.round().as_ivec3();
+        let min = IVec3::new(
+            aabb.min.x.round() as i32,
+            aabb.min.y.round() as i32,
+            aabb.min.z.round() as i32,
+        );
 
-        let size = Vec3::splat(grid.cell_size_in_meters);
+        let max = IVec3::new(
+            aabb.max.x.round() as i32,
+            aabb.max.y.round() as i32,
+            aabb.max.z.round() as i32,
+        );
+
+        let size = Vec3::broadcast(grid.cell_size_in_meters);
 
         for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
                     let cell_position = IVec3::new(x, y, z);
-                    let cell_aabb = AABB::new(cell_position.as_vec3(), size);
+                    let cell_aabb = AABB::new(Vec3::from(cell_position), size);
 
                     if cell_aabb.overlaps(aabb) {
                         aabb_vec.push(cell_aabb);
@@ -373,7 +393,7 @@ impl Grid {
     pub fn on_sector_boundary(grid: &Grid, position: IVec3) -> bool {
         let cell_coordinates = Grid::position_to_cell_coordinates(grid, position);
 
-        if cell_coordinates == IVec3::MAX {
+        if cell_coordinates == IVec3::new(i32::MAX, i32::MAX, i32::MAX) {
             true
         } else {
             let sector_radius_in_cells = grid.sector_radius_in_cells as i32;

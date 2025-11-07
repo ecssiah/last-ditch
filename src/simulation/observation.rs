@@ -8,10 +8,14 @@ use crate::simulation::{
         AdminView, AgentView, FaceView, JudgeView, PopulationView, SectorView, TimeView, View,
         WorldView,
     },
-    state::{State, world::{grid::Grid, sector::Sector}},
+    state::{
+        population::entity::Spatial,
+        world::{grid::Grid, sector::Sector},
+        State,
+    },
 };
-use glam::{IVec3, Vec3};
 use std::collections::HashMap;
+use ultraviolet::{IVec3, Vec3};
 
 pub struct Observation {}
 
@@ -77,18 +81,18 @@ impl Observation {
                     judge.info.sector_id,
                 ),
                 size: judge.spatial.size,
-                quaternion: judge.spatial.quaternion,
-                eye: judge.spatial.eye(),
+                rotor: judge.spatial.rotor,
+                eye: Spatial::eye(&judge.spatial),
             },
             agent_view_map: HashMap::new(),
         };
 
         for agent in state.population.agent_map.values() {
-            let distance_to_judge_squared = (agent.spatial.world_position
+            let agent_to_judge_mag_sq = (agent.spatial.world_position
                 - state.population.judge.spatial.world_position)
-                .length_squared();
+                .mag_sq();
 
-            if distance_to_judge_squared > JUDGE_VIEW_RADIUS_SQUARED {
+            if agent_to_judge_mag_sq > JUDGE_VIEW_RADIUS_SQUARED {
                 continue;
             }
 
@@ -136,17 +140,18 @@ impl Observation {
                         if let Some(sector) = state.world.sector_vec.get(usize::from(sector_id)) {
                             let sector_view = SectorView {
                                 sector_id: sector.sector_id,
-                                world_position: sector.position.as_vec3(),
-                                radius: Vec3::splat(state.world.grid.sector_radius_in_meters),
-                                face_view_vec: Self::compute_face_view_vec(&state.world.grid, sector),
-                                cell_vec: Vec::default(),
+                                world_position: Vec3::from(sector.position),
+                                radius: Vec3::broadcast(state.world.grid.sector_radius_in_meters),
+                                face_view_vec: Self::compute_face_view_vec(
+                                    &state.world.grid,
+                                    sector,
+                                ),
+                                cell_vec: sector.cell_vec.clone(),
                             };
 
                             world_view
                                 .sector_view_map
                                 .insert(sector.sector_id, sector_view);
-                        } else {
-                            panic!("Cannot retrieve valid sector at id: {:?}", sector_id);
                         }
                     }
                 }
@@ -156,10 +161,8 @@ impl Observation {
         world_view
     }
 
-    fn compute_face_view_vec(grid: &Grid, sector: &Sector) -> Vec<FaceView> {
+    fn compute_face_view_vec(_grid: &Grid, _sector: &Sector) -> Vec<FaceView> {
         let face_view_vec = Vec::new();
-
-        
 
         face_view_vec
     }

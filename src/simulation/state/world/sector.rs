@@ -3,12 +3,12 @@ pub mod modified;
 
 pub use id::ID;
 pub use modified::Modified;
+use ultraviolet::IVec3;
 
 use crate::simulation::state::{
     physics::aabb::AABB,
     world::{cell::Cell, sector},
 };
-use glam::IVec3;
 
 pub struct Sector {
     pub sector_id: sector::ID,

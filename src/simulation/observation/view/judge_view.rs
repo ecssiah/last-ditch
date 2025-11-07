@@ -2,7 +2,7 @@ use crate::simulation::state::{
     population::entity::{self},
     world::sector,
 };
-use glam::{IVec3, Quat, Vec3};
+use ultraviolet::{IVec3, Rotor3, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct JudgeView {
@@ -12,7 +12,7 @@ pub struct JudgeView {
     pub sector_id: sector::ID,
     pub sector_coordinates: IVec3,
     pub size: Vec3,
-    pub quaternion: Quat,
+    pub rotor: Rotor3,
     pub eye: Vec3,
 }
 
@@ -20,13 +20,13 @@ impl JudgeView {
     pub fn new() -> Self {
         Self {
             entity_id: entity::ID::MAX,
-            position: IVec3::ZERO,
-            world_position: Vec3::ZERO,
+            position: IVec3::new(0, 0, 0),
+            world_position: Vec3::broadcast(0.0),
             sector_id: sector::ID::MAX,
-            sector_coordinates: IVec3::ZERO,
-            size: Vec3::ZERO,
-            quaternion: Quat::IDENTITY,
-            eye: Vec3::ZERO,
+            sector_coordinates: IVec3::new(0, 0, 0),
+            size: Vec3::broadcast(0.0),
+            rotor: Rotor3::identity(),
+            eye: Vec3::broadcast(0.0),
         }
     }
 }

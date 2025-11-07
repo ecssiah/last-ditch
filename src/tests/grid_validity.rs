@@ -1,7 +1,8 @@
 use crate::simulation::{
-    self, constructor, state::world::{World, cell, grid::Grid, sector}
+    self, constructor,
+    state::world::{cell, grid::Grid, sector, World},
 };
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 struct CellIDValidCase {
     description: String,
@@ -123,27 +124,27 @@ fn position_valid() {
         PositionValidCase {
             description: "(world_radius_in_cells, world_radius_in_cells, world_radius_in_cells)"
                 .to_string(),
-            position: IVec3::splat(world_radius_in_cells),
+            position: IVec3::broadcast(world_radius_in_cells),
             expected_valid: true,
         },
         PositionValidCase {
             description: "(-world_radius_in_cells, -world_radius_in_cells, -world_radius_in_cells)"
                 .to_string(),
-            position: IVec3::splat(-world_radius_in_cells),
+            position: IVec3::broadcast(-world_radius_in_cells),
             expected_valid: true,
         },
         PositionValidCase {
             description:
                 "(world_radius_in_cells + 1, world_radius_in_cells + 1, world_radius_in_cells + 1)"
                     .to_string(),
-            position: IVec3::splat(world_radius_in_cells + 1),
+            position: IVec3::broadcast(world_radius_in_cells + 1),
             expected_valid: false,
         },
         PositionValidCase {
             description:
                 "(-world_radius_in_cells - 1, -world_radius_in_cells - 1, -world_radius_in_cells - 1)"
                     .to_string(),
-            position: IVec3::splat(-world_radius_in_cells - 1),
+            position: IVec3::broadcast(-world_radius_in_cells - 1),
             expected_valid: false,
         },
     ];

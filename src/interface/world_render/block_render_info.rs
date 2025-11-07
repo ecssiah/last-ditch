@@ -2,8 +2,8 @@ use crate::simulation::{
     consts::CELL_RADIUS,
     state::world::{block, grid},
 };
-use glam::{IVec3, UVec2};
 use std::collections::HashMap;
+use ultraviolet::{IVec3, UVec2, Vec3};
 
 #[derive(Debug)]
 pub struct BlockRenderInfo {
@@ -236,7 +236,7 @@ impl BlockRenderInfo {
 
     #[rustfmt::skip]
     pub fn face_vertex_position_array(position: IVec3, direction: grid::Direction) -> [[f32; 3]; 4] {
-        let position = position.as_vec3();
+        let position = Vec3::from(position);
 
         match direction {
             grid::Direction::XpYoZo => [

@@ -2,7 +2,7 @@ use crate::simulation::{
     consts::*,
     state::{population::entity::Judge, Population},
 };
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 pub fn run(population: &mut Population) {
     setup_judge(population);

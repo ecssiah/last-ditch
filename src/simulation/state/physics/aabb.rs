@@ -1,4 +1,4 @@
-use glam::{Vec3, Vec3Swizzles};
+use ultraviolet::{Vec2, Vec3};
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct AABB {
@@ -62,7 +62,7 @@ impl AABB {
 
     pub fn set_bottom_center(&mut self, x: f32, y: f32, z: f32) {
         let size = self.size();
-        let xz_radius = size.xz() * 0.5;
+        let xz_radius = Vec2::new(size.x, size.z) * 0.5;
 
         self.min = Vec3::new(x - xz_radius.x, y, z - xz_radius.y);
         self.max = Vec3::new(x + xz_radius.x, y + size.y, z + xz_radius.y);
@@ -118,7 +118,15 @@ impl AABB {
     }
 
     pub fn approx_eq(&self, other: AABB, epsilon: f32) -> bool {
-        self.min.abs_diff_eq(other.min, epsilon) && self.max.abs_diff_eq(other.max, epsilon)
+        let dx = (self.min.x - other.min.x).abs() < epsilon
+            && (self.min.y - other.min.y).abs() < epsilon
+            && (self.min.z - other.min.z).abs() < epsilon;
+
+        let dx2 = (self.max.x - other.max.x).abs() < epsilon
+            && (self.max.y - other.max.y).abs() < epsilon
+            && (self.max.z - other.max.z).abs() < epsilon;
+
+        dx && dx2
     }
 
     pub fn approx_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
@@ -135,8 +143,17 @@ impl AABB {
     }
 
     pub fn sweep(aabb1: AABB, aabb2: AABB) -> AABB {
-        let min = aabb1.min.min(aabb2.min);
-        let max = aabb1.max.max(aabb2.max);
+        let min = Vec3::new(
+            aabb1.min.x.min(aabb2.min.x),
+            aabb1.min.y.min(aabb2.min.y),
+            aabb1.min.z.min(aabb2.min.z),
+        );
+
+        let max = Vec3::new(
+            aabb1.max.x.max(aabb2.max.x),
+            aabb1.max.y.max(aabb2.max.y),
+            aabb1.max.z.max(aabb2.max.z),
+        );
 
         let center = (min + max) * 0.5;
         let size = max - min;

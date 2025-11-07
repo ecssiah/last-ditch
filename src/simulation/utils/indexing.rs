@@ -1,4 +1,4 @@
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 pub fn in_bounds(vector: IVec3, radius: u32) -> bool {
     let min = -(radius as i32);
@@ -11,9 +11,9 @@ pub fn in_bounds(vector: IVec3, radius: u32) -> bool {
 
 pub fn indexable_vector(vector: IVec3, radius: u32) -> IVec3 {
     if in_bounds(vector, radius) {
-        vector + IVec3::splat(radius as i32)
+        vector + IVec3::broadcast(radius as i32)
     } else {
-        IVec3::MAX
+        IVec3::new(i32::MAX, i32::MAX, i32::MAX)
     }
 }
 
@@ -32,10 +32,8 @@ pub fn index_to_vector(index: u32, radius: u32) -> IVec3 {
 }
 
 pub fn vector_to_index(vector: IVec3, radius: u32) -> u32 {
-    let vector = vector.as_uvec3();
+    let size: i32 = 2 * radius as i32 + 1;
+    let area: i32 = size * size;
 
-    let size = 2 * radius + 1;
-    let area = size * size;
-
-    vector.x + vector.y * size + vector.z * area
+    (vector.x + vector.y * size + vector.z * area) as u32
 }

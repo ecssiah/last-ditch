@@ -7,7 +7,7 @@ use crate::{
     },
     simulation::observation::view::View,
 };
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 pub struct DebugRender {
     pub visible: bool,
@@ -164,13 +164,15 @@ impl DebugRender {
         color: [f32; 3],
         channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
     ) {
-        Self::add_line(
-            debug_channel,
-            origin,
-            origin + direction.normalize_or_zero() * length,
-            color,
-            channel_vertex_vec_array,
-        );
+        if direction.mag_sq() > 0.0 {
+            Self::add_line(
+                debug_channel,
+                origin,
+                origin + direction.normalized() * length,
+                color,
+                channel_vertex_vec_array,
+            );
+        }
     }
 
     pub fn add_axes(
@@ -182,7 +184,7 @@ impl DebugRender {
         Self::add_line(
             debug_channel,
             origin,
-            origin + Vec3::X * scale,
+            origin + Vec3::unit_x() * scale,
             [1.0, 0.1, 0.1],
             channel_vertex_vec_array,
         );
@@ -190,7 +192,7 @@ impl DebugRender {
         Self::add_line(
             debug_channel,
             origin,
-            origin + Vec3::Y * scale,
+            origin + Vec3::unit_y() * scale,
             [0.1, 1.0, 0.1],
             channel_vertex_vec_array,
         );
@@ -198,7 +200,7 @@ impl DebugRender {
         Self::add_line(
             debug_channel,
             origin,
-            origin + Vec3::Z * scale,
+            origin + Vec3::unit_z() * scale,
             [0.1, 0.1, 1.0],
             channel_vertex_vec_array,
         );
@@ -248,9 +250,7 @@ impl DebugRender {
         if debug_render
             .debug_visibility
             .contains(DebugVisibility::CHANNEL1)
-        {
-            
-        }
+        {}
 
         if debug_render
             .debug_visibility
@@ -260,8 +260,8 @@ impl DebugRender {
             let sector_size_in_cells: f32 = view.world_view.grid.sector_size_in_meters;
 
             let half_span = (radius as f32 + 0.5) * sector_size_in_cells;
-            let min = Vec3::splat(-half_span);
-            let max = Vec3::splat(half_span);
+            let min = Vec3::broadcast(-half_span);
+            let max = Vec3::broadcast(half_span);
 
             let mut bounds: Vec<f32> = Vec::with_capacity(2 * radius as usize + 2);
 

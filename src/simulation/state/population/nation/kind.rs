@@ -1,5 +1,5 @@
 use crate::simulation::state::world::block;
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Kind {

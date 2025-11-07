@@ -1,5 +1,5 @@
 use crate::simulation::state::world::{cell, grid, sector};
-use glam::{IVec3, Vec3};
+use ultraviolet::{IVec3, Vec3};
 
 #[derive(Debug)]
 pub struct CellSample {

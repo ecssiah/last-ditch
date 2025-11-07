@@ -1,6 +1,6 @@
 use crate::simulation::state::physics::aabb::AABB;
-use glam::Vec3;
 use std::f32::EPSILON;
+use ultraviolet::Vec3;
 
 struct ApproxEqCase {
     description: String,
@@ -19,13 +19,13 @@ impl ApproxEqCase {
 
 #[test]
 fn approx_eq() {
-    let aabb1 = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
+    let aabb1 = AABB::new(Vec3::broadcast(0.0), Vec3::broadcast(1.0));
 
     let test_cases = vec![
         ApproxEqCase {
             description: String::from("Equivalent AABBs"),
             aabb1,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
+            aabb2: AABB::new(Vec3::broadcast(0.0), Vec3::new(1.0, 1.0, 1.0)),
             expected_is_equal: true,
         },
         ApproxEqCase {
@@ -50,7 +50,7 @@ fn approx_eq() {
             description: "AABBs that differ only by 4.0 * EPSILON in size.x".to_string(),
             aabb1,
             aabb2: AABB::new(
-                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::broadcast(0.0),
                 Vec3::new(1.0 + 4.0 * EPSILON, 1.0, 1.0),
             ),
             expected_is_equal: false,
@@ -59,7 +59,7 @@ fn approx_eq() {
             description: "AABBs that differ only by -4.0 * EPSILON in size.x".to_string(),
             aabb1,
             aabb2: AABB::new(
-                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::broadcast(0.0),
                 Vec3::new(1.0 - 4.0 * EPSILON, 1.0, 1.0),
             ),
             expected_is_equal: false,

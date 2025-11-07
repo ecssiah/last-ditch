@@ -1,4 +1,4 @@
-use glam::{Quat, Vec3};
+use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Spatial {
@@ -6,7 +6,7 @@ pub struct Spatial {
     pub size: Vec3,
     pub yaw: f32,
     pub pitch: f32,
-    pub quaternion: Quat,
+    pub rotor: Rotor3,
 }
 
 impl Spatial {
@@ -16,23 +16,23 @@ impl Spatial {
             size: Vec3::default(),
             yaw: 0.0,
             pitch: 0.0,
-            quaternion: Quat::default(),
+            rotor: Rotor3::default(),
         }
     }
 
-    pub fn forward(&self) -> Vec3 {
-        self.quaternion * Vec3::Z
+    pub fn forward(spatial: &Spatial) -> Vec3 {
+        spatial.rotor * Vec3::unit_z()
     }
 
-    pub fn up(&self) -> Vec3 {
-        self.quaternion * Vec3::Y
+    pub fn up(spatial: &Spatial) -> Vec3 {
+        spatial.rotor * Vec3::unit_y()
     }
 
-    pub fn right(&self) -> Vec3 {
-        self.quaternion * Vec3::X
+    pub fn right(spatial: &Spatial) -> Vec3 {
+        spatial.rotor * Vec3::unit_x()
     }
 
-    pub fn eye(&self) -> Vec3 {
-        self.world_position + self.up() * 0.9 * self.size.y
+    pub fn eye(spatial: &Spatial) -> Vec3 {
+        spatial.world_position + Self::up(spatial) * 0.9 * spatial.size.y
     }
 }

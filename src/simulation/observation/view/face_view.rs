@@ -1,5 +1,5 @@
 use crate::simulation::state::world::{block, grid};
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct FaceView {

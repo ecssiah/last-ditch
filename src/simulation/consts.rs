@@ -1,31 +1,26 @@
 //! Simulation constants
 
-use std::{f32::consts::FRAC_PI_2, time::Duration};
+pub const PROJECT_TITLE: &str = "Last Ditch";
 
-pub const GOLDEN_ANGLE: f32 = 2.3999632;
+pub const TESTING: bool = true;
 
 pub const SQRT_2: f32 = std::f32::consts::SQRT_2;
 pub const SQRT_3: f32 = 1.7320508;
 
-pub const TESTING: bool = true;
-
-pub const PROJECT_TITLE: &str = "Last Ditch";
+pub const CELL_RADIUS: f32 = 0.5;
 
 pub const SIMULATION_TICK_FREQUENCY: u64 = 20;
 pub const SIMULATION_MAX_TICKS_PER_FRAME: u32 = 5;
-pub const SIMULATION_TICK_DURATION: Duration =
-    Duration::from_nanos(1_000_000_000 / SIMULATION_TICK_FREQUENCY);
+pub const SIMULATION_TICK_DURATION: std::time::Duration =
+    std::time::Duration::from_nanos(1_000_000_000 / SIMULATION_TICK_FREQUENCY);
 pub const SIMULATION_TICK_IN_SECONDS: f32 = SIMULATION_TICK_DURATION.as_secs_f32();
 pub const SIMULATION_TICK_IN_SECONDS_SQUARED: f32 =
     SIMULATION_TICK_IN_SECONDS * SIMULATION_TICK_IN_SECONDS;
 pub const SIMULATION_MAX_ENTITIES: usize = 500;
 
-pub const MOVEMENT_COST_STRAIGHT: u32 = 10;
-pub const MOVEMENT_COST_DIAGONAL: u32 = 14;
-
-pub const CELL_RADIUS: f32 = 0.5;
-
-pub const AMBIENT_LIGHT_LEVELS: [f32; 3] = [0.3, 0.8, 1.0];
+pub const MOVEMENT_COST_STRAIGHT: u32 = 100;
+pub const MOVEMENT_COST_DIAGONAL: u32 = 141;
+pub const MOVEMENT_COST_CORNER: u32 = 173;
 
 pub const GRAVITY_ACCELERATION: f32 = 16.0;
 pub const EPSILON_COLLISION: f32 = 0.001;
@@ -43,4 +38,4 @@ pub const JUDGE_SIZE_Y: f32 = 2.8;
 pub const JUDGE_SIZE_Z: f32 = 0.6;
 pub const JUDGE_VIEW_RADIUS: f32 = 256.0;
 pub const JUDGE_VIEW_RADIUS_SQUARED: f32 = JUDGE_VIEW_RADIUS * JUDGE_VIEW_RADIUS;
-pub const JUDGE_PITCH_LIMIT: f32 = FRAC_PI_2 + f32::EPSILON;
+pub const JUDGE_PITCH_LIMIT: f32 = std::f32::consts::FRAC_PI_2 + f32::EPSILON;

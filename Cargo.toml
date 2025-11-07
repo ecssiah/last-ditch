@@ -18,7 +18,6 @@ egui-winit = "0.31.1"
 egui-wgpu = "0.31.1"
 env_logger = "0.11.6"
 flexi_logger = "0.27"
-glam = { version = "0.29.0", features = ["approx"] }
 image = "0.25.6"
 itertools = "0.12"
 log = "0.4"
@@ -35,4 +34,4 @@ wgpu = "24.0.0"
 winit = "0.30.8"
 bitflags = "2.9.4"
 triple_buffer = "8.1.1"
-ultraviolet = "0.10.0"
+ultraviolet = { version = "0.10.0", features = ["int"] }

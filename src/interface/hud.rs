@@ -12,7 +12,7 @@ use crate::{
     simulation::{self, observation::view::View, state::receiver::action::Action},
 };
 use egui::{FontId, FullOutput, Id, Ui};
-use glam::Vec2;
+use ultraviolet::Vec2;
 use std::sync::Arc;
 use winit::event::{DeviceEvent, WindowEvent};
 

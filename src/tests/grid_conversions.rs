@@ -1,7 +1,8 @@
 use crate::simulation::{
-    self, constructor, state::world::{World, cell, grid::Grid, sector}
+    self, constructor,
+    state::world::{cell, grid::Grid, sector, World},
 };
-use glam::{IVec3, Vec3};
+use ultraviolet::{IVec3, Vec3};
 
 struct CellIDToCellCoordinatesCase {
     description: String,
@@ -13,7 +14,12 @@ impl CellIDToCellCoordinatesCase {
     pub fn check(&self, world: &World) {
         let cell_coordinates = Grid::cell_id_to_cell_coordinates(&world.grid, self.cell_id);
 
-        assert_ne!(cell_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            cell_coordinates,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(
             cell_coordinates, self.expected_cell_coordinates,
             "{:?}",
@@ -35,17 +41,17 @@ fn cell_id_to_cell_coordinates() {
         CellIDToCellCoordinatesCase {
             description: "cell id min".to_string(),
             cell_id: cell::ID(0),
-            expected_cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
         },
         CellIDToCellCoordinatesCase {
             description: "cell id at origin".to_string(),
             cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
-            expected_cell_coordinates: IVec3::splat(0),
+            expected_cell_coordinates: IVec3::broadcast(0),
         },
         CellIDToCellCoordinatesCase {
             description: "cell id max".to_string(),
             cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
-            expected_cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
     ];
 
@@ -81,17 +87,17 @@ fn cell_coordinates_to_cell_id() {
     let test_cases = vec![
         CellCoordinatesToCellIDCase {
             description: "cell coordinates min".to_string(),
-            cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
             expected_cell_id: cell::ID(0),
         },
         CellCoordinatesToCellIDCase {
             description: "cell coordinates origin".to_string(),
-            cell_coordinates: IVec3::splat(0),
+            cell_coordinates: IVec3::broadcast(0),
             expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         CellCoordinatesToCellIDCase {
             description: "cell coordinates max".to_string(),
-            cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
             expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
         },
     ];
@@ -111,7 +117,12 @@ impl SectorIDToSectorCoordinates {
     pub fn check(&self, world: &World) {
         let sector_coordinates = Grid::sector_id_to_sector_coordinates(&world.grid, self.sector_id);
 
-        assert_ne!(sector_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            sector_coordinates,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
@@ -133,17 +144,17 @@ fn sector_id_to_sector_coordinates() {
         SectorIDToSectorCoordinates {
             description: "sector id min".to_string(),
             sector_id: sector::ID(0),
-            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            expected_sector_coordinates: IVec3::broadcast(-world_radius_in_sectors),
         },
         SectorIDToSectorCoordinates {
             description: "sector id at origin".to_string(),
             sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
-            expected_sector_coordinates: IVec3::splat(0),
+            expected_sector_coordinates: IVec3::broadcast(0),
         },
         SectorIDToSectorCoordinates {
             description: "sector id max".to_string(),
             sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
-            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            expected_sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
         },
     ];
 
@@ -179,17 +190,17 @@ fn sector_coordinates_to_sector_id() {
     let test_cases = vec![
         SectorCoordinatesToSectorIDCase {
             description: "sector coordinates min".to_string(),
-            sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            sector_coordinates: IVec3::broadcast(-world_radius_in_sectors),
             expected_sector_id: sector::ID(0),
         },
         SectorCoordinatesToSectorIDCase {
             description: "sector coordinates origin".to_string(),
-            sector_coordinates: IVec3::splat(0),
+            sector_coordinates: IVec3::broadcast(0),
             expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
         SectorCoordinatesToSectorIDCase {
             description: "sector coordinates max".to_string(),
-            sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
             expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
     ];
@@ -209,7 +220,12 @@ impl SectorCoordinatesToPositionCase {
     pub fn check(&self, world: &World) {
         let position = Grid::sector_coordinates_to_position(&world.grid, self.sector_coordinates);
 
-        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            position,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -228,18 +244,18 @@ fn sector_coordinates_to_position() {
     let test_cases = vec![
         SectorCoordinatesToPositionCase {
             description: "sector min".to_string(),
-            sector_coordinates: IVec3::splat(-world_radius_in_sectors),
-            expected_position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
+            sector_coordinates: IVec3::broadcast(-world_radius_in_sectors),
+            expected_position: IVec3::broadcast(-world_radius_in_cells + sector_radius_in_cells),
         },
         SectorCoordinatesToPositionCase {
             description: "sector origin".to_string(),
-            sector_coordinates: IVec3::splat(0),
-            expected_position: IVec3::splat(0),
+            sector_coordinates: IVec3::broadcast(0),
+            expected_position: IVec3::broadcast(0),
         },
         SectorCoordinatesToPositionCase {
             description: "sector max".to_string(),
-            sector_coordinates: IVec3::splat(world_radius_in_sectors),
-            expected_position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
+            sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
+            expected_position: IVec3::broadcast(world_radius_in_cells - sector_radius_in_cells),
         },
     ];
 
@@ -258,7 +274,12 @@ impl SectorIDToPositionCase {
     pub fn check(&self, world: &World) {
         let position = Grid::sector_id_to_position(&world.grid, self.sector_id);
 
-        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            position,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -277,17 +298,17 @@ fn sector_id_to_position() {
         SectorIDToPositionCase {
             description: "sector_id min".to_string(),
             sector_id: sector::ID(0),
-            expected_position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
+            expected_position: IVec3::broadcast(-world_radius_in_cells + sector_radius_in_cells),
         },
         SectorIDToPositionCase {
             description: "sector_id origin".to_string(),
             sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
-            expected_position: IVec3::splat(0),
+            expected_position: IVec3::broadcast(0),
         },
         SectorIDToPositionCase {
             description: "sector_id max".to_string(),
             sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
-            expected_position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
+            expected_position: IVec3::broadcast(world_radius_in_cells - sector_radius_in_cells),
         },
     ];
 
@@ -306,7 +327,12 @@ impl PositionToSectorCoordinatesCase {
     pub fn check(&self, world: &World) {
         let sector_coordinates = Grid::position_to_sector_coordinates(&world.grid, self.position);
 
-        assert_ne!(sector_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            sector_coordinates,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
@@ -329,18 +355,18 @@ fn position_to_sector_coordinates() {
     let test_cases = vec![
         PositionToSectorCoordinatesCase {
             description: "sector min".to_string(),
-            position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
-            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            position: IVec3::broadcast(-world_radius_in_cells + sector_radius_in_cells),
+            expected_sector_coordinates: IVec3::broadcast(-world_radius_in_sectors),
         },
         PositionToSectorCoordinatesCase {
             description: "sector origin".to_string(),
-            position: IVec3::splat(0),
-            expected_sector_coordinates: IVec3::splat(0),
+            position: IVec3::broadcast(0),
+            expected_sector_coordinates: IVec3::broadcast(0),
         },
         PositionToSectorCoordinatesCase {
             description: "sector max".to_string(),
-            position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
-            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            position: IVec3::broadcast(world_radius_in_cells - sector_radius_in_cells),
+            expected_sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
         },
     ];
 
@@ -359,7 +385,12 @@ impl PositionToCellCoordinatesCase {
     pub fn check(&self, world: &World) {
         let cell_coordinates = Grid::position_to_cell_coordinates(&world.grid, self.position);
 
-        assert_ne!(cell_coordinates, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            cell_coordinates,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(
             cell_coordinates, self.expected_cell_coordinates,
             "{:?}",
@@ -382,48 +413,48 @@ fn position_to_cell_coordinates() {
     let test_cases = vec![
         PositionToCellCoordinatesCase {
             description: "origin sector min".to_string(),
-            position: IVec3::splat(-sector_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            position: IVec3::broadcast(-sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
         },
         PositionToCellCoordinatesCase {
             description: "origin sector origin".to_string(),
-            position: IVec3::splat(0),
-            expected_cell_coordinates: IVec3::splat(0),
+            position: IVec3::broadcast(0),
+            expected_cell_coordinates: IVec3::broadcast(0),
         },
         PositionToCellCoordinatesCase {
             description: "origin sector max".to_string(),
-            position: IVec3::splat(sector_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            position: IVec3::broadcast(sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
         PositionToCellCoordinatesCase {
             description: "world min sector min".to_string(),
-            position: IVec3::splat(-world_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            position: IVec3::broadcast(-world_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
         },
         PositionToCellCoordinatesCase {
             description: "world min sector origin".to_string(),
-            position: IVec3::splat(-world_radius_in_cells + sector_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(0),
+            position: IVec3::broadcast(-world_radius_in_cells + sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(0),
         },
         PositionToCellCoordinatesCase {
             description: "world min sector max".to_string(),
-            position: IVec3::splat(-world_radius_in_cells + sector_size_in_cells - 1),
-            expected_cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            position: IVec3::broadcast(-world_radius_in_cells + sector_size_in_cells - 1),
+            expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
         PositionToCellCoordinatesCase {
             description: "world max sector min".to_string(),
-            position: IVec3::splat(world_radius_in_cells - sector_size_in_cells + 1),
-            expected_cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            position: IVec3::broadcast(world_radius_in_cells - sector_size_in_cells + 1),
+            expected_cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
         },
         PositionToCellCoordinatesCase {
             description: "world max sector origin".to_string(),
-            position: IVec3::splat(world_radius_in_cells - sector_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(0),
+            position: IVec3::broadcast(world_radius_in_cells - sector_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(0),
         },
         PositionToCellCoordinatesCase {
             description: "world max sector max".to_string(),
-            position: IVec3::splat(world_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            position: IVec3::broadcast(world_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
     ];
 
@@ -459,17 +490,17 @@ fn position_to_sector_id() {
     let test_cases = vec![
         PositionToSectorIDCase {
             description: "position min".to_string(),
-            position: IVec3::splat(-world_radius_in_cells),
+            position: IVec3::broadcast(-world_radius_in_cells),
             expected_sector_id: sector::ID(0),
         },
         PositionToSectorIDCase {
             description: "position origin".to_string(),
-            position: IVec3::splat(0),
+            position: IVec3::broadcast(0),
             expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
         PositionToSectorIDCase {
             description: "position max".to_string(),
-            position: IVec3::splat(world_radius_in_cells),
+            position: IVec3::broadcast(world_radius_in_cells),
             expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
     ];
@@ -506,17 +537,17 @@ fn position_to_cell_id() {
     let test_cases = vec![
         PositionToCellIDCase {
             description: "position min".to_string(),
-            position: IVec3::splat(-sector_radius_in_cells),
+            position: IVec3::broadcast(-sector_radius_in_cells),
             expected_cell_id: cell::ID(0),
         },
         PositionToCellIDCase {
             description: "position origin".to_string(),
-            position: IVec3::splat(0),
+            position: IVec3::broadcast(0),
             expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         PositionToCellIDCase {
             description: "position max".to_string(),
-            position: IVec3::splat(sector_radius_in_cells),
+            position: IVec3::broadcast(sector_radius_in_cells),
             expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
         },
     ];
@@ -537,7 +568,12 @@ impl IDsToPositionCase {
     pub fn check(&self, world: &World) {
         let position = Grid::ids_to_position(&world.grid, self.sector_id, self.cell_id);
 
-        assert_ne!(position, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            position,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -556,19 +592,19 @@ fn ids_to_position() {
             description: "ids at min".to_string(),
             sector_id: sector::ID(0),
             cell_id: cell::ID(0),
-            expected_position: IVec3::splat(-world_radius_in_cells),
+            expected_position: IVec3::broadcast(-world_radius_in_cells),
         },
         IDsToPositionCase {
             description: "ids at origin".to_string(),
             sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
             cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
-            expected_position: IVec3::splat(0),
+            expected_position: IVec3::broadcast(0),
         },
         IDsToPositionCase {
             description: "ids at max".to_string(),
             sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
             cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
-            expected_position: IVec3::splat(world_radius_in_cells),
+            expected_position: IVec3::broadcast(world_radius_in_cells),
         },
     ];
 
@@ -610,12 +646,12 @@ fn position_to_ids() {
     let test_cases = vec![
         PositionToIDsCase {
             description: "position at min".to_string(),
-            position: IVec3::splat(-world_radius_in_cells),
+            position: IVec3::broadcast(-world_radius_in_cells),
             expected_ids: (sector::ID(0), cell::ID(0)),
         },
         PositionToIDsCase {
             description: "position at origin".to_string(),
-            position: IVec3::splat(0),
+            position: IVec3::broadcast(0),
             expected_ids: (
                 sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
                 cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
@@ -623,7 +659,7 @@ fn position_to_ids() {
         },
         PositionToIDsCase {
             description: "position at max".to_string(),
-            position: IVec3::splat(world_radius_in_cells),
+            position: IVec3::broadcast(world_radius_in_cells),
             expected_ids: (
                 sector::ID(world.grid.world_volume_in_sectors - 1),
                 cell::ID(world.grid.sector_volume_in_cells - 1),
@@ -662,28 +698,28 @@ fn world_to_position() {
     let test_cases = vec![
         WorldToPositionCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells),
-            expected_position: IVec3::splat(-world_radius_in_cells as i32),
+            world_position: Vec3::broadcast(-world_radius_in_cells),
+            expected_position: IVec3::broadcast(-world_radius_in_cells as i32),
         },
         WorldToPositionCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
-            expected_position: IVec3::MAX,
+            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
+            expected_position: IVec3::new(i32::MAX, i32::MAX, i32::MAX),
         },
         WorldToPositionCase {
             description: "world origin".to_string(),
-            world_position: Vec3::splat(0.0),
-            expected_position: IVec3::splat(0),
+            world_position: Vec3::broadcast(0.0),
+            expected_position: IVec3::broadcast(0),
         },
         WorldToPositionCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells),
-            expected_position: IVec3::splat(world_radius_in_cells as i32),
+            world_position: Vec3::broadcast(world_radius_in_cells),
+            expected_position: IVec3::broadcast(world_radius_in_cells as i32),
         },
         WorldToPositionCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells + 1.0),
-            expected_position: IVec3::MAX,
+            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
+            expected_position: IVec3::new(i32::MAX, i32::MAX, i32::MAX),
         },
         WorldToPositionCase {
             description: "standard position".to_string(),
@@ -723,27 +759,27 @@ fn world_to_sector_id() {
     let test_cases = vec![
         WorldToSectorIDCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells),
+            world_position: Vec3::broadcast(-world_radius_in_cells),
             expected_sector_id: sector::ID(0),
         },
         WorldToSectorIDCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
+            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
             expected_sector_id: sector::ID::MAX,
         },
         WorldToSectorIDCase {
             description: "world origin".to_string(),
-            world_position: Vec3::splat(0.0),
+            world_position: Vec3::broadcast(0.0),
             expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
         },
         WorldToSectorIDCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells),
+            world_position: Vec3::broadcast(world_radius_in_cells),
             expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
         },
         WorldToSectorIDCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells + 1.0),
+            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
             expected_sector_id: sector::ID::MAX,
         },
     ];
@@ -785,18 +821,18 @@ fn world_to_sector_coordinates() {
     let test_cases = vec![
         WorldToSectorCoordinates {
             description: "world min".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells),
-            expected_sector_coordinates: IVec3::splat(world_radius_in_sectors),
+            world_position: Vec3::broadcast(world_radius_in_cells),
+            expected_sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
         },
         WorldToSectorCoordinates {
             description: "world origin".to_string(),
-            world_position: Vec3::splat(0.0),
-            expected_sector_coordinates: IVec3::splat(0),
+            world_position: Vec3::broadcast(0.0),
+            expected_sector_coordinates: IVec3::broadcast(0),
         },
         WorldToSectorCoordinates {
             description: "world max".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells),
-            expected_sector_coordinates: IVec3::splat(-world_radius_in_sectors),
+            world_position: Vec3::broadcast(-world_radius_in_cells),
+            expected_sector_coordinates: IVec3::broadcast(-world_radius_in_sectors),
         },
     ];
 
@@ -831,27 +867,27 @@ fn world_to_cell_id() {
     let test_cases = vec![
         WorldToCellIDCase {
             description: "world min".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells),
+            world_position: Vec3::broadcast(-world_radius_in_cells),
             expected_cell_id: cell::ID(0),
         },
         WorldToCellIDCase {
             description: "world min - 1.0".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells - 1.0),
+            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
             expected_cell_id: cell::ID::MAX,
         },
         WorldToCellIDCase {
             description: "world origin".to_string(),
-            world_position: Vec3::splat(0.0),
+            world_position: Vec3::broadcast(0.0),
             expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
         },
         WorldToCellIDCase {
             description: "world max".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells),
+            world_position: Vec3::broadcast(world_radius_in_cells),
             expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
         },
         WorldToCellIDCase {
             description: "world max + 1.0".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells + 1.0),
+            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
             expected_cell_id: cell::ID::MAX,
         },
     ];
@@ -892,18 +928,18 @@ fn world_to_cell_coordinates() {
     let test_cases = vec![
         WorldToCellCoordinates {
             description: "world min".to_string(),
-            world_position: Vec3::splat(world_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(sector_radius_in_cells),
+            world_position: Vec3::broadcast(world_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
         WorldToCellCoordinates {
             description: "world origin".to_string(),
-            world_position: Vec3::splat(0.0),
-            expected_cell_coordinates: IVec3::splat(0),
+            world_position: Vec3::broadcast(0.0),
+            expected_cell_coordinates: IVec3::broadcast(0),
         },
         WorldToCellCoordinates {
             description: "world max".to_string(),
-            world_position: Vec3::splat(-world_radius_in_cells),
-            expected_cell_coordinates: IVec3::splat(-sector_radius_in_cells),
+            world_position: Vec3::broadcast(-world_radius_in_cells),
+            expected_cell_coordinates: IVec3::broadcast(-sector_radius_in_cells),
         },
     ];
 

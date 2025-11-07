@@ -8,8 +8,8 @@ use crate::simulation::{
         Population,
     },
 };
-use glam::Vec3;
 use std::collections::HashMap;
+use ultraviolet::Vec3;
 
 pub fn run(population: &mut Population) {
     setup_judge(&mut population.judge);

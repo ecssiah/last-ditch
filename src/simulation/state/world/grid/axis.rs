@@ -1,4 +1,4 @@
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
@@ -19,9 +19,9 @@ impl Axis {
 
     pub fn unit(&self) -> Vec3 {
         match self {
-            Axis::X => Vec3::new(1.0, 0.0, 0.0),
-            Axis::Y => Vec3::new(0.0, 1.0, 0.0),
-            Axis::Z => Vec3::new(0.0, 0.0, 1.0),
+            Axis::X => Vec3::unit_x(),
+            Axis::Y => Vec3::unit_y(),
+            Axis::Z => Vec3::unit_z(),
         }
     }
 }

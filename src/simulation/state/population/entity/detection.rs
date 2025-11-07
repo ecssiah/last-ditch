@@ -1,5 +1,5 @@
 use crate::simulation::state::physics::aabb::AABB;
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detection {

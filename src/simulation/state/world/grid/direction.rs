@@ -1,4 +1,4 @@
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 #[rustfmt::skip]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]

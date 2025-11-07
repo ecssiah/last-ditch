@@ -1,7 +1,9 @@
 use crate::simulation::state::world::{
-    World, block, grid::{self, Grid}
+    block,
+    grid::{self, Grid},
+    World,
 };
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 pub fn run(world: &mut World) {
     build_center_room(world);
@@ -31,7 +33,7 @@ fn build_center_room(world: &mut World) {
     let center_position = IVec3::new(0, -4, 0);
 
     World::set_block(
-        center_position + IVec3::Z * 2,
+        center_position + IVec3::unit_z() * 2,
         block::Kind::North,
         &world.grid,
         &world.block_info_map,
@@ -39,7 +41,7 @@ fn build_center_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::Z * 2,
+        center_position - IVec3::unit_z() * 2,
         block::Kind::South,
         &world.grid,
         &world.block_info_map,
@@ -47,7 +49,7 @@ fn build_center_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position + IVec3::X * 2,
+        center_position + IVec3::unit_x() * 2,
         block::Kind::East,
         &world.grid,
         &world.block_info_map,
@@ -55,7 +57,7 @@ fn build_center_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::X * 2,
+        center_position - IVec3::unit_x() * 2,
         block::Kind::West,
         &world.grid,
         &world.block_info_map,
@@ -405,8 +407,8 @@ fn build_sector_room(
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     World::set_box(
-        position - IVec3::splat(sector_radius_in_cells),
-        position + IVec3::splat(sector_radius_in_cells),
+        position - IVec3::broadcast(sector_radius_in_cells),
+        position + IVec3::broadcast(sector_radius_in_cells),
         kind,
         &world.grid,
         &world.block_info_map,
@@ -414,7 +416,7 @@ fn build_sector_room(
     );
 
     World::set_block(
-        position - IVec3::Y * sector_radius_in_cells,
+        position - IVec3::unit_y() * sector_radius_in_cells,
         block::Kind::TealStone,
         &world.grid,
         &world.block_info_map,

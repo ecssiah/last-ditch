@@ -2,7 +2,7 @@ use crate::simulation::state::{
     population::nation,
     world::{block, grid::Grid, World},
 };
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 pub fn run(world: &mut World) {
     build_ground(world);

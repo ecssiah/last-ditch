@@ -1,9 +1,11 @@
 use crate::simulation::{
-    self, constructor, state::{
-        World, world::grid::{self, WorldRayIterator}
-    }
+    self, constructor,
+    state::{
+        world::grid::{self, WorldRayIterator},
+        World,
+    },
 };
-use glam::{IVec3, Vec3};
+use ultraviolet::{IVec3, Vec3};
 
 struct WorldRayIteratoratorCase {
     pub description: String,
@@ -61,7 +63,7 @@ fn general_ray_tests() {
     let test_cases = vec![
         WorldRayIteratoratorCase {
             description: "case 1".to_string(),
-            origin: Vec3::new(0.0, 0.0, 0.0),
+            origin: Vec3::broadcast(0.0),
             direction: Vec3::new(1.0, 1.0, 1.0),
             distance: 4.0,
             expected_cell_info_vec: vec![
@@ -81,7 +83,7 @@ fn general_ray_tests() {
         },
         WorldRayIteratoratorCase {
             description: "case 2".to_string(),
-            origin: Vec3::new(0.0, 0.0, 0.0),
+            origin: Vec3::broadcast(0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
             distance: 4.0,
             expected_cell_info_vec: vec![
@@ -97,7 +99,7 @@ fn general_ray_tests() {
         },
         WorldRayIteratoratorCase {
             description: "case 3".to_string(),
-            origin: Vec3::new(0.0, 0.0, 0.0),
+            origin: Vec3::broadcast(0.0),
             direction: Vec3::new(1.0, 1.0, 0.0),
             distance: 0.0,
             expected_cell_info_vec: vec![],

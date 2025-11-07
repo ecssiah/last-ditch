@@ -1,7 +1,9 @@
 use crate::simulation::{
-    self, constructor, consts::*, state::world::{World, grid::Grid}
+    self, constructor,
+    consts::*,
+    state::world::{grid::Grid, World},
 };
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 struct GetClearanceCase {
     description: String,
@@ -15,7 +17,12 @@ impl GetClearanceCase {
         let sector_position =
             Grid::sector_coordinates_to_position(&world.grid, self.sector_coordinates);
 
-        assert_ne!(sector_position, IVec3::MAX, "{:?}", self.description);
+        assert_ne!(
+            sector_position,
+            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+            "{:?}",
+            self.description
+        );
 
         let position = sector_position + self.cell_coordinates;
         let clearance = World::get_clearance(position, &world.grid, &world.sector_vec);

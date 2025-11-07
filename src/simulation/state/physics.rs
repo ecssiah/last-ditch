@@ -11,7 +11,7 @@ use crate::simulation::{
         World,
     },
 };
-use glam::Vec3;
+use ultraviolet::{IVec3, Vec3};
 
 #[derive(Default)]
 pub struct Physics {
@@ -97,7 +97,12 @@ impl Physics {
         Grid::cells_overlapping(&world.grid, aabb)
             .into_iter()
             .filter(|cell_aabb| {
-                let cell_position = cell_aabb.center().as_ivec3();
+                let aabb_center = cell_aabb.center();
+                let cell_position = IVec3::new(
+                    aabb_center.x.round() as i32,
+                    aabb_center.y.round() as i32,
+                    aabb_center.z.round() as i32,
+                );
 
                 if let Some(cell) =
                     World::get_cell_at(cell_position, &world.grid, &world.sector_vec)

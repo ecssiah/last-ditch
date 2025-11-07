@@ -3,7 +3,7 @@ use crate::simulation::state::{
     world::grid::{self, CellSample, Grid},
     World,
 };
-use glam::{IVec3, Vec3};
+use ultraviolet::{IVec3, Vec3};
 
 pub struct WorldRayIterator<'world> {
     world: &'world World,
@@ -25,7 +25,15 @@ impl<'world> WorldRayIterator<'world> {
         direction: Vec3,
         distance: f32,
     ) -> Option<Self> {
-        if !direction.is_finite() || direction == Vec3::ZERO || distance <= 0.0 {
+        if distance <= 0.0 {
+            return None;
+        }
+
+        if direction == Vec3::broadcast(0.0) {
+            return None;
+        }
+
+        if !(direction.x.is_finite() && direction.y.is_finite() && direction.z.is_finite()) {
             return None;
         }
 
@@ -33,7 +41,10 @@ impl<'world> WorldRayIterator<'world> {
         let cell_size_in_meters = grid.cell_size_in_meters;
         let cell_radius_in_meters = grid.cell_radius_in_meters;
 
-        let world_aabb = AABB::new(Vec3::ZERO, Vec3::splat(grid.world_size_in_meters));
+        let world_aabb = AABB::new(
+            Vec3::broadcast(0.0),
+            Vec3::broadcast(grid.world_size_in_meters),
+        );
 
         let (mut t0, mut t1) = slab_test(origin, direction, &world_aabb);
 
@@ -49,9 +60,15 @@ impl<'world> WorldRayIterator<'world> {
         }
 
         let t_start = t0;
-
         let epsilon = 1e-6;
-        let world_position = origin + direction * t0 - direction.signum() * epsilon;
+
+        let direction_signum = Vec3::new(
+            direction.x.signum(),
+            direction.y.signum(),
+            direction.z.signum(),
+        );
+
+        let world_position = origin + direction * t0 - direction_signum * epsilon;
 
         let position = Grid::world_to_position(&world.grid, world_position);
 

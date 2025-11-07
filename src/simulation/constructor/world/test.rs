@@ -5,7 +5,7 @@ use crate::simulation::state::{
     },
     World,
 };
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 pub fn run(world: &mut World) {
     build_rooms(world);
@@ -44,8 +44,8 @@ fn build_rooms(world: &mut World) {
                 };
 
                 World::set_cube(
-                    sector_position - sector_radius_in_cells,
-                    sector_position + sector_radius_in_cells,
+                    sector_position - IVec3::broadcast(sector_radius_in_cells),
+                    sector_position + IVec3::broadcast(sector_radius_in_cells),
                     sector_kind,
                     &world.grid,
                     &world.block_info_map,
@@ -84,7 +84,7 @@ fn build_central_room(world: &mut World) {
     let center_position = IVec3::new(0, -sector_radius_in_cells - 1, 0);
 
     World::set_block(
-        center_position + IVec3::Z * 2,
+        center_position + IVec3::unit_z() * 2,
         block::Kind::North,
         &world.grid,
         &world.block_info_map,
@@ -92,7 +92,7 @@ fn build_central_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::Z * 2,
+        center_position - IVec3::unit_z() * 2,
         block::Kind::South,
         &world.grid,
         &world.block_info_map,
@@ -100,7 +100,7 @@ fn build_central_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position + IVec3::X * 2,
+        center_position + IVec3::unit_x() * 2,
         block::Kind::East,
         &world.grid,
         &world.block_info_map,
@@ -108,7 +108,7 @@ fn build_central_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::X * 2,
+        center_position - IVec3::unit_x() * 2,
         block::Kind::West,
         &world.grid,
         &world.block_info_map,
@@ -205,8 +205,8 @@ fn build_sector_room(
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     World::set_box(
-        position - IVec3::splat(sector_radius_in_cells),
-        position + IVec3::splat(sector_radius_in_cells),
+        position - IVec3::broadcast(sector_radius_in_cells),
+        position + IVec3::broadcast(sector_radius_in_cells),
         kind,
         &world.grid,
         &world.block_info_map,

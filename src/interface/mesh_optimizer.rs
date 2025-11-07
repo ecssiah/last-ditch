@@ -1,6 +1,6 @@
 //! Mesh Optimization
 
-use glam::IVec3;
+use ultraviolet::IVec3;
 
 /// Mikola Lysenko
 /// <https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/>
@@ -18,7 +18,7 @@ pub fn lysenko_optimization(volume: Vec<i32>, dimensions: IVec3) {
         let mut mask: Vec<i32> = Vec::with_capacity(slice_cell_count);
         mask.resize(slice_cell_count, 0);
 
-        let mut cursor_position = IVec3::ZERO;
+        let mut cursor_position = IVec3::new(0, 0, 0);
 
         let cursor_delta = match dimension_index {
             0 => IVec3::new(1, 0, 0),
@@ -107,8 +107,8 @@ pub fn lysenko_optimization(volume: Vec<i32>, dimensions: IVec3) {
                         cursor_position[local_x_dimension_index] = local_x;
                         cursor_position[local_y_dimension_index] = local_y;
 
-                        let mut local_x_delta = IVec3::ZERO;
-                        let mut local_y_delta = IVec3::ZERO;
+                        let mut local_x_delta = IVec3::new(0, 0, 0);
+                        let mut local_y_delta = IVec3::new(0, 0, 0);
 
                         if cell > 0 {
                             local_x_delta[local_x_dimension_index] = width;
@@ -146,19 +146,9 @@ pub fn lysenko_optimization(volume: Vec<i32>, dimensions: IVec3) {
                             cursor_position[2] + local_y_delta[2],
                         ]);
 
-                        index_array.push([
-                            vertex_count,
-                            vertex_count + 1,
-                            vertex_count + 2,
-                            cell,
-                        ]);
+                        index_array.push([vertex_count, vertex_count + 1, vertex_count + 2, cell]);
 
-                        index_array.push([
-                            vertex_count,
-                            vertex_count + 2,
-                            vertex_count + 3,
-                            cell,
-                        ]);
+                        index_array.push([vertex_count, vertex_count + 2, vertex_count + 3, cell]);
 
                         for local_y in 0..height {
                             for local_x in 0..width {

@@ -8,8 +8,8 @@ use crate::simulation::{
         world::World,
     },
 };
-use glam::Vec3;
 use rand::Rng;
+use ultraviolet::Vec3;
 
 pub fn run(world: &World, population: &mut Population) {
     setup_judge(population);
@@ -42,7 +42,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
     for nation_kind in nation::Kind::all() {
         if let Some(flag_position) = world.flag_position_map.get(&nation_kind) {
-            let flag_position = flag_position.as_vec3();
+            let flag_position = Vec3::from(*flag_position);
 
             for _ in 0..agent_initial_population {
                 let offset = Vec3::new(

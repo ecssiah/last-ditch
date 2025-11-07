@@ -1,5 +1,5 @@
 use crate::simulation::state::physics::aabb::AABB;
-use glam::Vec3;
+use ultraviolet::Vec3;
 
 struct IntersectsAABBCase {
     description: String,
@@ -22,55 +22,55 @@ impl IntersectsAABBCase {
 
 #[test]
 fn cells_intersect_when_overlapping() {
-    let aabb = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
+    let aabb = AABB::new(Vec3::broadcast(0.0), Vec3::broadcast(1.0));
 
     let test_cases = vec![
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.5, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-0.5, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.5, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, -0.5, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 0.5), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -0.5), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.5, 0.5, 0.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.5, 0.5, 0.5), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-0.5, -0.5, -0.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-0.5, -0.5, -0.5), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
     ];
@@ -82,55 +82,55 @@ fn cells_intersect_when_overlapping() {
 
 #[test]
 fn cells_intersect_when_intersecting() {
-    let aabb = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
+    let aabb = AABB::new(Vec3::broadcast(0.0), Vec3::broadcast(1.0));
 
     let test_cases = vec![
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.0, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.0, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 1.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, -1.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::broadcast(1.0)),
             expected_intersects_result: true,
         },
     ];
@@ -142,55 +142,55 @@ fn cells_intersect_when_intersecting() {
 
 #[test]
 fn cells_do_not_intersect_when_separated() {
-    let aabb = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::splat(1.0));
+    let aabb = AABB::new(Vec3::broadcast(0.0), Vec3::broadcast(1.0));
 
     let test_cases = vec![
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(1.5, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.5, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-1.5, 0.0, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.5, 0.0, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 1.5, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 1.5, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, -1.5, 0.0), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, -1.5, 0.0), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, 1.5), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(0.0, 0.0, -1.5), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(1.5, 1.5, 1.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(1.5, 1.5, 1.5), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
         IntersectsAABBCase {
             description: "".to_string(),
             aabb1: aabb,
-            aabb2: AABB::new(Vec3::new(-1.5, -1.5, -1.5), Vec3::splat(1.0)),
+            aabb2: AABB::new(Vec3::new(-1.5, -1.5, -1.5), Vec3::broadcast(1.0)),
             expected_intersects_result: false,
         },
     ];

@@ -10,7 +10,7 @@ use crate::simulation::{
         world::{sector, World},
     },
 };
-use glam::{Quat, Vec3};
+use ultraviolet::{Rotor3, Vec3};
 
 pub struct Judge {
     pub info: entity::Info,
@@ -67,15 +67,14 @@ impl Judge {
 
         spatial.pitch = spatial.pitch.clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
-        spatial.quaternion =
-            Quat::from_rotation_y(spatial.yaw) * Quat::from_rotation_x(spatial.pitch);
+        spatial.rotor = Rotor3::from_euler_angles(0.0, 0.0, -spatial.yaw)
+            * Rotor3::from_euler_angles(0.0, spatial.pitch, 0.0);
 
         let velocity_xz = Vec3::new(kinematic.velocity.x, 0.0, kinematic.velocity.z);
-        let speed = velocity_xz.length_squared();
+        let speed = velocity_xz.mag_sq();
 
         if speed > 1e-12 {
-            let forward = spatial.quaternion * Vec3::Z;
-            let new_velocity_xz = forward.normalize() * speed;
+            let new_velocity_xz = Spatial::forward(spatial) * speed;
 
             kinematic.velocity.x = new_velocity_xz.x;
             kinematic.velocity.z = new_velocity_xz.z;
@@ -92,17 +91,18 @@ impl Judge {
                 .pitch
                 .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
-            judge.spatial.quaternion = Quat::from_rotation_y(judge.spatial.yaw)
-                * Quat::from_rotation_x(judge.spatial.pitch);
+            judge.spatial.rotor =
+                Rotor3::from_euler_angles(0.0, -judge.spatial.pitch, -judge.spatial.yaw);
         }
 
-        let input_direction = movement_data.direction.normalize_or_zero();
+        if movement_data.direction.mag_sq() > 1e-6 {
+            let yaw_rotor = Rotor3::from_euler_angles(0.0, 0.0, -judge.spatial.yaw);
 
-        if input_direction.length_squared() > 1e-6 {
-            let yaw_quat = Quat::from_rotation_y(judge.spatial.yaw);
+            let local_velocity =
+                Vec3::new(movement_data.direction.x, 0.0, -movement_data.direction.z)
+                    * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
 
-            let local_velocity = input_direction * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
-            let velocity = yaw_quat * local_velocity;
+            let velocity = yaw_rotor * local_velocity;
 
             judge.kinematic.velocity.x = velocity.x;
             judge.kinematic.velocity.z = velocity.z;
