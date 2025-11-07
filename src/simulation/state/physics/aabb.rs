@@ -118,15 +118,7 @@ impl AABB {
     }
 
     pub fn approx_eq(&self, other: AABB, epsilon: f32) -> bool {
-        let dx = (self.min.x - other.min.x).abs() < epsilon
-            && (self.min.y - other.min.y).abs() < epsilon
-            && (self.min.z - other.min.z).abs() < epsilon;
-
-        let dx2 = (self.max.x - other.max.x).abs() < epsilon
-            && (self.max.y - other.max.y).abs() < epsilon
-            && (self.max.z - other.max.z).abs() < epsilon;
-
-        dx && dx2
+        (self.min - other.min).mag() <= epsilon && (self.max - other.max).mag() <= epsilon
     }
 
     pub fn approx_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
