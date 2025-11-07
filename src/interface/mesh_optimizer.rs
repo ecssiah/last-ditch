@@ -1,10 +1,10 @@
 //! Mesh Optimization
-//! 
-//! <https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/>
 
 use glam::IVec3;
 
-pub fn optimize(volume: Vec<i32>, dimensions: IVec3) {
+/// Mikola Lysenko
+/// <https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/>
+pub fn lysenko_optimization(volume: Vec<i32>, dimensions: IVec3) {
     let mut vertex_array = Vec::new();
     let mut index_array = Vec::new();
 

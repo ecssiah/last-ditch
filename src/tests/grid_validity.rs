@@ -22,7 +22,7 @@ fn cell_id_valid() {
     let simulation_kind = simulation::Kind::Test;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let test_cases = vec![
         CellIDValidCase {
@@ -66,7 +66,7 @@ fn sector_id_valid() {
     let simulation_kind = simulation::Kind::Test;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let test_cases = vec![
         SectorIDValidCase {
@@ -110,7 +110,7 @@ fn position_valid() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 

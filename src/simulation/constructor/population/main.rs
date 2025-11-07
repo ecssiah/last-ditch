@@ -11,7 +11,7 @@ use crate::simulation::{
 use glam::Vec3;
 use rand::Rng;
 
-pub fn construct(world: &World, population: &mut Population) {
+pub fn run(world: &World, population: &mut Population) {
     setup_judge(population);
     setup_agent_map(world, population);
 }

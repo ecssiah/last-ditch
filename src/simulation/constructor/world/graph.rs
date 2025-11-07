@@ -3,7 +3,7 @@ use crate::simulation::state::world::{
 };
 use glam::IVec3;
 
-pub fn construct(world: &mut World) {
+pub fn run(world: &mut World) {
     build_center_room(world);
 
     build_vertical_entrance_room(world);

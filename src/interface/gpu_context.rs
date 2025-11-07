@@ -1,4 +1,4 @@
-//! WebGPU Interface
+//! GPU Objects
 
 use std::sync::Arc;
 

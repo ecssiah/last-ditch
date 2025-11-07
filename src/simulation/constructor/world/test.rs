@@ -7,7 +7,7 @@ use crate::simulation::state::{
 };
 use glam::IVec3;
 
-pub fn construct(world: &mut World) {
+pub fn run(world: &mut World) {
     build_rooms(world);
     build_central_room(world);
     build_clearance_test(world);

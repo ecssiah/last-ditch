@@ -4,7 +4,7 @@ use crate::simulation::{
 };
 use glam::Vec3;
 
-pub fn construct(population: &mut Population) {
+pub fn run(population: &mut Population) {
     setup_judge(population);
 }
 

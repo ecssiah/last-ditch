@@ -366,12 +366,16 @@ impl World {
             .map_or(false, |sector| sector.modified.cell)
         {
             for cell_id in Grid::cell_ids(grid) {
-                let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice).unwrap();
+                let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice)
+                    .expect("All grid cells should exist");
+                
                 let face_exposure =
                     Self::compute_face_exposure(cell.position, grid, sector_vec_slice);
 
                 if let Some(cell) = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice) {
-                    Self::update_cell_faces(cell, face_exposure);
+                    for (face, &exposed) in cell.face_array.iter_mut().zip(face_exposure.iter()) {
+                        face.exposed = exposed;
+                    }
                 }
             }
         }
@@ -395,11 +399,5 @@ impl World {
         }
 
         face_exposure
-    }
-
-    fn update_cell_faces(cell: &mut Cell, face_exposure: [bool; 6]) {
-        for (face, &exposed) in cell.face_array.iter_mut().zip(face_exposure.iter()) {
-            face.exposed = exposed;
-        }
     }
 }

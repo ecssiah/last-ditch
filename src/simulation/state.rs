@@ -78,7 +78,7 @@ impl State {
 
     fn init_load(state: &mut State) {
         let simulation_kind = state.simulation_kind;
-        
+
         let world = std::mem::replace(&mut state.world, World::placeholder());
         let population = std::mem::replace(&mut state.population, Population::placeholder());
 
@@ -88,8 +88,8 @@ impl State {
             let mut world = world;
             let mut population = population;
 
-            constructor::world::construct(simulation_kind, &mut world);
-            constructor::population::construct(simulation_kind, &world, &mut population);
+            constructor::world::run(simulation_kind, &mut world);
+            constructor::population::run(simulation_kind, &world, &mut population);
 
             let _ = construct_tx.blocking_send((world, population));
         });

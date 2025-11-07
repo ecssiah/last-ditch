@@ -27,7 +27,7 @@ fn cell_id_to_cell_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
@@ -74,7 +74,7 @@ fn cell_coordinates_to_cell_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
@@ -125,7 +125,7 @@ fn sector_id_to_sector_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
 
@@ -172,7 +172,7 @@ fn sector_coordinates_to_sector_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
 
@@ -219,7 +219,7 @@ fn sector_coordinates_to_position() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
@@ -268,7 +268,7 @@ fn sector_id_to_position() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -320,7 +320,7 @@ fn position_to_sector_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
@@ -373,7 +373,7 @@ fn position_to_cell_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
     let sector_size_in_cells = world.grid.sector_size_in_cells as i32;
@@ -452,7 +452,7 @@ fn position_to_sector_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
@@ -499,7 +499,7 @@ fn position_to_cell_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
@@ -547,7 +547,7 @@ fn ids_to_position() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
@@ -603,7 +603,7 @@ fn position_to_ids() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 
@@ -655,7 +655,7 @@ fn world_to_position() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
@@ -716,7 +716,7 @@ fn world_to_sector_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
@@ -777,7 +777,7 @@ fn world_to_sector_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
@@ -824,7 +824,7 @@ fn world_to_cell_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
 
@@ -884,7 +884,7 @@ fn world_to_cell_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;

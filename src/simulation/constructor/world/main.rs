@@ -4,7 +4,7 @@ use crate::simulation::state::{
 };
 use glam::IVec3;
 
-pub fn construct(world: &mut World) {
+pub fn run(world: &mut World) {
     build_ground(world);
     build_compass(world);
     build_temple(0, 0, 34, nation::Kind::Eagle, world);

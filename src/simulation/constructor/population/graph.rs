@@ -11,7 +11,7 @@ use crate::simulation::{
 use glam::Vec3;
 use std::collections::HashMap;
 
-pub fn construct(population: &mut Population) {
+pub fn run(population: &mut Population) {
     setup_judge(&mut population.judge);
     setup_agent_map(&mut population.agent_map);
 }

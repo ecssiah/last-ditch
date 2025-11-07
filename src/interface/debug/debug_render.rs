@@ -314,6 +314,10 @@ impl DebugRender {
         debug_render: &mut DebugRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
+        if !debug_render.visible {
+            return;
+        }
+
         debug_render.vertex_vec.clear();
 
         for (index, vertex_vec) in debug_render.channel_vertex_vec_array.iter().enumerate() {

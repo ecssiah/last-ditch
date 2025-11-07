@@ -56,7 +56,7 @@ fn general_ray_tests() {
     let simulation_kind = simulation::Kind::Test;
 
     let mut world = World::new(simulation_kind);
-    constructor::world::construct(simulation_kind, &mut world);
+    constructor::world::run(simulation_kind, &mut world);
 
     let test_cases = vec![
         WorldRayIteratoratorCase {

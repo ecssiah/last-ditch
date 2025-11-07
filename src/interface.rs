@@ -236,10 +236,12 @@ impl<'window> Interface<'window> {
         input: &mut Input,
         hud: &mut HUD,
     ) {
-        let is_handled = HUD::handle_device_event(event, &hud.mode, gpu_context);
+        if HUD::handle_device_event(event, &hud.mode, gpu_context) {
+            return;
+        }
 
-        if !is_handled {
-            Input::handle_device_event(event, &mut input.mouse_inputs);
+        if Input::handle_device_event(event, &mut input.mouse_inputs) {
+            return;
         }
     }
 
@@ -338,15 +340,13 @@ impl<'window> Interface<'window> {
             &mut encoder,
         );
 
-        if debug_render.visible {
-            DebugRender::render(
-                &surface_texture_view,
-                &depth_texture_view,
-                gpu_context,
-                debug_render,
-                &mut encoder,
-            );
-        }
+        DebugRender::render(
+            &surface_texture_view,
+            &depth_texture_view,
+            gpu_context,
+            debug_render,
+            &mut encoder,
+        );
 
         gpu_context.queue.submit([encoder.finish()]);
         gpu_context.window_arc.pre_present_notify();
@@ -380,9 +380,10 @@ impl<'window> Interface<'window> {
             let admin_action = AdminAction::Exit;
             let action = Action::Admin(admin_action);
 
-            log::info!("Interface Exit");
-
-            let _ = dispatch.send(action);
+            match dispatch.action_tx.send(action) {
+                Ok(_) => log::info!("Interface Exit Action Sent"),
+                Err(err) => log::warn!("Failed to send action: {:?} ({err})", action),
+            };
         } else {
             Self::apply_view(
                 event_loop,
@@ -521,7 +522,7 @@ impl<'window> Interface<'window> {
         }
 
         for action in action_vec {
-            match dispatch.send(action) {
+            match dispatch.action_tx.send(action) {
                 Ok(()) => (),
                 Err(_) => {
                     log::error!("Send Failed: {:?}", action);
