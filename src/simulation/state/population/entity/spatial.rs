@@ -7,6 +7,7 @@ pub struct Spatial {
     pub yaw: f32,
     pub pitch: f32,
     pub rotor: Rotor3,
+    pub eye_offset: f32,
 }
 
 impl Spatial {
@@ -17,6 +18,7 @@ impl Spatial {
             yaw: 0.0,
             pitch: 0.0,
             rotor: Rotor3::default(),
+            eye_offset: 0.9,
         }
     }
 
@@ -33,6 +35,6 @@ impl Spatial {
     }
 
     pub fn eye(spatial: &Spatial) -> Vec3 {
-        spatial.world_position + Self::up(spatial) * 0.9 * spatial.size.y
+        spatial.world_position + Self::up(spatial) * spatial.eye_offset * spatial.size.y
     }
 }

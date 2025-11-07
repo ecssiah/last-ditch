@@ -70,20 +70,22 @@ impl Observation {
     fn update_population_view(state: &State) -> PopulationView {
         let judge = &state.population.judge;
 
+        let judge_view = JudgeView {
+            entity_id: judge.info.entity_id,
+            position: Grid::world_to_position(&state.world.grid, judge.spatial.world_position),
+            world_position: judge.spatial.world_position,
+            sector_id: judge.info.sector_id,
+            sector_coordinates: Grid::sector_id_to_sector_coordinates(
+                &state.world.grid,
+                judge.info.sector_id,
+            ),
+            size: judge.spatial.size,
+            rotor: judge.spatial.rotor,
+            eye: Spatial::eye(&judge.spatial),
+        };
+
         let mut population_view = PopulationView {
-            judge_view: JudgeView {
-                entity_id: judge.info.entity_id,
-                position: Grid::world_to_position(&state.world.grid, judge.spatial.world_position),
-                world_position: judge.spatial.world_position,
-                sector_id: judge.info.sector_id,
-                sector_coordinates: Grid::sector_id_to_sector_coordinates(
-                    &state.world.grid,
-                    judge.info.sector_id,
-                ),
-                size: judge.spatial.size,
-                rotor: judge.spatial.rotor,
-                eye: Spatial::eye(&judge.spatial),
-            },
+            judge_view,
             agent_view_map: HashMap::new(),
         };
 
