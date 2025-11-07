@@ -1,4 +1,4 @@
-//! Allows Interface to send Actions to the Simulation
+//! Sends Actions from Interface to Simulation
 
 use crate::simulation::state::receiver::action::Action;
 use tokio::sync::mpsc::UnboundedSender;

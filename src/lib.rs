@@ -32,17 +32,17 @@ impl ApplicationHandler for App<'_> {
         let (action_tx, action_rx) =
             unbounded_channel::<simulation::state::receiver::action::Action>();
 
-        let (view_input, view_output) = triple_buffer::triple_buffer(&View::new());
+        let (view_buffer_input, view_buffer_output) = triple_buffer::triple_buffer(&View::new());
 
-        let mut simulation = Box::new(Simulation::new(action_rx, view_input));
-        let interface = Interface::new(event_loop, action_tx, view_output);
+        let mut simulation = Box::new(Simulation::new(action_rx, view_buffer_input));
+        let interface = Interface::new(event_loop, action_tx, view_buffer_output);
 
         self.simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
                 &mut simulation.timing,
                 &mut simulation.receiver,
                 &mut simulation.state,
-                &mut simulation.view_input,
+                &mut simulation.view_buffer_input,
             )
         }));
 
@@ -62,7 +62,7 @@ impl ApplicationHandler for App<'_> {
                 &mut interface.world_render,
                 &mut interface.population_render,
                 &mut interface.debug_render,
-                &mut interface.view_output,
+                &mut interface.view_buffer_output,
             );
         }
     }

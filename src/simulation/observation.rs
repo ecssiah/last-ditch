@@ -1,13 +1,14 @@
-//! Exposes Simulation data for Interface
+//! Generates Views of Simulation data
 
 pub mod view;
 
 use crate::simulation::{
     consts::JUDGE_VIEW_RADIUS_SQUARED,
     observation::view::{
-        AdminView, AgentView, JudgeView, PopulationView, SectorView, TimeView, View, WorldView,
+        AdminView, AgentView, FaceView, JudgeView, PopulationView, SectorView, TimeView, View,
+        WorldView,
     },
-    state::{world::grid::Grid, State},
+    state::{State, world::{grid::Grid, sector::Sector}},
 };
 use glam::{IVec3, Vec3};
 use std::collections::HashMap;
@@ -19,25 +20,25 @@ impl Observation {
         Self {}
     }
 
-    pub fn tick(state: &State, view_input: &mut triple_buffer::Input<View>) {
-        Self::update_view(state, view_input);
+    pub fn tick(state: &State, view_buffer_input: &mut triple_buffer::Input<View>) {
+        Self::update_view(state, view_buffer_input);
     }
 
-    pub fn get_view(view_output: &mut triple_buffer::Output<View>) -> &View {
-        view_output.update();
+    pub fn get_view(view_buffer_output: &mut triple_buffer::Output<View>) -> &View {
+        view_buffer_output.update();
 
-        let view = view_output.peek_output_buffer();
+        let view = view_buffer_output.peek_output_buffer();
 
         &view
     }
 
-    fn update_view(state: &State, view_input: &mut triple_buffer::Input<View>) {
+    fn update_view(state: &State, view_buffer_input: &mut triple_buffer::Input<View>) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
         let population_view = Self::update_population_view(state);
         let world_view = Self::update_world_view(state);
 
-        let view = view_input.input_buffer_mut();
+        let view = view_buffer_input.input_buffer_mut();
 
         view.entity_id = state.population.judge.info.entity_id;
         view.admin_view = admin_view;
@@ -45,7 +46,7 @@ impl Observation {
         view.population_view = population_view;
         view.world_view = world_view;
 
-        view_input.publish();
+        view_buffer_input.publish();
     }
 
     fn update_admin_view(state: &State) -> AdminView {
@@ -124,27 +125,42 @@ impl Observation {
         for dx in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
             for dy in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
                 for dz in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
+                    let sector_coordinates = judge_sector_coordinates + IVec3::new(dx, dy, dz);
+
                     let sector_id = Grid::sector_coordinates_to_sector_id(
                         &state.world.grid,
-                        judge_sector_coordinates + IVec3::new(dx, dy, dz),
+                        sector_coordinates,
                     );
 
-                    if let Some(sector) = state.world.sector_vec.get(usize::from(sector_id)) {
-                        let sector_view = SectorView {
-                            sector_id: sector.sector_id,
-                            world_position: sector.position.as_vec3(),
-                            radius: Vec3::splat(state.world.grid.sector_radius_in_meters),
-                            cell_vec: sector.cell_vec.clone(),
-                        };
+                    if Grid::sector_id_valid(&state.world.grid, sector_id) {
+                        if let Some(sector) = state.world.sector_vec.get(usize::from(sector_id)) {
+                            let sector_view = SectorView {
+                                sector_id: sector.sector_id,
+                                world_position: sector.position.as_vec3(),
+                                radius: Vec3::splat(state.world.grid.sector_radius_in_meters),
+                                face_view_vec: Self::compute_face_view_vec(&state.world.grid, sector),
+                                cell_vec: Vec::default(),
+                            };
 
-                        world_view
-                            .sector_view_map
-                            .insert(sector.sector_id, sector_view);
+                            world_view
+                                .sector_view_map
+                                .insert(sector.sector_id, sector_view);
+                        } else {
+                            panic!("Cannot retrieve valid sector at id: {:?}", sector_id);
+                        }
                     }
                 }
             }
         }
 
         world_view
+    }
+
+    fn compute_face_view_vec(grid: &Grid, sector: &Sector) -> Vec<FaceView> {
+        let face_view_vec = Vec::new();
+
+        
+
+        face_view_vec
     }
 }

@@ -1,5 +1,6 @@
 pub mod admin_view;
 pub mod agent_view;
+pub mod face_view;
 pub mod judge_view;
 pub mod population_view;
 pub mod sector_view;
@@ -8,6 +9,7 @@ pub mod world_view;
 
 pub use admin_view::AdminView;
 pub use agent_view::AgentView;
+pub use face_view::FaceView;
 pub use judge_view::JudgeView;
 pub use population_view::PopulationView;
 pub use sector_view::SectorView;
