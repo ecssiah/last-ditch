@@ -1509,6 +1509,7 @@ dependencies = [
  "specs",
  "tokio",
  "triple_buffer",
+ "ultraviolet",
  "wgpu",
  "winit",
 ]
@@ -3233,6 +3234,15 @@ name = "typenum"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
+
+[[package]]
+name = "ultraviolet"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea519dad475ee0446b8172793c3c327e4fc81dafdaf05aaac510e630000b6296"
+dependencies = [
+ "wide",
+]
 
 [[package]]
 name = "unicode-ident"
