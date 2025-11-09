@@ -10,7 +10,11 @@ use crate::simulation::{
     },
     state::{
         population::entity::Spatial,
-        world::{grid::Grid, sector::Sector},
+        world::{
+            block,
+            grid::{self, Axis, Grid},
+            sector::Sector,
+        },
         State,
     },
 };
@@ -121,7 +125,7 @@ impl Observation {
             sector_view_map: HashMap::new(),
         };
 
-        const JUDGE_VIEW_RADIUS: i32 = 1;
+        const JUDGE_VIEW_RADIUS: i32 = 2;
 
         let judge_sector_coordinates = Grid::world_to_sector_coordinates(
             &state.world.grid,
@@ -148,7 +152,6 @@ impl Observation {
                                     &state.world.grid,
                                     sector,
                                 ),
-                                cell_vec: sector.cell_vec.clone(),
                             };
 
                             world_view
@@ -163,8 +166,141 @@ impl Observation {
         world_view
     }
 
-    fn compute_face_view_vec(_grid: &Grid, _sector: &Sector) -> Vec<FaceView> {
-        let face_view_vec = Vec::new();
+    fn compute_face_view_vec(grid: &Grid, sector: &Sector) -> Vec<FaceView> {
+        let mut face_view_vec = Vec::new();
+
+        let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
+
+        for z in -sector_radius_in_cells..=sector_radius_in_cells {
+            for y in -sector_radius_in_cells..=sector_radius_in_cells {
+                for x in -sector_radius_in_cells..=sector_radius_in_cells {
+                    let cell_id = Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z));
+
+                    if Grid::cell_id_valid(grid, cell_id) {
+                        let cell = &sector.cell_vec[usize::from(cell_id)];
+                        let cell_world_position = Vec3::from(cell.position);
+
+                        if cell.block_kind == block::Kind::None {
+                            continue;
+                        }
+
+                        if x == -sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position - 0.5 * Axis::X.unit(),
+                                direction: grid::Direction::XnYoZo,
+                                block_kind: cell.block_kind,
+                            });
+                        } else if x == sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position + 0.5 * Axis::X.unit(),
+                                direction: grid::Direction::XpYoZo,
+                                block_kind: cell.block_kind,
+                            });
+                        } else {
+                            let xn_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x - 1, y, z));
+                            let xp_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x + 1, y, z));
+
+                            let xn_cell = &sector.cell_vec[usize::from(xn_cell_id)];
+                            let xp_cell = &sector.cell_vec[usize::from(xp_cell_id)];
+
+                            if xn_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position - 0.5 * Axis::X.unit(),
+                                    direction: grid::Direction::XnYoZo,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+
+                            if xp_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position + 0.5 * Axis::X.unit(),
+                                    direction: grid::Direction::XpYoZo,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+                        }
+
+                        if y == -sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position - 0.5 * Axis::Y.unit(),
+                                direction: grid::Direction::XoYnZo,
+                                block_kind: cell.block_kind,
+                            });
+                        } else if y == sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position + 0.5 * Axis::Y.unit(),
+                                direction: grid::Direction::XoYpZo,
+                                block_kind: cell.block_kind,
+                            });
+                        } else {
+                            let yn_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y - 1, z));
+                            let yp_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y + 1, z));
+
+                            let yn_cell = &sector.cell_vec[usize::from(yn_cell_id)];
+                            let yp_cell = &sector.cell_vec[usize::from(yp_cell_id)];
+
+                            if yn_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position - 0.5 * Axis::Y.unit(),
+                                    direction: grid::Direction::XoYnZo,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+
+                            if yp_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position + 0.5 * Axis::Y.unit(),
+                                    direction: grid::Direction::XoYpZo,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+                        }
+
+                        if z == -sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position - 0.5 * Axis::Z.unit(),
+                                direction: grid::Direction::XoYoZn,
+                                block_kind: cell.block_kind,
+                            });
+                        } else if z == sector_radius_in_cells {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position + 0.5 * Axis::Z.unit(),
+                                direction: grid::Direction::XoYoZp,
+                                block_kind: cell.block_kind,
+                            });
+                        } else {
+                            let zn_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z - 1));
+                            let zp_cell_id =
+                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z + 1));
+
+                            let zn_cell = &sector.cell_vec[usize::from(zn_cell_id)];
+                            let zp_cell = &sector.cell_vec[usize::from(zp_cell_id)];
+
+                            if zn_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position - 0.5 * Axis::Z.unit(),
+                                    direction: grid::Direction::XoYoZn,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+
+                            if zp_cell.block_kind == block::Kind::None {
+                                face_view_vec.push(FaceView {
+                                    position: cell_world_position + 0.5 * Axis::Z.unit(),
+                                    direction: grid::Direction::XoYoZp,
+                                    block_kind: cell.block_kind,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         face_view_vec
     }

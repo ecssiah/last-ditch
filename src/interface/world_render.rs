@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use std::collections::HashMap;
-use ultraviolet::Vec3;
+use ultraviolet::{IVec3, Vec3};
 
 pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
@@ -211,6 +211,7 @@ impl WorldRender {
 
     pub fn apply_world_view(
         device: &wgpu::Device,
+        camera: &Camera,
         world_view: &WorldView,
         block_render_info: &BlockRenderInfo,
         block_tile_coordinates_map: &HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
@@ -223,49 +224,49 @@ impl WorldRender {
             let mut index_vec = Vec::new();
             let mut index_offset = 0;
 
-            for cell in &sector_view.cell_vec {
-                if cell.block_kind == block::Kind::None {
-                    continue;
-                }
-
+            for face_view in &sector_view.face_view_vec {
                 let tile_coordinates_map =
-                    block_tile_coordinates_map.get(&cell.block_kind).unwrap();
+                    block_tile_coordinates_map.get(&face_view.block_kind).unwrap();
 
-                for face in &cell.face_array {
-                    let tile_coordinates = tile_coordinates_map.get(&face.direction).unwrap();
+                let tile_coordinates = tile_coordinates_map.get(&face_view.direction).unwrap();
 
-                    let tile_uv_array = BlockRenderInfo::tile_uv_array(
-                        tile_coordinates,
-                        block_render_info.tile_size,
-                        block_render_info.tile_atlas_size,
-                    );
+                let tile_uv_array = BlockRenderInfo::tile_uv_array(
+                    tile_coordinates,
+                    block_render_info.tile_size,
+                    block_render_info.tile_atlas_size,
+                );
 
-                    let face_vertex_position_array =
-                        BlockRenderInfo::face_vertex_position_array(cell.position, face.direction);
+                let face_vertex_position_array = BlockRenderInfo::face_vertex_position_array(
+                    IVec3::new(
+                        face_view.position.x as i32, 
+                        face_view.position.y as i32, 
+                        face_view.position.z as i32
+                    ), 
+                    face_view.direction
+                );
+                
+                for (index, &position) in face_vertex_position_array.iter().enumerate() {
+                    let normal = *Vec3::from(face_view.direction.offset()).as_array();
 
-                    for (index, &position) in face_vertex_position_array.iter().enumerate() {
-                        let normal = *Vec3::from(face.direction.offset()).as_array();
+                    let texture = [tile_uv_array[index][0], tile_uv_array[index][1], 0.0];
 
-                        let texture = [tile_uv_array[index][0], tile_uv_array[index][1], 0.0];
+                    let textured_vertex = obj::TexturedVertex {
+                        position,
+                        normal,
+                        texture,
+                    };
 
-                        let textured_vertex = obj::TexturedVertex {
-                            position,
-                            normal,
-                            texture,
-                        };
-
-                        vertex_vec.push(textured_vertex);
-                    }
-
-                    index_vec.push(index_offset);
-                    index_vec.push(index_offset + 1);
-                    index_vec.push(index_offset + 2);
-                    index_vec.push(index_offset);
-                    index_vec.push(index_offset + 2);
-                    index_vec.push(index_offset + 3);
-
-                    index_offset += 4;
+                    vertex_vec.push(textured_vertex);
                 }
+
+                index_vec.push(index_offset);
+                index_vec.push(index_offset + 1);
+                index_vec.push(index_offset + 2);
+                index_vec.push(index_offset);
+                index_vec.push(index_offset + 2);
+                index_vec.push(index_offset + 3);
+
+                index_offset += 4;
             }
 
             if !vertex_vec.is_empty() {

@@ -264,16 +264,16 @@ impl BlockRenderInfo {
                 [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             grid::Direction::XoYoZp => [
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::XoYoZn => [
                 [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+            ],
+            grid::Direction::XoYoZn => [
+                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             _ => panic!("Invalid face direction"),
         }

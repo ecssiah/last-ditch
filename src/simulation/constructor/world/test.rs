@@ -8,13 +8,22 @@ use crate::simulation::state::{
 use ultraviolet::IVec3;
 
 pub fn run(world: &mut World) {
-    build_rooms(world);
-    build_central_room(world);
-    build_clearance_test(world);
+    // build_rooms(world);
+    // build_central_room(world);
+    // build_clearance_test(world);
 
-    World::set_block(
-        IVec3::new(-9, -2, 0),
-        block::Kind::EsayaBlock,
+    // World::set_block(
+    //     IVec3::new(-9, -2, 0),
+    //     block::Kind::EsayaBlock,
+    //     &world.grid,
+    //     &world.block_info_map,
+    //     &mut world.sector_vec,
+    // );
+
+    World::set_cube(
+        IVec3::new(-3, -3, -3),
+        IVec3::new(3, 3, 3),
+        block::Kind::CrimsonStone,
         &world.grid,
         &world.block_info_map,
         &mut world.sector_vec,

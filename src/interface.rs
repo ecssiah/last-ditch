@@ -459,11 +459,12 @@ impl<'window> Interface<'window> {
         Camera::apply_judge_view(
             &gpu_context.queue,
             &view.population_view.judge_view,
-            &camera.uniform_buffer,
+            camera,
         );
 
         WorldRender::apply_world_view(
             &gpu_context.device,
+            camera,
             &view.world_view,
             &world_render.block_render_info,
             &world_render.block_tile_coordinates_map,

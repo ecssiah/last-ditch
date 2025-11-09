@@ -1,14 +1,21 @@
 //! Translates Simulation viewpoint for Interface
 
 pub mod camera_uniform_data;
+pub mod frustum;
+pub mod plane;
 
 use crate::{
-    interface::{camera::camera_uniform_data::CameraUniformData, consts::*},
+    interface::{camera::{camera_uniform_data::CameraUniformData, frustum::Frustum}, consts::*},
     simulation::observation::view::JudgeView,
 };
 use ultraviolet::{projection, Mat4, Vec3};
 
 pub struct Camera {
+    pub position: Vec3,
+    pub view_matrix: Mat4,
+    pub projection_matrix: Mat4,
+    pub view_projection_matrix: Mat4,
+    pub frustum: Frustum,
     pub uniform_buffer: wgpu::Buffer,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_bind_group: wgpu::BindGroup,
@@ -16,6 +23,12 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(device: &wgpu::Device) -> Self {
+        let position = Vec3::zero();
+        let view_matrix = Mat4::identity();
+        let projection_matrix = Mat4::identity();
+        let view_projection_matrix = Mat4::identity();
+        let frustum = Frustum::from_matrix(&Mat4::identity());
+
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera View Projection Buffer"),
             size: std::mem::size_of::<CameraUniformData>() as wgpu::BufferAddress,
@@ -48,27 +61,57 @@ impl Camera {
         });
 
         Self {
+            position,
+            view_matrix,
+            projection_matrix,
+            view_projection_matrix,
+            frustum,
             uniform_buffer,
             uniform_bind_group_layout,
             uniform_bind_group,
         }
     }
 
-    pub fn apply_judge_view(
-        queue: &wgpu::Queue,
-        judge_view: &JudgeView,
-        uniform_buffer: &wgpu::Buffer,
-    ) {
-        let camera_uniform_data = Self::setup_camera_uniform_data(judge_view);
+    pub fn apply_judge_view(queue: &wgpu::Queue, judge_view: &JudgeView, camera: &mut Camera) {
+        Self::update_camera(judge_view, camera);
+
+        let view_matrix_array = [
+            *camera.view_matrix.cols[0].as_array(),
+            *camera.view_matrix.cols[1].as_array(),
+            *camera.view_matrix.cols[2].as_array(),
+            *camera.view_matrix.cols[3].as_array(),
+        ];
+
+        let projection_matrix_array = [
+            *camera.projection_matrix.cols[0].as_array(),
+            *camera.projection_matrix.cols[1].as_array(),
+            *camera.projection_matrix.cols[2].as_array(),
+            *camera.projection_matrix.cols[3].as_array(),
+        ];
+
+        let view_projection_matrix_array = [
+            *camera.view_projection_matrix.cols[0].as_array(),
+            *camera.view_projection_matrix.cols[1].as_array(),
+            *camera.view_projection_matrix.cols[2].as_array(),
+            *camera.view_projection_matrix.cols[3].as_array(),
+        ];
+
+        let camera_uniform_data = CameraUniformData {
+            view_projection_matrix: view_projection_matrix_array,
+            view_matrix: view_matrix_array,
+            projection_matrix: projection_matrix_array,
+            camera_position: *camera.position.as_array(),
+            _padding: 0.0,
+        };
 
         queue.write_buffer(
-            uniform_buffer,
+            &camera.uniform_buffer,
             0,
             bytemuck::cast_slice(&[camera_uniform_data]),
         );
     }
 
-    fn setup_camera_uniform_data(judge_view: &JudgeView) -> CameraUniformData {
+    fn update_camera(judge_view: &JudgeView, camera: &mut Camera) {
         let projection_matrix =
             projection::perspective_gl(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
@@ -83,17 +126,10 @@ impl Camera {
         let view_matrix = Mat4::look_at_lh(eye, target, up);
         let view_projection_matrix = projection_matrix * view_matrix;
 
-        let view_projection_matrix_array = [
-            *view_projection_matrix.cols[0].as_array(),
-            *view_projection_matrix.cols[1].as_array(),
-            *view_projection_matrix.cols[2].as_array(),
-            *view_projection_matrix.cols[3].as_array(),
-        ];
-
-        CameraUniformData {
-            view_projection_matrix: view_projection_matrix_array,
-            camera_position: *eye.as_array(),
-            _padding: 0.0,
-        }
+        camera.position = eye;
+        camera.view_matrix = view_matrix;
+        camera.projection_matrix = projection_matrix;
+        camera.view_projection_matrix = view_projection_matrix;
+        camera.frustum = Frustum::from_matrix(&view_projection_matrix);
     }
 }
