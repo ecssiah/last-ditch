@@ -304,12 +304,12 @@ fn get_next_cell_boundary_info(step_direction: IVec3, t_remaining: Vec3) -> (gri
 #[inline]
 fn get_face_direction(axis: grid::Axis, step_direction: i32) -> grid::Direction {
     match (axis, step_direction) {
-        (grid::Axis::X, 1) => grid::Direction::XnYoZo,
-        (grid::Axis::X, -1) => grid::Direction::XpYoZo,
-        (grid::Axis::Y, 1) => grid::Direction::XoYnZo,
-        (grid::Axis::Y, -1) => grid::Direction::XoYpZo,
-        (grid::Axis::Z, 1) => grid::Direction::XoYoZn,
-        (grid::Axis::Z, -1) => grid::Direction::XoYoZp,
+        (grid::Axis::X, 1) => grid::Direction::XNYOZO,
+        (grid::Axis::X, -1) => grid::Direction::XPYOZO,
+        (grid::Axis::Y, 1) => grid::Direction::XOYNZO,
+        (grid::Axis::Y, -1) => grid::Direction::XOYPZO,
+        (grid::Axis::Z, 1) => grid::Direction::XOYOZN,
+        (grid::Axis::Z, -1) => grid::Direction::XOYOZP,
         _ => panic!("Requesting face for non-axis direction"),
     }
 }

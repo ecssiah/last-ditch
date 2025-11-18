@@ -27,23 +27,23 @@ pub struct Cell {
 impl Cell {
     pub fn face_array() -> [Face; 6] {
         [
-            Face::new(grid::Direction::XpYoZo),
-            Face::new(grid::Direction::XnYoZo),
-            Face::new(grid::Direction::XoYpZo),
-            Face::new(grid::Direction::XoYnZo),
-            Face::new(grid::Direction::XoYoZp),
-            Face::new(grid::Direction::XoYoZn),
+            Face::new(grid::Direction::XPYOZO),
+            Face::new(grid::Direction::XNYOZO),
+            Face::new(grid::Direction::XOYPZO),
+            Face::new(grid::Direction::XOYNZO),
+            Face::new(grid::Direction::XOYOZP),
+            Face::new(grid::Direction::XOYOZN),
         ]
     }
 
     pub fn get_face(direction: grid::Direction, face_array: &[Face; 6]) -> &Face {
         match direction {
-            grid::Direction::XpYoZo => &face_array[0],
-            grid::Direction::XnYoZo => &face_array[1],
-            grid::Direction::XoYpZo => &face_array[2],
-            grid::Direction::XoYnZo => &face_array[3],
-            grid::Direction::XoYoZp => &face_array[4],
-            grid::Direction::XoYoZn => &face_array[5],
+            grid::Direction::XPYOZO => &face_array[0],
+            grid::Direction::XNYOZO => &face_array[1],
+            grid::Direction::XOYPZO => &face_array[2],
+            grid::Direction::XOYNZO => &face_array[3],
+            grid::Direction::XOYOZP => &face_array[4],
+            grid::Direction::XOYOZN => &face_array[5],
             _ => panic!("Requested a non-existent Face"),
         }
     }

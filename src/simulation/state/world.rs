@@ -203,14 +203,14 @@ impl World {
 
     pub fn get_clearance(position: IVec3, grid: &Grid, sector_vec_slice: &[Sector]) -> u32 {
         let ground_is_solid =
-            Self::get_cell_at(position + -1 * IVec3::unit_y(), grid, sector_vec_slice)
+            Self::get_cell_at(position + -1 * IVec3::unit_z(), grid, sector_vec_slice)
                 .is_some_and(|cell| cell.solid);
 
         let mut clearance = 0;
 
         if ground_is_solid {
             for level in 0..MAXIMUM_CLEARANCE {
-                let level_position = position + IVec3::new(0, level as i32, 0);
+                let level_position = position + IVec3::new(0, 0, level as i32);
 
                 if let Some(cell) = Self::get_cell_at(level_position, grid, sector_vec_slice) {
                     if !cell.solid {

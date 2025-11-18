@@ -222,7 +222,7 @@ fn build_sector_room(
         &mut world.sector_vec,
     );
 
-    if entrance_vec.contains(&grid::Direction::XpYoZo) {
+    if entrance_vec.contains(&grid::Direction::XPYOZO) {
         World::set_cube(
             position + IVec3::new(sector_radius_in_cells, 0, 1),
             position + IVec3::new(sector_radius_in_cells, -3, -1),
@@ -233,7 +233,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XnYoZo) {
+    if entrance_vec.contains(&grid::Direction::XNYOZO) {
         World::set_cube(
             position + IVec3::new(-sector_radius_in_cells, 0, 1),
             position + IVec3::new(-sector_radius_in_cells, -3, -1),
@@ -244,7 +244,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYoZp) {
+    if entrance_vec.contains(&grid::Direction::XOYOZP) {
         World::set_cube(
             position + IVec3::new(1, 0, sector_radius_in_cells),
             position + IVec3::new(-1, -3, sector_radius_in_cells),
@@ -255,7 +255,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYoZn) {
+    if entrance_vec.contains(&grid::Direction::XOYOZN) {
         World::set_cube(
             position + IVec3::new(1, 0, -sector_radius_in_cells),
             position + IVec3::new(-1, -3, -sector_radius_in_cells),
@@ -266,7 +266,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYpZo) {
+    if entrance_vec.contains(&grid::Direction::XOYPZO) {
         World::set_cube(
             position + IVec3::new(-1, sector_radius_in_cells, -1),
             position + IVec3::new(1, sector_radius_in_cells, 1),
@@ -277,7 +277,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYnZo) {
+    if entrance_vec.contains(&grid::Direction::XOYNZO) {
         World::set_cube(
             position + IVec3::new(-1, -sector_radius_in_cells, -1),
             position + IVec3::new(1, -sector_radius_in_cells, 1),

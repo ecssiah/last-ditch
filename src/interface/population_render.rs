@@ -81,7 +81,16 @@ impl PopulationRender {
 
                     match load_obj(model_file_reader) {
                         Ok(model) => {
-                            let vertex_vec = model.vertices;
+                            let mut vertex_vec: Vec<obj::TexturedVertex> = model.vertices;
+
+                            for v in &mut vertex_vec {
+                                let x = v.position[0];
+                                let y = v.position[1];
+                                let z = v.position[2];
+
+                                v.position = [x, z, y];
+                            }
+
                             let index_vec = model.indices;
 
                             let mesh_data = Arc::new(MeshData::new(device, vertex_vec, index_vec));

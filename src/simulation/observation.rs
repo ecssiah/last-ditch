@@ -9,11 +9,13 @@ use crate::simulation::{
         WorldView,
     },
     state::{
-        State, population::entity::Spatial, world::{
+        population::entity::Spatial,
+        world::{
             block,
-            grid::{self, Axis, Grid},
+            grid::{self, Grid},
             sector::Sector,
-        }
+        },
+        State,
     },
 };
 use std::collections::HashMap;
@@ -180,118 +182,100 @@ impl Observation {
                             continue;
                         }
 
-                        if x == -sector_radius_in_cells {
+                        let xn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x - 1, y, z));
+
+                        let xn_visible = (x - 1) < -sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, xn_cell_id)
+                            || sector.cell_vec[usize::from(xn_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if xn_visible {
                             face_view_vec.push(FaceView {
-                                position: cell_world_position - 0.5 * Axis::X.unit(),
-                                direction: grid::Direction::XnYoZo,
+                                position: cell_world_position,
+                                direction: grid::Direction::XNYOZO,
                                 block_kind: cell.block_kind,
                             });
-                        } else if x == sector_radius_in_cells {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position + 0.5 * Axis::X.unit(),
-                                direction: grid::Direction::XpYoZo,
-                                block_kind: cell.block_kind,
-                            });
-                        } else {
-                            let xn_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x - 1, y, z));
-                            let xp_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x + 1, y, z));
-
-                            let xn_cell = &sector.cell_vec[usize::from(xn_cell_id)];
-                            let xp_cell = &sector.cell_vec[usize::from(xp_cell_id)];
-
-                            if xn_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position - 0.5 * Axis::X.unit(),
-                                    direction: grid::Direction::XnYoZo,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
-
-                            if xp_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position + 0.5 * Axis::X.unit(),
-                                    direction: grid::Direction::XpYoZo,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
                         }
 
-                        if y == -sector_radius_in_cells {
+                        let xp_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x + 1, y, z));
+
+                        let xp_visible = (x + 1) > sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, xp_cell_id)
+                            || sector.cell_vec[usize::from(xp_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if xp_visible {
                             face_view_vec.push(FaceView {
-                                position: cell_world_position - 0.5 * Axis::Y.unit(),
-                                direction: grid::Direction::XoYnZo,
+                                position: cell_world_position,
+                                direction: grid::Direction::XPYOZO,
                                 block_kind: cell.block_kind,
                             });
-                        } else if y == sector_radius_in_cells {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position + 0.5 * Axis::Y.unit(),
-                                direction: grid::Direction::XoYpZo,
-                                block_kind: cell.block_kind,
-                            });
-                        } else {
-                            let yn_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y - 1, z));
-                            let yp_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y + 1, z));
-
-                            let yn_cell = &sector.cell_vec[usize::from(yn_cell_id)];
-                            let yp_cell = &sector.cell_vec[usize::from(yp_cell_id)];
-
-                            if yn_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position - 0.5 * Axis::Y.unit(),
-                                    direction: grid::Direction::XoYnZo,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
-
-                            if yp_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position + 0.5 * Axis::Y.unit(),
-                                    direction: grid::Direction::XoYpZo,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
                         }
 
-                        if z == -sector_radius_in_cells {
+                        let yn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y - 1, z));
+
+                        let yn_visible = (y - 1) < -sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, yn_cell_id)
+                            || sector.cell_vec[usize::from(yn_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if yn_visible {
                             face_view_vec.push(FaceView {
-                                position: cell_world_position - 0.5 * Axis::Z.unit(),
-                                direction: grid::Direction::XoYoZn,
+                                position: cell_world_position,
+                                direction: grid::Direction::XOYNZO,
                                 block_kind: cell.block_kind,
                             });
-                        } else if z == sector_radius_in_cells {
+                        }
+
+                        let yp_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y + 1, z));
+
+                        let yp_visible = (y + 1) > sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, yp_cell_id)
+                            || sector.cell_vec[usize::from(yp_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if yp_visible {
                             face_view_vec.push(FaceView {
-                                position: cell_world_position + 0.5 * Axis::Z.unit(),
-                                direction: grid::Direction::XoYoZp,
+                                position: cell_world_position,
+                                direction: grid::Direction::XOYPZO,
                                 block_kind: cell.block_kind,
                             });
-                        } else {
-                            let zn_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z - 1));
-                            let zp_cell_id =
-                                Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z + 1));
+                        }
 
-                            let zn_cell = &sector.cell_vec[usize::from(zn_cell_id)];
-                            let zp_cell = &sector.cell_vec[usize::from(zp_cell_id)];
+                        let zn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z - 1));
 
-                            if zn_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position - 0.5 * Axis::Z.unit(),
-                                    direction: grid::Direction::XoYoZn,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
+                        let zn_visible = (z - 1) < -sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, zn_cell_id)
+                            || sector.cell_vec[usize::from(zn_cell_id)].block_kind
+                                == block::Kind::None;
 
-                            if zp_cell.block_kind == block::Kind::None {
-                                face_view_vec.push(FaceView {
-                                    position: cell_world_position + 0.5 * Axis::Z.unit(),
-                                    direction: grid::Direction::XoYoZp,
-                                    block_kind: cell.block_kind,
-                                });
-                            }
+                        if zn_visible {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position,
+                                direction: grid::Direction::XOYOZN,
+                                block_kind: cell.block_kind,
+                            });
+                        }
+
+                        let zp_cell_id =
+                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z + 1));
+
+                        let zp_visible = (z + 1) > sector_radius_in_cells
+                            || !Grid::cell_id_valid(grid, zp_cell_id)
+                            || sector.cell_vec[usize::from(zp_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if zp_visible {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position,
+                                direction: grid::Direction::XOYOZP,
+                                block_kind: cell.block_kind,
+                            });
                         }
                     }
                 }

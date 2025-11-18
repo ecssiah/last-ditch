@@ -259,10 +259,10 @@ impl WorldRender {
                     vertex_vec.push(textured_vertex);
                 }
 
-                index_vec.push(index_offset);
+                index_vec.push(index_offset + 0);
                 index_vec.push(index_offset + 1);
                 index_vec.push(index_offset + 2);
-                index_vec.push(index_offset);
+                index_vec.push(index_offset + 0);
                 index_vec.push(index_offset + 2);
                 index_vec.push(index_offset + 3);
 

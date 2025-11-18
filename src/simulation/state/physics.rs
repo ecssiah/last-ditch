@@ -20,7 +20,7 @@ pub struct Physics {
 
 impl Physics {
     pub fn new() -> Self {
-        let gravity = Vec3::new(0.0, -GRAVITY_ACCELERATION, 0.0);
+        let gravity = Vec3::new(0.0, 0.0, -GRAVITY_ACCELERATION);
 
         Self { gravity }
     }
@@ -37,8 +37,10 @@ impl Physics {
         let acceleration = judge.kinematic.acceleration + gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
-        let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
-            + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
+
+        let delta = 
+            initial_velocity * SIMULATION_TICK_IN_SECONDS + 
+            0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
 
         (velocity, delta)
     }
@@ -98,6 +100,7 @@ impl Physics {
             .into_iter()
             .filter(|cell_aabb| {
                 let aabb_center = cell_aabb.center();
+                
                 let cell_position = IVec3::new(
                     aabb_center.x.round() as i32,
                     aabb_center.y.round() as i32,

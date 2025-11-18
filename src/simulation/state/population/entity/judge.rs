@@ -70,51 +70,55 @@ impl Judge {
         spatial.rotor = Rotor3::from_euler_angles(0.0, 0.0, -spatial.yaw)
             * Rotor3::from_euler_angles(0.0, spatial.pitch, 0.0);
 
-        let velocity_xz = Vec3::new(kinematic.velocity.x, 0.0, kinematic.velocity.z);
-        let speed = velocity_xz.mag_sq();
+        let velocity_xy = Vec3::new(kinematic.velocity.x, kinematic.velocity.z, 0.0);
+        let speed = velocity_xy.mag_sq();
 
         if speed > 1e-12 {
-            let new_velocity_xz = Spatial::forward(spatial) * speed;
+            let new_velocity_xy = Spatial::forward(spatial) * speed;
 
-            kinematic.velocity.x = new_velocity_xz.x;
-            kinematic.velocity.z = new_velocity_xz.z;
+            kinematic.velocity.x = new_velocity_xy.x;
+            kinematic.velocity.y = new_velocity_xy.y;
         }
     }
 
     pub fn apply_movement_data(movement_data: &MovementData, judge: &mut Judge) {
-        if movement_data.rotation.y.abs() > 1e-6 || movement_data.rotation.z.abs() > 1e-6 {
-            judge.spatial.yaw += movement_data.rotation.y;
-            judge.spatial.pitch += movement_data.rotation.z;
+        log::warn!("{:?}", movement_data.rotation);
+
+        if movement_data.rotation.x.abs() > 1e-6 || movement_data.rotation.y.abs() > 1e-6 {
+            judge.spatial.yaw += movement_data.rotation.x;
+            judge.spatial.pitch += movement_data.rotation.y;
 
             judge.spatial.pitch = judge
                 .spatial
                 .pitch
                 .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 
-            judge.spatial.rotor =
-                Rotor3::from_euler_angles(0.0, -judge.spatial.pitch, -judge.spatial.yaw);
+            let yaw_rotor = Rotor3::from_rotation_xy(judge.spatial.yaw);
+            let pitch_rotor = Rotor3::from_rotation_yz(-judge.spatial.pitch);
+
+            judge.spatial.rotor = yaw_rotor * pitch_rotor;
         }
 
         if movement_data.direction.mag_sq() > 1e-6 {
-            let yaw_rotor = Rotor3::from_euler_angles(0.0, 0.0, -judge.spatial.yaw);
+            let yaw_rotor = Rotor3::from_rotation_xy(judge.spatial.yaw);
 
             let local_velocity =
-                Vec3::new(movement_data.direction.x, 0.0, -movement_data.direction.z)
-                    * Vec3::new(JUDGE_SPEED_X, 0.0, JUDGE_SPEED_Z);
+                Vec3::new(movement_data.direction.x, movement_data.direction.y, 0.0) * 
+                Vec3::new(JUDGE_SPEED_X, JUDGE_SPEED_Y, 0.0);
 
             let velocity = yaw_rotor * local_velocity;
 
             judge.kinematic.velocity.x = velocity.x;
-            judge.kinematic.velocity.z = velocity.z;
+            judge.kinematic.velocity.y = velocity.y;
         } else {
             judge.kinematic.velocity.x = 0.0;
-            judge.kinematic.velocity.z = 0.0;
+            judge.kinematic.velocity.y = 0.0;
         }
     }
 
     pub fn apply_jump_action(jump_action: &JumpAction, judge: &mut Judge) {
         if let JumpAction::Start = jump_action {
-            judge.kinematic.velocity.y = JUDGE_SPEED_Y;
+            judge.kinematic.velocity.z = JUDGE_SPEED_Z;
         }
     }
 }

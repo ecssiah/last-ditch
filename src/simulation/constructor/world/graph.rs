@@ -23,17 +23,17 @@ fn build_center_room(world: &mut World) {
     let sector_position = Grid::sector_coordinates_to_position(&world.grid, sector_coordinates);
 
     let entrances = Vec::from([
-        grid::Direction::XpYoZo,
-        grid::Direction::XnYoZo,
-        grid::Direction::XoYoZp,
+        grid::Direction::XPYOZO,
+        grid::Direction::XNYOZO,
+        grid::Direction::XOYOZP,
     ]);
 
     build_sector_room(sector_position, entrances, block::Kind::Polished1, world);
 
-    let center_position = IVec3::new(0, -4, 0);
+    let center_position = IVec3::new(0, 0, -4);
 
     World::set_block(
-        center_position + IVec3::unit_z() * 2,
+        center_position + IVec3::unit_y() * 2,
         block::Kind::North,
         &world.grid,
         &world.block_info_map,
@@ -41,7 +41,7 @@ fn build_center_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::unit_z() * 2,
+        center_position - IVec3::unit_y() * 2,
         block::Kind::South,
         &world.grid,
         &world.block_info_map,
@@ -72,16 +72,16 @@ fn build_constricted_entrance_room(world: &mut World) {
     let sector_position = Grid::sector_coordinates_to_position(&world.grid, sector_coordinates);
 
     let entrances = Vec::from([
-        grid::Direction::XnYoZo,
-        grid::Direction::XoYoZp,
-        grid::Direction::XoYoZn,
+        grid::Direction::XNYOZO,
+        grid::Direction::XOYPZO,
+        grid::Direction::XOYNZO,
     ]);
 
     build_sector_room(sector_position, entrances, block::Kind::Polished2, world);
 
     World::set_cube(
         sector_position + IVec3::new(sector_radius_in_cells, 0, 0),
-        sector_position + IVec3::new(sector_radius_in_cells, -2, 0),
+        sector_position + IVec3::new(sector_radius_in_cells, 0, -2),
         block::Kind::None,
         &world.grid,
         &world.block_info_map,
@@ -89,8 +89,8 @@ fn build_constricted_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        sector_position + IVec3::new(sector_radius_in_cells + 1, 1, -1),
-        sector_position + IVec3::new(sector_radius_in_cells + 1, -3, 1),
+        sector_position + IVec3::new(sector_radius_in_cells + 1, -1, 1),
+        sector_position + IVec3::new(sector_radius_in_cells + 1, 1, -3),
         block::Kind::None,
         &world.grid,
         &world.block_info_map,
@@ -105,16 +105,16 @@ fn build_expanded_entrance_room(world: &mut World) {
     let sector_position = Grid::sector_coordinates_to_position(&world.grid, sector_coordinates);
 
     let entrances = Vec::from([
-        grid::Direction::XpYoZo,
-        grid::Direction::XoYoZp,
-        grid::Direction::XoYoZn,
+        grid::Direction::XPYOZO,
+        grid::Direction::XOYPZO,
+        grid::Direction::XOYNZO,
     ]);
 
     build_sector_room(sector_position, entrances, block::Kind::Polished2, world);
 
     World::set_cube(
-        sector_position + IVec3::new(-sector_radius_in_cells, 1, -2),
-        sector_position + IVec3::new(-sector_radius_in_cells + 2, -4, 2),
+        sector_position + IVec3::new(-sector_radius_in_cells, -2, 1),
+        sector_position + IVec3::new(-sector_radius_in_cells + 2, 2, -4),
         block::Kind::None,
         &world.grid,
         &world.block_info_map,
@@ -122,8 +122,8 @@ fn build_expanded_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        sector_position + IVec3::new(-sector_radius_in_cells - 1, 0, -1),
-        sector_position + IVec3::new(-sector_radius_in_cells - 1, -3, 1),
+        sector_position + IVec3::new(-sector_radius_in_cells - 1, -1, 0),
+        sector_position + IVec3::new(-sector_radius_in_cells - 1, 1, -3),
         block::Kind::None,
         &world.grid,
         &world.block_info_map,
@@ -131,8 +131,8 @@ fn build_expanded_entrance_room(world: &mut World) {
     );
 
     World::set_cube(
-        sector_position + IVec3::new(-sector_radius_in_cells, -5, -2),
-        sector_position + IVec3::new(-sector_radius_in_cells + 2, -5, 2),
+        sector_position + IVec3::new(-sector_radius_in_cells, -2, -5),
+        sector_position + IVec3::new(-sector_radius_in_cells + 2, 2, -5),
         block::Kind::Polished2,
         &world.grid,
         &world.block_info_map,
@@ -143,13 +143,13 @@ fn build_expanded_entrance_room(world: &mut World) {
 fn build_multiple_entrance_room(world: &mut World) {
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
-    let sector_coordinates = IVec3::new(0, 0, -1);
+    let sector_coordinates = IVec3::new(0, -1, 0);
     let sector_position = Grid::sector_coordinates_to_position(&world.grid, sector_coordinates);
 
     let entrances = vec![
-        grid::Direction::XpYoZo,
-        grid::Direction::XnYoZo,
-        grid::Direction::XoYoZn,
+        grid::Direction::XPYOZO,
+        grid::Direction::XNYOZO,
+        grid::Direction::XOYNZO,
     ];
 
     build_sector_room(sector_position, entrances, block::Kind::Polished2, world);
@@ -181,10 +181,10 @@ fn build_vertical_entrance_room(world: &mut World) {
         Grid::sector_coordinates_to_position(&world.grid, sector_coordinates_001);
 
     let entrance_vec = vec![
-        grid::Direction::XpYoZo,
-        grid::Direction::XnYoZo,
-        grid::Direction::XoYoZp,
-        grid::Direction::XoYoZn,
+        grid::Direction::XPYOZO,
+        grid::Direction::XNYOZO,
+        grid::Direction::XOYOZP,
+        grid::Direction::XOYOZN,
     ];
 
     build_sector_room(
@@ -423,7 +423,7 @@ fn build_sector_room(
         &mut world.sector_vec,
     );
 
-    if entrance_vec.contains(&grid::Direction::XpYoZo) {
+    if entrance_vec.contains(&grid::Direction::XPYOZO) {
         World::set_cube(
             position + IVec3::new(sector_radius_in_cells, 0, 1),
             position + IVec3::new(sector_radius_in_cells, -3, -1),
@@ -434,7 +434,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XnYoZo) {
+    if entrance_vec.contains(&grid::Direction::XNYOZO) {
         World::set_cube(
             position + IVec3::new(-sector_radius_in_cells, 0, 1),
             position + IVec3::new(-sector_radius_in_cells, -3, -1),
@@ -445,7 +445,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYoZp) {
+    if entrance_vec.contains(&grid::Direction::XOYOZP) {
         World::set_cube(
             position + IVec3::new(1, 0, sector_radius_in_cells),
             position + IVec3::new(-1, -3, sector_radius_in_cells),
@@ -456,7 +456,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYoZn) {
+    if entrance_vec.contains(&grid::Direction::XOYOZN) {
         World::set_cube(
             position + IVec3::new(1, 0, -sector_radius_in_cells),
             position + IVec3::new(-1, -3, -sector_radius_in_cells),
@@ -467,7 +467,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYpZo) {
+    if entrance_vec.contains(&grid::Direction::XOYPZO) {
         World::set_cube(
             position + IVec3::new(-1, sector_radius_in_cells, -1),
             position + IVec3::new(1, sector_radius_in_cells, 1),
@@ -478,7 +478,7 @@ fn build_sector_room(
         );
     }
 
-    if entrance_vec.contains(&grid::Direction::XoYnZo) {
+    if entrance_vec.contains(&grid::Direction::XOYNZO) {
         World::set_cube(
             position + IVec3::new(-1, -sector_radius_in_cells, -1),
             position + IVec3::new(1, -sector_radius_in_cells, 1),

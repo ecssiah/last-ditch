@@ -33,9 +33,10 @@ pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
 pub const JUDGE_SPEED_X: f32 = 6.0;
 pub const JUDGE_SPEED_Y: f32 = 8.0;
 pub const JUDGE_SPEED_Z: f32 = 8.0;
+
 pub const JUDGE_SIZE_X: f32 = 0.6;
-pub const JUDGE_SIZE_Y: f32 = 2.8;
-pub const JUDGE_SIZE_Z: f32 = 0.6;
+pub const JUDGE_SIZE_Y: f32 = 0.6;
+pub const JUDGE_SIZE_Z: f32 = 2.8;
 
 pub const JUDGE_VIEW_RADIUS_IN_SECTORS: i32 = 2;
 

@@ -69,14 +69,14 @@ impl Input {
     pub fn get_movement_action(key_inputs: &KeyInputs, mouse_inputs: &mut MouseInputs) -> Action {
         let direction = Vec3::new(
             key_inputs.key_a + key_inputs.key_d,
-            0.0,
             key_inputs.key_w + key_inputs.key_s,
+            0.0,
         );
 
-        let rotation = Vec3::new(
+        let rotation = MOUSE_SENSITIVITY * Vec3::new(
+            mouse_inputs.delta.x, 
+            mouse_inputs.delta.y, 
             0.0,
-            mouse_inputs.delta.x * MOUSE_SENSITIVITY,
-            mouse_inputs.delta.y * MOUSE_SENSITIVITY,
         );
 
         mouse_inputs.delta = Vec2::broadcast(0.0);
