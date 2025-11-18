@@ -36,9 +36,9 @@ fn build_rooms(world: &mut World) {
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32 - 1;
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
-    for x in -world_radius_in_sectors..=world_radius_in_sectors {
+    for z in -world_radius_in_sectors..=world_radius_in_sectors {
         for y in -world_radius_in_sectors..=world_radius_in_sectors {
-            for z in -world_radius_in_sectors..=world_radius_in_sectors {
+            for x in -world_radius_in_sectors..=world_radius_in_sectors {
                 let sector_coordinates = IVec3::new(x, y, z);
                 let sector_position =
                     Grid::sector_coordinates_to_position(&world.grid, sector_coordinates);

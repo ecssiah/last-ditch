@@ -304,9 +304,9 @@ impl World {
             position1.z.max(position2.z),
         );
 
-        for x in min.x..=max.x {
+        for z in min.z..=max.z {
             for y in min.y..=max.y {
-                for z in min.z..=max.z {
+                for x in min.x..=max.x {
                     let mut on_boundary = false;
 
                     if min.x != max.x && (x == min.x || x == max.x) {
@@ -365,9 +365,9 @@ impl World {
             position1.z.max(position2.z),
         );
 
-        for x in min.x..=max.x {
+        for z in min.z..=max.z {
             for y in min.y..=max.y {
-                for z in min.z..=max.z {
+                for x in min.x..=max.x {
                     let position = IVec3::new(x, y, z);
 
                     Self::set_block(position, block_kind, grid, block_info_map, sector_vec_slice);

@@ -3,19 +3,17 @@
 pub mod view;
 
 use crate::simulation::{
-    consts::JUDGE_VIEW_RADIUS_SQUARED,
+    consts::{JUDGE_VIEW_RADIUS_IN_SECTORS, JUDGE_VIEW_RADIUS_SQUARED},
     observation::view::{
         AdminView, AgentView, FaceView, JudgeView, PopulationView, SectorView, TimeView, View,
         WorldView,
     },
     state::{
-        population::entity::Spatial,
-        world::{
+        State, population::entity::Spatial, world::{
             block,
             grid::{self, Axis, Grid},
             sector::Sector,
-        },
-        State,
+        }
     },
 };
 use std::collections::HashMap;
@@ -125,16 +123,14 @@ impl Observation {
             sector_view_map: HashMap::new(),
         };
 
-        const JUDGE_VIEW_RADIUS: i32 = 2;
-
         let judge_sector_coordinates = Grid::world_to_sector_coordinates(
             &state.world.grid,
             state.population.judge.spatial.world_position,
         );
 
-        for dx in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
-            for dy in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
-                for dz in -JUDGE_VIEW_RADIUS..=JUDGE_VIEW_RADIUS {
+        for dz in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
+            for dy in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
+                for dx in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
                     let sector_coordinates = judge_sector_coordinates + IVec3::new(dx, dy, dz);
 
                     let sector_id = Grid::sector_coordinates_to_sector_id(

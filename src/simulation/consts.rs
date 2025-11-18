@@ -36,6 +36,10 @@ pub const JUDGE_SPEED_Z: f32 = 8.0;
 pub const JUDGE_SIZE_X: f32 = 0.6;
 pub const JUDGE_SIZE_Y: f32 = 2.8;
 pub const JUDGE_SIZE_Z: f32 = 0.6;
+
+pub const JUDGE_VIEW_RADIUS_IN_SECTORS: i32 = 2;
+
 pub const JUDGE_VIEW_RADIUS: f32 = 256.0;
 pub const JUDGE_VIEW_RADIUS_SQUARED: f32 = JUDGE_VIEW_RADIUS * JUDGE_VIEW_RADIUS;
+
 pub const JUDGE_PITCH_LIMIT: f32 = std::f32::consts::FRAC_PI_2 + f32::EPSILON;

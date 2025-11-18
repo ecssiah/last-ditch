@@ -374,9 +374,9 @@ impl Grid {
 
         let size = Vec3::broadcast(grid.cell_size_in_meters);
 
-        for x in min.x..=max.x {
+        for z in min.z..=max.z {
             for y in min.y..=max.y {
-                for z in min.z..=max.z {
+                for x in min.x..=max.x {
                     let cell_position = IVec3::new(x, y, z);
                     let cell_aabb = AABB::new(Vec3::from(cell_position), size);
 

@@ -21,9 +21,9 @@ fn build_ground(world: &mut World) {
     let ground_boundary =
         (world.grid.world_radius_in_cells - world.grid.sector_size_in_cells) as isize;
 
-    for x in -ground_boundary..=ground_boundary {
+    for z in -ground_boundary..=ground_boundary {
         for y in -1..=0 {
-            for z in -ground_boundary..=ground_boundary {
+            for x in -ground_boundary..=ground_boundary {
                 let position = IVec3::new(x as i32, y, z as i32);
                 let sector_coordinates =
                     Grid::position_to_sector_coordinates(&world.grid, position);
