@@ -13,7 +13,7 @@ use crate::{
         state::population::{entity, nation},
     },
 };
-use obj::load_obj;
+use obj::{TexturedVertex, load_obj};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
@@ -81,15 +81,14 @@ impl PopulationRender {
 
                     match load_obj(model_file_reader) {
                         Ok(model) => {
-                            let mut vertex_vec: Vec<obj::TexturedVertex> = model.vertices;
-
-                            for v in &mut vertex_vec {
-                                let x = v.position[0];
-                                let y = v.position[1];
-                                let z = v.position[2];
-
-                                v.position = [x, -z, y];
-                            }
+                            let vertex_vec = model.vertices
+                                .iter()
+                                .map(|vertex: &TexturedVertex| TexturedVertex {
+                                    position: [vertex.position[0], -vertex.position[2], vertex.position[1]],
+                                    normal: [vertex.normal[0], -vertex.normal[2], vertex.normal[1]],
+                                    texture: vertex.texture,
+                                })
+                                .collect();
 
                             let index_vec = model.indices;
 
