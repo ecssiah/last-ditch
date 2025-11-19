@@ -52,35 +52,39 @@ fn build_ground(world: &mut World) {
 
 fn build_compass(world: &mut World) {
     World::set_block(
-        IVec3::new(0, 0, 0),
+        IVec3::new(0, 0, 1),
         block::Kind::TealStone,
         &world.grid,
         &world.block_info_map,
         &mut world.sector_vec,
     );
+
     World::set_block(
-        IVec3::new(0, 4, 0),
+        IVec3::new(0, 4, 1),
         block::Kind::North,
         &world.grid,
         &world.block_info_map,
         &mut world.sector_vec,
     );
+
     World::set_block(
-        IVec3::new(-4, 0, 0),
+        IVec3::new(-4, 0, 1),
         block::Kind::West,
         &world.grid,
         &world.block_info_map,
         &mut world.sector_vec,
     );
+
     World::set_block(
-        IVec3::new(0, -4, 0),
+        IVec3::new(0, -4, 1),
         block::Kind::South,
         &world.grid,
         &world.block_info_map,
         &mut world.sector_vec,
     );
+
     World::set_block(
-        IVec3::new(4, 0, 0),
+        IVec3::new(4, 0, 1),
         block::Kind::East,
         &world.grid,
         &world.block_info_map,

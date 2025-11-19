@@ -252,16 +252,16 @@ impl BlockRenderInfo {
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XOYPZO => [
+                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
                 [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             grid::Direction::XOYNZO => [
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XOYOZP => [
                 [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
@@ -270,10 +270,10 @@ impl BlockRenderInfo {
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
             ],
             grid::Direction::XOYOZN => [
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
                 [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
+                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
             ],
             _ => panic!("Invalid face direction"),
         }
@@ -286,10 +286,10 @@ impl BlockRenderInfo {
         let v_max = ((coordinates[1] + 1) * size) as f32 / atlas_size.y as f32;
 
         [
-            [u_max, v_max],
             [u_min, v_max],
-            [u_min, v_min],
+            [u_max, v_max],
             [u_max, v_min],
+            [u_min, v_min],
         ]
     }
 }

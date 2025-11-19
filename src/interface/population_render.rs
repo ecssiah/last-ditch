@@ -88,7 +88,7 @@ impl PopulationRender {
                                 let y = v.position[1];
                                 let z = v.position[2];
 
-                                v.position = [x, z, y];
+                                v.position = [x, -z, y];
                             }
 
                             let index_vec = model.indices;
