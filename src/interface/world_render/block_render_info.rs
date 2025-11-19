@@ -279,21 +279,17 @@ impl BlockRenderInfo {
         }
     }
 
-    pub fn tile_uv_array(
-        tile_coordinates: &[u32; 2],
-        tile_size: u32,
-        tile_atlas_size: UVec2,
-    ) -> [[f32; 2]; 4] {
-        let u_min = (tile_coordinates[0] * tile_size) as f32 / tile_atlas_size.x as f32;
-        let v_min = (tile_coordinates[1] * tile_size) as f32 / tile_atlas_size.y as f32;
-        let u_max = ((tile_coordinates[0] + 1) * tile_size) as f32 / tile_atlas_size.x as f32;
-        let v_max = ((tile_coordinates[1] + 1) * tile_size) as f32 / tile_atlas_size.y as f32;
+    pub fn tile_uv_array(coordinates: &[u32; 2], size: u32, atlas_size: UVec2) -> [[f32; 2]; 4] {
+        let u_min = (coordinates[0] * size) as f32 / atlas_size.x as f32;
+        let v_min = (coordinates[1] * size) as f32 / atlas_size.y as f32;
+        let u_max = ((coordinates[0] + 1) * size) as f32 / atlas_size.x as f32;
+        let v_max = ((coordinates[1] + 1) * size) as f32 / atlas_size.y as f32;
 
         [
-            [u_max, v_max], // new 0
-            [u_min, v_max], // new 1
-            [u_min, v_min], // new 2
-            [u_max, v_min], // new 3
+            [u_max, v_max],
+            [u_min, v_max],
+            [u_min, v_min],
+            [u_max, v_min],
         ]
     }
 }

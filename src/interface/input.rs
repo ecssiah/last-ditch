@@ -74,7 +74,7 @@ impl Input {
         );
 
         let rotation = MOUSE_SENSITIVITY * Vec3::new(
-            mouse_inputs.delta.x, 
+            -mouse_inputs.delta.x, 
             mouse_inputs.delta.y, 
             0.0,
         );
@@ -219,18 +219,18 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    key_inputs.key_a += 1.0;
-                } else if key_event.state == ElementState::Released {
                     key_inputs.key_a -= 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_a += 1.0;
                 }
 
                 None
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    key_inputs.key_d -= 1.0;
-                } else if key_event.state == ElementState::Released {
                     key_inputs.key_d += 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_d -= 1.0;
                 }
 
                 None

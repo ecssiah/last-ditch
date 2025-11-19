@@ -82,8 +82,6 @@ impl Judge {
     }
 
     pub fn apply_movement_data(movement_data: &MovementData, judge: &mut Judge) {
-        log::warn!("{:?}", movement_data.rotation);
-
         if movement_data.rotation.x.abs() > 1e-6 || movement_data.rotation.y.abs() > 1e-6 {
             judge.spatial.yaw += movement_data.rotation.x;
             judge.spatial.pitch += movement_data.rotation.y;

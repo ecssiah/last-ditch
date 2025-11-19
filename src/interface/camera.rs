@@ -121,7 +121,7 @@ impl Camera {
         let eye_offset = Vec3::unit_z() * 0.9 * judge_view.size.z;
         let eye = judge_view.world_position + eye_offset;
 
-        let forward = judge_view.rotor * -Vec3::unit_y();
+        let forward = judge_view.rotor * Vec3::unit_y();
         let up = judge_view.rotor * Vec3::unit_z();
 
         let target = eye + forward;
@@ -137,15 +137,15 @@ impl Camera {
     }
 
     fn get_view_matrix(eye: Vec3, target: Vec3, up: Vec3) -> Mat4 {
-        let f = (target - eye).normalized();
-        let r = f.cross(up).normalized();
-        let u = r.cross(f);
+        let y_unit = Vec3::normalized(&(target - eye));
+        let x_unit = Vec3::normalized(&Vec3::cross(&y_unit, up));
+        let z_unit = Vec3::cross(&x_unit, y_unit);
 
         Mat4::new(
-            Vec4::new(r.x, u.x, -f.x, 0.0),
-            Vec4::new(r.y, u.y, -f.y, 0.0),
-            Vec4::new(r.z, u.z, -f.z, 0.0),
-            Vec4::new(-r.dot(eye), -u.dot(eye), f.dot(eye), 1.0),
+            Vec4::new(x_unit.x, z_unit.x, y_unit.x, 0.0),
+            Vec4::new(x_unit.y, z_unit.y, y_unit.y, 0.0),
+            Vec4::new(x_unit.z, z_unit.z, y_unit.z, 0.0),
+            Vec4::new(-Vec3::dot(&x_unit, eye), -Vec3::dot(&z_unit, eye), -Vec3::dot(&y_unit, eye), 1.0),
         )
     }
 
@@ -155,17 +155,16 @@ impl Camera {
         z_near: f32,
         z_far: f32,
     ) -> Mat4 {
-        let f = 1.0 / (0.5 * vertical_fov).tan();
-        let a = f / aspect_ratio;
-        let b = f;
-        let c = z_far / (z_far - z_near);
-        let d = (-z_near * z_far) / (z_far - z_near);
+        let y_scale = 1.0 / f32::tan(vertical_fov / 2.0);
+        let x_scale = y_scale / aspect_ratio;
+        let z_scale = z_far / (z_far - z_near);
+        let z_offset = (-z_near * z_far) / (z_far - z_near);
 
         Mat4::new(
-            Vec4::new(a, 0.0, 0.0, 0.0),
-            Vec4::new(0.0, b, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, c, 1.0),
-            Vec4::new(0.0, 0.0, d, 0.0),
+            Vec4::new(x_scale, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, y_scale, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, z_scale, 1.0),
+            Vec4::new(0.0, 0.0, z_offset, 0.0),
         )
     }
 }
