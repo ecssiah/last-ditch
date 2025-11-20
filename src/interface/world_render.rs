@@ -223,15 +223,15 @@ impl WorldRender {
         sector_render_data_vec.clear();
 
         for sector_view in world_view.sector_view_map.values() {
+            let _sector_span =
+                info_span!("sector", id = usize::from(sector_view.sector_id)).entered();
+
             if !camera
                 .frustum
                 .sphere_in_frustum(sector_view.world_position, sector_view.radius)
             {
                 continue;
             }
-
-            let _sector_span =
-                info_span!("sector", id = usize::from(sector_view.sector_id)).entered();
 
             let mut vertex_vec = Vec::new();
             let mut index_vec = Vec::new();

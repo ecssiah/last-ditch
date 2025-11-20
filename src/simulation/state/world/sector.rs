@@ -17,3 +17,9 @@ pub struct Sector {
     pub aabb: AABB,
     pub cell_vec: Vec<Cell>,
 }
+
+impl Sector {
+    pub fn get_cell_at(_coordinate: IVec3, sector: &Sector) -> &Cell {
+        &sector.cell_vec[0]
+    }
+}

@@ -8,7 +8,7 @@ pub struct Sight {
     pub rotor: Rotor3,
     pub horizontal_fov: f32,
     pub vertical_fov: f32,
-    pub range: f32,
+    pub range_in_meters: f32,
     pub range_in_sectors: i32,
 }
 
@@ -19,7 +19,7 @@ impl Sight {
         let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
-        let range = 10.0;
+        let range_in_meters = 10.0;
         let range_in_sectors = 1;
 
         Self {
@@ -28,7 +28,7 @@ impl Sight {
             rotor,
             horizontal_fov,
             vertical_fov,
-            range,
+            range_in_meters,
             range_in_sectors,
         }
     }
@@ -46,7 +46,7 @@ impl Sight {
     }
 
     pub fn set_range(range: f32, grid: &Grid, sight: &mut Sight) {
-        sight.range = range;
+        sight.range_in_meters = range;
         sight.range_in_sectors = (range / grid.sector_size_in_meters).ceil() as i32;
     }
 
@@ -54,7 +54,7 @@ impl Sight {
         let to_point = point - sight.position;
         let distance = to_point.mag();
 
-        if distance > sight.range {
+        if distance > sight.range_in_meters {
             return false;
         }
 
