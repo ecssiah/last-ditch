@@ -3,8 +3,8 @@ pub mod id;
 pub use id::ID;
 
 use crate::simulation::state::{
-    population::entity::{self, Entity, Info, Kinematic, Sense, Spatial, nation},
-    world::{World, sector},
+    population::entity::{self, nation, Entity, Info, Kinematic, Sense, Spatial},
+    world::{sector, World},
 };
 
 pub struct Agent {
@@ -34,10 +34,7 @@ impl Agent {
             sense,
         };
 
-        Self {
-            agent_id,
-            entity,
-        }
+        Self { agent_id, entity }
     }
 
     pub fn tick(world: &World, agent: &mut Agent) {

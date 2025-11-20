@@ -12,10 +12,13 @@ pub use nation::Nation;
 pub use sense::Sense;
 pub use spatial::Spatial;
 
-use crate::{simulation::{
-    consts::JUDGE_PITCH_LIMIT,
-    state::{World, physics::aabb::AABB, population::entity::sense::Touch},
-}, utils::math::Rotor3Ext};
+use crate::{
+    simulation::{
+        consts::JUDGE_PITCH_LIMIT,
+        state::{physics::aabb::AABB, population::entity::sense::Touch, World},
+    },
+    utils::math::Rotor3Ext,
+};
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Entity {

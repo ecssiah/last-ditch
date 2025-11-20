@@ -1,4 +1,4 @@
-use crate::simulation::state::population::entity::{self, Kinematic, Sense, Spatial, nation};
+use crate::simulation::state::population::entity::{self, nation, Kinematic, Sense, Spatial};
 
 #[derive(Clone, Debug)]
 pub struct AgentView {

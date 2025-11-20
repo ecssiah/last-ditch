@@ -1,5 +1,7 @@
 use crate::simulation::state::{
-    World, population::entity::{self, Spatial, nation}, world::{grid::Grid, sector}
+    population::entity::{self, nation, Spatial},
+    world::{grid::Grid, sector},
+    World,
 };
 
 #[derive(Debug)]

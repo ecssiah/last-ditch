@@ -5,9 +5,9 @@ pub use id::ID;
 use crate::simulation::{
     consts::*,
     state::{
-        population::entity::{self, Entity, Info, Kinematic, Sense, Spatial, nation},
+        population::entity::{self, nation, Entity, Info, Kinematic, Sense, Spatial},
         receiver::action::{JumpAction, MovementData},
-        world::{World, sector},
+        world::{sector, World},
     },
 };
 use ultraviolet::{Rotor3, Vec3};
@@ -27,7 +27,7 @@ impl Judge {
             entity_kind: entity::Kind::Judge,
             nation_kind: nation::Kind::Eagle,
         };
-        
+
         let entity = Entity {
             info,
             spatial: Spatial::new(),
@@ -35,10 +35,7 @@ impl Judge {
             sense: Sense::new(),
         };
 
-        Self {
-            judge_id,
-            entity,
-        }
+        Self { judge_id, entity }
     }
 
     pub fn tick(world: &World, judge: &mut Judge) {
@@ -51,7 +48,8 @@ impl Judge {
             judge.entity.spatial.pitch += movement_data.rotation.y;
 
             judge.entity.spatial.pitch = judge
-                .entity.spatial
+                .entity
+                .spatial
                 .pitch
                 .clamp(-JUDGE_PITCH_LIMIT, JUDGE_PITCH_LIMIT);
 

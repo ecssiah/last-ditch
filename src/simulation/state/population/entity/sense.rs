@@ -1,10 +1,10 @@
 pub mod hearing;
-pub mod touch;
 pub mod sight;
+pub mod touch;
 
 pub use hearing::Hearing;
-pub use touch::Touch;
 pub use sight::Sight;
+pub use touch::Touch;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sense {

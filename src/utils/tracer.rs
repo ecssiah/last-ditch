@@ -1,6 +1,6 @@
 use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 #[cfg(feature = "profile")]
 use {
     chrono::Local,
@@ -29,10 +29,11 @@ impl Tracer {
 
         #[cfg(feature = "profile")]
         let flamegraph_name = Self::get_flamegraph_name();
-        
+
         #[cfg(feature = "profile")]
         let (flame_layer, flame_guard) =
-            FlameLayer::with_file(format!("logs/traces/{}.folded", flamegraph_name).clone()).unwrap();
+            FlameLayer::with_file(format!("logs/traces/{}.folded", flamegraph_name).clone())
+                .unwrap();
 
         #[cfg(not(feature = "profile"))]
         let flame_layer = tracing_subscriber::layer::Identity::new();
@@ -55,9 +56,9 @@ impl Tracer {
     pub fn log_intro() {
         let decoration1 = " =  =  =  =   =  =  =  = ";
         let decoration2 = "= = = = = = = = = = = = =";
-        let title       = "   L A S T   D I T C H   ";
-        let company     = "     J U S T   S K Y     ";
-        let repo        = "https://github.com/ecssiah/last-ditch";
+        let title = "   L A S T   D I T C H   ";
+        let company = "     J U S T   S K Y     ";
+        let repo = "https://github.com/ecssiah/last-ditch";
 
         info!(
             "\n\n{}\n{}\n\n{}\n{}\n\n{}\n{}\n\nVersion: {}\nRepo: {}\n\n",
@@ -85,7 +86,6 @@ impl Tracer {
                 if let Some(name) = entry.file_name().to_str() {
                     if name.starts_with(&format!("profile.{date}-")) {
                         if let Some(part) = name.split('-').last() {
-
                             if let Some(num) = part.split('.').next() {
                                 if let Ok(n) = num.parse::<u32>() {
                                     count = count.max(n + 1);

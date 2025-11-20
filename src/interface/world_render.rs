@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use std::collections::HashMap;
-use tracing::{info_span};
+use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct WorldRender {
@@ -223,7 +223,10 @@ impl WorldRender {
         sector_render_data_vec.clear();
 
         for sector_view in world_view.sector_view_map.values() {
-            if !camera.frustum.sphere_in_frustum(sector_view.world_position, sector_view.radius) {
+            if !camera
+                .frustum
+                .sphere_in_frustum(sector_view.world_position, sector_view.radius)
+            {
                 continue;
             }
 

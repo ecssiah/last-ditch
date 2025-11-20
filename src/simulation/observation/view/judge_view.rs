@@ -1,6 +1,4 @@
-use crate::simulation::state::{
-    world::sector,
-};
+use crate::simulation::state::world::sector;
 use ultraviolet::{IVec3, Rotor3, Vec3};
 
 #[derive(Clone, Debug)]

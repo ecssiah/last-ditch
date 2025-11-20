@@ -1,5 +1,5 @@
-use ultraviolet::{Rotor3, Vec3};
 use crate::utils::math::Rotor3Ext;
+use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sight {
@@ -38,8 +38,8 @@ impl Sight {
         let yaw = yaw.to_radians();
         let pitch = pitch.to_radians();
 
-        sight.rotor = Rotor3::from_euler_angles(0.0, 0.0, -yaw)
-            * Rotor3::from_euler_angles(0.0, pitch, 0.0);
+        sight.rotor =
+            Rotor3::from_euler_angles(0.0, 0.0, -yaw) * Rotor3::from_euler_angles(0.0, pitch, 0.0);
     }
 
     pub fn contains(sight: &Sight, point: Vec3) -> bool {
