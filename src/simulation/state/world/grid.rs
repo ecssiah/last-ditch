@@ -10,7 +10,7 @@ pub use world_ray_iterator::WorldRayIterator;
 
 use crate::simulation::{
     self,
-    consts::*,
+    constants::*,
     state::{
         physics::aabb::AABB,
         world::{cell, sector},

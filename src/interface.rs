@@ -2,7 +2,7 @@
 
 pub mod app;
 pub mod camera;
-pub mod consts;
+pub mod constants;
 pub mod debug;
 pub mod dispatch;
 pub mod gpu_context;
@@ -18,9 +18,9 @@ pub mod world_render;
 
 use crate::{
     interface::{
-        camera::Camera, consts::*, debug::DebugRender, dispatch::Dispatch, gpu_context::GPUContext,
-        hud::HUD, input::Input, item_render::ItemRender, population_render::PopulationRender,
-        world_render::WorldRender,
+        camera::Camera, constants::*, debug::DebugRender, dispatch::Dispatch,
+        gpu_context::GPUContext, hud::HUD, input::Input, item_render::ItemRender,
+        population_render::PopulationRender, world_render::WorldRender,
     },
     simulation::{
         self,
@@ -69,7 +69,7 @@ impl<'window> Interface<'window> {
 
         let window_title = format!(
             "{} {}",
-            simulation::consts::PROJECT_TITLE,
+            simulation::constants::PROJECT_TITLE,
             env!("CARGO_PKG_VERSION")
         );
 
@@ -81,8 +81,8 @@ impl<'window> Interface<'window> {
             WindowAttributes::default()
                 .with_title(window_title)
                 .with_inner_size(PhysicalSize::new(
-                    consts::WINDOW_WIDTH,
-                    consts::WINDOW_HEIGHT,
+                    constants::WINDOW_WIDTH,
+                    constants::WINDOW_HEIGHT,
                 ))
         };
 

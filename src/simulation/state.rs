@@ -16,8 +16,9 @@ use tracing::info_span;
 pub use world::World;
 
 use crate::simulation::{
-    self, constructor,
-    consts::PROJECT_TITLE,
+    self,
+    constants::PROJECT_TITLE,
+    constructor,
     state::{
         population::judge::Judge,
         receiver::action::{Action, AdminAction, JudgeAction, TestAction},

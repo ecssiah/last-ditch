@@ -1,4 +1,4 @@
-use crate::utils::math::Rotor3Ext;
+use crate::{simulation::state::world::grid::Grid, utils::ld_math::Rotor3Ext};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -8,7 +8,8 @@ pub struct Sight {
     pub rotor: Rotor3,
     pub horizontal_fov: f32,
     pub vertical_fov: f32,
-    pub max_distance: f32,
+    pub range: f32,
+    pub range_in_sectors: i32,
 }
 
 impl Sight {
@@ -18,7 +19,8 @@ impl Sight {
         let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
-        let max_distance = 1200.0;
+        let range = 10.0;
+        let range_in_sectors = 1;
 
         Self {
             position,
@@ -26,7 +28,8 @@ impl Sight {
             rotor,
             horizontal_fov,
             vertical_fov,
-            max_distance,
+            range,
+            range_in_sectors,
         }
     }
 
@@ -42,11 +45,16 @@ impl Sight {
             Rotor3::from_euler_angles(0.0, 0.0, -yaw) * Rotor3::from_euler_angles(0.0, pitch, 0.0);
     }
 
+    pub fn set_range(range: f32, grid: &Grid, sight: &mut Sight) {
+        sight.range = range;
+        sight.range_in_sectors = (range / grid.sector_size_in_meters).ceil() as i32;
+    }
+
     pub fn contains(sight: &Sight, point: Vec3) -> bool {
         let to_point = point - sight.position;
         let distance = to_point.mag();
 
-        if distance > sight.max_distance {
+        if distance > sight.range {
             return false;
         }
 

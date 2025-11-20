@@ -1,6 +1,7 @@
 use crate::simulation::{
-    self, constructor,
-    consts::*,
+    self,
+    constants::*,
+    constructor,
     state::world::{grid::Grid, World},
 };
 use ultraviolet::IVec3;

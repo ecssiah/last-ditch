@@ -1,5 +1,5 @@
 use crate::simulation::{
-    consts::CELL_RADIUS,
+    constants::CELL_RADIUS,
     state::world::{block, grid},
 };
 use std::collections::HashMap;

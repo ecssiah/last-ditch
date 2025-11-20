@@ -1,8 +1,8 @@
 //! Simulation evolution
 
 pub mod config;
+pub mod constants;
 pub mod constructor;
-pub mod consts;
 pub mod kind;
 pub mod observation;
 pub mod state;

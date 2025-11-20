@@ -1,7 +1,7 @@
 //! User input processing
 
 use crate::{
-    interface::consts::*,
+    interface::constants::*,
     simulation::state::receiver::action::{
         Action, AdminAction, JudgeAction, JumpAction, MovementData, TestAction,
     },

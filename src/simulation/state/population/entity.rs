@@ -14,10 +14,10 @@ pub use spatial::Spatial;
 
 use crate::{
     simulation::{
-        consts::JUDGE_PITCH_LIMIT,
+        constants::JUDGE_PITCH_LIMIT,
         state::{physics::aabb::AABB, population::entity::sense::Touch, World},
     },
-    utils::math::Rotor3Ext,
+    utils::ld_math::Rotor3Ext,
 };
 use ultraviolet::{Rotor3, Vec3};
 

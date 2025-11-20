@@ -3,7 +3,11 @@ pub mod id;
 pub use id::ID;
 
 use crate::simulation::state::{
-    population::entity::{self, nation, Entity, Info, Kinematic, Sense, Spatial},
+    population::entity::{
+        self, nation,
+        sense::{Hearing, Sight, Touch},
+        Entity, Info, Kinematic, Sense, Spatial,
+    },
     world::{sector, World},
 };
 
@@ -25,7 +29,12 @@ impl Agent {
 
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
-        let sense = Sense::new();
+
+        let sense = Sense {
+            hearing: Hearing::new(),
+            touch: Touch::new(),
+            sight: Sight::new(),
+        };
 
         let entity = Entity {
             info,

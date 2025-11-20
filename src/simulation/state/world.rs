@@ -7,7 +7,7 @@ pub mod sector;
 
 use crate::simulation::{
     self,
-    consts::*,
+    constants::*,
     state::{
         physics::aabb::AABB,
         population::entity::{self, nation},

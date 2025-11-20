@@ -7,7 +7,7 @@ pub mod plane;
 use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
-        consts::*,
+        constants::*,
     },
     simulation::observation::view::JudgeView,
 };

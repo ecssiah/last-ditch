@@ -1,4 +1,4 @@
-use crate::simulation::consts::*;
+use crate::simulation::constants::*;
 use std::time::{Duration, Instant};
 
 pub struct Timing {

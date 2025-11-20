@@ -3,7 +3,7 @@
 pub mod aabb;
 
 use crate::simulation::{
-    consts::*,
+    constants::*,
     state::{
         physics::aabb::AABB,
         population::{entity::Entity, Population},

@@ -1,5 +1,5 @@
 use crate::simulation::{
-    consts::*,
+    constants::*,
     state::{population::entity::Entity, Population},
 };
 use ultraviolet::Vec3;
@@ -14,7 +14,11 @@ fn setup_judge(population: &mut Population) {
     Entity::set_world_position(Vec3::new(0.0, 10.0, 0.0), &mut judge.entity);
 
     Entity::set_size(
-        Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z),
+        Vec3::new(
+            JUDGE_DEFAULT_SIZE_X,
+            JUDGE_DEFAULT_SIZE_Y,
+            JUDGE_DEFAULT_SIZE_Z,
+        ),
         &mut judge.entity,
     );
 }

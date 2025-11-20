@@ -3,7 +3,7 @@
 pub mod view;
 
 use crate::simulation::{
-    consts::{JUDGE_VIEW_RADIUS_IN_SECTORS, JUDGE_VIEW_RADIUS_SQUARED},
+    constants::JUDGE_SIGHT_RANGE_SQUARED,
     observation::view::{
         AdminView, AgentView, FaceView, JudgeView, PopulationView, SectorView, TimeView, View,
         WorldView,
@@ -101,7 +101,7 @@ impl Observation {
                 - state.population.judge.entity.spatial.world_position)
                 .mag_sq();
 
-            if agent_to_judge_mag_sq > JUDGE_VIEW_RADIUS_SQUARED {
+            if agent_to_judge_mag_sq > JUDGE_SIGHT_RANGE_SQUARED {
                 continue;
             }
 
@@ -132,9 +132,12 @@ impl Observation {
             state.population.judge.entity.spatial.world_position,
         );
 
-        for dz in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
-            for dy in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
-                for dx in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
+        let judge = &state.population.judge;
+        let view_radius = judge.entity.sense.sight.range_in_sectors;
+
+        for dz in -view_radius..=view_radius {
+            for dy in -view_radius..=view_radius {
+                for dx in -view_radius..=view_radius {
                     let sector_coordinates = judge_sector_coordinates + IVec3::new(dx, dy, dz);
 
                     let sector_id = Grid::sector_coordinates_to_sector_id(

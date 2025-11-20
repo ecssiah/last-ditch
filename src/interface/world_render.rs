@@ -5,7 +5,7 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        consts::WINDOW_CLEAR_COLOR,
+        constants::WINDOW_CLEAR_COLOR,
         gpu_context::GPUContext,
         mesh_data::MeshData,
         texture_data::TextureData,

@@ -8,7 +8,7 @@ use crate::{
         vertex_data::VertexData,
     },
     simulation::{
-        consts::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
+        constants::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
         observation::view::PopulationView,
         state::population::entity::{self, nation},
     },

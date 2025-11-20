@@ -1,9 +1,9 @@
 use crate::simulation::{
-    consts::*,
+    constants::*,
     state::{
         population::{
             agent::Agent,
-            entity::{nation, Entity},
+            entity::{nation, sense::Sight, Entity},
             Population,
         },
         world::World,
@@ -13,21 +13,27 @@ use rand::Rng;
 use ultraviolet::Vec3;
 
 pub fn run(world: &World, population: &mut Population) {
-    setup_judge(population);
+    setup_judge(world, population);
     setup_agent_map(world, population);
 }
 
-fn setup_judge(population: &mut Population) {
+fn setup_judge(world: &World, population: &mut Population) {
     let judge = &mut population.judge;
 
     Entity::set_world_position(Vec3::new(0.0, 0.0, 6.0), &mut judge.entity);
 
     Entity::set_size(
-        Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z),
+        Vec3::new(
+            JUDGE_DEFAULT_SIZE_X,
+            JUDGE_DEFAULT_SIZE_Y,
+            JUDGE_DEFAULT_SIZE_Z,
+        ),
         &mut judge.entity,
     );
 
     Entity::set_rotation(0.0, 0.0, &mut judge.entity);
+
+    Sight::set_range(10.0, &world.grid, &mut judge.entity.sense.sight);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {

@@ -3,7 +3,7 @@ pub mod id;
 pub use id::ID;
 
 use crate::simulation::{
-    consts::*,
+    constants::*,
     state::{
         population::entity::{self, nation, Entity, Info, Kinematic, Sense, Spatial},
         receiver::action::{JumpAction, MovementData},
@@ -64,7 +64,7 @@ impl Judge {
 
             let local_velocity =
                 Vec3::new(movement_data.direction.x, movement_data.direction.y, 0.0)
-                    * Vec3::new(JUDGE_SPEED_X, JUDGE_SPEED_Y, 0.0);
+                    * Vec3::new(JUDGE_DEFAULT_SPEED_X, JUDGE_DEFAULT_SPEED_Y, 0.0);
 
             let velocity = yaw_rotor * local_velocity;
 
@@ -78,7 +78,7 @@ impl Judge {
 
     pub fn apply_jump_action(jump_action: &JumpAction, judge: &mut Judge) {
         if let JumpAction::Start = jump_action {
-            judge.entity.kinematic.velocity.z = JUDGE_SPEED_Z;
+            judge.entity.kinematic.velocity.z = JUDGE_DEFAULT_SPEED_Z;
         }
     }
 }
