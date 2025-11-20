@@ -1,5 +1,5 @@
 use ultraviolet::{Rotor3, Vec3};
-use crate::utils::math_ext::Rotor3Ext;
+use crate::utils::math::Rotor3Ext;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sight {
@@ -50,7 +50,7 @@ impl Sight {
             return false;
         }
 
-        let dot = to_point.normalized().dot(Rotor3::forward(sight.rotor));
+        let dot = to_point.normalized().dot(Rotor3Ext::forward(sight.rotor));
 
         let angle = dot.acos();
 

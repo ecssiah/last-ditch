@@ -1,2 +1,2 @@
-pub mod math_ext;
+pub mod math;
 pub mod tracer;

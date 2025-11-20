@@ -15,7 +15,7 @@ pub use spatial::Spatial;
 use crate::{simulation::{
     consts::JUDGE_PITCH_LIMIT,
     state::{World, physics::aabb::AABB, population::entity::sense::Touch},
-}, utils::math_ext::Rotor3Ext};
+}, utils::math::Rotor3Ext};
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Entity {
@@ -63,7 +63,7 @@ impl Entity {
         let speed = velocity_xy.mag_sq();
 
         if speed > 1e-12 {
-            let new_velocity_xy = Rotor3::forward(entity.spatial.rotor);
+            let new_velocity_xy = Rotor3Ext::forward(entity.spatial.rotor);
 
             entity.kinematic.velocity.x = new_velocity_xy.x;
             entity.kinematic.velocity.y = new_velocity_xy.y;
