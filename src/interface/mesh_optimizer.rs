@@ -169,7 +169,7 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
                                 (cursor_position[1] + local_y_delta[1]) as f32,
                                 (cursor_position[2] + local_y_delta[2]) as f32,
                             ],
-                            normal: [0.0, 0.0, 0.0],
+                            normal,
                             texture: [0.0, 0.0, 0.0],
                         };
 
