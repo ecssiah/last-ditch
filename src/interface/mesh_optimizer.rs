@@ -127,13 +127,19 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
 
                         let vertex_count: i32 = textured_vertex_vec.len() as i32;
 
+                        let normal = if cell > 0 {
+                            [-cursor_delta[0] as f32, -cursor_delta[1] as f32, -cursor_delta[2] as f32]
+                        } else {
+                            [cursor_delta[0] as f32, cursor_delta[1] as f32, cursor_delta[2] as f32]
+                        };
+
                         let vertex0 = TexturedVertex {
                             position: [
                                 cursor_position[0] as f32,
                                 cursor_position[1] as f32,
                                 cursor_position[2] as f32,
                             ],
-                            normal: [0.0, 0.0, 0.0],
+                            normal,
                             texture: [0.0, 0.0, 0.0],
                         };
 
@@ -143,7 +149,7 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
                                 (cursor_position[1] + local_x_delta[1]) as f32,
                                 (cursor_position[2] + local_x_delta[2]) as f32,
                             ],
-                            normal: [0.0, 0.0, 0.0],
+                            normal,
                             texture: [0.0, 0.0, 0.0],
                         };
 
@@ -153,7 +159,7 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
                                 (cursor_position[1] + local_x_delta[1] + local_y_delta[1]) as f32,
                                 (cursor_position[2] + local_x_delta[2] + local_y_delta[2]) as f32,
                             ],
-                            normal: [0.0, 0.0, 0.0],
+                            normal,
                             texture: [0.0, 0.0, 0.0],
                         };
 
