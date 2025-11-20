@@ -2,8 +2,9 @@ use crate::simulation::{
     consts::*,
     state::{
         population::{
-            entity::{Agent, Judge},
-            nation, Population,
+            agent::Agent,
+            entity::{nation, Entity},
+            Population,
         },
         world::World,
     },
@@ -19,19 +20,14 @@ pub fn run(world: &World, population: &mut Population) {
 fn setup_judge(population: &mut Population) {
     let judge = &mut population.judge;
 
-    Judge::set_world_position(
-        Vec3::new(0.0, 0.0, 6.0),
-        &mut judge.spatial,
-        &mut judge.detection,
-    );
+    Entity::set_world_position(Vec3::new(0.0, 0.0, 6.0), &mut judge.entity);
 
-    Judge::set_size(
+    Entity::set_size(
         Vec3::new(JUDGE_SIZE_X, JUDGE_SIZE_Y, JUDGE_SIZE_Z),
-        &mut judge.spatial,
-        &mut judge.detection,
+        &mut judge.entity,
     );
 
-    Judge::set_rotation(0.0, 0.0, &mut judge.spatial, &mut judge.kinematic);
+    Entity::set_rotation(0.0, 0.0, &mut judge.entity);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {
@@ -55,17 +51,13 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
                 let mut agent = Agent::new(nation_kind);
 
-                Agent::set_world_position(world_position, &mut agent.spatial, &mut agent.detection);
+                Entity::set_world_position(world_position, &mut agent.entity);
 
                 let agent_height = rng.gen_range(agent_size_bounds.0..=agent_size_bounds.1);
 
-                Agent::set_size(
-                    Vec3::new(0.6, agent_height, 0.6),
-                    &mut agent.spatial,
-                    &mut agent.detection,
-                );
+                Entity::set_size(Vec3::new(0.6, agent_height, 0.6), &mut agent.entity);
 
-                population.agent_map.insert(agent.info.entity_id, agent);
+                population.agent_map.insert(agent.agent_id, agent);
             }
         }
     }

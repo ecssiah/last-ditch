@@ -1,0 +1,88 @@
+use crate::{
+    interface::Interface,
+    simulation::{self, observation::view::View, Simulation},
+};
+use tokio::sync::mpsc::unbounded_channel;
+use winit::{
+    application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,
+    window::WindowId,
+};
+
+#[derive(Default)]
+pub struct LastDitchApp<'window> {
+    interface: Option<Interface<'window>>,
+    simulation_thread: Option<tokio::task::JoinHandle<()>>,
+}
+
+impl ApplicationHandler for LastDitchApp<'_> {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        let (action_tx, action_rx) =
+            unbounded_channel::<simulation::state::receiver::action::Action>();
+
+        let (view_buffer_input, view_buffer_output) = triple_buffer::triple_buffer(&View::new());
+
+        let mut simulation = Box::new(Simulation::new(action_rx, view_buffer_input));
+        let interface = Interface::new(event_loop, action_tx, view_buffer_output);
+
+        self.simulation_thread = Some(tokio::spawn(async move {
+            Simulation::run(
+                &mut simulation.timing,
+                &mut simulation.receiver,
+                &mut simulation.state,
+                &mut simulation.view_buffer_input,
+            )
+        }));
+
+        self.interface = Some(interface);
+    }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_about_to_wait(
+                event_loop,
+                &interface.gpu_context,
+                &interface.dispatch,
+                &mut interface.last_instant,
+                &mut interface.camera,
+                &mut interface.input,
+                &mut interface.hud,
+                &mut interface.world_render,
+                &mut interface.population_render,
+                &mut interface.debug_render,
+                &mut interface.view_buffer_output,
+            );
+        }
+    }
+
+    fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_window_event(
+                &event,
+                &interface.camera,
+                &mut interface.gpu_context,
+                &mut interface.input,
+                &mut interface.hud,
+                &mut interface.world_render,
+                &mut interface.population_render,
+                &mut interface.item_render,
+                &mut interface.debug_render,
+            );
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: winit::event::DeviceId,
+        event: winit::event::DeviceEvent,
+    ) {
+        if let Some(interface) = self.interface.as_mut() {
+            Interface::handle_device_event(
+                &event,
+                &mut interface.gpu_context,
+                &mut interface.input,
+                &mut interface.hud,
+            );
+        }
+    }
+}

@@ -145,7 +145,12 @@ impl Camera {
             Vec4::new(x_unit.x, z_unit.x, y_unit.x, 0.0),
             Vec4::new(x_unit.y, z_unit.y, y_unit.y, 0.0),
             Vec4::new(x_unit.z, z_unit.z, y_unit.z, 0.0),
-            Vec4::new(-Vec3::dot(&x_unit, eye), -Vec3::dot(&z_unit, eye), -Vec3::dot(&y_unit, eye), 1.0),
+            Vec4::new(
+                -Vec3::dot(&x_unit, eye),
+                -Vec3::dot(&z_unit, eye),
+                -Vec3::dot(&y_unit, eye),
+                1.0,
+            ),
         )
     }
 

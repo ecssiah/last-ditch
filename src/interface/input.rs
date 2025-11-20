@@ -73,11 +73,8 @@ impl Input {
             0.0,
         );
 
-        let rotation = MOUSE_SENSITIVITY * Vec3::new(
-            -mouse_inputs.delta.x, 
-            mouse_inputs.delta.y, 
-            0.0,
-        );
+        let rotation =
+            MOUSE_SENSITIVITY * Vec3::new(-mouse_inputs.delta.x, mouse_inputs.delta.y, 0.0);
 
         mouse_inputs.delta = Vec2::broadcast(0.0);
 
@@ -261,7 +258,7 @@ impl Input {
         state: &ElementState,
         button: &MouseButton,
     ) -> Option<Action> {
-        log::info!("{:?} {:?}", state, button);
+        tracing::info!("{:?} {:?}", state, button);
 
         None
     }
@@ -271,7 +268,7 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
     ) -> Option<Action> {
-        log::info!("{:?} {:?}", delta, phase);
+        tracing::info!("{:?} {:?}", delta, phase);
 
         None
     }

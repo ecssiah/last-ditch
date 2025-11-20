@@ -6,11 +6,12 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        population::{entity::Judge, Population},
+        population::{entity::Entity, Population},
         world::grid::{self, Grid},
         World,
     },
 };
+use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 #[derive(Default)]
@@ -26,27 +27,29 @@ impl Physics {
     }
 
     pub fn tick(physics: &Physics, world: &World, population: &mut Population) {
-        let (velocity, delta) = Physics::integrate_judge(physics.gravity, &mut population.judge);
+        let _physics_span = info_span!("physics_tick").entered();
 
-        Self::resolve_judge(&mut population.judge, world, &velocity, &delta);
-        Self::sync_judge(&mut population.judge);
+        let (velocity, delta) =
+            Physics::integrate_entity(physics.gravity, &mut population.judge.entity);
+
+        Self::resolve_entity(world, &velocity, &delta, &mut population.judge.entity);
+        Self::sync_entity(&mut population.judge.entity);
     }
 
-    fn integrate_judge(gravity: Vec3, judge: &mut Judge) -> (Vec3, Vec3) {
-        let initial_velocity = judge.kinematic.velocity;
-        let acceleration = judge.kinematic.acceleration + gravity;
+    fn integrate_entity(gravity: Vec3, entity: &mut Entity) -> (Vec3, Vec3) {
+        let initial_velocity = entity.kinematic.velocity;
+        let acceleration = entity.kinematic.acceleration + gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
-        let delta = 
-            initial_velocity * SIMULATION_TICK_IN_SECONDS + 
-            0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
+        let delta = initial_velocity * SIMULATION_TICK_IN_SECONDS
+            + 0.5 * acceleration * SIMULATION_TICK_IN_SECONDS_SQUARED;
 
         (velocity, delta)
     }
 
-    fn resolve_judge(judge: &mut Judge, world: &World, velocity: &Vec3, delta: &Vec3) {
-        let mut aabb = judge.detection.body;
+    fn resolve_entity(world: &World, velocity: &Vec3, delta: &Vec3, entity: &mut Entity) {
+        let mut aabb = entity.sense.touch.body;
         let mut velocity = *velocity;
 
         for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
@@ -59,8 +62,8 @@ impl Physics {
             velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
         }
 
-        judge.detection.body = aabb;
-        judge.kinematic.velocity = velocity;
+        entity.sense.touch.body = aabb;
+        entity.kinematic.velocity = velocity;
     }
 
     fn resolve_axis(aabb: AABB, world: &World, axis: grid::Axis, delta: f32) -> (AABB, f32) {
@@ -100,7 +103,7 @@ impl Physics {
             .into_iter()
             .filter(|cell_aabb| {
                 let aabb_center = cell_aabb.center();
-                
+
                 let cell_position = IVec3::new(
                     aabb_center.x.round() as i32,
                     aabb_center.y.round() as i32,
@@ -118,11 +121,7 @@ impl Physics {
             .collect()
     }
 
-    fn sync_judge(judge: &mut Judge) {
-        Judge::set_world_position(
-            judge.detection.body.bottom_center(),
-            &mut judge.spatial,
-            &mut judge.detection,
-        );
+    fn sync_entity(entity: &mut Entity) {
+        Entity::set_world_position(entity.sense.touch.body.bottom_center(), entity);
     }
 }

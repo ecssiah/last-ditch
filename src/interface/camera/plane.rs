@@ -1,4 +1,4 @@
-use ultraviolet::{Vec3};
+use ultraviolet::Vec3;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Plane {

@@ -1,18 +1,12 @@
 use crate::simulation::state::{
-    population::{
-        entity::{self, Spatial},
-        nation,
-    },
-    world::{grid::Grid, sector},
-    World,
+    World, population::entity::{self, Spatial, nation}, world::{grid::Grid, sector}
 };
 
 #[derive(Debug)]
 pub struct Info {
-    pub entity_id: entity::ID,
+    pub entity_kind: entity::Kind,
     pub sector_id: sector::ID,
     pub sector_updated: bool,
-    pub entity_kind: entity::Kind,
     pub nation_kind: nation::Kind,
 }
 

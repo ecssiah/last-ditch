@@ -10,10 +10,10 @@ use crate::{
     simulation::{
         consts::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
         observation::view::PopulationView,
-        state::population::{entity, nation},
+        state::population::entity::{self, nation},
     },
 };
-use obj::{TexturedVertex, load_obj};
+use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
@@ -81,10 +81,15 @@ impl PopulationRender {
 
                     match load_obj(model_file_reader) {
                         Ok(model) => {
-                            let vertex_vec = model.vertices
+                            let vertex_vec = model
+                                .vertices
                                 .iter()
                                 .map(|vertex: &TexturedVertex| TexturedVertex {
-                                    position: [vertex.position[0], -vertex.position[2], vertex.position[1]],
+                                    position: [
+                                        vertex.position[0],
+                                        -vertex.position[2],
+                                        vertex.position[1],
+                                    ],
                                     normal: [vertex.normal[0], -vertex.normal[2], vertex.normal[1]],
                                     texture: vertex.texture,
                                 })
@@ -96,14 +101,14 @@ impl PopulationRender {
 
                             if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                                 if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                                    log::info!("{:?} model loaded", file_stem);
+                                    tracing::info!("{:?} model loaded", file_stem);
 
                                     mesh_data_arc_map.insert((entity_kind, nation_kind), mesh_data);
                                 }
                             }
                         }
                         Err(err) => {
-                            log::error!("{:?}", err);
+                            tracing::error!("{:?}", err);
                         }
                     }
                 }
@@ -166,7 +171,7 @@ impl PopulationRender {
 
                 if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                     if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                        log::info!("{:?} texture loaded", file_stem);
+                        tracing::info!("{:?} texture loaded", file_stem);
 
                         texture_bind_group_map
                             .insert((entity_kind, nation_kind), texture_bind_group);

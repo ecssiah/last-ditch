@@ -18,6 +18,7 @@ use crate::{
     },
 };
 use std::collections::HashMap;
+use tracing::{info_span};
 use ultraviolet::{IVec3, Vec3};
 
 pub struct WorldRender {
@@ -217,16 +218,28 @@ impl WorldRender {
         block_tile_coordinates_map: &HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
         sector_render_data_vec: &mut Vec<SectorRenderData>,
     ) {
+        let _span = info_span!("apply_world_view").entered();
+
         sector_render_data_vec.clear();
 
         for sector_view in world_view.sector_view_map.values() {
+            if !camera.frustum.sphere_in_frustum(sector_view.world_position, sector_view.radius) {
+                continue;
+            }
+
+            let _sector_span =
+                info_span!("sector", id = usize::from(sector_view.sector_id)).entered();
+
             let mut vertex_vec = Vec::new();
             let mut index_vec = Vec::new();
             let mut index_offset = 0;
 
             for face_view in &sector_view.face_view_vec {
-                let tile_coordinates_map =
-                    block_tile_coordinates_map.get(&face_view.block_kind).unwrap();
+                let _face_span = info_span!("face_loop").entered();
+
+                let tile_coordinates_map = block_tile_coordinates_map
+                    .get(&face_view.block_kind)
+                    .unwrap();
 
                 let tile_coordinates = tile_coordinates_map.get(&face_view.direction).unwrap();
 
@@ -238,13 +251,28 @@ impl WorldRender {
 
                 let face_vertex_position_array = BlockRenderInfo::face_vertex_position_array(
                     IVec3::new(
-                        face_view.position.x as i32, 
-                        face_view.position.y as i32, 
-                        face_view.position.z as i32
-                    ), 
-                    face_view.direction
+                        face_view.position.x as i32,
+                        face_view.position.y as i32,
+                        face_view.position.z as i32,
+                    ),
+                    face_view.direction,
                 );
-                
+
+                let mut all_outside = true;
+
+                for &p in &face_vertex_position_array {
+                    let world_pos = Vec3::new(p[0], p[1], p[2]);
+
+                    if camera.frustum.point_in_frustum(world_pos) {
+                        all_outside = false;
+                        break;
+                    }
+                }
+
+                if all_outside {
+                    continue;
+                }
+
                 for (index, &position) in face_vertex_position_array.iter().enumerate() {
                     let normal = *Vec3::from(face_view.direction.offset()).as_array();
 

@@ -12,8 +12,8 @@ use crate::{
     simulation::{self, observation::view::View, state::receiver::action::Action},
 };
 use egui::{FontId, FullOutput, Id, Ui};
-use ultraviolet::Vec2;
 use std::sync::Arc;
+use ultraviolet::Vec2;
 use winit::event::{DeviceEvent, WindowEvent};
 
 pub struct HUD {

@@ -1,21 +1,23 @@
 //! Entities acting in the simulated environment
 
+pub mod agent;
 pub mod entity;
-pub mod nation;
+pub mod judge;
 
 use crate::simulation::{
     self,
     state::{
-        population::entity::{Agent, Judge},
+        population::{agent::Agent, judge::Judge},
         world::World,
     },
 };
 use std::collections::HashMap;
+use tracing::info_span;
 
 pub struct Population {
     pub simulation_kind: simulation::Kind,
     pub judge: Judge,
-    pub agent_map: HashMap<entity::ID, Agent>,
+    pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
@@ -43,6 +45,8 @@ impl Population {
     }
 
     pub fn tick(world: &World, population: &mut Population) {
+        let _population_span = info_span!("population_tick").entered();
+
         for agent in population.agent_map.values_mut() {
             Agent::tick(world, agent);
         }

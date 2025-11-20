@@ -1,6 +1,5 @@
 use crate::simulation::state::{
-    population::nation,
-    world::{block, grid::Grid, World},
+    population::entity::nation, world::{World, block, grid::Grid}
 };
 use ultraviolet::IVec3;
 
@@ -52,7 +51,7 @@ fn build_ground(world: &mut World) {
 
 fn build_compass(world: &mut World) {
     World::set_block(
-        IVec3::new(0, 0, 1),
+        IVec3::new(0, 0, 0),
         block::Kind::TealStone,
         &world.grid,
         &world.block_info_map,

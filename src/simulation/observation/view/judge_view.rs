@@ -1,12 +1,10 @@
 use crate::simulation::state::{
-    population::entity::{self},
     world::sector,
 };
 use ultraviolet::{IVec3, Rotor3, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct JudgeView {
-    pub entity_id: entity::ID,
     pub position: IVec3,
     pub world_position: Vec3,
     pub sector_id: sector::ID,
@@ -19,7 +17,6 @@ pub struct JudgeView {
 impl JudgeView {
     pub fn new() -> Self {
         Self {
-            entity_id: entity::ID::MAX,
             position: IVec3::new(0, 0, 0),
             world_position: Vec3::broadcast(0.0),
             sector_id: sector::ID::MAX,

@@ -1,5 +1,6 @@
 //! User interaction
 
+pub mod app;
 pub mod camera;
 pub mod consts;
 pub mod debug;
@@ -32,6 +33,7 @@ use crate::{
 };
 use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
+use tracing::info_span;
 use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
@@ -204,6 +206,8 @@ impl<'window> Interface<'window> {
         debug_render: &mut DebugRender,
         view_buffer_output: &mut triple_buffer::Output<View>,
     ) {
+        let _interface_span = info_span!("interface").entered();
+
         let instant = Instant::now();
         let next_instant = *last_instant + INTERFACE_FRAME_DURATION;
         *last_instant = instant;
@@ -236,6 +240,8 @@ impl<'window> Interface<'window> {
         input: &mut Input,
         hud: &mut HUD,
     ) {
+        let _device_event_span = tracing::info_span!("device_event").entered();
+
         if HUD::handle_device_event(event, &hud.mode, gpu_context) {
             return;
         }
@@ -256,6 +262,8 @@ impl<'window> Interface<'window> {
         item_render: &mut ItemRender,
         debug_render: &mut DebugRender,
     ) {
+        let _window_event_span = tracing::info_span!("window_event").entered();
+
         match event {
             WindowEvent::RedrawRequested => Self::handle_redraw_requested(
                 camera,
@@ -286,6 +294,8 @@ impl<'window> Interface<'window> {
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
+        let _redraw_span = tracing::info_span!("redraw").entered();
+
         let mut encoder = gpu_context
             .device
             .create_command_encoder(&Default::default());
@@ -374,15 +384,19 @@ impl<'window> Interface<'window> {
         debug_render: &mut DebugRender,
         view_buffer_output: &mut triple_buffer::Output<View>,
     ) {
+        let _view_span = info_span!("get_view").entered();
+
         let view = Observation::get_view(view_buffer_output);
+
+        let _dispatch_span = info_span!("dispatch_actions").entered();
 
         if !Self::dispatch_action_vec(view, dispatch, hud, input) {
             let admin_action = AdminAction::Exit;
             let action = Action::Admin(admin_action);
 
             match dispatch.action_tx.send(action) {
-                Ok(_) => log::info!("Interface Exit Action Sent"),
-                Err(err) => log::warn!("Failed to send action: {:?} ({err})", action),
+                Ok(_) => tracing::info!("Interface Exit Action Sent"),
+                Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
             };
         } else {
             Self::apply_view(
@@ -456,11 +470,7 @@ impl<'window> Interface<'window> {
 
         HUD::apply_simulate_view(view, &mut hud.mode);
 
-        Camera::apply_judge_view(
-            &gpu_context.queue,
-            &view.population_view.judge_view,
-            camera,
-        );
+        Camera::apply_judge_view(&gpu_context.queue, &view.population_view.judge_view, camera);
 
         WorldRender::apply_world_view(
             &gpu_context.device,
@@ -516,7 +526,7 @@ impl<'window> Interface<'window> {
                 let admin_action = AdminAction::Exit;
                 let action = Action::Admin(admin_action);
 
-                log::info!("Interface Exit");
+                tracing::info!("Interface Exit");
 
                 action_vec.push(action);
             }
@@ -526,7 +536,7 @@ impl<'window> Interface<'window> {
             match dispatch.action_tx.send(action) {
                 Ok(()) => (),
                 Err(_) => {
-                    log::error!("Send Failed: {:?}", action);
+                    tracing::error!("Send Failed: {:?}", action);
 
                     return false;
                 }

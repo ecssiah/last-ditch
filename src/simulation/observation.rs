@@ -19,6 +19,7 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
+use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Observation {}
@@ -29,6 +30,8 @@ impl Observation {
     }
 
     pub fn tick(state: &State, view_buffer_input: &mut triple_buffer::Input<View>) {
+        let _observation_span = info_span!("observation_tick").entered();
+
         Self::update_view(state, view_buffer_input);
     }
 
@@ -48,7 +51,6 @@ impl Observation {
 
         let view = view_buffer_input.input_buffer_mut();
 
-        view.entity_id = state.population.judge.info.entity_id;
         view.admin_view = admin_view;
         view.time_view = time_view;
         view.population_view = population_view;
@@ -75,17 +77,16 @@ impl Observation {
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
-            entity_id: judge.info.entity_id,
-            position: Grid::world_to_position(&state.world.grid, judge.spatial.world_position),
-            world_position: judge.spatial.world_position,
-            sector_id: judge.info.sector_id,
+            position: Grid::world_to_position(&state.world.grid, judge.entity.spatial.world_position),
+            world_position: judge.entity.spatial.world_position,
+            sector_id: judge.entity.info.sector_id,
             sector_coordinates: Grid::sector_id_to_sector_coordinates(
                 &state.world.grid,
-                judge.info.sector_id,
+                judge.entity.info.sector_id,
             ),
-            size: judge.spatial.size,
-            rotor: judge.spatial.rotor,
-            eye: Spatial::eye(&judge.spatial),
+            size: judge.entity.spatial.size,
+            rotor: judge.entity.spatial.rotor,
+            eye: Spatial::eye(&judge.entity.spatial),
         };
 
         let mut population_view = PopulationView {
@@ -94,8 +95,8 @@ impl Observation {
         };
 
         for agent in state.population.agent_map.values() {
-            let agent_to_judge_mag_sq = (agent.spatial.world_position
-                - state.population.judge.spatial.world_position)
+            let agent_to_judge_mag_sq = (agent.entity.spatial.world_position
+                - state.population.judge.entity.spatial.world_position)
                 .mag_sq();
 
             if agent_to_judge_mag_sq > JUDGE_VIEW_RADIUS_SQUARED {
@@ -103,17 +104,16 @@ impl Observation {
             }
 
             let agent_view = AgentView {
-                id: agent.info.entity_id,
-                entity_kind: agent.info.entity_kind,
-                nation_kind: agent.info.nation_kind,
-                spatial: agent.spatial,
-                kinematic: agent.kinematic,
-                detection: agent.detection,
+                entity_kind: agent.entity.info.entity_kind,
+                nation_kind: agent.entity.info.nation_kind,
+                spatial: agent.entity.spatial,
+                kinematic: agent.entity.kinematic,
+                sense: agent.entity.sense,
             };
 
             population_view
                 .agent_view_map
-                .insert(agent.info.entity_id, agent_view);
+                .insert(agent.agent_id, agent_view);
         }
 
         population_view
@@ -127,7 +127,7 @@ impl Observation {
 
         let judge_sector_coordinates = Grid::world_to_sector_coordinates(
             &state.world.grid,
-            state.population.judge.spatial.world_position,
+            state.population.judge.entity.spatial.world_position,
         );
 
         for dz in -JUDGE_VIEW_RADIUS_IN_SECTORS..=JUDGE_VIEW_RADIUS_IN_SECTORS {
@@ -145,7 +145,7 @@ impl Observation {
                             let sector_view = SectorView {
                                 sector_id: sector.sector_id,
                                 world_position: Vec3::from(sector.position),
-                                radius: Vec3::broadcast(state.world.grid.sector_radius_in_meters),
+                                radius: state.world.grid.sector_radius_in_meters,
                                 face_view_vec: Self::compute_face_view_vec(
                                     &state.world.grid,
                                     sector,

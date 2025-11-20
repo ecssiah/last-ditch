@@ -32,7 +32,7 @@ pub fn run(world: &mut World) {
     World::update_sectors(&world.grid, &mut world.sector_vec);
 }
 
-fn build_rooms(world: &mut World) {
+fn _build_rooms(world: &mut World) {
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32 - 1;
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
@@ -65,7 +65,7 @@ fn build_rooms(world: &mut World) {
     }
 }
 
-fn build_central_room(world: &mut World) {
+fn _build_central_room(world: &mut World) {
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let sector_coordinates = IVec3::new(0, 0, 0);
@@ -125,7 +125,7 @@ fn build_central_room(world: &mut World) {
     );
 }
 
-fn build_clearance_test(world: &mut World) {
+fn _build_clearance_test(world: &mut World) {
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let sector_coordinates = IVec3::new(0, 0, 1);

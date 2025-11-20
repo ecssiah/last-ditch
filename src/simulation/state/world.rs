@@ -10,10 +10,7 @@ use crate::simulation::{
     consts::*,
     state::{
         physics::aabb::AABB,
-        population::{
-            entity::{self},
-            nation,
-        },
+        population::entity::{self, nation},
         world::{cell::Cell, grid::Grid, sector::Sector},
     },
 };
@@ -274,7 +271,7 @@ impl World {
 
             true
         } else {
-            log::info!(
+            tracing::info!(
                 "{:?} cell cannot be set at invalid location: {:?}",
                 block_kind,
                 position
