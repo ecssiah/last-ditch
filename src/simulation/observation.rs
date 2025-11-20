@@ -1,4 +1,4 @@
-//! Generates Views of Simulation data
+//! Views of Simulation data
 
 pub mod view;
 
@@ -9,7 +9,6 @@ use crate::simulation::{
         WorldView,
     },
     state::{
-        population::entity::Spatial,
         world::{
             block,
             grid::{self, Grid},
@@ -77,7 +76,10 @@ impl Observation {
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
-            position: Grid::world_to_position(&state.world.grid, judge.entity.spatial.world_position),
+            position: Grid::world_to_position(
+                &state.world.grid,
+                judge.entity.spatial.world_position,
+            ),
             world_position: judge.entity.spatial.world_position,
             sector_id: judge.entity.info.sector_id,
             sector_coordinates: Grid::sector_id_to_sector_coordinates(
@@ -86,7 +88,7 @@ impl Observation {
             ),
             size: judge.entity.spatial.size,
             rotor: judge.entity.spatial.rotor,
-            eye: Spatial::eye(&judge.entity.spatial),
+            eye: judge.entity.sense.sight.position,
         };
 
         let mut population_view = PopulationView {

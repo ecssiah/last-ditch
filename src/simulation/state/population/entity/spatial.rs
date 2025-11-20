@@ -22,19 +22,7 @@ impl Spatial {
         }
     }
 
-    pub fn forward(spatial: &Spatial) -> Vec3 {
-        spatial.rotor * Vec3::unit_y()
-    }
-
-    pub fn up(spatial: &Spatial) -> Vec3 {
-        spatial.rotor * Vec3::unit_z()
-    }
-
-    pub fn right(spatial: &Spatial) -> Vec3 {
-        spatial.rotor * Vec3::unit_x()
-    }
-
-    pub fn eye(spatial: &Spatial) -> Vec3 {
-        spatial.world_position + Self::up(spatial) * spatial.eye_offset * spatial.size.z
-    }
+    // pub fn eye(spatial: &Spatial) -> Vec3 {
+    //     spatial.world_position + Self::up(spatial) * spatial.eye_offset * spatial.size.z
+    // }
 }

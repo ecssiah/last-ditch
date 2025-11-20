@@ -1,9 +1,11 @@
-use ultraviolet::Vec3;
+use ultraviolet::{Rotor3, Vec3};
+use crate::utils::math_ext::Rotor3Ext;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sight {
     pub position: Vec3,
-    pub direction: Vec3,
+    pub eye_offset: Vec3,
+    pub rotor: Rotor3,
     pub horizontal_fov: f32,
     pub vertical_fov: f32,
     pub max_distance: f32,
@@ -12,18 +14,32 @@ pub struct Sight {
 impl Sight {
     pub fn new() -> Self {
         let position = Vec3::zero();
-        let direction = Vec3::zero();
+        let eye_offset = Vec3::zero();
+        let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
         let max_distance = 1200.0;
 
         Self {
             position,
-            direction,
+            eye_offset,
+            rotor,
             horizontal_fov,
             vertical_fov,
             max_distance,
         }
+    }
+
+    pub fn set_world_position(world_position: Vec3, sight: &mut Sight) {
+        sight.position = world_position + sight.eye_offset;
+    }
+
+    pub fn set_rotation(yaw: f32, pitch: f32, sight: &mut Sight) {
+        let yaw = yaw.to_radians();
+        let pitch = pitch.to_radians();
+
+        sight.rotor = Rotor3::from_euler_angles(0.0, 0.0, -yaw)
+            * Rotor3::from_euler_angles(0.0, pitch, 0.0);
     }
 
     pub fn contains(sight: &Sight, point: Vec3) -> bool {
@@ -34,7 +50,7 @@ impl Sight {
             return false;
         }
 
-        let dot = to_point.normalized().dot(sight.direction);
+        let dot = to_point.normalized().dot(Rotor3::forward(sight.rotor));
 
         let angle = dot.acos();
 
