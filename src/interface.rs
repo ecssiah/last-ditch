@@ -33,7 +33,7 @@ use crate::{
 };
 use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
-use tracing::info_span;
+use tracing::{error, info, info_span, warn};
 use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
@@ -252,7 +252,7 @@ impl<'window> Interface<'window> {
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
-        let _redraw_span = tracing::info_span!("redraw").entered();
+        let _redraw_span = info_span!("redraw").entered();
 
         let mut encoder = gpu_context
             .device
@@ -352,8 +352,8 @@ impl<'window> Interface<'window> {
                 let action = Action::Admin(admin_action);
 
                 match interface.dispatch.action_tx.send(action) {
-                    Ok(_) => tracing::info!("Interface Exit Action Sent"),
-                    Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
+                    Ok(_) => info!("Interface Exit Action Sent"),
+                    Err(err) => warn!("Failed to send action: {:?} ({err})", action),
                 };
             } else {
                 Self::apply_view(
@@ -492,7 +492,7 @@ impl<'window> Interface<'window> {
                 let admin_action = AdminAction::Exit;
                 let action = Action::Admin(admin_action);
 
-                tracing::info!("Interface Exit");
+                info!("Interface Exit");
 
                 action_vec.push(action);
             }
@@ -502,7 +502,7 @@ impl<'window> Interface<'window> {
             match dispatch.action_tx.send(action) {
                 Ok(()) => (),
                 Err(_) => {
-                    tracing::error!("Send Failed: {:?}", action);
+                    error!("Send Failed: {:?}", action);
 
                     return false;
                 }

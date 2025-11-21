@@ -15,6 +15,7 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
+use tracing::info;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
@@ -265,10 +266,9 @@ impl World {
 
             true
         } else {
-            tracing::info!(
+            info!(
                 "{:?} cell cannot be set at invalid location: {:?}",
-                block_kind,
-                position
+                block_kind, position
             );
 
             false

@@ -14,6 +14,7 @@ use crate::{
     },
 };
 use obj::{load_obj, TexturedVertex};
+use tracing::{error, info};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
@@ -101,14 +102,14 @@ impl PopulationRender {
 
                             if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                                 if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                                    tracing::info!("{:?} model loaded", file_stem);
+                                    info!("{:?} model loaded", file_stem);
 
                                     mesh_data_arc_map.insert((entity_kind, nation_kind), mesh_data);
                                 }
                             }
                         }
                         Err(err) => {
-                            tracing::error!("{:?}", err);
+                            error!("{:?}", err);
                         }
                     }
                 }
@@ -171,7 +172,7 @@ impl PopulationRender {
 
                 if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                     if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                        tracing::info!("{:?} texture loaded", file_stem);
+                        info!("{:?} texture loaded", file_stem);
 
                         texture_bind_group_map
                             .insert((entity_kind, nation_kind), texture_bind_group);

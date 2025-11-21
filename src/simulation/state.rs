@@ -12,7 +12,7 @@ pub use physics::Physics;
 pub use population::Population;
 pub use receiver::Receiver;
 pub use time::Time;
-use tracing::info_span;
+use tracing::{info, info_span, warn};
 pub use world::World;
 
 use crate::simulation::{
@@ -74,10 +74,10 @@ impl State {
                     AdminAction::Start => Self::init_load(state),
                     AdminAction::Quit => Self::init_shutdown(state),
                     _ => {
-                        tracing::warn!("Received an invalid AdminAction in Menu mode: {:?}", action)
+                        warn!("Received an invalid AdminAction in Menu mode: {:?}", action)
                     }
                 },
-                _ => tracing::warn!("Received an invalid Action in Menu mode: {:?}", action),
+                _ => warn!("Received an invalid Action in Menu mode: {:?}", action),
             }
         }
     }
@@ -137,7 +137,7 @@ impl State {
                     }
                     AdminAction::Quit => Self::init_shutdown(state),
                     _ => {
-                        tracing::warn!(
+                        warn!(
                             "Received an invalid AdminAction in Simulate mode: {:?}",
                             action
                         );
@@ -162,7 +162,7 @@ impl State {
     }
 
     fn init_shutdown(state: &mut State) {
-        tracing::info!("Simulation Shutdown");
+        info!("Simulation Shutdown");
 
         state.admin.mode = admin::Mode::Shutdown;
     }

@@ -6,6 +6,7 @@ use crate::{
         Action, AdminAction, JudgeAction, JumpAction, MovementData, TestAction,
     },
 };
+use tracing::info;
 use ultraviolet::{Vec2, Vec3};
 use winit::{
     event::{
@@ -258,7 +259,7 @@ impl Input {
         state: &ElementState,
         button: &MouseButton,
     ) -> Option<Action> {
-        tracing::info!("{:?} {:?}", state, button);
+        info!("{:?} {:?}", state, button);
 
         None
     }
@@ -268,7 +269,7 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
     ) -> Option<Action> {
-        tracing::info!("{:?} {:?}", delta, phase);
+        info!("{:?} {:?}", delta, phase);
 
         None
     }
