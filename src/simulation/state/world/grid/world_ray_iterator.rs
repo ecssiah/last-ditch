@@ -69,8 +69,7 @@ impl<'world> WorldRayIterator<'world> {
         );
 
         let world_position = origin + direction * t0 - direction_signum * epsilon;
-
-        let position = Grid::world_to_position(&world.grid, world_position);
+        let position = Grid::world_position_to_position(world_position);
 
         let (step_direction_x, t_delta_x, t_remaining_x) = dda_axis_setup(
             position.x,
@@ -136,7 +135,7 @@ impl<'w> Iterator for WorldRayIterator<'w> {
                 return None;
             }
 
-            let (axis, step_direction_axis, t_next) =
+            let (direction_entered, t_next) =
                 get_next_cell_boundary_info(self.step_direction, self.t_remaining);
 
             if !t_next.is_finite() || t_next > self.t_max {
@@ -145,30 +144,27 @@ impl<'w> Iterator for WorldRayIterator<'w> {
             }
 
             self.t = t_next;
+            self.position += direction_entered.to_ivec3();
 
-            match axis {
-                grid::Axis::X => {
+            match direction_entered {
+                grid::Direction::East | grid::Direction::West => {
                     self.t_remaining.x += self.t_delta.x;
-                    self.position.x += step_direction_axis;
                 }
-                grid::Axis::Y => {
+                grid::Direction::North | grid::Direction::South => {
                     self.t_remaining.y += self.t_delta.y;
-                    self.position.y += step_direction_axis;
                 }
-                grid::Axis::Z => {
+                grid::Direction::Up | grid::Direction::Down => {
                     self.t_remaining.z += self.t_delta.z;
-                    self.position.z += step_direction_axis;
                 }
             }
 
-            if !Grid::position_valid(grid, self.position) {
+            if !Grid::position_valid(self.position, grid) {
                 self.done = true;
+
                 return None;
             }
 
-            let enter_face_direction = get_face_direction(axis, step_direction_axis);
-
-            let (sector_id, cell_id) = Grid::position_to_ids(grid, self.position);
+            let (sector_id, cell_id) = Grid::position_to_ids(self.position, grid);
 
             let world_position = self.origin + self.direction * self.t;
 
@@ -178,7 +174,7 @@ impl<'w> Iterator for WorldRayIterator<'w> {
                 world_position,
                 sector_id,
                 cell_id,
-                enter_face_direction,
+                direction_entered,
             };
 
             return Some(cell_sample);
@@ -263,7 +259,7 @@ fn dda_axis_setup(
 }
 
 #[inline]
-fn get_next_cell_boundary_info(step_direction: IVec3, t_remaining: Vec3) -> (grid::Axis, i32, f32) {
+fn get_next_cell_boundary_info(step_direction: IVec3, t_remaining: Vec3) -> (grid::Direction, f32) {
     let txp = if step_direction.x == 0 || !t_remaining.x.is_finite() {
         f32::INFINITY
     } else {
@@ -282,34 +278,33 @@ fn get_next_cell_boundary_info(step_direction: IVec3, t_remaining: Vec3) -> (gri
         t_remaining.z
     };
 
-    let mut axis = grid::Axis::X;
-    let mut step_direction_axis = step_direction.x;
+    let mut axis = if step_direction.x > 0 {
+        grid::Direction::East
+    } else {
+        grid::Direction::West
+    };
+
     let mut t_next = txp;
 
     if typ < t_next {
-        axis = grid::Axis::Y;
-        step_direction_axis = step_direction.y;
+        axis = if step_direction.y > 0 {
+            grid::Direction::North
+        } else {
+            grid::Direction::South
+        };
+
         t_next = typ;
     }
 
     if tzp < t_next {
-        axis = grid::Axis::Z;
-        step_direction_axis = step_direction.z;
+        axis = if step_direction.z > 0 {
+            grid::Direction::Up
+        } else {
+            grid::Direction::Down
+        };
+
         t_next = tzp;
     }
 
-    (axis, step_direction_axis, t_next)
-}
-
-#[inline]
-fn get_face_direction(axis: grid::Axis, step_direction: i32) -> grid::Direction {
-    match (axis, step_direction) {
-        (grid::Axis::X, 1) => grid::Direction::XNYOZO,
-        (grid::Axis::X, -1) => grid::Direction::XPYOZO,
-        (grid::Axis::Y, 1) => grid::Direction::XOYNZO,
-        (grid::Axis::Y, -1) => grid::Direction::XOYPZO,
-        (grid::Axis::Z, 1) => grid::Direction::XOYOZN,
-        (grid::Axis::Z, -1) => grid::Direction::XOYOZP,
-        _ => panic!("Requesting face for non-axis direction"),
-    }
+    (axis, t_next)
 }

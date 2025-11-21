@@ -4,7 +4,7 @@ use crate::simulation::{
         physics::aabb::AABB,
         world::{
             cell::Cell,
-            grid::{self, Grid},
+            grid::{Grid},
             World,
         },
     },
@@ -20,7 +20,7 @@ struct OverlappingAABBCase {
 
 impl OverlappingAABBCase {
     pub fn check(&self, world: &World) {
-        let aabb_vec = Grid::cells_overlapping(&world.grid, self.aabb);
+        let aabb_vec = Grid::cells_overlapping(self.aabb, &world.grid);
 
         let is_equal = AABB::approx_set_eq(&aabb_vec, &self.expected_aabb_vec, EPSILON);
 
@@ -37,17 +37,9 @@ fn directions() {
 
     let test_cases = vec![
         OverlappingAABBCase {
-            description: String::from("XOYOZO"),
+            description: String::from("(0.5, 0.5, 0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XOYOZO.offset()) * 0.5,
-                Vec3::broadcast(world.grid.cell_size_in_meters),
-            ),
-            expected_aabb_vec: vec![Cell::aabb(0, 0, 0, &world.grid)],
-        },
-        OverlappingAABBCase {
-            description: String::from("XPYPZP"),
-            aabb: AABB::new(
-                Vec3::from(grid::Direction::XPYPZP.offset()) * 0.5,
+                Vec3::new(0.5, 0.5, 0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -62,9 +54,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XPYPZN"),
+            description: String::from("(0.5, 0.5, -0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XPYPZN.offset()) * 0.5,
+                Vec3::new(0.5, 0.5, -0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -79,9 +71,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XPYNZP"),
+            description: String::from("(0.5, -0.5, 0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XPYNZP.offset()) * 0.5,
+                Vec3::new(0.5, -0.5, 0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -96,9 +88,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XPYNZN"),
+            description: String::from("(0.5, -0.5, -0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XPYNZN.offset()) * 0.5,
+                Vec3::new(0.5, -0.5, -0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -113,26 +105,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XPYNZN"),
+            description: String::from("(-0.5, 0.5, 0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XPYNZN.offset()) * 0.5,
-                Vec3::broadcast(world.grid.cell_size_in_meters),
-            ),
-            expected_aabb_vec: vec![
-                Cell::aabb(0, -1, -1, &world.grid),
-                Cell::aabb(1, -1, -1, &world.grid),
-                Cell::aabb(0, 0, -1, &world.grid),
-                Cell::aabb(1, 0, -1, &world.grid),
-                Cell::aabb(0, -1, 0, &world.grid),
-                Cell::aabb(1, -1, 0, &world.grid),
-                Cell::aabb(0, 0, 0, &world.grid),
-                Cell::aabb(1, 0, 0, &world.grid),
-            ],
-        },
-        OverlappingAABBCase {
-            description: String::from("XNYPZP"),
-            aabb: AABB::new(
-                Vec3::from(grid::Direction::XNYPZP.offset()) * 0.5,
+                Vec3::new(-0.5, 0.5, 0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -147,9 +122,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XNYPZN"),
+            description: String::from("(-0.5, 0.5, -0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XNYPZN.offset()) * 0.5,
+                Vec3::new(-0.5, 0.5, -0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -164,9 +139,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XNYNZP"),
+            description: String::from("(-0.5, -0.5, 0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XNYNZP.offset()) * 0.5,
+                Vec3::new(-0.5, -0.5, 0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![
@@ -181,9 +156,9 @@ fn directions() {
             ],
         },
         OverlappingAABBCase {
-            description: String::from("XNYNZN"),
+            description: String::from("(-0.5, -0.5, -0.5)"),
             aabb: AABB::new(
-                Vec3::from(grid::Direction::XNYNZN.offset()) * 0.5,
+                Vec3::new(-0.5, -0.5, -0.5),
                 Vec3::broadcast(world.grid.cell_size_in_meters),
             ),
             expected_aabb_vec: vec![

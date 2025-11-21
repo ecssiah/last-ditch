@@ -2,12 +2,16 @@
 
 use crate::{
     interface::{mesh_data::MeshData, world_render::sector_render_data::SectorRenderData},
-    simulation::state::world::{cell::Cell, grid::Grid, sector::Sector},
+    simulation::{observation::view::SectorView, state::world::grid::Grid},
 };
 use obj::TexturedVertex;
 use ultraviolet::IVec3;
 
-pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &Sector) -> SectorRenderData {
+pub fn lysenko_optimization(
+    device: &wgpu::Device,
+    grid: &Grid,
+    sector_view: &SectorView,
+) -> SectorRenderData {
     let mut textured_vertex_vec = Vec::new();
     let mut index_vec = Vec::new();
 
@@ -41,27 +45,26 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
             while cursor_position[local_y_dimension_index] <= sector_radius_in_cells {
                 cursor_position[local_x_dimension_index] = 0;
 
-                while cursor_position[local_x_dimension_index] <= sector_radius_in_cells
-                {
-                    let near_face_solid = if cursor_position[dimension_index] >= -sector_radius_in_cells {
-                        get_cell_at(&cursor_position, grid, sector).solid as i32
-                    } else {
-                        0
-                    };
+                while cursor_position[local_x_dimension_index] <= sector_radius_in_cells {
+                    // let near_face_solid = if cursor_position[dimension_index] >= -sector_radius_in_cells {
+                    //     get_cell_at(&cursor_position, grid, sector_view).solid as i32
+                    // } else {
+                    //     0
+                    // };
 
-                    let far_face_solid = if cursor_position[dimension_index] <= sector_size_in_cells {
-                        get_cell_at(&(cursor_position + cursor_delta), grid, sector).solid as i32
-                    } else {
-                        0
-                    };
+                    // let far_face_solid = if cursor_position[dimension_index] <= sector_size_in_cells {
+                    //     get_cell_at(&(cursor_position + cursor_delta), grid, sector_view).solid as i32
+                    // } else {
+                    //     0
+                    // };
 
-                    mask[mask_index as usize] = if near_face_solid != 0 && far_face_solid != 0 {
-                        0
-                    } else if near_face_solid != 0 {
-                        near_face_solid
-                    } else {
-                        -far_face_solid
-                    };
+                    // mask[mask_index as usize] = if near_face_solid != 0 && far_face_solid != 0 {
+                    //     0
+                    // } else if near_face_solid != 0 {
+                    //     near_face_solid
+                    // } else {
+                    //     -far_face_solid
+                    // };
 
                     mask_index += 1;
 
@@ -97,9 +100,8 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
 
                         'outer: while local_y + height <= sector_radius_in_cells {
                             for quad_x in 0..width {
-                                let quad_mask_index = mask_index as i32
-                                    + quad_x
-                                    + height * sector_radius_in_cells;
+                                let quad_mask_index =
+                                    mask_index as i32 + quad_x + height * sector_radius_in_cells;
 
                                 if cell != mask[quad_mask_index as usize] {
                                     break 'outer;
@@ -128,9 +130,17 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
                         let vertex_count: i32 = textured_vertex_vec.len() as i32;
 
                         let normal = if cell > 0 {
-                            [-cursor_delta[0] as f32, -cursor_delta[1] as f32, -cursor_delta[2] as f32]
+                            [
+                                -cursor_delta[0] as f32,
+                                -cursor_delta[1] as f32,
+                                -cursor_delta[2] as f32,
+                            ]
                         } else {
-                            [cursor_delta[0] as f32, cursor_delta[1] as f32, cursor_delta[2] as f32]
+                            [
+                                cursor_delta[0] as f32,
+                                cursor_delta[1] as f32,
+                                cursor_delta[2] as f32,
+                            ]
                         };
 
                         let vertex0 = TexturedVertex {
@@ -193,9 +203,8 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
 
                         for local_y in 0..height {
                             for local_x in 0..width {
-                                let quad_mask_index = mask_index as i32
-                                    + local_x
-                                    + local_y * sector_size_in_cells;
+                                let quad_mask_index =
+                                    mask_index as i32 + local_x + local_y * sector_size_in_cells;
 
                                 mask[quad_mask_index as usize] = 0;
                             }
@@ -209,21 +218,15 @@ pub fn lysenko_optimization_draft(device: &wgpu::Device, grid: &Grid, sector: &S
         }
     }
 
-    SectorRenderData { 
-        sector_id: sector.sector_id, 
+    SectorRenderData {
+        sector_id: sector_view.sector_id,
         mesh_data: MeshData::new(device, textured_vertex_vec, index_vec),
     }
 }
 
-pub fn get_cell_at<'a>(coordinates: &IVec3, grid: &Grid, sector: &'a Sector) -> &'a Cell {
-    let cell_id = Grid::cell_coordinates_to_cell_id(grid, *coordinates);
-
-    &sector.cell_vec[usize::from(cell_id)]
-}
-
 /// Mikola Lysenko
 /// <https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/>
-pub fn lysenko_optimization(volume: Vec<i32>, dimensions: IVec3) {
+pub fn lysenko_optimization_original(volume: Vec<i32>, dimensions: IVec3) {
     let mut vertex_vec = Vec::new();
     let mut index_vec = Vec::new();
 

@@ -28,6 +28,7 @@ impl ApplicationHandler for LastDitchApp<'_> {
             Simulation::run(
                 &mut simulation.timing,
                 &mut simulation.receiver,
+                &mut simulation.observation,
                 &mut simulation.state,
                 &mut simulation.view_buffer_input,
             )

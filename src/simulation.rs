@@ -24,6 +24,7 @@ pub struct Simulation {
     pub kind: Kind,
     pub timing: Timing,
     pub receiver: Receiver,
+    pub observation: Observation,
     pub state: State,
     pub view_buffer_input: triple_buffer::Input<View>,
 }
@@ -36,12 +37,14 @@ impl Simulation {
         let kind = Kind::Main;
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
+        let observation = Observation::new();
         let state = State::new(kind);
 
         Self {
             kind,
             timing,
             receiver,
+            observation,
             state,
             view_buffer_input,
         }
@@ -50,6 +53,7 @@ impl Simulation {
     pub fn run(
         timing: &mut Timing,
         receiver: &mut Receiver,
+        observation: &mut Observation,
         state: &mut State,
         view_buffer_input: &mut triple_buffer::Input<View>,
     ) {
@@ -64,7 +68,7 @@ impl Simulation {
                 match Receiver::listen(receiver) {
                     Some(action_vec) => {
                         State::tick(action_vec, state);
-                        Observation::tick(state, view_buffer_input);
+                        Observation::tick(state, view_buffer_input, observation);
 
                         Timing::update_frame(timing);
                     }

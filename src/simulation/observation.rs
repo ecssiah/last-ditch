@@ -9,10 +9,11 @@ use crate::simulation::{
         WorldView,
     },
     state::{
+        admin::{self},
         world::{
             block,
             grid::{self, Grid},
-            sector::Sector,
+            sector::{self, Sector},
         },
         State,
     },
@@ -21,17 +22,25 @@ use std::collections::HashMap;
 use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
-pub struct Observation {}
+pub struct Observation {
+    pub face_view_cache: HashMap<sector::ID, Vec<FaceView>>,
+}
 
 impl Observation {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            face_view_cache: HashMap::new(),
+        }
     }
 
-    pub fn tick(state: &State, view_buffer_input: &mut triple_buffer::Input<View>) {
+    pub fn tick(
+        state: &State,
+        view_buffer_input: &mut triple_buffer::Input<View>,
+        observation: &mut Observation,
+    ) {
         let _observation_span = info_span!("observation_tick").entered();
 
-        Self::update_view(state, view_buffer_input);
+        Self::update_view(state, view_buffer_input, observation);
     }
 
     pub fn get_view(view_buffer_output: &mut triple_buffer::Output<View>) -> &View {
@@ -42,11 +51,15 @@ impl Observation {
         &view
     }
 
-    fn update_view(state: &State, view_buffer_input: &mut triple_buffer::Input<View>) {
+    fn update_view(
+        state: &State,
+        view_buffer_input: &mut triple_buffer::Input<View>,
+        observation: &mut Observation,
+    ) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
         let population_view = Self::update_population_view(state);
-        let world_view = Self::update_world_view(state);
+        let world_view = Self::update_world_view(state, &mut observation.face_view_cache);
 
         let view = view_buffer_input.input_buffer_mut();
 
@@ -67,24 +80,35 @@ impl Observation {
     }
 
     fn update_time_view(state: &State) -> TimeView {
+        if state.admin.mode == admin::Mode::Menu
+            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Shutdown
+        {
+            return TimeView::new();
+        }
+
         TimeView {
             instant: state.time.instant,
         }
     }
 
     fn update_population_view(state: &State) -> PopulationView {
+        if state.admin.mode == admin::Mode::Menu
+            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Shutdown
+        {
+            return PopulationView::new();
+        }
+
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
-            position: Grid::world_to_position(
-                &state.world.grid,
-                judge.entity.spatial.world_position,
-            ),
+            position: Grid::world_position_to_position(judge.entity.spatial.world_position),
             world_position: judge.entity.spatial.world_position,
             sector_id: judge.entity.info.sector_id,
             sector_coordinates: Grid::sector_id_to_sector_coordinates(
-                &state.world.grid,
                 judge.entity.info.sector_id,
+                &state.world.grid,
             ),
             size: judge.entity.spatial.size,
             rotor: judge.entity.spatial.rotor,
@@ -121,47 +145,73 @@ impl Observation {
         population_view
     }
 
-    fn update_world_view(state: &State) -> WorldView {
+    fn update_world_view(
+        state: &State,
+        face_view_cache: &mut HashMap<sector::ID, Vec<FaceView>>,
+    ) -> WorldView {
+        if state.admin.mode == admin::Mode::Menu
+            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Shutdown
+        {
+            return WorldView::new();
+        }
+
         let mut world_view = WorldView {
             grid: state.world.grid,
             sector_view_map: HashMap::new(),
         };
 
-        let judge_sector_coordinates = Grid::world_to_sector_coordinates(
+        let judge = &state.population.judge;
+
+        let judge_sector_coordinates = Grid::world_position_to_sector_coordinates(
+            judge.entity.spatial.world_position,
             &state.world.grid,
-            state.population.judge.entity.spatial.world_position,
         );
 
-        let judge = &state.population.judge;
-        let view_radius = judge.entity.sense.sight.range_in_sectors;
+        let sight_range = judge.entity.sense.sight.range_in_sectors;
 
-        for dz in -view_radius..=view_radius {
-            for dy in -view_radius..=view_radius {
-                for dx in -view_radius..=view_radius {
+        for dz in -sight_range..=sight_range {
+            for dy in -sight_range..=sight_range {
+                for dx in -sight_range..=sight_range {
                     let sector_coordinates = judge_sector_coordinates + IVec3::new(dx, dy, dz);
 
+                    if !Grid::sector_coordinates_valid(sector_coordinates, &state.world.grid) {
+                        continue;
+                    }
+
                     let sector_id = Grid::sector_coordinates_to_sector_id(
-                        &state.world.grid,
                         sector_coordinates,
+                        &state.world.grid,
                     );
 
-                    if Grid::sector_id_valid(&state.world.grid, sector_id) {
-                        if let Some(sector) = state.world.sector_vec.get(usize::from(sector_id)) {
-                            let sector_view = SectorView {
-                                sector_id: sector.sector_id,
-                                world_position: Vec3::from(sector.position),
-                                radius: state.world.grid.sector_radius_in_meters,
-                                face_view_vec: Self::compute_face_view_vec(
-                                    &state.world.grid,
-                                    sector,
-                                ),
-                            };
+                    let sector = &state.world.sector_vec[usize::from(sector_id)];
 
-                            world_view
-                                .sector_view_map
-                                .insert(sector.sector_id, sector_view);
+                    let sector_view = if sector.modified.cell {
+                        SectorView {
+                            sector_id: sector.sector_id,
+                            world_position: Vec3::from(sector.position),
+                            radius: state.world.grid.sector_radius_in_meters,
+                            face_view_vec: Self::get_face_view_vec(sector, &state.world.grid),
                         }
-                    }
+                    } else if face_view_cache.contains_key(&sector_id) {
+                        SectorView {
+                            sector_id: sector.sector_id,
+                            world_position: Vec3::from(sector.position),
+                            radius: state.world.grid.sector_radius_in_meters,
+                            face_view_vec: face_view_cache[&sector_id].clone(),
+                        }
+                    } else {
+                        SectorView {
+                            sector_id: sector.sector_id,
+                            world_position: Vec3::from(sector.position),
+                            radius: state.world.grid.sector_radius_in_meters,
+                            face_view_vec: Self::get_face_view_vec(sector, &state.world.grid),
+                        }
+                    };
+
+                    world_view
+                        .sector_view_map
+                        .insert(sector.sector_id, sector_view);
                 }
             }
         }
@@ -169,7 +219,7 @@ impl Observation {
         world_view
     }
 
-    fn compute_face_view_vec(grid: &Grid, sector: &Sector) -> Vec<FaceView> {
+    fn get_face_view_vec(sector: &Sector, grid: &Grid) -> Vec<FaceView> {
         let mut face_view_vec = Vec::new();
 
         let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
@@ -177,9 +227,11 @@ impl Observation {
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
-                    let cell_id = Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z));
+                    let cell_coordinates = IVec3::new(x, y, z);
 
-                    if Grid::cell_id_valid(grid, cell_id) {
+                    if Grid::cell_coordinates_valid(cell_coordinates, grid) {
+                        let cell_id = Grid::cell_coordinates_to_cell_id(cell_coordinates, grid);
+
                         let cell = &sector.cell_vec[usize::from(cell_id)];
                         let cell_world_position = Vec3::from(cell.position);
 
@@ -187,98 +239,104 @@ impl Observation {
                             continue;
                         }
 
-                        let xn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x - 1, y, z));
-
-                        let xn_visible = (x - 1) < -sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, xn_cell_id)
-                            || sector.cell_vec[usize::from(xn_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if xn_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::XNYOZO,
-                                block_kind: cell.block_kind,
-                            });
-                        }
+                        let xp_cell_coordinates = IVec3::new(x + 1, y, z);
 
                         let xp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x + 1, y, z));
+                            Grid::cell_coordinates_to_cell_id(xp_cell_coordinates, grid);
 
-                        let xp_visible = (x + 1) > sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, xp_cell_id)
+                        let xp_visible = !Grid::cell_id_valid(xp_cell_id, grid)
                             || sector.cell_vec[usize::from(xp_cell_id)].block_kind
                                 == block::Kind::None;
 
                         if xp_visible {
                             face_view_vec.push(FaceView {
                                 position: cell_world_position,
-                                direction: grid::Direction::XPYOZO,
+                                direction: grid::Direction::East,
                                 block_kind: cell.block_kind,
                             });
                         }
 
-                        let yn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y - 1, z));
+                        let xn_cell_coordinates = IVec3::new(x - 1, y, z);
 
-                        let yn_visible = (y - 1) < -sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, yn_cell_id)
-                            || sector.cell_vec[usize::from(yn_cell_id)].block_kind
+                        let xn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(xn_cell_coordinates, grid);
+
+                        let xn_visible = !Grid::cell_id_valid(xn_cell_id, grid)
+                            || sector.cell_vec[usize::from(xn_cell_id)].block_kind
                                 == block::Kind::None;
 
-                        if yn_visible {
+                        if xn_visible {
                             face_view_vec.push(FaceView {
                                 position: cell_world_position,
-                                direction: grid::Direction::XOYNZO,
+                                direction: grid::Direction::West,
                                 block_kind: cell.block_kind,
                             });
                         }
 
-                        let yp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y + 1, z));
+                        let yp_cell_coordinates = IVec3::new(x, y + 1, z);
 
-                        let yp_visible = (y + 1) > sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, yp_cell_id)
+                        let yp_cell_id =
+                            Grid::cell_coordinates_to_cell_id(yp_cell_coordinates, grid);
+
+                        let yp_visible = !Grid::cell_id_valid(yp_cell_id, grid)
                             || sector.cell_vec[usize::from(yp_cell_id)].block_kind
                                 == block::Kind::None;
 
                         if yp_visible {
                             face_view_vec.push(FaceView {
                                 position: cell_world_position,
-                                direction: grid::Direction::XOYPZO,
+                                direction: grid::Direction::North,
                                 block_kind: cell.block_kind,
                             });
                         }
 
-                        let zn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z - 1));
+                        let yn_cell_coordinates = IVec3::new(x, y - 1, z);
 
-                        let zn_visible = (z - 1) < -sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, zn_cell_id)
-                            || sector.cell_vec[usize::from(zn_cell_id)].block_kind
+                        let yn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(yn_cell_coordinates, grid);
+
+                        let yn_visible = !Grid::cell_id_valid(yn_cell_id, grid)
+                            || sector.cell_vec[usize::from(yn_cell_id)].block_kind
                                 == block::Kind::None;
 
-                        if zn_visible {
+                        if yn_visible {
                             face_view_vec.push(FaceView {
                                 position: cell_world_position,
-                                direction: grid::Direction::XOYOZN,
+                                direction: grid::Direction::South,
                                 block_kind: cell.block_kind,
                             });
                         }
 
-                        let zp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(grid, IVec3::new(x, y, z + 1));
+                        let zp_cell_coordinates = IVec3::new(x, y, z + 1);
 
-                        let zp_visible = (z + 1) > sector_radius_in_cells
-                            || !Grid::cell_id_valid(grid, zp_cell_id)
+                        let zp_cell_id =
+                            Grid::cell_coordinates_to_cell_id(zp_cell_coordinates, grid);
+
+                        let zp_visible = !Grid::cell_id_valid(zp_cell_id, grid)
                             || sector.cell_vec[usize::from(zp_cell_id)].block_kind
                                 == block::Kind::None;
 
                         if zp_visible {
                             face_view_vec.push(FaceView {
                                 position: cell_world_position,
-                                direction: grid::Direction::XOYOZP,
+                                direction: grid::Direction::Up,
+                                block_kind: cell.block_kind,
+                            });
+                        }
+
+                        let zn_cell_coordinates = IVec3::new(x, y, z - 1);
+
+                        let zn_cell_id =
+                            Grid::cell_coordinates_to_cell_id(zn_cell_coordinates, grid);
+
+                        let zn_visible = !Grid::cell_id_valid(zn_cell_id, grid)
+                            || sector.cell_vec[usize::from(zn_cell_id)].block_kind
+                                == block::Kind::None;
+
+                        if zn_visible {
+                            face_view_vec.push(FaceView {
+                                position: cell_world_position,
+                                direction: grid::Direction::Down,
                                 block_kind: cell.block_kind,
                             });
                         }

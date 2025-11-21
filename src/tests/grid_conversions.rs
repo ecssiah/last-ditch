@@ -12,7 +12,7 @@ struct CellIDToCellCoordinatesCase {
 
 impl CellIDToCellCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::cell_id_to_cell_coordinates(&world.grid, self.cell_id);
+        let cell_coordinates = Grid::cell_id_to_cell_coordinates(self.cell_id, &world.grid);
 
         assert_ne!(
             cell_coordinates,
@@ -68,7 +68,7 @@ struct CellCoordinatesToCellIDCase {
 
 impl CellCoordinatesToCellIDCase {
     pub fn check(&self, world: &World) {
-        let cell_id = Grid::cell_coordinates_to_cell_id(&world.grid, self.cell_coordinates);
+        let cell_id = Grid::cell_coordinates_to_cell_id(self.cell_coordinates, &world.grid);
 
         assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(cell_id, self.expected_cell_id, "{:?}", self.description);
@@ -115,7 +115,7 @@ struct SectorIDToSectorCoordinates {
 
 impl SectorIDToSectorCoordinates {
     pub fn check(&self, world: &World) {
-        let sector_coordinates = Grid::sector_id_to_sector_coordinates(&world.grid, self.sector_id);
+        let sector_coordinates = Grid::sector_id_to_sector_coordinates(self.sector_id, &world.grid);
 
         assert_ne!(
             sector_coordinates,
@@ -171,7 +171,7 @@ struct SectorCoordinatesToSectorIDCase {
 
 impl SectorCoordinatesToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let sector_id = Grid::sector_coordinates_to_sector_id(&world.grid, self.sector_coordinates);
+        let sector_id = Grid::sector_coordinates_to_sector_id(self.sector_coordinates, &world.grid);
 
         assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
@@ -218,7 +218,7 @@ struct SectorCoordinatesToPositionCase {
 
 impl SectorCoordinatesToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::sector_coordinates_to_position(&world.grid, self.sector_coordinates);
+        let position = Grid::sector_coordinates_to_position(self.sector_coordinates, &world.grid);
 
         assert_ne!(
             position,
@@ -272,7 +272,7 @@ struct SectorIDToPositionCase {
 
 impl SectorIDToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::sector_id_to_position(&world.grid, self.sector_id);
+        let position = Grid::sector_id_to_position(self.sector_id, &world.grid);
 
         assert_ne!(
             position,
@@ -325,7 +325,7 @@ struct PositionToSectorCoordinatesCase {
 
 impl PositionToSectorCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let sector_coordinates = Grid::position_to_sector_coordinates(&world.grid, self.position);
+        let sector_coordinates = Grid::position_to_sector_coordinates(self.position, &world.grid);
 
         assert_ne!(
             sector_coordinates,
@@ -383,7 +383,7 @@ struct PositionToCellCoordinatesCase {
 
 impl PositionToCellCoordinatesCase {
     pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::position_to_cell_coordinates(&world.grid, self.position);
+        let cell_coordinates = Grid::position_to_cell_coordinates(self.position, &world.grid);
 
         assert_ne!(
             cell_coordinates,
@@ -471,7 +471,7 @@ struct PositionToSectorIDCase {
 
 impl PositionToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let sector_id = Grid::position_to_sector_id(&world.grid, self.position);
+        let sector_id = Grid::position_to_sector_id(self.position, &world.grid);
 
         assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
@@ -518,7 +518,7 @@ struct PositionToCellIDCase {
 
 impl PositionToCellIDCase {
     pub fn check(&self, world: &World) {
-        let cell_id = Grid::position_to_cell_id(&world.grid, self.position);
+        let cell_id = Grid::position_to_cell_id(self.position, &world.grid);
 
         assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(cell_id, self.expected_cell_id, "{:?}", self.description);
@@ -566,7 +566,7 @@ struct IDsToPositionCase {
 
 impl IDsToPositionCase {
     pub fn check(&self, world: &World) {
-        let position = Grid::ids_to_position(&world.grid, self.sector_id, self.cell_id);
+        let position = Grid::ids_to_position(self.sector_id, self.cell_id, &world.grid);
 
         assert_ne!(
             position,
@@ -621,7 +621,7 @@ struct PositionToIDsCase {
 
 impl PositionToIDsCase {
     pub fn check(&self, world: &World) {
-        let (sector_id, cell_id) = Grid::position_to_ids(&world.grid, self.position);
+        let (sector_id, cell_id) = Grid::position_to_ids(self.position, &world.grid);
 
         assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
@@ -679,15 +679,15 @@ struct WorldToPositionCase {
 }
 
 impl WorldToPositionCase {
-    pub fn check(&self, world: &World) {
-        let position = Grid::world_to_position(&world.grid, self.world_position);
+    pub fn check(&self) {
+        let position = Grid::world_position_to_position(self.world_position);
 
         assert_eq!(position, self.expected_position, "{:?}", self.description,);
     }
 }
 
 #[test]
-fn world_to_position() {
+fn world_position_to_position() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
@@ -729,7 +729,7 @@ fn world_to_position() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -741,14 +741,14 @@ struct WorldToSectorIDCase {
 
 impl WorldToSectorIDCase {
     pub fn check(&self, world: &World) {
-        let sector_id = Grid::world_to_sector_id(&world.grid, self.world_position);
+        let sector_id = Grid::world_position_to_sector_id(self.world_position, &world.grid);
 
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
 
 #[test]
-fn world_to_sector_id() {
+fn world_position_to_sector_id() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
@@ -798,7 +798,7 @@ struct WorldToSectorCoordinates {
 impl WorldToSectorCoordinates {
     pub fn check(&self, world: &World) {
         let sector_coordinates =
-            Grid::world_to_sector_coordinates(&world.grid, self.world_position);
+            Grid::world_position_to_sector_coordinates(self.world_position, &world.grid);
 
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
@@ -809,7 +809,7 @@ impl WorldToSectorCoordinates {
 }
 
 #[test]
-fn world_to_sector_coordinates() {
+fn world_position_to_sector_coordinates() {
     let simulation_kind = simulation::Kind::Empty;
 
     let mut world = World::new(simulation_kind);
@@ -905,7 +905,7 @@ struct WorldToCellCoordinates {
 
 impl WorldToCellCoordinates {
     pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::world_to_cell_coordinates(&world.grid, self.world_position);
+        let cell_coordinates = Grid::world_to_cell_coordinates(self.world_position, &world.grid);
 
         assert_eq!(
             cell_coordinates, self.expected_cell_coordinates,

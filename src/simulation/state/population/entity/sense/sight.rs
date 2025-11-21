@@ -1,4 +1,4 @@
-use crate::{simulation::state::world::grid::Grid, utils::ld_math::Rotor3Ext};
+use crate::{simulation::state::world::grid::Grid, utils::ld_math::rotor3_ext::Rotor3Ext};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]

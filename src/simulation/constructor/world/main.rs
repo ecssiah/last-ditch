@@ -13,8 +13,6 @@ pub fn run(world: &mut World) {
     build_temple(34, 0, 0, nation::Kind::Wolf, world);
 
     build_observation_deck(world);
-
-    World::update_sectors(&world.grid, &mut world.sector_vec);
 }
 
 fn build_ground(world: &mut World) {
@@ -27,7 +25,7 @@ fn build_ground(world: &mut World) {
                 let position = IVec3::new(x as i32, y as i32, z as i32);
 
                 let sector_coordinates =
-                    Grid::position_to_sector_coordinates(&world.grid, position);
+                    Grid::position_to_sector_coordinates(position, &world.grid);
 
                 let component_sum =
                     sector_coordinates.x + sector_coordinates.y + sector_coordinates.z;
@@ -41,8 +39,8 @@ fn build_ground(world: &mut World) {
                 World::set_block(
                     position,
                     kind,
-                    &world.grid,
                     &world.block_info_map,
+                    &world.grid,
                     &mut world.sector_vec,
                 );
             }
@@ -54,40 +52,40 @@ fn build_compass(world: &mut World) {
     World::set_block(
         IVec3::new(0, 0, 0),
         block::Kind::TealStone,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
     World::set_block(
         IVec3::new(0, 4, 1),
         block::Kind::North,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
     World::set_block(
         IVec3::new(-4, 0, 1),
         block::Kind::West,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
     World::set_block(
         IVec3::new(0, -4, 1),
         block::Kind::South,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
     World::set_block(
         IVec3::new(4, 0, 1),
         block::Kind::East,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 }
@@ -100,8 +98,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
     World::set_block(
         IVec3::new(x, y, z + 6),
         nation_kind.icon_block(),
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -109,8 +107,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 8, y - 8, z + 1),
         IVec3::new(x + 8, y + 8, z + 1),
         block::Kind::Stone1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -118,8 +116,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 7, y - 7, z + 2),
         IVec3::new(x + 7, y + 7, z + 2),
         block::Kind::Stone1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -127,8 +125,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 6, y - 6, z + 8),
         IVec3::new(x + 6, y + 6, z + 8),
         block::Kind::Stone1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -136,8 +134,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 5, y - 5, z + 9),
         IVec3::new(x + 5, y + 5, z + 9),
         block::Kind::Stone1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -145,8 +143,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 5, y - 5, z + 8),
         IVec3::new(x + 5, y + 5, z + 8),
         block::Kind::None,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -154,8 +152,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x + 5, y + 5, z + 1),
         IVec3::new(x + 5, y + 5, z + 8),
         block::Kind::Engraved1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -163,8 +161,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 5, y + 5, z + 1),
         IVec3::new(x - 5, y + 5, z + 8),
         block::Kind::Engraved1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -172,8 +170,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x + 5, y - 5, z + 1),
         IVec3::new(x + 5, y - 5, z + 8),
         block::Kind::Engraved1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -181,8 +179,8 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
         IVec3::new(x - 5, y - 5, z + 1),
         IVec3::new(x - 5, y - 5, z + 8),
         block::Kind::Engraved1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 }
@@ -198,8 +196,8 @@ fn build_observation_deck(world: &mut World) {
         IVec3::new(-center + 1, -center + 1, height),
         IVec3::new(-center - 1, -center - 1, 0),
         block::Kind::Polished2,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -207,8 +205,8 @@ fn build_observation_deck(world: &mut World) {
         IVec3::new(center + 1, -center + 1, height),
         IVec3::new(center - 1, -center - 1, 0),
         block::Kind::Polished2,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -216,8 +214,8 @@ fn build_observation_deck(world: &mut World) {
         IVec3::new(-center + 1, center + 1, height),
         IVec3::new(-center - 1, center - 1, 0),
         block::Kind::Polished2,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -225,8 +223,8 @@ fn build_observation_deck(world: &mut World) {
         IVec3::new(center + 1, center + 1, height),
         IVec3::new(center - 1, center - 1, 0),
         block::Kind::Polished2,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -242,8 +240,8 @@ fn build_observation_deck(world: &mut World) {
             height,
         ),
         block::Kind::Polished1,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 
@@ -259,8 +257,8 @@ fn build_observation_deck(world: &mut World) {
             height,
         ),
         block::Kind::None,
-        &world.grid,
         &world.block_info_map,
+        &world.grid,
         &mut world.sector_vec,
     );
 }

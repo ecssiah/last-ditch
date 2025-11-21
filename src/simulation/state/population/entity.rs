@@ -15,9 +15,8 @@ pub use spatial::Spatial;
 use crate::{
     simulation::{
         constants::JUDGE_PITCH_LIMIT,
-        state::{physics::aabb::AABB, population::entity::sense::Touch, World},
-    },
-    utils::ld_math::Rotor3Ext,
+        state::{World, physics::aabb::AABB, population::entity::sense::Touch},
+    }, utils::ld_math::rotor3_ext::Rotor3Ext,
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -30,7 +29,7 @@ pub struct Entity {
 
 impl Entity {
     pub fn tick(world: &World, entity: &mut Entity) {
-        Info::tick(world, &entity.spatial, &mut entity.info);
+        Info::tick(&entity.spatial, world, &mut entity.info);
     }
 
     pub fn set_world_position(world_position: Vec3, entity: &mut Entity) {

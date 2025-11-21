@@ -8,5 +8,5 @@ pub struct CellSample {
     pub world_position: Vec3,
     pub sector_id: sector::ID,
     pub cell_id: cell::ID,
-    pub enter_face_direction: grid::Direction,
+    pub direction_entered: grid::Direction,
 }

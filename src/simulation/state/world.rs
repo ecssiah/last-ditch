@@ -76,7 +76,7 @@ impl World {
         Grid::sector_ids(grid)
             .into_iter()
             .map(|sector_id| {
-                let position = Grid::sector_id_to_position(grid, sector_id);
+                let position = Grid::sector_id_to_position(sector_id, grid);
                 let modified = sector::Modified::new();
 
                 let aabb = AABB::new(
@@ -84,7 +84,7 @@ impl World {
                     Vec3::broadcast(grid.sector_size_in_cells as f32),
                 );
 
-                let cell_vec = Self::setup_cell_vec(grid, sector_id);
+                let cell_vec = Self::setup_cell_vec(sector_id, grid);
 
                 sector::Sector {
                     sector_id,
@@ -97,11 +97,11 @@ impl World {
             .collect()
     }
 
-    fn setup_cell_vec(grid: &Grid, sector_id: sector::ID) -> Vec<Cell> {
+    fn setup_cell_vec(sector_id: sector::ID, grid: &Grid) -> Vec<Cell> {
         Grid::cell_ids(grid)
             .into_iter()
             .map(|cell_id| {
-                let position = Grid::ids_to_position(grid, sector_id, cell_id);
+                let position = Grid::ids_to_position(sector_id, cell_id, grid);
 
                 Cell {
                     cell_id,
@@ -109,7 +109,6 @@ impl World {
                     position,
                     block_kind: block::Kind::None,
                     solid: false,
-                    face_array: Cell::face_array(),
                 }
             })
             .collect()
@@ -118,99 +117,94 @@ impl World {
     pub fn get_sector<'a>(
         sector_id: sector::ID,
         sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a sector::Sector> {
-        sector_vec_slice.get(usize::from(sector_id))
+    ) -> &'a sector::Sector {
+        &sector_vec_slice[usize::from(sector_id)]
+    }
+
+    pub fn get_sector_mut<'a>(
+        sector_id: sector::ID,
+        sector_vec_slice: &'a mut [Sector],
+    ) -> &'a mut sector::Sector {
+        &mut sector_vec_slice[usize::from(sector_id)]
     }
 
     pub fn get_sector_at<'a>(
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a sector::Sector> {
-        let sector_id = Grid::position_to_sector_id(grid, position);
+    ) -> &'a sector::Sector {
+        let sector_id = Grid::position_to_sector_id(position, grid);
 
-        if sector_id != sector::ID::MAX {
-            sector_vec_slice.get(usize::from(sector_id))
-        } else {
-            None
-        }
+        &sector_vec_slice[usize::from(sector_id)]
     }
 
     pub fn get_sector_at_mut<'a>(
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut sector::Sector> {
-        let sector_id = Grid::position_to_sector_id(grid, position);
+    ) -> &'a mut sector::Sector {
+        let sector_id = Grid::position_to_sector_id(position, grid);
 
-        if sector_id != sector::ID::MAX {
-            sector_vec_slice.get_mut(usize::from(sector_id))
-        } else {
-            None
-        }
+        &mut sector_vec_slice[usize::from(sector_id)]
     }
 
     pub fn get_cell(
         sector_id: sector::ID,
         cell_id: cell::ID,
         sector_vec_slice: &[Sector],
-    ) -> Option<&Cell> {
-        let sector = sector_vec_slice.get(usize::from(sector_id))?;
+    ) -> &Cell {
+        let sector = &sector_vec_slice[usize::from(sector_id)];
 
-        sector.cell_vec.get(usize::from(cell_id))
+        &sector.cell_vec[usize::from(cell_id)]
     }
 
     pub fn get_cell_mut(
         sector_id: sector::ID,
         cell_id: cell::ID,
         sector_vec_slice: &mut [Sector],
-    ) -> Option<&mut Cell> {
-        let sector = sector_vec_slice.get_mut(usize::from(sector_id))?;
+    ) -> &mut Cell {
+        let sector = &mut sector_vec_slice[usize::from(sector_id)];
 
-        sector.cell_vec.get_mut(usize::from(cell_id))
+        &mut sector.cell_vec[usize::from(cell_id)]
     }
 
     pub fn get_cell_at<'a>(
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a Cell> {
-        let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
+    ) -> &'a Cell {
+        let (sector_id, cell_id) = Grid::position_to_ids(position, grid);
 
-        if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
-            Self::get_cell(sector_id, cell_id, sector_vec_slice)
-        } else {
-            None
-        }
+        Self::get_cell(sector_id, cell_id, sector_vec_slice)
     }
 
     pub fn get_cell_at_mut<'a>(
         position: IVec3,
         grid: &Grid,
         sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut Cell> {
-        let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
+    ) -> &'a mut Cell {
+        let (sector_id, cell_id) = Grid::position_to_ids(position, grid);
 
-        if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
-            Self::get_cell_mut(sector_id, cell_id, sector_vec_slice)
-        } else {
-            None
-        }
+        Self::get_cell_mut(sector_id, cell_id, sector_vec_slice)
     }
 
     pub fn get_clearance(position: IVec3, grid: &Grid, sector_vec_slice: &[Sector]) -> u32 {
-        let ground_is_solid =
-            Self::get_cell_at(position + -1 * IVec3::unit_z(), grid, sector_vec_slice)
-                .is_some_and(|cell| cell.solid);
+        let ground_position = position + -1 * IVec3::unit_z();
+
+        let ground_solid = if Grid::position_valid(ground_position, grid) {
+            Self::get_cell_at(ground_position, grid, sector_vec_slice).solid
+        } else {
+            false
+        };
 
         let mut clearance = 0;
 
-        if ground_is_solid {
+        if ground_solid {
             for level in 0..MAXIMUM_CLEARANCE {
                 let level_position = position + IVec3::new(0, 0, level as i32);
 
-                if let Some(cell) = Self::get_cell_at(level_position, grid, sector_vec_slice) {
-                    if !cell.solid {
+                if Grid::position_valid(level_position, grid) {
+                    if !Self::get_cell_at(level_position, grid, sector_vec_slice).solid {
                         clearance += 1;
                     } else {
                         break;
@@ -225,27 +219,28 @@ impl World {
     }
 
     fn mark_updates(position1: IVec3, grid: &Grid, sector_vec_slice: &mut [Sector]) {
-        let mut sector1_id = None;
+        if !Grid::position_valid(position1, grid) {
+            return;
+        }
 
-        if let Some(sector1) = Self::get_sector_at_mut(position1, grid, sector_vec_slice) {
-            sector1_id = Some(sector1.sector_id);
+        let sector1_id = Grid::position_to_sector_id(position1, grid);
+
+        {
+            let sector1 = Self::get_sector_mut(sector1_id, sector_vec_slice);
             sector1.modified.cell = true;
 
-            if Grid::on_sector_boundary(grid, position1) {
-                sector1.modified.boundary = true;
+            if Grid::on_sector_boundary(position1, grid) {
+                sector1.modified.edge = true;
             }
         }
 
-        if let Some(sector1_id) = sector1_id {
-            for direction_offset in grid::Direction::face_offset_array() {
-                let position2 = position1 + direction_offset;
-                let sector_id2 = Grid::position_to_sector_id(grid, position2);
+        for direction in grid::Direction::get_direction_array() {
+            let position2 = position1 + direction.to_ivec3();
+            let sector_id2 = Grid::position_to_sector_id(position2, grid);
 
-                if sector_id2 != sector::ID::MAX && sector1_id != sector_id2 {
-                    if let Some(sector2) = sector_vec_slice.get_mut(usize::from(sector_id2)) {
-                        sector2.modified.boundary = true;
-                    }
-                }
+            if Grid::sector_id_valid(sector_id2, grid) {
+                let sector2 = Self::get_sector_at_mut(position2, grid, sector_vec_slice);
+                sector2.modified.edge = true;
             }
         }
     }
@@ -253,19 +248,18 @@ impl World {
     pub fn set_block(
         position: IVec3,
         block_kind: block::Kind,
-        grid: &Grid,
         block_info_map: &HashMap<block::Kind, block::Info>,
+        grid: &Grid,
         sector_vec_slice: &mut [Sector],
     ) -> bool {
-        let (sector_id, cell_id) = Grid::position_to_ids(grid, position);
+        let (sector_id, cell_id) = Grid::position_to_ids(position, grid);
 
-        if sector_id != sector::ID::MAX && cell_id != cell::ID::MAX {
-            let block_info = block_info_map.get(&block_kind).cloned().unwrap();
+        if Grid::sector_id_valid(sector_id, grid) && Grid::cell_id_valid(cell_id, grid) {
+            let block_info = block_info_map[&block_kind];
 
-            if let Some(cell) = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice) {
-                cell.block_kind = block_kind;
-                cell.solid = block_info.solid;
-            }
+            let cell = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice);
+            cell.block_kind = block_kind;
+            cell.solid = block_info.solid;
 
             Self::mark_updates(position, grid, sector_vec_slice);
 
@@ -285,8 +279,8 @@ impl World {
         position1: IVec3,
         position2: IVec3,
         block_kind: block::Kind,
-        grid: &Grid,
         block_info_map: &HashMap<block::Kind, block::Info>,
+        grid: &Grid,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = IVec3::new(
@@ -324,16 +318,16 @@ impl World {
                         Self::set_block(
                             position,
                             block_kind,
-                            grid,
                             block_info_map,
+                            grid,
                             sector_vec_slice,
                         );
                     } else {
                         Self::set_block(
                             position,
                             block::Kind::None,
-                            grid,
                             block_info_map,
+                            grid,
                             sector_vec_slice,
                         );
                     }
@@ -346,8 +340,8 @@ impl World {
         position1: IVec3,
         position2: IVec3,
         block_kind: block::Kind,
-        grid: &Grid,
         block_info_map: &HashMap<block::Kind, block::Info>,
+        grid: &Grid,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = IVec3::new(
@@ -367,55 +361,9 @@ impl World {
                 for x in min.x..=max.x {
                     let position = IVec3::new(x, y, z);
 
-                    Self::set_block(position, block_kind, grid, block_info_map, sector_vec_slice);
+                    Self::set_block(position, block_kind, block_info_map, grid, sector_vec_slice);
                 }
             }
         }
-    }
-
-    pub fn update_sectors(grid: &Grid, sector_vec_slice: &mut [Sector]) {
-        for sector_id in Grid::sector_ids(grid) {
-            Self::update_sector(grid, sector_id, sector_vec_slice);
-        }
-    }
-
-    fn update_sector(grid: &Grid, sector_id: sector::ID, sector_vec_slice: &mut [Sector]) {
-        if Self::get_sector(sector_id, sector_vec_slice)
-            .map_or(false, |sector| sector.modified.cell)
-        {
-            for cell_id in Grid::cell_ids(grid) {
-                let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice)
-                    .expect("All grid cells should exist");
-
-                let face_exposure =
-                    Self::compute_face_exposure(cell.position, grid, sector_vec_slice);
-
-                if let Some(cell) = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice) {
-                    for (face, &exposed) in cell.face_array.iter_mut().zip(face_exposure.iter()) {
-                        face.exposed = exposed;
-                    }
-                }
-            }
-        }
-    }
-
-    fn compute_face_exposure(
-        position: IVec3,
-        grid: &Grid,
-        sector_vec_slice: &[Sector],
-    ) -> [bool; 6] {
-        let mut face_exposure = [false; 6];
-
-        for (index, direction) in grid::Direction::face_array().iter().enumerate() {
-            let neighbor_pos = position + direction.offset();
-
-            if let Some(neighbor_cell) = World::get_cell_at(neighbor_pos, grid, sector_vec_slice) {
-                face_exposure[index] = neighbor_cell.block_kind == block::Kind::None;
-            } else {
-                face_exposure[index] = true;
-            }
-        }
-
-        face_exposure
     }
 }

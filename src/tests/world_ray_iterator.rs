@@ -32,7 +32,7 @@ impl WorldRayIteratoratorCase {
 
         assert_eq!(cell_sample_vec.len(), case.expected_cell_info_vec.len());
 
-        for (index, (t, position, enter_face_direction)) in
+        for (index, (t, position, direction_entered)) in
             case.expected_cell_info_vec.iter().enumerate()
         {
             assert!(
@@ -46,8 +46,8 @@ impl WorldRayIteratoratorCase {
             assert_eq!(cell_sample_vec[index].position, *position);
 
             assert_eq!(
-                cell_sample_vec[index].enter_face_direction,
-                *enter_face_direction
+                cell_sample_vec[index].direction_entered,
+                *direction_entered
             );
         }
     }
@@ -67,18 +67,18 @@ fn general_ray_tests() {
             direction: Vec3::new(1.0, 1.0, 1.0),
             distance: 4.0,
             expected_cell_info_vec: vec![
-                (0.5, IVec3::new(1, 0, 0), grid::Direction::XNYOZO),
-                (0.5, IVec3::new(1, 1, 0), grid::Direction::XOYNZO),
-                (0.5, IVec3::new(1, 1, 1), grid::Direction::XOYOZN),
-                (1.5, IVec3::new(2, 1, 1), grid::Direction::XNYOZO),
-                (1.5, IVec3::new(2, 2, 1), grid::Direction::XOYNZO),
-                (1.5, IVec3::new(2, 2, 2), grid::Direction::XOYOZN),
-                (2.5, IVec3::new(3, 2, 2), grid::Direction::XNYOZO),
-                (2.5, IVec3::new(3, 3, 2), grid::Direction::XOYNZO),
-                (2.5, IVec3::new(3, 3, 3), grid::Direction::XOYOZN),
-                (3.5, IVec3::new(4, 3, 3), grid::Direction::XNYOZO),
-                (3.5, IVec3::new(4, 4, 3), grid::Direction::XOYNZO),
-                (3.5, IVec3::new(4, 4, 4), grid::Direction::XOYOZN),
+                (0.5, IVec3::new(1, 0, 0), grid::Direction::West),
+                (0.5, IVec3::new(1, 1, 0), grid::Direction::South),
+                (0.5, IVec3::new(1, 1, 1), grid::Direction::Down),
+                (1.5, IVec3::new(2, 1, 1), grid::Direction::West),
+                (1.5, IVec3::new(2, 2, 1), grid::Direction::South),
+                (1.5, IVec3::new(2, 2, 2), grid::Direction::Down),
+                (2.5, IVec3::new(3, 2, 2), grid::Direction::West),
+                (2.5, IVec3::new(3, 3, 2), grid::Direction::South),
+                (2.5, IVec3::new(3, 3, 3), grid::Direction::Down),
+                (3.5, IVec3::new(4, 3, 3), grid::Direction::West),
+                (3.5, IVec3::new(4, 4, 3), grid::Direction::South),
+                (3.5, IVec3::new(4, 4, 4), grid::Direction::Down),
             ],
         },
         WorldRayIteratoratorCase {
@@ -87,14 +87,14 @@ fn general_ray_tests() {
             direction: Vec3::new(1.0, 1.0, 0.0),
             distance: 4.0,
             expected_cell_info_vec: vec![
-                (0.5, IVec3::new(1, 0, 0), grid::Direction::XNYOZO),
-                (0.5, IVec3::new(1, 1, 0), grid::Direction::XOYNZO),
-                (1.5, IVec3::new(2, 1, 0), grid::Direction::XNYOZO),
-                (1.5, IVec3::new(2, 2, 0), grid::Direction::XOYNZO),
-                (2.5, IVec3::new(3, 2, 0), grid::Direction::XNYOZO),
-                (2.5, IVec3::new(3, 3, 0), grid::Direction::XOYNZO),
-                (3.5, IVec3::new(4, 3, 0), grid::Direction::XNYOZO),
-                (3.5, IVec3::new(4, 4, 0), grid::Direction::XOYNZO),
+                (0.5, IVec3::new(1, 0, 0), grid::Direction::West),
+                (0.5, IVec3::new(1, 1, 0), grid::Direction::South),
+                (1.5, IVec3::new(2, 1, 0), grid::Direction::West),
+                (1.5, IVec3::new(2, 2, 0), grid::Direction::South),
+                (2.5, IVec3::new(3, 2, 0), grid::Direction::West),
+                (2.5, IVec3::new(3, 3, 0), grid::Direction::South),
+                (3.5, IVec3::new(4, 3, 0), grid::Direction::West),
+                (3.5, IVec3::new(4, 4, 0), grid::Direction::South),
             ],
         },
         WorldRayIteratoratorCase {

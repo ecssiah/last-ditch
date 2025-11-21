@@ -12,7 +12,7 @@ struct CellIDValidCase {
 
 impl CellIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = Grid::cell_id_valid(&world.grid, self.cell_id);
+        let valid = Grid::cell_id_valid(self.cell_id, &world.grid);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -56,7 +56,7 @@ struct SectorIDValidCase {
 
 impl SectorIDValidCase {
     pub fn check(&self, world: &World) {
-        let valid = Grid::sector_id_valid(&world.grid, self.sector_id);
+        let valid = Grid::sector_id_valid(self.sector_id, &world.grid);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -100,7 +100,7 @@ struct PositionValidCase {
 
 impl PositionValidCase {
     pub fn check(&self, world: &World) {
-        let valid = Grid::position_valid(&world.grid, self.position);
+        let valid = Grid::position_valid(self.position, &world.grid);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }

@@ -16,7 +16,7 @@ struct GetClearanceCase {
 impl GetClearanceCase {
     pub fn check(&self, world: &World) {
         let sector_position =
-            Grid::sector_coordinates_to_position(&world.grid, self.sector_coordinates);
+            Grid::sector_coordinates_to_position(self.sector_coordinates, &world.grid);
 
         assert_ne!(
             sector_position,

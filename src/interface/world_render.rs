@@ -8,22 +8,23 @@ use crate::{
         constants::WINDOW_CLEAR_COLOR,
         gpu_context::GPUContext,
         mesh_data::MeshData,
+        mesh_optimizer,
         texture_data::TextureData,
         vertex_data::VertexData,
         world_render::{block_render_info::BlockRenderInfo, sector_render_data::SectorRenderData},
     },
     simulation::{
         observation::view::WorldView,
-        state::world::{block, grid},
+        state::world::{block, grid::Grid},
     },
 };
 use std::collections::HashMap;
 use tracing::info_span;
-use ultraviolet::{IVec3, Vec3};
+use ultraviolet::Vec3;
 
 pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
-    pub block_tile_coordinates_map: HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
+    pub block_tile_coordinates_map: HashMap<block::Kind, [[u32; 2]; 6]>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
     pub sector_render_data_vec: Vec<SectorRenderData>,
     pub render_pipeline: wgpu::RenderPipeline,
@@ -32,7 +33,7 @@ pub struct WorldRender {
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let block_render_info = BlockRenderInfo::new(64, 2048, 2048);
-        let block_tile_coordinates_map = BlockRenderInfo::setup_tile_coordinates_map();
+        let block_tile_coordinates_map = BlockRenderInfo::get_tile_coordinates_map();
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
 
@@ -215,7 +216,7 @@ impl WorldRender {
         camera: &Camera,
         world_view: &WorldView,
         block_render_info: &BlockRenderInfo,
-        block_tile_coordinates_map: &HashMap<block::Kind, HashMap<grid::Direction, [u32; 2]>>,
+        block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
         sector_render_data_vec: &mut Vec<SectorRenderData>,
     ) {
         let _span = info_span!("apply_world_view").entered();
@@ -240,24 +241,17 @@ impl WorldRender {
             for face_view in &sector_view.face_view_vec {
                 let _face_span = info_span!("face_loop").entered();
 
-                let tile_coordinates_map = block_tile_coordinates_map
-                    .get(&face_view.block_kind)
-                    .unwrap();
-
-                let tile_coordinates = tile_coordinates_map.get(&face_view.direction).unwrap();
+                let tile_coordinates_array = block_tile_coordinates_map[&face_view.block_kind];
+                let tile_coordinates = tile_coordinates_array[face_view.direction as usize];
 
                 let tile_uv_array = BlockRenderInfo::tile_uv_array(
-                    tile_coordinates,
+                    &tile_coordinates,
                     block_render_info.tile_size,
                     block_render_info.tile_atlas_size,
                 );
 
-                let face_vertex_position_array = BlockRenderInfo::face_vertex_position_array(
-                    IVec3::new(
-                        face_view.position.x as i32,
-                        face_view.position.y as i32,
-                        face_view.position.z as i32,
-                    ),
+                let face_vertex_position_array = BlockRenderInfo::get_face_vertex_position_array(
+                    Grid::world_position_to_position(face_view.position),
                     face_view.direction,
                 );
 
@@ -277,7 +271,7 @@ impl WorldRender {
                 }
 
                 for (index, &position) in face_vertex_position_array.iter().enumerate() {
-                    let normal = *Vec3::from(face_view.direction.offset()).as_array();
+                    let normal = *face_view.direction.to_vec3().as_array();
 
                     let texture = [tile_uv_array[index][0], tile_uv_array[index][1], 0.0];
 
@@ -301,6 +295,9 @@ impl WorldRender {
             }
 
             if !vertex_vec.is_empty() {
+                // let _sector_render_data =
+                //     mesh_optimizer::lysenko_optimization(device, &world_view.grid, sector_view);
+
                 let sector_render_data = SectorRenderData {
                     sector_id: sector_view.sector_id,
                     mesh_data: MeshData::new(device, vertex_vec, index_vec),

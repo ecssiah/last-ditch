@@ -2,10 +2,10 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
+        debug::{DebugChannel, DebugVisibility, debug_vertex_data::DebugVertexData},
         gpu_context::GPUContext,
     },
-    simulation::observation::view::View,
+    simulation::{constants::CELL_RADIUS, observation::view::View},
 };
 use ultraviolet::Vec3;
 
@@ -259,14 +259,14 @@ impl DebugRender {
             let radius = view.world_view.grid.world_radius_in_sectors as i32;
             let sector_size_in_cells: f32 = view.world_view.grid.sector_size_in_meters;
 
-            let half_span = (radius as f32 + 0.5) * sector_size_in_cells;
+            let half_span = (radius as f32 + CELL_RADIUS) * sector_size_in_cells;
             let min = Vec3::broadcast(-half_span);
             let max = Vec3::broadcast(half_span);
 
             let mut bounds: Vec<f32> = Vec::with_capacity(2 * radius as usize + 2);
 
             for k in -(radius + 1)..=radius {
-                bounds.push((k as f32 + 0.5) * sector_size_in_cells);
+                bounds.push((k as f32 + CELL_RADIUS) * sector_size_in_cells);
             }
 
             for &y in &bounds {

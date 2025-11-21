@@ -52,21 +52,33 @@ impl Physics {
         let mut aabb = entity.sense.touch.body;
         let mut velocity = *velocity;
 
-        for axis in [grid::Axis::Y, grid::Axis::X, grid::Axis::Z] {
-            let axis_index = axis as usize;
-            let axis_delta = delta[axis_index];
+        for axis in [grid::Direction::North, grid::Direction::East, grid::Direction::Up] {
+            let delta_axis = if axis == grid::Direction::North {
+                delta.y
+            } else if axis == grid::Direction::East {
+                delta.x
+            } else {
+                delta.z
+            };
 
-            let (resolved_aabb, step) = Self::resolve_axis(aabb, world, axis, axis_delta);
+            let (resolved_aabb, step) = Self::resolve_axis(aabb, world, axis, delta_axis);
 
             aabb = resolved_aabb;
-            velocity[axis_index] = step / SIMULATION_TICK_IN_SECONDS;
+
+            if axis == grid::Direction::North {
+                velocity.y = step / SIMULATION_TICK_IN_SECONDS;
+            } else if axis == grid::Direction::East {
+                velocity.x = step / SIMULATION_TICK_IN_SECONDS;
+            } else {
+                velocity.z = step / SIMULATION_TICK_IN_SECONDS;
+            }
         }
 
         entity.sense.touch.body = aabb;
         entity.kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(aabb: AABB, world: &World, axis: grid::Axis, delta: f32) -> (AABB, f32) {
+    fn resolve_axis(aabb: AABB, world: &World, axis: grid::Direction, delta: f32) -> (AABB, f32) {
         if delta.abs() < EPSILON_COLLISION {
             return (aabb, 0.0);
         }
@@ -77,7 +89,7 @@ impl Physics {
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-            let test_aabb = aabb.translate(axis.unit() * mid);
+            let test_aabb = aabb.translate(axis.to_vec3() * mid);
 
             if Self::get_solid_collisions(test_aabb, world).is_empty() {
                 final_delta = mid;
@@ -87,7 +99,7 @@ impl Physics {
             }
         }
 
-        let adjusted_aabb = aabb.translate(axis.unit() * final_delta);
+        let adjusted_aabb = aabb.translate(axis.to_vec3() * final_delta);
 
         let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
             0.0
@@ -99,7 +111,7 @@ impl Physics {
     }
 
     fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        Grid::cells_overlapping(&world.grid, aabb)
+        Grid::cells_overlapping(aabb, &world.grid)
             .into_iter()
             .filter(|cell_aabb| {
                 let aabb_center = cell_aabb.center();
@@ -110,9 +122,9 @@ impl Physics {
                     aabb_center.z.round() as i32,
                 );
 
-                if let Some(cell) =
-                    World::get_cell_at(cell_position, &world.grid, &world.sector_vec)
-                {
+                if Grid::position_valid(cell_position, &world.grid) {
+                    let cell = World::get_cell_at(cell_position, &world.grid, &world.sector_vec);
+
                     cell.solid
                 } else {
                     true

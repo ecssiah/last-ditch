@@ -13,12 +13,12 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn tick(world: &World, spatial: &Spatial, info: &mut Info) {
-        Self::update_sector_id(&world.grid, spatial, info);
+    pub fn tick(spatial: &Spatial, world: &World, info: &mut Info) {
+        Self::update_sector_id(spatial, &world.grid, info);
     }
 
-    pub fn update_sector_id(grid: &Grid, spatial: &Spatial, info: &mut Info) {
-        let sector_id = Grid::world_to_sector_id(grid, spatial.world_position);
+    pub fn update_sector_id(spatial: &Spatial, grid: &Grid, info: &mut Info) {
+        let sector_id = Grid::world_position_to_sector_id(spatial.world_position, grid);
 
         if sector_id != info.sector_id {
             info.sector_updated = true;
