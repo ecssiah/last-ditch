@@ -2,11 +2,7 @@ use crate::simulation::{
     self, constructor,
     state::{
         physics::aabb::AABB,
-        world::{
-            cell::Cell,
-            grid::{Grid},
-            World,
-        },
+        world::{cell::Cell, grid::Grid, World},
     },
 };
 use std::f32::EPSILON;

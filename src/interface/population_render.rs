@@ -14,8 +14,8 @@ use crate::{
     },
 };
 use obj::{load_obj, TexturedVertex};
-use tracing::{error, info};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
+use tracing::{error, info};
 
 pub struct PopulationRender {
     pub mesh_data_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<MeshData>>,

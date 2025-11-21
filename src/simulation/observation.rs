@@ -229,116 +229,30 @@ impl Observation {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinates = IVec3::new(x, y, z);
 
-                    if Grid::cell_coordinates_valid(cell_coordinates, grid) {
-                        let cell_id = Grid::cell_coordinates_to_cell_id(cell_coordinates, grid);
+                    let cell = Sector::get_cell_at(cell_coordinates, grid, sector);
 
-                        let cell = &sector.cell_vec[usize::from(cell_id)];
-                        let cell_world_position = Vec3::from(cell.position);
+                    if cell.block_kind == block::Kind::None {
+                        continue;
+                    }
 
-                        if cell.block_kind == block::Kind::None {
-                            continue;
-                        }
+                    for direction in grid::Direction::get_direction_array() {
+                        let neighbor_cell_coordinates = cell_coordinates + direction.to_ivec3();
+                        let neighbor_cell_id =
+                            Grid::cell_coordinates_to_cell_id(neighbor_cell_coordinates, grid);
 
-                        let xp_cell_coordinates = IVec3::new(x + 1, y, z);
+                        let neighbor_cell_visible =
+                            !Grid::cell_coordinates_valid(neighbor_cell_coordinates, grid)
+                                || sector.cell_vec[usize::from(neighbor_cell_id)].block_kind
+                                    == block::Kind::None;
 
-                        let xp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(xp_cell_coordinates, grid);
-
-                        let xp_visible = !Grid::cell_id_valid(xp_cell_id, grid)
-                            || sector.cell_vec[usize::from(xp_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if xp_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::East,
+                        if neighbor_cell_visible {
+                            let face_view = FaceView {
+                                position: cell.position,
+                                direction,
                                 block_kind: cell.block_kind,
-                            });
-                        }
+                            };
 
-                        let xn_cell_coordinates = IVec3::new(x - 1, y, z);
-
-                        let xn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(xn_cell_coordinates, grid);
-
-                        let xn_visible = !Grid::cell_id_valid(xn_cell_id, grid)
-                            || sector.cell_vec[usize::from(xn_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if xn_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::West,
-                                block_kind: cell.block_kind,
-                            });
-                        }
-
-                        let yp_cell_coordinates = IVec3::new(x, y + 1, z);
-
-                        let yp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(yp_cell_coordinates, grid);
-
-                        let yp_visible = !Grid::cell_id_valid(yp_cell_id, grid)
-                            || sector.cell_vec[usize::from(yp_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if yp_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::North,
-                                block_kind: cell.block_kind,
-                            });
-                        }
-
-                        let yn_cell_coordinates = IVec3::new(x, y - 1, z);
-
-                        let yn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(yn_cell_coordinates, grid);
-
-                        let yn_visible = !Grid::cell_id_valid(yn_cell_id, grid)
-                            || sector.cell_vec[usize::from(yn_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if yn_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::South,
-                                block_kind: cell.block_kind,
-                            });
-                        }
-
-                        let zp_cell_coordinates = IVec3::new(x, y, z + 1);
-
-                        let zp_cell_id =
-                            Grid::cell_coordinates_to_cell_id(zp_cell_coordinates, grid);
-
-                        let zp_visible = !Grid::cell_id_valid(zp_cell_id, grid)
-                            || sector.cell_vec[usize::from(zp_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if zp_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::Up,
-                                block_kind: cell.block_kind,
-                            });
-                        }
-
-                        let zn_cell_coordinates = IVec3::new(x, y, z - 1);
-
-                        let zn_cell_id =
-                            Grid::cell_coordinates_to_cell_id(zn_cell_coordinates, grid);
-
-                        let zn_visible = !Grid::cell_id_valid(zn_cell_id, grid)
-                            || sector.cell_vec[usize::from(zn_cell_id)].block_kind
-                                == block::Kind::None;
-
-                        if zn_visible {
-                            face_view_vec.push(FaceView {
-                                position: cell_world_position,
-                                direction: grid::Direction::Down,
-                                block_kind: cell.block_kind,
-                            });
+                            face_view_vec.push(face_view);
                         }
                     }
                 }

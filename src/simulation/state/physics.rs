@@ -52,7 +52,11 @@ impl Physics {
         let mut aabb = entity.sense.touch.body;
         let mut velocity = *velocity;
 
-        for axis in [grid::Direction::North, grid::Direction::East, grid::Direction::Up] {
+        for axis in [
+            grid::Direction::North,
+            grid::Direction::East,
+            grid::Direction::Up,
+        ] {
             let delta_axis = if axis == grid::Direction::North {
                 delta.y
             } else if axis == grid::Direction::East {

@@ -15,8 +15,9 @@ pub use spatial::Spatial;
 use crate::{
     simulation::{
         constants::JUDGE_PITCH_LIMIT,
-        state::{World, physics::aabb::AABB, population::entity::sense::Touch},
-    }, utils::ld_math::rotor3_ext::Rotor3Ext,
+        state::{physics::aabb::AABB, population::entity::sense::Touch, World},
+    },
+    utils::ld_math::rotor3_ext::Rotor3Ext,
 };
 use ultraviolet::{Rotor3, Vec3};
 

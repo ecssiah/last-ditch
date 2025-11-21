@@ -2,7 +2,7 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        debug::{DebugChannel, DebugVisibility, debug_vertex_data::DebugVertexData},
+        debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
         gpu_context::GPUContext,
     },
     simulation::{constants::CELL_RADIUS, observation::view::View},

@@ -7,7 +7,11 @@ use ultraviolet::IVec3;
 
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::{cell::{self, Cell}, grid::Grid, sector},
+    world::{
+        cell::{self, Cell},
+        grid::Grid,
+        sector,
+    },
 };
 
 pub struct Sector {
@@ -33,7 +37,11 @@ impl Sector {
         Self::get_cell(cell_id, sector)
     }
 
-    pub fn get_cell_at_mut<'a>(coordinates: IVec3, grid: &Grid, sector: &'a mut Sector) -> &'a mut Cell {
+    pub fn get_cell_at_mut<'a>(
+        coordinates: IVec3,
+        grid: &Grid,
+        sector: &'a mut Sector,
+    ) -> &'a mut Cell {
         let cell_id = Grid::cell_coordinates_to_cell_id(coordinates, grid);
 
         Self::get_cell_mut(cell_id, sector)

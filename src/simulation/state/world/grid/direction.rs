@@ -14,11 +14,11 @@ pub enum Direction {
 impl Direction {
     pub fn get_direction_array() -> [Direction; 6] {
         [
-            Direction::East, 
-            Direction::West, 
-            Direction::North, 
-            Direction::South, 
-            Direction::Up, 
+            Direction::East,
+            Direction::West,
+            Direction::North,
+            Direction::South,
+            Direction::Up,
             Direction::Down,
         ]
     }

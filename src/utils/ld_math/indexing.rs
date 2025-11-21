@@ -7,7 +7,7 @@ pub struct Indexing {}
 impl Indexing {
     pub fn to_ivec2(index: u32, radius: u32) -> IVec2 {
         let index = index as i32;
-        
+
         let radius = radius as i32;
         let size = 2 * radius + 1;
 

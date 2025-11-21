@@ -45,10 +45,7 @@ impl WorldRayIteratoratorCase {
 
             assert_eq!(cell_sample_vec[index].position, *position);
 
-            assert_eq!(
-                cell_sample_vec[index].direction_entered,
-                *direction_entered
-            );
+            assert_eq!(cell_sample_vec[index].direction_entered, *direction_entered);
         }
     }
 }

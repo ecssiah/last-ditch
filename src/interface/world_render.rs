@@ -8,15 +8,11 @@ use crate::{
         constants::WINDOW_CLEAR_COLOR,
         gpu_context::GPUContext,
         mesh_data::MeshData,
-        mesh_optimizer,
         texture_data::TextureData,
         vertex_data::VertexData,
         world_render::{block_render_info::BlockRenderInfo, sector_render_data::SectorRenderData},
     },
-    simulation::{
-        observation::view::WorldView,
-        state::world::{block, grid::Grid},
-    },
+    simulation::{observation::view::WorldView, state::world::block},
 };
 use std::collections::HashMap;
 use tracing::info_span;
@@ -251,7 +247,7 @@ impl WorldRender {
                 );
 
                 let face_vertex_position_array = BlockRenderInfo::get_face_vertex_position_array(
-                    Grid::world_position_to_position(face_view.position),
+                    face_view.position,
                     face_view.direction,
                 );
 
