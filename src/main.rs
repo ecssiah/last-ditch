@@ -1,4 +1,4 @@
-use last_ditch::{interface::app::LastDitchApp, utils::tracer::Tracer};
+use last_ditch::{interface::app::App, utils::tracer::Tracer};
 use std::sync::OnceLock;
 use winit::event_loop::{ControlFlow, EventLoop};
 
@@ -11,8 +11,8 @@ pub async fn run() {
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);
 
-    let mut last_ditch_app = LastDitchApp::default();
-    event_loop.run_app(&mut last_ditch_app).unwrap();
+    let mut app = App::default();
+    event_loop.run_app(&mut app).unwrap();
 
     #[cfg(feature = "profile")]
     Tracer::export(&tracer.flamegraph_name);

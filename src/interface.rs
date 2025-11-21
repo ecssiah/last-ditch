@@ -193,99 +193,57 @@ impl<'window> Interface<'window> {
         }
     }
 
-    pub fn handle_about_to_wait(
-        event_loop: &ActiveEventLoop,
-        gpu_context: &GPUContext,
-        dispatch: &Dispatch,
-        last_instant: &mut Instant,
-        camera: &mut Camera,
-        input: &mut Input,
-        hud: &mut HUD,
-        world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
-        debug_render: &mut DebugRender,
-        view_buffer_output: &mut triple_buffer::Output<View>,
-    ) {
-        let _interface_span = info_span!("interface").entered();
+    pub fn process_window_event(event: &WindowEvent, interface: &mut Option<Interface>) {
+        if let Some(interface) = interface.as_mut() {
+            let _window_event_span = info_span!("window_event").entered();
 
-        let instant = Instant::now();
-        let next_instant = *last_instant + INTERFACE_FRAME_DURATION;
-        *last_instant = instant;
+            match event {
+                WindowEvent::RedrawRequested => Self::render(
+                    &interface.camera,
+                    &mut interface.gpu_context,
+                    &mut interface.hud,
+                    &mut interface.world_render,
+                    &mut interface.item_render,
+                    &mut interface.population_render,
+                    &mut interface.debug_render,
+                ),
+                WindowEvent::Resized(size) => {
+                    Self::handle_resized(*size, &mut interface.gpu_context)
+                }
+                _ => {
+                    let is_handled = HUD::handle_window_event(
+                        event,
+                        &mut interface.hud.mode,
+                        &mut interface.gpu_context,
+                    );
 
-        Self::update(
-            event_loop,
-            dispatch,
-            gpu_context,
-            camera,
-            hud,
-            input,
-            world_render,
-            population_render,
-            debug_render,
-            view_buffer_output,
-        );
-
-        let instant = Instant::now();
-
-        if next_instant > instant {
-            event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
-        };
-
-        gpu_context.window_arc.request_redraw();
-    }
-
-    pub fn handle_device_event(
-        event: &DeviceEvent,
-        gpu_context: &mut GPUContext,
-        input: &mut Input,
-        hud: &mut HUD,
-    ) {
-        let _device_event_span = tracing::info_span!("device_event").entered();
-
-        if HUD::handle_device_event(event, &hud.mode, gpu_context) {
-            return;
-        }
-
-        if Input::handle_device_event(event, &mut input.mouse_inputs) {
-            return;
-        }
-    }
-
-    pub fn handle_window_event(
-        event: &WindowEvent,
-        camera: &Camera,
-        gpu_context: &mut GPUContext,
-        input: &mut Input,
-        hud: &mut HUD,
-        world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
-        item_render: &mut ItemRender,
-        debug_render: &mut DebugRender,
-    ) {
-        let _window_event_span = tracing::info_span!("window_event").entered();
-
-        match event {
-            WindowEvent::RedrawRequested => Self::handle_redraw_requested(
-                camera,
-                gpu_context,
-                hud,
-                world_render,
-                item_render,
-                population_render,
-                debug_render,
-            ),
-            WindowEvent::Resized(size) => Self::handle_resized(*size, gpu_context),
-            _ => {
-                let is_handled = HUD::handle_window_event(event, &hud.mode, gpu_context);
-
-                if !is_handled {
-                    Input::handle_window_event(event, &mut input.key_inputs, &mut input.action_vec);
+                    if !is_handled {
+                        Input::handle_window_event(
+                            event,
+                            &mut interface.input.key_inputs,
+                            &mut interface.input.action_vec,
+                        );
+                    }
                 }
             }
         }
     }
 
-    fn handle_redraw_requested(
+    pub fn process_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
+        if let Some(interface) = interface.as_mut() {
+            let _device_event_span = info_span!("device_event").entered();
+
+            if HUD::process_device_event(event, &interface.hud.mode, &mut interface.gpu_context) {
+                return;
+            }
+
+            if Input::process_device_event(event, &mut interface.input.mouse_inputs) {
+                return;
+            }
+        }
+    }
+
+    fn render(
         camera: &Camera,
         gpu_context: &mut GPUContext,
         hud: &mut HUD,
@@ -372,43 +330,51 @@ impl<'window> Interface<'window> {
             .configure(&gpu_context.device, &gpu_context.surface_config);
     }
 
-    fn update(
-        event_loop: &ActiveEventLoop,
-        dispatch: &Dispatch,
-        gpu_context: &GPUContext,
-        camera: &mut Camera,
-        hud: &mut HUD,
-        input: &mut Input,
-        world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
-        debug_render: &mut DebugRender,
-        view_buffer_output: &mut triple_buffer::Output<View>,
-    ) {
-        let _view_span = info_span!("get_view").entered();
+    fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Interface>) {
+        if let Some(interface) = interface.as_mut() {
+            let _interface_update_span = info_span!("interface update").entered();
 
-        let view = Observation::get_view(view_buffer_output);
+            let instant = Instant::now();
+            let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
+            interface.last_instant = instant;
 
-        let _dispatch_span = info_span!("dispatch_actions").entered();
+            let view = Observation::get_view(&mut interface.view_buffer_output);
 
-        if !Self::dispatch_action_vec(view, dispatch, hud, input) {
-            let admin_action = AdminAction::Exit;
-            let action = Action::Admin(admin_action);
+            let _dispatch_span = info_span!("dispatch_actions").entered();
 
-            match dispatch.action_tx.send(action) {
-                Ok(_) => tracing::info!("Interface Exit Action Sent"),
-                Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
-            };
-        } else {
-            Self::apply_view(
-                event_loop,
+            if !Self::dispatch_action_vec(
                 view,
-                gpu_context,
-                camera,
-                hud,
-                world_render,
-                population_render,
-                debug_render,
-            );
+                &interface.dispatch,
+                &mut interface.hud,
+                &mut interface.input,
+            ) {
+                let admin_action = AdminAction::Exit;
+                let action = Action::Admin(admin_action);
+
+                match interface.dispatch.action_tx.send(action) {
+                    Ok(_) => tracing::info!("Interface Exit Action Sent"),
+                    Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
+                };
+            } else {
+                Self::apply_view(
+                    event_loop,
+                    view,
+                    &interface.gpu_context,
+                    &mut interface.camera,
+                    &mut interface.hud,
+                    &mut interface.world_render,
+                    &mut interface.population_render,
+                    &mut interface.debug_render,
+                );
+            }
+
+            let instant = Instant::now();
+
+            if next_instant > instant {
+                event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
+            };
+
+            interface.gpu_context.window_arc.request_redraw();
         }
     }
 

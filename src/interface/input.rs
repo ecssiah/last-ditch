@@ -116,7 +116,7 @@ impl Input {
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, mouse_inputs: &mut MouseInputs) -> bool {
+    pub fn process_device_event(event: &DeviceEvent, mouse_inputs: &mut MouseInputs) -> bool {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             Self::handle_mouse_motion(*dx, *dy, mouse_inputs);
 

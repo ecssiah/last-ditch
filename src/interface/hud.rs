@@ -256,7 +256,7 @@ impl HUD {
         );
     }
 
-    pub fn handle_device_event(
+    pub fn process_device_event(
         event: &DeviceEvent,
         mode: &Mode,
         gpu_context: &mut GPUContext,

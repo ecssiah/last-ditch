@@ -27,11 +27,11 @@ impl Timing {
         Instant::now() >= timing.next_instant && timing.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
-    pub fn start_frame(timing: &mut Timing) {
+    pub fn start(timing: &mut Timing) {
         timing.ticks_frame = 0;
     }
 
-    pub fn update_frame(timing: &mut Timing) {
+    pub fn update(timing: &mut Timing) {
         timing.ticks_total += 1;
         timing.ticks_frame += 1;
 

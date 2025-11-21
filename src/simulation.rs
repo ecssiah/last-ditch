@@ -62,18 +62,17 @@ impl Simulation {
         loop {
             let _simulation_span = info_span!("simulation").entered();
 
-            Timing::start_frame(timing);
+            Timing::start(timing);
 
             while Timing::has_work(timing) {
                 match Receiver::listen(receiver) {
                     Some(action_vec) => {
                         State::tick(action_vec, state);
                         Observation::tick(state, view_buffer_input, observation);
-
-                        Timing::update_frame(timing);
+                        Timing::update(timing);
                     }
                     None => {
-                        tracing::info!("Simulation Exit");
+                        info!("Simulation Exit");
                         return;
                     }
                 }
