@@ -11,7 +11,7 @@ pub mod utils;
 
 pub use config::Config;
 pub use kind::Kind;
-use tracing::info_span;
+use tracing::{info, info_span};
 
 use crate::simulation::{
     observation::{view::View, Observation},

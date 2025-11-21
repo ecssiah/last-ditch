@@ -1,14 +1,12 @@
 use last_ditch::{interface::app::LastDitchApp, utils::tracer::Tracer};
+use std::sync::OnceLock;
 use winit::event_loop::{ControlFlow, EventLoop};
 
+static TRACER: OnceLock<Tracer> = OnceLock::new();
+
 pub async fn run() {
-    #[cfg(not(feature = "profile"))]
-    Tracer::new();
-
-    #[cfg(feature = "profile")]
     let tracer = Tracer::new();
-
-    Tracer::log_intro();
+    TRACER.set(tracer).unwrap();
 
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);

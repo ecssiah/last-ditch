@@ -9,6 +9,7 @@ use {
     tracing_flame::{FlameLayer, FlushGuard},
 };
 
+#[derive(Debug)]
 pub struct Tracer {
     pub engine_guard: WorkerGuard,
     #[cfg(feature = "profile")]
@@ -24,8 +25,7 @@ impl Tracer {
 
         let engine_events = tracing_subscriber::fmt::layer()
             .with_writer(engine_writer)
-            .with_ansi(false)
-            .with_target(true);
+            .with_ansi(false);
 
         #[cfg(feature = "profile")]
         let flamegraph_name = Self::get_flamegraph_name();
@@ -40,9 +40,12 @@ impl Tracer {
 
         tracing_subscriber::registry()
             .with(EnvFilter::new("info"))
-            .with(engine_events)
             .with(flame_layer)
-            .init();
+            .with(engine_events)
+            .try_init()
+            .expect("global subscriber already initialized!");
+
+        Self::log_intro();
 
         Self {
             engine_guard,
