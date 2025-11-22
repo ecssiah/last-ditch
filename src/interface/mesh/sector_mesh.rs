@@ -16,6 +16,7 @@ impl SectorMesh {
             !sector_mesh.vertex_vec.is_empty(),
             "Vertex buffer is empty!"
         );
+
         assert!(!sector_mesh.index_vec.is_empty(), "Index buffer is empty!");
 
         let vertex_buffer = wgpu::util::DeviceExt::create_buffer_init(

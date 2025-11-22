@@ -21,7 +21,7 @@ use tracing::info_span;
 
 pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
-    pub block_tile_coordinates_map: HashMap<block::Kind, [[u32; 2]; 6]>,
+    pub tile_atlas_coordinates_map: HashMap<block::Kind, [[u32; 2]; 6]>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
     pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
     pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
@@ -33,7 +33,7 @@ pub struct WorldRender {
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let block_render_info = BlockRenderInfo::new(64, 2048, 2048);
-        let block_tile_coordinates_map = BlockRenderInfo::get_tile_coordinates_map();
+        let tile_atlas_coordinates_map = BlockRenderInfo::get_tile_coordinates_map();
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
 
@@ -61,7 +61,7 @@ impl WorldRender {
 
         Self {
             block_render_info,
-            block_tile_coordinates_map,
+            tile_atlas_coordinates_map,
             tile_atlas_texture_bind_group,
             sector_mesh_cache,
             gpu_mesh_cache,
@@ -222,7 +222,7 @@ impl WorldRender {
         device: &wgpu::Device,
         camera: &Camera,
         world_view: &WorldView,
-        block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
+        tile_atlas_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
         sector_mesh_cache: &mut HashMap<sector::ID, SectorMesh>,
         gpu_mesh_cache: &mut HashMap<sector::ID, GpuMesh>,
         active_sector_id_set: &mut HashSet<sector::ID>,
@@ -246,7 +246,7 @@ impl WorldRender {
 
             let sector_mesh = Self::get_or_build_sector_mesh(
                 sector_view,
-                block_tile_coordinates_map,
+                tile_atlas_coordinates_map,
                 &world_view.grid,
                 sector_mesh_cache,
             );
@@ -263,7 +263,7 @@ impl WorldRender {
 
     fn get_or_build_sector_mesh<'a>(
         sector_view: &SectorView,
-        block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
+        tile_atlas_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
         grid: &Grid,
         sector_mesh_cache: &'a mut HashMap<sector::ID, SectorMesh>,
     ) -> &'a SectorMesh {
@@ -271,7 +271,7 @@ impl WorldRender {
             Entry::Vacant(vacant_entry) => {
                 let sector_mesh = mesh_optimizer::lysenko_optimization(
                     sector_view,
-                    block_tile_coordinates_map,
+                    tile_atlas_coordinates_map,
                     grid,
                 );
 
@@ -281,7 +281,7 @@ impl WorldRender {
                 if occupied_entry.get().version != sector_view.version {
                     let sector_mesh = mesh_optimizer::lysenko_optimization(
                         sector_view,
-                        block_tile_coordinates_map,
+                        tile_atlas_coordinates_map,
                         grid,
                     );
                     *occupied_entry.get_mut() = sector_mesh;

@@ -12,7 +12,7 @@ use ultraviolet::IVec3;
 
 pub fn lysenko_optimization(
     sector_view: &SectorView,
-    block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
+    tile_atlas_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
     grid: &Grid,
 ) -> SectorMesh {
     let mut vertex_vec = Vec::new();
