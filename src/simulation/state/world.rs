@@ -15,7 +15,6 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
-use tracing::info;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
@@ -78,7 +77,7 @@ impl World {
             .into_iter()
             .map(|sector_id| {
                 let position = Grid::sector_id_to_position(sector_id, grid);
-                let modified = sector::Modified::new();
+                let version = 0;
 
                 let aabb = AABB::new(
                     Vec3::from(position),
@@ -89,7 +88,7 @@ impl World {
 
                 sector::Sector {
                     sector_id,
-                    modified,
+                    version,
                     position,
                     aabb,
                     cell_vec,
@@ -219,40 +218,13 @@ impl World {
         clearance
     }
 
-    fn mark_updates(position1: IVec3, grid: &Grid, sector_vec_slice: &mut [Sector]) {
-        if !Grid::position_valid(position1, grid) {
-            return;
-        }
-
-        let sector1_id = Grid::position_to_sector_id(position1, grid);
-
-        {
-            let sector1 = Self::get_sector_mut(sector1_id, sector_vec_slice);
-            sector1.modified.cell = true;
-
-            if Grid::on_sector_boundary(position1, grid) {
-                sector1.modified.edge = true;
-            }
-        }
-
-        for direction in grid::Direction::get_direction_array() {
-            let position2 = position1 + direction.to_ivec3();
-            let sector_id2 = Grid::position_to_sector_id(position2, grid);
-
-            if Grid::sector_id_valid(sector_id2, grid) {
-                let sector2 = Self::get_sector_at_mut(position2, grid, sector_vec_slice);
-                sector2.modified.edge = true;
-            }
-        }
-    }
-
     pub fn set_block(
         position: IVec3,
         block_kind: block::Kind,
         block_info_map: &HashMap<block::Kind, block::Info>,
         grid: &Grid,
         sector_vec_slice: &mut [Sector],
-    ) -> bool {
+    ) {
         let (sector_id, cell_id) = Grid::position_to_ids(position, grid);
 
         if Grid::sector_id_valid(sector_id, grid) && Grid::cell_id_valid(cell_id, grid) {
@@ -262,16 +234,8 @@ impl World {
             cell.block_kind = block_kind;
             cell.solid = block_info.solid;
 
-            Self::mark_updates(position, grid, sector_vec_slice);
-
-            true
-        } else {
-            info!(
-                "{:?} cell cannot be set at invalid location: {:?}",
-                block_kind, position
-            );
-
-            false
+            let sector = Self::get_sector_mut(sector_id, sector_vec_slice);
+            sector.version += 1;
         }
     }
 

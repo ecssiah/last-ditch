@@ -23,12 +23,14 @@ use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Observation {
+    pub sector_version_map: HashMap<sector::ID, u64>,
     pub face_view_cache: HashMap<sector::ID, Vec<FaceView>>,
 }
 
 impl Observation {
     pub fn new() -> Self {
         Self {
+            sector_version_map: HashMap::new(),
             face_view_cache: HashMap::new(),
         }
     }
@@ -59,7 +61,11 @@ impl Observation {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
         let population_view = Self::update_population_view(state);
-        let world_view = Self::update_world_view(state, &mut observation.face_view_cache);
+        let world_view = Self::update_world_view(
+            state,
+            &mut observation.sector_version_map,
+            &mut observation.face_view_cache,
+        );
 
         let view = view_buffer_input.input_buffer_mut();
 
@@ -147,6 +153,7 @@ impl Observation {
 
     fn update_world_view(
         state: &State,
+        sector_version_map: &mut HashMap<sector::ID, u64>,
         face_view_cache: &mut HashMap<sector::ID, Vec<FaceView>>,
     ) -> WorldView {
         if state.admin.mode == admin::Mode::Menu
@@ -186,27 +193,19 @@ impl Observation {
 
                     let sector = &state.world.sector_vec[usize::from(sector_id)];
 
-                    let sector_view = if sector.modified.cell {
-                        SectorView {
-                            sector_id: sector.sector_id,
-                            world_position: Vec3::from(sector.position),
-                            radius: state.world.grid.sector_radius_in_meters,
-                            face_view_vec: Self::get_face_view_vec(sector, &state.world.grid),
-                        }
-                    } else if face_view_cache.contains_key(&sector_id) {
-                        SectorView {
-                            sector_id: sector.sector_id,
-                            world_position: Vec3::from(sector.position),
-                            radius: state.world.grid.sector_radius_in_meters,
-                            face_view_vec: face_view_cache[&sector_id].clone(),
-                        }
-                    } else {
-                        SectorView {
-                            sector_id: sector.sector_id,
-                            world_position: Vec3::from(sector.position),
-                            radius: state.world.grid.sector_radius_in_meters,
-                            face_view_vec: Self::get_face_view_vec(sector, &state.world.grid),
-                        }
+                    let face_view_vec = Self::get_face_view_vec(
+                        sector,
+                        &state.world.grid,
+                        sector_version_map,
+                        face_view_cache,
+                    );
+
+                    let sector_view = SectorView {
+                        sector_id: sector.sector_id,
+                        version: sector.version,
+                        world_position: Vec3::from(sector.position),
+                        radius: state.world.grid.sector_radius_in_meters,
+                        face_view_vec,
                     };
 
                     world_view
@@ -219,7 +218,32 @@ impl Observation {
         world_view
     }
 
-    fn get_face_view_vec(sector: &Sector, grid: &Grid) -> Vec<FaceView> {
+    fn get_face_view_vec(
+        sector: &Sector,
+        grid: &Grid,
+        sector_version_map: &mut HashMap<sector::ID, u64>,
+        face_view_cache: &mut HashMap<sector::ID, Vec<FaceView>>,
+    ) -> Vec<FaceView> {
+        let needs_rebuild = match sector_version_map.get(&sector.sector_id) {
+            Some(current_version) => *current_version != sector.version,
+            None => true,
+        };
+
+        let face_view_vec = if needs_rebuild {
+            let face_view_vec = Self::build_face_view_vec(sector, grid);
+
+            face_view_cache.insert(sector.sector_id, face_view_vec.clone());
+            sector_version_map.insert(sector.sector_id, sector.version);
+
+            face_view_vec
+        } else {
+            face_view_cache[&sector.sector_id].clone()
+        };
+
+        face_view_vec
+    }
+
+    fn build_face_view_vec(sector: &Sector, grid: &Grid) -> Vec<FaceView> {
         let mut face_view_vec = Vec::new();
 
         let sector_radius_in_cells = grid.sector_radius_in_cells as i32;

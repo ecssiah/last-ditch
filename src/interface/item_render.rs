@@ -3,8 +3,8 @@ pub mod item_render_data;
 use crate::{
     include_assets,
     interface::{
-        camera::Camera, gpu_context::GPUContext, item_render::item_render_data::ItemRenderData,
-        vertex_data::VertexData,
+        camera::Camera, gpu::gpu_context::GPUContext,
+        item_render::item_render_data::ItemRenderData, vertex_data::VertexData,
     },
 };
 

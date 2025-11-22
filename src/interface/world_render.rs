@@ -6,23 +6,27 @@ use crate::{
     interface::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
-        gpu_context::GPUContext,
-        mesh_data::MeshData,
-        texture_data::TextureData,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
+        mesh::{mesh_optimizer, sector_mesh::SectorMesh},
         vertex_data::VertexData,
-        world_render::{block_render_info::BlockRenderInfo, sector_render_data::SectorRenderData},
+        world_render::block_render_info::BlockRenderInfo,
     },
-    simulation::{observation::view::WorldView, state::world::block},
+    simulation::{
+        observation::view::{SectorView, WorldView},
+        state::world::{block, grid::Grid, sector},
+    },
 };
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::info_span;
-use ultraviolet::Vec3;
 
 pub struct WorldRender {
     pub block_render_info: BlockRenderInfo,
     pub block_tile_coordinates_map: HashMap<block::Kind, [[u32; 2]; 6]>,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
-    pub sector_render_data_vec: Vec<SectorRenderData>,
+    pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
+    pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
+    pub active_sector_id_set: HashSet<sector::ID>,
+    pub active_gpu_mesh_vec: Vec<sector::ID>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -43,19 +47,26 @@ impl WorldRender {
         let tile_atlas_texture_bind_group =
             Self::create_texture_bind_group(&gpu_context.device, &tile_atlas_texture_data);
 
-        let sector_render_data_vec = Vec::new();
-
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
             &texture_bind_group_layout,
         );
 
+        let sector_mesh_cache = HashMap::new();
+        let gpu_mesh_cache = HashMap::new();
+
+        let active_sector_id_set = HashSet::new();
+        let active_gpu_mesh_vec = Vec::new();
+
         Self {
             block_render_info,
             block_tile_coordinates_map,
             tile_atlas_texture_bind_group,
-            sector_render_data_vec,
+            sector_mesh_cache,
+            gpu_mesh_cache,
+            active_sector_id_set,
+            active_gpu_mesh_vec,
             render_pipeline,
         }
     }
@@ -86,7 +97,7 @@ impl WorldRender {
 
     pub fn create_texture_bind_group(
         device: &wgpu::Device,
-        texture_data: &TextureData,
+        gpu_texture_data: &GpuTextureData,
     ) -> wgpu::BindGroup {
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -116,11 +127,11 @@ impl WorldRender {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&texture_data.view),
+                    resource: wgpu::BindingResource::TextureView(&gpu_texture_data.texture_view),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&texture_data.sampler),
+                    resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
                 },
             ],
         })
@@ -211,15 +222,18 @@ impl WorldRender {
         device: &wgpu::Device,
         camera: &Camera,
         world_view: &WorldView,
-        block_render_info: &BlockRenderInfo,
         block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
-        sector_render_data_vec: &mut Vec<SectorRenderData>,
+        sector_mesh_cache: &mut HashMap<sector::ID, SectorMesh>,
+        gpu_mesh_cache: &mut HashMap<sector::ID, GpuMesh>,
+        active_sector_id_set: &mut HashSet<sector::ID>,
+        active_gpu_mesh_vec: &mut Vec<sector::ID>,
     ) {
         let _span = info_span!("apply_world_view").entered();
 
-        sector_render_data_vec.clear();
+        active_sector_id_set.clear();
+        active_gpu_mesh_vec.clear();
 
-        for sector_view in world_view.sector_view_map.values() {
+        for (sector_id, sector_view) in &world_view.sector_view_map {
             let _sector_span =
                 info_span!("sector", id = usize::from(sector_view.sector_id)).entered();
 
@@ -230,76 +244,72 @@ impl WorldRender {
                 continue;
             }
 
-            let mut vertex_vec = Vec::new();
-            let mut index_vec = Vec::new();
-            let mut index_offset = 0;
+            let sector_mesh = Self::get_or_build_sector_mesh(
+                sector_view,
+                block_tile_coordinates_map,
+                &world_view.grid,
+                sector_mesh_cache,
+            );
 
-            for face_view in &sector_view.face_view_vec {
-                let _face_span = info_span!("face_loop").entered();
+            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
 
-                let tile_coordinates_array = block_tile_coordinates_map[&face_view.block_kind];
-                let tile_coordinates = tile_coordinates_array[face_view.direction as usize];
+            active_sector_id_set.insert(*sector_id);
+            active_gpu_mesh_vec.push(*sector_id);
+        }
 
-                let tile_uv_array = BlockRenderInfo::tile_uv_array(
-                    &tile_coordinates,
-                    block_render_info.tile_size,
-                    block_render_info.tile_atlas_size,
+        sector_mesh_cache.retain(|id, _| active_sector_id_set.contains(id));
+        gpu_mesh_cache.retain(|id, _| active_gpu_mesh_vec.contains(id));
+    }
+
+    fn get_or_build_sector_mesh<'a>(
+        sector_view: &SectorView,
+        block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
+        grid: &Grid,
+        sector_mesh_cache: &'a mut HashMap<sector::ID, SectorMesh>,
+    ) -> &'a SectorMesh {
+        match sector_mesh_cache.entry(sector_view.sector_id) {
+            Entry::Vacant(vacant_entry) => {
+                let sector_mesh = mesh_optimizer::lysenko_optimization(
+                    sector_view,
+                    block_tile_coordinates_map,
+                    grid,
                 );
 
-                let face_vertex_position_array = BlockRenderInfo::get_face_vertex_position_array(
-                    face_view.position,
-                    face_view.direction,
-                );
-
-                let mut all_outside = true;
-
-                for &p in &face_vertex_position_array {
-                    let world_pos = Vec3::new(p[0], p[1], p[2]);
-
-                    if camera.frustum.point_in_frustum(world_pos) {
-                        all_outside = false;
-                        break;
-                    }
-                }
-
-                if all_outside {
-                    continue;
-                }
-
-                for (index, &position) in face_vertex_position_array.iter().enumerate() {
-                    let normal = *face_view.direction.to_vec3().as_array();
-
-                    let texture = [tile_uv_array[index][0], tile_uv_array[index][1], 0.0];
-
-                    let textured_vertex = obj::TexturedVertex {
-                        position,
-                        normal,
-                        texture,
-                    };
-
-                    vertex_vec.push(textured_vertex);
-                }
-
-                index_vec.push(index_offset + 0);
-                index_vec.push(index_offset + 1);
-                index_vec.push(index_offset + 2);
-                index_vec.push(index_offset + 0);
-                index_vec.push(index_offset + 2);
-                index_vec.push(index_offset + 3);
-
-                index_offset += 4;
+                vacant_entry.insert(sector_mesh)
             }
+            Entry::Occupied(mut occupied_entry) => {
+                if occupied_entry.get().version != sector_view.version {
+                    let sector_mesh = mesh_optimizer::lysenko_optimization(
+                        sector_view,
+                        block_tile_coordinates_map,
+                        grid,
+                    );
+                    *occupied_entry.get_mut() = sector_mesh;
+                }
+                occupied_entry.into_mut()
+            }
+        }
+    }
 
-            if !vertex_vec.is_empty() {
-                // let _sector_render_data =
-                //     mesh_optimizer::lysenko_optimization(device, &world_view.grid, sector_view);
+    fn get_or_build_gpu_sector_mesh<'a>(
+        sector_mesh: &SectorMesh,
+        device: &wgpu::Device,
+        gpu_mesh_cache: &'a mut HashMap<sector::ID, GpuMesh>,
+    ) -> &'a GpuMesh {
+        match gpu_mesh_cache.entry(sector_mesh.sector_id) {
+            Entry::Vacant(vacant_entry) => {
+                let gpu_mesh = SectorMesh::to_gpu_mesh(sector_mesh, device);
 
-                let sector_render_data = SectorRenderData {
-                    sector_id: sector_view.sector_id,
-                    mesh_data: MeshData::new(device, vertex_vec, index_vec),
-                };
+                vacant_entry.insert(gpu_mesh)
+            }
+            Entry::Occupied(mut occupied_entry) => {
+                if occupied_entry.get().version != sector_mesh.version {
+                    let gpu_mesh = SectorMesh::to_gpu_mesh(sector_mesh, device);
 
-                sector_render_data_vec.push(sector_render_data);
+                    *occupied_entry.get_mut() = gpu_mesh;
+                }
+
+                occupied_entry.into_mut()
             }
         }
     }
@@ -309,7 +319,7 @@ impl WorldRender {
         queue: &wgpu::Queue,
         path: &str,
         label: &str,
-    ) -> TextureData {
+    ) -> GpuTextureData {
         let img = image::open(path)
             .expect("Failed to open texture atlas")
             .into_rgba8();
@@ -349,7 +359,7 @@ impl WorldRender {
             texture_size,
         );
 
-        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: None,
@@ -362,9 +372,9 @@ impl WorldRender {
             ..Default::default()
         });
 
-        TextureData {
+        GpuTextureData {
             texture,
-            view,
+            texture_view,
             sampler,
         }
     }
@@ -410,19 +420,30 @@ impl WorldRender {
         render_pass.set_pipeline(&world_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
-        for sector_render_data in &world_render.sector_render_data_vec {
+        for sector_id in &world_render.active_gpu_mesh_vec {
+            let gpu_mesh = &world_render.gpu_mesh_cache[sector_id];
+
             render_pass.set_bind_group(1, &world_render.tile_atlas_texture_bind_group, &[]);
+            render_pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
+            render_pass
+                .set_index_buffer(gpu_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-            render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
-
-            render_pass.set_index_buffer(
-                sector_render_data.mesh_data.index_buffer.slice(..),
-                wgpu::IndexFormat::Uint32,
-            );
-
-            render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
+            render_pass.draw_indexed(0..gpu_mesh.index_count, 0, 0..1);
         }
 
         drop(render_pass);
+
+        // for sector_render_data in &world_render.sector_render_data_vec {
+        //     render_pass.set_bind_group(1, &world_render.tile_atlas_texture_bind_group, &[]);
+
+        //     render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
+
+        //     render_pass.set_index_buffer(
+        //         sector_render_data.mesh_data.index_buffer.slice(..),
+        //         wgpu::IndexFormat::Uint32,
+        //     );
+
+        //     render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
+        // }
     }
 }

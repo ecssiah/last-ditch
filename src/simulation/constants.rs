@@ -36,17 +36,19 @@ pub const JUDGE_DEFAULT_SPEED_Z: f32 = 8.0;
 
 pub const JUDGE_DEFAULT_SIZE_X: f32 = 0.6;
 pub const JUDGE_DEFAULT_SIZE_Y: f32 = 0.6;
-pub const JUDGE_DEFAULT_SIZE_Z: f32 = 2.8;
+pub const JUDGE_DEFAULT_SIZE_Z: f32 = 2.2;
 
 pub const JUDGE_SIGHT_RANGE: f32 = 250.0;
 pub const JUDGE_SIGHT_RANGE_SQUARED: f32 = JUDGE_SIGHT_RANGE * JUDGE_SIGHT_RANGE;
 
 pub const JUDGE_PITCH_LIMIT: f32 = std::f32::consts::FRAC_PI_2 + f32::EPSILON;
 
+pub const AGENT_INITIAL_POPULATION: i32 = 16;
+
 pub const AGENT_DEFAULT_SPEED_X: f32 = 6.0;
 pub const AGENT_DEFAULT_SPEED_Y: f32 = 8.0;
 pub const AGENT_DEFAULT_SPEED_Z: f32 = 8.0;
 
-pub const AGENT_DEFAULT_SIZE_X: f32 = 0.5;
-pub const AGENT_DEFAULT_SIZE_Y: f32 = 0.5;
-pub const AGENT_DEFAULT_SIZE_Z: f32 = 2.0;
+pub const AGENT_DEFAULT_SIZE_X: f32 = 0.6;
+pub const AGENT_DEFAULT_SIZE_Y: f32 = 0.6;
+pub const AGENT_DEFAULT_SIZE_Z: f32 = 1.73;

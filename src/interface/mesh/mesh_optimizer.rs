@@ -1,18 +1,21 @@
 //! Mesh Optimization
 
 use crate::{
-    interface::{mesh_data::MeshData, world_render::sector_render_data::SectorRenderData},
-    simulation::{observation::view::SectorView, state::world::grid::Grid},
+    interface::mesh::{block_vertex::BlockVertex, sector_mesh::SectorMesh},
+    simulation::{
+        observation::view::SectorView,
+        state::world::{block, grid::Grid},
+    },
 };
-use obj::TexturedVertex;
+use std::collections::HashMap;
 use ultraviolet::IVec3;
 
 pub fn lysenko_optimization(
-    device: &wgpu::Device,
-    grid: &Grid,
     sector_view: &SectorView,
-) -> SectorRenderData {
-    let mut textured_vertex_vec = Vec::new();
+    block_tile_coordinates_map: &HashMap<block::Kind, [[u32; 2]; 6]>,
+    grid: &Grid,
+) -> SectorMesh {
+    let mut vertex_vec = Vec::new();
     let mut index_vec = Vec::new();
 
     let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
@@ -127,7 +130,7 @@ pub fn lysenko_optimization(
                             local_y_delta[local_x_dimension_index] = height;
                         }
 
-                        let vertex_count: i32 = textured_vertex_vec.len() as i32;
+                        let vertex_count: i32 = vertex_vec.len() as i32;
 
                         let normal = if cell > 0 {
                             [
@@ -143,50 +146,50 @@ pub fn lysenko_optimization(
                             ]
                         };
 
-                        let vertex0 = TexturedVertex {
+                        let vertex0 = BlockVertex {
                             position: [
                                 cursor_position[0] as f32,
                                 cursor_position[1] as f32,
                                 cursor_position[2] as f32,
                             ],
                             normal,
-                            texture: [0.0, 0.0, 0.0],
+                            uv: [0.0, 0.0],
                         };
 
-                        let vertex1 = TexturedVertex {
+                        let vertex1 = BlockVertex {
                             position: [
                                 (cursor_position[0] + local_x_delta[0]) as f32,
                                 (cursor_position[1] + local_x_delta[1]) as f32,
                                 (cursor_position[2] + local_x_delta[2]) as f32,
                             ],
                             normal,
-                            texture: [0.0, 0.0, 0.0],
+                            uv: [0.0, 0.0],
                         };
 
-                        let vertex2 = TexturedVertex {
+                        let vertex2 = BlockVertex {
                             position: [
                                 (cursor_position[0] + local_x_delta[0] + local_y_delta[0]) as f32,
                                 (cursor_position[1] + local_x_delta[1] + local_y_delta[1]) as f32,
                                 (cursor_position[2] + local_x_delta[2] + local_y_delta[2]) as f32,
                             ],
                             normal,
-                            texture: [0.0, 0.0, 0.0],
+                            uv: [0.0, 0.0],
                         };
 
-                        let vertex3 = TexturedVertex {
+                        let vertex3 = BlockVertex {
                             position: [
                                 (cursor_position[0] + local_y_delta[0]) as f32,
                                 (cursor_position[1] + local_y_delta[1]) as f32,
                                 (cursor_position[2] + local_y_delta[2]) as f32,
                             ],
                             normal,
-                            texture: [0.0, 0.0, 0.0],
+                            uv: [0.0, 0.0],
                         };
 
-                        textured_vertex_vec.push(vertex0);
-                        textured_vertex_vec.push(vertex1);
-                        textured_vertex_vec.push(vertex2);
-                        textured_vertex_vec.push(vertex3);
+                        vertex_vec.push(vertex0);
+                        vertex_vec.push(vertex1);
+                        vertex_vec.push(vertex2);
+                        vertex_vec.push(vertex3);
 
                         let index0 = (vertex_count + 0) as u32;
                         let index1 = (vertex_count + 1) as u32;
@@ -218,9 +221,11 @@ pub fn lysenko_optimization(
         }
     }
 
-    SectorRenderData {
+    SectorMesh {
         sector_id: sector_view.sector_id,
-        mesh_data: MeshData::new(device, textured_vertex_vec, index_vec),
+        version: sector_view.version,
+        vertex_vec: vertex_vec,
+        index_vec: index_vec,
     }
 }
 

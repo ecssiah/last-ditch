@@ -3,7 +3,7 @@ use crate::{
     interface::{
         camera::Camera,
         debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
-        gpu_context::GPUContext,
+        gpu::gpu_context::GPUContext,
     },
     simulation::{constants::CELL_RADIUS, observation::view::View},
 };

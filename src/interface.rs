@@ -5,21 +5,20 @@ pub mod camera;
 pub mod constants;
 pub mod debug;
 pub mod dispatch;
-pub mod gpu_context;
+pub mod gpu;
 pub mod hud;
 pub mod input;
 pub mod item_render;
+pub mod mesh;
 pub mod mesh_data;
-pub mod mesh_optimizer;
 pub mod population_render;
-pub mod texture_data;
 pub mod vertex_data;
 pub mod world_render;
 
 use crate::{
     interface::{
         camera::Camera, constants::*, debug::DebugRender, dispatch::Dispatch,
-        gpu_context::GPUContext, hud::HUD, input::Input, item_render::ItemRender,
+        gpu::gpu_context::GPUContext, hud::HUD, input::Input, item_render::ItemRender,
         population_render::PopulationRender, world_render::WorldRender,
     },
     simulation::{
@@ -442,9 +441,11 @@ impl<'window> Interface<'window> {
             &gpu_context.device,
             camera,
             &view.world_view,
-            &world_render.block_render_info,
             &world_render.block_tile_coordinates_map,
-            &mut world_render.sector_render_data_vec,
+            &mut world_render.sector_mesh_cache,
+            &mut world_render.gpu_mesh_cache,
+            &mut world_render.active_sector_id_set,
+            &mut world_render.active_gpu_mesh_vec,
         );
 
         PopulationRender::apply_population_view(

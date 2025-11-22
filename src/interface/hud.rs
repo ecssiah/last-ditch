@@ -6,7 +6,7 @@ pub use mode::Mode;
 
 use crate::{
     interface::{
-        gpu_context::GPUContext,
+        gpu::gpu_context::GPUContext,
         hud::mode::{LoadData, MenuData, ShutdownData, SimulateData},
     },
     simulation::{self, observation::view::View, state::receiver::action::Action},

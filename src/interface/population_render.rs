@@ -3,8 +3,10 @@ pub mod entity_instance_data;
 use crate::{
     include_assets,
     interface::{
-        camera::Camera, gpu_context::GPUContext, mesh_data::MeshData,
-        population_render::entity_instance_data::EntityInstanceData, texture_data::TextureData,
+        camera::Camera,
+        gpu::{gpu_context::GPUContext, gpu_texture_data::GpuTextureData},
+        mesh_data::MeshData,
+        population_render::entity_instance_data::EntityInstanceData,
         vertex_data::VertexData,
     },
     simulation::{
@@ -160,7 +162,7 @@ impl PopulationRender {
             if path.extension().and_then(|extension| extension.to_str()) == Some("png") {
                 let file_stem = path.file_stem().unwrap().to_str().unwrap();
 
-                let texture_data = pollster::block_on(Self::load_texture_data(
+                let gpu_texture_data = pollster::block_on(Self::load_texture_data(
                     device,
                     queue,
                     path.to_str().unwrap(),
@@ -168,7 +170,7 @@ impl PopulationRender {
                 ));
 
                 let texture_bind_group =
-                    Arc::new(Self::create_texture_bind_group(device, &texture_data));
+                    Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
 
                 if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                     if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
@@ -186,7 +188,7 @@ impl PopulationRender {
 
     pub fn create_texture_bind_group(
         device: &wgpu::Device,
-        texture_data: &TextureData,
+        gpu_texture_data: &GpuTextureData,
     ) -> wgpu::BindGroup {
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -216,11 +218,11 @@ impl PopulationRender {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&texture_data.view),
+                    resource: wgpu::BindingResource::TextureView(&gpu_texture_data.texture_view),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&texture_data.sampler),
+                    resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
                 },
             ],
         })
@@ -231,7 +233,7 @@ impl PopulationRender {
         queue: &wgpu::Queue,
         path: &str,
         label: &str,
-    ) -> TextureData {
+    ) -> GpuTextureData {
         let img = image::open(path)
             .expect("Failed to open texture atlas")
             .into_rgba8();
@@ -271,7 +273,7 @@ impl PopulationRender {
             texture_size,
         );
 
-        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: None,
@@ -284,9 +286,9 @@ impl PopulationRender {
             ..Default::default()
         });
 
-        TextureData {
+        GpuTextureData {
             texture,
-            view,
+            texture_view,
             sampler,
         }
     }
