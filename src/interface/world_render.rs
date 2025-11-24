@@ -7,7 +7,7 @@ use crate::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
-        mesh::{mesh_optimizer, sector_mesh::SectorMesh},
+        mesh::sector_mesh::SectorMesh,
         vertex_data::VertexData,
         world_render::block_render_info::BlockRenderInfo,
     },
@@ -260,14 +260,14 @@ impl WorldRender {
     ) -> &'a SectorMesh {
         match sector_mesh_cache.entry(sector_view.sector_id) {
             Entry::Vacant(vacant_entry) => {
-                let sector_mesh = mesh_optimizer::lysenko_optimization(sector_view, grid);
+                let sector_mesh = SectorMesh::from_sector_view(sector_view, grid);
 
                 vacant_entry.insert(sector_mesh)
             }
             Entry::Occupied(mut occupied_entry) => {
                 if occupied_entry.get().version != sector_view.version {
-                    let sector_mesh = mesh_optimizer::lysenko_optimization(sector_view, grid);
-                    
+                    let sector_mesh = SectorMesh::from_sector_view(sector_view, grid);
+
                     *occupied_entry.get_mut() = sector_mesh;
                 }
 
