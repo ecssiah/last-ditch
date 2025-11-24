@@ -3,19 +3,20 @@
 use crate::{
     interface::mesh::{block_vertex::BlockVertex, sector_mesh::SectorMesh},
     simulation::{
-        observation::{
-            face_mask::{self, FaceMask},
-            view::SectorView,
-        },
+        observation::{face_mask, view::SectorView},
         state::world::grid::Grid,
     },
 };
 use ultraviolet::IVec3;
 
 pub fn lysenko_optimization(sector_view: &SectorView, grid: &Grid) -> SectorMesh {
-    let mut vertex_vec = Vec::new();
-    let mut index_vec = Vec::new();
+    let mask_vec = generate_mask_vec(sector_view, grid);
+    let sector_mesh = merge_geometry(sector_view, mask_vec);
 
+    sector_mesh
+}
+
+fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<i16>>> {
     let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
     let sector_size_in_cells = grid.sector_size_in_cells as i32;
     let sector_area_in_cells = grid.sector_area_in_cells as i32;
@@ -102,6 +103,19 @@ pub fn lysenko_optimization(sector_view: &SectorView, grid: &Grid) -> SectorMesh
                     }
                 }
             }
+        }
+    }
+
+    mask_vec
+}
+
+fn merge_geometry(sector_view: &SectorView, mask_vec: Vec<Vec<Vec<i16>>>) -> SectorMesh {
+    let mut vertex_vec = Vec::new();
+    let mut index_vec = Vec::new();
+
+    for dimension_vec in mask_vec {
+        for slice_vec in dimension_vec {
+            
         }
     }
 
