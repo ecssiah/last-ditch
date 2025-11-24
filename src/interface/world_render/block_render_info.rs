@@ -84,6 +84,12 @@ impl BlockRenderInfo {
         }
     }
 
+    pub fn tile_to_layer(coords: [u32; 2], block_render_info: &BlockRenderInfo) -> u32 {
+        let tiles_per_row = block_render_info.tile_atlas_size.x / block_render_info.tile_size;
+
+        coords[1] * tiles_per_row + coords[0]
+    }
+
     #[rustfmt::skip]
     pub fn get_face_vertex_position_array(position: IVec3, direction: grid::Direction) -> [[f32; 3]; 4] {
         let position = Vec3::from(position);
