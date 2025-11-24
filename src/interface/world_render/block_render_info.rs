@@ -1,23 +1,13 @@
-use crate::simulation::{
+use crate::{interface::constants::{BLOCK_TILE_ATLAS_TILE_SIZE, BLOCK_TILE_ATLAS_WIDTH}, simulation::{
     constants::CELL_RADIUS,
     state::world::{block, grid},
-};
+}};
 use ultraviolet::{IVec3, UVec2, Vec3};
 
 #[derive(Debug)]
-pub struct BlockRenderInfo {
-    pub tile_size: u32,
-    pub tile_atlas_size: UVec2,
-}
+pub struct BlockRenderInfo {}
 
 impl BlockRenderInfo {
-    pub fn new(tile_size: u32, tile_atlas_width: u32, tile_atlas_height: u32) -> Self {
-        Self {
-            tile_size,
-            tile_atlas_size: UVec2::new(tile_atlas_width, tile_atlas_height),
-        }
-    }
-
     #[rustfmt::skip]
     pub fn get_tile_coordinates(block_kind: block::Kind) -> [[u32; 2]; 6] {
         match block_kind {
@@ -84,10 +74,10 @@ impl BlockRenderInfo {
         }
     }
 
-    pub fn tile_to_layer(coords: [u32; 2], block_render_info: &BlockRenderInfo) -> u32 {
-        let tiles_per_row = block_render_info.tile_atlas_size.x / block_render_info.tile_size;
+    pub fn tile_to_layer(tile_coordinates: [u32; 2]) -> u32 {
+        let tiles_per_row = BLOCK_TILE_ATLAS_WIDTH / BLOCK_TILE_ATLAS_TILE_SIZE;
 
-        coords[1] * tiles_per_row + coords[0]
+        tile_coordinates[1] * tiles_per_row + tile_coordinates[0]
     }
 
     #[rustfmt::skip]

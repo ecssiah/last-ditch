@@ -9,7 +9,6 @@ use crate::{
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
         mesh::sector_mesh::SectorMesh,
         vertex_data::VertexData,
-        world_render::block_render_info::BlockRenderInfo,
     },
     simulation::{
         observation::view::{SectorView, WorldView},
@@ -20,7 +19,6 @@ use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::info_span;
 
 pub struct WorldRender {
-    pub block_render_info: BlockRenderInfo,
     pub tile_atlas_texture_bind_group: wgpu::BindGroup,
     pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
     pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
@@ -31,14 +29,12 @@ pub struct WorldRender {
 
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let block_render_info = BlockRenderInfo::new(64, 2048, 2048);
-
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
 
         let tile_atlas_texture_data = pollster::block_on(Self::load_texture_data(
             &gpu_context.device,
             &gpu_context.queue,
-            "assets/textures/cell/tile_atlas.png",
+            "assets/textures/block/tile_atlas.png",
             "tile_atlas",
         ));
 
@@ -58,7 +54,6 @@ impl WorldRender {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            block_render_info,
             tile_atlas_texture_bind_group,
             sector_mesh_cache,
             gpu_mesh_cache,

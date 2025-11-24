@@ -1,8 +1,16 @@
 use crate::{
-    interface::{gpu::gpu_mesh::GpuMesh, mesh::block_vertex::BlockVertex, world_render::block_render_info::BlockRenderInfo},
+    interface::{
+        gpu::gpu_mesh::GpuMesh,
+        mesh::{block_vertex::BlockVertex, face_entry::FaceEntry},
+        world_render::block_render_info::BlockRenderInfo,
+    },
     simulation::{
+        constants::CELL_RADIUS,
         observation::{face_mask, view::SectorView},
-        state::world::{block, grid::Grid, sector},
+        state::world::{
+            grid::{self, Grid},
+            sector,
+        },
     },
 };
 use ultraviolet::IVec3;
@@ -28,15 +36,24 @@ impl SectorMesh {
         sector_mesh
     }
 
-    fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<i16>>> {
+    fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<FaceEntry>>> {
         let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
         let sector_size_in_cells = grid.sector_size_in_cells as i32;
         let sector_area_in_cells = grid.sector_area_in_cells as i32;
 
-        let mut mask_vec: Vec<Vec<Vec<i16>>> = vec![
-            vec![vec![0; sector_area_in_cells as usize]; (sector_size_in_cells + 1) as usize],
-            vec![vec![0; sector_area_in_cells as usize]; (sector_size_in_cells + 1) as usize],
-            vec![vec![0; sector_area_in_cells as usize]; (sector_size_in_cells + 1) as usize],
+        let mut mask_vec: Vec<Vec<Vec<FaceEntry>>> = vec![
+            vec![
+                vec![FaceEntry::NONE; sector_area_in_cells as usize];
+                (sector_size_in_cells + 1) as usize
+            ],
+            vec![
+                vec![FaceEntry::NONE; sector_area_in_cells as usize];
+                (sector_size_in_cells + 1) as usize
+            ],
+            vec![
+                vec![FaceEntry::NONE; sector_area_in_cells as usize];
+                (sector_size_in_cells + 1) as usize
+            ],
         ];
 
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
@@ -56,7 +73,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            mask_vec[0][slice_index][mask_index] = block_view.block_kind as i16;
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::East,
+                            };
+
+                            mask_vec[0][slice_index][mask_index] = face_entry;
                         }
 
                         if face_mask::has(face_mask::WEST, &block_view.face_mask) {
@@ -67,7 +89,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            mask_vec[0][slice_index][mask_index] = -(block_view.block_kind as i16);
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::West,
+                            };
+
+                            mask_vec[0][slice_index][mask_index] = face_entry;
                         }
 
                         if face_mask::has(face_mask::NORTH, &block_view.face_mask) {
@@ -78,7 +105,12 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            mask_vec[1][slice_index][mask_index] = block_view.block_kind as i16;
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::North,
+                            };
+
+                            mask_vec[1][slice_index][mask_index] = face_entry;
                         }
 
                         if face_mask::has(face_mask::SOUTH, &block_view.face_mask) {
@@ -89,7 +121,12 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            mask_vec[1][slice_index][mask_index] = -(block_view.block_kind as i16);
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::South,
+                            };
+
+                            mask_vec[1][slice_index][mask_index] = face_entry;
                         }
 
                         if face_mask::has(face_mask::UP, &block_view.face_mask) {
@@ -100,7 +137,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            mask_vec[2][slice_index][mask_index] = block_view.block_kind as i16;
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::Up,
+                            };
+
+                            mask_vec[2][slice_index][mask_index] = face_entry;
                         }
 
                         if face_mask::has(face_mask::DOWN, &block_view.face_mask) {
@@ -111,7 +153,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            mask_vec[2][slice_index][mask_index] = -(block_view.block_kind as i16);
+                            let face_entry = FaceEntry {
+                                kind: block_view.block_kind,
+                                direction: grid::Direction::Down,
+                            };
+
+                            mask_vec[2][slice_index][mask_index] = face_entry;
                         }
                     }
                 }
@@ -121,7 +168,11 @@ impl SectorMesh {
         mask_vec
     }
 
-    fn merge_geometry(sector_view: &SectorView, grid: &Grid, mask_vec: Vec<Vec<Vec<i16>>>) -> Self {
+    fn merge_geometry(
+        sector_view: &SectorView,
+        grid: &Grid,
+        mask_vec: Vec<Vec<Vec<FaceEntry>>>,
+    ) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
@@ -153,7 +204,7 @@ impl SectorMesh {
     fn merge_slice(
         dimension: usize,
         slice_index: usize,
-        slice: &[i16],
+        slice: &[FaceEntry],
         grid: &Grid,
         vertex_vec: &mut Vec<BlockVertex>,
         index_vec: &mut Vec<u32>,
@@ -165,9 +216,9 @@ impl SectorMesh {
         for y in 0..sector_size_in_cells {
             for x in 0..sector_size_in_cells {
                 let mask_index = y * sector_size_in_cells + x;
-                let mask_value = slice[mask_index];
+                let face_entry = slice[mask_index];
 
-                if mask_value == 0 || consumed[mask_index] {
+                if face_entry == FaceEntry::NONE || consumed[mask_index] {
                     continue;
                 }
 
@@ -175,9 +226,9 @@ impl SectorMesh {
 
                 while x_max < sector_size_in_cells {
                     let test_mask_index = y * sector_size_in_cells + x_max;
-                    let test_mask_value = slice[test_mask_index];
+                    let test_face_entry = slice[test_mask_index];
 
-                    if test_mask_value != mask_value || consumed[test_mask_index] {
+                    if test_face_entry != face_entry || consumed[test_mask_index] {
                         break;
                     }
 
@@ -189,9 +240,9 @@ impl SectorMesh {
                 'outer: while y_max < sector_size_in_cells {
                     for xx in x..x_max {
                         let test_mask_index = y_max * sector_size_in_cells + xx;
-                        let test_mask_value = slice[test_mask_index];
+                        let test_face_entry = slice[test_mask_index];
 
-                        if test_mask_value != mask_value || consumed[test_mask_index] {
+                        if test_face_entry != face_entry || consumed[test_mask_index] {
                             break 'outer;
                         }
                     }
@@ -212,7 +263,7 @@ impl SectorMesh {
                     y,
                     x_max,
                     y_max,
-                    mask_value,
+                    face_entry,
                     grid,
                     vertex_vec,
                     index_vec,
@@ -228,16 +279,12 @@ impl SectorMesh {
         y0: usize,
         x1: usize,
         y1: usize,
-        mask_value: i16,
+        face_entry: FaceEntry,
         grid: &Grid,
         vertex_vec: &mut Vec<BlockVertex>,
         index_vec: &mut Vec<u32>,
     ) {
         let sector_radius = grid.sector_radius_in_cells as i32;
-
-        // Signed kind: sign encodes direction, magnitude encodes block kind.
-        let kind = mask_value.abs() as u16;
-        let is_pos_axis_face = mask_value < 0; // by our convention: < 0 = +axis, > 0 = -axis
 
         // World coordinate of the slice plane along the primary axis.
         let plane_coord = Self::line_coord(slice_index, sector_radius);
@@ -300,15 +347,6 @@ impl SectorMesh {
             _ => unreachable!("dimension must be 0, 1 or 2"),
         };
 
-        // Canonical quad corners in world space.
-        //
-        // We build them in a consistent order around the rectangle:
-        //   v0 = (min, min)
-        //   v1 = (max, min)
-        //   v2 = (max, max)
-        //   v3 = (min, max)
-        //
-        // Which axes are "min/max" depends on the dimension (see mapping above).
         let (p0, p1, p2, p3) = (
             [x_min, y_min, z_min],
             [x_max, y_min, z_min],
@@ -316,23 +354,8 @@ impl SectorMesh {
             [x_min, y_max, z_max],
         );
 
-        // Normal from dimension + sign.
-        let normal: [f32; 3] = match (dimension, is_pos_axis_face) {
-            (0, true) => [ 1.0,  0.0,  0.0], // +X
-            (0, false) => [-1.0,  0.0,  0.0], // -X
+        let normal: [f32; 3] = *face_entry.direction.to_vec3().as_array();
 
-            (1, true) => [ 0.0,  1.0,  0.0], // +Y
-            (1, false) => [ 0.0, -1.0,  0.0], // -Y
-
-            (2, true) => [ 0.0,  0.0,  1.0], // +Z
-            (2, false) => [ 0.0,  0.0, -1.0], // -Z
-
-            _ => unreachable!(),
-        };
-
-        // For now: simple [0..1] UVs (one tile per merged quad).
-        // Because you're using a texture array, the actual layer comes from block_kind in
-        // some other attribute/buffer or per-draw uniform. This vertex only cares about UV within the tile.
         let uv0 = [0.0, 0.0];
         let uv1 = [1.0, 0.0];
         let uv2 = [1.0, 1.0];
@@ -340,42 +363,46 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let tile_coordinates = BlockRenderInfo::get_tile_coordinates(mask_value as u16 as block::Kind)[face_index];
+        let tile_coordinates =
+            BlockRenderInfo::get_tile_coordinates(face_entry.kind)[face_entry.direction as usize];
+
         let layer_index = BlockRenderInfo::tile_to_layer(tile_coordinates);
 
-        vertex_vec.push(BlockVertex { position: p0, normal, uv: uv0, layer: layer_index });
-        vertex_vec.push(BlockVertex { position: p1, normal, uv: uv1, layer: layer_index });
-        vertex_vec.push(BlockVertex { position: p2, normal, uv: uv2, layer: layer_index });
-        vertex_vec.push(BlockVertex { position: p3, normal, uv: uv3, layer: layer_index });
+        vertex_vec.push(BlockVertex {
+            position: p0,
+            normal,
+            uv: uv0,
+            layer: layer_index,
+        });
 
-        // Triangle winding:
-        //
-        // Our canonical vertex order (p0, p1, p2, p3) corresponds to:
-        //  - a specific orientation in each plane that yields a particular
-        //    normal direction from the cross product of (p1 - p0) x (p2 - p0).
-        //
-        // Rather than overthink it, we just define:
-        //
-        //  - "canonical order" (0,1,2, 0,2,3)
-        //  - "flipped order"   (0,2,1, 0,3,2)
-        //
-        // and choose which one to use per dimension/sign so that
-        // backface culling lines up with the normal we've assigned.
-        //
-        let use_canonical = match (dimension, is_pos_axis_face) {
-            // dim 0: canonical gives -X; so use canonical for -X, flipped for +X
-            (0, false) => true,   // -X
-            (0, true)  => false,  // +X
+        vertex_vec.push(BlockVertex {
+            position: p1,
+            normal,
+            uv: uv1,
+            layer: layer_index,
+        });
 
-            // dim 1: canonical gives -Y; so use canonical for -Y, flipped for +Y
-            (1, false) => true,   // -Y
-            (1, true)  => false,  // +Y
+        vertex_vec.push(BlockVertex {
+            position: p2,
+            normal,
+            uv: uv2,
+            layer: layer_index,
+        });
 
-            // dim 2: canonical gives +Z; so use canonical for +Z, flipped for -Z
-            (2, true)  => true,   // +Z
-            (2, false) => false,  // -Z
+        vertex_vec.push(BlockVertex {
+            position: p3,
+            normal,
+            uv: uv3,
+            layer: layer_index,
+        });
 
-            _ => unreachable!(),
+        let use_canonical = match face_entry.direction {
+            grid::Direction::West => true,
+            grid::Direction::East => false,
+            grid::Direction::South => true,
+            grid::Direction::North => false,
+            grid::Direction::Up => true,
+            grid::Direction::Down => false,
         };
 
         if use_canonical {
@@ -395,15 +422,11 @@ impl SectorMesh {
             index_vec.push(base_index + 3);
             index_vec.push(base_index + 2);
         }
-
-        // `kind` (block_kind) isn't used yet here — you'll likely want to:
-        //  - either group quads by kind/material when building the GPU mesh, or
-        //  - add a separate vertex attribute/buffer for texture layer index.
     }
 
     fn line_coord(k: usize, sector_radius: i32) -> f32 {
         // k in [0..=2R+1] → world edge position
-        k as f32 - sector_radius as f32 - 0.5
+        k as f32 - sector_radius as f32 - CELL_RADIUS
     }
 
     pub fn to_gpu_mesh(sector_mesh: &Self, device: &wgpu::Device) -> GpuMesh {
