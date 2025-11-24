@@ -5,6 +5,7 @@ pub mod judge_view;
 pub mod population_view;
 pub mod sector_view;
 pub mod time_view;
+pub mod block_view;
 pub mod world_view;
 
 pub use admin_view::AdminView;
@@ -15,6 +16,7 @@ pub use population_view::PopulationView;
 pub use sector_view::SectorView;
 pub use time_view::TimeView;
 pub use world_view::WorldView;
+pub use block_view::BlockView;
 
 #[derive(Clone)]
 pub struct View {

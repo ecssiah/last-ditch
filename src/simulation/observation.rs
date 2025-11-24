@@ -1,11 +1,12 @@
 //! Views of Simulation data
 
+pub mod face_mask;
 pub mod view;
 
 use crate::simulation::{
     constants::JUDGE_SIGHT_RANGE_SQUARED,
     observation::view::{
-        AdminView, AgentView, FaceView, JudgeView, PopulationView, SectorView, TimeView, View,
+        AdminView, AgentView, BlockView, JudgeView, PopulationView, SectorView, TimeView, View,
         WorldView,
     },
     state::{
@@ -24,14 +25,14 @@ use ultraviolet::{IVec3, Vec3};
 
 pub struct Observation {
     pub sector_version_map: HashMap<sector::ID, u64>,
-    pub face_view_cache: HashMap<sector::ID, Vec<FaceView>>,
+    pub block_view_cache: HashMap<sector::ID, Vec<Option<BlockView>>>,
 }
 
 impl Observation {
     pub fn new() -> Self {
         Self {
             sector_version_map: HashMap::new(),
-            face_view_cache: HashMap::new(),
+            block_view_cache: HashMap::new(),
         }
     }
 
@@ -60,11 +61,13 @@ impl Observation {
     ) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
+
         let population_view = Self::update_population_view(state);
+
         let world_view = Self::update_world_view(
             state,
             &mut observation.sector_version_map,
-            &mut observation.face_view_cache,
+            &mut observation.block_view_cache,
         );
 
         let view = view_buffer_input.input_buffer_mut();
@@ -154,7 +157,7 @@ impl Observation {
     fn update_world_view(
         state: &State,
         sector_version_map: &mut HashMap<sector::ID, u64>,
-        face_view_cache: &mut HashMap<sector::ID, Vec<FaceView>>,
+        block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
     ) -> WorldView {
         if state.admin.mode == admin::Mode::Menu
             || state.admin.mode == admin::Mode::Load
@@ -193,11 +196,11 @@ impl Observation {
 
                     let sector = &state.world.sector_vec[usize::from(sector_id)];
 
-                    let face_view_vec = Self::get_face_view_vec(
+                    let block_view_vec = Self::get_block_view_vec(
                         sector,
                         &state.world.grid,
                         sector_version_map,
-                        face_view_cache,
+                        block_view_cache,
                     );
 
                     let sector_view = SectorView {
@@ -205,7 +208,7 @@ impl Observation {
                         version: sector.version,
                         world_position: Vec3::from(sector.position),
                         radius: state.world.grid.sector_radius_in_meters,
-                        face_view_vec,
+                        block_view_vec,
                     };
 
                     world_view
@@ -218,33 +221,33 @@ impl Observation {
         world_view
     }
 
-    fn get_face_view_vec(
+    fn get_block_view_vec(
         sector: &Sector,
         grid: &Grid,
         sector_version_map: &mut HashMap<sector::ID, u64>,
-        face_view_cache: &mut HashMap<sector::ID, Vec<FaceView>>,
-    ) -> Vec<FaceView> {
+        block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
+    ) -> Vec<Option<BlockView>> {
         let needs_rebuild = match sector_version_map.get(&sector.sector_id) {
             Some(current_version) => *current_version != sector.version,
             None => true,
         };
 
-        let face_view_vec = if needs_rebuild {
-            let face_view_vec = Self::build_face_view_vec(sector, grid);
+        let block_view_vec = if needs_rebuild {
+            let block_view_vec = Self::build_block_view_vec(sector, grid);
 
-            face_view_cache.insert(sector.sector_id, face_view_vec.clone());
+            block_view_cache.insert(sector.sector_id, block_view_vec.clone());
             sector_version_map.insert(sector.sector_id, sector.version);
 
-            face_view_vec
+            block_view_vec
         } else {
-            face_view_cache[&sector.sector_id].clone()
+            block_view_cache[&sector.sector_id].clone()
         };
 
-        face_view_vec
+        block_view_vec
     }
 
-    fn build_face_view_vec(sector: &Sector, grid: &Grid) -> Vec<FaceView> {
-        let mut face_view_vec = Vec::new();
+    fn build_block_view_vec(sector: &Sector, grid: &Grid) -> Vec<Option<BlockView>> {
+        let mut block_view_vec = vec![None; grid.sector_volume_in_cells as usize];
 
         let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
 
@@ -259,30 +262,39 @@ impl Observation {
                         continue;
                     }
 
+                    let mut face_mask = face_mask::EMPTY;
+
                     for direction in grid::Direction::get_direction_array() {
                         let neighbor_cell_coordinates = cell_coordinates + direction.to_ivec3();
-                        let neighbor_cell_id =
-                            Grid::cell_coordinates_to_cell_id(neighbor_cell_coordinates, grid);
 
-                        let neighbor_cell_visible =
-                            !Grid::cell_coordinates_valid(neighbor_cell_coordinates, grid)
-                                || sector.cell_vec[usize::from(neighbor_cell_id)].block_kind
-                                    == block::Kind::None;
-
-                        if neighbor_cell_visible {
-                            let face_view = FaceView {
-                                position: cell.position,
-                                direction,
-                                block_kind: cell.block_kind,
+                        let neighbor_cell_clear =
+                            if !Grid::cell_coordinates_valid(neighbor_cell_coordinates, grid) {
+                                true
+                            } else {
+                                let neighbor_cell_id = Grid::cell_coordinates_to_cell_id(
+                                    neighbor_cell_coordinates,
+                                    grid,
+                                );
+                                sector.cell_vec[usize::from(neighbor_cell_id)].block_kind
+                                    == block::Kind::None
                             };
 
-                            face_view_vec.push(face_view);
+                        if neighbor_cell_clear {
+                            face_mask::set(face_mask::from_direction(direction), &mut face_mask);
                         }
                     }
+
+                    let block_view = BlockView {
+                        cell_id: cell.cell_id,
+                        block_kind: cell.block_kind,
+                        face_mask,
+                    };
+
+                    block_view_vec[usize::from(cell.cell_id)] = Some(block_view);
                 }
             }
         }
 
-        face_view_vec
+        block_view_vec
     }
 }

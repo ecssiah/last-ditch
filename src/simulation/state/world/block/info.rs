@@ -101,25 +101,25 @@ impl Info {
                 },
             ),
             (
-                block::Kind::North,
+                block::Kind::NorthBlock,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::West,
+                block::Kind::WestBlock,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::South,
+                block::Kind::SouthBlock,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::East,
+                block::Kind::EastBlock,
                 Info {
                     solid: true,
                 },

@@ -92,7 +92,7 @@ fn _build_central_room(world: &mut World) {
 
     World::set_block(
         center_position + IVec3::unit_z() * 2,
-        block::Kind::North,
+        block::Kind::NorthBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -100,7 +100,7 @@ fn _build_central_room(world: &mut World) {
 
     World::set_block(
         center_position - IVec3::unit_z() * 2,
-        block::Kind::South,
+        block::Kind::SouthBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -108,7 +108,7 @@ fn _build_central_room(world: &mut World) {
 
     World::set_block(
         center_position + IVec3::unit_x() * 2,
-        block::Kind::East,
+        block::Kind::EastBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -116,7 +116,7 @@ fn _build_central_room(world: &mut World) {
 
     World::set_block(
         center_position - IVec3::unit_x() * 2,
-        block::Kind::West,
+        block::Kind::WestBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,

@@ -1,6 +1,7 @@
+#[repr(u16)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
-    None,
+    None = 0,
     Engraved1,
     Engraved2,
     Stone1,
@@ -15,9 +16,9 @@ pub enum Kind {
     Icon2,
     Icon3,
     Icon4,
-    North,
-    West,
-    South,
-    East,
+    NorthBlock,
+    WestBlock,
+    SouthBlock,
+    EastBlock,
     EsayaBlock,
 }

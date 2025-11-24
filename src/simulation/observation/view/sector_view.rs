@@ -1,4 +1,4 @@
-use crate::simulation::{observation::view::FaceView, state::world::sector};
+use crate::simulation::{observation::view::{BlockView}, state::world::sector};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
@@ -7,7 +7,7 @@ pub struct SectorView {
     pub version: u64,
     pub world_position: Vec3,
     pub radius: f32,
-    pub face_view_vec: Vec<FaceView>,
+    pub block_view_vec: Vec<Option<BlockView>>,
 }
 
 impl SectorView {
@@ -15,9 +15,9 @@ impl SectorView {
         Self {
             sector_id: sector::ID::MAX,
             version: 0,
-            world_position: Vec3::broadcast(0.0),
+            world_position: Vec3::zero(),
             radius: 0.0,
-            face_view_vec: Vec::new(),
+            block_view_vec: Vec::new(),
         }
     }
 }

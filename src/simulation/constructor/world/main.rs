@@ -59,7 +59,7 @@ fn build_compass(world: &mut World) {
 
     World::set_block(
         IVec3::new(0, 4, 1),
-        block::Kind::North,
+        block::Kind::NorthBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -67,7 +67,7 @@ fn build_compass(world: &mut World) {
 
     World::set_block(
         IVec3::new(-4, 0, 1),
-        block::Kind::West,
+        block::Kind::WestBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -75,7 +75,7 @@ fn build_compass(world: &mut World) {
 
     World::set_block(
         IVec3::new(0, -4, 1),
-        block::Kind::South,
+        block::Kind::SouthBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,
@@ -83,7 +83,7 @@ fn build_compass(world: &mut World) {
 
     World::set_block(
         IVec3::new(4, 0, 1),
-        block::Kind::East,
+        block::Kind::EastBlock,
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,

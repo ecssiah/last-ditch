@@ -441,7 +441,6 @@ impl<'window> Interface<'window> {
             &gpu_context.device,
             camera,
             &view.world_view,
-            &world_render.tile_atlas_coordinates_map,
             &mut world_render.sector_mesh_cache,
             &mut world_render.gpu_mesh_cache,
             &mut world_render.active_sector_id_set,

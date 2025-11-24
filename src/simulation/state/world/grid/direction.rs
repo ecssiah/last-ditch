@@ -1,14 +1,15 @@
 use ultraviolet::{IVec3, Vec3};
 
 #[rustfmt::skip]
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum Direction {
     East = 0, 
-    West = 1, 
-    North = 2, 
-    South = 3, 
-    Up = 4, 
-    Down = 5,
+    West, 
+    North, 
+    South, 
+    Up, 
+    Down,
 }
 
 impl Direction {
