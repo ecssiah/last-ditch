@@ -357,6 +357,12 @@ impl TileAtlas {
         tile_coordinates[1] * tiles_per_row + tile_coordinates[0]
     }
 
+    pub fn get_tile_layer(block_kind: block::Kind, direction: grid::Direction) -> u32 {
+        let tile_coordinates = Self::get_tile_coordinates(block_kind, direction);
+
+        Self::tile_coordinates_to_layer(tile_coordinates)
+    }
+
     #[rustfmt::skip]
     pub fn get_face_vertex_position_array(position: IVec3, direction: grid::Direction) -> [[f32; 3]; 4] {
         let position = Vec3::from(position);

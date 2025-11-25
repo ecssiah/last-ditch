@@ -19,8 +19,8 @@ impl Sight {
         let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
-        let range_in_meters = 10.0;
-        let range_in_sectors = 4;
+        let range_in_meters = 12.0;
+        let range_in_sectors = 1;
 
         Self {
             position,

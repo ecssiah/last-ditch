@@ -402,8 +402,7 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let tile_coordinates = TileAtlas::get_tile_coordinates(face.block_kind, face.direction);
-        let layer_index = TileAtlas::tile_coordinates_to_layer(tile_coordinates);
+        let layer = TileAtlas::get_tile_layer(face.block_kind, face.direction);
 
         vertex_vec.push(SectorVertex {
             position: [
@@ -413,7 +412,7 @@ impl SectorMesh {
             ],
             normal,
             uv: uv0,
-            layer: layer_index,
+            layer,
         });
 
         vertex_vec.push(SectorVertex {
@@ -424,7 +423,7 @@ impl SectorMesh {
             ],
             normal,
             uv: uv1,
-            layer: layer_index,
+            layer,
         });
 
         vertex_vec.push(SectorVertex {
@@ -435,7 +434,7 @@ impl SectorMesh {
             ],
             normal,
             uv: uv2,
-            layer: layer_index,
+            layer,
         });
 
         vertex_vec.push(SectorVertex {
@@ -446,7 +445,7 @@ impl SectorMesh {
             ],
             normal,
             uv: uv3,
-            layer: layer_index,
+            layer,
         });
 
         let use_canonical = match face.direction {

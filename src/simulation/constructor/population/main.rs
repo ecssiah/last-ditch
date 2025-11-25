@@ -33,7 +33,7 @@ fn setup_judge(world: &World, population: &mut Population) {
 
     Entity::set_rotation(0.0, 0.0, &mut judge.entity);
 
-    Sight::set_range(10.0, &world.grid, &mut judge.entity.sense.sight);
+    Sight::set_range(20.0, &world.grid, &mut judge.entity.sense.sight);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {
