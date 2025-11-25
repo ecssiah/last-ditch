@@ -19,11 +19,10 @@ use crate::{
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
-use tracing::info_span;
 
 pub struct WorldRender {
-    pub tile_bind_group: wgpu::BindGroup,
-    pub tile_bind_group_layout: wgpu::BindGroupLayout,
+    pub tile_atlas_bind_group: wgpu::BindGroup,
+    pub tile_atlas_bind_group_layout: wgpu::BindGroupLayout,
     pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
     pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
     pub active_sector_id_set: HashSet<sector::ID>,
@@ -33,7 +32,7 @@ pub struct WorldRender {
 
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let tile_atlas_texture_path = "assets/textures/block/tile_atlas.png";
+        let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
 
         let tile_atlas_gpu_texture_data = TileAtlas::get_gpu_texture_data(
             tile_atlas_texture_path,
@@ -41,11 +40,11 @@ impl WorldRender {
             &gpu_context.queue,
         );
 
-        let tile_bind_group_layout =
+        let tile_atlas_bind_group_layout =
             gpu_context
                 .device
                 .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                    label: Some("tile array bind group layout"),
+                    label: Some("Tile Atlas Bind Group Layout"),
                     entries: &[
                         wgpu::BindGroupLayoutEntry {
                             binding: 0,
@@ -66,10 +65,11 @@ impl WorldRender {
                     ],
                 });
 
-        let tile_bind_group = gpu_context
+        let tile_atlas_bind_group = gpu_context
             .device
             .create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &tile_bind_group_layout,
+                label: Some("Tile Atlas Bind Group"),
+                layout: &tile_atlas_bind_group_layout,
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
@@ -84,13 +84,12 @@ impl WorldRender {
                         ),
                     },
                 ],
-                label: Some("tile array bind group"),
             });
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &tile_bind_group_layout,
+            &tile_atlas_bind_group_layout,
         );
 
         let sector_mesh_cache = HashMap::new();
@@ -100,8 +99,8 @@ impl WorldRender {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            tile_bind_group,
-            tile_bind_group_layout,
+            tile_atlas_bind_group,
+            tile_atlas_bind_group_layout,
             sector_mesh_cache,
             gpu_mesh_cache,
             active_sector_id_set,
@@ -200,14 +199,14 @@ impl WorldRender {
         active_sector_id_set: &mut HashSet<sector::ID>,
         active_gpu_mesh_vec: &mut Vec<sector::ID>,
     ) {
-        let _span = info_span!("apply_world_view").entered();
+        let _span = tracing::info_span!("apply_world_view").entered();
 
         active_sector_id_set.clear();
         active_gpu_mesh_vec.clear();
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
             let _sector_span =
-                info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
+                tracing::info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
 
             if !camera
                 .frustum
@@ -322,7 +321,7 @@ impl WorldRender {
 
         render_pass.set_pipeline(&world_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-        render_pass.set_bind_group(1, &world_render.tile_bind_group, &[]);
+        render_pass.set_bind_group(1, &world_render.tile_atlas_bind_group, &[]);
 
         for sector_id in &world_render.active_gpu_mesh_vec {
             let gpu_mesh = &world_render.gpu_mesh_cache[sector_id];

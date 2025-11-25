@@ -20,7 +20,6 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
-use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Observation {
@@ -41,7 +40,7 @@ impl Observation {
         view_buffer_input: &mut triple_buffer::Input<View>,
         observation: &mut Observation,
     ) {
-        let _observation_span = info_span!("observation_tick").entered();
+        let _observation_span = tracing::info_span!("observation_tick").entered();
 
         Self::update_view(state, view_buffer_input, observation);
     }
@@ -275,6 +274,7 @@ impl Observation {
                                     neighbor_cell_coordinates,
                                     grid,
                                 );
+
                                 sector.cell_vec[neighbor_cell_id.to_usize()].block_kind
                                     == block::Kind::None
                             };

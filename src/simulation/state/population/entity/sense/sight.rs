@@ -20,7 +20,7 @@ impl Sight {
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
         let range_in_meters = 10.0;
-        let range_in_sectors = 1;
+        let range_in_sectors = 4;
 
         Self {
             position,

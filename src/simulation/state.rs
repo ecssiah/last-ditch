@@ -12,7 +12,6 @@ pub use physics::Physics;
 pub use population::Population;
 pub use receiver::Receiver;
 pub use time::Time;
-use tracing::{info, info_span, warn};
 pub use world::World;
 
 use crate::simulation::{
@@ -57,7 +56,7 @@ impl State {
     }
 
     pub fn tick(action_vec: Vec<Action>, state: &mut State) {
-        let _state_span = info_span!("state_tick").entered();
+        let _state_span = tracing::info_span!("state_tick").entered();
 
         match state.admin.mode {
             admin::Mode::Menu => Self::tick_menu(action_vec, state),
@@ -74,10 +73,10 @@ impl State {
                     AdminAction::Start => Self::init_load(state),
                     AdminAction::Quit => Self::init_shutdown(state),
                     _ => {
-                        warn!("Received an invalid AdminAction in Menu mode: {:?}", action)
+                        tracing::warn!("Received an invalid AdminAction in Menu mode: {:?}", action)
                     }
                 },
-                _ => warn!("Received an invalid Action in Menu mode: {:?}", action),
+                _ => tracing::warn!("Received an invalid Action in Menu mode: {:?}", action),
             }
         }
     }
@@ -119,7 +118,7 @@ impl State {
     }
 
     fn tick_simulate(action_vec: Vec<Action>, state: &mut State) {
-        let _simulate_span = info_span!("simulate_tick").entered();
+        let _simulate_span = tracing::info_span!("simulate_tick").entered();
 
         Self::apply_simulate_action_vec(state, action_vec);
 
@@ -137,7 +136,7 @@ impl State {
                     }
                     AdminAction::Quit => Self::init_shutdown(state),
                     _ => {
-                        warn!(
+                        tracing::warn!(
                             "Received an invalid AdminAction in Simulate mode: {:?}",
                             action
                         );
@@ -162,7 +161,7 @@ impl State {
     }
 
     fn init_shutdown(state: &mut State) {
-        info!("Simulation Shutdown");
+        tracing::info!("Simulation Shutdown");
 
         state.admin.mode = admin::Mode::Shutdown;
     }

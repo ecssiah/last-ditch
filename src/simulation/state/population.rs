@@ -12,7 +12,6 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
-use tracing::info_span;
 
 pub struct Population {
     pub simulation_kind: simulation::Kind,
@@ -45,7 +44,7 @@ impl Population {
     }
 
     pub fn tick(world: &World, population: &mut Population) {
-        let _population_span = info_span!("population_tick").entered();
+        let _population_span = tracing::info_span!("population_tick").entered();
 
         for agent in population.agent_map.values_mut() {
             Agent::tick(world, agent);

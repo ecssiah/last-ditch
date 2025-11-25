@@ -170,16 +170,18 @@ impl SectorMesh {
         let mut index_vec = Vec::new();
 
         for axis in Axis::all() {
-            let slice_count = mask_vec[axis as usize].len();
+            let axis_vec = &mask_vec[axis as usize];
+            let slice_count = axis_vec.len();
 
             for slice_index in 0..slice_count {
-                let slice = &mask_vec[axis as usize][slice_index];
+                let slice = &axis_vec[slice_index];
 
                 Self::merge_slice(
                     axis,
                     slice_index,
                     slice,
                     grid,
+                    sector_view.world_position.as_array(),
                     &mut vertex_vec,
                     &mut index_vec,
                 );
@@ -199,6 +201,7 @@ impl SectorMesh {
         slice_index: usize,
         slice: &[Face],
         grid: &Grid,
+        sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
@@ -258,6 +261,7 @@ impl SectorMesh {
                     y_max,
                     face,
                     grid,
+                    sector_world_position,
                     vertex_vec,
                     index_vec,
                 );
@@ -274,6 +278,7 @@ impl SectorMesh {
         y1: usize,
         face: Face,
         grid: &Grid,
+        sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
@@ -344,19 +349,57 @@ impl SectorMesh {
             }
         };
 
-        let (p0, p1, p2, p3) = (
-            [x_min, y_min, z_min],
-            [x_max, y_min, z_min],
-            [x_max, y_max, z_max],
-            [x_min, y_max, z_max],
-        );
+        let (p0, p1, p2, p3) = if axis == Axis::X {
+            (
+                [x_min, y_min, z_min],
+                [x_max, y_max, z_min],
+                [x_max, y_max, z_max],
+                [x_min, y_min, z_max],
+            )
+        } else {
+            (
+                [x_min, y_min, z_min],
+                [x_max, y_min, z_min],
+                [x_max, y_max, z_max],
+                [x_min, y_max, z_max],
+            )
+        };
 
         let normal: [f32; 3] = *face.direction.to_vec3().as_array();
 
-        let uv0 = [0.0, 0.0];
-        let uv1 = [1.0, 0.0];
-        let uv2 = [1.0, 1.0];
-        let uv3 = [0.0, 1.0];
+        let (width_blocks, height_blocks) = match axis {
+            Axis::X => {
+                let w = (y1 - y0) as f32;
+                let h = (x1 - x0) as f32;
+                (w, h)
+            }
+            Axis::Y => {
+                let w = (x1 - x0) as f32;
+                let h = (y1 - y0) as f32;
+                (w, h)
+            }
+            Axis::Z => {
+                let w = (x1 - x0) as f32;
+                let h = (y1 - y0) as f32;
+                (w, h)
+            }
+        };
+
+        let uv0 = [0.0, height_blocks];
+        let uv1 = [width_blocks, height_blocks];
+        let uv2 = [width_blocks, 0.0];
+        let uv3 = [0.0, 0.0];
+
+        let (uv0, uv1, uv2, uv3) = if axis == Axis::X {
+            (
+                [width_blocks - uv0[0], uv0[1]],
+                [width_blocks - uv1[0], uv1[1]],
+                [width_blocks - uv2[0], uv2[1]],
+                [width_blocks - uv3[0], uv3[1]],
+            )
+        } else {
+            (uv0, uv1, uv2, uv3)
+        };
 
         let base_index = vertex_vec.len() as u32;
 
@@ -364,38 +407,54 @@ impl SectorMesh {
         let layer_index = TileAtlas::tile_coordinates_to_layer(tile_coordinates);
 
         vertex_vec.push(SectorVertex {
-            position: p0,
+            position: [
+                p0[0] + sector_world_position[0],
+                p0[1] + sector_world_position[1],
+                p0[2] + sector_world_position[2],
+            ],
             normal,
             uv: uv0,
             layer: layer_index,
         });
 
         vertex_vec.push(SectorVertex {
-            position: p1,
+            position: [
+                p1[0] + sector_world_position[0],
+                p1[1] + sector_world_position[1],
+                p1[2] + sector_world_position[2],
+            ],
             normal,
             uv: uv1,
             layer: layer_index,
         });
 
         vertex_vec.push(SectorVertex {
-            position: p2,
+            position: [
+                p2[0] + sector_world_position[0],
+                p2[1] + sector_world_position[1],
+                p2[2] + sector_world_position[2],
+            ],
             normal,
             uv: uv2,
             layer: layer_index,
         });
 
         vertex_vec.push(SectorVertex {
-            position: p3,
+            position: [
+                p3[0] + sector_world_position[0],
+                p3[1] + sector_world_position[1],
+                p3[2] + sector_world_position[2],
+            ],
             normal,
             uv: uv3,
             layer: layer_index,
         });
 
         let use_canonical = match face.direction {
-            grid::Direction::West => true,
-            grid::Direction::East => false,
-            grid::Direction::South => true,
+            grid::Direction::East => true,
+            grid::Direction::West => false,
             grid::Direction::North => false,
+            grid::Direction::South => true,
             grid::Direction::Up => true,
             grid::Direction::Down => false,
         };

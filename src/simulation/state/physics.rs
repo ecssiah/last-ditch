@@ -11,7 +11,6 @@ use crate::simulation::{
         World,
     },
 };
-use tracing::info_span;
 use ultraviolet::{IVec3, Vec3};
 
 #[derive(Default)]
@@ -27,7 +26,7 @@ impl Physics {
     }
 
     pub fn tick(physics: &Physics, world: &World, population: &mut Population) {
-        let _physics_span = info_span!("physics_tick").entered();
+        let _physics_span = tracing::info_span!("physics_tick").entered();
 
         let (velocity, delta) =
             Physics::integrate_entity(physics.gravity, &mut population.judge.entity);

@@ -29,7 +29,6 @@ use crate::{
 };
 use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
-use tracing::{error, info, info_span, warn};
 use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
@@ -191,7 +190,7 @@ impl<'window> Interface<'window> {
 
     pub fn process_window_event(event: &WindowEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
-            let _window_event_span = info_span!("window_event").entered();
+            let _window_event_span = tracing::info_span!("window_event").entered();
 
             match event {
                 WindowEvent::RedrawRequested => Self::render(
@@ -227,7 +226,7 @@ impl<'window> Interface<'window> {
 
     pub fn process_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
-            let _device_event_span = info_span!("device_event").entered();
+            let _device_event_span = tracing::info_span!("device_event").entered();
 
             if HUD::process_device_event(event, &interface.hud.mode, &mut interface.gpu_context) {
                 return;
@@ -248,7 +247,7 @@ impl<'window> Interface<'window> {
         entity_render: &mut EntityRender,
         debug_render: &mut DebugRender,
     ) {
-        let _redraw_span = info_span!("redraw").entered();
+        let _redraw_span = tracing::info_span!("redraw").entered();
 
         let mut encoder = gpu_context
             .device
@@ -328,7 +327,7 @@ impl<'window> Interface<'window> {
 
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
-            let _interface_update_span = info_span!("interface update").entered();
+            let _interface_update_span = tracing::info_span!("interface update").entered();
 
             let instant = Instant::now();
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
@@ -336,7 +335,7 @@ impl<'window> Interface<'window> {
 
             let view = Observation::get_view(&mut interface.view_buffer_output);
 
-            let _dispatch_span = info_span!("dispatch_actions").entered();
+            let _dispatch_span = tracing::info_span!("dispatch_actions").entered();
 
             if !Self::dispatch_action_vec(
                 view,
@@ -348,8 +347,8 @@ impl<'window> Interface<'window> {
                 let action = Action::Admin(admin_action);
 
                 match interface.dispatch.action_tx.send(action) {
-                    Ok(_) => info!("Interface Exit Action Sent"),
-                    Err(err) => warn!("Failed to send action: {:?} ({err})", action),
+                    Ok(_) => tracing::info!("Interface Exit Action Sent"),
+                    Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
                 };
             } else {
                 Self::apply_view(
@@ -489,7 +488,7 @@ impl<'window> Interface<'window> {
                 let admin_action = AdminAction::Exit;
                 let action = Action::Admin(admin_action);
 
-                info!("Interface Exit");
+                tracing::info!("Interface Exit");
 
                 action_vec.push(action);
             }
@@ -499,7 +498,7 @@ impl<'window> Interface<'window> {
             match dispatch.action_tx.send(action) {
                 Ok(()) => (),
                 Err(_) => {
-                    error!("Send Failed: {:?}", action);
+                    tracing::error!("Send Failed: {:?}", action);
 
                     return false;
                 }

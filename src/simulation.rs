@@ -11,7 +11,6 @@ pub mod utils;
 
 pub use config::Config;
 pub use kind::Kind;
-use tracing::{info, info_span};
 
 use crate::simulation::{
     observation::{view::View, Observation},
@@ -60,7 +59,7 @@ impl Simulation {
         Timing::init(timing);
 
         loop {
-            let _simulation_span = info_span!("simulation").entered();
+            let _simulation_span = tracing::info_span!("simulation").entered();
 
             Timing::start(timing);
 
@@ -72,7 +71,7 @@ impl Simulation {
                         Timing::update(timing);
                     }
                     None => {
-                        info!("Simulation Exit");
+                        tracing::info!("Simulation Exit");
                         return;
                     }
                 }
