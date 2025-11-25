@@ -4,7 +4,6 @@ pub mod face_mask;
 pub mod view;
 
 use crate::simulation::{
-    constants::JUDGE_SIGHT_RANGE_SQUARED,
     observation::view::{
         AdminView, AgentView, BlockView, JudgeView, PopulationView, SectorView, TimeView, View,
         WorldView,
@@ -128,12 +127,14 @@ impl Observation {
             agent_view_map: HashMap::new(),
         };
 
+        let judge_sight_range_squared = judge.entity.sense.sight.range_in_meters.powi(2);
+
         for agent in state.population.agent_map.values() {
             let agent_to_judge_mag_sq = (agent.entity.spatial.world_position
                 - state.population.judge.entity.spatial.world_position)
                 .mag_sq();
 
-            if agent_to_judge_mag_sq > JUDGE_SIGHT_RANGE_SQUARED {
+            if agent_to_judge_mag_sq > judge_sight_range_squared {
                 continue;
             }
 

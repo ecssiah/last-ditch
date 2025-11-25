@@ -47,7 +47,8 @@ impl Sight {
 
     pub fn set_range(range: f32, grid: &Grid, sight: &mut Sight) {
         sight.range_in_meters = range;
-        sight.range_in_sectors = (range / grid.sector_size_in_meters).ceil() as i32;
+        sight.range_in_sectors =
+            ((range - grid.sector_radius_in_meters) / grid.sector_size_in_meters).ceil() as i32;
     }
 
     pub fn contains(sight: &Sight, point: Vec3) -> bool {

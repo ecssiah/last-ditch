@@ -207,14 +207,14 @@ impl SectorMesh {
     ) {
         let sector_size_in_cells = grid.sector_size_in_cells as usize;
 
-        let mut consumed = vec![false; slice.len()];
+        let mut visited = vec![false; slice.len()];
 
         for y in 0..sector_size_in_cells {
             for x in 0..sector_size_in_cells {
                 let mask_index = y * sector_size_in_cells + x;
                 let face = slice[mask_index];
 
-                if face.block_kind == block::Kind::None || consumed[mask_index] {
+                if face.block_kind == block::Kind::None || visited[mask_index] {
                     continue;
                 }
 
@@ -224,7 +224,7 @@ impl SectorMesh {
                     let test_mask_index = y * sector_size_in_cells + x_max;
                     let test_face = slice[test_mask_index];
 
-                    if test_face != face || consumed[test_mask_index] {
+                    if test_face != face || visited[test_mask_index] {
                         break;
                     }
 
@@ -238,7 +238,7 @@ impl SectorMesh {
                         let test_mask_index = y_max * sector_size_in_cells + xx;
                         let test_face = slice[test_mask_index];
 
-                        if test_face != face || consumed[test_mask_index] {
+                        if test_face != face || visited[test_mask_index] {
                             break 'outer;
                         }
                     }
@@ -248,20 +248,20 @@ impl SectorMesh {
 
                 for yy in y..y_max {
                     for xx in x..x_max {
-                        consumed[yy * sector_size_in_cells + xx] = true;
+                        visited[yy * sector_size_in_cells + xx] = true;
                     }
                 }
 
                 Self::emit_triangles(
                     axis,
                     slice_index,
+                    sector_world_position,
                     x,
                     y,
                     x_max,
                     y_max,
                     face,
                     grid,
-                    sector_world_position,
                     vertex_vec,
                     index_vec,
                 );
@@ -272,13 +272,13 @@ impl SectorMesh {
     pub fn emit_triangles(
         axis: Axis,
         slice_index: usize,
+        sector_world_position: &[f32; 3],
         x0: usize,
         y0: usize,
         x1: usize,
         y1: usize,
         face: Face,
         grid: &Grid,
-        sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
