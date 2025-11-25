@@ -27,5 +27,7 @@ impl Touch {
 
     pub fn set_size(size: Vec3, touch: &mut Touch) {
         touch.body.set_size(size);
+        entity.sense.touch.body = AABB::new(entity.sense.touch.body.center(), size);
+
     }
 }

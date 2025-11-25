@@ -3,8 +3,7 @@ use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sight {
-    pub position: Vec3,
-    pub eye_offset: Vec3,
+    pub world_position: Vec3,
     pub rotor: Rotor3,
     pub horizontal_fov: f32,
     pub vertical_fov: f32,
@@ -14,8 +13,7 @@ pub struct Sight {
 
 impl Sight {
     pub fn new() -> Self {
-        let position = Vec3::zero();
-        let eye_offset = Vec3::zero();
+        let world_position = Vec3::zero();
         let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
@@ -23,8 +21,7 @@ impl Sight {
         let range_in_sectors = 1;
 
         Self {
-            position,
-            eye_offset,
+            world_position,
             rotor,
             horizontal_fov,
             vertical_fov,
@@ -34,7 +31,7 @@ impl Sight {
     }
 
     pub fn set_world_position(world_position: Vec3, sight: &mut Sight) {
-        sight.position = world_position + sight.eye_offset;
+        sight.world_position = world_position;
     }
 
     pub fn set_rotation(yaw: f32, pitch: f32, sight: &mut Sight) {
@@ -52,7 +49,7 @@ impl Sight {
     }
 
     pub fn contains(sight: &Sight, point: Vec3) -> bool {
-        let to_point = point - sight.position;
+        let to_point = point - sight.world_position;
         let distance = to_point.mag();
 
         if distance > sight.range_in_meters {

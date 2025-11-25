@@ -19,8 +19,7 @@ use crate::simulation::{
     constants::PROJECT_TITLE,
     constructor,
     state::{
-        population::judge::Judge,
-        receiver::action::{Action, AdminAction, JudgeAction, TestAction},
+        population::judge::Judge, receiver::action::{Action, AdminAction, JudgeAction, TestAction}
     },
 };
 

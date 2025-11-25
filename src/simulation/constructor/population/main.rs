@@ -1,12 +1,9 @@
 use crate::simulation::{
     constants::*,
     state::{
-        population::{
-            agent::Agent,
-            entity::{nation, sense::Sight, Entity},
-            Population,
-        },
+        population::{agent::Agent, nation, sight::Sight, spatial::Spatial},
         world::World,
+        Population,
     },
 };
 use rand::Rng;
@@ -20,19 +17,19 @@ pub fn run(world: &World, population: &mut Population) {
 fn setup_judge(world: &World, population: &mut Population) {
     let judge = &mut population.judge;
 
-    Entity::set_world_position(Vec3::new(0.0, 0.0, 6.0), &mut judge.entity);
+    Spatial::set_world_position(Vec3::new(0.0, 0.0, 6.0), &mut judge.spatial);
 
-    Entity::set_size(
+    Spatial::set_size(
         Vec3::new(
             JUDGE_DEFAULT_SIZE_X,
             JUDGE_DEFAULT_SIZE_Y,
             JUDGE_DEFAULT_SIZE_Z,
         ),
-        &mut judge.entity,
+        &mut judge.spatial,
     );
 
-    Entity::set_rotation(0.0, 0.0, &mut judge.entity);
-    Sight::set_range(20.0, &world.grid, &mut judge.entity.sense.sight);
+    Spatial::set_rotation(0.0, 0.0, &mut judge.spatial);
+    Sight::set_range(20.0, &world.grid, &mut judge.sight);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {
@@ -53,7 +50,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
                 let mut agent = Agent::new(nation_kind);
 
-                Entity::set_world_position(world_position, &mut agent.entity);
+                Spatial::set_world_position(world_position, &mut agent.spatial);
 
                 let agent_size = Vec3::new(
                     AGENT_DEFAULT_SIZE_X,
@@ -61,9 +58,9 @@ fn setup_agent_map(world: &World, population: &mut Population) {
                     rng.gen_range((AGENT_DEFAULT_SIZE_Z - 0.2)..=(AGENT_DEFAULT_SIZE_Z + 0.2)),
                 );
 
-                Entity::set_size(agent_size, &mut agent.entity);
+                Spatial::set_size(agent_size, &mut agent.spatial);
 
-                population.agent_map.insert(agent.agent_id, agent);
+                population.agent_map.insert(agent.id, agent);
             }
         }
     }

@@ -9,9 +9,7 @@ use crate::simulation::{
     self,
     constants::*,
     state::{
-        physics::aabb::AABB,
-        population::entity::{self, nation},
-        world::{cell::Cell, grid::Grid, sector::Sector},
+        physics::aabb::AABB, population::nation, world::{cell::Cell, grid::Grid, sector::Sector}
     },
 };
 use std::collections::HashMap;
@@ -66,10 +64,10 @@ impl World {
     }
 
     pub fn get_flag(
-        kind: entity::Kind,
-        flag_position_map: HashMap<entity::Kind, IVec3>,
+        nation_kind: nation::Kind,
+        flag_position_map: HashMap<nation::Kind, IVec3>,
     ) -> Option<IVec3> {
-        flag_position_map.get(&kind).cloned()
+        flag_position_map.get(&nation_kind).cloned()
     }
 
     fn setup_sector_vec(grid: &Grid) -> Vec<sector::Sector> {

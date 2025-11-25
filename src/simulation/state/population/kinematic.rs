@@ -15,4 +15,8 @@ impl Kinematic {
             acceleration: Vec3::broadcast(0.0),
         }
     }
+
+    pub fn set_velocity(velocity: Vec3, kinematic: &mut Kinematic) {
+        kinematic.velocity = velocity;
+    }
 }

@@ -1,8 +1,15 @@
 //! Entities acting in the simulated environment
 
 pub mod agent;
-pub mod entity;
+pub mod identity;
 pub mod judge;
+pub mod kinematic;
+pub mod sight;
+pub mod spatial;
+pub mod nation;
+pub mod role;
+
+pub use role::Role;
 
 use crate::simulation::{
     self,

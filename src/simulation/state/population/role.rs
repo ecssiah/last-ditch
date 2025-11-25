@@ -1,15 +1,15 @@
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Kind {
+pub enum Role {
     Agent,
     Judge,
 }
 
-impl Kind {
+impl Role {
     pub fn from_string(string: &str) -> Option<Self> {
         if Self::matches_kind(string, "agent") {
-            Some(Kind::Agent)
+            Some(Role::Agent)
         } else if Self::matches_kind(string, "judge") {
-            Some(Kind::Judge)
+            Some(Role::Judge)
         } else {
             None
         }

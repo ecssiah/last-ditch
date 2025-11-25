@@ -7,37 +7,36 @@ use crate::{
     interface::{
         camera::Camera,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
-        entity_render::{
+        population_render::{
             entity_instance_data::EntityInstanceData, entity_mesh::EntityMesh,
             entity_vertex::EntityVertex,
         },
     },
     simulation::{
         constants::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
-        observation::view::PopulationView,
-        state::population::entity::{self, nation},
+        observation::view::PopulationView, state::population::{self, nation},
     },
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 use tracing::{error, info};
 
-pub struct EntityRender {
-    pub entity_gpu_mesh_map: HashMap<(entity::Kind, nation::Kind), Arc<GpuMesh>>,
+pub struct PopulationRender {
+    pub entity_gpu_mesh_map: HashMap<(population::Role, nation::Kind), Arc<GpuMesh>>,
     pub entity_instance_buffer: wgpu::Buffer,
     pub entity_instance_data_group_vec:
-        Vec<((entity::Kind, nation::Kind), Vec<EntityInstanceData>)>,
+        Vec<((population::Role, nation::Kind), Vec<EntityInstanceData>)>,
     pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<wgpu::BindGroup>>,
+    pub texture_bind_group_arc_map: HashMap<(population::Role, nation::Kind), Arc<wgpu::BindGroup>>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl EntityRender {
+impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let entity_gpu_mesh_map = Self::load_entity_gpu_mesh_map(&gpu_context.device);
 
         let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Entity Instance Buffer"),
+            label: Some("Population Instance Buffer"),
             size: (SIMULATION_MAX_ENTITIES * std::mem::size_of::<EntityInstanceData>())
                 as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
@@ -68,7 +67,7 @@ impl EntityRender {
 
     fn load_entity_gpu_mesh_map(
         device: &wgpu::Device,
-    ) -> HashMap<(entity::Kind, nation::Kind), Arc<GpuMesh>> {
+    ) -> HashMap<(population::Role, nation::Kind), Arc<GpuMesh>> {
         let mut entity_gpu_mesh_map = HashMap::new();
 
         let entity_models_path = std::path::Path::new("assets/models/entity");
@@ -111,12 +110,12 @@ impl EntityRender {
                             let entity_gpu_mesh_arc =
                                 Arc::new(EntityMesh::to_gpu_mesh(&entity_mesh, device));
 
-                            if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
+                            if let Some(role) = population::Role::from_string(file_stem) {
                                 if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
                                     info!("{:?} model loaded", file_stem);
 
                                     entity_gpu_mesh_map
-                                        .insert((entity_kind, nation_kind), entity_gpu_mesh_arc);
+                                        .insert((role, nation_kind), entity_gpu_mesh_arc);
                                 }
                             }
                         }
@@ -158,7 +157,7 @@ impl EntityRender {
     fn load_texture_bind_group_arc_map(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-    ) -> HashMap<(entity::Kind, nation::Kind), Arc<wgpu::BindGroup>> {
+    ) -> HashMap<(population::Role, nation::Kind), Arc<wgpu::BindGroup>> {
         let mut texture_bind_group_map = HashMap::new();
 
         let entity_textures_path = std::path::Path::new("assets/textures/entity");
@@ -182,12 +181,12 @@ impl EntityRender {
                 let texture_bind_group =
                     Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
 
-                if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
+                if let Some(role) = population::Role::from_string(file_stem) {
                     if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
                         info!("{:?} texture loaded", file_stem);
 
                         texture_bind_group_map
-                            .insert((entity_kind, nation_kind), texture_bind_group);
+                            .insert((role, nation_kind), texture_bind_group);
                     }
                 }
             }
@@ -312,7 +311,7 @@ impl EntityRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Entity Vertex Shader"),
+                    label: Some("Population Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
                         include_assets!("shaders/entity.vert.wgsl").into(),
                     ),
@@ -322,7 +321,7 @@ impl EntityRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Entity Fragment Shader"),
+                    label: Some("Population Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
                         include_assets!("shaders/entity.frag.wgsl").into(),
                     ),
@@ -332,7 +331,7 @@ impl EntityRender {
             gpu_context
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Entity Render Pipeline Layout"),
+                    label: Some("Population Render Pipeline Layout"),
                     bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
                     push_constant_ranges: &[],
                 });
@@ -340,7 +339,7 @@ impl EntityRender {
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Entity Render Pipeline"),
+                label: Some("Population Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
@@ -387,13 +386,13 @@ impl EntityRender {
     pub fn apply_population_view(
         population_view: &PopulationView,
         entity_instance_data_group_vec: &mut Vec<(
-            (entity::Kind, nation::Kind),
+            (population::Role, nation::Kind),
             Vec<EntityInstanceData>,
         )>,
     ) {
         entity_instance_data_group_vec.clear();
 
-        let mut group_map: HashMap<(entity::Kind, nation::Kind), Vec<EntityInstanceData>> =
+        let mut group_map: HashMap<(population::Role, nation::Kind), Vec<EntityInstanceData>> =
             HashMap::new();
 
         for agent_view in population_view.agent_view_map.values() {
@@ -409,7 +408,7 @@ impl EntityRender {
             };
 
             group_map
-                .entry((agent_view.entity_kind, agent_view.nation_kind))
+                .entry((agent_view.role, agent_view.nation_kind))
                 .or_default()
                 .push(entity_instance_data);
         }
@@ -422,7 +421,7 @@ impl EntityRender {
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        entity_render: &EntityRender,
+        entity_render: &PopulationRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {

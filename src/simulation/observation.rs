@@ -110,16 +110,16 @@ impl Observation {
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
-            position: Grid::world_position_to_position(judge.entity.spatial.world_position),
-            world_position: judge.entity.spatial.world_position,
-            sector_id: judge.entity.info.sector_id,
+            position: Grid::world_position_to_position(judge.spatial.world_position),
+            world_position: judge.spatial.world_position,
+            sector_id: judge.spatial.sector_id,
             sector_coordinates: Grid::sector_id_to_sector_coordinates(
-                judge.entity.info.sector_id,
+                judge.spatial.sector_id,
                 &state.world.grid,
             ),
-            size: judge.entity.spatial.size,
-            rotor: judge.entity.spatial.rotor,
-            eye: judge.entity.sense.sight.position,
+            size: judge.spatial.size,
+            rotor: judge.spatial.rotor,
+            eye: judge.sight.world_position,
         };
 
         let mut population_view = PopulationView {
@@ -127,11 +127,11 @@ impl Observation {
             agent_view_map: HashMap::new(),
         };
 
-        let judge_sight_range_squared = judge.entity.sense.sight.range_in_meters.powi(2);
+        let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
         for agent in state.population.agent_map.values() {
-            let agent_to_judge_mag_sq = (agent.entity.spatial.world_position
-                - state.population.judge.entity.spatial.world_position)
+            let agent_to_judge_mag_sq = (agent.spatial.world_position
+                - state.population.judge.spatial.world_position)
                 .mag_sq();
 
             if agent_to_judge_mag_sq > judge_sight_range_squared {
@@ -139,16 +139,13 @@ impl Observation {
             }
 
             let agent_view = AgentView {
-                entity_kind: agent.entity.info.entity_kind,
-                nation_kind: agent.entity.info.nation_kind,
-                spatial: agent.entity.spatial,
-                kinematic: agent.entity.kinematic,
-                sense: agent.entity.sense,
+                role: agent.identity.role,
+                nation_kind: agent.identity.nation_kind,
+                spatial: agent.spatial,
+                kinematic: agent.kinematic,
             };
 
-            population_view
-                .agent_view_map
-                .insert(agent.agent_id, agent_view);
+            population_view.agent_view_map.insert(agent.id, agent_view);
         }
 
         population_view
@@ -174,11 +171,11 @@ impl Observation {
         let judge = &state.population.judge;
 
         let judge_sector_coordinates = Grid::world_position_to_sector_coordinates(
-            judge.entity.spatial.world_position,
+            judge.spatial.world_position,
             &state.world.grid,
         );
 
-        let sight_range = judge.entity.sense.sight.range_in_sectors;
+        let sight_range = judge.sight.range_in_sectors;
 
         for dz in -sight_range..=sight_range {
             for dy in -sight_range..=sight_range {

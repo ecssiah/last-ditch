@@ -3,50 +3,38 @@ pub mod id;
 pub use id::ID;
 
 use crate::simulation::state::{
-    population::entity::{
-        self, nation,
-        sense::{Hearing, Sight, Touch},
-        Entity, Info, Kinematic, Sense, Spatial,
-    },
-    world::{sector, World},
+    population::{self, agent, identity::Identity, kinematic::Kinematic, nation, spatial::Spatial},
+    World,
 };
 
 pub struct Agent {
-    pub agent_id: ID,
-    pub entity: Entity,
+    pub id: agent::ID,
+    pub identity: Identity,
+    pub spatial: Spatial,
+    pub kinematic: Kinematic,
 }
 
 impl Agent {
     pub fn new(nation_kind: nation::Kind) -> Self {
-        let agent_id = ID::allocate();
+        let id = ID::allocate();
 
-        let info = Info {
-            entity_kind: entity::Kind::Agent,
-            sector_id: sector::ID(0),
-            sector_updated: false,
+        let identity = Identity {
+            role: population::Role::Agent,
             nation_kind,
         };
 
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
 
-        let sense = Sense {
-            hearing: Hearing::new(),
-            touch: Touch::new(),
-            sight: Sight::new(),
-        };
-
-        let entity = Entity {
-            info,
+        Self {
+            id,
+            identity,
             spatial,
             kinematic,
-            sense,
-        };
-
-        Self { agent_id, entity }
+        }
     }
 
     pub fn tick(world: &World, agent: &mut Agent) {
-        Entity::tick(world, &mut agent.entity);
+        Spatial::update_sector_id(&world.grid, &mut agent.spatial);
     }
 }

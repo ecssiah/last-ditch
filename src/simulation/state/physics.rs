@@ -6,7 +6,7 @@ use crate::simulation::{
     constants::*,
     state::{
         physics::aabb::AABB,
-        population::{entity::Entity, Population},
+        population::{kinematic::Kinematic, spatial::Spatial, Population},
         world::grid::{self, Grid},
         World,
     },
@@ -29,15 +29,22 @@ impl Physics {
         let _physics_span = tracing::info_span!("physics_tick").entered();
 
         let (velocity, delta) =
-            Physics::integrate_entity(physics.gravity, &mut population.judge.entity);
+            Physics::integrate(physics.gravity, &mut population.judge.kinematic);
 
-        Self::resolve_entity(world, &velocity, &delta, &mut population.judge.entity);
-        Self::sync_entity(&mut population.judge.entity);
+        Self::resolve(
+            world,
+            &velocity,
+            &delta,
+            &mut population.judge.spatial,
+            &mut population.judge.kinematic,
+        );
+        
+        Self::sync(&mut population.judge.spatial);
     }
 
-    fn integrate_entity(gravity: Vec3, entity: &mut Entity) -> (Vec3, Vec3) {
-        let initial_velocity = entity.kinematic.velocity;
-        let acceleration = entity.kinematic.acceleration + gravity;
+    fn integrate(gravity: Vec3, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
+        let initial_velocity = kinematic.velocity;
+        let acceleration = kinematic.acceleration + gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
@@ -47,8 +54,14 @@ impl Physics {
         (velocity, delta)
     }
 
-    fn resolve_entity(world: &World, velocity: &Vec3, delta: &Vec3, entity: &mut Entity) {
-        let mut aabb = entity.sense.touch.body;
+    fn resolve(
+        world: &World,
+        velocity: &Vec3,
+        delta: &Vec3,
+        spatial: &mut Spatial,
+        kinematic: &mut Kinematic,
+    ) {
+        let mut aabb = spatial.body;
         let mut velocity = *velocity;
 
         for axis in [
@@ -77,8 +90,8 @@ impl Physics {
             }
         }
 
-        entity.sense.touch.body = aabb;
-        entity.kinematic.velocity = velocity;
+        spatial.body = aabb;
+        kinematic.velocity = velocity;
     }
 
     fn resolve_axis(aabb: AABB, world: &World, axis: grid::Direction, delta: f32) -> (AABB, f32) {
@@ -136,7 +149,7 @@ impl Physics {
             .collect()
     }
 
-    fn sync_entity(entity: &mut Entity) {
-        Entity::set_world_position(entity.sense.touch.body.bottom_center(), entity);
+    fn sync(spatial: &mut Spatial) {
+        Spatial::set_world_position(spatial.body.bottom_center(), spatial);
     }
 }
