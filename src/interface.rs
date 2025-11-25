@@ -115,7 +115,7 @@ impl<'window> Interface<'window> {
             .formats
             .iter()
             .copied()
-            .find(|f| *f == wgpu::TextureFormat::Bgra8Unorm)
+            .find(|f| *f == wgpu::TextureFormat::Bgra8UnormSrgb)
             .unwrap_or(surface_capabilities.formats[0]);
 
         let texture_view_descriptor = wgpu::TextureViewDescriptor {

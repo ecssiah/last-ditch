@@ -349,21 +349,22 @@ impl SectorMesh {
             }
         };
 
-        let (p0, p1, p2, p3) = if axis == Axis::X {
-            (
-                [x_min, y_min, z_min],
-                [x_max, y_max, z_min],
-                [x_max, y_max, z_max],
-                [x_min, y_min, z_max],
-            )
-        } else {
-            (
-                [x_min, y_min, z_min],
-                [x_max, y_min, z_min],
-                [x_max, y_max, z_max],
-                [x_min, y_max, z_max],
-            )
-        };
+        let (vertex_position0, vertex_position1, vertex_position2, vertex_position3) =
+            if axis == Axis::X {
+                (
+                    [x_min, y_min, z_min],
+                    [x_max, y_max, z_min],
+                    [x_max, y_max, z_max],
+                    [x_min, y_min, z_max],
+                )
+            } else {
+                (
+                    [x_min, y_min, z_min],
+                    [x_max, y_min, z_min],
+                    [x_max, y_max, z_max],
+                    [x_min, y_max, z_max],
+                )
+            };
 
         let normal: [f32; 3] = *face.direction.to_vec3().as_array();
 
@@ -390,15 +391,13 @@ impl SectorMesh {
         let uv2 = [width_blocks, 0.0];
         let uv3 = [0.0, 0.0];
 
-        let (uv0, uv1, uv2, uv3) = if axis == Axis::X {
-            (
-                [width_blocks - uv0[0], uv0[1]],
-                [width_blocks - uv1[0], uv1[1]],
-                [width_blocks - uv2[0], uv2[1]],
-                [width_blocks - uv3[0], uv3[1]],
-            )
-        } else {
-            (uv0, uv1, uv2, uv3)
+        let (uv0, uv1, uv2, uv3) = match face.direction {
+            grid::Direction::East => (uv0, uv1, uv2, uv3),
+            grid::Direction::West => (uv1, uv0, uv3, uv2),
+            grid::Direction::North => (uv1, uv0, uv3, uv2),
+            grid::Direction::South => (uv0, uv1, uv2, uv3),
+            grid::Direction::Up => (uv0, uv1, uv2, uv3),
+            grid::Direction::Down => (uv3, uv2, uv1, uv0),
         };
 
         let base_index = vertex_vec.len() as u32;
@@ -408,9 +407,9 @@ impl SectorMesh {
 
         vertex_vec.push(SectorVertex {
             position: [
-                p0[0] + sector_world_position[0],
-                p0[1] + sector_world_position[1],
-                p0[2] + sector_world_position[2],
+                vertex_position0[0] + sector_world_position[0],
+                vertex_position0[1] + sector_world_position[1],
+                vertex_position0[2] + sector_world_position[2],
             ],
             normal,
             uv: uv0,
@@ -419,9 +418,9 @@ impl SectorMesh {
 
         vertex_vec.push(SectorVertex {
             position: [
-                p1[0] + sector_world_position[0],
-                p1[1] + sector_world_position[1],
-                p1[2] + sector_world_position[2],
+                vertex_position1[0] + sector_world_position[0],
+                vertex_position1[1] + sector_world_position[1],
+                vertex_position1[2] + sector_world_position[2],
             ],
             normal,
             uv: uv1,
@@ -430,9 +429,9 @@ impl SectorMesh {
 
         vertex_vec.push(SectorVertex {
             position: [
-                p2[0] + sector_world_position[0],
-                p2[1] + sector_world_position[1],
-                p2[2] + sector_world_position[2],
+                vertex_position2[0] + sector_world_position[0],
+                vertex_position2[1] + sector_world_position[1],
+                vertex_position2[2] + sector_world_position[2],
             ],
             normal,
             uv: uv2,
@@ -441,9 +440,9 @@ impl SectorMesh {
 
         vertex_vec.push(SectorVertex {
             position: [
-                p3[0] + sector_world_position[0],
-                p3[1] + sector_world_position[1],
-                p3[2] + sector_world_position[2],
+                vertex_position3[0] + sector_world_position[0],
+                vertex_position3[1] + sector_world_position[1],
+                vertex_position3[2] + sector_world_position[2],
             ],
             normal,
             uv: uv3,

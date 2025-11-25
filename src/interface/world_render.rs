@@ -210,7 +210,7 @@ impl WorldRender {
 
             if !camera
                 .frustum
-                .sphere_in_frustum(sector_view.world_position, sector_view.radius)
+                .sphere_in_frustum(sector_view.world_position, sector_view.radius * 1.2)
             {
                 continue;
             }
