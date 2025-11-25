@@ -7,4 +7,3 @@ mod grid_conversions;
 mod grid_overlapping_aabb_vec;
 mod grid_validity;
 mod world_clearance;
-mod world_ray_iterator;

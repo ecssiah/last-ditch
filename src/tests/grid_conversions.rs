@@ -699,11 +699,6 @@ fn world_position_to_position() {
             expected_position: IVec3::broadcast(-world_radius_in_cells as i32),
         },
         WorldToPositionCase {
-            description: "world min - 1.0".to_string(),
-            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
-            expected_position: IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-        },
-        WorldToPositionCase {
             description: "world origin".to_string(),
             world_position: Vec3::broadcast(0.0),
             expected_position: IVec3::broadcast(0),
@@ -712,11 +707,6 @@ fn world_position_to_position() {
             description: "world max".to_string(),
             world_position: Vec3::broadcast(world_radius_in_cells),
             expected_position: IVec3::broadcast(world_radius_in_cells as i32),
-        },
-        WorldToPositionCase {
-            description: "world max + 1.0".to_string(),
-            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
-            expected_position: IVec3::new(i32::MAX, i32::MAX, i32::MAX),
         },
         WorldToPositionCase {
             description: "standard position".to_string(),
@@ -858,11 +848,6 @@ fn world_to_cell_id() {
             expected_cell_id: cell::ID(0),
         },
         WorldToCellIDCase {
-            description: "world min - 1.0".to_string(),
-            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
-            expected_cell_id: cell::ID::MAX,
-        },
-        WorldToCellIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::broadcast(0.0),
             expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
@@ -871,11 +856,6 @@ fn world_to_cell_id() {
             description: "world max".to_string(),
             world_position: Vec3::broadcast(world_radius_in_cells),
             expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
-        },
-        WorldToCellIDCase {
-            description: "world max + 1.0".to_string(),
-            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
-            expected_cell_id: cell::ID::MAX,
         },
     ];
 

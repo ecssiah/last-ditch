@@ -8,29 +8,12 @@ use crate::simulation::state::{
 use ultraviolet::IVec3;
 
 pub fn run(world: &mut World) {
-    // build_rooms(world);
-    // build_central_room(world);
-    // build_clearance_test(world);
-
-    // World::set_block(
-    //     IVec3::new(-9, -2, 0),
-    //     block::Kind::EsayaBlock,
-    //     &world.grid,
-    //     &world.block_info_map,
-    //     &mut world.sector_vec,
-    // );
-
-    World::set_cube(
-        IVec3::new(-3, -3, -3),
-        IVec3::new(3, 3, 3),
-        block::Kind::CrimsonStone,
-        &world.block_info_map,
-        &world.grid,
-        &mut world.sector_vec,
-    );
+    build_rooms(world);
+    build_central_room(world);
+    build_clearance_test(world);
 }
 
-fn _build_rooms(world: &mut World) {
+fn build_rooms(world: &mut World) {
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32 - 1;
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
@@ -63,7 +46,7 @@ fn _build_rooms(world: &mut World) {
     }
 }
 
-fn _build_central_room(world: &mut World) {
+fn build_central_room(world: &mut World) {
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
     let sector_coordinates = IVec3::new(0, 0, 0);
@@ -73,14 +56,14 @@ fn _build_central_room(world: &mut World) {
         sector_position
             + IVec3::new(
                 -3 * sector_radius_in_cells - 1,
-                -sector_radius_in_cells,
                 -3 * sector_radius_in_cells - 1,
+                -sector_radius_in_cells,
             ),
         sector_position
             + IVec3::new(
                 3 * sector_radius_in_cells + 1,
-                sector_radius_in_cells,
                 3 * sector_radius_in_cells + 1,
+                sector_radius_in_cells,
             ),
         block::Kind::None,
         &world.block_info_map,
@@ -88,10 +71,10 @@ fn _build_central_room(world: &mut World) {
         &mut world.sector_vec,
     );
 
-    let center_position = IVec3::new(0, -sector_radius_in_cells - 1, 0);
+    let center_position = IVec3::new(0, 0, -sector_radius_in_cells - 1);
 
     World::set_block(
-        center_position + IVec3::unit_z() * 2,
+        center_position + IVec3::unit_y() * 2,
         block::Kind::NorthBlock,
         &world.block_info_map,
         &world.grid,
@@ -99,7 +82,7 @@ fn _build_central_room(world: &mut World) {
     );
 
     World::set_block(
-        center_position - IVec3::unit_z() * 2,
+        center_position - IVec3::unit_y() * 2,
         block::Kind::SouthBlock,
         &world.block_info_map,
         &world.grid,
@@ -123,14 +106,14 @@ fn _build_central_room(world: &mut World) {
     );
 }
 
-fn _build_clearance_test(world: &mut World) {
+fn build_clearance_test(world: &mut World) {
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
 
-    let sector_coordinates = IVec3::new(0, 0, 1);
+    let sector_coordinates = IVec3::new(0, 1, 0);
     let sector_position = Grid::sector_coordinates_to_position(sector_coordinates, &world.grid);
 
     World::set_block(
-        sector_position + IVec3::new(-4, -4, sector_radius_in_cells),
+        sector_position + IVec3::new(-4, sector_radius_in_cells, -4),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -138,7 +121,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(-3, -3, sector_radius_in_cells),
+        sector_position + IVec3::new(-3, sector_radius_in_cells, -3),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -146,7 +129,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(-2, -2, sector_radius_in_cells),
+        sector_position + IVec3::new(-2, sector_radius_in_cells, -2),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -154,7 +137,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(-1, -1, sector_radius_in_cells),
+        sector_position + IVec3::new(-1, sector_radius_in_cells, -1),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -162,7 +145,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(0, 0, sector_radius_in_cells),
+        sector_position + IVec3::new(0, sector_radius_in_cells, 0),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -170,7 +153,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(1, 1, sector_radius_in_cells),
+        sector_position + IVec3::new(1, sector_radius_in_cells, 1),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -178,7 +161,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(2, 2, sector_radius_in_cells),
+        sector_position + IVec3::new(2, sector_radius_in_cells, 2),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -186,7 +169,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(3, 3, sector_radius_in_cells),
+        sector_position + IVec3::new(3, sector_radius_in_cells, 3),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -194,7 +177,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 
     World::set_block(
-        sector_position + IVec3::new(4, 4, sector_radius_in_cells),
+        sector_position + IVec3::new(4, sector_radius_in_cells, 4),
         block::Kind::CrimsonStone,
         &world.block_info_map,
         &world.grid,
@@ -202,8 +185,7 @@ fn _build_clearance_test(world: &mut World) {
     );
 }
 
-#[allow(dead_code)]
-fn build_sector_room(
+fn _build_sector_room(
     world: &mut World,
     position: IVec3,
     entrance_vec: Vec<grid::Direction>,
