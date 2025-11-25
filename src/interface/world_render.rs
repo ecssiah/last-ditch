@@ -1,14 +1,17 @@
-pub mod block_render_info;
-pub mod sector_render_data;
+pub mod face;
+pub mod sector_mesh;
+pub mod sector_vertex;
+pub mod tile_atlas;
 
 use crate::{
     include_assets,
     interface::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
-        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
-        mesh::sector_mesh::SectorMesh,
-        vertex_data::VertexData,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
+        world_render::{
+            sector_mesh::SectorMesh, sector_vertex::SectorVertex, tile_atlas::TileAtlas,
+        },
     },
     simulation::{
         observation::view::{SectorView, WorldView},
@@ -19,7 +22,8 @@ use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::info_span;
 
 pub struct WorldRender {
-    pub tile_atlas_texture_bind_group: wgpu::BindGroup,
+    pub tile_bind_group: wgpu::BindGroup,
+    pub tile_bind_group_layout: wgpu::BindGroupLayout,
     pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
     pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
     pub active_sector_id_set: HashSet<sector::ID>,
@@ -29,22 +33,64 @@ pub struct WorldRender {
 
 impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
+        let tile_atlas_texture_path = "assets/textures/block/tile_atlas.png";
 
-        let tile_atlas_texture_data = pollster::block_on(Self::load_texture_data(
+        let tile_atlas_gpu_texture_data = TileAtlas::get_gpu_texture_data(
+            tile_atlas_texture_path,
             &gpu_context.device,
             &gpu_context.queue,
-            "assets/textures/block/tile_atlas.png",
-            "tile_atlas",
-        ));
+        );
 
-        let tile_atlas_texture_bind_group =
-            Self::create_texture_bind_group(&gpu_context.device, &tile_atlas_texture_data);
+        let tile_bind_group_layout =
+            gpu_context
+                .device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("tile array bind group layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                multisampled: false,
+                                view_dimension: wgpu::TextureViewDimension::D2Array,
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
+                    ],
+                });
+
+        let tile_bind_group = gpu_context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &tile_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(
+                            &tile_atlas_gpu_texture_data.texture_view,
+                        ),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(
+                            &tile_atlas_gpu_texture_data.sampler,
+                        ),
+                    },
+                ],
+                label: Some("tile array bind group"),
+            });
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &texture_bind_group_layout,
+            &tile_bind_group_layout,
         );
 
         let sector_mesh_cache = HashMap::new();
@@ -54,7 +100,8 @@ impl WorldRender {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            tile_atlas_texture_bind_group,
+            tile_bind_group,
+            tile_bind_group_layout,
             sector_mesh_cache,
             gpu_mesh_cache,
             active_sector_id_set,
@@ -63,76 +110,10 @@ impl WorldRender {
         }
     }
 
-    fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Texture BindGroupLayout"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-        })
-    }
-
-    pub fn create_texture_bind_group(
-        device: &wgpu::Device,
-        gpu_texture_data: &GpuTextureData,
-    ) -> wgpu::BindGroup {
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-        });
-
-        device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Texture and Sampler Bind Group"),
-            layout: &bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&gpu_texture_data.texture_view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
-                },
-            ],
-        })
-    }
-
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
-        texture_bind_group_layout: &wgpu::BindGroupLayout,
+        tile_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let vert_shader_module =
             gpu_context
@@ -159,19 +140,19 @@ impl WorldRender {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("World Render Pipeline Layout"),
-                    bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
+                    bind_group_layouts: &[camera_bind_group_layout, tile_bind_group_layout],
                     push_constant_ranges: &[],
                 });
 
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Mesh Render Pipeline"),
+                label: Some("World Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[VertexData::desc()],
+                    buffers: &[SectorVertex::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {
@@ -246,6 +227,8 @@ impl WorldRender {
 
         sector_mesh_cache.retain(|id, _| active_sector_id_set.contains(id));
         gpu_mesh_cache.retain(|id, _| active_gpu_mesh_vec.contains(id));
+
+        active_gpu_mesh_vec.sort_unstable();
     }
 
     fn get_or_build_sector_mesh<'a>(
@@ -294,71 +277,6 @@ impl WorldRender {
         }
     }
 
-    pub async fn load_texture_data(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        path: &str,
-        label: &str,
-    ) -> GpuTextureData {
-        let img = image::open(path)
-            .expect("Failed to open texture atlas")
-            .into_rgba8();
-
-        let (width, height) = img.dimensions();
-
-        let texture_size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        };
-
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some(label),
-            size: texture_size,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-            view_formats: &[],
-        });
-
-        queue.write_texture(
-            wgpu::TexelCopyTextureInfo {
-                texture: &texture,
-                mip_level: 0,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-            },
-            &img,
-            wgpu::TexelCopyBufferLayout {
-                offset: 0,
-                bytes_per_row: Some(4 * width),
-                rows_per_image: Some(height),
-            },
-            texture_size,
-        );
-
-        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: None,
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Nearest,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            ..Default::default()
-        });
-
-        GpuTextureData {
-            texture,
-            texture_view,
-            sampler,
-        }
-    }
-
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
@@ -399,12 +317,13 @@ impl WorldRender {
 
         render_pass.set_pipeline(&world_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
+        render_pass.set_bind_group(1, &world_render.tile_bind_group, &[]);
 
         for sector_id in &world_render.active_gpu_mesh_vec {
             let gpu_mesh = &world_render.gpu_mesh_cache[sector_id];
 
-            render_pass.set_bind_group(1, &world_render.tile_atlas_texture_bind_group, &[]);
             render_pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
+
             render_pass
                 .set_index_buffer(gpu_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
@@ -412,18 +331,5 @@ impl WorldRender {
         }
 
         drop(render_pass);
-
-        // for sector_render_data in &world_render.sector_render_data_vec {
-        //     render_pass.set_bind_group(1, &world_render.tile_atlas_texture_bind_group, &[]);
-
-        //     render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
-
-        //     render_pass.set_index_buffer(
-        //         sector_render_data.mesh_data.index_buffer.slice(..),
-        //         wgpu::IndexFormat::Uint32,
-        //     );
-
-        //     render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
-        // }
     }
 }

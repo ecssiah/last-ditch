@@ -1,10 +1,13 @@
+pub mod item_mesh;
 pub mod item_render_data;
+pub mod item_vertex;
 
 use crate::{
     include_assets,
     interface::{
-        camera::Camera, gpu::gpu_context::GPUContext,
-        item_render::item_render_data::ItemRenderData, vertex_data::VertexData,
+        camera::Camera,
+        gpu::gpu_context::GPUContext,
+        item_render::{item_render_data::ItemRenderData, item_vertex::ItemVertex},
     },
 };
 
@@ -97,7 +100,7 @@ impl ItemRender {
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[VertexData::desc()],
+                    buffers: &[ItemVertex::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {

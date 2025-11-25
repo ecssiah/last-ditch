@@ -1,3 +1,4 @@
+pub mod axis;
 pub mod cell_sample;
 pub mod direction;
 pub mod world_ray_iterator;

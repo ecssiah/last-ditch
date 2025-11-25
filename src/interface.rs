@@ -9,10 +9,7 @@ pub mod gpu;
 pub mod hud;
 pub mod input;
 pub mod item_render;
-pub mod mesh;
-pub mod mesh_data;
 pub mod population_render;
-pub mod vertex_data;
 pub mod world_render;
 
 use crate::{

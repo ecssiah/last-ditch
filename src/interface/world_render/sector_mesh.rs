@@ -1,14 +1,14 @@
 use crate::{
     interface::{
         gpu::gpu_mesh::GpuMesh,
-        mesh::{block_vertex::BlockVertex, face_entry::FaceEntry},
-        world_render::block_render_info::BlockRenderInfo,
+        world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas::TileAtlas},
     },
     simulation::{
         constants::CELL_RADIUS,
         observation::{face_mask, view::SectorView},
         state::world::{
-            grid::{self, Grid},
+            block,
+            grid::{self, axis::Axis, Grid},
             sector,
         },
     },
@@ -18,7 +18,7 @@ use ultraviolet::IVec3;
 pub struct SectorMesh {
     pub sector_id: sector::ID,
     pub version: u64,
-    pub vertex_vec: Vec<BlockVertex>,
+    pub vertex_vec: Vec<SectorVertex>,
     pub index_vec: Vec<u32>,
 }
 
@@ -36,24 +36,17 @@ impl SectorMesh {
         sector_mesh
     }
 
-    fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<FaceEntry>>> {
+    fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<Face>>> {
         let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
         let sector_size_in_cells = grid.sector_size_in_cells as i32;
         let sector_area_in_cells = grid.sector_area_in_cells as i32;
 
-        let mut mask_vec: Vec<Vec<Vec<FaceEntry>>> = vec![
-            vec![
-                vec![FaceEntry::NONE; sector_area_in_cells as usize];
-                (sector_size_in_cells + 1) as usize
-            ],
-            vec![
-                vec![FaceEntry::NONE; sector_area_in_cells as usize];
-                (sector_size_in_cells + 1) as usize
-            ],
-            vec![
-                vec![FaceEntry::NONE; sector_area_in_cells as usize];
-                (sector_size_in_cells + 1) as usize
-            ],
+        let slice_count = (sector_size_in_cells + 1) as usize;
+
+        let mut mask_vec: Vec<Vec<Vec<Face>>> = vec![
+            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
+            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
+            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
         ];
 
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
@@ -73,12 +66,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::East,
                             };
 
-                            mask_vec[0][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = face;
                         }
 
                         if face_mask::has(face_mask::WEST, &block_view.face_mask) {
@@ -89,12 +82,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::West,
                             };
 
-                            mask_vec[0][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = face;
                         }
 
                         if face_mask::has(face_mask::NORTH, &block_view.face_mask) {
@@ -105,12 +98,12 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::North,
                             };
 
-                            mask_vec[1][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = face;
                         }
 
                         if face_mask::has(face_mask::SOUTH, &block_view.face_mask) {
@@ -121,12 +114,12 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::South,
                             };
 
-                            mask_vec[1][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = face;
                         }
 
                         if face_mask::has(face_mask::UP, &block_view.face_mask) {
@@ -137,12 +130,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::Up,
                             };
 
-                            mask_vec[2][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = face;
                         }
 
                         if face_mask::has(face_mask::DOWN, &block_view.face_mask) {
@@ -153,12 +146,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let face_entry = FaceEntry {
-                                kind: block_view.block_kind,
+                            let face = Face {
+                                block_kind: block_view.block_kind,
                                 direction: grid::Direction::Down,
                             };
 
-                            mask_vec[2][slice_index][mask_index] = face_entry;
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = face;
                         }
                     }
                 }
@@ -171,19 +164,19 @@ impl SectorMesh {
     fn merge_geometry(
         sector_view: &SectorView,
         grid: &Grid,
-        mask_vec: Vec<Vec<Vec<FaceEntry>>>,
+        mask_vec: Vec<Vec<Vec<Face>>>,
     ) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
-        for dimension in 0..3 {
-            let slice_count = mask_vec[dimension].len();
+        for axis in Axis::all() {
+            let slice_count = mask_vec[axis as usize].len();
 
             for slice_index in 0..slice_count {
-                let slice = &mask_vec[dimension][slice_index];
+                let slice = &mask_vec[axis as usize][slice_index];
 
                 Self::merge_slice(
-                    dimension,
+                    axis,
                     slice_index,
                     slice,
                     grid,
@@ -202,11 +195,11 @@ impl SectorMesh {
     }
 
     fn merge_slice(
-        dimension: usize,
+        axis: Axis,
         slice_index: usize,
-        slice: &[FaceEntry],
+        slice: &[Face],
         grid: &Grid,
-        vertex_vec: &mut Vec<BlockVertex>,
+        vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
         let sector_size_in_cells = grid.sector_size_in_cells as usize;
@@ -216,9 +209,9 @@ impl SectorMesh {
         for y in 0..sector_size_in_cells {
             for x in 0..sector_size_in_cells {
                 let mask_index = y * sector_size_in_cells + x;
-                let face_entry = slice[mask_index];
+                let face = slice[mask_index];
 
-                if face_entry == FaceEntry::NONE || consumed[mask_index] {
+                if face.block_kind == block::Kind::None || consumed[mask_index] {
                     continue;
                 }
 
@@ -226,9 +219,9 @@ impl SectorMesh {
 
                 while x_max < sector_size_in_cells {
                     let test_mask_index = y * sector_size_in_cells + x_max;
-                    let test_face_entry = slice[test_mask_index];
+                    let test_face = slice[test_mask_index];
 
-                    if test_face_entry != face_entry || consumed[test_mask_index] {
+                    if test_face != face || consumed[test_mask_index] {
                         break;
                     }
 
@@ -240,9 +233,9 @@ impl SectorMesh {
                 'outer: while y_max < sector_size_in_cells {
                     for xx in x..x_max {
                         let test_mask_index = y_max * sector_size_in_cells + xx;
-                        let test_face_entry = slice[test_mask_index];
+                        let test_face = slice[test_mask_index];
 
-                        if test_face_entry != face_entry || consumed[test_mask_index] {
+                        if test_face != face || consumed[test_mask_index] {
                             break 'outer;
                         }
                     }
@@ -257,13 +250,13 @@ impl SectorMesh {
                 }
 
                 Self::emit_triangles(
-                    dimension,
+                    axis,
                     slice_index,
                     x,
                     y,
                     x_max,
                     y_max,
-                    face_entry,
+                    face,
                     grid,
                     vertex_vec,
                     index_vec,
@@ -273,78 +266,82 @@ impl SectorMesh {
     }
 
     pub fn emit_triangles(
-        dimension: usize,
+        axis: Axis,
         slice_index: usize,
         x0: usize,
         y0: usize,
         x1: usize,
         y1: usize,
-        face_entry: FaceEntry,
+        face: Face,
         grid: &Grid,
-        vertex_vec: &mut Vec<BlockVertex>,
+        vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
         let sector_radius = grid.sector_radius_in_cells as i32;
 
-        // World coordinate of the slice plane along the primary axis.
-        let plane_coord = Self::line_coord(slice_index, sector_radius);
+        let slice_coordinate = Self::get_axis_coordinate(slice_index, sector_radius);
 
-        // Compute world-space bounds along the two in-plane axes.
-        // x0..x1, y0..y1 are *cell indices* in the slice plane.
-        // We convert them to edge coordinates using line_coord().
-        //
-        // For each dimension, x/y in the plane map to different world axes:
-        //  - dim 0 (X slices): plane axes = (Y=row, Z=col)
-        //  - dim 1 (Y slices): plane axes = (Z=row, X=col)
-        //  - dim 2 (Z slices): plane axes = (Y=row, X=col)
-
-        let (x_min, x_max, y_min, y_max, z_min, z_max) = match dimension {
-            // X slices: (row=y -> world Y, col=x -> world Z), X is constant
-            0 => {
+        let (x_min, x_max, y_min, y_max, z_min, z_max) = match axis {
+            Axis::X => {
                 let row0 = y0;
                 let row1 = y1;
                 let col0 = x0;
                 let col1 = x1;
 
-                let y_min = Self::line_coord(row0, sector_radius);
-                let y_max = Self::line_coord(row1, sector_radius);
-                let z_min = Self::line_coord(col0, sector_radius);
-                let z_max = Self::line_coord(col1, sector_radius);
+                let y_min = Self::get_axis_coordinate(row0, sector_radius);
+                let y_max = Self::get_axis_coordinate(row1, sector_radius);
+                let z_min = Self::get_axis_coordinate(col0, sector_radius);
+                let z_max = Self::get_axis_coordinate(col1, sector_radius);
 
-                (plane_coord, plane_coord, y_min, y_max, z_min, z_max)
+                (
+                    slice_coordinate,
+                    slice_coordinate,
+                    y_min,
+                    y_max,
+                    z_min,
+                    z_max,
+                )
             }
-
-            // Y slices: (row=y -> world Z, col=x -> world X), Y is constant
-            1 => {
+            Axis::Y => {
                 let row0 = y0;
                 let row1 = y1;
                 let col0 = x0;
                 let col1 = x1;
 
-                let z_min = Self::line_coord(row0, sector_radius);
-                let z_max = Self::line_coord(row1, sector_radius);
-                let x_min = Self::line_coord(col0, sector_radius);
-                let x_max = Self::line_coord(col1, sector_radius);
+                let z_min = Self::get_axis_coordinate(row0, sector_radius);
+                let z_max = Self::get_axis_coordinate(row1, sector_radius);
+                let x_min = Self::get_axis_coordinate(col0, sector_radius);
+                let x_max = Self::get_axis_coordinate(col1, sector_radius);
 
-                (x_min, x_max, plane_coord, plane_coord, z_min, z_max)
+                (
+                    x_min,
+                    x_max,
+                    slice_coordinate,
+                    slice_coordinate,
+                    z_min,
+                    z_max,
+                )
             }
-
-            // Z slices: (row=y -> world Y, col=x -> world X), Z is constant
-            2 => {
+            Axis::Z => {
                 let row0 = y0;
                 let row1 = y1;
                 let col0 = x0;
                 let col1 = x1;
 
-                let y_min = Self::line_coord(row0, sector_radius);
-                let y_max = Self::line_coord(row1, sector_radius);
-                let x_min = Self::line_coord(col0, sector_radius);
-                let x_max = Self::line_coord(col1, sector_radius);
+                let y_min = Self::get_axis_coordinate(row0, sector_radius);
+                let y_max = Self::get_axis_coordinate(row1, sector_radius);
+                let x_min = Self::get_axis_coordinate(col0, sector_radius);
+                let x_max = Self::get_axis_coordinate(col1, sector_radius);
 
-                (x_min, x_max, y_min, y_max, plane_coord, plane_coord)
+                (
+                    x_min,
+                    x_max,
+                    y_min,
+                    y_max,
+                    slice_coordinate,
+                    slice_coordinate,
+                )
             }
-
-            _ => unreachable!("dimension must be 0, 1 or 2"),
         };
 
         let (p0, p1, p2, p3) = (
@@ -354,7 +351,7 @@ impl SectorMesh {
             [x_min, y_max, z_max],
         );
 
-        let normal: [f32; 3] = *face_entry.direction.to_vec3().as_array();
+        let normal: [f32; 3] = *face.direction.to_vec3().as_array();
 
         let uv0 = [0.0, 0.0];
         let uv1 = [1.0, 0.0];
@@ -363,40 +360,38 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let tile_coordinates =
-            BlockRenderInfo::get_tile_coordinates(face_entry.kind)[face_entry.direction as usize];
+        let tile_coordinates = TileAtlas::get_tile_coordinates(face.block_kind, face.direction);
+        let layer_index = TileAtlas::tile_coordinates_to_layer(tile_coordinates);
 
-        let layer_index = BlockRenderInfo::tile_to_layer(tile_coordinates);
-
-        vertex_vec.push(BlockVertex {
+        vertex_vec.push(SectorVertex {
             position: p0,
             normal,
             uv: uv0,
             layer: layer_index,
         });
 
-        vertex_vec.push(BlockVertex {
+        vertex_vec.push(SectorVertex {
             position: p1,
             normal,
             uv: uv1,
             layer: layer_index,
         });
 
-        vertex_vec.push(BlockVertex {
+        vertex_vec.push(SectorVertex {
             position: p2,
             normal,
             uv: uv2,
             layer: layer_index,
         });
 
-        vertex_vec.push(BlockVertex {
+        vertex_vec.push(SectorVertex {
             position: p3,
             normal,
             uv: uv3,
             layer: layer_index,
         });
 
-        let use_canonical = match face_entry.direction {
+        let use_canonical = match face.direction {
             grid::Direction::West => true,
             grid::Direction::East => false,
             grid::Direction::South => true,
@@ -424,9 +419,8 @@ impl SectorMesh {
         }
     }
 
-    fn line_coord(k: usize, sector_radius: i32) -> f32 {
-        // k in [0..=2R+1] → world edge position
-        k as f32 - sector_radius as f32 - CELL_RADIUS
+    fn get_axis_coordinate(slice_index: usize, sector_radius: i32) -> f32 {
+        slice_index as f32 - sector_radius as f32 - CELL_RADIUS
     }
 
     pub fn to_gpu_mesh(sector_mesh: &Self, device: &wgpu::Device) -> GpuMesh {

@@ -1,13 +1,16 @@
 pub mod entity_instance_data;
+pub mod entity_mesh;
+pub mod entity_vertex;
 
 use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        gpu::{gpu_context::GPUContext, gpu_texture_data::GpuTextureData},
-        mesh_data::MeshData,
-        population_render::entity_instance_data::EntityInstanceData,
-        vertex_data::VertexData,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
+        population_render::{
+            entity_instance_data::EntityInstanceData, entity_mesh::EntityMesh,
+            entity_vertex::EntityVertex,
+        },
     },
     simulation::{
         constants::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
@@ -20,7 +23,7 @@ use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 use tracing::{error, info};
 
 pub struct PopulationRender {
-    pub mesh_data_arc_map: HashMap<(entity::Kind, nation::Kind), Arc<MeshData>>,
+    pub entity_gpu_mesh_map: HashMap<(entity::Kind, nation::Kind), Arc<GpuMesh>>,
     pub entity_instance_buffer: wgpu::Buffer,
     pub entity_instance_data_group_vec:
         Vec<((entity::Kind, nation::Kind), Vec<EntityInstanceData>)>,
@@ -31,7 +34,7 @@ pub struct PopulationRender {
 
 impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let mesh_data_arc_map = Self::load_mesh_data_arc_map(&gpu_context.device);
+        let entity_gpu_mesh_map = Self::load_entity_gpu_mesh_map(&gpu_context.device);
 
         let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Entity Instance Buffer"),
@@ -54,7 +57,7 @@ impl PopulationRender {
         );
 
         Self {
-            mesh_data_arc_map,
+            entity_gpu_mesh_map,
             entity_instance_buffer,
             entity_instance_data_group_vec,
             texture_bind_group_layout,
@@ -63,10 +66,10 @@ impl PopulationRender {
         }
     }
 
-    fn load_mesh_data_arc_map(
+    fn load_entity_gpu_mesh_map(
         device: &wgpu::Device,
-    ) -> HashMap<(entity::Kind, nation::Kind), Arc<MeshData>> {
-        let mut mesh_data_arc_map = HashMap::new();
+    ) -> HashMap<(entity::Kind, nation::Kind), Arc<GpuMesh>> {
+        let mut entity_gpu_mesh_map = HashMap::new();
 
         let entity_models_path = std::path::Path::new("assets/models/entity");
 
@@ -84,29 +87,36 @@ impl PopulationRender {
 
                     match load_obj(model_file_reader) {
                         Ok(model) => {
-                            let vertex_vec = model
-                                .vertices
-                                .iter()
-                                .map(|vertex: &TexturedVertex| TexturedVertex {
-                                    position: [
-                                        vertex.position[0],
-                                        -vertex.position[2],
-                                        vertex.position[1],
-                                    ],
-                                    normal: [vertex.normal[0], -vertex.normal[2], vertex.normal[1]],
-                                    texture: vertex.texture,
-                                })
-                                .collect();
+                            let entity_mesh = EntityMesh {
+                                vertex_vec: model
+                                    .vertices
+                                    .iter()
+                                    .map(|vertex: &TexturedVertex| EntityVertex {
+                                        position: [
+                                            vertex.position[0],
+                                            -vertex.position[2],
+                                            vertex.position[1],
+                                        ],
+                                        normal: [
+                                            vertex.normal[0],
+                                            -vertex.normal[2],
+                                            vertex.normal[1],
+                                        ],
+                                        uv: [vertex.texture[0], vertex.texture[1]],
+                                    })
+                                    .collect(),
+                                index_vec: model.indices,
+                            };
 
-                            let index_vec = model.indices;
-
-                            let mesh_data = Arc::new(MeshData::new(device, vertex_vec, index_vec));
+                            let entity_gpu_mesh_arc =
+                                Arc::new(EntityMesh::to_gpu_mesh(&entity_mesh, device));
 
                             if let Some(entity_kind) = entity::Kind::from_string(file_stem) {
                                 if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
                                     info!("{:?} model loaded", file_stem);
 
-                                    mesh_data_arc_map.insert((entity_kind, nation_kind), mesh_data);
+                                    entity_gpu_mesh_map
+                                        .insert((entity_kind, nation_kind), entity_gpu_mesh_arc);
                                 }
                             }
                         }
@@ -118,7 +128,7 @@ impl PopulationRender {
             }
         }
 
-        mesh_data_arc_map
+        entity_gpu_mesh_map
     }
 
     fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
@@ -335,7 +345,7 @@ impl PopulationRender {
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[VertexData::desc(), EntityInstanceData::desc()],
+                    buffers: &[EntityVertex::desc(), EntityInstanceData::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {
@@ -457,7 +467,8 @@ impl PopulationRender {
                 bytemuck::cast_slice(&entity_instance_data_vec),
             );
 
-            let mesh_data_arc = Arc::clone(population_render.mesh_data_arc_map.get(&kind).unwrap());
+            let entity_gpu_mesh_arc =
+                Arc::clone(population_render.entity_gpu_mesh_map.get(&kind).unwrap());
 
             let texture_bind_group_arc = Arc::clone(
                 population_render
@@ -475,15 +486,15 @@ impl PopulationRender {
 
             render_pass.set_bind_group(1, texture_bind_group_arc.deref(), &[]);
 
-            render_pass.set_vertex_buffer(0, mesh_data_arc.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(0, entity_gpu_mesh_arc.vertex_buffer.slice(..));
 
             render_pass.set_index_buffer(
-                mesh_data_arc.index_buffer.slice(..),
+                entity_gpu_mesh_arc.index_buffer.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
 
             let instance_count = entity_instance_data_vec.len() as u32;
-            render_pass.draw_indexed(0..mesh_data_arc.index_count, 0, 0..instance_count);
+            render_pass.draw_indexed(0..entity_gpu_mesh_arc.index_count, 0, 0..instance_count);
 
             offset_bytes += byte_len;
         }

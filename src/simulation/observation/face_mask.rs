@@ -29,5 +29,3 @@ pub fn from_direction(direction: grid::Direction) -> FaceMask {
         grid::Direction::Down => DOWN,
     }
 }
-
-
