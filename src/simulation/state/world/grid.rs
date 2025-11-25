@@ -128,11 +128,11 @@ impl Grid {
     }
 
     pub fn cell_id_valid(id: cell::ID, grid: &Grid) -> bool {
-        (0u32..grid.sector_volume_in_cells).contains(&u32::from(id))
+        (0u32..grid.sector_volume_in_cells).contains(&id.to_u32())
     }
 
     pub fn sector_id_valid(id: sector::ID, grid: &Grid) -> bool {
-        (0u32..grid.world_volume_in_sectors).contains(&u32::from(id))
+        (0u32..grid.world_volume_in_sectors).contains(&id.to_u32())
     }
 
     pub fn cell_coordinates_valid(coordinates: IVec3, grid: &Grid) -> bool {
@@ -168,7 +168,7 @@ impl Grid {
     }
 
     pub fn cell_id_to_cell_coordinates(id: cell::ID, grid: &Grid) -> IVec3 {
-        let index = u32::from(id);
+        let index = id.to_u32();
         let coordinates = Indexing::to_ivec3(index, grid.sector_radius_in_cells);
 
         coordinates
@@ -181,7 +181,7 @@ impl Grid {
     }
 
     pub fn sector_id_to_sector_coordinates(id: sector::ID, grid: &Grid) -> IVec3 {
-        let index = u32::from(id);
+        let index = id.to_u32();
         let coordinates = Indexing::to_ivec3(index, grid.world_radius_in_sectors);
 
         coordinates

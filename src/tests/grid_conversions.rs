@@ -173,7 +173,6 @@ impl SectorCoordinatesToSectorIDCase {
     pub fn check(&self, world: &World) {
         let sector_id = Grid::sector_coordinates_to_sector_id(self.sector_coordinates, &world.grid);
 
-        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
@@ -473,7 +472,6 @@ impl PositionToSectorIDCase {
     pub fn check(&self, world: &World) {
         let sector_id = Grid::position_to_sector_id(self.position, &world.grid);
 
-        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
 }
@@ -623,7 +621,6 @@ impl PositionToIDsCase {
     pub fn check(&self, world: &World) {
         let (sector_id, cell_id) = Grid::position_to_ids(self.position, &world.grid);
 
-        assert_ne!(sector_id, sector::ID::MAX, "{:?}", self.description);
         assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(
             (sector_id, cell_id),
@@ -763,11 +760,6 @@ fn world_position_to_sector_id() {
             expected_sector_id: sector::ID(0),
         },
         WorldToSectorIDCase {
-            description: "world min - 1.0".to_string(),
-            world_position: Vec3::broadcast(-world_radius_in_cells - 1.0),
-            expected_sector_id: sector::ID::MAX,
-        },
-        WorldToSectorIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::broadcast(0.0),
             expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
@@ -776,11 +768,6 @@ fn world_position_to_sector_id() {
             description: "world max".to_string(),
             world_position: Vec3::broadcast(world_radius_in_cells),
             expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
-        },
-        WorldToSectorIDCase {
-            description: "world max + 1.0".to_string(),
-            world_position: Vec3::broadcast(world_radius_in_cells + 1.0),
-            expected_sector_id: sector::ID::MAX,
         },
     ];
 

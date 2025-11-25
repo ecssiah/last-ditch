@@ -2,23 +2,11 @@
 pub struct ID(pub u32);
 
 impl ID {
-    pub const MAX: Self = Self(u32::MAX);
-}
-
-impl From<ID> for usize {
-    fn from(id: ID) -> Self {
-        id.0 as usize
+    pub fn to_usize(&self) -> usize {
+        self.0 as usize
     }
-}
 
-impl From<ID> for u32 {
-    fn from(id: ID) -> Self {
-        id.0
-    }
-}
-
-impl From<ID> for i32 {
-    fn from(id: ID) -> Self {
-        id.0 as i32
+    pub fn to_u32(&self) -> u32 {
+        self.0 as u32
     }
 }

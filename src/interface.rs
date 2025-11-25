@@ -9,14 +9,14 @@ pub mod gpu;
 pub mod hud;
 pub mod input;
 pub mod item_render;
-pub mod population_render;
+pub mod entity_render;
 pub mod world_render;
 
 use crate::{
     interface::{
         camera::Camera, constants::*, debug::DebugRender, dispatch::Dispatch,
         gpu::gpu_context::GPUContext, hud::HUD, input::Input, item_render::ItemRender,
-        population_render::PopulationRender, world_render::WorldRender,
+        entity_render::EntityRender, world_render::WorldRender,
     },
     simulation::{
         self,
@@ -45,7 +45,7 @@ pub struct Interface<'window> {
     pub hud: HUD,
     pub world_render: WorldRender,
     pub item_render: ItemRender,
-    pub population_render: PopulationRender,
+    pub entity_render: EntityRender,
     pub debug_render: DebugRender,
     pub gpu_context: GPUContext<'window>,
     pub view_buffer_output: triple_buffer::Output<View>,
@@ -169,7 +169,7 @@ impl<'window> Interface<'window> {
         let hud = HUD::new();
         let world_render = WorldRender::new(&gpu_context, &camera);
         let item_render = ItemRender::new(&gpu_context, &camera);
-        let population_render = PopulationRender::new(&gpu_context, &camera);
+        let entity_render = EntityRender::new(&gpu_context, &camera);
         let debug_render = DebugRender::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
@@ -182,7 +182,7 @@ impl<'window> Interface<'window> {
             hud,
             world_render,
             item_render,
-            population_render,
+            entity_render,
             debug_render,
             gpu_context,
             view_buffer_output,
@@ -200,7 +200,7 @@ impl<'window> Interface<'window> {
                     &mut interface.hud,
                     &mut interface.world_render,
                     &mut interface.item_render,
-                    &mut interface.population_render,
+                    &mut interface.entity_render,
                     &mut interface.debug_render,
                 ),
                 WindowEvent::Resized(size) => {
@@ -245,7 +245,7 @@ impl<'window> Interface<'window> {
         hud: &mut HUD,
         world_render: &mut WorldRender,
         item_render: &mut ItemRender,
-        population_render: &mut PopulationRender,
+        entity_render: &mut EntityRender,
         debug_render: &mut DebugRender,
     ) {
         let _redraw_span = info_span!("redraw").entered();
@@ -283,12 +283,12 @@ impl<'window> Interface<'window> {
             &mut encoder,
         );
 
-        PopulationRender::render(
+        EntityRender::render(
             &surface_texture_view,
             &depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
-            population_render,
+            entity_render,
             &mut encoder,
         );
 
@@ -359,7 +359,7 @@ impl<'window> Interface<'window> {
                     &mut interface.camera,
                     &mut interface.hud,
                     &mut interface.world_render,
-                    &mut interface.population_render,
+                    &mut interface.entity_render,
                     &mut interface.debug_render,
                 );
             }
@@ -381,7 +381,7 @@ impl<'window> Interface<'window> {
         camera: &mut Camera,
         hud: &mut HUD,
         world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
+        entity_render: &mut EntityRender,
         debug_render: &mut DebugRender,
     ) {
         match view.admin_view.mode {
@@ -393,7 +393,7 @@ impl<'window> Interface<'window> {
                 camera,
                 hud,
                 world_render,
-                population_render,
+                entity_render,
                 debug_render,
             ),
             admin::Mode::Shutdown => Self::apply_shutdown_view(view, event_loop, hud),
@@ -420,7 +420,7 @@ impl<'window> Interface<'window> {
         camera: &mut Camera,
         hud: &mut HUD,
         world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
+        entity_render: &mut EntityRender,
         debug_render: &mut DebugRender,
     ) {
         gpu_context.window_arc.set_cursor_visible(false);
@@ -444,9 +444,9 @@ impl<'window> Interface<'window> {
             &mut world_render.active_gpu_mesh_vec,
         );
 
-        PopulationRender::apply_population_view(
+        EntityRender::apply_population_view(
             &view.population_view,
-            &mut population_render.entity_instance_data_group_vec,
+            &mut entity_render.entity_instance_data_group_vec,
         );
 
         DebugRender::apply_debug_view(view, debug_render);

@@ -7,7 +7,7 @@ use crate::{
     interface::{
         camera::Camera,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
-        population_render::{
+        entity_render::{
             entity_instance_data::EntityInstanceData, entity_mesh::EntityMesh,
             entity_vertex::EntityVertex,
         },
@@ -22,7 +22,7 @@ use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 use tracing::{error, info};
 
-pub struct PopulationRender {
+pub struct EntityRender {
     pub entity_gpu_mesh_map: HashMap<(entity::Kind, nation::Kind), Arc<GpuMesh>>,
     pub entity_instance_buffer: wgpu::Buffer,
     pub entity_instance_data_group_vec:
@@ -32,7 +32,7 @@ pub struct PopulationRender {
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl PopulationRender {
+impl EntityRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let entity_gpu_mesh_map = Self::load_entity_gpu_mesh_map(&gpu_context.device);
 
@@ -312,9 +312,9 @@ impl PopulationRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Population Vert Shader"),
+                    label: Some("Entity Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/population.vert.wgsl").into(),
+                        include_assets!("shaders/entity.vert.wgsl").into(),
                     ),
                 });
 
@@ -322,9 +322,9 @@ impl PopulationRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Population Frag Shader"),
+                    label: Some("Entity Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/population.frag.wgsl").into(),
+                        include_assets!("shaders/entity.frag.wgsl").into(),
                     ),
                 });
 
@@ -332,7 +332,7 @@ impl PopulationRender {
             gpu_context
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Population Render Pipeline Layout"),
+                    label: Some("Entity Render Pipeline Layout"),
                     bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
                     push_constant_ranges: &[],
                 });
@@ -340,7 +340,7 @@ impl PopulationRender {
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Population Render Pipeline"),
+                label: Some("Entity Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
@@ -422,7 +422,7 @@ impl PopulationRender {
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        population_render: &PopulationRender,
+        entity_render: &EntityRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -451,27 +451,27 @@ impl PopulationRender {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&population_render.render_pipeline);
+        render_pass.set_pipeline(&entity_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
         let mut offset_bytes = 0;
 
-        for (kind, entity_instance_data_vec) in &population_render.entity_instance_data_group_vec {
+        for (kind, entity_instance_data_vec) in &entity_render.entity_instance_data_group_vec {
             let byte_len = (entity_instance_data_vec.len()
                 * std::mem::size_of::<EntityInstanceData>())
                 as wgpu::BufferAddress;
 
             gpu_context.queue.write_buffer(
-                &population_render.entity_instance_buffer,
+                &entity_render.entity_instance_buffer,
                 offset_bytes,
                 bytemuck::cast_slice(&entity_instance_data_vec),
             );
 
             let entity_gpu_mesh_arc =
-                Arc::clone(population_render.entity_gpu_mesh_map.get(&kind).unwrap());
+                Arc::clone(entity_render.entity_gpu_mesh_map.get(&kind).unwrap());
 
             let texture_bind_group_arc = Arc::clone(
-                population_render
+                entity_render
                     .texture_bind_group_arc_map
                     .get(&kind)
                     .unwrap(),
@@ -479,7 +479,7 @@ impl PopulationRender {
 
             render_pass.set_vertex_buffer(
                 1,
-                population_render
+                entity_render
                     .entity_instance_buffer
                     .slice(offset_bytes..offset_bytes + byte_len),
             );

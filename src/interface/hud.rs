@@ -150,7 +150,7 @@ impl HUD {
             judge_view.sector_coordinates.x,
             judge_view.sector_coordinates.y,
             judge_view.sector_coordinates.z,
-            usize::from(judge_view.sector_id),
+            judge_view.sector_id.to_usize(),
         );
 
         let mut message = String::new();

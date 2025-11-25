@@ -207,7 +207,7 @@ impl WorldRender {
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
             let _sector_span =
-                info_span!("sector", id = usize::from(sector_view.sector_id)).entered();
+                info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
 
             if !camera
                 .frustum
@@ -219,14 +219,19 @@ impl WorldRender {
             let sector_mesh =
                 Self::get_or_build_sector_mesh(sector_view, &world_view.grid, sector_mesh_cache);
 
-            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
+            if sector_mesh.vertex_vec.is_empty() {
+                continue;
+            }
 
             active_sector_id_set.insert(*sector_id);
+
+            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
+
             active_gpu_mesh_vec.push(*sector_id);
         }
 
-        sector_mesh_cache.retain(|id, _| active_sector_id_set.contains(id));
-        gpu_mesh_cache.retain(|id, _| active_gpu_mesh_vec.contains(id));
+        sector_mesh_cache.retain(|sector_id, _| active_sector_id_set.contains(sector_id));
+        gpu_mesh_cache.retain(|sector_id, _| active_gpu_mesh_vec.contains(sector_id));
 
         active_gpu_mesh_vec.sort_unstable();
     }

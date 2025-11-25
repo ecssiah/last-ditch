@@ -1,4 +1,4 @@
-use crate::interface::{gpu::gpu_mesh::GpuMesh, population_render::entity_vertex::EntityVertex};
+use crate::interface::{gpu::gpu_mesh::GpuMesh, entity_render::entity_vertex::EntityVertex};
 
 pub struct EntityMesh {
     pub vertex_vec: Vec<EntityVertex>,

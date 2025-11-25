@@ -118,14 +118,14 @@ impl World {
         sector_id: sector::ID,
         sector_vec_slice: &'a [Sector],
     ) -> &'a sector::Sector {
-        &sector_vec_slice[usize::from(sector_id)]
+        &sector_vec_slice[sector_id.to_usize()]
     }
 
     pub fn get_sector_mut<'a>(
         sector_id: sector::ID,
         sector_vec_slice: &'a mut [Sector],
     ) -> &'a mut sector::Sector {
-        &mut sector_vec_slice[usize::from(sector_id)]
+        &mut sector_vec_slice[sector_id.to_usize()]
     }
 
     pub fn get_sector_at<'a>(
@@ -135,7 +135,7 @@ impl World {
     ) -> &'a sector::Sector {
         let sector_id = Grid::position_to_sector_id(position, grid);
 
-        &sector_vec_slice[usize::from(sector_id)]
+        &sector_vec_slice[sector_id.to_usize()]
     }
 
     pub fn get_sector_at_mut<'a>(
@@ -145,7 +145,7 @@ impl World {
     ) -> &'a mut sector::Sector {
         let sector_id = Grid::position_to_sector_id(position, grid);
 
-        &mut sector_vec_slice[usize::from(sector_id)]
+        &mut sector_vec_slice[sector_id.to_usize()]
     }
 
     pub fn get_cell(
@@ -153,9 +153,9 @@ impl World {
         cell_id: cell::ID,
         sector_vec_slice: &[Sector],
     ) -> &Cell {
-        let sector = &sector_vec_slice[usize::from(sector_id)];
+        let sector = &sector_vec_slice[sector_id.to_usize()];
 
-        &sector.cell_vec[usize::from(cell_id)]
+        &sector.cell_vec[cell_id.to_usize()]
     }
 
     pub fn get_cell_mut(
@@ -163,9 +163,9 @@ impl World {
         cell_id: cell::ID,
         sector_vec_slice: &mut [Sector],
     ) -> &mut Cell {
-        let sector = &mut sector_vec_slice[usize::from(sector_id)];
+        let sector = &mut sector_vec_slice[sector_id.to_usize()];
 
-        &mut sector.cell_vec[usize::from(cell_id)]
+        &mut sector.cell_vec[cell_id.to_usize()]
     }
 
     pub fn get_cell_at<'a>(

@@ -1,5 +1,5 @@
+pub mod item_instance_data;
 pub mod item_mesh;
-pub mod item_render_data;
 pub mod item_vertex;
 
 use crate::{
@@ -7,19 +7,16 @@ use crate::{
     interface::{
         camera::Camera,
         gpu::gpu_context::GPUContext,
-        item_render::{item_render_data::ItemRenderData, item_vertex::ItemVertex},
+        item_render::{item_instance_data::ItemInstanceData, item_vertex::ItemVertex},
     },
 };
 
 pub struct ItemRender {
-    pub item_render_data_vec: Vec<ItemRenderData>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl ItemRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let item_render_data_vec = Vec::new();
-
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
 
         let render_pipeline = Self::create_render_pipeline(
@@ -28,15 +25,12 @@ impl ItemRender {
             &texture_bind_group_layout,
         );
 
-        Self {
-            item_render_data_vec,
-            render_pipeline,
-        }
+        Self { render_pipeline }
     }
 
     fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Texture BindGroupLayout"),
+            label: Some("Item Render Bind Group Layout"),
             entries: &[
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -67,9 +61,9 @@ impl ItemRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Item Vert Shader"),
+                    label: Some("Item Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/world.vert.wgsl").into(),
+                        include_assets!("shaders/item.vert.wgsl").into(),
                     ),
                 });
 
@@ -77,9 +71,9 @@ impl ItemRender {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Item Frag Shader"),
+                    label: Some("Item Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/world.frag.wgsl").into(),
+                        include_assets!("shaders/item.frag.wgsl").into(),
                     ),
                 });
 
@@ -100,7 +94,7 @@ impl ItemRender {
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[ItemVertex::desc()],
+                    buffers: &[ItemVertex::desc(), ItemInstanceData::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {
@@ -175,17 +169,6 @@ impl ItemRender {
 
         render_pass.set_pipeline(&item_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-
-        for _sector_render_data in &item_render.item_render_data_vec {
-            // render_pass.set_vertex_buffer(0, sector_render_data.mesh_data.vertex_buffer.slice(..));
-
-            // render_pass.set_index_buffer(
-            //     sector_render_data.mesh_data.index_buffer.slice(..),
-            //     wgpu::IndexFormat::Uint32,
-            // );
-
-            // render_pass.draw_indexed(0..sector_render_data.mesh_data.index_count, 0, 0..1);
-        }
 
         drop(render_pass);
     }

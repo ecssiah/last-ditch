@@ -55,7 +55,7 @@ impl SectorMesh {
                     let cell_coordinates = IVec3::new(x, y, z);
                     let cell_id = Grid::cell_coordinates_to_cell_id(cell_coordinates, grid);
 
-                    let block_view_option = &sector_view.block_view_vec[usize::from(cell_id)];
+                    let block_view_option = &sector_view.block_view_vec[cell_id.to_usize()];
 
                     if let Some(block_view) = block_view_option {
                         if face_mask::has(face_mask::EAST, &block_view.face_mask) {

@@ -17,7 +17,7 @@ impl JudgeView {
         Self {
             position: IVec3::new(0, 0, 0),
             world_position: Vec3::broadcast(0.0),
-            sector_id: sector::ID::MAX,
+            sector_id: sector::ID(0),
             sector_coordinates: IVec3::new(0, 0, 0),
             size: Vec3::broadcast(0.0),
             rotor: Rotor3::identity(),

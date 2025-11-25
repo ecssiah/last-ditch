@@ -22,11 +22,11 @@ pub struct Sector {
 
 impl Sector {
     pub fn get_cell<'a>(cell_id: cell::ID, sector: &'a Sector) -> &'a Cell {
-        &sector.cell_vec[usize::from(cell_id)]
+        &sector.cell_vec[cell_id.to_usize()]
     }
 
     pub fn get_cell_mut<'a>(cell_id: cell::ID, sector: &'a mut Sector) -> &'a mut Cell {
-        &mut sector.cell_vec[usize::from(cell_id)]
+        &mut sector.cell_vec[cell_id.to_usize()]
     }
 
     pub fn get_cell_at<'a>(coordinates: IVec3, grid: &Grid, sector: &'a Sector) -> &'a Cell {

@@ -194,7 +194,7 @@ impl Observation {
                         &state.world.grid,
                     );
 
-                    let sector = &state.world.sector_vec[usize::from(sector_id)];
+                    let sector = &state.world.sector_vec[sector_id.to_usize()];
 
                     let block_view_vec = Self::get_block_view_vec(
                         sector,
@@ -275,7 +275,7 @@ impl Observation {
                                     neighbor_cell_coordinates,
                                     grid,
                                 );
-                                sector.cell_vec[usize::from(neighbor_cell_id)].block_kind
+                                sector.cell_vec[neighbor_cell_id.to_usize()].block_kind
                                     == block::Kind::None
                             };
 
@@ -290,7 +290,7 @@ impl Observation {
                         face_mask,
                     };
 
-                    block_view_vec[usize::from(cell.cell_id)] = Some(block_view);
+                    block_view_vec[cell.cell_id.to_usize()] = Some(block_view);
                 }
             }
         }
