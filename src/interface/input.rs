@@ -8,7 +8,7 @@ use crate::{
         constants::*,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
-    simulation::state::{action::{Act, act::MoveData}},
+    simulation::state::action::{act::MoveData, Act},
 };
 use std::collections::VecDeque;
 use tracing::info;

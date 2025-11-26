@@ -49,7 +49,7 @@ impl Population {
     }
 
     pub fn tick(world: &World, population: &mut Population) {
-        let _population_span = tracing::info_span!("population_tick").entered();
+        let _ = tracing::info_span!("population_tick").entered();
 
         for agent in population.agent_map.values_mut() {
             Agent::tick(world, agent);

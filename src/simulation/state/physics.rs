@@ -26,7 +26,7 @@ impl Physics {
     }
 
     pub fn tick(world: &World, physics: &Physics, population: &mut Population) {
-        let _physics_span = tracing::info_span!("physics_tick").entered();
+        let _ = tracing::info_span!("physics_tick").entered();
 
         let (velocity, delta) =
             Physics::integrate(physics.gravity, &mut population.judge.kinematic);

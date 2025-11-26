@@ -198,14 +198,13 @@ impl WorldRender {
         active_sector_id_set: &mut HashSet<sector::ID>,
         active_gpu_mesh_vec: &mut Vec<sector::ID>,
     ) {
-        let _span = tracing::info_span!("apply_world_view").entered();
+        let _ = tracing::info_span!("apply_world_view").entered();
 
         active_sector_id_set.clear();
         active_gpu_mesh_vec.clear();
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
-            let _sector_span =
-                tracing::info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
+            let _ = tracing::info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
 
             if !camera
                 .frustum

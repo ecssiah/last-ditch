@@ -1,4 +1,4 @@
-use crate::simulation::state::{Action, State, admin};
+use crate::simulation::state::{admin, Action, State};
 
 pub fn init(state: &mut State) {
     tracing::info!("Simulation Shutdown");

@@ -9,9 +9,7 @@ pub struct Receiver {
 
 impl Receiver {
     pub fn new(act_rx: UnboundedReceiver<Act>) -> Self {
-        Self {
-            act_rx,
-        }
+        Self { act_rx }
     }
 
     pub fn tick(receiver: &mut Receiver, action: &mut Action) {

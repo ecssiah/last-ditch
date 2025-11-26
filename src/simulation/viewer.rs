@@ -44,7 +44,7 @@ impl Viewer {
         view_buffer_input: &mut triple_buffer::Input<View>,
         viewer: &mut Viewer,
     ) {
-        let _observation_span = tracing::info_span!("observation_tick").entered();
+        let _ = tracing::info_span!("observation_tick").entered();
 
         Self::update_view(state, view_buffer_input, viewer);
     }

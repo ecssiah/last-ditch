@@ -7,13 +7,13 @@ pub mod navigation;
 pub mod physics;
 pub mod population;
 pub mod receiver;
-pub mod template;
-pub mod time;
-pub mod world;
 pub mod state_loading;
 pub mod state_menu;
 pub mod state_shutdown;
 pub mod state_simulate;
+pub mod template;
+pub mod time;
+pub mod world;
 
 pub use action::Action;
 pub use admin::Admin;
@@ -25,9 +25,7 @@ pub use template::Template;
 pub use time::Time;
 pub use world::World;
 
-use crate::simulation::{
-    state::{self, navigation::Navigation},
-};
+use crate::simulation::state::{self, navigation::Navigation};
 
 pub struct State {
     pub active: bool,

@@ -8,7 +8,7 @@ pub mod utils;
 pub mod viewer;
 
 use crate::simulation::{
-    state::{Receiver, State, action::act::Act},
+    state::{action::act::Act, Receiver, State},
     timestep::Timestep,
     viewer::{View, Viewer},
 };
@@ -51,7 +51,7 @@ impl Simulation {
         Timestep::init(timestep);
 
         loop {
-            let _simulation_span = tracing::info_span!("simulation").entered();
+            let _ = tracing::info_span!("simulation").entered();
 
             Timestep::start(timestep);
 
