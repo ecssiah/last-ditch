@@ -77,11 +77,8 @@ impl Receiver {
         if movement_data.direction.mag_sq() > 1e-6 {
             let yaw_rotor = Rotor3::from_rotation_xy(spatial.yaw);
 
-            let local_velocity = Vec3::new(
-                movement_data.direction.x * kinematic.speed,
-                movement_data.direction.y * kinematic.speed,
-                0.0,
-            );
+            let local_velocity = kinematic.speed
+                * Vec3::new(movement_data.direction.x, movement_data.direction.y, 0.0).normalized();
 
             let velocity = yaw_rotor * local_velocity;
 

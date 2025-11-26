@@ -30,9 +30,8 @@ pub const MINIMUM_CLEARANCE: u32 = 3;
 pub const CONTACT_OFFSET: f32 = 0.001;
 pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
 
-pub const JUDGE_DEFAULT_SPEED_X: f32 = 6.0;
-pub const JUDGE_DEFAULT_SPEED_Y: f32 = 8.0;
-pub const JUDGE_DEFAULT_SPEED_Z: f32 = 16.0;
+pub const JUDGE_DEFAULT_SPEED: f32 = 8.0;
+pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
 
 pub const JUDGE_DEFAULT_SIZE_X: f32 = 0.6;
 pub const JUDGE_DEFAULT_SIZE_Y: f32 = 0.6;
@@ -42,9 +41,8 @@ pub const PITCH_LIMIT: f32 = std::f32::consts::FRAC_PI_2 + f32::EPSILON;
 
 pub const AGENT_INITIAL_POPULATION: i32 = 16;
 
-pub const AGENT_DEFAULT_SPEED_X: f32 = 6.0;
-pub const AGENT_DEFAULT_SPEED_Y: f32 = 8.0;
-pub const AGENT_DEFAULT_SPEED_Z: f32 = 8.0;
+pub const AGENT_DEFAULT_SPEED: f32 = 6.0;
+pub const AGENT_DEFAULT_JUMP_SPEED: f32 = 8.0;
 
 pub const AGENT_DEFAULT_SIZE_X: f32 = 0.6;
 pub const AGENT_DEFAULT_SIZE_Y: f32 = 0.6;
