@@ -5,7 +5,7 @@ pub mod constants;
 pub mod constructor;
 pub mod kind;
 pub mod state;
-pub mod timing;
+pub mod timestep;
 pub mod utils;
 pub mod viewer;
 
@@ -15,14 +15,14 @@ pub use kind::Kind;
 use crate::simulation::{
     self,
     state::{receiver::Action, Receiver, State},
-    timing::Timing,
+    timestep::Timestep,
     viewer::{view::View, Viewer},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
     pub kind: simulation::Kind,
-    pub timing: Timing,
+    pub timestep: Timestep,
     pub receiver: Receiver,
     pub viewer: Viewer,
     pub state: State,
@@ -36,14 +36,14 @@ impl Simulation {
     ) -> Self {
         let simulation_kind = simulation::Kind::Main;
 
-        let timing = Timing::new();
+        let timestep = Timestep::new();
         let receiver = Receiver::new(action_rx);
         let viewer = Viewer::new();
         let state = State::new(simulation_kind);
 
         Self {
             kind: simulation_kind,
-            timing,
+            timestep,
             receiver,
             viewer,
             state,
@@ -52,31 +52,31 @@ impl Simulation {
     }
 
     pub fn run(
-        timing: &mut Timing,
+        timestep: &mut Timestep,
         receiver: &mut Receiver,
         viewer: &mut Viewer,
         state: &mut State,
         view_buffer_input: &mut triple_buffer::Input<View>,
     ) {
-        Timing::init(timing);
+        Timestep::init(timestep);
 
         loop {
             let _simulation_span = tracing::info_span!("simulation").entered();
 
-            Timing::start(timing);
+            Timestep::start(timestep);
 
-            while Timing::has_work(timing) {
+            while Timestep::has_work(timestep) {
                 State::tick(state);
                 Viewer::tick(state, view_buffer_input, viewer);
-                Timing::tick(timing);
                 Receiver::tick(receiver, state);
+                Timestep::tick(timestep);
 
                 if receiver.is_off {
                     return;
                 }
             }
 
-            Timing::fix_timestep(timing);
+            Timestep::fix(timestep);
         }
     }
 }

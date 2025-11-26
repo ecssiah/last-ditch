@@ -30,7 +30,7 @@ impl<'window> App<'window> {
 
         *simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
-                &mut simulation.timing,
+                &mut simulation.timestep,
                 &mut simulation.receiver,
                 &mut simulation.viewer,
                 &mut simulation.state,

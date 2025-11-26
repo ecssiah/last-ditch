@@ -1,8 +1,6 @@
 use crate::simulation::state::navigation::path;
 
-pub struct Solver {
-
-}
+pub struct Solver {}
 
 impl Solver {
     pub const EXPANSION_BUDGET: usize = 500;

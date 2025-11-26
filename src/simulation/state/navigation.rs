@@ -1,9 +1,9 @@
-use crate::simulation::state::{World, navigation, world::grid::Grid};
+use crate::simulation::state::{navigation, world::grid::Grid, World};
 use std::collections::VecDeque;
 use ultraviolet::IVec3;
 
-pub mod path;
 pub mod graph;
+pub mod path;
 
 pub use graph::Graph;
 
@@ -51,7 +51,5 @@ impl Navigation {
         path_id
     }
 
-    pub fn tick(world: &World, navigation: &mut Navigation) {
-        
-    }
+    pub fn tick(world: &World, navigation: &mut Navigation) {}
 }
