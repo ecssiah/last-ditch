@@ -9,30 +9,31 @@ use crate::{
         gpu::gpu_context::GPUContext,
         hud::mode::{LoadData, MenuData, ShutdownData, SimulateData},
     },
-    simulation::{state::Action, viewer::View},
+    simulation::{state::action::Act, viewer::View},
 };
 use egui::{FontId, FullOutput, Id, Ui};
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec2;
 use winit::event::{DeviceEvent, WindowEvent};
 
 pub struct HUD {
     pub mode: Mode,
-    pub action_vec: Vec<Action>,
+    pub act_deque: VecDeque<Act>,
 }
 
 impl HUD {
     pub fn new() -> Self {
-        let action_vec = Vec::new();
+        let act_deque = VecDeque::new();
+
         let mode = Mode::Menu(mode::MenuData {
             message: "NO MESSAGE SET".to_string(),
         });
 
-        Self { action_vec, mode }
+        Self { act_deque, mode }
     }
 
-    pub fn get_action_vec(action_vec: &mut Vec<Action>) -> Vec<Action> {
-        std::mem::take(action_vec)
+    pub fn get_act_deque(act_deque: &mut VecDeque<Act>) -> VecDeque<Act> {
+        std::mem::take(act_deque)
     }
 
     pub fn get_full_output(
@@ -40,24 +41,24 @@ impl HUD {
         mode: &Mode,
         egui_context: &egui::Context,
         egui_winit_state: &mut egui_winit::State,
-        action_vec: &mut Vec<Action>,
+        act_deque: &mut VecDeque<Act>,
     ) -> FullOutput {
         let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
-        let mut action_vec_ = std::mem::take(action_vec);
+        let mut act_deque_ = std::mem::take(act_deque);
 
         let full_output: FullOutput = egui_context.run(raw_input, |context| match &mode {
-            Mode::Menu(menu_data) => Self::draw_menu(context, menu_data, &mut action_vec_),
-            Mode::Load(load_data) => Self::draw_load(context, load_data, &mut action_vec_),
+            Mode::Menu(menu_data) => Self::draw_menu(context, menu_data, &mut act_deque_),
+            Mode::Load(load_data) => Self::draw_load(context, load_data, &mut act_deque_),
             Mode::Simulate(simulate_data) => {
-                Self::draw_simulate(context, simulate_data, &mut action_vec_)
+                Self::draw_simulate(context, simulate_data, &mut act_deque_)
             }
             Mode::Shutdown(shutdown_data) => {
-                Self::draw_shutdown(context, shutdown_data, &mut action_vec_)
+                Self::draw_shutdown(context, shutdown_data, &mut act_deque_)
             }
         });
 
-        *action_vec = action_vec_;
+        *act_deque = act_deque_;
 
         full_output
     }
@@ -78,7 +79,7 @@ impl HUD {
             &hud.mode,
             egui_context,
             egui_winit_state,
-            &mut hud.action_vec,
+            &mut hud.act_deque,
         );
 
         let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
@@ -171,7 +172,7 @@ impl HUD {
         *mode = Mode::Shutdown(shutdown_data);
     }
 
-    fn draw_menu(context: &egui::Context, _menu_data: &MenuData, action_vec: &mut Vec<Action>) {
+    fn draw_menu(context: &egui::Context, _menu_data: &MenuData, act_deque: &mut VecDeque<Act>) {
         let mut start_clicked = false;
         let mut exit_clicked = false;
 
@@ -190,15 +191,15 @@ impl HUD {
         });
 
         if start_clicked {
-            action_vec.push(Action::Start);
+            act_deque.push_back(Act::Start);
         }
 
         if exit_clicked {
-            action_vec.push(Action::Quit);
+            act_deque.push_back(Act::Quit);
         }
     }
 
-    fn draw_load(context: &egui::Context, load_data: &LoadData, _action_vec: &mut Vec<Action>) {
+    fn draw_load(context: &egui::Context, load_data: &LoadData, _act_deque: &mut VecDeque<Act>) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
             .show(context, |ui| {
@@ -209,7 +210,7 @@ impl HUD {
     fn draw_simulate(
         context: &egui::Context,
         simulate_data: &SimulateData,
-        _action_vec: &mut Vec<Action>,
+        _act_deque: &mut VecDeque<Act>,
     ) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
@@ -221,7 +222,7 @@ impl HUD {
     fn draw_shutdown(
         context: &egui::Context,
         shutdown_data: &ShutdownData,
-        _action_vec: &mut Vec<Action>,
+        _act_deque: &mut VecDeque<Act>,
     ) {
         egui::Area::new(Id::new(0))
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))

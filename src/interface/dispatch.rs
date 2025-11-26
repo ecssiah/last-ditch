@@ -1,14 +1,14 @@
 //! Sends Actions from Interface to Simulation
 
-use crate::simulation::state;
+use crate::simulation::state::action::Act;
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct Dispatch {
-    pub action_tx: UnboundedSender<state::Action>,
+    pub act_tx: UnboundedSender<Act>,
 }
 
 impl Dispatch {
-    pub fn new(action_tx: UnboundedSender<state::Action>) -> Self {
-        Self { action_tx }
+    pub fn new(act_tx: UnboundedSender<Act>) -> Self {
+        Self { act_tx }
     }
 }

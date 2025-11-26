@@ -8,8 +8,9 @@ use crate::{
         constants::*,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
-    simulation::state,
+    simulation::state::{action::{Act, act::MoveData}},
 };
+use std::collections::VecDeque;
 use tracing::info;
 use ultraviolet::{Vec2, Vec3};
 use winit::{
@@ -21,9 +22,9 @@ use winit::{
 };
 
 pub struct Input {
-    pub action_vec: Vec<state::Action>,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
+    pub act_deque: VecDeque<Act>,
 }
 
 impl Input {
@@ -39,31 +40,28 @@ impl Input {
             delta: Vec2::broadcast(0.0),
         };
 
-        let action_vec = Vec::new();
+        let act_deque = VecDeque::new();
 
         Self {
             key_inputs,
             mouse_inputs,
-            action_vec,
+            act_deque,
         }
     }
 
-    pub fn get_action_vec(
+    pub fn get_act_deque(
         key_inputs: &KeyInputs,
         mouse_inputs: &mut MouseInputs,
-        action_vec: &mut Vec<state::Action>,
-    ) -> Vec<state::Action> {
-        let move_action = Self::get_move_action(key_inputs, mouse_inputs);
+        act_deque: &mut VecDeque<Act>,
+    ) -> VecDeque<Act> {
+        let move_act = Self::get_move_act(key_inputs, mouse_inputs);
 
-        action_vec.push(move_action);
+        act_deque.push_back(move_act);
 
-        std::mem::take(action_vec)
+        std::mem::take(act_deque)
     }
 
-    pub fn get_move_action(
-        key_inputs: &KeyInputs,
-        mouse_inputs: &mut MouseInputs,
-    ) -> state::Action {
+    pub fn get_move_act(key_inputs: &KeyInputs, mouse_inputs: &mut MouseInputs) -> Act {
         let direction = Vec3::new(
             key_inputs.key_a + key_inputs.key_d,
             key_inputs.key_w + key_inputs.key_s,
@@ -75,20 +73,20 @@ impl Input {
 
         mouse_inputs.delta = Vec2::broadcast(0.0);
 
-        let move_data = state::action::MoveData {
+        let move_data = MoveData {
             direction,
             rotation,
         };
 
-        state::Action::Move(move_data)
+        Act::Move(move_data)
     }
 
     pub fn handle_window_event(
         event: &WindowEvent,
         key_inputs: &mut KeyInputs,
-        action_vec: &mut Vec<state::Action>,
+        act_deque: &mut VecDeque<Act>,
     ) {
-        if let Some(action) = match event {
+        if let Some(act) = match event {
             WindowEvent::CloseRequested => Self::handle_close_requested(),
             WindowEvent::KeyboardInput {
                 device_id,
@@ -107,7 +105,7 @@ impl Input {
             } => Self::handle_mouse_wheel(device_id, delta, phase),
             _ => None,
         } {
-            action_vec.push(action);
+            act_deque.push_back(act);
         }
     }
 
@@ -121,8 +119,8 @@ impl Input {
         }
     }
 
-    fn handle_close_requested() -> Option<state::Action> {
-        Some(state::Action::Quit)
+    fn handle_close_requested() -> Option<Act> {
+        Some(Act::Quit)
     }
 
     fn handle_keyboard_input(
@@ -130,40 +128,40 @@ impl Input {
         key_event: &KeyEvent,
         _is_synthetic: &bool,
         key_inputs: &mut KeyInputs,
-    ) -> Option<state::Action> {
+    ) -> Option<Act> {
         match key_event.physical_key {
-            PhysicalKey::Code(KeyCode::Escape) => Some(state::Action::Quit),
+            PhysicalKey::Code(KeyCode::Escape) => Some(Act::Quit),
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
-                    Some(state::Action::Debug)
+                    Some(Act::Debug)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
-                    Some(state::Action::Test1)
+                    Some(Act::Test1)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
-                    Some(state::Action::Test2)
+                    Some(Act::Test2)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
-                    Some(state::Action::Test3)
+                    Some(Act::Test3)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
-                    Some(state::Action::Test4)
+                    Some(Act::Test4)
                 } else {
                     None
                 }
@@ -206,7 +204,7 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    Some(state::Action::Jump)
+                    Some(Act::Jump)
                 } else {
                     None
                 }
@@ -219,7 +217,7 @@ impl Input {
         _device_id: &DeviceId,
         state: &ElementState,
         button: &MouseButton,
-    ) -> Option<state::Action> {
+    ) -> Option<Act> {
         info!("{:?} {:?}", state, button);
 
         None
@@ -229,17 +227,13 @@ impl Input {
         _device_id: &DeviceId,
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
-    ) -> Option<state::Action> {
+    ) -> Option<Act> {
         info!("{:?} {:?}", delta, phase);
 
         None
     }
 
-    fn handle_mouse_motion(
-        dx: f64,
-        dy: f64,
-        mouse_inputs: &mut MouseInputs,
-    ) -> Option<state::Action> {
+    fn handle_mouse_motion(dx: f64, dy: f64, mouse_inputs: &mut MouseInputs) -> Option<Act> {
         let delta = Vec2::new(dx as f32, dy as f32);
 
         mouse_inputs.delta += delta;

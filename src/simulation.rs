@@ -8,7 +8,7 @@ pub mod utils;
 pub mod viewer;
 
 use crate::simulation::{
-    state::{Action, Receiver, State},
+    state::{Receiver, State, action::act::Act},
     timestep::Timestep,
     viewer::{View, Viewer},
 };
@@ -24,11 +24,11 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(
-        action_rx: UnboundedReceiver<Action>,
+        act_rx: UnboundedReceiver<Act>,
         view_buffer_input: triple_buffer::Input<View>,
     ) -> Self {
         let timestep = Timestep::new();
-        let receiver = Receiver::new(action_rx);
+        let receiver = Receiver::new(act_rx);
         let viewer = Viewer::new();
         let state = State::new();
 
@@ -56,12 +56,12 @@ impl Simulation {
             Timestep::start(timestep);
 
             while Timestep::has_work(timestep) {
+                Receiver::tick(receiver, &mut state.action);
                 State::tick(state);
                 Viewer::tick(state, view_buffer_input, viewer);
-                Receiver::tick(receiver, state);
                 Timestep::tick(timestep);
 
-                if receiver.is_off {
+                if !state.active {
                     return;
                 }
             }

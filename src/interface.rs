@@ -20,7 +20,7 @@ use crate::{
     },
     simulation::{
         self,
-        state::{admin, Action},
+        state::{action::Act, admin},
         viewer::{View, Viewer},
     },
 };
@@ -50,7 +50,7 @@ pub struct Interface<'window> {
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
-        action_tx: UnboundedSender<Action>,
+        act_tx: UnboundedSender<Act>,
         view_buffer_output: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();
@@ -159,7 +159,7 @@ impl<'window> Interface<'window> {
             egui_renderer,
         };
 
-        let dispatch = Dispatch::new(action_tx);
+        let dispatch = Dispatch::new(act_tx);
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
         let hud = HUD::new();
@@ -213,7 +213,7 @@ impl<'window> Interface<'window> {
                         Input::handle_window_event(
                             event,
                             &mut interface.input.key_inputs,
-                            &mut interface.input.action_vec,
+                            &mut interface.input.act_deque,
                         );
                     }
                 }
@@ -334,13 +334,13 @@ impl<'window> Interface<'window> {
 
             let _dispatch_span = tracing::info_span!("dispatch_actions").entered();
 
-            if !Self::dispatch_action_vec(
+            if !Self::dispatch_act_deque(
                 view,
                 &interface.dispatch,
                 &mut interface.hud,
                 &mut interface.input,
             ) {
-                match interface.dispatch.action_tx.send(Action::Exit) {
+                match interface.dispatch.act_tx.send(Act::Exit) {
                     Ok(_) => tracing::info!("Interface Exit Action Sent"),
                     Err(err) => tracing::warn!("Interface Exit Action Failed: ({err})"),
                 };
@@ -451,40 +451,40 @@ impl<'window> Interface<'window> {
         event_loop.exit();
     }
 
-    fn dispatch_action_vec(
+    fn dispatch_act_deque(
         view: &View,
         dispatch: &Dispatch,
         hud: &mut HUD,
         input: &mut Input,
     ) -> bool {
-        let mut action_vec = Vec::new();
+        let mut act_deque = Vec::new();
 
         match view.admin_view.mode {
             admin::Mode::Menu => {
-                let hud_action_vec = HUD::get_action_vec(&mut hud.action_vec);
+                let hud_act_deque = HUD::get_act_deque(&mut hud.act_deque);
 
-                action_vec.extend(hud_action_vec);
+                act_deque.extend(hud_act_deque);
             }
             admin::Mode::Loading => {}
             admin::Mode::Simulate => {
-                let input_action_vec = Input::get_action_vec(
+                let input_act_deque = Input::get_act_deque(
                     &input.key_inputs,
                     &mut input.mouse_inputs,
-                    &mut input.action_vec,
+                    &mut input.act_deque,
                 );
 
-                let hud_action_vec = HUD::get_action_vec(&mut hud.action_vec);
+                let hud_act_deque = HUD::get_act_deque(&mut hud.act_deque);
 
-                action_vec.extend(input_action_vec);
-                action_vec.extend(hud_action_vec);
+                act_deque.extend(input_act_deque);
+                act_deque.extend(hud_act_deque);
             }
             admin::Mode::Shutdown => {
-                action_vec.push(Action::Exit);
+                act_deque.push(Act::Exit);
             }
         }
 
-        for action in action_vec {
-            match dispatch.action_tx.send(action) {
+        for action in act_deque {
+            match dispatch.act_tx.send(action) {
                 Ok(()) => (),
                 Err(_) => {
                     tracing::error!("Send Failed: {:?}", action);

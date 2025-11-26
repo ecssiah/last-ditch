@@ -1,6 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{state, viewer::View, Simulation},
+    simulation::{state::action::Act, viewer::View, Simulation},
 };
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -20,11 +20,11 @@ impl<'window> App<'window> {
         interface: &mut Option<Interface<'window>>,
         simulation_thread: &mut Option<tokio::task::JoinHandle<()>>,
     ) {
-        let (action_tx, action_rx) = unbounded_channel::<state::Action>();
+        let (act_tx, act_rx) = unbounded_channel::<Act>();
         let (view_buffer_input, view_buffer_output) = triple_buffer::triple_buffer(&View::new());
 
-        let mut simulation = Box::new(Simulation::new(action_rx, view_buffer_input));
-        *interface = Some(Interface::new(event_loop, action_tx, view_buffer_output));
+        let mut simulation = Box::new(Simulation::new(act_rx, view_buffer_input));
+        *interface = Some(Interface::new(event_loop, act_tx, view_buffer_output));
 
         *simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
