@@ -23,9 +23,14 @@ pub use population::Population;
 pub use receiver::Receiver;
 pub use template::Template;
 pub use time::Time;
+use ultraviolet::IVec3;
 pub use world::World;
 
-use crate::simulation::state::{self, navigation::Navigation};
+use crate::simulation::state::{
+    self,
+    navigation::{Graph, Navigation},
+    world::block,
+};
 
 pub struct State {
     pub active: bool,
@@ -77,5 +82,19 @@ impl State {
             admin::Mode::Simulate => state_simulate::tick(state),
             admin::Mode::Shutdown => state_shutdown::tick(state),
         }
+    }
+
+    pub fn set_block(position: IVec3, block_kind: block::Kind, state: &mut State) {
+        World::set_block(
+            position,
+            block_kind,
+            &state.world.block_info_map,
+            &state.world.grid,
+            &mut state.world.sector_vec,
+        );
+
+        let block_info = state.world.block_info_map[&block_kind];
+
+        Graph::set_solid(position, block_info.solid, &mut state.navigation.graph);
     }
 }

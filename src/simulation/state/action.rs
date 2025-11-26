@@ -39,6 +39,7 @@ impl Action {
                     &mut state.population.judge.kinematic,
                 ),
                 Act::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
+                Act::SetBlock(set_block_data) => State::set_block(set_block_data.position, set_block_data.block_kind, state),
                 Act::Test1 => tracing::info!("Test Action 1"),
                 Act::Test2 => tracing::info!("Test Action 2"),
                 Act::Test3 => tracing::info!("Test Action 3"),

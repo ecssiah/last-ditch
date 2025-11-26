@@ -8,11 +8,17 @@ use crate::{
         constants::*,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
-    simulation::state::action::{act::MoveData, Act},
+    simulation::state::{
+        action::{
+            act::{MoveData, SetBlockData},
+            Act,
+        },
+        world::block,
+    },
 };
 use std::collections::VecDeque;
 use tracing::info;
-use ultraviolet::{Vec2, Vec3};
+use ultraviolet::{IVec3, Vec2, Vec3};
 use winit::{
     event::{
         DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
@@ -218,9 +224,27 @@ impl Input {
         state: &ElementState,
         button: &MouseButton,
     ) -> Option<Act> {
-        info!("{:?} {:?}", state, button);
+        if state == &ElementState::Pressed {
+            if button == &MouseButton::Left {
+                let set_block_data = SetBlockData {
+                    position: IVec3::new(0, 0, 1),
+                    block_kind: block::Kind::CrimsonStone,
+                };
 
-        None
+                Some(Act::SetBlock(set_block_data))
+            } else if button == &MouseButton::Right {
+                let set_block_data = SetBlockData {
+                    position: IVec3::new(0, 0, 1),
+                    block_kind: block::Kind::None,
+                };
+
+                Some(Act::SetBlock(set_block_data))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
     fn handle_mouse_wheel(
