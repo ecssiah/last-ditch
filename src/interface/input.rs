@@ -10,7 +10,7 @@ use crate::{
     },
     simulation::state::{
         action::{
-            act::{MoveData, SetBlockData},
+            act::{MoveData, PlaceBlockData},
             Act,
         },
         world::block,
@@ -18,7 +18,7 @@ use crate::{
 };
 use std::collections::VecDeque;
 use tracing::info;
-use ultraviolet::{IVec3, Vec2, Vec3};
+use ultraviolet::{Vec2, Vec3};
 use winit::{
     event::{
         DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
@@ -226,19 +226,13 @@ impl Input {
     ) -> Option<Act> {
         if state == &ElementState::Pressed {
             if button == &MouseButton::Left {
-                let set_block_data = SetBlockData {
-                    position: IVec3::new(0, 0, 1),
+                let place_block_data = PlaceBlockData {
                     block_kind: block::Kind::CrimsonStone,
                 };
 
-                Some(Act::SetBlock(set_block_data))
+                Some(Act::PlaceBlock(place_block_data))
             } else if button == &MouseButton::Right {
-                let set_block_data = SetBlockData {
-                    position: IVec3::new(0, 0, 1),
-                    block_kind: block::Kind::None,
-                };
-
-                Some(Act::SetBlock(set_block_data))
+                Some(Act::RemoveBlock)
             } else {
                 None
             }
