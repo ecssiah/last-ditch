@@ -2,9 +2,7 @@
 
 use crate::{
     interface::constants::*,
-    simulation::state::receiver::action::{
-        Action, AdminAction, JudgeAction, JumpAction, MovementData, TestAction,
-    },
+    simulation::state::receiver::action::{self, Action},
 };
 use tracing::info;
 use ultraviolet::{Vec2, Vec3};
@@ -60,14 +58,14 @@ impl Input {
         mouse_inputs: &mut MouseInputs,
         action_vec: &mut Vec<Action>,
     ) -> Vec<Action> {
-        let movement_action = Self::get_movement_action(key_inputs, mouse_inputs);
+        let move_action = Self::get_move_action(key_inputs, mouse_inputs);
 
-        action_vec.push(movement_action);
+        action_vec.push(move_action);
 
         std::mem::take(action_vec)
     }
 
-    pub fn get_movement_action(key_inputs: &KeyInputs, mouse_inputs: &mut MouseInputs) -> Action {
+    pub fn get_move_action(key_inputs: &KeyInputs, mouse_inputs: &mut MouseInputs) -> Action {
         let direction = Vec3::new(
             key_inputs.key_a + key_inputs.key_d,
             key_inputs.key_w + key_inputs.key_s,
@@ -79,14 +77,12 @@ impl Input {
 
         mouse_inputs.delta = Vec2::broadcast(0.0);
 
-        let movement_data = MovementData {
+        let move_data = action::MoveData {
             direction,
             rotation,
         };
 
-        let judge_action = JudgeAction::Movement(movement_data);
-
-        Action::Judge(judge_action)
+        Action::Move(move_data)
     }
 
     pub fn handle_window_event(
@@ -128,10 +124,7 @@ impl Input {
     }
 
     fn handle_close_requested() -> Option<Action> {
-        let admin_action = AdminAction::Quit;
-        let action = Action::Admin(admin_action);
-
-        Some(action)
+        Some(Action::Quit)
     }
 
     fn handle_keyboard_input(
@@ -141,58 +134,38 @@ impl Input {
         key_inputs: &mut KeyInputs,
     ) -> Option<Action> {
         match key_event.physical_key {
-            PhysicalKey::Code(KeyCode::Escape) => {
-                let admin_action = AdminAction::Quit;
-                let action = Action::Admin(admin_action);
-
-                Some(action)
-            }
+            PhysicalKey::Code(KeyCode::Escape) => Some(Action::Quit),
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
-                    let admin_action = AdminAction::Debug;
-                    let action = Action::Admin(admin_action);
-
-                    Some(action)
+                    Some(Action::ToggleDebug)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test1;
-                    let action = Action::Test(test_action);
-
-                    Some(action)
+                    Some(Action::Test1)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test2;
-                    let action = Action::Test(test_action);
-
-                    Some(action)
+                    Some(Action::Test2)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test3;
-                    let action = Action::Test(test_action);
-
-                    Some(action)
+                    Some(Action::Test3)
                 } else {
                     None
                 }
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
-                    let test_action = TestAction::Test4;
-                    let action = Action::Test(test_action);
-
-                    Some(action)
+                    Some(Action::Test4)
                 } else {
                     None
                 }
@@ -235,17 +208,7 @@ impl Input {
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
-                    let jump_action = JumpAction::Start;
-                    let judge_action = JudgeAction::Jump(jump_action);
-                    let action = Action::Judge(judge_action);
-
-                    Some(action)
-                } else if key_event.state == ElementState::Released {
-                    let jump_action = JumpAction::End;
-                    let judge_action = JudgeAction::Jump(jump_action);
-                    let action = Action::Judge(judge_action);
-
-                    Some(action)
+                    Some(Action::Jump)
                 } else {
                     None
                 }

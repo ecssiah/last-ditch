@@ -20,10 +20,7 @@ use crate::{
     },
     simulation::{
         self,
-        state::{
-            admin,
-            receiver::action::{Action, AdminAction},
-        },
+        state::{admin, receiver::action::Action},
         viewer::{view::View, Viewer},
     },
 };
@@ -343,12 +340,9 @@ impl<'window> Interface<'window> {
                 &mut interface.hud,
                 &mut interface.input,
             ) {
-                let admin_action = AdminAction::Exit;
-                let action = Action::Admin(admin_action);
-
-                match interface.dispatch.action_tx.send(action) {
+                match interface.dispatch.action_tx.send(Action::Exit) {
                     Ok(_) => tracing::info!("Interface Exit Action Sent"),
-                    Err(err) => tracing::warn!("Failed to send action: {:?} ({err})", action),
+                    Err(err) => tracing::warn!("Interface Exit Action Failed: ({err})"),
                 };
             } else {
                 Self::apply_view(
@@ -485,12 +479,7 @@ impl<'window> Interface<'window> {
                 action_vec.extend(hud_action_vec);
             }
             admin::Mode::Shutdown => {
-                let admin_action = AdminAction::Exit;
-                let action = Action::Admin(admin_action);
-
-                tracing::info!("Interface Exit");
-
-                action_vec.push(action);
+                action_vec.push(Action::Exit);
             }
         }
 

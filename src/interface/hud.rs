@@ -9,7 +9,7 @@ use crate::{
         gpu::gpu_context::GPUContext,
         hud::mode::{LoadData, MenuData, ShutdownData, SimulateData},
     },
-    simulation::{self, state::receiver::action::Action, viewer::view::View},
+    simulation::{state::receiver::action::Action, viewer::view::View},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::sync::Arc;
@@ -190,17 +190,11 @@ impl HUD {
         });
 
         if start_clicked {
-            let admin_action = simulation::state::receiver::action::AdminAction::Start;
-            let action = Action::Admin(admin_action);
-
-            action_vec.push(action);
+            action_vec.push(Action::Start);
         }
 
         if exit_clicked {
-            let admin_action = simulation::state::receiver::action::AdminAction::Quit;
-            let action = Action::Admin(admin_action);
-
-            action_vec.push(action);
+            action_vec.push(Action::Quit);
         }
     }
 

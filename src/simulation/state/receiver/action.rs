@@ -1,16 +1,21 @@
-pub mod admin_action;
-pub mod judge_action;
-pub mod test_action;
+use ultraviolet::Vec3;
 
-pub use admin_action::AdminAction;
-pub use judge_action::JudgeAction;
-pub use judge_action::JumpAction;
-pub use judge_action::MovementData;
-pub use test_action::TestAction;
+#[derive(Clone, Copy, Debug)]
+pub struct MoveData {
+    pub direction: Vec3,
+    pub rotation: Vec3,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
-    Admin(AdminAction),
-    Test(TestAction),
-    Judge(JudgeAction),
+    Start,
+    Quit,
+    Exit,
+    ToggleDebug,
+    Jump,
+    Move(MoveData),
+    Test1,
+    Test2,
+    Test3,
+    Test4,
 }
