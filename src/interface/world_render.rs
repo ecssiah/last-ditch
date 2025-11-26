@@ -9,9 +9,7 @@ use crate::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        world_render::{
-            sector_mesh::SectorMesh, sector_vertex::SectorVertex, tile_atlas::TileAtlas,
-        },
+        world_render::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
         state::world::{grid::Grid, sector},
@@ -34,7 +32,7 @@ impl WorldRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
 
-        let tile_atlas_gpu_texture_data = TileAtlas::get_gpu_texture_data(
+        let tile_atlas_gpu_texture_data = tile_atlas::get_gpu_texture_data(
             tile_atlas_texture_path,
             &gpu_context.device,
             &gpu_context.queue,

@@ -4,7 +4,7 @@ use crate::simulation::{
 };
 use ultraviolet::Vec3;
 
-pub fn run(population: &mut Population) {
+pub fn construct(population: &mut Population) {
     setup_judge(population);
 }
 

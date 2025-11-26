@@ -1,8 +1,10 @@
 use crate::simulation::{
-    self,
     constants::*,
     constructor,
-    state::world::{grid::Grid, World},
+    state::{
+        self,
+        world::{grid::Grid, World},
+    },
 };
 use ultraviolet::IVec3;
 
@@ -27,10 +29,10 @@ impl GetClearanceCase {
 
 #[test]
 fn get_clearance() {
-    let simulation_kind = simulation::Kind::Test;
+    let state_template = state::Template::Test;
 
-    let mut world = World::new(simulation_kind);
-    constructor::world::run(simulation_kind, &mut world);
+    let mut world = World::new(state_template);
+    constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
         GetClearanceCase {

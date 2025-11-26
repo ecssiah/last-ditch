@@ -1,6 +1,8 @@
 use crate::simulation::{
-    self,
-    state::world::{grid::Grid, sector},
+    state::{
+        self,
+        world::{grid::Grid, sector},
+    },
     viewer::view::sector_view::SectorView,
 };
 use std::collections::HashMap;
@@ -14,7 +16,7 @@ pub struct WorldView {
 impl WorldView {
     pub fn new() -> Self {
         Self {
-            grid: Grid::new(simulation::Kind::Empty),
+            grid: Grid::new(state::Template::Empty),
             sector_view_map: HashMap::new(),
         }
     }

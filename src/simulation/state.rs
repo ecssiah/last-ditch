@@ -1,49 +1,62 @@
 //! Current state of the simulation
 
+pub mod action;
 pub mod admin;
+pub mod config;
 pub mod navigation;
 pub mod physics;
 pub mod population;
 pub mod receiver;
+pub mod template;
 pub mod time;
 pub mod world;
 
+pub use action::Action;
 pub use admin::Admin;
+pub use config::Config;
 pub use physics::Physics;
 pub use population::Population;
 pub use receiver::Receiver;
+pub use template::Template;
 pub use time::Time;
 pub use world::World;
 
 use crate::simulation::{
-    self, constants::PROJECT_TITLE, constructor, state::navigation::Navigation,
+    constants::PROJECT_TITLE,
+    constructor,
+    state::{self, navigation::Navigation},
 };
+use std::collections::VecDeque;
 
 pub struct State {
-    pub simulation_kind: simulation::Kind,
+    pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
+    pub action_deque: VecDeque<state::Action>,
     pub admin: Admin,
-    pub time: Time,
-    pub physics: Physics,
     pub world: World,
     pub population: Population,
+    pub physics: Physics,
     pub navigation: Navigation,
+    pub time: Time,
 }
 
 impl State {
-    pub fn new(simulation_kind: simulation::Kind) -> Self {
+    pub fn new() -> Self {
+        let template = state::Template::Main;
         let construct_rx = None;
+        let action_deque = VecDeque::new();
 
         let admin = Admin::new();
-        let time = Time::new();
+        let world = World::new(template);
+        let population = Population::new(template);
         let physics = Physics::new();
-        let world = World::new(simulation_kind);
-        let population = Population::new(simulation_kind);
         let navigation = Navigation::new(&world.grid);
+        let time = Time::new();
 
         Self {
-            simulation_kind,
+            template,
             construct_rx,
+            action_deque,
             admin,
             time,
             physics,
@@ -54,7 +67,7 @@ impl State {
     }
 
     pub fn tick(state: &mut State) {
-        let _state_span = tracing::info_span!("state_tick").entered();
+        let _ = tracing::info_span!("state_tick").entered();
 
         match state.admin.mode {
             admin::Mode::Menu => (),
@@ -65,7 +78,7 @@ impl State {
     }
 
     fn init_load(state: &mut State) {
-        let simulation_kind = state.simulation_kind;
+        let state_template = state.template;
 
         let world = std::mem::replace(&mut state.world, World::placeholder());
         let population = std::mem::replace(&mut state.population, Population::placeholder());
@@ -76,8 +89,8 @@ impl State {
             let mut world = world;
             let mut population = population;
 
-            constructor::world::run(simulation_kind, &mut world);
-            constructor::population::run(simulation_kind, &world, &mut population);
+            constructor::world_template::construct(state_template, &mut world);
+            constructor::population_template::construct(state_template, &world, &mut population);
 
             let _ = construct_tx.blocking_send((world, population));
         });
@@ -100,6 +113,8 @@ impl State {
                 state.world = world;
                 state.population = population;
 
+                Navigation::init_graph(&state.world, &mut state.navigation.graph);
+
                 state.admin.mode = admin::Mode::Simulate;
                 state.admin.message = format!("{} {}", PROJECT_TITLE, env!("CARGO_PKG_VERSION"));
             }
@@ -107,12 +122,12 @@ impl State {
     }
 
     fn tick_simulate(state: &mut State) {
-        let _simulate_span = tracing::info_span!("simulate_tick").entered();
+        let _ = tracing::info_span!("simulate_tick").entered();
 
-        Time::tick(&mut state.time);
         Population::tick(&state.world, &mut state.population);
         Physics::tick(&state.world, &state.physics, &mut state.population);
         Navigation::tick(&state.world, &mut state.navigation);
+        Time::tick(&mut state.time);
     }
 
     fn tick_shutdown(state: &mut State) {

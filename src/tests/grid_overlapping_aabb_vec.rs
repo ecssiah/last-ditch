@@ -1,6 +1,7 @@
 use crate::simulation::{
-    self, constructor,
+    constructor,
     state::{
+        self,
         physics::aabb::AABB,
         world::{cell::Cell, grid::Grid, World},
     },
@@ -26,10 +27,10 @@ impl OverlappingAABBCase {
 
 #[test]
 fn directions() {
-    let simulation_kind = simulation::Kind::Empty;
+    let state_template = state::Template::Empty;
 
-    let mut world = World::new(simulation_kind);
-    constructor::world::run(simulation_kind, &mut world);
+    let mut world = World::new(state_template);
+    constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
         OverlappingAABBCase {

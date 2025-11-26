@@ -36,8 +36,8 @@ impl PartialOrd for OpenNode {
 pub struct State {
     pub path_id: path::ID,
     pub finished: bool,
-    start: IVec3,
-    end: IVec3,
+    pub start: IVec3,
+    pub end: IVec3,
     open_heap: BinaryHeap<OpenNode>,
     origin: HashMap<IVec3, IVec3>,
     g_cost: HashMap<IVec3, i32>,

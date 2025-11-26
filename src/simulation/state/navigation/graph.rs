@@ -3,7 +3,7 @@ use ultraviolet::IVec3;
 pub struct Graph {
     radius: u32,
     size: u32,
-    open_vec: Vec<bool>,
+    solid_vec: Vec<bool>,
     cost_vec: Vec<u8>,
 }
 
@@ -42,13 +42,13 @@ impl Graph {
         let size = 2 * radius + 1;
         let volume = (size * size * size) as usize;
 
-        let open_vec = vec![false; volume];
+        let solid_vec = vec![false; volume];
         let cost_vec = vec![1u8; volume];
 
         Self {
             radius,
             size,
-            open_vec,
+            solid_vec,
             cost_vec,
         }
     }
@@ -80,7 +80,7 @@ impl Graph {
 
         let index = Graph::get_index(position, graph);
 
-        if !graph.open_vec[index] {
+        if graph.solid_vec[index] {
             return false;
         }
 
@@ -92,7 +92,17 @@ impl Graph {
 
         let index_below = Graph::get_index(position_below, graph);
 
-        !graph.open_vec[index_below]
+        let is_solid_ground = graph.solid_vec[index_below];
+
+        is_solid_ground
+    }
+
+    pub fn set_solid(position: IVec3, is_solid: bool, graph: &mut Graph) {
+        if Self::position_valid(position, graph) {
+            let index = Self::get_index(position, graph);
+
+            graph.solid_vec[index] = is_solid;
+        }
     }
 
     #[inline]

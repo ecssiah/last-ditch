@@ -1,12 +1,10 @@
 //! Action processor
 
-pub mod action;
-
-pub use action::Action;
-
 use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
+        self,
+        action::MoveData,
         population::{kinematic::Kinematic, spatial::Spatial},
         Admin, State,
     },
@@ -16,11 +14,11 @@ use ultraviolet::{Rotor3, Vec3};
 
 pub struct Receiver {
     pub is_off: bool,
-    pub action_rx: UnboundedReceiver<Action>,
+    pub action_rx: UnboundedReceiver<state::Action>,
 }
 
 impl Receiver {
-    pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
+    pub fn new(action_rx: UnboundedReceiver<state::Action>) -> Self {
         Self {
             is_off: false,
             action_rx,
@@ -30,20 +28,20 @@ impl Receiver {
     pub fn tick(receiver: &mut Receiver, state: &mut State) {
         while let Ok(action) = receiver.action_rx.try_recv() {
             match action {
-                Action::Start => State::init_load(state),
-                Action::Quit => State::init_shutdown(state),
-                Action::Exit => Self::turn_off(receiver),
-                Action::Debug => Admin::toggle_debug(&mut state.admin),
-                Action::Move(move_data) => Self::apply_move(
+                state::Action::Start => State::init_load(state),
+                state::Action::Quit => State::init_shutdown(state),
+                state::Action::Exit => Self::turn_off(receiver),
+                state::Action::Debug => Admin::toggle_debug(&mut state.admin),
+                state::Action::Move(move_data) => Self::apply_move(
                     &move_data,
                     &mut state.population.judge.spatial,
                     &mut state.population.judge.kinematic,
                 ),
-                Action::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
-                Action::Test1 => tracing::info!("Test Action 1"),
-                Action::Test2 => tracing::info!("Test Action 2"),
-                Action::Test3 => tracing::info!("Test Action 3"),
-                Action::Test4 => tracing::info!("Test Action 4"),
+                state::Action::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
+                state::Action::Test1 => tracing::info!("Test Action 1"),
+                state::Action::Test2 => tracing::info!("Test Action 2"),
+                state::Action::Test3 => tracing::info!("Test Action 3"),
+                state::Action::Test4 => tracing::info!("Test Action 4"),
             }
         }
     }
@@ -52,11 +50,7 @@ impl Receiver {
         receiver.is_off = true;
     }
 
-    pub fn apply_move(
-        move_data: &action::MoveData,
-        spatial: &mut Spatial,
-        kinematic: &mut Kinematic,
-    ) {
+    pub fn apply_move(move_data: &MoveData, spatial: &mut Spatial, kinematic: &mut Kinematic) {
         if move_data.rotation.x.abs() > 1e-6 || move_data.rotation.y.abs() > 1e-6 {
             spatial.yaw += move_data.rotation.x;
             spatial.pitch += move_data.rotation.y;

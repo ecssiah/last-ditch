@@ -1,7 +1,7 @@
 use crate::{
     interface::{
         gpu::gpu_mesh::GpuMesh,
-        world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas::TileAtlas},
+        world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas},
     },
     simulation::{
         constants::CELL_RADIUS,
@@ -10,7 +10,7 @@ use crate::{
             grid::{self, axis::Axis, Grid},
             sector,
         },
-        viewer::{face_mask, view::SectorView},
+        viewer::{face_mask, SectorView},
     },
 };
 use ultraviolet::IVec3;
@@ -402,7 +402,7 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let layer = TileAtlas::get_tile_layer(face.block_kind, face.direction);
+        let layer = tile_atlas::get_tile_layer(face.block_kind, face.direction);
 
         vertex_vec.push(SectorVertex {
             position: [

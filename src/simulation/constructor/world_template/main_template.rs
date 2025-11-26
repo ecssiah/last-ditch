@@ -4,7 +4,7 @@ use crate::simulation::state::{
 };
 use ultraviolet::IVec3;
 
-pub fn run(world: &mut World) {
+pub fn construct(world: &mut World) {
     build_ground(world);
     build_compass(world);
     build_temple(0, 34, 0, nation::Kind::Eagle, world);

@@ -7,7 +7,7 @@ use crate::simulation::state::{
 };
 use ultraviolet::IVec3;
 
-pub fn run(world: &mut World) {
+pub fn construct(world: &mut World) {
     build_rooms(world);
     build_central_room(world);
     build_clearance_test(world);

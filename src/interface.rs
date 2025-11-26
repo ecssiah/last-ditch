@@ -20,8 +20,8 @@ use crate::{
     },
     simulation::{
         self,
-        state::{admin, receiver::action::Action},
-        viewer::{view::View, Viewer},
+        state::{admin, Action},
+        viewer::{View, Viewer},
     },
 };
 use std::{sync::Arc, time::Instant};

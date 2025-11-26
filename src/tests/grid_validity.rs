@@ -1,6 +1,9 @@
 use crate::simulation::{
-    self, constructor,
-    state::world::{cell, grid::Grid, sector, World},
+    constructor,
+    state::{
+        self,
+        world::{cell, grid::Grid, sector, World},
+    },
 };
 use ultraviolet::IVec3;
 
@@ -20,10 +23,10 @@ impl CellIDValidCase {
 
 #[test]
 fn cell_id_valid() {
-    let simulation_kind = simulation::Kind::Test;
+    let state_template = state::Template::Test;
 
-    let mut world = World::new(simulation_kind);
-    constructor::world::run(simulation_kind, &mut world);
+    let mut world = World::new(state_template);
+    constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
         CellIDValidCase {
@@ -64,10 +67,10 @@ impl SectorIDValidCase {
 
 #[test]
 fn sector_id_valid() {
-    let simulation_kind = simulation::Kind::Test;
+    let state_template = state::Template::Test;
 
-    let mut world = World::new(simulation_kind);
-    constructor::world::run(simulation_kind, &mut world);
+    let mut world = World::new(state_template);
+    constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
         SectorIDValidCase {
@@ -108,10 +111,10 @@ impl PositionValidCase {
 
 #[test]
 fn position_valid() {
-    let simulation_kind = simulation::Kind::Empty;
+    let state_template = state::Template::Empty;
 
-    let mut world = World::new(simulation_kind);
-    constructor::world::run(simulation_kind, &mut world);
+    let mut world = World::new(state_template);
+    constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
 

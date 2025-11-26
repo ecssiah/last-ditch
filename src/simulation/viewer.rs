@@ -3,20 +3,25 @@
 pub mod face_mask;
 pub mod view;
 
-use crate::simulation::{
-    state::{
-        admin::{self},
-        world::{
-            block,
-            grid::{self, Grid},
-            sector::{self, Sector},
-        },
-        State,
+pub use view::AdminView;
+pub use view::AgentView;
+pub use view::BlockView;
+pub use view::FaceView;
+pub use view::JudgeView;
+pub use view::PopulationView;
+pub use view::SectorView;
+pub use view::TimeView;
+pub use view::View;
+pub use view::WorldView;
+
+use crate::simulation::state::{
+    admin::{self},
+    world::{
+        block,
+        grid::{self, Grid},
+        sector::{self, Sector},
     },
-    viewer::view::{
-        AdminView, AgentView, BlockView, JudgeView, PopulationView, SectorView, TimeView, View,
-        WorldView,
-    },
+    State,
 };
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};

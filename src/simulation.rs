@@ -1,27 +1,20 @@
 //! Simulation evolution
 
-pub mod config;
 pub mod constants;
 pub mod constructor;
-pub mod kind;
 pub mod state;
 pub mod timestep;
 pub mod utils;
 pub mod viewer;
 
-pub use config::Config;
-pub use kind::Kind;
-
 use crate::simulation::{
-    self,
-    state::{receiver::Action, Receiver, State},
+    state::{Action, Receiver, State},
     timestep::Timestep,
-    viewer::{view::View, Viewer},
+    viewer::{View, Viewer},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    pub kind: simulation::Kind,
     pub timestep: Timestep,
     pub receiver: Receiver,
     pub viewer: Viewer,
@@ -34,15 +27,12 @@ impl Simulation {
         action_rx: UnboundedReceiver<Action>,
         view_buffer_input: triple_buffer::Input<View>,
     ) -> Self {
-        let simulation_kind = simulation::Kind::Main;
-
         let timestep = Timestep::new();
         let receiver = Receiver::new(action_rx);
         let viewer = Viewer::new();
-        let state = State::new(simulation_kind);
+        let state = State::new();
 
         Self {
-            kind: simulation_kind,
             timestep,
             receiver,
             viewer,

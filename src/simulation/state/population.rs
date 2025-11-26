@@ -11,40 +11,38 @@ pub mod spatial;
 
 pub use role::Role;
 
-use crate::simulation::{
+use crate::simulation::state::{
     self,
-    state::{
-        population::{agent::Agent, judge::Judge},
-        world::World,
-    },
+    population::{agent::Agent, judge::Judge},
+    world::World,
 };
 use std::collections::HashMap;
 
 pub struct Population {
-    pub simulation_kind: simulation::Kind,
+    pub state_template: state::Template,
     pub judge: Judge,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
-    pub fn new(simulation_kind: simulation::Kind) -> Self {
+    pub fn new(state_template: state::Template) -> Self {
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            simulation_kind,
+            state_template,
             judge,
             agent_map,
         }
     }
 
     pub fn placeholder() -> Self {
-        let simulation_kind = simulation::Kind::Placeholder;
+        let state_template = state::Template::Placeholder;
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
-            simulation_kind,
+            state_template,
             judge,
             agent_map,
         }

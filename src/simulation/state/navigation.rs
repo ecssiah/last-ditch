@@ -1,11 +1,11 @@
-use crate::simulation::state::{navigation, world::grid::Grid, World};
-use std::collections::VecDeque;
-use ultraviolet::IVec3;
-
 pub mod graph;
 pub mod path;
 
 pub use graph::Graph;
+
+use crate::simulation::state::{navigation, world::grid::Grid, World};
+use std::collections::VecDeque;
+use ultraviolet::IVec3;
 
 pub struct Navigation {
     pub next_id: u64,
@@ -35,6 +35,21 @@ impl Navigation {
         }
     }
 
+    pub fn init_graph(world: &World, graph: &mut Graph) {
+        let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+
+        for z in -sector_radius_in_cells..=sector_radius_in_cells {
+            for y in -sector_radius_in_cells..=sector_radius_in_cells {
+                for x in -sector_radius_in_cells..=sector_radius_in_cells {
+                    let cell =
+                        World::get_cell_at(IVec3::new(x, y, z), &world.grid, &world.sector_vec);
+
+                    Graph::set_solid(cell.position, cell.solid, graph);
+                }
+            }
+        }
+    }
+
     pub fn make_request(start: IVec3, end: IVec3, navigation: &mut Navigation) -> path::ID {
         let path_id = path::ID(navigation.next_id);
 
@@ -51,5 +66,5 @@ impl Navigation {
         path_id
     }
 
-    pub fn tick(world: &World, navigation: &mut Navigation) {}
+    pub fn tick(_world: &World, _navigation: &mut Navigation) {}
 }

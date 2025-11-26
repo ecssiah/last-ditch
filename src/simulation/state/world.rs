@@ -6,9 +6,9 @@ pub mod grid;
 pub mod sector;
 
 use crate::simulation::{
-    self,
     constants::*,
     state::{
+        self,
         physics::aabb::AABB,
         population::nation,
         world::{cell::Cell, grid::Grid, sector::Sector},
@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
-    pub simulation_kind: simulation::Kind,
+    pub state_template: state::Template,
     pub grid: Grid,
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<sector::Sector>,
@@ -26,8 +26,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(simulation_kind: simulation::Kind) -> Self {
-        let grid = Grid::new(simulation_kind);
+    pub fn new(state_template: state::Template) -> Self {
+        let grid = Grid::new(state_template);
         let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec(&grid);
 
@@ -39,7 +39,7 @@ impl World {
         ]);
 
         Self {
-            simulation_kind,
+            state_template,
             grid,
             block_info_map,
             sector_vec,
@@ -48,16 +48,16 @@ impl World {
     }
 
     pub fn placeholder() -> Self {
-        let simulation_kind = simulation::Kind::Placeholder;
+        let state_template = state::Template::Placeholder;
 
-        let grid = Grid::new(simulation_kind);
+        let grid = Grid::new(state_template);
         let block_info_map = HashMap::default();
         let sector_vec = Vec::default();
 
         let flag_position_map = HashMap::default();
 
         Self {
-            simulation_kind,
+            state_template,
             grid,
             block_info_map,
             sector_vec,

@@ -1,2 +1,2 @@
-pub mod population;
-pub mod world;
+pub mod population_template;
+pub mod world_template;

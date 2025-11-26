@@ -9,9 +9,9 @@ pub use world_ray_iterator::WorldRayIterator;
 
 use crate::{
     simulation::{
-        self,
         constants::*,
         state::{
+            self,
             physics::aabb::AABB,
             world::{cell, sector},
         },
@@ -51,8 +51,8 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(simulation_kind: simulation::Kind) -> Self {
-        let config = simulation_kind.config();
+    pub fn new(state_template: state::Template) -> Self {
+        let config = state_template.config();
 
         let cell_radius_in_meters = CELL_RADIUS;
         let cell_size_in_meters = 2.0 * cell_radius_in_meters;

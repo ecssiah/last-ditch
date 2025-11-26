@@ -9,7 +9,7 @@ use crate::simulation::{
 use rand::Rng;
 use ultraviolet::Vec3;
 
-pub fn run(world: &World, population: &mut Population) {
+pub fn construct(world: &World, population: &mut Population) {
     setup_judge(world, population);
     setup_agent_map(world, population);
 }
