@@ -71,7 +71,7 @@ impl Simulation {
                 Timing::tick(timing);
                 Receiver::tick(receiver, state);
 
-                if receiver.is_on == false {
+                if receiver.is_off {
                     return;
                 }
             }

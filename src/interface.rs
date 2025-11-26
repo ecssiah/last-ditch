@@ -379,7 +379,7 @@ impl<'window> Interface<'window> {
     ) {
         match view.admin_view.mode {
             admin::Mode::Menu => Self::apply_menu_view(view, gpu_context, hud),
-            admin::Mode::Load => Self::apply_load_view(view, hud),
+            admin::Mode::Loading => Self::apply_loading_view(view, hud),
             admin::Mode::Simulate => Self::apply_simulate_view(
                 view,
                 gpu_context,
@@ -403,8 +403,8 @@ impl<'window> Interface<'window> {
         HUD::apply_menu_view(view, &mut hud.mode);
     }
 
-    fn apply_load_view(view: &View, hud: &mut HUD) {
-        HUD::apply_load_view(view, &mut hud.mode);
+    fn apply_loading_view(view: &View, hud: &mut HUD) {
+        HUD::apply_loading_view(view, &mut hud.mode);
     }
 
     fn apply_simulate_view(
@@ -465,7 +465,7 @@ impl<'window> Interface<'window> {
 
                 action_vec.extend(hud_action_vec);
             }
-            admin::Mode::Load => {}
+            admin::Mode::Loading => {}
             admin::Mode::Simulate => {
                 let input_action_vec = Input::get_action_vec(
                     &input.key_inputs,

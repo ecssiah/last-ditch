@@ -124,7 +124,7 @@ impl HUD {
         *mode = Mode::Menu(menu_data);
     }
 
-    pub fn apply_load_view(view: &View, mode: &mut Mode) {
+    pub fn apply_loading_view(view: &View, mode: &mut Mode) {
         let load_data = mode::LoadData {
             message: view.admin_view.message.clone(),
         };

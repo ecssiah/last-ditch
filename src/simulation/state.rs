@@ -58,7 +58,7 @@ impl State {
 
         match state.admin.mode {
             admin::Mode::Menu => (),
-            admin::Mode::Load => Self::tick_load(state),
+            admin::Mode::Loading => Self::tick_loading(state),
             admin::Mode::Simulate => Self::tick_simulate(state),
             admin::Mode::Shutdown => Self::tick_shutdown(state),
         }
@@ -84,17 +84,17 @@ impl State {
 
         state.construct_rx = Some(construct_rx);
 
-        state.admin.mode = admin::Mode::Load;
+        state.admin.mode = admin::Mode::Loading;
         state.admin.message = "Construction in Progress...".to_string();
     }
-    
+
     fn init_shutdown(state: &mut State) {
         tracing::info!("Simulation Shutdown");
 
         state.admin.mode = admin::Mode::Shutdown;
     }
 
-    fn tick_load(state: &mut State) {
+    fn tick_loading(state: &mut State) {
         if let Some(construct_rx) = &mut state.construct_rx {
             if let Ok((world, population)) = construct_rx.try_recv() {
                 state.world = world;
@@ -111,7 +111,8 @@ impl State {
 
         Time::tick(&mut state.time);
         Population::tick(&state.world, &mut state.population);
-        Physics::tick(&state.physics, &state.world, &mut state.population);
+        Physics::tick(&state.world, &state.physics, &mut state.population);
+        Navigation::tick(&state.world, &mut state.navigation);
     }
 
     fn tick_shutdown(state: &mut State) {

@@ -88,7 +88,7 @@ impl Viewer {
 
     fn update_time_view(state: &State) -> TimeView {
         if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Loading
             || state.admin.mode == admin::Mode::Shutdown
         {
             return TimeView::new();
@@ -101,7 +101,7 @@ impl Viewer {
 
     fn update_population_view(state: &State) -> PopulationView {
         if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Loading
             || state.admin.mode == admin::Mode::Shutdown
         {
             return PopulationView::new();
@@ -157,7 +157,7 @@ impl Viewer {
         block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
     ) -> WorldView {
         if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Load
+            || state.admin.mode == admin::Mode::Loading
             || state.admin.mode == admin::Mode::Shutdown
         {
             return WorldView::new();

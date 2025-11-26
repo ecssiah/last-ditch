@@ -25,7 +25,7 @@ impl Physics {
         Self { gravity }
     }
 
-    pub fn tick(physics: &Physics, world: &World, population: &mut Population) {
+    pub fn tick(world: &World, physics: &Physics, population: &mut Population) {
         let _physics_span = tracing::info_span!("physics_tick").entered();
 
         let (velocity, delta) =

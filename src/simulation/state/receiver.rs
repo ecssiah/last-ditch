@@ -15,14 +15,14 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Receiver {
-    pub is_on: bool,
+    pub is_off: bool,
     pub action_rx: UnboundedReceiver<Action>,
 }
 
 impl Receiver {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
         Self {
-            is_on: true,
+            is_off: false,
             action_rx,
         }
     }
@@ -49,7 +49,7 @@ impl Receiver {
     }
 
     fn turn_off(receiver: &mut Receiver) {
-        receiver.is_on = false;
+        receiver.is_off = true;
     }
 
     pub fn apply_move(
