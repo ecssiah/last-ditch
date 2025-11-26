@@ -73,8 +73,26 @@ impl Graph {
     }
 
     #[inline]
-    pub fn is_open(position: IVec3, graph: &Graph) -> bool {
-        Graph::position_valid(position, graph) && graph.open_vec[Self::get_index(position, graph)]
+    pub fn is_walkable(position: IVec3, graph: &Graph) -> bool {
+        if !Graph::position_valid(position, graph) {
+            return false;
+        }
+
+        let index = Graph::get_index(position, graph);
+
+        if !graph.open_vec[index] {
+            return false;
+        }
+
+        let position_below = position - IVec3::unit_z();
+
+        if !Graph::position_valid(position_below, graph) {
+            return false;
+        }
+
+        let index_below = Graph::get_index(position_below, graph);
+
+        !graph.open_vec[index_below]
     }
 
     #[inline]
@@ -95,7 +113,7 @@ impl Graph {
             let neighbor_position = position + *neighbor_offset;
 
             if Graph::position_valid(neighbor_position, graph)
-                && Graph::is_open(neighbor_position, graph)
+                && Graph::is_walkable(neighbor_position, graph)
             {
                 open_neighbor_position_vec.push(neighbor_position);
             }

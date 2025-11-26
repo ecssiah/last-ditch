@@ -79,7 +79,7 @@ impl State {
 
         let current_g_cost = *self.g_cost.get(&open_node.position).unwrap_or(&0);
 
-        for neighbor_position in Graph::get_neighbor_positions(open_node.position, graph) {
+        for neighbor_position in Graph::get_valid_neighbor_position_iter(open_node.position, graph) {
             let tentative_g_cost = current_g_cost + Graph::get_cost(neighbor_position, graph);
 
             if tentative_g_cost < *self.g_cost.get(&neighbor_position).unwrap_or(&i32::MAX) {

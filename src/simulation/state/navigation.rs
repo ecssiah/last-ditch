@@ -1,4 +1,4 @@
-use crate::simulation::state::{World, navigation};
+use crate::simulation::state::{World, navigation, world::grid::Grid};
 use std::collections::VecDeque;
 use ultraviolet::IVec3;
 
@@ -17,9 +17,9 @@ pub struct Navigation {
 }
 
 impl Navigation {
-    pub fn new() -> Self {
+    pub fn new(grid: &Grid) -> Self {
         let next_id = 0;
-        let graph = navigation::Graph::new();
+        let graph = navigation::Graph::new(grid.world_radius_in_cells);
         let path_request_deque = VecDeque::new();
         let path_result_vec = Vec::new();
         let path_task_vec = Vec::new();
@@ -51,5 +51,7 @@ impl Navigation {
         path_id
     }
 
-    pub fn tick(world: &World, navigation: &mut Navigation) {}
+    pub fn tick(world: &World, navigation: &mut Navigation) {
+        
+    }
 }

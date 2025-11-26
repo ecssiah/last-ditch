@@ -39,7 +39,7 @@ impl State {
         let physics = Physics::new();
         let world = World::new(simulation_kind);
         let population = Population::new(simulation_kind);
-        let navigation = Navigation::new();
+        let navigation = Navigation::new(&world.grid);
 
         Self {
             simulation_kind,
