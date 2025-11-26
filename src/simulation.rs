@@ -68,10 +68,10 @@ impl Simulation {
             while Timing::has_work(timing) {
                 State::tick(state);
                 Viewer::tick(state, view_buffer_input, viewer);
-                Timing::update(timing);
+                Timing::tick(timing);
                 Receiver::tick(receiver, state);
 
-                if !receiver.active {
+                if receiver.is_off {
                     return;
                 }
             }

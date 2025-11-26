@@ -31,7 +31,7 @@ impl Timing {
         timing.ticks_frame = 0;
     }
 
-    pub fn update(timing: &mut Timing) {
+    pub fn tick(timing: &mut Timing) {
         timing.ticks_total += 1;
         timing.ticks_frame += 1;
 

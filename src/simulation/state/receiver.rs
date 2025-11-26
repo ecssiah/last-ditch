@@ -16,14 +16,14 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Receiver {
-    pub active: bool,
+    pub is_off: bool,
     pub action_rx: UnboundedReceiver<Action>,
 }
 
 impl Receiver {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
         Self {
-            active: true,
+            is_off: false,
             action_rx,
         }
     }
@@ -35,7 +35,7 @@ impl Receiver {
                     AdminAction::Debug => state.admin.debug_active = !state.admin.debug_active,
                     AdminAction::Start => State::init_load(state),
                     AdminAction::Quit => State::init_shutdown(state),
-                    AdminAction::Exit => receiver.active = false,
+                    AdminAction::Exit => receiver.is_off = true,
                 },
                 Action::Test(test_action) => match test_action {
                     action::TestAction::Test1 => tracing::info!("Test Action 1"),
