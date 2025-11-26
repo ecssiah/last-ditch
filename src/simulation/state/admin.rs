@@ -19,4 +19,8 @@ impl Admin {
             debug_active: false,
         }
     }
+
+    pub fn toggle_debug(admin: &mut Admin) {
+        admin.debug_active = !admin.debug_active
+    }
 }

@@ -8,21 +8,21 @@ use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
         population::{kinematic::Kinematic, spatial::Spatial},
-        State,
+        Admin, State,
     },
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Receiver {
-    pub is_off: bool,
+    pub is_on: bool,
     pub action_rx: UnboundedReceiver<Action>,
 }
 
 impl Receiver {
     pub fn new(action_rx: UnboundedReceiver<Action>) -> Self {
         Self {
-            is_off: false,
+            is_on: true,
             action_rx,
         }
     }
@@ -30,22 +30,26 @@ impl Receiver {
     pub fn tick(receiver: &mut Receiver, state: &mut State) {
         while let Ok(action) = receiver.action_rx.try_recv() {
             match action {
-                Action::ToggleDebug => state.admin.debug_active = !state.admin.debug_active,
                 Action::Start => State::init_load(state),
                 Action::Quit => State::init_shutdown(state),
-                Action::Exit => receiver.is_off = true,
-                Action::Test1 => tracing::info!("Test Action 1"),
-                Action::Test2 => tracing::info!("Test Action 2"),
-                Action::Test3 => tracing::info!("Test Action 3"),
-                Action::Test4 => tracing::info!("Test Action 4"),
+                Action::Exit => Self::turn_off(receiver),
+                Action::Debug => Admin::toggle_debug(&mut state.admin),
                 Action::Move(move_data) => Self::apply_move(
                     &move_data,
                     &mut state.population.judge.spatial,
                     &mut state.population.judge.kinematic,
                 ),
                 Action::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
+                Action::Test1 => tracing::info!("Test Action 1"),
+                Action::Test2 => tracing::info!("Test Action 2"),
+                Action::Test3 => tracing::info!("Test Action 3"),
+                Action::Test4 => tracing::info!("Test Action 4"),
             }
         }
+    }
+
+    fn turn_off(receiver: &mut Receiver) {
+        receiver.is_on = false;
     }
 
     pub fn apply_move(

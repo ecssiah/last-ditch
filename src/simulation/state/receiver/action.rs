@@ -1,17 +1,13 @@
-use ultraviolet::Vec3;
+pub mod move_data;
 
-#[derive(Clone, Copy, Debug)]
-pub struct MoveData {
-    pub direction: Vec3,
-    pub rotation: Vec3,
-}
+pub use move_data::MoveData;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
     Start,
     Quit,
     Exit,
-    ToggleDebug,
+    Debug,
     Jump,
     Move(MoveData),
     Test1,

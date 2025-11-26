@@ -137,7 +137,7 @@ impl Input {
             PhysicalKey::Code(KeyCode::Escape) => Some(Action::Quit),
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
-                    Some(Action::ToggleDebug)
+                    Some(Action::Debug)
                 } else {
                     None
                 }
