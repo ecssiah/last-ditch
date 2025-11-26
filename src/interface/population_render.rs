@@ -13,8 +13,9 @@ use crate::{
         },
     },
     simulation::{
-        constants::{CELL_RADIUS, SIMULATION_MAX_ENTITIES},
-        observation::view::PopulationView, state::population::{self, nation},
+        constants::SIMULATION_MAX_ENTITIES,
+        observation::view::PopulationView,
+        state::population::{self, nation},
     },
 };
 use obj::{load_obj, TexturedVertex};
@@ -91,16 +92,8 @@ impl PopulationRender {
                                     .vertices
                                     .iter()
                                     .map(|vertex: &TexturedVertex| EntityVertex {
-                                        position: [
-                                            vertex.position[0],
-                                            -vertex.position[2],
-                                            vertex.position[1],
-                                        ],
-                                        normal: [
-                                            vertex.normal[0],
-                                            -vertex.normal[2],
-                                            vertex.normal[1],
-                                        ],
+                                        position: vertex.position,
+                                        normal: vertex.normal,
                                         uv: [vertex.texture[0], vertex.texture[1]],
                                     })
                                     .collect(),
@@ -185,8 +178,7 @@ impl PopulationRender {
                     if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
                         info!("{:?} texture loaded", file_stem);
 
-                        texture_bind_group_map
-                            .insert((role, nation_kind), texture_bind_group);
+                        texture_bind_group_map.insert((role, nation_kind), texture_bind_group);
                     }
                 }
             }
@@ -397,11 +389,7 @@ impl PopulationRender {
 
         for agent_view in population_view.agent_view_map.values() {
             let entity_instance_data = EntityInstanceData {
-                world_position: [
-                    agent_view.spatial.world_position.x,
-                    agent_view.spatial.world_position.y - CELL_RADIUS,
-                    agent_view.spatial.world_position.z,
-                ],
+                world_position: *agent_view.spatial.world_position.as_array(),
                 size_y: agent_view.spatial.size.y,
                 yaw: agent_view.spatial.yaw,
                 _padding: [0.0, 0.0, 0.0],
@@ -469,12 +457,8 @@ impl PopulationRender {
             let entity_gpu_mesh_arc =
                 Arc::clone(entity_render.entity_gpu_mesh_map.get(&kind).unwrap());
 
-            let texture_bind_group_arc = Arc::clone(
-                entity_render
-                    .texture_bind_group_arc_map
-                    .get(&kind)
-                    .unwrap(),
-            );
+            let texture_bind_group_arc =
+                Arc::clone(entity_render.texture_bind_group_arc_map.get(&kind).unwrap());
 
             render_pass.set_vertex_buffer(
                 1,

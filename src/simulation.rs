@@ -13,6 +13,7 @@ pub use config::Config;
 pub use kind::Kind;
 
 use crate::simulation::{
+    self,
     observation::{view::View, Observation},
     state::{receiver::action::Action, Receiver, State},
     timing::Timing,
@@ -20,7 +21,7 @@ use crate::simulation::{
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    pub kind: Kind,
+    pub kind: simulation::Kind,
     pub timing: Timing,
     pub receiver: Receiver,
     pub observation: Observation,
@@ -33,14 +34,15 @@ impl Simulation {
         action_rx: UnboundedReceiver<Action>,
         view_buffer_input: triple_buffer::Input<View>,
     ) -> Self {
-        let kind = Kind::Main;
+        let simulation_kind = simulation::Kind::Main;
+
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
         let observation = Observation::new();
-        let state = State::new(kind);
+        let state = State::new(simulation_kind);
 
         Self {
-            kind,
+            kind: simulation_kind,
             timing,
             receiver,
             observation,
