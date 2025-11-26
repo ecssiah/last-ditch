@@ -14,8 +14,8 @@ use crate::{
     },
     simulation::{
         constants::SIMULATION_MAX_ENTITIES,
-        observation::view::PopulationView,
         state::population::{self, nation},
+        viewer::view::PopulationView,
     },
 };
 use obj::{load_obj, TexturedVertex};

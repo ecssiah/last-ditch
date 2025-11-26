@@ -1,7 +1,7 @@
 use crate::simulation::{
     self,
-    observation::view::sector_view::SectorView,
     state::world::{grid::Grid, sector},
+    viewer::view::sector_view::SectorView,
 };
 use std::collections::HashMap;
 

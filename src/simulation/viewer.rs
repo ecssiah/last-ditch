@@ -1,13 +1,9 @@
-//! Views of Simulation data
+//! Simulation View producer
 
 pub mod face_mask;
 pub mod view;
 
 use crate::simulation::{
-    observation::view::{
-        AdminView, AgentView, BlockView, JudgeView, PopulationView, SectorView, TimeView, View,
-        WorldView,
-    },
     state::{
         admin::{self},
         world::{
@@ -17,16 +13,20 @@ use crate::simulation::{
         },
         State,
     },
+    viewer::view::{
+        AdminView, AgentView, BlockView, JudgeView, PopulationView, SectorView, TimeView, View,
+        WorldView,
+    },
 };
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
-pub struct Observation {
+pub struct Viewer {
     pub sector_version_map: HashMap<sector::ID, u64>,
     pub block_view_cache: HashMap<sector::ID, Vec<Option<BlockView>>>,
 }
 
-impl Observation {
+impl Viewer {
     pub fn new() -> Self {
         Self {
             sector_version_map: HashMap::new(),
@@ -37,11 +37,11 @@ impl Observation {
     pub fn tick(
         state: &State,
         view_buffer_input: &mut triple_buffer::Input<View>,
-        observation: &mut Observation,
+        viewer: &mut Viewer,
     ) {
         let _observation_span = tracing::info_span!("observation_tick").entered();
 
-        Self::update_view(state, view_buffer_input, observation);
+        Self::update_view(state, view_buffer_input, viewer);
     }
 
     pub fn get_view(view_buffer_output: &mut triple_buffer::Output<View>) -> &View {
@@ -55,7 +55,7 @@ impl Observation {
     fn update_view(
         state: &State,
         view_buffer_input: &mut triple_buffer::Input<View>,
-        observation: &mut Observation,
+        viewer: &mut Viewer,
     ) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
@@ -64,8 +64,8 @@ impl Observation {
 
         let world_view = Self::update_world_view(
             state,
-            &mut observation.sector_version_map,
-            &mut observation.block_view_cache,
+            &mut viewer.sector_version_map,
+            &mut viewer.block_view_cache,
         );
 
         let view = view_buffer_input.input_buffer_mut();

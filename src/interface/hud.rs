@@ -9,7 +9,7 @@ use crate::{
         gpu::gpu_context::GPUContext,
         hud::mode::{LoadData, MenuData, ShutdownData, SimulateData},
     },
-    simulation::{self, observation::view::View, state::receiver::action::Action},
+    simulation::{self, state::receiver::action::Action, viewer::view::View},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::sync::Arc;

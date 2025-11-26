@@ -1,4 +1,4 @@
-use crate::simulation::{observation::view::BlockView, state::world::sector};
+use crate::simulation::{state::world::sector, viewer::view::BlockView};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]

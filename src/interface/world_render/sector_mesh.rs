@@ -5,12 +5,12 @@ use crate::{
     },
     simulation::{
         constants::CELL_RADIUS,
-        observation::{face_mask, view::SectorView},
         state::world::{
             block,
             grid::{self, axis::Axis, Grid},
             sector,
         },
+        viewer::{face_mask, view::SectorView},
     },
 };
 use ultraviolet::IVec3;

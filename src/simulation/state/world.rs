@@ -9,7 +9,9 @@ use crate::simulation::{
     self,
     constants::*,
     state::{
-        physics::aabb::AABB, population::nation, world::{cell::Cell, grid::Grid, sector::Sector}
+        physics::aabb::AABB,
+        population::nation,
+        world::{cell::Cell, grid::Grid, sector::Sector},
     },
 };
 use std::collections::HashMap;

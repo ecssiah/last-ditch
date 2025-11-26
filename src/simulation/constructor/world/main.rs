@@ -1,5 +1,6 @@
 use crate::simulation::state::{
-    population::nation, world::{World, block, grid::Grid}
+    population::nation,
+    world::{block, grid::Grid, World},
 };
 use ultraviolet::IVec3;
 

@@ -9,7 +9,7 @@ use crate::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
     },
-    simulation::observation::view::JudgeView,
+    simulation::viewer::view::JudgeView,
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 

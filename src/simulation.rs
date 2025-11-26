@@ -4,19 +4,19 @@ pub mod config;
 pub mod constants;
 pub mod constructor;
 pub mod kind;
-pub mod observation;
 pub mod state;
 pub mod timing;
 pub mod utils;
+pub mod viewer;
 
 pub use config::Config;
 pub use kind::Kind;
 
 use crate::simulation::{
     self,
-    observation::{view::View, Observation},
-    state::{receiver::action::Action, Receiver, State},
+    state::{receiver::Action, Receiver, State},
     timing::Timing,
+    viewer::{view::View, Viewer},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
@@ -24,7 +24,7 @@ pub struct Simulation {
     pub kind: simulation::Kind,
     pub timing: Timing,
     pub receiver: Receiver,
-    pub observation: Observation,
+    pub viewer: Viewer,
     pub state: State,
     pub view_buffer_input: triple_buffer::Input<View>,
 }
@@ -38,14 +38,14 @@ impl Simulation {
 
         let timing = Timing::new();
         let receiver = Receiver::new(action_rx);
-        let observation = Observation::new();
+        let viewer = Viewer::new();
         let state = State::new(simulation_kind);
 
         Self {
             kind: simulation_kind,
             timing,
             receiver,
-            observation,
+            viewer,
             state,
             view_buffer_input,
         }
@@ -54,7 +54,7 @@ impl Simulation {
     pub fn run(
         timing: &mut Timing,
         receiver: &mut Receiver,
-        observation: &mut Observation,
+        viewer: &mut Viewer,
         state: &mut State,
         view_buffer_input: &mut triple_buffer::Input<View>,
     ) {
@@ -66,16 +66,13 @@ impl Simulation {
             Timing::start(timing);
 
             while Timing::has_work(timing) {
-                match Receiver::listen(receiver) {
-                    Some(action_vec) => {
-                        State::tick(action_vec, state);
-                        Observation::tick(state, view_buffer_input, observation);
-                        Timing::update(timing);
-                    }
-                    None => {
-                        tracing::info!("Simulation Exit");
-                        return;
-                    }
+                State::tick(state);
+                Viewer::tick(state, view_buffer_input, viewer);
+                Timing::update(timing);
+                Receiver::tick(receiver, state);
+
+                if !receiver.active {
+                    return;
                 }
             }
 

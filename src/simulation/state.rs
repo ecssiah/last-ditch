@@ -1,6 +1,7 @@
 //! Current state of the simulation
 
 pub mod admin;
+pub mod navigation;
 pub mod physics;
 pub mod population;
 pub mod receiver;
@@ -15,12 +16,7 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::{
-    self,
-    constants::PROJECT_TITLE,
-    constructor,
-    state::{
-        population::judge::Judge, receiver::action::{Action, AdminAction, JudgeAction, TestAction}
-    },
+    self, constants::PROJECT_TITLE, constructor, state::navigation::Navigation,
 };
 
 pub struct State {
@@ -31,6 +27,7 @@ pub struct State {
     pub physics: Physics,
     pub world: World,
     pub population: Population,
+    pub navigation: Navigation,
 }
 
 impl State {
@@ -42,6 +39,7 @@ impl State {
         let physics = Physics::new();
         let world = World::new(simulation_kind);
         let population = Population::new(simulation_kind);
+        let navigation = Navigation::new();
 
         Self {
             simulation_kind,
@@ -51,32 +49,18 @@ impl State {
             physics,
             world,
             population,
+            navigation,
         }
     }
 
-    pub fn tick(action_vec: Vec<Action>, state: &mut State) {
+    pub fn tick(state: &mut State) {
         let _state_span = tracing::info_span!("state_tick").entered();
 
         match state.admin.mode {
-            admin::Mode::Menu => Self::tick_menu(action_vec, state),
+            admin::Mode::Menu => (),
             admin::Mode::Load => Self::tick_load(state),
-            admin::Mode::Simulate => Self::tick_simulate(action_vec, state),
+            admin::Mode::Simulate => Self::tick_simulate(state),
             admin::Mode::Shutdown => Self::tick_shutdown(state),
-        }
-    }
-
-    fn tick_menu(action_vec: Vec<Action>, state: &mut State) {
-        for action in action_vec {
-            match action {
-                Action::Admin(admin_action) => match admin_action {
-                    AdminAction::Start => Self::init_load(state),
-                    AdminAction::Quit => Self::init_shutdown(state),
-                    _ => {
-                        tracing::warn!("Received an invalid AdminAction in Menu mode: {:?}", action)
-                    }
-                },
-                _ => tracing::warn!("Received an invalid Action in Menu mode: {:?}", action),
-            }
         }
     }
 
@@ -103,6 +87,12 @@ impl State {
         state.admin.mode = admin::Mode::Load;
         state.admin.message = "Construction in Progress...".to_string();
     }
+    
+    fn init_shutdown(state: &mut State) {
+        tracing::info!("Simulation Shutdown");
+
+        state.admin.mode = admin::Mode::Shutdown;
+    }
 
     fn tick_load(state: &mut State) {
         if let Some(construct_rx) = &mut state.construct_rx {
@@ -116,53 +106,12 @@ impl State {
         }
     }
 
-    fn tick_simulate(action_vec: Vec<Action>, state: &mut State) {
+    fn tick_simulate(state: &mut State) {
         let _simulate_span = tracing::info_span!("simulate_tick").entered();
-
-        Self::apply_simulate_action_vec(state, action_vec);
 
         Time::tick(&mut state.time);
         Population::tick(&state.world, &mut state.population);
         Physics::tick(&state.physics, &state.world, &mut state.population);
-    }
-
-    fn apply_simulate_action_vec(state: &mut State, action_vec: Vec<Action>) {
-        for action in action_vec {
-            match action {
-                Action::Admin(admin_action) => match admin_action {
-                    AdminAction::Debug => {
-                        state.admin.debug_active = !state.admin.debug_active;
-                    }
-                    AdminAction::Quit => Self::init_shutdown(state),
-                    _ => {
-                        tracing::warn!(
-                            "Received an invalid AdminAction in Simulate mode: {:?}",
-                            action
-                        );
-                    }
-                },
-                Action::Judge(judge_action) => match judge_action {
-                    JudgeAction::Movement(movement_data) => {
-                        Judge::apply_movement_data(&movement_data, &mut state.population.judge);
-                    }
-                    JudgeAction::Jump(jump_action) => {
-                        Judge::apply_jump_action(&jump_action, &mut state.population.judge);
-                    }
-                },
-                Action::Test(test_action) => match test_action {
-                    TestAction::Test1 => println!("Test Action 1"),
-                    TestAction::Test2 => println!("Test Action 2"),
-                    TestAction::Test3 => println!("Test Action 3"),
-                    TestAction::Test4 => println!("Test Action 4"),
-                },
-            }
-        }
-    }
-
-    fn init_shutdown(state: &mut State) {
-        tracing::info!("Simulation Shutdown");
-
-        state.admin.mode = admin::Mode::Shutdown;
     }
 
     fn tick_shutdown(state: &mut State) {

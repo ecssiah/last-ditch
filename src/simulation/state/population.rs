@@ -4,10 +4,10 @@ pub mod agent;
 pub mod identity;
 pub mod judge;
 pub mod kinematic;
-pub mod sight;
-pub mod spatial;
 pub mod nation;
 pub mod role;
+pub mod sight;
+pub mod spatial;
 
 pub use role::Role;
 

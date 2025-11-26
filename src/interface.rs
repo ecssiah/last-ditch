@@ -20,11 +20,11 @@ use crate::{
     },
     simulation::{
         self,
-        observation::{view::View, Observation},
         state::{
             admin,
             receiver::action::{Action, AdminAction},
         },
+        viewer::{view::View, Viewer},
     },
 };
 use std::{sync::Arc, time::Instant};
@@ -333,7 +333,7 @@ impl<'window> Interface<'window> {
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
             interface.last_instant = instant;
 
-            let view = Observation::get_view(&mut interface.view_buffer_output);
+            let view = Viewer::get_view(&mut interface.view_buffer_output);
 
             let _dispatch_span = tracing::info_span!("dispatch_actions").entered();
 

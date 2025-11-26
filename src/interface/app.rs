@@ -1,6 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{self, observation::view::View, Simulation},
+    simulation::{self, viewer::view::View, Simulation},
 };
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -32,7 +32,7 @@ impl<'window> App<'window> {
             Simulation::run(
                 &mut simulation.timing,
                 &mut simulation.receiver,
-                &mut simulation.observation,
+                &mut simulation.viewer,
                 &mut simulation.state,
                 &mut simulation.view_buffer_input,
             )

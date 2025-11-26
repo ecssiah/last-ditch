@@ -1,6 +1,9 @@
 use crate::simulation::{
     constants::PITCH_LIMIT,
-    state::{physics::aabb::AABB, world::{grid::Grid, sector}},
+    state::{
+        physics::aabb::AABB,
+        world::{grid::Grid, sector},
+    },
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -32,7 +35,9 @@ impl Spatial {
 
     pub fn set_world_position(world_position: Vec3, spatial: &mut Spatial) {
         spatial.world_position = world_position;
-        spatial.body.set_bottom_center(world_position.x, world_position.y, world_position.z)
+        spatial
+            .body
+            .set_bottom_center(world_position.x, world_position.y, world_position.z)
     }
 
     pub fn set_size(size: Vec3, spatial: &mut Spatial) {

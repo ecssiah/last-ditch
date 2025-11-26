@@ -5,7 +5,7 @@ use crate::{
         debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
         gpu::gpu_context::GPUContext,
     },
-    simulation::{constants::CELL_RADIUS, observation::view::View},
+    simulation::{constants::CELL_RADIUS, viewer::view::View},
 };
 use ultraviolet::Vec3;
 

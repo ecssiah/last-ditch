@@ -1,13 +1,9 @@
-use ultraviolet::{IVec3, Vec3};
 use crate::{
     interface::{
         constants::{TILE_ATLAS_WIDTH, TILE_SIZE},
         gpu::gpu_texture_data::GpuTextureData,
     },
-    simulation::{
-        constants::CELL_RADIUS,
-        state::world::{block, grid},
-    },
+    simulation::state::world::{block, grid},
 };
 
 pub struct TileAtlas {}
@@ -56,8 +52,7 @@ impl TileAtlas {
             let x0 = tx * TILE_SIZE;
             let y0 = ty * TILE_SIZE;
 
-            let mut tile_pixels =
-                Vec::with_capacity((TILE_SIZE * TILE_SIZE * 4) as usize);
+            let mut tile_pixels = Vec::with_capacity((TILE_SIZE * TILE_SIZE * 4) as usize);
 
             for row in 0..TILE_SIZE {
                 for col in 0..TILE_SIZE {
@@ -122,11 +117,11 @@ impl TileAtlas {
             }
             block::Kind::Engraved1 => {
                 let tile_coordinates_array = [
-                    [0, 0], 
-                    [0, 0], 
-                    [0, 0], 
-                    [0, 0], 
-                    [0, 0], 
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
                     [0, 0]
                 ];
 
@@ -134,11 +129,11 @@ impl TileAtlas {
             }
             block::Kind::Engraved2 => {
                 let tile_coordinates_array = [
-                    [1, 0], 
-                    [1, 0], 
-                    [1, 0], 
-                    [1, 0], 
-                    [1, 0], 
+                    [1, 0],
+                    [1, 0],
+                    [1, 0],
+                    [1, 0],
+                    [1, 0],
                     [1, 0]
                 ];
 
@@ -146,11 +141,11 @@ impl TileAtlas {
             }
             block::Kind::Stone1 => {
                 let tile_coordinates_array = [
-                    [0, 1], 
-                    [0, 1], 
-                    [0, 1], 
-                    [0, 1], 
-                    [0, 1], 
+                    [0, 1],
+                    [0, 1],
+                    [0, 1],
+                    [0, 1],
+                    [0, 1],
                     [0, 1]
                 ];
 
@@ -158,11 +153,11 @@ impl TileAtlas {
             }
             block::Kind::Stone2 => {
                 let tile_coordinates_array = [
-                    [1, 1], 
-                    [1, 1], 
-                    [1, 1], 
-                    [1, 1], 
-                    [1, 1], 
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
                     [1, 1]
                 ];
 
@@ -170,11 +165,11 @@ impl TileAtlas {
             }
             block::Kind::Polished1 => {
                 let tile_coordinates_array = [
-                    [0, 2], 
-                    [0, 2], 
-                    [0, 2], 
-                    [0, 2], 
-                    [0, 2], 
+                    [0, 2],
+                    [0, 2],
+                    [0, 2],
+                    [0, 2],
+                    [0, 2],
                     [0, 2]
                 ];
 
@@ -182,11 +177,11 @@ impl TileAtlas {
             }
             block::Kind::Polished2 => {
                 let tile_coordinates_array = [
-                    [1, 2], 
-                    [1, 2], 
-                    [1, 2], 
-                    [1, 2], 
-                    [1, 2], 
+                    [1, 2],
+                    [1, 2],
+                    [1, 2],
+                    [1, 2],
+                    [1, 2],
                     [1, 2]
                 ];
 
@@ -194,11 +189,11 @@ impl TileAtlas {
             }
             block::Kind::MagentaStone => {
                 let tile_coordinates_array = [
-                    [0, 4], 
-                    [0, 4], 
-                    [0, 4], 
-                    [0, 4], 
-                    [0, 4], 
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
                     [0, 4]
                 ];
 
@@ -206,11 +201,11 @@ impl TileAtlas {
             }
             block::Kind::PurpleStone => {
                 let tile_coordinates_array = [
-                    [1, 4], 
-                    [1, 4], 
-                    [1, 4], 
-                    [1, 4], 
-                    [1, 4], 
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
                     [1, 4]
                 ];
 
@@ -218,11 +213,11 @@ impl TileAtlas {
             }
             block::Kind::TealStone => {
                 let tile_coordinates_array = [
-                    [2, 4], 
-                    [2, 4], 
-                    [2, 4], 
-                    [2, 4], 
-                    [2, 4], 
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
                     [2, 4]
                 ];
 
@@ -230,11 +225,11 @@ impl TileAtlas {
             }
             block::Kind::CrimsonStone => {
                 let tile_coordinates_array = [
-                    [3, 4], 
-                    [3, 4], 
-                    [3, 4], 
-                    [3, 4], 
-                    [3, 4], 
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
                     [3, 4]
                 ];
 
@@ -242,11 +237,11 @@ impl TileAtlas {
             }
             block::Kind::Icon1 => {
                 let tile_coordinates_array = [
-                    [0, 3], 
-                    [0, 3], 
-                    [0, 3], 
-                    [0, 3], 
-                    [0, 3], 
+                    [0, 3],
+                    [0, 3],
+                    [0, 3],
+                    [0, 3],
+                    [0, 3],
                     [0, 3]
                 ];
 
@@ -254,11 +249,11 @@ impl TileAtlas {
             }
             block::Kind::Icon2 => {
                 let tile_coordinates_array = [
-                    [1, 3], 
-                    [1, 3], 
-                    [1, 3], 
-                    [1, 3], 
-                    [1, 3], 
+                    [1, 3],
+                    [1, 3],
+                    [1, 3],
+                    [1, 3],
+                    [1, 3],
                     [1, 3]
                 ];
 
@@ -266,11 +261,11 @@ impl TileAtlas {
             }
             block::Kind::Icon3 => {
                 let tile_coordinates_array = [
-                    [2, 3], 
-                    [2, 3], 
-                    [2, 3], 
-                    [2, 3], 
-                    [2, 3], 
+                    [2, 3],
+                    [2, 3],
+                    [2, 3],
+                    [2, 3],
+                    [2, 3],
                     [2, 3]
                 ];
 
@@ -278,11 +273,11 @@ impl TileAtlas {
             }
             block::Kind::Icon4 => {
                 let tile_coordinates_array = [
-                    [3, 3], 
-                    [3, 3], 
-                    [3, 3], 
-                    [3, 3], 
-                    [3, 3], 
+                    [3, 3],
+                    [3, 3],
+                    [3, 3],
+                    [3, 3],
+                    [3, 3],
                     [3, 3]
                 ];
 
@@ -290,11 +285,11 @@ impl TileAtlas {
             }
             block::Kind::NorthBlock => {
                 let tile_coordinates_array = [
-                    [0, 5], 
-                    [0, 5], 
-                    [0, 5], 
-                    [0, 5], 
-                    [0, 5], 
+                    [0, 5],
+                    [0, 5],
+                    [0, 5],
+                    [0, 5],
+                    [0, 5],
                     [0, 5]
                 ];
 
@@ -302,11 +297,11 @@ impl TileAtlas {
             }
             block::Kind::WestBlock => {
                 let tile_coordinates_array = [
-                    [1, 5], 
-                    [1, 5], 
-                    [1, 5], 
-                    [1, 5], 
-                    [1, 5], 
+                    [1, 5],
+                    [1, 5],
+                    [1, 5],
+                    [1, 5],
+                    [1, 5],
                     [1, 5]
                 ];
 
@@ -314,11 +309,11 @@ impl TileAtlas {
             }
             block::Kind::SouthBlock => {
                 let tile_coordinates_array = [
-                    [2, 5], 
-                    [2, 5], 
-                    [2, 5], 
-                    [2, 5], 
-                    [2, 5], 
+                    [2, 5],
+                    [2, 5],
+                    [2, 5],
+                    [2, 5],
+                    [2, 5],
                     [2, 5]
                 ];
 
@@ -326,11 +321,11 @@ impl TileAtlas {
             }
             block::Kind::EastBlock => {
                 let tile_coordinates_array = [
-                    [3, 5], 
-                    [3, 5], 
-                    [3, 5], 
-                    [3, 5], 
-                    [3, 5], 
+                    [3, 5],
+                    [3, 5],
+                    [3, 5],
+                    [3, 5],
+                    [3, 5],
                     [3, 5]
                 ];
 
@@ -338,11 +333,11 @@ impl TileAtlas {
             }
             block::Kind::EsayaBlock => {
                 let tile_coordinates_array = [
-                    [0, 6], 
-                    [0, 6], 
-                    [0, 6], 
-                    [0, 6], 
-                    [0, 6], 
+                    [0, 6],
+                    [0, 6],
+                    [0, 6],
+                    [0, 6],
+                    [0, 6],
                     [0, 6]
                 ];
 
@@ -361,49 +356,5 @@ impl TileAtlas {
         let tile_coordinates = Self::get_tile_coordinates(block_kind, direction);
 
         Self::tile_coordinates_to_layer(tile_coordinates)
-    }
-
-    #[rustfmt::skip]
-    pub fn get_face_vertex_position_array(position: IVec3, direction: grid::Direction) -> [[f32; 3]; 4] {
-        let position = Vec3::from(position);
-
-        match direction {
-            grid::Direction::East => [
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::West => [
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::North => [
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::South => [
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::Up => [
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z + CELL_RADIUS],
-            ],
-            grid::Direction::Down => [
-                [position.x - CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y + CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x + CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-                [position.x - CELL_RADIUS, position.y - CELL_RADIUS, position.z - CELL_RADIUS],
-            ],
-        }
     }
 }

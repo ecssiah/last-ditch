@@ -38,7 +38,7 @@ impl Physics {
             &mut population.judge.spatial,
             &mut population.judge.kinematic,
         );
-        
+
         Self::sync(&mut population.judge.spatial);
     }
 

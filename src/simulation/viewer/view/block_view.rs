@@ -1,6 +1,6 @@
 use crate::simulation::{
-    observation::face_mask::FaceMask,
     state::world::{block, cell},
+    viewer::face_mask::FaceMask,
 };
 
 #[derive(Clone, Debug)]

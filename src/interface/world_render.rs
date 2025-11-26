@@ -14,8 +14,8 @@ use crate::{
         },
     },
     simulation::{
-        observation::view::{SectorView, WorldView},
         state::world::{grid::Grid, sector},
+        viewer::view::{SectorView, WorldView},
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
@@ -65,26 +65,27 @@ impl WorldRender {
                     ],
                 });
 
-        let tile_atlas_bind_group = gpu_context
-            .device
-            .create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Tile Atlas Bind Group"),
-                layout: &tile_atlas_bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(
-                            &tile_atlas_gpu_texture_data.texture_view,
-                        ),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(
-                            &tile_atlas_gpu_texture_data.sampler,
-                        ),
-                    },
-                ],
-            });
+        let tile_atlas_bind_group =
+            gpu_context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Tile Atlas Bind Group"),
+                    layout: &tile_atlas_bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(
+                                &tile_atlas_gpu_texture_data.texture_view,
+                            ),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::Sampler(
+                                &tile_atlas_gpu_texture_data.sampler,
+                            ),
+                        },
+                    ],
+                });
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
