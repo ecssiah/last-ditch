@@ -69,7 +69,7 @@ impl AABB {
             world_position.y - xy_radius.y,
             world_position.z,
         );
-        
+
         self.max = Vec3::new(
             world_position.x + xy_radius.x,
             world_position.y + xy_radius.y,

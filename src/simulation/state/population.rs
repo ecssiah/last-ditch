@@ -50,7 +50,7 @@ impl Population {
 
     pub fn tick(world: &World, population: &mut Population) {
         let _ = tracing::info_span!("population_tick").entered();
-        
+
         Judge::tick(world, &mut population.judge);
 
         for agent in population.agent_map.values_mut() {

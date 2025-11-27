@@ -6,7 +6,6 @@ pub mod config;
 pub mod navigation;
 pub mod physics;
 pub mod population;
-pub mod receiver;
 pub mod state_loading;
 pub mod state_menu;
 pub mod state_shutdown;
@@ -20,7 +19,6 @@ pub use admin::Admin;
 pub use config::Config;
 pub use physics::Physics;
 pub use population::Population;
-pub use receiver::Receiver;
 pub use template::Template;
 pub use time::Time;
 pub use world::World;
@@ -33,21 +31,19 @@ use crate::simulation::state::{
 };
 
 pub struct State {
-    pub active: bool,
     pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
+    pub time: Time,
     pub action: Action,
     pub world: World,
     pub population: Population,
     pub physics: Physics,
     pub navigation: Navigation,
-    pub time: Time,
 }
 
 impl State {
     pub fn new() -> Self {
-        let active = true;
         let template = state::Template::Main;
         let construct_rx = None;
 
@@ -60,7 +56,6 @@ impl State {
         let time = Time::new();
 
         Self {
-            active,
             template,
             construct_rx,
             admin,

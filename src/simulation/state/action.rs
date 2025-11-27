@@ -32,7 +32,6 @@ impl Action {
             match act {
                 Act::Start => state_loading::init(state),
                 Act::Quit => state_shutdown::init(state),
-                Act::Exit => state.active = false,
                 Act::Debug => Admin::toggle_debug(&mut state.admin),
                 Act::Move(move_data) => Self::apply_move(&move_data, &mut state.population.judge),
                 Act::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
@@ -44,6 +43,7 @@ impl Action {
                 Act::Test2 => state.population.judge.selected_block = block::Kind::MagentaStone,
                 Act::Test3 => state.population.judge.selected_block = block::Kind::PurpleStone,
                 Act::Test4 => state.population.judge.selected_block = block::Kind::TealStone,
+                Act::Exit => unreachable!("Exit action should be handled by Manager!"),
             }
         }
     }

@@ -9,9 +9,11 @@ use crate::simulation::{
         JUDGE_DEFAULT_SPEED,
     },
     state::{
-        World, population::{
+        population::{
             self, identity::Identity, kinematic::Kinematic, nation, sight::Sight, spatial::Spatial,
-        }, world::block
+        },
+        world::block,
+        World,
     },
 };
 
@@ -34,7 +36,7 @@ impl Judge {
         };
 
         let mut spatial = Spatial::new();
-        
+
         Spatial::set_size(
             Vec3::new(
                 JUDGE_DEFAULT_SIZE_X,

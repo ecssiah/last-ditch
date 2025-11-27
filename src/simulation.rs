@@ -2,24 +2,22 @@
 
 pub mod constants;
 pub mod constructor;
+pub mod manager;
 pub mod state;
-pub mod timestep;
 pub mod utils;
 pub mod viewer;
 
 use crate::simulation::{
-    state::{action::act::Act, Receiver, State},
-    timestep::Timestep,
+    manager::Manager,
+    state::{action::act::Act, State},
     viewer::{View, Viewer},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
-    pub timestep: Timestep,
-    pub receiver: Receiver,
+    pub manager: Manager,
     pub viewer: Viewer,
     pub state: State,
-    pub view_buffer_input: triple_buffer::Input<View>,
 }
 
 impl Simulation {
@@ -27,46 +25,36 @@ impl Simulation {
         act_rx: UnboundedReceiver<Act>,
         view_buffer_input: triple_buffer::Input<View>,
     ) -> Self {
-        let timestep = Timestep::new();
-        let receiver = Receiver::new(act_rx);
-        let viewer = Viewer::new();
+        let manager = Manager::new(act_rx);
+        let viewer = Viewer::new(view_buffer_input);
         let state = State::new();
 
         Self {
-            timestep,
-            receiver,
+            manager,
             viewer,
             state,
-            view_buffer_input,
         }
     }
 
-    pub fn run(
-        timestep: &mut Timestep,
-        receiver: &mut Receiver,
-        viewer: &mut Viewer,
-        state: &mut State,
-        view_buffer_input: &mut triple_buffer::Input<View>,
-    ) {
-        Timestep::init(timestep);
+    pub fn run(manager: &mut Manager, state: &mut State, viewer: &mut Viewer) {
+        Manager::init(manager);
 
         loop {
             let _ = tracing::info_span!("simulation").entered();
 
-            Timestep::start(timestep);
+            Manager::start(manager);
 
-            while Timestep::has_work(timestep) {
-                Receiver::tick(receiver, &mut state.action);
+            while Manager::has_work(manager) {
+                Manager::tick(state, manager);
                 State::tick(state);
-                Viewer::tick(state, view_buffer_input, viewer);
-                Timestep::tick(timestep);
+                Viewer::tick(state, viewer);
 
-                if !state.active {
+                if !manager.active {
                     return;
                 }
             }
 
-            Timestep::fix(timestep);
+            Manager::fix_timestep(manager);
         }
     }
 }

@@ -27,26 +27,24 @@ use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Viewer {
+    pub view_buffer_input: triple_buffer::Input<View>,
     pub sector_version_map: HashMap<sector::ID, u64>,
     pub block_view_cache: HashMap<sector::ID, Vec<Option<BlockView>>>,
 }
 
 impl Viewer {
-    pub fn new() -> Self {
+    pub fn new(view_buffer_input: triple_buffer::Input<View>) -> Self {
         Self {
+            view_buffer_input,
             sector_version_map: HashMap::new(),
             block_view_cache: HashMap::new(),
         }
     }
 
-    pub fn tick(
-        state: &State,
-        view_buffer_input: &mut triple_buffer::Input<View>,
-        viewer: &mut Viewer,
-    ) {
+    pub fn tick(state: &State, viewer: &mut Viewer) {
         let _ = tracing::info_span!("observation_tick").entered();
 
-        Self::update_view(state, view_buffer_input, viewer);
+        Self::update_view(state, viewer);
     }
 
     pub fn get_view(view_buffer_output: &mut triple_buffer::Output<View>) -> &View {
@@ -57,11 +55,7 @@ impl Viewer {
         &view
     }
 
-    fn update_view(
-        state: &State,
-        view_buffer_input: &mut triple_buffer::Input<View>,
-        viewer: &mut Viewer,
-    ) {
+    fn update_view(state: &State, viewer: &mut Viewer) {
         let admin_view = Self::update_admin_view(state);
         let time_view = Self::update_time_view(state);
 
@@ -73,14 +67,14 @@ impl Viewer {
             &mut viewer.block_view_cache,
         );
 
-        let view = view_buffer_input.input_buffer_mut();
+        let view = viewer.view_buffer_input.input_buffer_mut();
 
         view.admin_view = admin_view;
         view.time_view = time_view;
         view.population_view = population_view;
         view.world_view = world_view;
 
-        view_buffer_input.publish();
+        viewer.view_buffer_input.publish();
     }
 
     fn update_admin_view(state: &State) -> AdminView {
