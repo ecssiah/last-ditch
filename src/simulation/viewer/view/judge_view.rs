@@ -8,8 +8,8 @@ pub struct JudgeView {
     pub sector_id: sector::ID,
     pub sector_coordinates: IVec3,
     pub size: Vec3,
-    pub rotor: Rotor3,
-    pub eye: Vec3,
+    pub sight_world_position: Vec3,
+    pub sight_rotor: Rotor3,
 }
 
 impl JudgeView {
@@ -20,8 +20,8 @@ impl JudgeView {
             sector_id: sector::ID(0),
             sector_coordinates: IVec3::new(0, 0, 0),
             size: Vec3::broadcast(0.0),
-            rotor: Rotor3::identity(),
-            eye: Vec3::broadcast(0.0),
+            sight_world_position: Vec3::broadcast(0.0),
+            sight_rotor: Rotor3::identity(),
         }
     }
 }

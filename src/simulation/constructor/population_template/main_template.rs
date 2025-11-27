@@ -1,7 +1,7 @@
 use crate::simulation::{
     constants::*,
     state::{
-        population::{agent::Agent, nation, sight::Sight, spatial::Spatial},
+        population::{agent::Agent, judge::Judge, nation, sight::Sight, spatial::Spatial},
         world::World,
         Population,
     },
@@ -17,21 +17,9 @@ pub fn construct(world: &World, population: &mut Population) {
 fn setup_judge(world: &World, population: &mut Population) {
     let judge = &mut population.judge;
 
-    Spatial::set_world_position(Vec3::new(0.0, 0.0, 6.0), &mut judge.spatial);
+    Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);
+    Judge::set_rotation(180.0, 0.0, judge);
 
-    Spatial::set_size(
-        Vec3::new(
-            JUDGE_DEFAULT_SIZE_X,
-            JUDGE_DEFAULT_SIZE_Y,
-            JUDGE_DEFAULT_SIZE_Z,
-        ),
-        &mut judge.spatial,
-    );
-
-    judge.kinematic.speed = JUDGE_DEFAULT_SPEED;
-    judge.kinematic.jump_speed = JUDGE_DEFAULT_JUMP_SPEED;
-
-    Spatial::set_rotation(0.0, 0.0, &mut judge.spatial);
     Sight::set_range(20.0, &world.grid, &mut judge.sight);
 }
 

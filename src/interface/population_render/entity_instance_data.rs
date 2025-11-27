@@ -3,7 +3,7 @@
 pub struct EntityInstanceData {
     pub world_position: [f32; 3],
     pub size_y: f32,
-    pub yaw: f32,
+    pub rotation_xy: f32,
     pub _padding: [f32; 3],
 }
 

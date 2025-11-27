@@ -87,6 +87,7 @@ impl State {
     pub fn place_block(block_kind: block::Kind, state: &mut State) {
         let origin = state.population.judge.spatial.world_position
             + Vec3::new(0.0, 0.0, state.population.judge.spatial.size.z);
+            
         let dir = state.population.judge.spatial.rotor * Vec3::unit_y();
 
         if let Some((hit_position, normal)) =
@@ -115,6 +116,7 @@ impl State {
     pub fn remove_block(state: &mut State) {
         let origin = state.population.judge.spatial.world_position
             + Vec3::new(0.0, 0.0, state.population.judge.spatial.size.z);
+
         let dir = state.population.judge.spatial.rotor * Vec3::unit_y();
 
         if let Some((hit_position, _)) = Self::raycast_first_solid(&state.world, origin, dir, 20.0)

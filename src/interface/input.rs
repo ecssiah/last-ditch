@@ -74,14 +74,15 @@ impl Input {
             0.0,
         );
 
-        let rotation =
-            MOUSE_SENSITIVITY * Vec3::new(-mouse_inputs.delta.x, mouse_inputs.delta.y, 0.0);
+        let rotation_xy = MOUSE_SENSITIVITY * -mouse_inputs.delta.x;
+        let rotation_yz = MOUSE_SENSITIVITY * -mouse_inputs.delta.y;
 
         mouse_inputs.delta = Vec2::broadcast(0.0);
 
         let move_data = MoveData {
             direction,
-            rotation,
+            rotation_xy,
+            rotation_yz,
         };
 
         Act::Move(move_data)

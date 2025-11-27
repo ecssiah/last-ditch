@@ -1,4 +1,4 @@
-use ultraviolet::IVec3;
+use ultraviolet::Vec3;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -13,11 +13,11 @@ impl Axis {
         [Axis::X, Axis::Y, Axis::Z]
     }
 
-    pub fn unit(axis: Axis) -> IVec3 {
+    pub fn unit(axis: Axis) -> Vec3 {
         match axis {
-            Axis::X => IVec3::unit_x(),
-            Axis::Y => IVec3::unit_y(),
-            Axis::Z => IVec3::unit_z(),
+            Axis::X => Vec3::unit_x(),
+            Axis::Y => Vec3::unit_y(),
+            Axis::Z => Vec3::unit_z(),
         }
     }
 }

@@ -60,12 +60,21 @@ impl AABB {
         )
     }
 
-    pub fn set_bottom_center(&mut self, x: f32, y: f32, z: f32) {
+    pub fn set_bottom_center(&mut self, world_position: Vec3) {
         let size = self.size();
         let xy_radius = Vec2::new(size.x, size.y) * 0.5;
 
-        self.min = Vec3::new(x - xy_radius.x, y - xy_radius.y, z);
-        self.max = Vec3::new(x + xy_radius.x, y + xy_radius.y, z + size.z);
+        self.min = Vec3::new(
+            world_position.x - xy_radius.x,
+            world_position.y - xy_radius.y,
+            world_position.z,
+        );
+        
+        self.max = Vec3::new(
+            world_position.x + xy_radius.x,
+            world_position.y + xy_radius.y,
+            world_position.z + size.z,
+        );
     }
 
     pub fn translate(&self, displacement: Vec3) -> AABB {

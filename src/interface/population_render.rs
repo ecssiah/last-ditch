@@ -391,7 +391,7 @@ impl PopulationRender {
             let entity_instance_data = EntityInstanceData {
                 world_position: *agent_view.spatial.world_position.as_array(),
                 size_y: agent_view.spatial.size.y,
-                yaw: agent_view.spatial.yaw,
+                rotation_xy: agent_view.spatial.rotation_xy,
                 _padding: [0.0, 0.0, 0.0],
             };
 

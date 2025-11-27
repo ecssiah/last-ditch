@@ -6,8 +6,8 @@ use crate::simulation::{
     constants::*,
     state::{
         physics::aabb::AABB,
-        population::{kinematic::Kinematic, spatial::Spatial, Population},
-        world::grid::{self, Grid},
+        population::{kinematic::Kinematic, sight::Sight, spatial::Spatial, Population},
+        world::grid::{axis::Axis, Grid},
         World,
     },
 };
@@ -39,12 +39,12 @@ impl Physics {
             &mut population.judge.kinematic,
         );
 
-        Self::sync(&mut population.judge.spatial);
+        Self::sync(&mut population.judge.spatial, &mut population.judge.sight);
     }
 
     fn integrate(gravity: Vec3, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
         let initial_velocity = kinematic.velocity;
-        let acceleration = kinematic.acceleration + gravity;
+        let acceleration = gravity;
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
@@ -64,29 +64,21 @@ impl Physics {
         let mut aabb = spatial.body;
         let mut velocity = *velocity;
 
-        for axis in [
-            grid::Direction::North,
-            grid::Direction::East,
-            grid::Direction::Up,
-        ] {
-            let delta_axis = if axis == grid::Direction::North {
-                delta.y
-            } else if axis == grid::Direction::East {
-                delta.x
-            } else {
-                delta.z
+        for axis in [Axis::Y, Axis::X, Axis::Z] {
+            let delta_axis = match axis {
+                Axis::X => delta.x,
+                Axis::Y => delta.y,
+                Axis::Z => delta.z,
             };
 
             let (resolved_aabb, step) = Self::resolve_axis(aabb, world, axis, delta_axis);
 
             aabb = resolved_aabb;
 
-            if axis == grid::Direction::North {
-                velocity.y = step / SIMULATION_TICK_IN_SECONDS;
-            } else if axis == grid::Direction::East {
-                velocity.x = step / SIMULATION_TICK_IN_SECONDS;
-            } else {
-                velocity.z = step / SIMULATION_TICK_IN_SECONDS;
+            match axis {
+                Axis::X => velocity.x = step / SIMULATION_TICK_IN_SECONDS,
+                Axis::Y => velocity.y = step / SIMULATION_TICK_IN_SECONDS,
+                Axis::Z => velocity.z = step / SIMULATION_TICK_IN_SECONDS,
             }
         }
 
@@ -94,7 +86,7 @@ impl Physics {
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(aabb: AABB, world: &World, axis: grid::Direction, delta: f32) -> (AABB, f32) {
+    fn resolve_axis(aabb: AABB, world: &World, axis: Axis, delta: f32) -> (AABB, f32) {
         if delta.abs() < EPSILON_COLLISION {
             return (aabb, 0.0);
         }
@@ -105,7 +97,7 @@ impl Physics {
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-            let test_aabb = aabb.translate(axis.to_vec3() * mid);
+            let test_aabb = aabb.translate(Axis::unit(axis) * mid);
 
             if Self::get_solid_collisions(test_aabb, world).is_empty() {
                 final_delta = mid;
@@ -115,7 +107,7 @@ impl Physics {
             }
         }
 
-        let adjusted_aabb = aabb.translate(axis.to_vec3() * final_delta);
+        let adjusted_aabb = aabb.translate(Axis::unit(axis) * final_delta);
 
         let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
             0.0
@@ -149,7 +141,11 @@ impl Physics {
             .collect()
     }
 
-    fn sync(spatial: &mut Spatial) {
+    fn sync(spatial: &mut Spatial, sight: &mut Sight) {
         Spatial::set_world_position(spatial.body.bottom_center(), spatial);
+        Sight::set_world_position(
+            spatial.body.bottom_center() + sight.relative_position,
+            sight,
+        );
     }
 }

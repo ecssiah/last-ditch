@@ -118,18 +118,15 @@ impl Camera {
         let projection_matrix =
             Self::get_projection_matrix(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let eye_offset = Vec3::unit_z() * 0.9 * judge_view.size.z;
-        let eye = judge_view.world_position + eye_offset;
+        let forward = judge_view.sight_rotor * Vec3::unit_y();
+        let up = judge_view.sight_rotor * Vec3::unit_z();
 
-        let forward = judge_view.rotor * Vec3::unit_y();
-        let up = judge_view.rotor * Vec3::unit_z();
+        let target = judge_view.sight_world_position + forward;
 
-        let target = eye + forward;
-
-        let view_matrix = Self::get_view_matrix(eye, target, up);
+        let view_matrix = Self::get_view_matrix(judge_view.sight_world_position, target, up);
         let view_projection_matrix = projection_matrix * view_matrix;
 
-        camera.position = eye;
+        camera.position = judge_view.sight_world_position;
         camera.view_matrix = view_matrix;
         camera.projection_matrix = projection_matrix;
         camera.view_projection_matrix = view_projection_matrix;

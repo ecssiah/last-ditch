@@ -123,8 +123,8 @@ impl Viewer {
                 &state.world.grid,
             ),
             size: judge.spatial.size,
-            rotor: judge.spatial.rotor,
-            eye: judge.sight.world_position,
+            sight_world_position: judge.sight.world_position,
+            sight_rotor: judge.sight.rotor,
         };
 
         let mut population_view = PopulationView {
