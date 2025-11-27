@@ -1,6 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{state::action::Act, viewer::View, Simulation},
+    simulation::{manager::Message, viewer::View, Simulation},
 };
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
@@ -20,11 +20,11 @@ impl<'window> App<'window> {
         interface: &mut Option<Interface<'window>>,
         simulation_thread: &mut Option<tokio::task::JoinHandle<()>>,
     ) {
-        let (act_tx, act_rx) = unbounded_channel::<Act>();
-        let (view_buffer_input, view_buffer_output) = triple_buffer::triple_buffer(&View::new());
+        let (message_tx, message_rx) = unbounded_channel::<Message>();
+        let (view_input, view_output) = triple_buffer::triple_buffer(&View::new());
 
-        let mut simulation = Box::new(Simulation::new(act_rx, view_buffer_input));
-        *interface = Some(Interface::new(event_loop, act_tx, view_buffer_output));
+        let mut simulation = Box::new(Simulation::new(message_rx, view_input));
+        *interface = Some(Interface::new(event_loop, message_tx, view_output));
 
         *simulation_thread = Some(tokio::spawn(async move {
             Simulation::run(
@@ -46,7 +46,7 @@ impl<'window> ApplicationHandler for App<'window> {
     }
 
     fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
-        Interface::process_window_event(&event, &mut self.interface);
+        Interface::handle_window_event(&event, &mut self.interface);
     }
 
     fn device_event(
@@ -55,6 +55,6 @@ impl<'window> ApplicationHandler for App<'window> {
         _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
-        Interface::process_device_event(&event, &mut self.interface);
+        Interface::handle_device_event(&event, &mut self.interface);
     }
 }

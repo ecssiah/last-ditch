@@ -9,7 +9,7 @@ use crate::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
     },
-    simulation::viewer::JudgeView,
+    simulation::viewer::{JudgeView, View},
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 
@@ -22,6 +22,7 @@ pub struct Camera {
     pub projection_matrix: Mat4,
     pub view_projection_matrix: Mat4,
     pub frustum: Frustum,
+    pub uniform_data: CameraUniformData,
     pub uniform_buffer: wgpu::Buffer,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub uniform_bind_group: wgpu::BindGroup,
@@ -37,6 +38,7 @@ impl Camera {
         let projection_matrix = Mat4::identity();
         let view_projection_matrix = Mat4::identity();
         let frustum = Frustum::from_matrix(&Mat4::identity());
+        let uniform_data = CameraUniformData::new();
 
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera View Projection Buffer"),
@@ -78,14 +80,15 @@ impl Camera {
             projection_matrix,
             view_projection_matrix,
             frustum,
+            uniform_data,
             uniform_buffer,
             uniform_bind_group_layout,
             uniform_bind_group,
         }
     }
 
-    pub fn apply_judge_view(queue: &wgpu::Queue, judge_view: &JudgeView, camera: &mut Camera) {
-        Self::update_camera(judge_view, camera);
+    pub fn apply_view(view: &View, camera: &mut Camera) {
+        Self::update_camera(&view.population_view.judge_view, camera);
 
         let view_matrix_array = [
             *camera.view_matrix.cols[0].as_array(),
@@ -108,19 +111,13 @@ impl Camera {
             *camera.view_projection_matrix.cols[3].as_array(),
         ];
 
-        let camera_uniform_data = CameraUniformData {
+        camera.uniform_data = CameraUniformData {
             view_projection_matrix: view_projection_matrix_array,
             view_matrix: view_matrix_array,
             projection_matrix: projection_matrix_array,
             camera_position: *camera.position.as_array(),
             _padding: 0.0,
         };
-
-        queue.write_buffer(
-            &camera.uniform_buffer,
-            0,
-            bytemuck::cast_slice(&[camera_uniform_data]),
-        );
     }
 
     fn update_camera(judge_view: &JudgeView, camera: &mut Camera) {

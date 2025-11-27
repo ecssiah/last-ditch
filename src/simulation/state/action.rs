@@ -7,9 +7,7 @@ use crate::simulation::{
     state::{
         action::act::MoveData,
         population::{judge::Judge, kinematic::Kinematic},
-        state_loading, state_shutdown,
-        world::block,
-        Admin, State,
+        State,
     },
 };
 use std::collections::VecDeque;
@@ -30,20 +28,10 @@ impl Action {
 
         for act in act_deque {
             match act {
-                Act::Start => state_loading::init(state),
-                Act::Quit => state_shutdown::init(state),
-                Act::Debug => Admin::toggle_debug(&mut state.admin),
                 Act::Move(move_data) => Self::apply_move(&move_data, &mut state.population.judge),
                 Act::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
-                Act::PlaceBlock(place_block_data) => {
-                    State::place_block(place_block_data.block_kind, state)
-                }
+                Act::PlaceBlock => State::place_block(state),
                 Act::RemoveBlock => State::remove_block(state),
-                Act::Test1 => state.population.judge.selected_block = block::Kind::CrimsonStone,
-                Act::Test2 => state.population.judge.selected_block = block::Kind::MagentaStone,
-                Act::Test3 => state.population.judge.selected_block = block::Kind::PurpleStone,
-                Act::Test4 => state.population.judge.selected_block = block::Kind::TealStone,
-                Act::Exit => unreachable!("Exit action should be handled by Manager!"),
             }
         }
     }

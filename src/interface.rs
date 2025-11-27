@@ -4,9 +4,8 @@ pub mod app;
 pub mod camera;
 pub mod constants;
 pub mod debug;
-pub mod dispatch;
 pub mod gpu;
-pub mod hud;
+pub mod gui;
 pub mod input;
 pub mod item_render;
 pub mod population_render;
@@ -14,17 +13,16 @@ pub mod world_render;
 
 use crate::{
     interface::{
-        camera::Camera, constants::*, debug::DebugRender, dispatch::Dispatch,
-        gpu::gpu_context::GPUContext, hud::HUD, input::Input, item_render::ItemRender,
-        population_render::PopulationRender, world_render::WorldRender,
+        camera::Camera, constants::*, debug::DebugRender, gpu::gpu_context::GPUContext, gui::GUI,
+        input::Input, item_render::ItemRender, population_render::PopulationRender,
+        world_render::WorldRender,
     },
     simulation::{
-        self,
-        state::{action::Act, admin},
+        self, manager,
         viewer::{View, Viewer},
     },
 };
-use std::{sync::Arc, time::Instant};
+use std::{collections::VecDeque, sync::Arc, time::Instant};
 use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalSize,
@@ -35,23 +33,23 @@ use winit::{
 
 pub struct Interface<'window> {
     pub last_instant: Instant,
-    pub dispatch: Dispatch,
+    pub message_tx: UnboundedSender<manager::Message>,
     pub input: Input,
     pub camera: Camera,
-    pub hud: HUD,
+    pub gui: GUI,
     pub world_render: WorldRender,
     pub item_render: ItemRender,
-    pub entity_render: PopulationRender,
+    pub population_render: PopulationRender,
     pub debug_render: DebugRender,
     pub gpu_context: GPUContext<'window>,
-    pub view_buffer_output: triple_buffer::Output<View>,
+    pub view_output: triple_buffer::Output<View>,
 }
 
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
-        act_tx: UnboundedSender<Act>,
-        view_buffer_output: triple_buffer::Output<View>,
+        message_tx: UnboundedSender<manager::Message>,
+        view_output: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();
 
@@ -159,33 +157,32 @@ impl<'window> Interface<'window> {
             egui_renderer,
         };
 
-        let dispatch = Dispatch::new(act_tx);
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
-        let hud = HUD::new();
+        let gui = GUI::new();
         let world_render = WorldRender::new(&gpu_context, &camera);
         let item_render = ItemRender::new(&gpu_context, &camera);
-        let entity_render = PopulationRender::new(&gpu_context, &camera);
+        let population_render = PopulationRender::new(&gpu_context, &camera);
         let debug_render = DebugRender::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
         Self {
             last_instant,
-            dispatch,
+            message_tx,
             input,
             camera,
-            hud,
+            gui,
             world_render,
             item_render,
-            entity_render,
+            population_render,
             debug_render,
             gpu_context,
-            view_buffer_output,
+            view_output,
         }
     }
 
-    pub fn process_window_event(event: &WindowEvent, interface: &mut Option<Interface>) {
+    pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
             let _ = tracing::info_span!("window_event").entered();
 
@@ -193,43 +190,40 @@ impl<'window> Interface<'window> {
                 WindowEvent::RedrawRequested => Self::render(
                     &interface.camera,
                     &mut interface.gpu_context,
-                    &mut interface.hud,
+                    &mut interface.gui,
                     &mut interface.world_render,
                     &mut interface.item_render,
-                    &mut interface.entity_render,
+                    &mut interface.population_render,
                     &mut interface.debug_render,
                 ),
                 WindowEvent::Resized(size) => {
                     Self::handle_resized(*size, &mut interface.gpu_context)
                 }
                 _ => {
-                    let is_handled = HUD::handle_window_event(
-                        event,
-                        &mut interface.hud.mode,
-                        &mut interface.gpu_context,
-                    );
+                    if GUI::handle_window_event(event, &mut interface.gpu_context) {
+                        return;
+                    }
 
-                    if !is_handled {
-                        Input::handle_window_event(
-                            event,
-                            &mut interface.input.key_inputs,
-                            &mut interface.input.act_deque,
-                        );
+                    if Input::handle_window_event(
+                        event,
+                        &mut interface.gui,
+                        &mut interface.gpu_context,
+                        &mut interface.input,
+                    ) {
+                        return;
                     }
                 }
             }
         }
     }
 
-    pub fn process_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
+    pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
-            let _ = tracing::info_span!("device_event").entered();
-
-            if HUD::process_device_event(event, &interface.hud.mode, &mut interface.gpu_context) {
+            if GUI::handle_device_event(event, &mut interface.gpu_context) {
                 return;
             }
 
-            if Input::process_device_event(event, &mut interface.input.mouse_inputs) {
+            if Input::handle_device_event(event, &mut interface.input) {
                 return;
             }
         }
@@ -238,10 +232,10 @@ impl<'window> Interface<'window> {
     fn render(
         camera: &Camera,
         gpu_context: &mut GPUContext,
-        hud: &mut HUD,
+        gui: &mut GUI,
         world_render: &mut WorldRender,
         item_render: &mut ItemRender,
-        entity_render: &mut PopulationRender,
+        population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
         let _ = tracing::info_span!("redraw").entered();
@@ -284,17 +278,17 @@ impl<'window> Interface<'window> {
             &depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
-            entity_render,
+            population_render,
             &mut encoder,
         );
 
-        HUD::render(
+        GUI::render(
             &surface_texture_view,
             Arc::clone(&gpu_context.window_arc),
             &gpu_context.device,
             &gpu_context.queue,
             &gpu_context.egui_context,
-            hud,
+            gui,
             &mut gpu_context.egui_winit_state,
             &mut gpu_context.egui_renderer,
             &mut encoder,
@@ -331,30 +325,24 @@ impl<'window> Interface<'window> {
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
             interface.last_instant = instant;
 
-            let view = Viewer::get_view(&mut interface.view_buffer_output);
+            let view = Viewer::get_view(&mut interface.view_output);
 
-            if !Self::dispatch_act_deque(
-                view,
-                &interface.dispatch,
-                &mut interface.hud,
+            Self::send_message_deque(
+                &mut interface.gui,
                 &mut interface.input,
-            ) {
-                match interface.dispatch.act_tx.send(Act::Exit) {
-                    Ok(_) => tracing::info!("Interface Exit Action Sent"),
-                    Err(err) => tracing::warn!("Interface Exit Action Failed: ({err})"),
-                };
-            } else {
-                Self::apply_view(
-                    event_loop,
-                    view,
-                    &interface.gpu_context,
-                    &mut interface.camera,
-                    &mut interface.hud,
-                    &mut interface.world_render,
-                    &mut interface.entity_render,
-                    &mut interface.debug_render,
-                );
-            }
+                &interface.message_tx,
+            );
+
+            Self::apply_view(
+                event_loop,
+                view,
+                &interface.gpu_context,
+                &mut interface.camera,
+                &mut interface.gui,
+                &mut interface.world_render,
+                &mut interface.population_render,
+                &mut interface.debug_render,
+            );
 
             let instant = Instant::now();
 
@@ -371,60 +359,19 @@ impl<'window> Interface<'window> {
         view: &View,
         gpu_context: &GPUContext,
         camera: &mut Camera,
-        hud: &mut HUD,
+        gui: &mut GUI,
         world_render: &mut WorldRender,
-        entity_render: &mut PopulationRender,
+        population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
-        match view.admin_view.mode {
-            admin::Mode::Menu => Self::apply_menu_view(view, gpu_context, hud),
-            admin::Mode::Loading => Self::apply_loading_view(view, hud),
-            admin::Mode::Simulate => Self::apply_simulate_view(
-                view,
-                gpu_context,
-                camera,
-                hud,
-                world_render,
-                entity_render,
-                debug_render,
-            ),
-            admin::Mode::Shutdown => Self::apply_shutdown_view(view, event_loop, hud),
-        }
-    }
+        GUI::apply_view(view, gui);
+        Camera::apply_view(view, camera);
 
-    fn apply_menu_view(view: &View, gpu_context: &GPUContext, hud: &mut HUD) {
-        gpu_context.window_arc.set_cursor_visible(true);
-        gpu_context
-            .window_arc
-            .set_cursor_grab(winit::window::CursorGrabMode::None)
-            .expect("Failed to grab cursor");
-
-        HUD::apply_menu_view(view, &mut hud.mode);
-    }
-
-    fn apply_loading_view(view: &View, hud: &mut HUD) {
-        HUD::apply_loading_view(view, &mut hud.mode);
-    }
-
-    fn apply_simulate_view(
-        view: &View,
-        gpu_context: &GPUContext,
-        camera: &mut Camera,
-        hud: &mut HUD,
-        world_render: &mut WorldRender,
-        entity_render: &mut PopulationRender,
-        debug_render: &mut DebugRender,
-    ) {
-        gpu_context.window_arc.set_cursor_visible(false);
-
-        gpu_context
-            .window_arc
-            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
-            .expect("Failed to grab cursor");
-
-        HUD::apply_simulate_view(view, &mut hud.mode);
-
-        Camera::apply_judge_view(&gpu_context.queue, &view.population_view.judge_view, camera);
+        gpu_context.queue.write_buffer(
+            &camera.uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[camera.uniform_data]),
+        );
 
         WorldRender::apply_world_view(
             &gpu_context.device,
@@ -438,62 +385,36 @@ impl<'window> Interface<'window> {
 
         PopulationRender::apply_population_view(
             &view.population_view,
-            &mut entity_render.entity_instance_data_group_vec,
+            &mut population_render.entity_instance_data_group_vec,
         );
 
         DebugRender::apply_debug_view(view, debug_render);
     }
 
-    fn apply_shutdown_view(view: &View, event_loop: &ActiveEventLoop, hud: &mut HUD) {
-        HUD::apply_shutdown_view(view, &mut hud.mode);
-
-        event_loop.exit();
-    }
-
-    fn dispatch_act_deque(
-        view: &View,
-        dispatch: &Dispatch,
-        hud: &mut HUD,
+    fn send_message_deque(
+        gui: &mut GUI,
         input: &mut Input,
-    ) -> bool {
-        let mut act_deque = Vec::new();
+        message_tx: &UnboundedSender<manager::Message>,
+    ) {
+        let mut message_deque = VecDeque::new();
 
-        match view.admin_view.mode {
-            admin::Mode::Menu => {
-                let hud_act_deque = HUD::get_act_deque(&mut hud.act_deque);
+        let gui_message_deque = GUI::get_message_deque(&mut gui.message_deque);
 
-                act_deque.extend(hud_act_deque);
-            }
-            admin::Mode::Loading => {}
-            admin::Mode::Simulate => {
-                let input_act_deque = Input::get_act_deque(
-                    &input.key_inputs,
-                    &mut input.mouse_inputs,
-                    &mut input.act_deque,
-                );
+        let input_message_deque = Input::get_message_deque(
+            &input.key_inputs,
+            &mut input.mouse_inputs,
+            &mut input.message_deque,
+        );
 
-                let hud_act_deque = HUD::get_act_deque(&mut hud.act_deque);
+        message_deque.extend(gui_message_deque);
+        message_deque.extend(input_message_deque);
 
-                act_deque.extend(input_act_deque);
-                act_deque.extend(hud_act_deque);
-            }
-            admin::Mode::Shutdown => {
-                act_deque.push(Act::Exit);
-            }
-        }
-
-        for action in act_deque {
-            match dispatch.act_tx.send(action) {
+        for message in message_deque {
+            match message_tx.send(message) {
                 Ok(()) => (),
-                Err(_) => {
-                    tracing::error!("Send Failed: {:?}", action);
-
-                    return false;
-                }
+                Err(_) => tracing::error!("Message Send Failed"),
             }
         }
-
-        true
     }
 
     fn create_depth_texture(

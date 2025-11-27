@@ -12,6 +12,7 @@ use crate::simulation::{
         physics::aabb::AABB,
         population::nation,
         world::{cell::Cell, grid::Grid, sector::Sector},
+        Time,
     },
 };
 use std::collections::HashMap;
@@ -19,6 +20,7 @@ use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
     pub state_template: state::Template,
+    pub time: Time,
     pub grid: Grid,
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<sector::Sector>,
@@ -27,6 +29,7 @@ pub struct World {
 
 impl World {
     pub fn new(state_template: state::Template) -> Self {
+        let time = Time::new();
         let grid = Grid::new(state_template);
         let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec(&grid);
@@ -40,6 +43,7 @@ impl World {
 
         Self {
             state_template,
+            time,
             grid,
             block_info_map,
             sector_vec,
@@ -50,6 +54,7 @@ impl World {
     pub fn placeholder() -> Self {
         let state_template = state::Template::Placeholder;
 
+        let time = Time::new();
         let grid = Grid::new(state_template);
         let block_info_map = HashMap::default();
         let sector_vec = Vec::default();
@@ -58,6 +63,7 @@ impl World {
 
         Self {
             state_template,
+            time,
             grid,
             block_info_map,
             sector_vec,

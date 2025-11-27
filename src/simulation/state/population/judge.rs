@@ -23,7 +23,7 @@ pub struct Judge {
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub sight: Sight,
-    pub selected_block: block::Kind,
+    pub selected_block_kind: block::Kind,
 }
 
 impl Judge {
@@ -55,7 +55,7 @@ impl Judge {
         let mut sight = Sight::new();
         sight.relative_position = Vec3::new(0.0, 0.0, 0.9 * spatial.size.z);
 
-        let selected_block = block::Kind::CrimsonStone;
+        let selected_block_kind = block::Kind::CrimsonStone;
 
         Self {
             id,
@@ -63,7 +63,7 @@ impl Judge {
             spatial,
             kinematic,
             sight,
-            selected_block,
+            selected_block_kind,
         }
     }
 

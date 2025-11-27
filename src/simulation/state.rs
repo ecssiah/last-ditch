@@ -1,21 +1,15 @@
 //! Current state of the simulation
 
 pub mod action;
-pub mod admin;
 pub mod config;
 pub mod navigation;
 pub mod physics;
 pub mod population;
-pub mod state_loading;
-pub mod state_menu;
-pub mod state_shutdown;
-pub mod state_simulate;
 pub mod template;
 pub mod time;
 pub mod world;
 
 pub use action::Action;
-pub use admin::Admin;
 pub use config::Config;
 pub use physics::Physics;
 pub use population::Population;
@@ -33,7 +27,6 @@ use crate::simulation::state::{
 pub struct State {
     pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
-    pub admin: Admin,
     pub time: Time,
     pub action: Action,
     pub world: World,
@@ -47,7 +40,6 @@ impl State {
         let template = state::Template::Main;
         let construct_rx = None;
 
-        let admin = Admin::new();
         let action = Action::new();
         let world = World::new(template);
         let population = Population::new(template);
@@ -58,7 +50,6 @@ impl State {
         Self {
             template,
             construct_rx,
-            admin,
             action,
             time,
             physics,
@@ -71,15 +62,14 @@ impl State {
     pub fn tick(state: &mut State) {
         let _ = tracing::info_span!("state_tick").entered();
 
-        match state.admin.mode {
-            admin::Mode::Menu => state_menu::tick(state),
-            admin::Mode::Loading => state_loading::tick(state),
-            admin::Mode::Simulate => state_simulate::tick(state),
-            admin::Mode::Shutdown => state_shutdown::tick(state),
-        }
+        Action::tick(state);
+        Population::tick(&state.world, &mut state.population);
+        Physics::tick(&state.world, &state.physics, &mut state.population);
+        Navigation::tick(&state.world, &mut state.navigation);
+        Time::tick(&mut state.time);
     }
 
-    pub fn place_block(block_kind: block::Kind, state: &mut State) {
+    pub fn place_block(state: &mut State) {
         let judge = &state.population.judge;
 
         let range = 8.0;
@@ -93,13 +83,13 @@ impl State {
 
             World::set_block(
                 placement_position,
-                judge.selected_block,
+                judge.selected_block_kind,
                 &state.world.block_info_map,
                 &state.world.grid,
                 &mut state.world.sector_vec,
             );
 
-            let block_info = state.world.block_info_map[&block_kind];
+            let block_info = state.world.block_info_map[&judge.selected_block_kind];
 
             Graph::set_solid(
                 placement_position,
@@ -130,4 +120,39 @@ impl State {
             Graph::set_solid(hit_position, false, &mut state.navigation.graph);
         }
     }
+
+    // pub fn init(state: &mut State) {
+    //     let state_template = state.template;
+
+    //     let world = std::mem::replace(&mut state.world, World::placeholder());
+    //     let population = std::mem::replace(&mut state.population, Population::placeholder());
+
+    //     let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
+
+    //     tokio::task::spawn_blocking(move || {
+    //         let mut world = world;
+    //         let mut population = population;
+
+    //         constructor::world_template::construct(state_template, &mut world);
+    //         constructor::population_template::construct(state_template, &world, &mut population);
+
+    //         let _ = construct_tx.blocking_send((world, population));
+    //     });
+
+    //     state.construct_rx = Some(construct_rx);
+
+    //     // state.admin.mode = admin::Mode::Loading;
+    //     // state.admin.message = "Construction in Progress...".to_string();
+    // }
+
+    // pub fn tick(state: &mut State) {
+    //     if let Some(construct_rx) = &mut state.construct_rx {
+    //         if let Ok((world, population)) = construct_rx.try_recv() {
+    //             state.world = world;
+    //             state.population = population;
+
+    //             Navigation::init_graph(&state.world, &mut state.navigation.graph);
+    //         }
+    //     }
+    // }
 }

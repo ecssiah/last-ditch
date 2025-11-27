@@ -3,19 +3,16 @@
 pub mod face_mask;
 pub mod view;
 
-pub use view::AdminView;
 pub use view::AgentView;
 pub use view::BlockView;
 pub use view::FaceView;
 pub use view::JudgeView;
 pub use view::PopulationView;
 pub use view::SectorView;
-pub use view::TimeView;
 pub use view::View;
 pub use view::WorldView;
 
 use crate::simulation::state::{
-    admin::{self},
     world::{
         block,
         grid::{self, Grid},
@@ -27,15 +24,15 @@ use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Viewer {
-    pub view_buffer_input: triple_buffer::Input<View>,
+    pub view_input: triple_buffer::Input<View>,
     pub sector_version_map: HashMap<sector::ID, u64>,
     pub block_view_cache: HashMap<sector::ID, Vec<Option<BlockView>>>,
 }
 
 impl Viewer {
-    pub fn new(view_buffer_input: triple_buffer::Input<View>) -> Self {
+    pub fn new(view_input: triple_buffer::Input<View>) -> Self {
         Self {
-            view_buffer_input,
+            view_input,
             sector_version_map: HashMap::new(),
             block_view_cache: HashMap::new(),
         }
@@ -47,18 +44,15 @@ impl Viewer {
         Self::update_view(state, viewer);
     }
 
-    pub fn get_view(view_buffer_output: &mut triple_buffer::Output<View>) -> &View {
-        view_buffer_output.update();
+    pub fn get_view(view_output: &mut triple_buffer::Output<View>) -> &View {
+        view_output.update();
 
-        let view = view_buffer_output.peek_output_buffer();
+        let view = view_output.peek_output_buffer();
 
         &view
     }
 
     fn update_view(state: &State, viewer: &mut Viewer) {
-        let admin_view = Self::update_admin_view(state);
-        let time_view = Self::update_time_view(state);
-
         let population_view = Self::update_population_view(state);
 
         let world_view = Self::update_world_view(
@@ -67,45 +61,15 @@ impl Viewer {
             &mut viewer.block_view_cache,
         );
 
-        let view = viewer.view_buffer_input.input_buffer_mut();
+        let view = viewer.view_input.input_buffer_mut();
 
-        view.admin_view = admin_view;
-        view.time_view = time_view;
         view.population_view = population_view;
         view.world_view = world_view;
 
-        viewer.view_buffer_input.publish();
-    }
-
-    fn update_admin_view(state: &State) -> AdminView {
-        AdminView {
-            mode: state.admin.mode,
-            message: state.admin.message.clone(),
-            debug_active: state.admin.debug_active,
-        }
-    }
-
-    fn update_time_view(state: &State) -> TimeView {
-        if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Loading
-            || state.admin.mode == admin::Mode::Shutdown
-        {
-            return TimeView::new();
-        }
-
-        TimeView {
-            instant: state.time.instant,
-        }
+        viewer.view_input.publish();
     }
 
     fn update_population_view(state: &State) -> PopulationView {
-        if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Loading
-            || state.admin.mode == admin::Mode::Shutdown
-        {
-            return PopulationView::new();
-        }
-
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
@@ -155,13 +119,6 @@ impl Viewer {
         sector_version_map: &mut HashMap<sector::ID, u64>,
         block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
     ) -> WorldView {
-        if state.admin.mode == admin::Mode::Menu
-            || state.admin.mode == admin::Mode::Loading
-            || state.admin.mode == admin::Mode::Shutdown
-        {
-            return WorldView::new();
-        }
-
         let mut world_view = WorldView {
             grid: state.world.grid,
             sector_view_map: HashMap::new(),

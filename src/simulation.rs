@@ -8,8 +8,8 @@ pub mod utils;
 pub mod viewer;
 
 use crate::simulation::{
-    manager::Manager,
-    state::{action::act::Act, State},
+    manager::{status::Status, Manager, Message},
+    state::State,
     viewer::{View, Viewer},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -22,11 +22,11 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(
-        act_rx: UnboundedReceiver<Act>,
-        view_buffer_input: triple_buffer::Input<View>,
+        message_rx: UnboundedReceiver<Message>,
+        view_input: triple_buffer::Input<View>,
     ) -> Self {
-        let manager = Manager::new(act_rx);
-        let viewer = Viewer::new(view_buffer_input);
+        let manager = Manager::new(message_rx);
+        let viewer = Viewer::new(view_input);
         let state = State::new();
 
         Self {
@@ -49,7 +49,7 @@ impl Simulation {
                 State::tick(state);
                 Viewer::tick(state, viewer);
 
-                if !manager.active {
+                if manager.status == Status::Done {
                     return;
                 }
             }
