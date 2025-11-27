@@ -9,10 +9,9 @@ use crate::simulation::{
         JUDGE_DEFAULT_SPEED,
     },
     state::{
-        population::{
+        World, population::{
             self, identity::Identity, kinematic::Kinematic, nation, sight::Sight, spatial::Spatial,
-        },
-        World,
+        }, world::block
     },
 };
 
@@ -22,6 +21,7 @@ pub struct Judge {
     pub spatial: Spatial,
     pub kinematic: Kinematic,
     pub sight: Sight,
+    pub selected_block: block::Kind,
 }
 
 impl Judge {
@@ -53,12 +53,15 @@ impl Judge {
         let mut sight = Sight::new();
         sight.relative_position = Vec3::new(0.0, 0.0, 0.9 * spatial.size.z);
 
+        let selected_block = block::Kind::CrimsonStone;
+
         Self {
             id,
             identity,
             spatial,
             kinematic,
             sight,
+            selected_block,
         }
     }
 

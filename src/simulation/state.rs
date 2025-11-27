@@ -29,13 +29,11 @@ use crate::simulation::state::{
     self,
     navigation::{Graph, Navigation},
     population::sight::Sight,
-    world::{block, grid::Grid},
+    world::block,
 };
-use ultraviolet::{IVec3, Vec3};
 
 pub struct State {
     pub active: bool,
-    pub placement_block: block::Kind,
     pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
@@ -63,7 +61,6 @@ impl State {
 
         Self {
             active,
-            placement_block: block::Kind::CrimsonStone,
             template,
             construct_rx,
             admin,
@@ -95,13 +92,13 @@ impl State {
         let direction = Sight::get_forward(&judge.sight);
 
         if let Some((hit_position, normal)) =
-            Self::raycast_to_block(&state.world, origin, direction, range)
+            World::raycast_to_block(origin, direction, range, &state.world)
         {
             let placement_position = hit_position + normal;
 
             World::set_block(
                 placement_position,
-                state.placement_block,
+                judge.selected_block,
                 &state.world.block_info_map,
                 &state.world.grid,
                 &mut state.world.sector_vec,
@@ -125,7 +122,7 @@ impl State {
         let direction = Sight::get_forward(&judge.sight);
 
         if let Some((hit_position, _)) =
-            Self::raycast_to_block(&state.world, origin, direction, range)
+            World::raycast_to_block(origin, direction, range, &state.world)
         {
             World::set_block(
                 hit_position,
@@ -137,118 +134,5 @@ impl State {
 
             Graph::set_solid(hit_position, false, &mut state.navigation.graph);
         }
-    }
-
-    pub fn raycast_to_block(
-        world: &World,
-        origin: Vec3,
-        direction: Vec3,
-        range: f32,
-    ) -> Option<(IVec3, IVec3)> {
-        let direction = direction.normalized();
-
-        let mut cell_position = Grid::world_to_cell_coordinates(origin, &world.grid);
-
-        let step = IVec3::new(
-            if direction.x > 0.0 { 1 } else { -1 },
-            if direction.y > 0.0 { 1 } else { -1 },
-            if direction.z > 0.0 { 1 } else { -1 },
-        );
-
-        let cell_world_position_min = Vec3::new(
-            cell_position.x as f32 - world.grid.cell_radius_in_meters,
-            cell_position.y as f32 - world.grid.cell_radius_in_meters,
-            cell_position.z as f32 - world.grid.cell_radius_in_meters,
-        );
-
-        let t_max = Vec3 {
-            x: if direction.x != 0.0 {
-                let boundary = if direction.x > 0.0 {
-                    cell_world_position_min.x + world.grid.cell_size_in_meters
-                } else {
-                    cell_world_position_min.x
-                };
-
-                (boundary - origin.x) / direction.x
-            } else {
-                f32::INFINITY
-            },
-            y: if direction.y != 0.0 {
-                let boundary = if direction.y > 0.0 {
-                    cell_world_position_min.y + world.grid.cell_size_in_meters
-                } else {
-                    cell_world_position_min.y
-                };
-
-                (boundary - origin.y) / direction.y
-            } else {
-                f32::INFINITY
-            },
-            z: if direction.z != 0.0 {
-                let boundary = if direction.z > 0.0 {
-                    cell_world_position_min.z + world.grid.cell_size_in_meters
-                } else {
-                    cell_world_position_min.z
-                };
-
-                (boundary - origin.z) / direction.z
-            } else {
-                f32::INFINITY
-            },
-        };
-
-        let t_delta = Vec3::new(
-            if direction.x != 0.0 {
-                (1.0 / direction.x).abs()
-            } else {
-                f32::INFINITY
-            },
-            if direction.y != 0.0 {
-                (1.0 / direction.y).abs()
-            } else {
-                f32::INFINITY
-            },
-            if direction.z != 0.0 {
-                (1.0 / direction.z).abs()
-            } else {
-                f32::INFINITY
-            },
-        );
-
-        let mut t_max = t_max;
-        let mut distance_traveled = 0.0;
-
-        // 3D DDA loop
-        while distance_traveled < range {
-            let hit_normal;
-
-            if t_max.x < t_max.y && t_max.x < t_max.z {
-                cell_position.x += step.x;
-                distance_traveled = t_max.x;
-                t_max.x += t_delta.x;
-
-                hit_normal = -step.x * IVec3::unit_x();
-            } else if t_max.y < t_max.z {
-                cell_position.y += step.y;
-                distance_traveled = t_max.y;
-                t_max.y += t_delta.y;
-
-                hit_normal = -step.y * IVec3::unit_y();
-            } else {
-                cell_position.z += step.z;
-                distance_traveled = t_max.z;
-                t_max.z += t_delta.z;
-
-                hit_normal = -step.z * IVec3::unit_z();
-            }
-
-            let cell = World::get_cell_at(cell_position, &world.grid, &world.sector_vec);
-
-            if cell.solid {
-                return Some((cell_position, hit_normal));
-            }
-        }
-
-        None
     }
 }

@@ -330,4 +330,122 @@ impl World {
             }
         }
     }
+
+    pub fn raycast_to_block(
+        origin: Vec3,
+        direction: Vec3,
+        range: f32,
+        world: &World,
+    ) -> Option<(IVec3, IVec3)> {
+        let direction = direction.normalized();
+
+        let mut cell_position = Grid::world_position_to_position(origin);
+
+        let step = IVec3::new(
+            if direction.x > 0.0 { 1 } else { -1 },
+            if direction.y > 0.0 { 1 } else { -1 },
+            if direction.z > 0.0 { 1 } else { -1 },
+        );
+
+        let t_max = Vec3 {
+            x: if direction.x != 0.0 {
+                let boundary = if direction.x > 0.0 {
+                    cell_position.x as f32 + world.grid.cell_radius_in_meters
+                } else {
+                    cell_position.x as f32 - world.grid.cell_radius_in_meters
+                };
+
+                (boundary - origin.x) / direction.x
+            } else {
+                f32::INFINITY
+            },
+            y: if direction.y != 0.0 {
+                let boundary = if direction.y > 0.0 {
+                    cell_position.y as f32 + world.grid.cell_radius_in_meters
+                } else {
+                    cell_position.y as f32 - world.grid.cell_radius_in_meters
+                };
+
+                (boundary - origin.y) / direction.y
+            } else {
+                f32::INFINITY
+            },
+            z: if direction.z != 0.0 {
+                let boundary = if direction.z > 0.0 {
+                    cell_position.z as f32 + world.grid.cell_radius_in_meters
+                } else {
+                    cell_position.z as f32 - world.grid.cell_radius_in_meters
+                };
+
+                (boundary - origin.z) / direction.z
+            } else {
+                f32::INFINITY
+            },
+        };
+
+        let t_delta = Vec3::new(
+            if direction.x != 0.0 {
+                (1.0 / direction.x).abs()
+            } else {
+                f32::INFINITY
+            },
+            if direction.y != 0.0 {
+                (1.0 / direction.y).abs()
+            } else {
+                f32::INFINITY
+            },
+            if direction.z != 0.0 {
+                (1.0 / direction.z).abs()
+            } else {
+                f32::INFINITY
+            },
+        );
+
+        let mut t_max = t_max;
+        let mut distance_traveled = 0.0;
+
+        while distance_traveled < range {
+            let hit_normal;
+
+            if t_max.x < t_max.y && t_max.x < t_max.z {
+                cell_position.x += step.x;
+                distance_traveled = t_max.x;
+                t_max.x += t_delta.x;
+
+                if distance_traveled > range {
+                    return None;
+                }
+
+                hit_normal = -step.x * IVec3::unit_x();
+            } else if t_max.y < t_max.z {
+                cell_position.y += step.y;
+                distance_traveled = t_max.y;
+                t_max.y += t_delta.y;
+
+                if distance_traveled > range {
+                    return None;
+                }
+
+                hit_normal = -step.y * IVec3::unit_y();
+            } else {
+                cell_position.z += step.z;
+                distance_traveled = t_max.z;
+                t_max.z += t_delta.z;
+
+                if distance_traveled > range {
+                    return None;
+                }
+
+                hit_normal = -step.z * IVec3::unit_z();
+            }
+
+            let cell = World::get_cell_at(cell_position, &world.grid, &world.sector_vec);
+
+            if cell.solid {
+                return Some((cell_position, hit_normal));
+            }
+        }
+
+        None
+    }
 }

@@ -5,7 +5,11 @@ pub use act::Act;
 use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
-        Admin, State, action::act::MoveData, population::{judge::Judge, kinematic::Kinematic}, state_loading, state_shutdown, world::block
+        action::act::MoveData,
+        population::{judge::Judge, kinematic::Kinematic},
+        state_loading, state_shutdown,
+        world::block,
+        Admin, State,
     },
 };
 use std::collections::VecDeque;
@@ -36,10 +40,10 @@ impl Action {
                     State::place_block(place_block_data.block_kind, state)
                 }
                 Act::RemoveBlock => State::remove_block(state),
-                Act::Test1 => state.placement_block = block::Kind::CrimsonStone,
-                Act::Test2 => state.placement_block = block::Kind::MagentaStone,
-                Act::Test3 => state.placement_block = block::Kind::PurpleStone,
-                Act::Test4 => state.placement_block = block::Kind::TealStone,
+                Act::Test1 => state.population.judge.selected_block = block::Kind::CrimsonStone,
+                Act::Test2 => state.population.judge.selected_block = block::Kind::MagentaStone,
+                Act::Test3 => state.population.judge.selected_block = block::Kind::PurpleStone,
+                Act::Test4 => state.population.judge.selected_block = block::Kind::TealStone,
             }
         }
     }
