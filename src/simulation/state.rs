@@ -28,12 +28,14 @@ pub use world::World;
 use crate::simulation::state::{
     self,
     navigation::{Graph, Navigation},
+    population::sight::Sight,
     world::{block, grid::Grid},
 };
 use ultraviolet::{IVec3, Vec3};
 
 pub struct State {
     pub active: bool,
+    pub placement_block: block::Kind,
     pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub admin: Admin,
@@ -61,6 +63,7 @@ impl State {
 
         Self {
             active,
+            placement_block: block::Kind::CrimsonStone,
             template,
             construct_rx,
             admin,
@@ -85,12 +88,11 @@ impl State {
     }
 
     pub fn place_block(block_kind: block::Kind, state: &mut State) {
-        let range = 8.0;
-        let origin = state.population.judge.sight.world_position;
-        let direction = state.population.judge.sight.rotor * Vec3::unit_y();
+        let judge = &state.population.judge;
 
-        tracing::info!("Origin: {:?}", origin);
-        tracing::info!("Direction: {:?}", direction);
+        let range = 8.0;
+        let origin = judge.sight.world_position;
+        let direction = Sight::get_forward(&judge.sight);
 
         if let Some((hit_position, normal)) =
             Self::raycast_to_block(&state.world, origin, direction, range)
@@ -99,7 +101,7 @@ impl State {
 
             World::set_block(
                 placement_position,
-                block_kind,
+                state.placement_block,
                 &state.world.block_info_map,
                 &state.world.grid,
                 &mut state.world.sector_vec,
@@ -116,9 +118,11 @@ impl State {
     }
 
     pub fn remove_block(state: &mut State) {
+        let judge = &state.population.judge;
+
         let range = 8.0;
-        let origin = state.population.judge.sight.world_position;
-        let direction = state.population.judge.sight.rotor * Vec3::unit_y();
+        let origin = judge.sight.world_position;
+        let direction = Sight::get_forward(&judge.sight);
 
         if let Some((hit_position, _)) =
             Self::raycast_to_block(&state.world, origin, direction, range)
@@ -164,6 +168,7 @@ impl State {
                 } else {
                     cell_world_position_min.x
                 };
+
                 (boundary - origin.x) / direction.x
             } else {
                 f32::INFINITY
@@ -174,6 +179,7 @@ impl State {
                 } else {
                     cell_world_position_min.y
                 };
+
                 (boundary - origin.y) / direction.y
             } else {
                 f32::INFINITY
@@ -184,6 +190,7 @@ impl State {
                 } else {
                     cell_world_position_min.z
                 };
+
                 (boundary - origin.z) / direction.z
             } else {
                 f32::INFINITY

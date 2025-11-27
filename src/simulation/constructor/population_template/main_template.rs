@@ -20,7 +20,7 @@ fn setup_judge(world: &World, population: &mut Population) {
     Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);
     Judge::set_rotation(180.0, 0.0, judge);
 
-    Sight::set_range(20.0, &world.grid, &mut judge.sight);
+    Sight::set_range(40.0, &world.grid, &mut judge.sight);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {

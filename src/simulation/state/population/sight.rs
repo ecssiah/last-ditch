@@ -39,6 +39,10 @@ impl Sight {
         }
     }
 
+    pub fn get_forward(sight: &Sight) -> Vec3 {
+        sight.rotor * Vec3::unit_y()
+    }
+
     pub fn set_relative_position(relative_position: Vec3, sight: &mut Sight) {
         sight.relative_position = relative_position;
     }
