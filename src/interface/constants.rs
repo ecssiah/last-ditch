@@ -22,4 +22,4 @@ pub const FOV_RADIANS: f32 = FOV * PI / 180.0;
 pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 200.0;
 
-pub const MOUSE_SENSITIVITY: f32 = 0.5;
+pub const MOUSE_SENSITIVITY: f32 = 0.2;

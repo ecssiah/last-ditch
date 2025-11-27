@@ -85,13 +85,12 @@ impl State {
     }
 
     pub fn place_block(block_kind: block::Kind, state: &mut State) {
-        let origin = state.population.judge.spatial.world_position
-            + Vec3::new(0.0, 0.0, state.population.judge.spatial.size.z);
-            
-        let dir = state.population.judge.spatial.rotor * Vec3::unit_y();
+        let range = 8.0;
+        let origin = state.population.judge.sight.world_position;
+        let direction = state.population.judge.sight.rotor * Vec3::unit_y();
 
         if let Some((hit_position, normal)) =
-            Self::raycast_first_solid(&state.world, origin, dir, 20.0)
+            Self::raycast_to_block(&state.world, origin, direction, range)
         {
             let placement_position = hit_position + normal;
 
@@ -114,12 +113,12 @@ impl State {
     }
 
     pub fn remove_block(state: &mut State) {
-        let origin = state.population.judge.spatial.world_position
-            + Vec3::new(0.0, 0.0, state.population.judge.spatial.size.z);
+        let range = 8.0;
+        let origin = state.population.judge.sight.world_position;
+        let direction = state.population.judge.sight.rotor * Vec3::unit_y();
 
-        let dir = state.population.judge.spatial.rotor * Vec3::unit_y();
-
-        if let Some((hit_position, _)) = Self::raycast_first_solid(&state.world, origin, dir, 20.0)
+        if let Some((hit_position, _)) =
+            Self::raycast_to_block(&state.world, origin, direction, range)
         {
             World::set_block(
                 hit_position,
@@ -133,16 +132,16 @@ impl State {
         }
     }
 
-    pub fn raycast_first_solid(
+    pub fn raycast_to_block(
         world: &World,
         origin: Vec3,
-        dir: Vec3,
-        max_dist: f32,
+        direction: Vec3,
+        range: f32,
     ) -> Option<(IVec3, IVec3)> {
-        let dir = dir.normalized();
+        let direction = direction.normalized();
 
-        // Start voxel
-        let mut voxel = IVec3::new(
+        // Start cell_position
+        let mut cell_position = IVec3::new(
             origin.x.floor() as i32,
             origin.y.floor() as i32,
             origin.z.floor() as i32,
@@ -150,82 +149,91 @@ impl State {
 
         // Ray direction step for each axis
         let step = IVec3::new(
-            if dir.x > 0.0 { 1 } else { -1 },
-            if dir.y > 0.0 { 1 } else { -1 },
-            if dir.z > 0.0 { 1 } else { -1 },
+            if direction.x > 0.0 { 1 } else { -1 },
+            if direction.y > 0.0 { 1 } else { -1 },
+            if direction.z > 0.0 { 1 } else { -1 },
         );
 
-        // Compute initial tMax (distance to first voxel boundary)
+        // Compute initial tMax (distance to first cell_position boundary)
         let t_max = {
-            let voxel_f = Vec3::new(voxel.x as f32, voxel.y as f32, voxel.z as f32);
+            let cell_world_position = Vec3::new(
+                cell_position.x as f32,
+                cell_position.y as f32,
+                cell_position.z as f32,
+            );
 
             Vec3 {
-                x: if dir.x != 0.0 {
-                    ((voxel_f.x + (dir.x > 0.0) as u8 as f32) - origin.x) / dir.x
+                x: if direction.x != 0.0 {
+                    ((cell_world_position.x + (direction.x > 0.0) as u8 as f32) - origin.x)
+                        / direction.x
                 } else {
                     f32::INFINITY
                 },
-                y: if dir.y != 0.0 {
-                    ((voxel_f.y + (dir.y > 0.0) as u8 as f32) - origin.y) / dir.y
+                y: if direction.y != 0.0 {
+                    ((cell_world_position.y + (direction.y > 0.0) as u8 as f32) - origin.y)
+                        / direction.y
                 } else {
                     f32::INFINITY
                 },
-                z: if dir.z != 0.0 {
-                    ((voxel_f.z + (dir.z > 0.0) as u8 as f32) - origin.z) / dir.z
+                z: if direction.z != 0.0 {
+                    ((cell_world_position.z + (direction.z > 0.0) as u8 as f32) - origin.z)
+                        / direction.z
                 } else {
                     f32::INFINITY
                 },
             }
         };
 
-        // How much t changes each time we step across a voxel boundary
+        // How much t changes each time we step across a cell_position boundary
         let t_delta = Vec3::new(
-            if dir.x != 0.0 {
-                (1.0 / dir.x).abs()
+            if direction.x != 0.0 {
+                (1.0 / direction.x).abs()
             } else {
                 f32::INFINITY
             },
-            if dir.y != 0.0 {
-                (1.0 / dir.y).abs()
+            if direction.y != 0.0 {
+                (1.0 / direction.y).abs()
             } else {
                 f32::INFINITY
             },
-            if dir.z != 0.0 {
-                (1.0 / dir.z).abs()
+            if direction.z != 0.0 {
+                (1.0 / direction.z).abs()
             } else {
                 f32::INFINITY
             },
         );
 
         let mut t_max = t_max;
-        let mut traveled = 0.0;
+        let mut distance_traveled = 0.0;
 
         // 3D DDA loop
-        while traveled < max_dist {
+        while distance_traveled < range {
             let hit_normal;
 
-            // Step along the axis where tMax is smallest
             if t_max.x < t_max.y && t_max.x < t_max.z {
-                voxel.x += step.x;
-                hit_normal = IVec3::new(-step.x, 0, 0);
-                traveled = t_max.x;
+                cell_position.x += step.x;
+                distance_traveled = t_max.x;
                 t_max.x += t_delta.x;
+
+                hit_normal = -step.x * IVec3::unit_x();
             } else if t_max.y < t_max.z {
-                voxel.y += step.y;
-                hit_normal = IVec3::new(0, -step.y, 0);
-                traveled = t_max.y;
+                cell_position.y += step.y;
+                distance_traveled = t_max.y;
                 t_max.y += t_delta.y;
+
+                hit_normal = -step.y * IVec3::unit_y();
             } else {
-                voxel.z += step.z;
-                hit_normal = IVec3::new(0, 0, -step.z);
-                traveled = t_max.z;
+                cell_position.z += step.z;
+                distance_traveled = t_max.z;
                 t_max.z += t_delta.z;
+
+                hit_normal = -step.z * IVec3::unit_z();
             }
 
-            let cell = World::get_cell_at(voxel, &world.grid, &world.sector_vec);
+            let cell = World::get_cell_at(cell_position, &world.grid, &world.sector_vec);
 
             if cell.solid {
-                return Some((voxel, hit_normal));
+                return Some((cell_position, hit_normal));
             }
         }
 
