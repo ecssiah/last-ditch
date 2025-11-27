@@ -304,6 +304,7 @@ impl<'window> Interface<'window> {
             &surface_texture_view,
             &depth_texture_view,
             gpu_context,
+            camera,
             debug_render,
             &mut encoder,
         );

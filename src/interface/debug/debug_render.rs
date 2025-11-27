@@ -108,7 +108,7 @@ impl DebugRender {
         });
 
         let visible = true;
-        let debug_visibility = DebugVisibility::SECTOR_BORDERS;
+        let debug_visibility = DebugVisibility::CHANNEL1 | DebugVisibility::SECTOR_BORDERS;
 
         let channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()] =
             std::array::from_fn(|_| Vec::new());
@@ -311,12 +311,15 @@ impl DebugRender {
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
+        camera: &Camera,
         debug_render: &mut DebugRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         if !debug_render.visible {
             return;
         }
+
+        Self::render_debug_crosshair(camera, &mut debug_render.channel_vertex_vec_array);
 
         debug_render.vertex_vec.clear();
 
@@ -379,5 +382,37 @@ impl DebugRender {
         render_pass.draw(0..(debug_render.vertex_vec.len() as u32), 0..1);
 
         Self::clear_channel_vertex_vec(&mut debug_render.channel_vertex_vec_array);
+    }
+
+    pub fn render_debug_crosshair(
+        camera: &Camera,
+        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    ) {
+        use crate::interface::debug::DebugChannel;
+
+        let size = 0.01;
+        let origin = camera.position + camera.forward * 1.0;
+
+        let horizontal_left = origin - camera.right * size;
+        let horizontal_right = origin + camera.right * size;
+
+        let vertical_down = origin - camera.up * size;
+        let vertical_up = origin + camera.up * size;
+
+        DebugRender::add_line(
+            DebugChannel::Channel1,
+            horizontal_left,
+            horizontal_right,
+            [1.0, 1.0, 1.0],
+            channel_vertex_vec_array,
+        );
+
+        DebugRender::add_line(
+            DebugChannel::Channel1,
+            vertical_down,
+            vertical_up,
+            [1.0, 1.0, 1.0],
+            channel_vertex_vec_array,
+        );
     }
 }

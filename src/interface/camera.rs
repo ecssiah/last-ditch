@@ -15,6 +15,9 @@ use ultraviolet::{Mat4, Vec3, Vec4};
 
 pub struct Camera {
     pub position: Vec3,
+    pub right: Vec3,
+    pub forward: Vec3,
+    pub up: Vec3,
     pub view_matrix: Mat4,
     pub projection_matrix: Mat4,
     pub view_projection_matrix: Mat4,
@@ -27,6 +30,9 @@ pub struct Camera {
 impl Camera {
     pub fn new(device: &wgpu::Device) -> Self {
         let position = Vec3::zero();
+        let right = Vec3::unit_x();
+        let forward = Vec3::unit_y();
+        let up = Vec3::unit_z();
         let view_matrix = Mat4::identity();
         let projection_matrix = Mat4::identity();
         let view_projection_matrix = Mat4::identity();
@@ -65,6 +71,9 @@ impl Camera {
 
         Self {
             position,
+            right,
+            forward,
+            up,
             view_matrix,
             projection_matrix,
             view_projection_matrix,
@@ -118,12 +127,13 @@ impl Camera {
         let projection_matrix =
             Self::get_projection_matrix(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        let forward = judge_view.sight_rotor * Vec3::unit_y();
-        let up = judge_view.sight_rotor * Vec3::unit_z();
+        camera.right = judge_view.sight_rotor * Vec3::unit_x();
+        camera.forward = judge_view.sight_rotor * Vec3::unit_y();
+        camera.up = judge_view.sight_rotor * Vec3::unit_z();
 
-        let target = judge_view.sight_world_position + forward;
+        let target = judge_view.sight_world_position + camera.forward;
 
-        let view_matrix = Self::get_view_matrix(judge_view.sight_world_position, target, up);
+        let view_matrix = Self::get_view_matrix(judge_view.sight_world_position, target, camera.up);
         let view_projection_matrix = projection_matrix * view_matrix;
 
         camera.position = judge_view.sight_world_position;
