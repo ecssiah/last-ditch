@@ -23,14 +23,14 @@ pub use population::Population;
 pub use receiver::Receiver;
 pub use template::Template;
 pub use time::Time;
-use ultraviolet::{IVec3, Vec3};
 pub use world::World;
 
 use crate::simulation::state::{
     self,
     navigation::{Graph, Navigation},
-    world::block,
+    world::{block, grid::Grid},
 };
+use ultraviolet::{IVec3, Vec3};
 
 pub struct State {
     pub active: bool,
@@ -89,6 +89,9 @@ impl State {
         let origin = state.population.judge.sight.world_position;
         let direction = state.population.judge.sight.rotor * Vec3::unit_y();
 
+        tracing::info!("Origin: {:?}", origin);
+        tracing::info!("Direction: {:?}", direction);
+
         if let Some((hit_position, normal)) =
             Self::raycast_to_block(&state.world, origin, direction, range)
         {
@@ -140,51 +143,53 @@ impl State {
     ) -> Option<(IVec3, IVec3)> {
         let direction = direction.normalized();
 
-        // Start cell_position
-        let mut cell_position = IVec3::new(
-            origin.x.floor() as i32,
-            origin.y.floor() as i32,
-            origin.z.floor() as i32,
-        );
+        let mut cell_position = Grid::world_to_cell_coordinates(origin, &world.grid);
 
-        // Ray direction step for each axis
         let step = IVec3::new(
             if direction.x > 0.0 { 1 } else { -1 },
             if direction.y > 0.0 { 1 } else { -1 },
             if direction.z > 0.0 { 1 } else { -1 },
         );
 
-        // Compute initial tMax (distance to first cell_position boundary)
-        let t_max = {
-            let cell_world_position = Vec3::new(
-                cell_position.x as f32,
-                cell_position.y as f32,
-                cell_position.z as f32,
-            );
+        let cell_world_position_min = Vec3::new(
+            cell_position.x as f32 - world.grid.cell_radius_in_meters,
+            cell_position.y as f32 - world.grid.cell_radius_in_meters,
+            cell_position.z as f32 - world.grid.cell_radius_in_meters,
+        );
 
-            Vec3 {
-                x: if direction.x != 0.0 {
-                    ((cell_world_position.x + (direction.x > 0.0) as u8 as f32) - origin.x)
-                        / direction.x
+        let t_max = Vec3 {
+            x: if direction.x != 0.0 {
+                let boundary = if direction.x > 0.0 {
+                    cell_world_position_min.x + world.grid.cell_size_in_meters
                 } else {
-                    f32::INFINITY
-                },
-                y: if direction.y != 0.0 {
-                    ((cell_world_position.y + (direction.y > 0.0) as u8 as f32) - origin.y)
-                        / direction.y
+                    cell_world_position_min.x
+                };
+                (boundary - origin.x) / direction.x
+            } else {
+                f32::INFINITY
+            },
+            y: if direction.y != 0.0 {
+                let boundary = if direction.y > 0.0 {
+                    cell_world_position_min.y + world.grid.cell_size_in_meters
                 } else {
-                    f32::INFINITY
-                },
-                z: if direction.z != 0.0 {
-                    ((cell_world_position.z + (direction.z > 0.0) as u8 as f32) - origin.z)
-                        / direction.z
+                    cell_world_position_min.y
+                };
+                (boundary - origin.y) / direction.y
+            } else {
+                f32::INFINITY
+            },
+            z: if direction.z != 0.0 {
+                let boundary = if direction.z > 0.0 {
+                    cell_world_position_min.z + world.grid.cell_size_in_meters
                 } else {
-                    f32::INFINITY
-                },
-            }
+                    cell_world_position_min.z
+                };
+                (boundary - origin.z) / direction.z
+            } else {
+                f32::INFINITY
+            },
         };
 
-        // How much t changes each time we step across a cell_position boundary
         let t_delta = Vec3::new(
             if direction.x != 0.0 {
                 (1.0 / direction.x).abs()

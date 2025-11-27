@@ -1,4 +1,4 @@
-use crate::simulation::state::{self, Population, World};
+use crate::simulation::state::{self, Population, world::World};
 
 pub mod empty_template;
 pub mod main_template;
