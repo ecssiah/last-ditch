@@ -76,7 +76,9 @@ impl Manager {
             Manager::handle_message(&message, state, manager);
         }
 
-        Viewer::tick(state, manager);
+        if manager.status == Status::Run {
+            Viewer::tick(state, manager);
+        }
 
         manager.status
     }
@@ -89,7 +91,7 @@ impl Manager {
             Message::Move(move_data) => Self::handle_move_message(move_data, state),
             Message::Jump => Self::handle_jump_message(state),
             Message::Debug => todo!(),
-            Message::Start => todo!(),
+            Message::Generate => Self::handle_generate_message(state, manager),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Option1 => todo!(),
             Message::Option2 => todo!(),
@@ -124,6 +126,12 @@ impl Manager {
 
     fn handle_jump_message(state: &mut State) {
         state.action.act_deque.push_back(Act::Jump);
+    }
+
+    fn handle_generate_message(state: &mut State, manager: &mut Manager) {
+        State::init(state);
+
+        manager.status = Status::Load;
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Manager) {

@@ -218,8 +218,11 @@ impl<'window> Interface<'window> {
 
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
+            if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
+                return;
+            }
+
             GUI::handle_device_event(event, &mut interface.gpu_context);
-            Input::handle_device_event(event, &mut interface.input);
         }
     }
 

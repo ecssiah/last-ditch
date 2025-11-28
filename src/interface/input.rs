@@ -128,10 +128,12 @@ impl Input {
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, input: &mut Input) {
+    pub fn handle_device_event(event: &DeviceEvent, gui: &GUI, input: &mut Input) -> bool {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            Self::handle_mouse_motion(*dx, *dy, &mut input.mouse_inputs, &mut input.message_deque);
+            return Self::handle_mouse_motion(*dx, *dy, gui, &mut input.mouse_inputs, &mut input.message_deque);
         }
+
+        false
     }
 
     fn handle_close_requested(message_deque: &mut VecDeque<Message>) -> bool {
@@ -255,7 +257,7 @@ impl Input {
         _device_id: &DeviceId,
         state: &ElementState,
         button: &MouseButton,
-        gui: &mut GUI,
+        gui: &GUI,
         message_deque: &mut VecDeque<Message>,
     ) -> bool {
         if gui.menu_active {
@@ -293,11 +295,18 @@ impl Input {
     fn handle_mouse_motion(
         dx: f64,
         dy: f64,
+        gui: &GUI,
         mouse_inputs: &mut MouseInputs,
         _message_deque: &mut VecDeque<Message>,
-    ) {
+    ) -> bool {
+        if gui.menu_active {
+            return false;
+        }
+
         let delta = Vec2::new(dx as f32, dy as f32);
 
         mouse_inputs.delta += delta;
+
+        true
     }
 }

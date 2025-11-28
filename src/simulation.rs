@@ -39,10 +39,11 @@ impl Simulation {
             Manager::start(manager);
 
             while Manager::has_work(manager) {
-                if Manager::tick(state, manager) == Status::Done {
-                    return;
-                } else {
-                    State::tick(state);
+                match Manager::tick(state, manager) {
+                    Status::Init => (),
+                    Status::Load => State::load(state, manager),
+                    Status::Run => State::tick(state),
+                    Status::Done => return,
                 }
             }
 

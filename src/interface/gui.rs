@@ -92,12 +92,12 @@ impl GUI {
 
                             ui.add_space(ui.available_height() * 0.1);
 
-                            let start_clicked = ui
+                            let generate_clicked = ui
                                 .add_sized([200.0, 60.0], egui::Button::new("Generate"))
                                 .clicked();
 
-                            if start_clicked {
-                                gui.message_deque.push_back(Message::Start);
+                            if generate_clicked {
+                                gui.message_deque.push_back(Message::Generate);
                             }
 
                             ui.add_space(ui.available_height() * 0.1);

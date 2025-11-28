@@ -17,11 +17,15 @@ pub use template::Template;
 pub use time::Time;
 pub use world::World;
 
-use crate::simulation::state::{
-    self,
-    navigation::{Graph, Navigation},
-    population::sight::Sight,
-    world::block,
+use crate::simulation::{
+    constructor,
+    manager::{status::Status, Manager},
+    state::{
+        self,
+        navigation::{Graph, Navigation},
+        population::sight::Sight,
+        world::block,
+    },
 };
 
 pub struct State {
@@ -57,16 +61,6 @@ impl State {
             population,
             navigation,
         }
-    }
-
-    pub fn tick(state: &mut State) {
-        let _ = tracing::info_span!("state_tick").entered();
-
-        Action::tick(state);
-        Population::tick(&state.world, &mut state.population);
-        Physics::tick(&state.world, &state.physics, &mut state.population);
-        Navigation::tick(&state.world, &mut state.navigation);
-        Time::tick(&mut state.time);
     }
 
     pub fn place_block(state: &mut State) {
@@ -121,38 +115,47 @@ impl State {
         }
     }
 
-    // pub fn init(state: &mut State) {
-    //     let state_template = state.template;
+    pub fn init(state: &mut State) {
+        let state_template = state.template;
 
-    //     let world = std::mem::replace(&mut state.world, World::placeholder());
-    //     let population = std::mem::replace(&mut state.population, Population::placeholder());
+        let world = std::mem::replace(&mut state.world, World::placeholder());
+        let population = std::mem::replace(&mut state.population, Population::placeholder());
 
-    //     let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
+        let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
 
-    //     tokio::task::spawn_blocking(move || {
-    //         let mut world = world;
-    //         let mut population = population;
+        tokio::task::spawn_blocking(move || {
+            let mut world = world;
+            let mut population = population;
 
-    //         constructor::world_template::construct(state_template, &mut world);
-    //         constructor::population_template::construct(state_template, &world, &mut population);
+            constructor::world_template::construct(state_template, &mut world);
+            constructor::population_template::construct(state_template, &world, &mut population);
 
-    //         let _ = construct_tx.blocking_send((world, population));
-    //     });
+            let _ = construct_tx.blocking_send((world, population));
+        });
 
-    //     state.construct_rx = Some(construct_rx);
+        state.construct_rx = Some(construct_rx);
+    }
 
-    //     // state.admin.mode = admin::Mode::Loading;
-    //     // state.admin.message = "Construction in Progress...".to_string();
-    // }
+    pub fn load(state: &mut State, manager: &mut Manager) {
+        if let Some(construct_rx) = &mut state.construct_rx {
+            if let Ok((world, population)) = construct_rx.try_recv() {
+                state.world = world;
+                state.population = population;
 
-    // pub fn tick(state: &mut State) {
-    //     if let Some(construct_rx) = &mut state.construct_rx {
-    //         if let Ok((world, population)) = construct_rx.try_recv() {
-    //             state.world = world;
-    //             state.population = population;
+                Navigation::init_graph(&state.world, &mut state.navigation.graph);
 
-    //             Navigation::init_graph(&state.world, &mut state.navigation.graph);
-    //         }
-    //     }
-    // }
+                manager.status = Status::Run;
+            }
+        }
+    }
+
+    pub fn tick(state: &mut State) {
+        let _ = tracing::info_span!("state_tick").entered();
+
+        Action::tick(state);
+        Population::tick(&state.world, &mut state.population);
+        Physics::tick(&state.world, &state.physics, &mut state.population);
+        Navigation::tick(&state.world, &mut state.navigation);
+        Time::tick(&mut state.time);
+    }
 }
