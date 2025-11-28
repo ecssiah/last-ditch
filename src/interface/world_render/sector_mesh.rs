@@ -55,6 +55,10 @@ impl SectorMesh {
                     let cell_coordinates = IVec3::new(x, y, z);
                     let cell_id = Grid::cell_coordinates_to_cell_id(cell_coordinates, grid);
 
+                    // TODO: Fix this
+                    //
+                    // thread 'main' panicked at src/interface/world_render/sector_mesh.rs:58:72:
+                    // index out of bounds: the len is 125 but the index is 125
                     let block_view_option = &sector_view.block_view_vec[cell_id.to_usize()];
 
                     if let Some(block_view) = block_view_option {

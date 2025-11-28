@@ -232,7 +232,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinates_array[direction as usize]
             }
-            block::Kind::Icon1 => {
+            block::Kind::Lion => {
                 let tile_coordinates_array = [
                     [0, 3],
                     [0, 3],
@@ -244,7 +244,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinates_array[direction as usize]
             }
-            block::Kind::Icon2 => {
+            block::Kind::Eagle => {
                 let tile_coordinates_array = [
                     [1, 3],
                     [1, 3],
@@ -256,7 +256,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinates_array[direction as usize]
             }
-            block::Kind::Icon3 => {
+            block::Kind::Wolf => {
                 let tile_coordinates_array = [
                     [2, 3],
                     [2, 3],
@@ -268,7 +268,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinates_array[direction as usize]
             }
-            block::Kind::Icon4 => {
+            block::Kind::Horse => {
                 let tile_coordinates_array = [
                     [3, 3],
                     [3, 3],

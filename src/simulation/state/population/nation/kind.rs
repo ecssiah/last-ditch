@@ -12,12 +12,12 @@ pub enum Kind {
 impl Kind {
     pub const ALL: [Kind; 4] = [Kind::Eagle, Kind::Lion, Kind::Horse, Kind::Wolf];
 
-    pub fn icon_block(&self) -> block::Kind {
+    pub fn block(&self) -> block::Kind {
         match self {
-            Kind::Eagle => block::Kind::Icon2,
-            Kind::Lion => block::Kind::Icon1,
-            Kind::Horse => block::Kind::Icon4,
-            Kind::Wolf => block::Kind::Icon3,
+            Kind::Eagle => block::Kind::Eagle,
+            Kind::Lion => block::Kind::Lion,
+            Kind::Horse => block::Kind::Horse,
+            Kind::Wolf => block::Kind::Wolf,
         }
     }
 

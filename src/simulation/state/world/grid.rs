@@ -16,7 +16,7 @@ use crate::{
             world::{cell, sector},
         },
     },
-    utils::ld_math::indexing::Indexing,
+    utils::ld_math::indexing,
 };
 use ultraviolet::{IVec3, Vec3};
 
@@ -169,26 +169,26 @@ impl Grid {
 
     pub fn cell_id_to_cell_coordinates(id: cell::ID, grid: &Grid) -> IVec3 {
         let index = id.to_u32();
-        let coordinates = Indexing::to_ivec3(index, grid.sector_radius_in_cells);
+        let coordinates = indexing::to_ivec3(index, grid.sector_radius_in_cells);
 
         coordinates
     }
 
     pub fn cell_coordinates_to_cell_id(coordinates: IVec3, grid: &Grid) -> cell::ID {
-        let index = Indexing::from_ivec3(coordinates, grid.sector_radius_in_cells);
+        let index = indexing::from_ivec3(coordinates, grid.sector_radius_in_cells);
 
         cell::ID(index)
     }
 
     pub fn sector_id_to_sector_coordinates(id: sector::ID, grid: &Grid) -> IVec3 {
         let index = id.to_u32();
-        let coordinates = Indexing::to_ivec3(index, grid.world_radius_in_sectors);
+        let coordinates = indexing::to_ivec3(index, grid.world_radius_in_sectors);
 
         coordinates
     }
 
     pub fn sector_coordinates_to_sector_id(coordinates: IVec3, grid: &Grid) -> sector::ID {
-        let index = Indexing::from_ivec3(coordinates, grid.world_radius_in_sectors);
+        let index = indexing::from_ivec3(coordinates, grid.world_radius_in_sectors);
 
         sector::ID(index)
     }

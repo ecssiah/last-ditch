@@ -7,7 +7,7 @@ use crate::{
             Population,
         },
     },
-    utils::ld_math::rng_ext::RngExt,
+    utils::ld_math::rand_chacha_ext::{self},
 };
 use ultraviolet::Vec3;
 
@@ -32,8 +32,8 @@ fn setup_agent_map(world: &World, population: &mut Population) {
 
             for _ in 1..=AGENT_INITIAL_POPULATION {
                 let offset = Vec3::new(
-                    RngExt::gen_range_f32(-4.0, 4.0, &mut population.rng),
-                    RngExt::gen_range_f32(-4.0, 4.0, &mut population.rng),
+                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
+                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
                     0.0,
                 );
 
@@ -46,7 +46,7 @@ fn setup_agent_map(world: &World, population: &mut Population) {
                 let agent_size = Vec3::new(
                     AGENT_DEFAULT_SIZE_X,
                     AGENT_DEFAULT_SIZE_Y,
-                    RngExt::gen_range_f32(
+                    rand_chacha_ext::gen_range_f32(
                         AGENT_DEFAULT_SIZE_Z - 0.2,
                         AGENT_DEFAULT_SIZE_Z + 0.2,
                         &mut population.rng,

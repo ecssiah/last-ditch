@@ -99,7 +99,7 @@ fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut W
 
     World::set_block(
         IVec3::new(x, y, z + 6),
-        nation_kind.icon_block(),
+        nation_kind.block(),
         &world.block_info_map,
         &world.grid,
         &mut world.sector_vec,

@@ -77,25 +77,25 @@ impl Info {
                 },
             ),
             (
-                block::Kind::Icon1,
+                block::Kind::Lion,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::Icon2,
+                block::Kind::Eagle,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::Icon3,
+                block::Kind::Wolf,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::Icon4,
+                block::Kind::Horse,
                 Info {
                     solid: true,
                 },

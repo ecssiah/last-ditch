@@ -1,4 +1,4 @@
-use crate::{simulation::state::world::grid::Grid, utils::ld_math::rotor3_ext::Rotor3Ext};
+use crate::{simulation::state::world::grid::Grid, utils::ld_math::rotor3_ext};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -78,7 +78,7 @@ impl Sight {
             return false;
         }
 
-        let dot = to_point.normalized().dot(Rotor3Ext::forward(sight.rotor));
+        let dot = to_point.normalized().dot(rotor3_ext::forward(sight.rotor));
 
         let angle = dot.acos();
 
