@@ -79,9 +79,9 @@ impl<'window> Interface<'window> {
 
         let window_arc = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        window_arc.set_cursor_visible(false);
+        window_arc.set_cursor_visible(true);
         window_arc
-            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+            .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());

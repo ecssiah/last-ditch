@@ -225,25 +225,27 @@ impl GUI {
         event_response.consumed
     }
 
-    pub fn toggle_menu(gui: &mut GUI, gpu_context: &mut GPUContext) {
-        if gui.menu_active {
-            gui.menu_active = false;
+    pub fn set_menu_active(menu_active: bool, gui: &mut GUI, gpu_context: &mut GPUContext) {
+        gui.menu_active = menu_active;
 
-            gpu_context.window_arc.set_cursor_visible(false);
-
-            gpu_context
-                .window_arc
-                .set_cursor_grab(winit::window::CursorGrabMode::Locked)
-                .expect("Failed to grab cursor");
-        } else {
-            gui.menu_active = true;
-
+        if menu_active {
             gpu_context.window_arc.set_cursor_visible(true);
 
             gpu_context
                 .window_arc
                 .set_cursor_grab(winit::window::CursorGrabMode::None)
                 .expect("Failed to grab cursor");
+        } else {
+            gpu_context.window_arc.set_cursor_visible(false);
+
+            gpu_context
+                .window_arc
+                .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+                .expect("Failed to grab cursor");
         }
+    }
+
+    pub fn toggle_menu_active(gui: &mut GUI, gpu_context: &mut GPUContext) {
+        Self::set_menu_active(!gui.menu_active, gui, gpu_context);
     }
 }

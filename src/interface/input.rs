@@ -152,7 +152,7 @@ impl Input {
                 message_deque.push_back(Message::Quit);
             }
             PhysicalKey::Code(KeyCode::Tab) => {
-                GUI::toggle_menu(gui, gpu_context);
+                GUI::toggle_menu_active(gui, gpu_context);
             }
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {

@@ -39,9 +39,7 @@ impl Simulation {
             Manager::start(manager);
 
             while Manager::has_work(manager) {
-                let status = Manager::tick(state, manager);
-
-                if status == Status::Done {
+                if Manager::tick(state, manager) == Status::Done {
                     return;
                 } else {
                     State::tick(state);
