@@ -9,9 +9,7 @@ pub enum Axis {
 }
 
 impl Axis {
-    pub const ALL: [Axis; 3] = [
-        Axis::X, Axis::Y, Axis::Z
-    ];
+    pub const ALL: [Axis; 3] = [Axis::X, Axis::Y, Axis::Z];
 
     pub fn unit(axis: Axis) -> Vec3 {
         match axis {

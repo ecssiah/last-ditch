@@ -27,10 +27,7 @@ impl<'window> App<'window> {
         *interface = Some(Interface::new(event_loop, message_tx, view_output));
 
         *simulation_thread = Some(tokio::spawn(async move {
-            Simulation::run(
-                &mut simulation.manager,
-                &mut simulation.state,
-            )
+            Simulation::run(&mut simulation.manager, &mut simulation.state)
         }));
     }
 }

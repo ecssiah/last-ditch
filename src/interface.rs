@@ -201,16 +201,16 @@ impl<'window> Interface<'window> {
                     Self::handle_resized(*size, &mut interface.gpu_context)
                 }
                 _ => {
-                    if GUI::handle_window_event(event, &mut interface.gpu_context) {
-                        return;
-                    }
-
-                    Input::handle_window_event(
+                    if Input::handle_window_event(
                         event,
                         &mut interface.gui,
                         &mut interface.gpu_context,
                         &mut interface.input,
-                    );
+                    ) {
+                        return;
+                    };
+
+                    GUI::handle_window_event(event, &mut interface.gpu_context);
                 }
             }
         }

@@ -98,7 +98,7 @@ impl Input {
         gui: &mut GUI,
         gpu_context: &mut GPUContext,
         input: &mut Input,
-    ) {
+    ) -> bool {
         match event {
             WindowEvent::CloseRequested => Self::handle_close_requested(&mut input.message_deque),
             WindowEvent::KeyboardInput {
@@ -118,13 +118,13 @@ impl Input {
                 device_id,
                 state,
                 button,
-            } => Self::handle_mouse_input(device_id, state, button, &mut input.message_deque),
+            } => Self::handle_mouse_input(device_id, state, button, gui, &mut input.message_deque),
             WindowEvent::MouseWheel {
                 device_id,
                 delta,
                 phase,
             } => Self::handle_mouse_wheel(device_id, delta, phase, &mut input.message_deque),
-            _ => (),
+            _ => false,
         }
     }
 
@@ -134,8 +134,10 @@ impl Input {
         }
     }
 
-    fn handle_close_requested(message_deque: &mut VecDeque<Message>) {
+    fn handle_close_requested(message_deque: &mut VecDeque<Message>) -> bool {
         message_deque.push_back(Message::Quit);
+
+        true
     }
 
     fn handle_keyboard_input(
@@ -146,38 +148,61 @@ impl Input {
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
         message_deque: &mut VecDeque<Message>,
-    ) {
+    ) -> bool {
+        if key_event.physical_key == PhysicalKey::Code(KeyCode::Tab) {
+            if key_event.state == ElementState::Released {
+                GUI::toggle_menu_active(gui, gpu_context);
+            }
+
+            return true;
+        }
+
+        if gui.menu_active {
+            return false;
+        }
+
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
-                message_deque.push_back(Message::Quit);
-            }
-            PhysicalKey::Code(KeyCode::Tab) => {
-                GUI::toggle_menu_active(gui, gpu_context);
+                if key_event.state == ElementState::Released {
+                    message_deque.push_back(Message::Quit);
+                }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Debug);
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option1);
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option2);
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option3);
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option4);
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -185,6 +210,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_w -= 1.0;
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -192,6 +219,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_s += 1.0;
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -199,6 +228,8 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_a += 1.0;
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -206,13 +237,17 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_d -= 1.0;
                 }
+
+                true
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
                     message_deque.push_back(Message::Jump);
                 }
+
+                true
             }
-            _ => (),
+            _ => false,
         }
     }
 
@@ -220,14 +255,27 @@ impl Input {
         _device_id: &DeviceId,
         state: &ElementState,
         button: &MouseButton,
+        gui: &mut GUI,
         message_deque: &mut VecDeque<Message>,
-    ) {
+    ) -> bool {
+        if gui.menu_active {
+            return false;
+        }
+
         if state == &ElementState::Pressed {
             if button == &MouseButton::Left {
                 message_deque.push_back(Message::Interact1);
+
+                true
             } else if button == &MouseButton::Right {
                 message_deque.push_back(Message::Interact2);
+
+                true
+            } else {
+                false
             }
+        } else {
+            false
         }
     }
 
@@ -236,8 +284,10 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
         _message_deque: &mut VecDeque<Message>,
-    ) {
+    ) -> bool {
         tracing::info!("{:?} {:?}", delta, phase);
+
+        true
     }
 
     fn handle_mouse_motion(

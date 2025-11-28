@@ -67,8 +67,8 @@ impl GUI {
         }
 
         let screen_rect = context.available_rect();
-        let width = screen_rect.width() * 0.8;
-        let height = screen_rect.height() * 0.8;
+        let width = screen_rect.width() * 0.9;
+        let height = screen_rect.height() * 0.9;
 
         egui::Area::new(egui::Id::new("main_menu_area"))
             .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
@@ -82,16 +82,28 @@ impl GUI {
                         ui.vertical_centered(|ui| {
                             ui.add_space(ui.available_height() * 0.3);
 
+                            ui.label("Seed:");
+
+                            ui.add(
+                                egui::TextEdit::singleline(&mut gui.model.seed_input_string)
+                                    .desired_width(ui.available_width() * 0.1)
+                                    .horizontal_align(egui::Align::Center),
+                            );
+
+                            ui.add_space(ui.available_height() * 0.1);
+
                             let start_clicked = ui
-                                .add_sized([200.0, 60.0], egui::Button::new("Start"))
+                                .add_sized([200.0, 60.0], egui::Button::new("Generate"))
                                 .clicked();
 
                             if start_clicked {
                                 gui.message_deque.push_back(Message::Start);
                             }
 
+                            ui.add_space(ui.available_height() * 0.1);
+
                             let quit_clicked = ui
-                                .add_sized([200.0, 60.0], egui::Button::new("Exit"))
+                                .add_sized([200.0, 60.0], egui::Button::new("Quit"))
                                 .clicked();
 
                             if quit_clicked {
@@ -103,6 +115,10 @@ impl GUI {
     }
 
     fn show_hud(context: &egui::Context, gui: &mut GUI) {
+        if gui.menu_active {
+            return;
+        }
+
         if gui.model.info_message_vec.len() > 0 {
             let info_message = &gui.model.info_message_vec[0];
 
@@ -184,11 +200,13 @@ impl GUI {
             judge_view.sector_id.to_usize(),
         );
 
-        gui.model.info_message_vec.clear();
+        let mut info_message = String::new();
+        info_message.push_str(&position_string);
+        info_message.push_str(&world_position_string);
+        info_message.push_str(&sector_string);
 
-        gui.model.info_message_vec.push(position_string);
-        gui.model.info_message_vec.push(world_position_string);
-        gui.model.info_message_vec.push(sector_string);
+        gui.model.info_message_vec.clear();
+        gui.model.info_message_vec.push(info_message);
     }
 
     fn show_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
