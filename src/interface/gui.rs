@@ -108,7 +108,8 @@ impl GUI {
                                     seed: Self::parse_seed(&gui.model.seed_input_string),
                                 };
 
-                                gui.message_deque.push_back(Message::Generate(generate_data));
+                                gui.message_deque
+                                    .push_back(Message::Generate(generate_data));
                             }
 
                             ui.add_space(ui.available_height() * 0.1);
@@ -223,10 +224,14 @@ impl GUI {
             judge_view.sector_id.to_usize(),
         );
 
+        let selected_block_kind_string =
+            format!("Selected Block: {:?}\n", judge_view.selected_block_kind);
+
         let mut info_message = String::new();
         info_message.push_str(&position_string);
         info_message.push_str(&world_position_string);
         info_message.push_str(&sector_string);
+        info_message.push_str(&selected_block_kind_string);
 
         gui.model.info_message_vec.clear();
         gui.model.info_message_vec.push(info_message);

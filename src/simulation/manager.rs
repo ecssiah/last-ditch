@@ -7,11 +7,9 @@ use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
     manager::status::Status,
     state::{
-        action::{
-            act::{self},
-            Act,
-        },
-        State,
+        State, action::{
+            Act, act::{self}
+        }, world::block::Kind
     },
     viewer::{View, Viewer},
 };
@@ -93,8 +91,8 @@ impl Manager {
                 Self::handle_generate_message(generate_data, state, manager)
             }
             Message::Quit => Self::handle_quit_message(state, manager),
-            Message::Option1 => todo!(),
-            Message::Option2 => todo!(),
+            Message::Option1 => Self::handle_option1_message(state),
+            Message::Option2 => Self::handle_option2_message(state),
             Message::Option3 => todo!(),
             Message::Option4 => todo!(),
         }
@@ -147,6 +145,14 @@ impl Manager {
         // TODO: Save Simulation State!
 
         manager.status = Status::Done;
+    }
+
+    fn handle_option1_message(state: &mut State) {
+        state.population.judge.selected_block_kind = Kind::prev(state.population.judge.selected_block_kind);
+    }
+
+    fn handle_option2_message(state: &mut State) {
+        state.population.judge.selected_block_kind = Kind::next(state.population.judge.selected_block_kind);
     }
 
     pub fn fix_timestep(manager: &mut Manager) {

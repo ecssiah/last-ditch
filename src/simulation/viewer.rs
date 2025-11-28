@@ -92,6 +92,7 @@ impl Viewer {
             size: judge.spatial.size,
             sight_world_position: judge.sight.world_position,
             sight_rotor: judge.sight.rotor,
+            selected_block_kind: judge.selected_block_kind,
         };
 
         let mut population_view = PopulationView {

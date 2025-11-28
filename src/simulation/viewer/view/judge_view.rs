@@ -1,4 +1,4 @@
-use crate::simulation::state::world::sector;
+use crate::simulation::state::world::{block, sector};
 use ultraviolet::{IVec3, Rotor3, Vec3};
 
 #[derive(Clone, Debug)]
@@ -10,6 +10,7 @@ pub struct JudgeView {
     pub size: Vec3,
     pub sight_world_position: Vec3,
     pub sight_rotor: Rotor3,
+    pub selected_block_kind: block::Kind,
 }
 
 impl JudgeView {
@@ -22,6 +23,7 @@ impl JudgeView {
             size: Vec3::broadcast(0.0),
             sight_world_position: Vec3::broadcast(0.0),
             sight_rotor: Rotor3::identity(),
+            selected_block_kind: block::Kind::Engraved1,
         }
     }
 }

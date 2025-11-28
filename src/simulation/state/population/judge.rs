@@ -55,7 +55,7 @@ impl Judge {
         let mut sight = Sight::new();
         sight.relative_position = Vec3::new(0.0, 0.0, 0.9 * spatial.size.z);
 
-        let selected_block_kind = block::Kind::CrimsonStone;
+        let selected_block_kind = block::Kind::Engraved1;
 
         Self {
             id,
