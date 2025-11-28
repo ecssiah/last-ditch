@@ -44,7 +44,7 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let mut rng = ChaCha8Rng::seed_from_u64(0);
+        let mut rng = ChaCha8Rng::seed_from_u64(1);
 
         let template = state::Template::Main;
         let construct_rx = None;
@@ -121,8 +121,11 @@ impl State {
         }
     }
 
-    pub fn seed(seed: u64, rng: &mut ChaCha8Rng) {
-        *rng = ChaCha8Rng::seed_from_u64(seed);
+    pub fn seed(seed: u64, state: &mut State) {
+        state.rng = ChaCha8Rng::seed_from_u64(seed);
+
+        state.world.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
+        state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
     }
 
     pub fn init(state: &mut State) {

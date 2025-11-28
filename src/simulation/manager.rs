@@ -137,7 +137,7 @@ impl Manager {
         state: &mut State,
         manager: &mut Manager,
     ) {
-        State::seed(generate_data.seed, &mut state.rng);
+        State::seed(generate_data.seed, state);
         State::init(state);
 
         manager.status = Status::Load;

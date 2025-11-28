@@ -38,10 +38,10 @@ impl World {
         let sector_vec = Self::setup_sector_vec(&grid);
 
         let flag_position_map = HashMap::from([
-            (nation::Kind::Lion, IVec3::new(0, 0, 0)),
             (nation::Kind::Eagle, IVec3::new(0, 0, 0)),
-            (nation::Kind::Horse, IVec3::new(0, 0, 0)),
+            (nation::Kind::Lion, IVec3::new(0, 0, 0)),
             (nation::Kind::Wolf, IVec3::new(0, 0, 0)),
+            (nation::Kind::Horse, IVec3::new(0, 0, 0)),
         ]);
 
         Self {

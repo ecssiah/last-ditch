@@ -6,11 +6,13 @@ use ultraviolet::IVec3;
 
 pub fn construct(world: &mut World) {
     build_ground(world);
+    
     build_compass(world);
-    build_temple(0, 34, 0, nation::Kind::Eagle, world);
-    build_temple(-34, 0, 0, nation::Kind::Lion, world);
-    build_temple(0, -34, 0, nation::Kind::Horse, world);
+
     build_temple(34, 0, 0, nation::Kind::Wolf, world);
+    build_temple(-34, 0, 0, nation::Kind::Lion, world);
+    build_temple(0, 34, 0, nation::Kind::Eagle, world);
+    build_temple(0, -34, 0, nation::Kind::Horse, world);
 
     build_observation_deck(world);
 }
