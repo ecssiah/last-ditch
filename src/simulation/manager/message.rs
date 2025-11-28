@@ -1,6 +1,8 @@
+pub mod generate_data;
 pub mod move_data;
 pub mod rotate_data;
 
+pub use generate_data::GenerateData;
 pub use move_data::MoveData;
 pub use rotate_data::RotateData;
 
@@ -12,7 +14,7 @@ pub enum Message {
     Rotate(RotateData),
     Jump,
     Debug,
-    Generate,
+    Generate(GenerateData),
     Quit,
     Option1,
     Option2,

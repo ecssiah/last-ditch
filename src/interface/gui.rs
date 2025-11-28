@@ -6,10 +6,17 @@ pub use model::Model;
 
 use crate::{
     interface::gpu::gpu_context::GPUContext,
-    simulation::{manager::Message, viewer::View},
+    simulation::{
+        manager::{message::GenerateData, Message},
+        viewer::View,
+    },
 };
 use egui::{FontId, FullOutput, Id, Ui};
-use std::{collections::VecDeque, sync::Arc};
+use std::{
+    collections::VecDeque,
+    hash::{DefaultHasher, Hash, Hasher},
+    sync::Arc,
+};
 use ultraviolet::Vec2;
 use winit::event::{DeviceEvent, WindowEvent};
 
@@ -97,7 +104,11 @@ impl GUI {
                                 .clicked();
 
                             if generate_clicked {
-                                gui.message_deque.push_back(Message::Generate);
+                                let generate_data = GenerateData {
+                                    seed: Self::parse_seed(&gui.model.seed_input_string),
+                                };
+
+                                gui.message_deque.push_back(Message::Generate(generate_data));
                             }
 
                             ui.add_space(ui.available_height() * 0.1);
@@ -112,6 +123,18 @@ impl GUI {
                         });
                     });
             });
+    }
+
+    fn parse_seed(seed_string: &str) -> u64 {
+        let mut hasher = DefaultHasher::new();
+
+        seed_string.hash(&mut hasher);
+
+        let seed = hasher.finish();
+
+        tracing::info!("Seed: {:?}", seed);
+
+        seed
     }
 
     fn show_hud(context: &egui::Context, gui: &mut GUI) {
@@ -254,8 +277,6 @@ impl GUI {
                 .set_cursor_grab(winit::window::CursorGrabMode::None)
                 .expect("Failed to grab cursor");
         } else {
-            println!("Cursor has been made invisible");
-
             gpu_context.window_arc.set_cursor_visible(false);
 
             gpu_context

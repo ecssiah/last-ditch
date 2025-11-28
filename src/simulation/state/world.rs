@@ -16,9 +16,11 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
+use rand_chacha::{ChaCha8Rng, rand_core::SeedableRng};
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
+    pub rng: ChaCha8Rng,
     pub state_template: state::Template,
     pub time: Time,
     pub grid: Grid,
@@ -28,7 +30,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(state_template: state::Template) -> Self {
+    pub fn new(state_template: state::Template, seed: u64) -> Self {
+        let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let grid = Grid::new(state_template);
         let block_info_map = block::Info::setup();
@@ -42,6 +45,7 @@ impl World {
         ]);
 
         Self {
+            rng,
             state_template,
             time,
             grid,

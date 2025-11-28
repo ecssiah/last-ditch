@@ -25,7 +25,7 @@ impl CellIDValidCase {
 fn cell_id_valid() {
     let state_template = state::Template::Test;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
@@ -69,7 +69,7 @@ impl SectorIDValidCase {
 fn sector_id_valid() {
     let state_template = state::Template::Test;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![
@@ -113,7 +113,7 @@ impl PositionValidCase {
 fn position_valid() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;

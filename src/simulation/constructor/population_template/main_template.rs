@@ -1,12 +1,14 @@
-use crate::simulation::{
-    constants::*,
-    state::{
-        population::{agent::Agent, judge::Judge, nation, sight::Sight, spatial::Spatial},
-        world::World,
-        Population,
+use crate::{
+    simulation::{
+        constants::*,
+        state::{
+            population::{agent::Agent, judge::Judge, nation, sight::Sight, spatial::Spatial},
+            world::World,
+            Population,
+        },
     },
+    utils::ld_math::rng_ext::RngExt,
 };
-use rand::Rng;
 use ultraviolet::Vec3;
 
 pub fn construct(world: &World, population: &mut Population) {
@@ -24,16 +26,14 @@ fn setup_judge(world: &World, population: &mut Population) {
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {
-    let mut rng = rand::thread_rng();
-
     for nation_kind in nation::Kind::ALL {
         if let Some(flag_position) = world.flag_position_map.get(&nation_kind) {
             let flag_position = Vec3::from(*flag_position);
 
             for _ in 1..=AGENT_INITIAL_POPULATION {
                 let offset = Vec3::new(
-                    rng.gen_range(-4..=4) as f32,
-                    rng.gen_range(-4..=4) as f32,
+                    RngExt::gen_range_f32(-4.0, 4.0, &mut population.rng),
+                    RngExt::gen_range_f32(-4.0, 4.0, &mut population.rng),
                     0.0,
                 );
 
@@ -46,7 +46,11 @@ fn setup_agent_map(world: &World, population: &mut Population) {
                 let agent_size = Vec3::new(
                     AGENT_DEFAULT_SIZE_X,
                     AGENT_DEFAULT_SIZE_Y,
-                    rng.gen_range((AGENT_DEFAULT_SIZE_Z - 0.2)..=(AGENT_DEFAULT_SIZE_Z + 0.2)),
+                    RngExt::gen_range_f32(
+                        AGENT_DEFAULT_SIZE_Z - 0.2,
+                        AGENT_DEFAULT_SIZE_Z + 0.2,
+                        &mut population.rng,
+                    ),
                 );
 
                 agent.kinematic.speed = AGENT_DEFAULT_SPEED;

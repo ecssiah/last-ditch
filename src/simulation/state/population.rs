@@ -9,6 +9,7 @@ pub mod role;
 pub mod sight;
 pub mod spatial;
 
+use rand_chacha::{ChaCha8Rng, rand_core::SeedableRng};
 pub use role::Role;
 
 use crate::simulation::state::{
@@ -19,17 +20,20 @@ use crate::simulation::state::{
 use std::collections::HashMap;
 
 pub struct Population {
+    pub rng: ChaCha8Rng,
     pub state_template: state::Template,
     pub judge: Judge,
     pub agent_map: HashMap<agent::ID, Agent>,
 }
 
 impl Population {
-    pub fn new(state_template: state::Template) -> Self {
+    pub fn new(state_template: state::Template, seed: u64) -> Self {
+        let rng = ChaCha8Rng::seed_from_u64(seed);
         let judge = Judge::new();
         let agent_map = HashMap::new();
 
         Self {
+            rng,
             state_template,
             judge,
             agent_map,

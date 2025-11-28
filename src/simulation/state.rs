@@ -27,8 +27,11 @@ use crate::simulation::{
         world::block,
     },
 };
+use rand_chacha::rand_core::{RngCore, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 
 pub struct State {
+    pub rng: ChaCha8Rng,
     pub template: state::Template,
     pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub time: Time,
@@ -41,17 +44,20 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
+        let mut rng = ChaCha8Rng::seed_from_u64(0);
+
         let template = state::Template::Main;
         let construct_rx = None;
 
         let action = Action::new();
-        let world = World::new(template);
-        let population = Population::new(template);
+        let world = World::new(template, rng.next_u64());
+        let population = Population::new(template, rng.next_u64());
         let physics = Physics::new();
         let navigation = Navigation::new(&world.grid);
         let time = Time::new();
 
         Self {
+            rng,
             template,
             construct_rx,
             action,
@@ -115,11 +121,16 @@ impl State {
         }
     }
 
+    pub fn seed(seed: u64, rng: &mut ChaCha8Rng) {
+        *rng = ChaCha8Rng::seed_from_u64(seed);
+    }
+
     pub fn init(state: &mut State) {
         let state_template = state.template;
 
-        let world = std::mem::replace(&mut state.world, World::new(Template::Empty));
-        let population = std::mem::replace(&mut state.population, Population::new(Template::Empty));
+        let world = std::mem::replace(&mut state.world, World::new(Template::Empty, 0));
+        let population =
+            std::mem::replace(&mut state.population, Population::new(Template::Empty, 0));
 
         let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
 

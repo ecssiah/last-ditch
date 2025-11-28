@@ -89,7 +89,9 @@ impl Manager {
             Message::Move(move_data) => Self::handle_move_message(move_data, state),
             Message::Jump => Self::handle_jump_message(state),
             Message::Debug => todo!(),
-            Message::Generate => Self::handle_generate_message(state, manager),
+            Message::Generate(generate_data) => {
+                Self::handle_generate_message(generate_data, state, manager)
+            }
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Option1 => todo!(),
             Message::Option2 => todo!(),
@@ -130,7 +132,12 @@ impl Manager {
         state.action.act_deque.push_back(Act::Jump);
     }
 
-    fn handle_generate_message(state: &mut State, manager: &mut Manager) {
+    fn handle_generate_message(
+        generate_data: &message::GenerateData,
+        state: &mut State,
+        manager: &mut Manager,
+    ) {
+        State::seed(generate_data.seed, &mut state.rng);
         State::init(state);
 
         manager.status = Status::Load;

@@ -35,7 +35,7 @@ impl CellIDToCellCoordinatesCase {
 fn cell_id_to_cell_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -82,7 +82,7 @@ impl CellCoordinatesToCellIDCase {
 fn cell_coordinates_to_cell_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -138,7 +138,7 @@ impl SectorIDToSectorCoordinates {
 fn sector_id_to_sector_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
@@ -184,7 +184,7 @@ impl SectorCoordinatesToSectorIDCase {
 fn sector_coordinates_to_sector_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
@@ -236,7 +236,7 @@ impl SectorCoordinatesToPositionCase {
 fn sector_coordinates_to_position() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -290,7 +290,7 @@ impl SectorIDToPositionCase {
 fn sector_id_to_position() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
@@ -347,7 +347,7 @@ impl PositionToSectorCoordinatesCase {
 fn position_to_sector_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -405,7 +405,7 @@ impl PositionToCellCoordinatesCase {
 fn position_to_cell_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -483,7 +483,7 @@ impl PositionToSectorIDCase {
 fn position_to_sector_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
@@ -530,7 +530,7 @@ impl PositionToCellIDCase {
 fn position_to_cell_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
@@ -583,7 +583,7 @@ impl IDsToPositionCase {
 fn ids_to_position() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
@@ -638,7 +638,7 @@ impl PositionToIDsCase {
 fn position_to_ids() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
@@ -690,7 +690,7 @@ impl WorldToPositionCase {
 fn world_position_to_position() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
@@ -741,7 +741,7 @@ impl WorldToSectorIDCase {
 fn world_position_to_sector_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
@@ -792,7 +792,7 @@ impl WorldToSectorCoordinates {
 fn world_position_to_sector_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
@@ -839,7 +839,7 @@ impl WorldToCellIDCase {
 fn world_to_cell_id() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
@@ -889,7 +889,7 @@ impl WorldToCellCoordinates {
 fn world_to_cell_coordinates() {
     let state_template = state::Template::Empty;
 
-    let mut world = World::new(state_template);
+    let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
     let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
