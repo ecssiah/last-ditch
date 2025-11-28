@@ -36,18 +36,6 @@ impl Population {
         }
     }
 
-    pub fn placeholder() -> Self {
-        let state_template = state::Template::Placeholder;
-        let judge = Judge::new();
-        let agent_map = HashMap::new();
-
-        Self {
-            state_template,
-            judge,
-            agent_map,
-        }
-    }
-
     pub fn tick(world: &World, population: &mut Population) {
         let _ = tracing::info_span!("population_tick").entered();
 

@@ -361,6 +361,8 @@ impl<'window> Interface<'window> {
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
+        tracing::info!("{:?}", view.manager_view.status);
+
         if view.manager_view.status == Status::Done {
             event_loop.exit();
             return;

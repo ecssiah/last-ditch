@@ -254,6 +254,8 @@ impl GUI {
                 .set_cursor_grab(winit::window::CursorGrabMode::None)
                 .expect("Failed to grab cursor");
         } else {
+            println!("Cursor has been made invisible");
+
             gpu_context.window_arc.set_cursor_visible(false);
 
             gpu_context

@@ -51,26 +51,6 @@ impl World {
         }
     }
 
-    pub fn placeholder() -> Self {
-        let state_template = state::Template::Placeholder;
-
-        let time = Time::new();
-        let grid = Grid::new(state_template);
-        let block_info_map = HashMap::default();
-        let sector_vec = Vec::default();
-
-        let flag_position_map = HashMap::default();
-
-        Self {
-            state_template,
-            time,
-            grid,
-            block_info_map,
-            sector_vec,
-            flag_position_map,
-        }
-    }
-
     pub fn get_flag(
         nation_kind: nation::Kind,
         flag_position_map: HashMap<nation::Kind, IVec3>,

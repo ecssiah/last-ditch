@@ -118,8 +118,8 @@ impl State {
     pub fn init(state: &mut State) {
         let state_template = state.template;
 
-        let world = std::mem::replace(&mut state.world, World::placeholder());
-        let population = std::mem::replace(&mut state.population, Population::placeholder());
+        let world = std::mem::replace(&mut state.world, World::new(Template::Empty));
+        let population = std::mem::replace(&mut state.population, Population::new(Template::Empty));
 
         let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
 

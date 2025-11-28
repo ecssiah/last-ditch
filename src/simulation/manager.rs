@@ -76,9 +76,7 @@ impl Manager {
             Manager::handle_message(&message, state, manager);
         }
 
-        if manager.status == Status::Run {
-            Viewer::tick(state, manager);
-        }
+        Viewer::tick(state, manager);
 
         manager.status
     }
@@ -100,9 +98,13 @@ impl Manager {
         }
     }
 
-    fn handle_interact1(state: &mut State) {}
+    fn handle_interact1(state: &mut State) {
+        state.action.act_deque.push_back(Act::PlaceBlock);
+    }
 
-    fn handle_interact2(state: &mut State) {}
+    fn handle_interact2(state: &mut State) {
+        state.action.act_deque.push_back(Act::RemoveBlock);
+    }
 
     fn handle_rotate_message(rotate_data: &message::RotateData, state: &mut State) {
         let rotate_data = act::RotateData {
