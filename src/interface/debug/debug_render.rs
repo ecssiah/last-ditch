@@ -2,7 +2,7 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        debug::{debug_vertex_data::DebugVertexData, DebugChannel, DebugVisibility},
+        debug::{debug_vertex::DebugVertex, DebugChannel, DebugVisibility},
         gpu::gpu_context::GPUContext,
     },
     simulation::{constants::CELL_RADIUS, viewer::View},
@@ -12,16 +12,19 @@ use ultraviolet::Vec3;
 pub struct DebugRender {
     pub visible: bool,
     pub debug_visibility: DebugVisibility,
-    pub channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+    pub channel_vertex_vec_array: [Vec<DebugVertex>; DebugChannel::ALL.len()],
     pub render_pipeline: wgpu::RenderPipeline,
     pub camera_bind_group: wgpu::BindGroup,
     pub vertex_buffer: wgpu::Buffer,
     pub vertex_capacity: usize,
-    pub vertex_vec: Vec<DebugVertexData>,
+    pub vertex_vec: Vec<DebugVertex>,
 }
 
 impl DebugRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
+        let visible = false;
+        let debug_visibility = DebugVisibility::CHANNEL1 | DebugVisibility::SECTOR_BORDERS;
+
         let vert_shader_module =
             gpu_context
                 .device
@@ -60,7 +63,7 @@ impl DebugRender {
                     vertex: wgpu::VertexState {
                         module: &vert_shader_module,
                         entry_point: Some("main"),
-                        buffers: &[DebugVertexData::desc()],
+                        buffers: &[DebugVertex::desc()],
                         compilation_options: wgpu::PipelineCompilationOptions::default(),
                     },
                     fragment: Some(wgpu::FragmentState {
@@ -102,15 +105,12 @@ impl DebugRender {
 
         let vertex_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Debug Lines Vertex Buffer"),
-            size: (initial_capacity * std::mem::size_of::<DebugVertexData>()) as u64,
+            size: (initial_capacity * std::mem::size_of::<DebugVertex>()) as u64,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
-        let visible = true;
-        let debug_visibility = DebugVisibility::CHANNEL1 | DebugVisibility::SECTOR_BORDERS;
-
-        let channel_vertex_vec_array: [Vec<DebugVertexData>; DebugChannel::ALL.len()] =
+        let channel_vertex_vec_array: [Vec<DebugVertex>; DebugChannel::ALL.len()] =
             std::array::from_fn(|_| Vec::new());
 
         let vertex_vec = Vec::new();
@@ -129,7 +129,7 @@ impl DebugRender {
 
     #[inline]
     pub fn clear_channel_vertex_vec(
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         for vertex_vec in channel_vertex_vec_array {
             vertex_vec.clear();
@@ -141,16 +141,16 @@ impl DebugRender {
         position1: Vec3,
         position2: Vec3,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         let vertex_vec = &mut channel_vertex_vec_array[DebugChannel::index(debug_channel)];
 
-        vertex_vec.push(DebugVertexData {
+        vertex_vec.push(DebugVertex {
             position: position1.into(),
             color,
         });
 
-        vertex_vec.push(DebugVertexData {
+        vertex_vec.push(DebugVertex {
             position: position2.into(),
             color,
         });
@@ -162,7 +162,7 @@ impl DebugRender {
         direction: Vec3,
         length: f32,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         if direction.mag_sq() > 0.0 {
             Self::add_line(
@@ -179,7 +179,7 @@ impl DebugRender {
         debug_channel: DebugChannel,
         origin: Vec3,
         scale: f32,
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         Self::add_line(
             debug_channel,
@@ -211,7 +211,7 @@ impl DebugRender {
         min: Vec3,
         max: Vec3,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         let (x0, y0, z0) = (min.x, min.y, min.z);
         let (x1, y1, z1) = (max.x, max.y, max.z);
@@ -337,7 +337,7 @@ impl DebugRender {
             debug_render.vertex_buffer =
                 gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
                     label: Some("Debug Render Vertex Buffer"),
-                    size: (debug_render.vertex_capacity * std::mem::size_of::<DebugVertexData>())
+                    size: (debug_render.vertex_capacity * std::mem::size_of::<DebugVertex>())
                         as u64,
                     usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,
@@ -382,7 +382,7 @@ impl DebugRender {
 
     pub fn render_debug_crosshair(
         camera: &Camera,
-        channel_vertex_vec_array: &mut [Vec<DebugVertexData>; DebugChannel::ALL.len()],
+        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
     ) {
         use crate::interface::debug::DebugChannel;
 

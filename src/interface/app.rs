@@ -30,7 +30,6 @@ impl<'window> App<'window> {
             Simulation::run(
                 &mut simulation.manager,
                 &mut simulation.state,
-                &mut simulation.viewer,
             )
         }));
     }

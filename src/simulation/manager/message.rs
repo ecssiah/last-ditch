@@ -1,7 +1,8 @@
-use crate::simulation::manager::message::{move_data::MoveData, rotate_data::RotateData};
-
 pub mod move_data;
 pub mod rotate_data;
+
+pub use move_data::MoveData;
+pub use rotate_data::RotateData;
 
 #[derive(Debug)]
 pub enum Message {

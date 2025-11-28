@@ -10,9 +10,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn all() -> [Kind; 4] {
-        [Kind::Eagle, Kind::Lion, Kind::Horse, Kind::Wolf]
-    }
+    pub const ALL: [Kind; 4] = [Kind::Eagle, Kind::Lion, Kind::Horse, Kind::Wolf];
 
     pub fn icon_block(&self) -> block::Kind {
         match self {

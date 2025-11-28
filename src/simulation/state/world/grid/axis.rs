@@ -3,15 +3,15 @@ use ultraviolet::Vec3;
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum Axis {
-    X = 0,
-    Y = 1,
-    Z = 2,
+    X,
+    Y,
+    Z,
 }
 
 impl Axis {
-    pub fn all() -> [Axis; 3] {
-        [Axis::X, Axis::Y, Axis::Z]
-    }
+    pub const ALL: [Axis; 3] = [
+        Axis::X, Axis::Y, Axis::Z
+    ];
 
     pub fn unit(axis: Axis) -> Vec3 {
         match axis {

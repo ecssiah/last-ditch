@@ -12,6 +12,7 @@ pub use view::SectorView;
 pub use view::View;
 pub use view::WorldView;
 
+use crate::simulation::manager::Manager;
 use crate::simulation::state::{
     world::{
         block,
@@ -20,6 +21,7 @@ use crate::simulation::state::{
     },
     State,
 };
+use crate::simulation::viewer::view::ManagerView;
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
@@ -38,10 +40,26 @@ impl Viewer {
         }
     }
 
-    pub fn tick(state: &State, viewer: &mut Viewer) {
-        let _ = tracing::info_span!("observation_tick").entered();
+    pub fn tick(state: &State, manager: &mut Manager) {
+        let _ = tracing::info_span!("viewer_tick").entered();
 
-        Self::update_view(state, viewer);
+        let manager_view = Self::update_manager_view(manager);
+
+        let population_view = Self::update_population_view(state);
+
+        let world_view = Self::update_world_view(
+            state,
+            &mut manager.viewer.sector_version_map,
+            &mut manager.viewer.block_view_cache,
+        );
+
+        let view = manager.viewer.view_input.input_buffer_mut();
+
+        view.manager_view = manager_view;
+        view.population_view = population_view;
+        view.world_view = world_view;
+
+        manager.viewer.view_input.publish();
     }
 
     pub fn get_view(view_output: &mut triple_buffer::Output<View>) -> &View {
@@ -52,21 +70,12 @@ impl Viewer {
         &view
     }
 
-    fn update_view(state: &State, viewer: &mut Viewer) {
-        let population_view = Self::update_population_view(state);
+    fn update_manager_view(manager: &Manager) -> ManagerView {
+        let manager_view = ManagerView {
+            status: manager.status,
+        };
 
-        let world_view = Self::update_world_view(
-            state,
-            &mut viewer.sector_version_map,
-            &mut viewer.block_view_cache,
-        );
-
-        let view = viewer.view_input.input_buffer_mut();
-
-        view.population_view = population_view;
-        view.world_view = world_view;
-
-        viewer.view_input.publish();
+        manager_view
     }
 
     fn update_population_view(state: &State) -> PopulationView {
@@ -217,7 +226,7 @@ impl Viewer {
 
                     let mut face_mask = face_mask::EMPTY;
 
-                    for direction in grid::Direction::get_direction_array() {
+                    for direction in grid::Direction::ALL {
                         let neighbor_cell_coordinates = cell_coordinates + direction.to_ivec3();
 
                         let neighbor_cell_clear =

@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Status {
     Init,
     Load,

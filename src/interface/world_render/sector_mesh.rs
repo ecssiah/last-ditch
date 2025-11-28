@@ -169,7 +169,7 @@ impl SectorMesh {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
-        for axis in Axis::all() {
+        for axis in Axis::ALL {
             let axis_vec = &mask_vec[axis as usize];
             let slice_count = axis_vec.len();
 

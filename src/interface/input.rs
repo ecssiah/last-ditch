@@ -5,14 +5,18 @@ pub mod mouse_inputs;
 
 use crate::{
     interface::{
-        Interface, constants::*, gpu::gpu_context::GPUContext, gui::GUI, input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs}
+        constants::*,
+        gpu::gpu_context::GPUContext,
+        gui::GUI,
+        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
     simulation::manager::{
-        self, Message, message::{move_data::MoveData, rotate_data::RotateData}
+        self,
+        message::{move_data::MoveData, rotate_data::RotateData},
+        Message,
     },
 };
 use std::collections::VecDeque;
-use tracing::info;
 use ultraviolet::Vec2;
 use winit::{
     event::{
@@ -94,7 +98,7 @@ impl Input {
         gui: &mut GUI,
         gpu_context: &mut GPUContext,
         input: &mut Input,
-    ) -> bool {
+    ) {
         match event {
             WindowEvent::CloseRequested => Self::handle_close_requested(&mut input.message_deque),
             WindowEvent::KeyboardInput {
@@ -120,27 +124,18 @@ impl Input {
                 delta,
                 phase,
             } => Self::handle_mouse_wheel(device_id, delta, phase, &mut input.message_deque),
-            _ => false,
+            _ => (),
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, input: &mut Input) -> bool {
+    pub fn handle_device_event(event: &DeviceEvent, input: &mut Input) {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            return Self::handle_mouse_motion(
-                *dx,
-                *dy,
-                &mut input.mouse_inputs,
-                &mut input.message_deque,
-            );
-        } else {
-            return false;
+            Self::handle_mouse_motion(*dx, *dy, &mut input.mouse_inputs, &mut input.message_deque);
         }
     }
 
-    fn handle_close_requested(message_deque: &mut VecDeque<Message>) -> bool {
+    fn handle_close_requested(message_deque: &mut VecDeque<Message>) {
         message_deque.push_back(Message::Quit);
-
-        true
     }
 
     fn handle_keyboard_input(
@@ -151,61 +146,37 @@ impl Input {
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
         message_deque: &mut VecDeque<Message>,
-    ) -> bool {
+    ) {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Escape) => {
                 message_deque.push_back(Message::Quit);
-
-                true
             }
             PhysicalKey::Code(KeyCode::Tab) => {
                 GUI::toggle_menu(gui, gpu_context);
-
-                true
-            },
+            }
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Debug);
-
-                    true
-                } else {
-                    false
                 }
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option1);
-
-                    true
-                } else {
-                    false
                 }
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option2);
-
-                    true
-                } else {
-                    false
                 }
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option3);
-
-                    true
-                } else {
-                    false
                 }
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option4);
-
-                    true
-                } else {
-                    false
                 }
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
@@ -214,8 +185,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_w -= 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -223,8 +192,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_s += 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -232,8 +199,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_a += 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -241,19 +206,13 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_d -= 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
                     message_deque.push_back(Message::Jump);
-
-                    true
-                } else {
-                    false
                 }
             }
-            _ => false,
+            _ => (),
         }
     }
 
@@ -262,21 +221,13 @@ impl Input {
         state: &ElementState,
         button: &MouseButton,
         message_deque: &mut VecDeque<Message>,
-    ) -> bool {
+    ) {
         if state == &ElementState::Pressed {
             if button == &MouseButton::Left {
                 message_deque.push_back(Message::Interact1);
-
-                return true;
             } else if button == &MouseButton::Right {
                 message_deque.push_back(Message::Interact2);
-
-                return true;
-            } else {
-                return false;
             }
-        } else {
-            return false;
         }
     }
 
@@ -285,10 +236,8 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
         _message_deque: &mut VecDeque<Message>,
-    ) -> bool {
-        info!("{:?} {:?}", delta, phase);
-
-        false
+    ) {
+        tracing::info!("{:?} {:?}", delta, phase);
     }
 
     fn handle_mouse_motion(
@@ -296,11 +245,9 @@ impl Input {
         dy: f64,
         mouse_inputs: &mut MouseInputs,
         _message_deque: &mut VecDeque<Message>,
-    ) -> bool {
+    ) {
         let delta = Vec2::new(dx as f32, dy as f32);
 
         mouse_inputs.delta += delta;
-
-        false
     }
 }

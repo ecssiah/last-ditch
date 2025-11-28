@@ -1,11 +1,12 @@
 pub mod act;
 
 pub use act::Act;
+use ultraviolet::Vec3;
 
 use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
-        action::act::MoveData,
+        action::act::{move_data::MoveData, rotate_data::RotateData},
         population::{judge::Judge, kinematic::Kinematic},
         State,
     },
@@ -28,6 +29,9 @@ impl Action {
 
         for act in act_deque {
             match act {
+                Act::Rotate(rotate_data) => {
+                    Self::apply_rotate(&rotate_data, &mut state.population.judge)
+                }
                 Act::Move(move_data) => Self::apply_move(&move_data, &mut state.population.judge),
                 Act::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
                 Act::PlaceBlock => State::place_block(state),
@@ -36,22 +40,28 @@ impl Action {
         }
     }
 
-    pub fn apply_move(move_data: &MoveData, judge: &mut Judge) {
+    pub fn apply_rotate(rotate_data: &RotateData, judge: &mut Judge) {
         const MOVEMENT_EPSILON: f32 = 1e-6;
 
-        if move_data.rotation_xy.abs() > MOVEMENT_EPSILON
-            || move_data.rotation_yz.abs() > MOVEMENT_EPSILON
+        if rotate_data.rotate_xy.abs() > MOVEMENT_EPSILON
+            || rotate_data.rotate_yz.abs() > MOVEMENT_EPSILON
         {
-            judge.sight.rotation_xy = judge.sight.rotation_xy + move_data.rotation_xy;
+            judge.sight.rotation_xy = judge.sight.rotation_xy + rotate_data.rotate_xy;
 
             judge.sight.rotation_yz =
-                (judge.sight.rotation_yz + move_data.rotation_yz).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+                (judge.sight.rotation_yz + rotate_data.rotate_yz).clamp(-PITCH_LIMIT, PITCH_LIMIT);
 
             Judge::set_rotation(judge.sight.rotation_xy, judge.sight.rotation_yz, judge);
         }
+    }
 
-        if move_data.direction.mag_sq() > MOVEMENT_EPSILON {
-            let local_velocity = judge.kinematic.speed * move_data.direction.normalized();
+    pub fn apply_move(move_data: &MoveData, judge: &mut Judge) {
+        const MOVEMENT_EPSILON: f32 = 1e-6;
+
+        if move_data.move_x.abs() > MOVEMENT_EPSILON || move_data.move_y.abs() > MOVEMENT_EPSILON {
+            let move_direction = Vec3::new(move_data.move_x, move_data.move_y, 0.0).normalized();
+
+            let local_velocity = judge.kinematic.speed * move_direction;
             let velocity = judge.spatial.rotor * local_velocity;
 
             judge.kinematic.velocity.x = velocity.x;

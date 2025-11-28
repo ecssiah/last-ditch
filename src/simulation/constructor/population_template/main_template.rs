@@ -26,7 +26,7 @@ fn setup_judge(world: &World, population: &mut Population) {
 fn setup_agent_map(world: &World, population: &mut Population) {
     let mut rng = rand::thread_rng();
 
-    for nation_kind in nation::Kind::all() {
+    for nation_kind in nation::Kind::ALL {
         if let Some(flag_position) = world.flag_position_map.get(&nation_kind) {
             let flag_position = Vec3::from(*flag_position);
 

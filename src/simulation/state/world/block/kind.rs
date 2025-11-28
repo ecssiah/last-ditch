@@ -1,7 +1,7 @@
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
-    None = 0,
+    None,
     Engraved1,
     Engraved2,
     Stone1,

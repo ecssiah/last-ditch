@@ -1,5 +1,9 @@
 //! Information displayed over World rendering
 
+pub mod model;
+
+pub use model::Model;
+
 use crate::{
     interface::gpu::gpu_context::GPUContext,
     simulation::{manager::Message, viewer::View},
@@ -12,16 +16,19 @@ use winit::event::{DeviceEvent, WindowEvent};
 #[derive(Default)]
 pub struct GUI {
     pub menu_active: bool,
+    pub model: Model,
     pub message_deque: VecDeque<Message>,
 }
 
 impl GUI {
     pub fn new() -> Self {
         let menu_active = true;
+        let model = Model::new();
         let message_deque = VecDeque::new();
 
         Self {
             menu_active,
+            model,
             message_deque,
         }
     }
@@ -38,13 +45,13 @@ impl GUI {
     ) -> FullOutput {
         let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
-        let mut gui_delegate = std::mem::take(gui);
+        let mut gui_working = std::mem::take(gui);
 
         let full_output: FullOutput = egui_context.run(raw_input, |context| {
-            Self::show(context, &mut gui_delegate);
+            Self::show(context, &mut gui_working);
         });
 
-        *gui = gui_delegate;
+        *gui = gui_working;
 
         full_output
     }
@@ -59,40 +66,52 @@ impl GUI {
             return;
         }
 
-        let mut start_clicked = false;
-        let mut quit_clicked = false;
+        let screen_rect = context.available_rect();
+        let width = screen_rect.width() * 0.8;
+        let height = screen_rect.height() * 0.8;
 
-        egui::CentralPanel::default().show(context, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.add_space(ui.available_height() * 0.4);
+        egui::Area::new(egui::Id::new("main_menu_area"))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .show(context, |ui| {
+                egui::Frame::window(&context.style())
+                    .fill(egui::Color32::from_rgba_unmultiplied(20, 20, 20, 230))
+                    .corner_radius(5.0)
+                    .show(ui, |ui| {
+                        ui.set_min_size(egui::vec2(width, height));
 
-                start_clicked = ui
-                    .add_sized([200.0, 60.0], egui::Button::new("Start"))
-                    .clicked();
+                        ui.vertical_centered(|ui| {
+                            ui.add_space(ui.available_height() * 0.3);
 
-                quit_clicked = ui
-                    .add_sized([200.0, 60.0], egui::Button::new("Exit"))
-                    .clicked();
+                            let start_clicked = ui
+                                .add_sized([200.0, 60.0], egui::Button::new("Start"))
+                                .clicked();
+
+                            if start_clicked {
+                                gui.message_deque.push_back(Message::Start);
+                            }
+
+                            let quit_clicked = ui
+                                .add_sized([200.0, 60.0], egui::Button::new("Exit"))
+                                .clicked();
+
+                            if quit_clicked {
+                                gui.message_deque.push_back(Message::Quit);
+                            }
+                        });
+                    });
             });
-        });
-
-        if start_clicked {
-            gui.message_deque.push_back(Message::Start);
-        }
-
-        if quit_clicked {
-            gui.message_deque.push_back(Message::Quit);
-        }
     }
 
-    fn show_hud(context: &egui::Context, _gui: &mut GUI) {
-        let message_str = "Hello Simulate!";
+    fn show_hud(context: &egui::Context, gui: &mut GUI) {
+        if gui.model.info_message_vec.len() > 0 {
+            let info_message = &gui.model.info_message_vec[0];
 
-        egui::Area::new(Id::new(0))
-            .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
-            .show(context, |ui| {
-                Self::show_hud_text(ui, Vec2::new(6.0, 6.0), message_str);
-            });
+            egui::Area::new(Id::new(0))
+                .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
+                .show(context, |ui| {
+                    Self::show_hud_text(ui, Vec2::new(6.0, 6.0), info_message);
+                });
+        }
     }
 
     pub fn render(
@@ -144,7 +163,7 @@ impl GUI {
         )
     }
 
-    pub fn apply_view(view: &View, _gui: &mut GUI) {
+    pub fn apply_view(view: &View, gui: &mut GUI) {
         let judge_view = &view.population_view.judge_view;
 
         let position_string = format!(
@@ -165,10 +184,11 @@ impl GUI {
             judge_view.sector_id.to_usize(),
         );
 
-        let mut message = String::new();
-        message.push_str(&position_string);
-        message.push_str(&world_position_string);
-        message.push_str(&sector_string);
+        gui.model.info_message_vec.clear();
+
+        gui.model.info_message_vec.push(position_string);
+        gui.model.info_message_vec.push(world_position_string);
+        gui.model.info_message_vec.push(sector_string);
     }
 
     fn show_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
@@ -191,20 +211,18 @@ impl GUI {
         );
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, gpu_context: &mut GPUContext) -> bool {
+    pub fn handle_device_event(event: &DeviceEvent, gpu_context: &mut GPUContext) {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
         };
-
-        true
     }
 
     pub fn handle_window_event(event: &WindowEvent, gpu_context: &mut GPUContext) -> bool {
-        let _event_response = gpu_context
+        let event_response = gpu_context
             .egui_winit_state
             .on_window_event(&gpu_context.window_arc, event);
 
-        true
+        event_response.consumed
     }
 
     pub fn toggle_menu(gui: &mut GUI, gpu_context: &mut GPUContext) {

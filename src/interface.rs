@@ -18,7 +18,8 @@ use crate::{
         world_render::WorldRender,
     },
     simulation::{
-        self, manager,
+        self,
+        manager::{self, status::Status},
         viewer::{View, Viewer},
     },
 };
@@ -204,14 +205,12 @@ impl<'window> Interface<'window> {
                         return;
                     }
 
-                    if Input::handle_window_event(
+                    Input::handle_window_event(
                         event,
                         &mut interface.gui,
                         &mut interface.gpu_context,
                         &mut interface.input,
-                    ) {
-                        return;
-                    }
+                    );
                 }
             }
         }
@@ -219,13 +218,8 @@ impl<'window> Interface<'window> {
 
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
         if let Some(interface) = interface.as_mut() {
-            if GUI::handle_device_event(event, &mut interface.gpu_context) {
-                return;
-            }
-
-            if Input::handle_device_event(event, &mut interface.input) {
-                return;
-            }
+            GUI::handle_device_event(event, &mut interface.gpu_context);
+            Input::handle_device_event(event, &mut interface.input);
         }
     }
 
@@ -318,9 +312,9 @@ impl<'window> Interface<'window> {
     }
 
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Interface>) {
-        if let Some(interface) = interface.as_mut() {
-            let _ = tracing::info_span!("interface update").entered();
+        let _ = tracing::info_span!("interface update").entered();
 
+        if let Some(interface) = interface.as_mut() {
             let instant = Instant::now();
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
             interface.last_instant = instant;
@@ -364,6 +358,11 @@ impl<'window> Interface<'window> {
         population_render: &mut PopulationRender,
         debug_render: &mut DebugRender,
     ) {
+        if view.manager_view.status == Status::Done {
+            event_loop.exit();
+            return;
+        }
+
         GUI::apply_view(view, gui);
         Camera::apply_view(view, camera);
 
