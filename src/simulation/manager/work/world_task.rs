@@ -1,11 +1,59 @@
-use crate::simulation::state::{World};
+pub mod construct_world_data;
 
+use crate::simulation::{
+    manager::work::world_task::construct_world_data::ConstructWorldData,
+    state::{population::nation, World},
+};
+
+#[derive(Clone)]
 pub enum WorldTask {
-    Construct,
+    ConstructWorld(ConstructWorldData),
 }
 
 impl WorldTask {
-    pub fn step(_world: &mut World, _world_task: &mut WorldTask) -> bool {
-        false
+    pub fn step(world: &mut World, world_task: &mut WorldTask) -> bool {
+        match world_task {
+            WorldTask::ConstructWorld(construct_world_data) => {
+                Self::construct_world(world, construct_world_data)
+            }
+        }
+    }
+
+    fn construct_world(world: &mut World, construct_world_data: &mut ConstructWorldData) -> bool {
+        match construct_world_data.stage {
+            0 => {
+                ConstructWorldData::build_ground(world);
+
+                tracing::info!("Stage: {:?}", construct_world_data.stage);
+
+                construct_world_data.stage += 1;
+
+                false
+            }
+            1 => {
+                ConstructWorldData::build_compass(world);
+
+                ConstructWorldData::build_temple(34, 0, 0, nation::Kind::Wolf, world);
+                ConstructWorldData::build_temple(-34, 0, 0, nation::Kind::Lion, world);
+                ConstructWorldData::build_temple(0, 34, 0, nation::Kind::Eagle, world);
+                ConstructWorldData::build_temple(0, -34, 0, nation::Kind::Horse, world);
+
+                tracing::info!("Stage: {:?}", construct_world_data.stage);
+
+                construct_world_data.stage += 1;
+
+                false
+            }
+            2 => {
+                ConstructWorldData::build_observation_deck(world);
+
+                tracing::info!("Stage: {:?}", construct_world_data.stage);
+
+                construct_world_data.stage += 1;
+
+                false
+            }
+            _ => true,
+        }
     }
 }

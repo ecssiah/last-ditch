@@ -1,34 +1,40 @@
-use crate::simulation::{
-    manager::work::{navigation_task::NavigationTask, worker::Worker},
-    state::State,
-};
+use crate::simulation::{manager::work::navigation_task::NavigationTask, state::State};
 use std::collections::VecDeque;
 
+#[derive(Clone)]
 pub struct NavigationWorker {
-    task_deque: VecDeque<NavigationTask>,
+    pub task_deque: VecDeque<NavigationTask>,
 }
 
-impl Worker for NavigationWorker {
-    fn active(&self) -> bool {
-        false
+impl NavigationWorker {
+    pub fn new() -> Self {
+        Self {
+            task_deque: VecDeque::new(),
+        }
+    }
+    pub fn enqueue(navigation_task: NavigationTask, task_deque: &mut VecDeque<NavigationTask>) {
+        task_deque.push_back(navigation_task);
     }
 
-    fn budget(&self) -> u32 {
+    pub fn active(_navigation_worker: &NavigationWorker) -> bool {
+        true
+    }
+
+    pub fn budget(_navigation_worker: &NavigationWorker) -> u32 {
         500
     }
 
-    fn cost(&self) -> u32 {
+    pub fn cost(_navigation_worker: &NavigationWorker) -> u32 {
         1
     }
 
-    fn work(&mut self, state: &mut State) {
-        if let Some(mut navigation_task) = self.task_deque.pop_front() {
+    pub fn work(state: &mut State, task_deque: &mut VecDeque<NavigationTask>) {
+        if let Some(mut navigation_task) = task_deque.pop_front() {
             let done = NavigationTask::step(&mut state.navigation, &mut navigation_task);
 
             if !done {
-                self.task_deque.push_back(navigation_task)
+                task_deque.push_back(navigation_task)
             }
         }
     }
-    
 }

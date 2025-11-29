@@ -12,21 +12,16 @@ pub mod world;
 
 pub use action::Action;
 pub use config::Config;
-pub use constructor::Constructor;
 pub use physics::Physics;
 pub use population::Population;
 pub use template::Template;
 pub use time::Time;
 pub use world::World;
 
-use crate::simulation::{
-    manager::{status::Status, Manager},
-    state::{
-        self,
-        navigation::{Graph, Navigation},
-        population::sight::Sight,
-        world::block,
-    },
+use crate::simulation::state::{
+    navigation::{Graph, Navigation},
+    population::sight::Sight,
+    world::block,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -35,7 +30,6 @@ use rand_chacha::{
 
 pub struct State {
     pub rng: ChaCha8Rng,
-    pub constructor: Constructor,
     pub time: Time,
     pub action: Action,
     pub world: World,
@@ -48,7 +42,6 @@ impl State {
     pub fn new() -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-        let constructor = Constructor::new(state::Template::Main);
         let action = Action::new();
         let world = World::new(rng.next_u64());
         let population = Population::new(rng.next_u64());
@@ -58,7 +51,6 @@ impl State {
 
         Self {
             rng,
-            constructor,
             action,
             time,
             physics,
@@ -123,15 +115,6 @@ impl State {
 
         state.world.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
         state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
-    }
-
-    pub fn load(manager: &mut Manager, state: &mut State) {
-        match state.constructor.phase {
-            constructor::Phase::World => todo!(),
-            constructor::Phase::Population => todo!(),
-            constructor::Phase::Navigation => todo!(),
-            constructor::Phase::Complete => manager.status = Status::Run,
-        }
     }
 
     pub fn tick(state: &mut State) {

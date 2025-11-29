@@ -1,5 +1,6 @@
 use crate::simulation::state::navigation::Navigation;
 
+#[derive(Clone)]
 pub enum NavigationTask {}
 
 impl NavigationTask {

@@ -1,32 +1,40 @@
-use crate::simulation::{
-    manager::work::{population_task::PopulationTask, worker::Worker},
-    state::State,
-};
+use crate::simulation::{manager::work::population_task::PopulationTask, state::State};
 use std::collections::VecDeque;
 
+#[derive(Clone)]
 pub struct PopulationWorker {
-    task_deque: VecDeque<PopulationTask>,
+    pub task_deque: VecDeque<PopulationTask>,
 }
 
-impl Worker for PopulationWorker {
-    fn active(&self) -> bool {
-        false
+impl PopulationWorker {
+    pub fn new() -> Self {
+        Self {
+            task_deque: VecDeque::new(),
+        }
     }
 
-    fn budget(&self) -> u32 {
+    pub fn enqueue(population_task: PopulationTask, task_deque: &mut VecDeque<PopulationTask>) {
+        task_deque.push_back(population_task);
+    }
+
+    pub fn active(_population_worker: &PopulationWorker) -> bool {
+        true
+    }
+
+    pub fn budget(_population_worker: &PopulationWorker) -> u32 {
         500
     }
 
-    fn cost(&self) -> u32 {
+    pub fn cost(_population_worker: &PopulationWorker) -> u32 {
         1
     }
 
-    fn work(&mut self, state: &mut State) {
-        if let Some(mut population_task) = self.task_deque.pop_front() {
+    pub fn work(state: &mut State, task_deque: &mut VecDeque<PopulationTask>) {
+        if let Some(mut population_task) = task_deque.pop_front() {
             let done = PopulationTask::step(&mut state.population, &mut population_task);
 
             if !done {
-                self.task_deque.push_back(population_task)
+                task_deque.push_back(population_task)
             }
         }
     }

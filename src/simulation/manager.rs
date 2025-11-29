@@ -1,28 +1,38 @@
 pub mod message;
 pub mod status;
+pub mod timestep;
 pub mod viewer;
 pub mod work;
 
 pub use message::Message;
+pub use timestep::Timestep;
 pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{status::Status, viewer::View, work::Work},
+    manager::{
+        status::Status,
+        viewer::View,
+        work::{
+            world_task::{construct_world_data::ConstructWorldData, WorldTask},
+            world_worker::WorldWorker,
+            Work,
+        },
+    },
     state::{
-        State, action::{
-            Act, act::{self}
-        }, world::block::Kind
+        action::{
+            act::{self},
+            Act,
+        },
+        world::block::Kind,
+        State,
     },
 };
 use std::time::{Duration, Instant};
 
 pub struct Manager {
     pub status: Status,
-    pub start_instant: Instant,
-    pub next_instant: Instant,
-    pub ticks_total: u32,
-    pub ticks_frame: u32,
+    pub timestep: Timestep,
     pub work: Work,
     pub viewer: Viewer,
     pub message_rx: crossbeam::channel::Receiver<Message>,
@@ -33,20 +43,14 @@ impl Manager {
         message_rx: crossbeam::channel::Receiver<Message>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
-        let status = Status::Init;
-        let start_instant = Instant::now();
-        let next_instant = Instant::now();
-        let ticks_total = 0;
-        let ticks_frame = 0;
+        let status = Status::Run;
+        let timestep = Timestep::new();
         let work = Work::new();
         let viewer = Viewer::new(view_input);
 
         Self {
             status,
-            start_instant,
-            next_instant,
-            ticks_total,
-            ticks_frame,
+            timestep,
             work,
             viewer,
             message_rx,
@@ -54,26 +58,25 @@ impl Manager {
     }
 
     pub fn start(manager: &mut Manager) {
-        manager.ticks_frame = 0;
+        manager.timestep.ticks_frame = 0;
     }
 
     pub fn has_work(manager: &Manager) -> bool {
-        Instant::now() >= manager.next_instant
-            && manager.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
+        Instant::now() >= manager.timestep.next_instant
+            && manager.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
     pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
         match manager.status {
-            Status::Init => (),
-            Status::Load => State::load(manager, state),
             Status::Run => State::tick(state),
             Status::Done => return false,
         }
-
+        
         while let Ok(message) = manager.message_rx.try_recv() {
             Manager::handle_message(&message, state, manager);
         }
-
+        
+        Work::tick(state, &mut manager.work);
         Viewer::tick(manager, state);
 
         Manager::update_timestep(manager);
@@ -82,24 +85,24 @@ impl Manager {
     }
 
     pub fn update_timestep(manager: &mut Manager) {
-        manager.ticks_total += 1;
-        manager.ticks_frame += 1;
+        manager.timestep.ticks_total += 1;
+        manager.timestep.ticks_frame += 1;
 
-        manager.next_instant =
-            manager.start_instant + manager.ticks_total * SIMULATION_TICK_DURATION;
+        manager.timestep.next_instant = manager.timestep.start_instant
+            + manager.timestep.ticks_total * SIMULATION_TICK_DURATION;
     }
 
     pub fn fix_timestep(manager: &mut Manager) {
         let current_instant = Instant::now();
 
-        if current_instant < manager.next_instant {
-            let remaining_duration = manager.next_instant - current_instant;
+        if current_instant < manager.timestep.next_instant {
+            let remaining_duration = manager.timestep.next_instant - current_instant;
 
             if remaining_duration > Duration::from_millis(2) {
                 std::thread::sleep(remaining_duration - Duration::from_millis(1));
             }
 
-            while Instant::now() < manager.next_instant {
+            while Instant::now() < manager.timestep.next_instant {
                 std::hint::spin_loop();
             }
         }
@@ -163,7 +166,14 @@ impl Manager {
     ) {
         State::seed(generate_data.seed, state);
 
-        manager.status = Status::Load;
+        let construct_world_data = ConstructWorldData {
+            stage: 0,
+            stage_count: 3,
+        };
+
+        let world_task = WorldTask::ConstructWorld(construct_world_data);
+
+        WorldWorker::enqueue(world_task, &mut manager.work.world_worker.task_deque);
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Manager) {

@@ -8,7 +8,7 @@ pub struct ManagerView {
 impl ManagerView {
     pub fn new() -> Self {
         Self {
-            status: Status::Init,
+            status: Status::Run,
         }
     }
 }

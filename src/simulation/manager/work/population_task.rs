@@ -1,5 +1,6 @@
 use crate::simulation::state::Population;
 
+#[derive(Clone)]
 pub enum PopulationTask {
     Construct,
 }

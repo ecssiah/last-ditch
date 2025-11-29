@@ -32,7 +32,7 @@ impl Simulation {
 
             Manager::start(manager);
 
-            while Manager::has_work(manager) {
+            while Manager::has_work(&manager) {
                 if !Manager::tick(state, manager) {
                     return;
                 }
