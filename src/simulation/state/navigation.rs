@@ -3,7 +3,10 @@ pub mod path;
 
 pub use graph::Graph;
 
-use crate::simulation::state::{navigation, world::grid::Grid, World};
+use crate::simulation::{
+    constants::SECTOR_RADIUS_IN_CELLS,
+    state::{navigation, World},
+};
 use std::collections::VecDeque;
 use ultraviolet::IVec3;
 
@@ -17,9 +20,9 @@ pub struct Navigation {
 }
 
 impl Navigation {
-    pub fn new(grid: &Grid) -> Self {
+    pub fn new() -> Self {
         let next_id = 0;
-        let graph = navigation::Graph::new(grid.world_radius_in_cells);
+        let graph = navigation::Graph::new();
         let path_request_deque = VecDeque::new();
         let path_result_vec = Vec::new();
         let path_task_vec = Vec::new();
@@ -36,13 +39,13 @@ impl Navigation {
     }
 
     pub fn init_graph(world: &World, graph: &mut Graph) {
-        let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell =
-                        World::get_cell_at(IVec3::new(x, y, z), &world.grid, &world.sector_vec);
+                        World::get_cell_at(IVec3::new(x, y, z), &world.sector_vec);
 
                     Graph::set_solid(cell.position, cell.solid, graph);
                 }

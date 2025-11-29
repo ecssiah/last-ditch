@@ -5,9 +5,7 @@ pub use id::ID;
 use crate::simulation::state::{
     physics::aabb::AABB,
     world::{
-        cell::{self, Cell},
-        grid::Grid,
-        sector,
+        cell::{self, Cell}, grid, sector
     },
 };
 use ultraviolet::IVec3;
@@ -29,18 +27,17 @@ impl Sector {
         &mut sector.cell_vec[cell_id.to_usize()]
     }
 
-    pub fn get_cell_at<'a>(coordinates: IVec3, grid: &Grid, sector: &'a Sector) -> &'a Cell {
-        let cell_id = Grid::cell_coordinates_to_cell_id(coordinates, grid);
+    pub fn get_cell_at<'a>(coordinates: IVec3, sector: &'a Sector) -> &'a Cell {
+        let cell_id = grid::cell_coordinates_to_cell_id(coordinates);
 
         Self::get_cell(cell_id, sector)
     }
 
     pub fn get_cell_at_mut<'a>(
         coordinates: IVec3,
-        grid: &Grid,
         sector: &'a mut Sector,
     ) -> &'a mut Cell {
-        let cell_id = Grid::cell_coordinates_to_cell_id(coordinates, grid);
+        let cell_id = grid::cell_coordinates_to_cell_id(coordinates);
 
         Self::get_cell_mut(cell_id, sector)
     }

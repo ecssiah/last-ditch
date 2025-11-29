@@ -5,10 +5,7 @@ pub mod aabb;
 use crate::simulation::{
     constants::*,
     state::{
-        physics::aabb::AABB,
-        population::{kinematic::Kinematic, sight::Sight, spatial::Spatial, Population},
-        world::grid::{axis::Axis, Grid},
-        World,
+        World, physics::aabb::AABB, population::{Population, kinematic::Kinematic, sight::Sight, spatial::Spatial}, world::grid::{self, axis::Axis}
     },
 };
 use ultraviolet::{IVec3, Vec3};
@@ -119,7 +116,7 @@ impl Physics {
     }
 
     fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        Grid::cells_overlapping(aabb, &world.grid)
+        grid::cells_overlapping(aabb)
             .into_iter()
             .filter(|cell_aabb| {
                 let aabb_center = cell_aabb.center();
@@ -130,8 +127,8 @@ impl Physics {
                     aabb_center.z.round() as i32,
                 );
 
-                if Grid::position_valid(cell_position, &world.grid) {
-                    let cell = World::get_cell_at(cell_position, &world.grid, &world.sector_vec);
+                if grid::position_valid(cell_position) {
+                    let cell = World::get_cell_at(cell_position, &world.sector_vec);
 
                     cell.solid
                 } else {

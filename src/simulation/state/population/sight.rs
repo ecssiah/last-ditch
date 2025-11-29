@@ -1,4 +1,7 @@
-use crate::{simulation::state::world::grid::Grid, utils::ld_math::rotor3_ext};
+use crate::{
+    simulation::constants::{SECTOR_RADIUS_IN_METERS, SECTOR_SIZE_IN_METERS},
+    utils::ld_math::rotor3_ext,
+};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -64,10 +67,10 @@ impl Sight {
         sight.rotor = rotor_xy * rotor_yz;
     }
 
-    pub fn set_range(range: f32, grid: &Grid, sight: &mut Sight) {
+    pub fn set_range(range: f32, sight: &mut Sight) {
         sight.range_in_meters = range;
         sight.range_in_sectors =
-            ((range - grid.sector_radius_in_meters) / grid.sector_size_in_meters).ceil() as i32;
+            ((range - SECTOR_RADIUS_IN_METERS) / SECTOR_SIZE_IN_METERS).ceil() as i32;
     }
 
     pub fn contains(sight: &Sight, point: Vec3) -> bool {

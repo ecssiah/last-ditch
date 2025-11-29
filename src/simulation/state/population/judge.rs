@@ -82,7 +82,7 @@ impl Judge {
         Sight::set_rotation(rotation_xy, rotation_yz, &mut judge.sight);
     }
 
-    pub fn tick(world: &World, judge: &mut Judge) {
-        Spatial::update_sector_id(&world.grid, &mut judge.spatial);
+    pub fn tick(_world: &World, judge: &mut Judge) {
+        Spatial::update_sector_id(&mut judge.spatial);
     }
 }

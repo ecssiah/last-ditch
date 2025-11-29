@@ -1,16 +1,13 @@
 //! Simulation evolution
 
 pub mod constants;
-pub mod constructor;
 pub mod manager;
 pub mod state;
 pub mod utils;
-pub mod viewer;
 
 use crate::simulation::{
-    manager::{status::Status, Manager, Message},
+    manager::{Manager, Message, status::Status, viewer::View},
     state::State,
-    viewer::View,
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
@@ -39,11 +36,8 @@ impl Simulation {
             Manager::start(manager);
 
             while Manager::has_work(manager) {
-                match Manager::tick(state, manager) {
-                    Status::Init => (),
-                    Status::Load => State::load(state, manager),
-                    Status::Run => State::tick(state),
-                    Status::Done => return,
+                if !Manager::tick(state, manager) {
+                    return;
                 }
             }
 

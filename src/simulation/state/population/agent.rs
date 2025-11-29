@@ -34,7 +34,7 @@ impl Agent {
         }
     }
 
-    pub fn tick(world: &World, agent: &mut Agent) {
-        Spatial::update_sector_id(&world.grid, &mut agent.spatial);
+    pub fn tick(_world: &World, agent: &mut Agent) {
+        Spatial::update_sector_id(&mut agent.spatial);
     }
 }

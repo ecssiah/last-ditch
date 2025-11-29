@@ -6,10 +6,7 @@ pub use model::Model;
 
 use crate::{
     interface::gpu::gpu_context::GPUContext,
-    simulation::{
-        manager::{message::GenerateData, Message},
-        viewer::View,
-    },
+    simulation::manager::{Message, message::GenerateData, viewer::View},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::{

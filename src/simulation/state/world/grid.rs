@@ -11,7 +11,6 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            self,
             physics::aabb::AABB,
             world::{cell, sector},
         },
@@ -20,348 +19,275 @@ use crate::{
 };
 use ultraviolet::{IVec3, Vec3};
 
-#[derive(Clone, Copy, Debug)]
-pub struct Grid {
-    pub cell_radius_in_meters: f32,
-    pub cell_size_in_meters: f32,
-    pub cell_area_in_meters: f32,
-    pub cell_volume_in_meters: f32,
-
-    pub sector_radius_in_cells: u32,
-    pub sector_size_in_cells: u32,
-    pub sector_area_in_cells: u32,
-    pub sector_volume_in_cells: u32,
-    pub sector_radius_in_meters: f32,
-    pub sector_size_in_meters: f32,
-    pub sector_area_in_meters: f32,
-    pub sector_volume_in_meters: f32,
-
-    pub world_radius_in_sectors: u32,
-    pub world_size_in_sectors: u32,
-    pub world_area_in_sectors: u32,
-    pub world_volume_in_sectors: u32,
-    pub world_radius_in_cells: u32,
-    pub world_size_in_cells: u32,
-    pub world_area_in_cells: u32,
-    pub world_volume_in_cells: u32,
-    pub world_radius_in_meters: f32,
-    pub world_size_in_meters: f32,
-    pub world_area_in_meters: f32,
-    pub world_volume_in_meters: f32,
+#[inline]
+pub fn cell_ids() -> Vec<cell::ID> {
+    (0usize..SECTOR_VOLUME_IN_CELLS).map(cell::ID).collect()
 }
 
-impl Grid {
-    pub fn new(state_template: state::Template) -> Self {
-        let config = state_template.config();
-
-        let cell_radius_in_meters = CELL_RADIUS;
-        let cell_size_in_meters = 2.0 * cell_radius_in_meters;
-        let cell_area_in_meters = cell_size_in_meters.powi(2);
-        let cell_volume_in_meters = cell_size_in_meters.powi(3);
-
-        let sector_radius_in_cells = config.sector_radius_in_cells;
-        let sector_size_in_cells = 2 * sector_radius_in_cells + 1;
-        let sector_area_in_cells = sector_size_in_cells.pow(2);
-        let sector_volume_in_cells = sector_size_in_cells.pow(3);
-
-        let sector_radius_in_meters =
-            sector_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
-        let sector_size_in_meters = 2.0 * sector_radius_in_meters;
-        let sector_area_in_meters = sector_size_in_meters.powi(2);
-        let sector_volume_in_meters = sector_size_in_meters.powi(3);
-
-        let world_radius_in_sectors = config.world_radius_in_sectors;
-        let world_size_in_sectors = 2 * world_radius_in_sectors + 1;
-        let world_area_in_sectors = world_size_in_sectors.pow(2);
-        let world_volume_in_sectors = world_size_in_sectors.pow(3);
-
-        let world_radius_in_cells =
-            world_radius_in_sectors * sector_size_in_cells + sector_radius_in_cells;
-        let world_size_in_cells = 2 * world_radius_in_cells + 1;
-        let world_area_in_cells = world_size_in_cells.pow(2);
-        let world_volume_in_cells = world_size_in_cells.pow(3);
-
-        let world_radius_in_meters =
-            world_radius_in_cells as f32 * cell_size_in_meters + cell_radius_in_meters;
-        let world_size_in_meters = 2.0 * world_radius_in_meters;
-        let world_area_in_meters = world_size_in_meters.powi(2);
-        let world_volume_in_meters = world_size_in_meters.powi(3);
-
-        Self {
-            cell_radius_in_meters,
-            cell_size_in_meters,
-            cell_area_in_meters,
-            cell_volume_in_meters,
-
-            sector_radius_in_cells,
-            sector_size_in_cells,
-            sector_area_in_cells,
-            sector_volume_in_cells,
-            sector_radius_in_meters,
-            sector_size_in_meters,
-            sector_area_in_meters,
-            sector_volume_in_meters,
-
-            world_radius_in_cells,
-            world_size_in_cells,
-            world_area_in_cells,
-            world_volume_in_cells,
-            world_radius_in_sectors,
-            world_size_in_sectors,
-            world_area_in_sectors,
-            world_volume_in_sectors,
-            world_radius_in_meters,
-            world_size_in_meters,
-            world_area_in_meters,
-            world_volume_in_meters,
-        }
-    }
-
-    pub fn cell_ids(grid: &Grid) -> Vec<cell::ID> {
-        (0u32..grid.sector_volume_in_cells).map(cell::ID).collect()
-    }
-
-    pub fn sector_ids(grid: &Grid) -> Vec<sector::ID> {
-        (0u32..grid.world_volume_in_sectors)
-            .map(sector::ID)
-            .collect()
-    }
-
-    pub fn cell_id_valid(id: cell::ID, grid: &Grid) -> bool {
-        (0u32..grid.sector_volume_in_cells).contains(&id.to_u32())
-    }
-
-    pub fn sector_id_valid(id: sector::ID, grid: &Grid) -> bool {
-        (0u32..grid.world_volume_in_sectors).contains(&id.to_u32())
-    }
-
-    pub fn cell_coordinates_valid(coordinates: IVec3, grid: &Grid) -> bool {
-        let in_x_range = coordinates.x.unsigned_abs() <= grid.sector_radius_in_cells;
-        let in_y_range = coordinates.y.unsigned_abs() <= grid.sector_radius_in_cells;
-        let in_z_range = coordinates.z.unsigned_abs() <= grid.sector_radius_in_cells;
-
-        in_x_range && in_y_range && in_z_range
-    }
-
-    pub fn sector_coordinates_valid(coordinates: IVec3, grid: &Grid) -> bool {
-        let in_x_range = coordinates.x.unsigned_abs() <= grid.world_radius_in_sectors;
-        let in_y_range = coordinates.y.unsigned_abs() <= grid.world_radius_in_sectors;
-        let in_z_range = coordinates.z.unsigned_abs() <= grid.world_radius_in_sectors;
-
-        in_x_range && in_y_range && in_z_range
-    }
+#[inline]
+pub fn sector_ids() -> Vec<sector::ID> {
+    (0usize..WORLD_VOLUME_IN_SECTORS).map(sector::ID).collect()
+}
 
-    pub fn position_valid(position: IVec3, grid: &Grid) -> bool {
-        let in_x_range = position.x.unsigned_abs() <= grid.world_radius_in_cells;
-        let in_y_range = position.y.unsigned_abs() <= grid.world_radius_in_cells;
-        let in_z_range = position.z.unsigned_abs() <= grid.world_radius_in_cells;
+#[inline]
+pub fn cell_id_valid(id: cell::ID) -> bool {
+    (0usize..SECTOR_VOLUME_IN_CELLS).contains(&cell::ID::to_usize(&id))
+}
 
-        in_x_range && in_y_range && in_z_range
-    }
+#[inline]
+pub fn sector_id_valid(id: sector::ID) -> bool {
+    (0usize..WORLD_VOLUME_IN_SECTORS).contains(&sector::ID::to_usize(&id))
+}
 
-    pub fn world_position_valid(world_position: Vec3, grid: &Grid) -> bool {
-        let in_x_range = world_position.x.abs() <= grid.world_radius_in_meters;
-        let in_y_range = world_position.y.abs() <= grid.world_radius_in_meters;
-        let in_z_range = world_position.z.abs() <= grid.world_radius_in_meters;
+#[inline]
+pub fn cell_coordinates_valid(coordinates: IVec3) -> bool {
+    let in_x_range = coordinates.x.unsigned_abs() <= SECTOR_RADIUS_IN_CELLS as u32;
+    let in_y_range = coordinates.y.unsigned_abs() <= SECTOR_RADIUS_IN_CELLS as u32;
+    let in_z_range = coordinates.z.unsigned_abs() <= SECTOR_RADIUS_IN_CELLS as u32;
 
-        in_x_range && in_y_range && in_z_range
-    }
+    in_x_range && in_y_range && in_z_range
+}
 
-    pub fn cell_id_to_cell_coordinates(id: cell::ID, grid: &Grid) -> IVec3 {
-        let index = id.to_u32();
-        let coordinates = indexing::to_ivec3(index, grid.sector_radius_in_cells);
+#[inline]
+pub fn sector_coordinates_valid(coordinates: IVec3) -> bool {
+    let in_x_range = coordinates.x.unsigned_abs() <= WORLD_RADIUS_IN_SECTORS as u32;
+    let in_y_range = coordinates.y.unsigned_abs() <= WORLD_RADIUS_IN_SECTORS as u32;
+    let in_z_range = coordinates.z.unsigned_abs() <= WORLD_RADIUS_IN_SECTORS as u32;
 
-        coordinates
-    }
+    in_x_range && in_y_range && in_z_range
+}
 
-    pub fn cell_coordinates_to_cell_id(coordinates: IVec3, grid: &Grid) -> cell::ID {
-        let index = indexing::from_ivec3(coordinates, grid.sector_radius_in_cells);
+#[inline]
+pub fn position_valid(position: IVec3) -> bool {
+    let in_x_range = position.x.unsigned_abs() <= WORLD_RADIUS_IN_CELLS as u32;
+    let in_y_range = position.y.unsigned_abs() <= WORLD_RADIUS_IN_CELLS as u32;
+    let in_z_range = position.z.unsigned_abs() <= WORLD_RADIUS_IN_CELLS as u32;
 
-        cell::ID(index)
-    }
+    in_x_range && in_y_range && in_z_range
+}
 
-    pub fn sector_id_to_sector_coordinates(id: sector::ID, grid: &Grid) -> IVec3 {
-        let index = id.to_u32();
-        let coordinates = indexing::to_ivec3(index, grid.world_radius_in_sectors);
+#[inline]
+pub fn world_position_valid(world_position: Vec3) -> bool {
+    let in_x_range = world_position.x.abs() <= WORLD_RADIUS_IN_METERS;
+    let in_y_range = world_position.y.abs() <= WORLD_RADIUS_IN_METERS;
+    let in_z_range = world_position.z.abs() <= WORLD_RADIUS_IN_METERS;
 
-        coordinates
-    }
+    in_x_range && in_y_range && in_z_range
+}
 
-    pub fn sector_coordinates_to_sector_id(coordinates: IVec3, grid: &Grid) -> sector::ID {
-        let index = indexing::from_ivec3(coordinates, grid.world_radius_in_sectors);
+#[inline]
+pub fn cell_id_to_cell_coordinates(id: cell::ID) -> IVec3 {
+    let index = id.to_usize();
+    let coordinates = indexing::to_ivec3(index, SECTOR_RADIUS_IN_CELLS);
 
-        sector::ID(index)
-    }
+    coordinates
+}
 
-    pub fn sector_coordinates_to_position(sector_coordinates: IVec3, grid: &Grid) -> IVec3 {
-        let position = sector_coordinates * grid.sector_size_in_cells as i32;
+#[inline]
+pub fn cell_coordinates_to_cell_id(coordinates: IVec3) -> cell::ID {
+    let index = indexing::from_ivec3(coordinates, SECTOR_RADIUS_IN_CELLS);
 
-        position
-    }
+    cell::ID(index)
+}
 
-    pub fn sector_id_to_position(sector_id: sector::ID, grid: &Grid) -> IVec3 {
-        let coordinates = Grid::sector_id_to_sector_coordinates(sector_id, grid);
+#[inline]
+pub fn sector_id_to_sector_coordinates(id: sector::ID) -> IVec3 {
+    let index = id.to_usize();
+    let coordinates = indexing::to_ivec3(index, WORLD_RADIUS_IN_SECTORS);
 
-        Grid::sector_coordinates_to_position(coordinates, grid)
-    }
+    coordinates
+}
 
-    pub fn position_to_sector_coordinates(position: IVec3, grid: &Grid) -> IVec3 {
-        let world_radius_in_cells = grid.world_radius_in_cells as i32;
+#[inline]
+pub fn sector_coordinates_to_sector_id(coordinates: IVec3) -> sector::ID {
+    let index = indexing::from_ivec3(coordinates, WORLD_RADIUS_IN_SECTORS);
 
-        let position_indexable = position + IVec3::broadcast(world_radius_in_cells);
+    sector::ID(index)
+}
 
-        let sector_size_in_cells = grid.sector_size_in_cells as i32;
+#[inline]
+pub fn sector_coordinates_to_position(sector_coordinates: IVec3) -> IVec3 {
+    let position = sector_coordinates * SECTOR_SIZE_IN_CELLS as i32;
 
-        let sector_coordinates_indexable = position_indexable / sector_size_in_cells;
+    position
+}
 
-        let world_radius_in_sectors = grid.world_radius_in_sectors as i32;
+#[inline]
+pub fn sector_id_to_position(sector_id: sector::ID) -> IVec3 {
+    let coordinates = sector_id_to_sector_coordinates(sector_id);
 
-        let sector_coordinates =
-            sector_coordinates_indexable - IVec3::broadcast(world_radius_in_sectors);
+    sector_coordinates_to_position(coordinates)
+}
 
-        sector_coordinates
-    }
+#[inline]
+pub fn position_to_sector_coordinates(position: IVec3) -> IVec3 {
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
-    pub fn position_to_cell_coordinates(position: IVec3, grid: &Grid) -> IVec3 {
-        let world_radius_in_cells = grid.world_radius_in_cells as i32;
+    let position_indexable = position + IVec3::broadcast(world_radius_in_cells);
 
-        let position_indexable = position + IVec3::broadcast(world_radius_in_cells);
+    let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
 
-        let sector_size_in_cells = grid.sector_size_in_cells as i32;
+    let sector_coordinates_indexable = position_indexable / sector_size_in_cells;
 
-        let cell_coordinates_indexable = IVec3::new(
-            position_indexable.x % sector_size_in_cells,
-            position_indexable.y % sector_size_in_cells,
-            position_indexable.z % sector_size_in_cells,
-        );
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
 
-        let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
+    let sector_coordinates =
+        sector_coordinates_indexable - IVec3::broadcast(world_radius_in_sectors);
 
-        let cell_coordinates =
-            cell_coordinates_indexable - IVec3::broadcast(sector_radius_in_cells);
+    sector_coordinates
+}
 
-        cell_coordinates
-    }
+#[inline]
+pub fn position_to_cell_coordinates(position: IVec3) -> IVec3 {
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
-    pub fn position_to_sector_id(position: IVec3, grid: &Grid) -> sector::ID {
-        let sector_coordinates = Grid::position_to_sector_coordinates(position, grid);
+    let position_indexable = position + IVec3::broadcast(world_radius_in_cells);
 
-        Grid::sector_coordinates_to_sector_id(sector_coordinates, grid)
-    }
+    let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
 
-    pub fn position_to_cell_id(position: IVec3, grid: &Grid) -> cell::ID {
-        let cell_coordinates = Grid::position_to_cell_coordinates(position, grid);
+    let cell_coordinates_indexable = IVec3::new(
+        position_indexable.x % sector_size_in_cells,
+        position_indexable.y % sector_size_in_cells,
+        position_indexable.z % sector_size_in_cells,
+    );
 
-        Grid::cell_coordinates_to_cell_id(cell_coordinates, grid)
-    }
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
-    pub fn position_to_ids(position: IVec3, grid: &Grid) -> (sector::ID, cell::ID) {
-        let sector_id = Grid::position_to_sector_id(position, grid);
-        let cell_id = Grid::position_to_cell_id(position, grid);
+    let cell_coordinates = cell_coordinates_indexable - IVec3::broadcast(sector_radius_in_cells);
 
-        (sector_id, cell_id)
-    }
+    cell_coordinates
+}
 
-    pub fn ids_to_position(sector_id: sector::ID, cell_id: cell::ID, grid: &Grid) -> IVec3 {
-        let sector_coordinates = Grid::sector_id_to_sector_coordinates(sector_id, grid);
-        let cell_coordinates = Grid::cell_id_to_cell_coordinates(cell_id, grid);
+#[inline]
+pub fn position_to_sector_id(position: IVec3) -> sector::ID {
+    let sector_coordinates = position_to_sector_coordinates(position);
 
-        grid.sector_size_in_cells as i32 * sector_coordinates + cell_coordinates
-    }
+    sector_coordinates_to_sector_id(sector_coordinates)
+}
 
-    pub fn world_position_to_position(world_position: Vec3) -> IVec3 {
-        let position = IVec3::new(
-            (world_position.x + CELL_RADIUS).floor() as i32,
-            (world_position.y + CELL_RADIUS).floor() as i32,
-            (world_position.z + CELL_RADIUS).floor() as i32,
-        );
+#[inline]
+pub fn position_to_cell_id(position: IVec3) -> cell::ID {
+    let cell_coordinates = position_to_cell_coordinates(position);
 
-        position
-    }
+    cell_coordinates_to_cell_id(cell_coordinates)
+}
 
-    pub fn world_position_to_sector_id(world_position: Vec3, grid: &Grid) -> sector::ID {
-        let position = Grid::world_position_to_position(world_position);
+#[inline]
+pub fn position_to_ids(position: IVec3) -> (sector::ID, cell::ID) {
+    let sector_id = position_to_sector_id(position);
+    let cell_id = position_to_cell_id(position);
 
-        Grid::position_to_sector_id(position, grid)
-    }
+    (sector_id, cell_id)
+}
 
-    pub fn world_position_to_sector_coordinates(world_position: Vec3, grid: &Grid) -> IVec3 {
-        let position = Grid::world_position_to_position(world_position);
+#[inline]
+pub fn ids_to_position(sector_id: sector::ID, cell_id: cell::ID) -> IVec3 {
+    let sector_coordinates = sector_id_to_sector_coordinates(sector_id);
+    let cell_coordinates = cell_id_to_cell_coordinates(cell_id);
 
-        Grid::position_to_sector_coordinates(position, grid)
-    }
+    SECTOR_SIZE_IN_CELLS as i32 * sector_coordinates + cell_coordinates
+}
 
-    pub fn world_to_cell_id(grid: &Grid, world_position: Vec3) -> cell::ID {
-        let position = Grid::world_position_to_position(world_position);
+#[inline]
+pub fn world_position_to_position(world_position: Vec3) -> IVec3 {
+    let position = IVec3::new(
+        (world_position.x + CELL_RADIUS_IN_METERS).floor() as i32,
+        (world_position.y + CELL_RADIUS_IN_METERS).floor() as i32,
+        (world_position.z + CELL_RADIUS_IN_METERS).floor() as i32,
+    );
 
-        Grid::position_to_cell_id(position, grid)
-    }
+    position
+}
 
-    pub fn world_to_cell_coordinates(world_position: Vec3, grid: &Grid) -> IVec3 {
-        let position = Grid::world_position_to_position(world_position);
+#[inline]
+pub fn world_position_to_sector_id(world_position: Vec3) -> sector::ID {
+    let position = world_position_to_position(world_position);
 
-        Grid::position_to_cell_coordinates(position, grid)
-    }
+    position_to_sector_id(position)
+}
 
-    pub fn cells_overlapping(aabb: AABB, grid: &Grid) -> Vec<AABB> {
-        let mut aabb_vec = Vec::new();
+#[inline]
+pub fn world_position_to_sector_coordinates(world_position: Vec3) -> IVec3 {
+    let position = world_position_to_position(world_position);
 
-        let min = IVec3::new(
-            aabb.min.x.round() as i32,
-            aabb.min.y.round() as i32,
-            aabb.min.z.round() as i32,
-        );
+    position_to_sector_coordinates(position)
+}
 
-        let max = IVec3::new(
-            aabb.max.x.round() as i32,
-            aabb.max.y.round() as i32,
-            aabb.max.z.round() as i32,
-        );
+#[inline]
+pub fn world_to_cell_id(world_position: Vec3) -> cell::ID {
+    let position = world_position_to_position(world_position);
 
-        let size = Vec3::broadcast(grid.cell_size_in_meters);
+    position_to_cell_id(position)
+}
 
-        for z in min.z..=max.z {
-            for y in min.y..=max.y {
-                for x in min.x..=max.x {
-                    let cell_position = IVec3::new(x, y, z);
-                    let cell_aabb = AABB::new(Vec3::from(cell_position), size);
+#[inline]
+pub fn world_to_cell_coordinates(world_position: Vec3) -> IVec3 {
+    let position = world_position_to_position(world_position);
 
-                    if cell_aabb.overlaps(aabb) {
-                        aabb_vec.push(cell_aabb);
-                    }
+    position_to_cell_coordinates(position)
+}
+
+#[inline]
+pub fn cells_overlapping(aabb: AABB) -> Vec<AABB> {
+    let mut aabb_vec = Vec::new();
+
+    let min = IVec3::new(
+        aabb.min.x.round() as i32,
+        aabb.min.y.round() as i32,
+        aabb.min.z.round() as i32,
+    );
+
+    let max = IVec3::new(
+        aabb.max.x.round() as i32,
+        aabb.max.y.round() as i32,
+        aabb.max.z.round() as i32,
+    );
+
+    let size = Vec3::broadcast(CELL_SIZE_IN_METERS);
+
+    for z in min.z..=max.z {
+        for y in min.y..=max.y {
+            for x in min.x..=max.x {
+                let cell_position = IVec3::new(x, y, z);
+                let cell_aabb = AABB::new(Vec3::from(cell_position), size);
+
+                if cell_aabb.overlaps(aabb) {
+                    aabb_vec.push(cell_aabb);
                 }
             }
         }
-
-        aabb_vec
     }
 
-    pub fn on_sector_boundary(position: IVec3, grid: &Grid) -> bool {
-        if !Grid::position_valid(position, grid) {
-            true
-        } else {
-            let cell_coordinates = Grid::position_to_cell_coordinates(position, grid);
+    aabb_vec
+}
 
-            let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
+#[inline]
+pub fn on_sector_boundary(position: IVec3) -> bool {
+    if !position_valid(position) {
+        true
+    } else {
+        let cell_coordinates = position_to_cell_coordinates(position);
 
-            cell_coordinates.x.abs() == sector_radius_in_cells
-                || cell_coordinates.y.abs() == sector_radius_in_cells
-                || cell_coordinates.z.abs() == sector_radius_in_cells
-        }
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+
+        cell_coordinates.x.abs() == sector_radius_in_cells
+            || cell_coordinates.y.abs() == sector_radius_in_cells
+            || cell_coordinates.z.abs() == sector_radius_in_cells
     }
+}
 
-    pub fn on_world_radius(position: IVec3, grid: &Grid) -> bool {
-        let world_radius_in_cells = grid.world_radius_in_cells as i32;
+#[inline]
+pub fn on_world_radius(position: IVec3) -> bool {
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
-        position.x.abs() == world_radius_in_cells
-            || position.y.abs() == world_radius_in_cells
-            || position.z.abs() == world_radius_in_cells
-    }
+    position.x.abs() == world_radius_in_cells
+        || position.y.abs() == world_radius_in_cells
+        || position.z.abs() == world_radius_in_cells
+}
 
-    pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
-        (-radius..=radius).flat_map(move |x| {
-            (-radius..=radius)
-                .flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
-        })
-    }
+#[inline]
+pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
+    (-radius..=radius).flat_map(move |x| {
+        (-radius..=radius).flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
+    })
 }

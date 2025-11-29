@@ -4,13 +4,11 @@ use crate::{
         world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas},
     },
     simulation::{
-        constants::CELL_RADIUS,
-        state::world::{
+        constants::{CELL_RADIUS_IN_METERS, SECTOR_AREA_IN_CELLS, SECTOR_RADIUS_IN_CELLS, SECTOR_SIZE_IN_CELLS}, manager::viewer::{SectorView, face_mask}, state::world::{
             block,
-            grid::{self, axis::Axis, Grid},
+            grid::{self, axis::Axis},
             sector,
-        },
-        viewer::{face_mask, SectorView},
+        }
     },
 };
 use ultraviolet::IVec3;
@@ -23,23 +21,23 @@ pub struct SectorMesh {
 }
 
 impl SectorMesh {
-    pub fn from_sector_view(sector_view: &SectorView, grid: &Grid) -> Self {
-        let sector_mesh = Self::lysenko_optimization(sector_view, grid);
+    pub fn from_sector_view(sector_view: &SectorView) -> Self {
+        let sector_mesh = Self::lysenko_optimization(sector_view);
 
         sector_mesh
     }
 
-    fn lysenko_optimization(sector_view: &SectorView, grid: &Grid) -> Self {
-        let mask_vec = Self::generate_mask_vec(sector_view, grid);
-        let sector_mesh = Self::merge_geometry(sector_view, grid, mask_vec);
+    fn lysenko_optimization(sector_view: &SectorView) -> Self {
+        let mask_vec = Self::generate_mask_vec(sector_view);
+        let sector_mesh = Self::merge_geometry(sector_view, mask_vec);
 
         sector_mesh
     }
 
-    fn generate_mask_vec(sector_view: &SectorView, grid: &Grid) -> Vec<Vec<Vec<Face>>> {
-        let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
-        let sector_size_in_cells = grid.sector_size_in_cells as i32;
-        let sector_area_in_cells = grid.sector_area_in_cells as i32;
+    fn generate_mask_vec(sector_view: &SectorView) -> Vec<Vec<Vec<Face>>> {
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
+        let sector_area_in_cells = SECTOR_AREA_IN_CELLS as i32;
 
         let slice_count = (sector_size_in_cells + 1) as usize;
 
@@ -53,7 +51,7 @@ impl SectorMesh {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinates = IVec3::new(x, y, z);
-                    let cell_id = Grid::cell_coordinates_to_cell_id(cell_coordinates, grid);
+                    let cell_id = grid::cell_coordinates_to_cell_id(cell_coordinates);
 
                     // TODO: Fix this
                     //
@@ -167,7 +165,6 @@ impl SectorMesh {
 
     fn merge_geometry(
         sector_view: &SectorView,
-        grid: &Grid,
         mask_vec: Vec<Vec<Vec<Face>>>,
     ) -> Self {
         let mut vertex_vec = Vec::new();
@@ -184,7 +181,6 @@ impl SectorMesh {
                     axis,
                     slice_index,
                     slice,
-                    grid,
                     sector_view.world_position.as_array(),
                     &mut vertex_vec,
                     &mut index_vec,
@@ -204,12 +200,11 @@ impl SectorMesh {
         axis: Axis,
         slice_index: usize,
         slice: &[Face],
-        grid: &Grid,
         sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
-        let sector_size_in_cells = grid.sector_size_in_cells as usize;
+        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as usize;
 
         let mut visited = vec![false; slice.len()];
 
@@ -265,7 +260,6 @@ impl SectorMesh {
                     x_max,
                     y_max,
                     face,
-                    grid,
                     vertex_vec,
                     index_vec,
                 );
@@ -282,11 +276,10 @@ impl SectorMesh {
         x1: usize,
         y1: usize,
         face: Face,
-        grid: &Grid,
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
-        let sector_radius = grid.sector_radius_in_cells as i32;
+        let sector_radius = SECTOR_RADIUS_IN_CELLS as i32;
 
         let slice_coordinate = Self::get_axis_coordinate(slice_index, sector_radius);
 
@@ -481,7 +474,7 @@ impl SectorMesh {
     }
 
     fn get_axis_coordinate(slice_index: usize, sector_radius: i32) -> f32 {
-        slice_index as f32 - sector_radius as f32 - CELL_RADIUS
+        slice_index as f32 - sector_radius as f32 - CELL_RADIUS_IN_METERS
     }
 
     pub fn to_gpu_mesh(sector_mesh: &Self, device: &wgpu::Device) -> GpuMesh {

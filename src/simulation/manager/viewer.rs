@@ -12,16 +12,19 @@ pub use view::SectorView;
 pub use view::View;
 pub use view::WorldView;
 
-use crate::simulation::manager::Manager;
-use crate::simulation::state::{
-    world::{
-        block,
-        grid::{self, Grid},
-        sector::{self, Sector},
+use crate::simulation::constants::SECTOR_RADIUS_IN_CELLS;
+use crate::simulation::constants::SECTOR_VOLUME_IN_CELLS;
+use crate::simulation::{
+    manager::{viewer::view::ManagerView, Manager},
+    state::{
+        world::{
+            block,
+            grid::{self},
+            sector::{self, Sector},
+        },
+        State,
     },
-    State,
 };
-use crate::simulation::viewer::view::ManagerView;
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
@@ -82,13 +85,10 @@ impl Viewer {
         let judge = &state.population.judge;
 
         let judge_view = JudgeView {
-            position: Grid::world_position_to_position(judge.spatial.world_position),
+            position: grid::world_position_to_position(judge.spatial.world_position),
             world_position: judge.spatial.world_position,
             sector_id: judge.spatial.sector_id,
-            sector_coordinates: Grid::sector_id_to_sector_coordinates(
-                judge.spatial.sector_id,
-                &state.world.grid,
-            ),
+            sector_coordinates: grid::sector_id_to_sector_coordinates(judge.spatial.sector_id),
             size: judge.spatial.size,
             sight_world_position: judge.sight.world_position,
             sight_rotor: judge.sight.rotor,
@@ -130,16 +130,13 @@ impl Viewer {
         block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
     ) -> WorldView {
         let mut world_view = WorldView {
-            grid: state.world.grid,
             sector_view_map: HashMap::new(),
         };
 
         let judge = &state.population.judge;
 
-        let judge_sector_coordinates = Grid::world_position_to_sector_coordinates(
-            judge.spatial.world_position,
-            &state.world.grid,
-        );
+        let judge_sector_coordinates =
+            grid::world_position_to_sector_coordinates(judge.spatial.world_position);
 
         let sight_range = judge.sight.range_in_sectors;
 
@@ -148,29 +145,20 @@ impl Viewer {
                 for dx in -sight_range..=sight_range {
                     let sector_coordinates = judge_sector_coordinates + IVec3::new(dx, dy, dz);
 
-                    if !Grid::sector_coordinates_valid(sector_coordinates, &state.world.grid) {
+                    if !grid::sector_coordinates_valid(sector_coordinates) {
                         continue;
                     }
 
-                    let sector_id = Grid::sector_coordinates_to_sector_id(
-                        sector_coordinates,
-                        &state.world.grid,
-                    );
-
+                    let sector_id = grid::sector_coordinates_to_sector_id(sector_coordinates);
                     let sector = &state.world.sector_vec[sector_id.to_usize()];
 
-                    let block_view_vec = Self::get_block_view_vec(
-                        sector,
-                        &state.world.grid,
-                        sector_version_map,
-                        block_view_cache,
-                    );
+                    let block_view_vec =
+                        Self::get_block_view_vec(sector, sector_version_map, block_view_cache);
 
                     let sector_view = SectorView {
                         sector_id: sector.sector_id,
                         version: sector.version,
                         world_position: Vec3::from(sector.position),
-                        radius: state.world.grid.sector_radius_in_meters,
                         block_view_vec,
                     };
 
@@ -186,7 +174,6 @@ impl Viewer {
 
     fn get_block_view_vec(
         sector: &Sector,
-        grid: &Grid,
         sector_version_map: &mut HashMap<sector::ID, u64>,
         block_view_cache: &mut HashMap<sector::ID, Vec<Option<BlockView>>>,
     ) -> Vec<Option<BlockView>> {
@@ -196,7 +183,7 @@ impl Viewer {
         };
 
         let block_view_vec = if needs_rebuild {
-            let block_view_vec = Self::build_block_view_vec(sector, grid);
+            let block_view_vec = Self::build_block_view_vec(sector);
 
             block_view_cache.insert(sector.sector_id, block_view_vec.clone());
             sector_version_map.insert(sector.sector_id, sector.version);
@@ -209,17 +196,17 @@ impl Viewer {
         block_view_vec
     }
 
-    fn build_block_view_vec(sector: &Sector, grid: &Grid) -> Vec<Option<BlockView>> {
-        let mut block_view_vec = vec![None; grid.sector_volume_in_cells as usize];
+    fn build_block_view_vec(sector: &Sector) -> Vec<Option<BlockView>> {
+        let mut block_view_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
 
-        let sector_radius_in_cells = grid.sector_radius_in_cells as i32;
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinates = IVec3::new(x, y, z);
 
-                    let cell = Sector::get_cell_at(cell_coordinates, grid, sector);
+                    let cell = Sector::get_cell_at(cell_coordinates, sector);
 
                     if cell.block_kind == block::Kind::None {
                         continue;
@@ -231,13 +218,11 @@ impl Viewer {
                         let neighbor_cell_coordinates = cell_coordinates + direction.to_ivec3();
 
                         let neighbor_cell_clear =
-                            if !Grid::cell_coordinates_valid(neighbor_cell_coordinates, grid) {
+                            if !grid::cell_coordinates_valid(neighbor_cell_coordinates) {
                                 true
                             } else {
-                                let neighbor_cell_id = Grid::cell_coordinates_to_cell_id(
-                                    neighbor_cell_coordinates,
-                                    grid,
-                                );
+                                let neighbor_cell_id =
+                                    grid::cell_coordinates_to_cell_id(neighbor_cell_coordinates);
 
                                 sector.cell_vec[neighbor_cell_id.to_usize()].block_kind
                                     == block::Kind::None

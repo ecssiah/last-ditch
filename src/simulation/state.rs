@@ -2,6 +2,7 @@
 
 pub mod action;
 pub mod config;
+pub mod constructor;
 pub mod navigation;
 pub mod physics;
 pub mod population;
@@ -11,6 +12,7 @@ pub mod world;
 
 pub use action::Action;
 pub use config::Config;
+pub use constructor::Constructor;
 pub use physics::Physics;
 pub use population::Population;
 pub use template::Template;
@@ -18,8 +20,7 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::{
-    constructor,
-    manager::{status::Status, Manager},
+    manager::Manager,
     state::{
         self,
         navigation::{Graph, Navigation},
@@ -33,7 +34,6 @@ use rand_chacha::ChaCha8Rng;
 pub struct State {
     pub rng: ChaCha8Rng,
     pub template: state::Template,
-    pub construct_rx: Option<tokio::sync::mpsc::Receiver<(World, Population)>>,
     pub time: Time,
     pub action: Action,
     pub world: World,
@@ -47,19 +47,17 @@ impl State {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
 
         let template = state::Template::Main;
-        let construct_rx = None;
 
         let action = Action::new();
         let world = World::new(template, rng.next_u64());
         let population = Population::new(template, rng.next_u64());
         let physics = Physics::new();
-        let navigation = Navigation::new(&world.grid);
+        let navigation = Navigation::new();
         let time = Time::new();
 
         Self {
             rng,
             template,
-            construct_rx,
             action,
             time,
             physics,
@@ -85,7 +83,6 @@ impl State {
                 placement_position,
                 judge.selected_block_kind,
                 &state.world.block_info_map,
-                &state.world.grid,
                 &mut state.world.sector_vec,
             );
 
@@ -113,7 +110,6 @@ impl State {
                 hit_position,
                 block::Kind::None,
                 &state.world.block_info_map,
-                &state.world.grid,
                 &mut state.world.sector_vec,
             );
 
@@ -129,39 +125,18 @@ impl State {
     }
 
     pub fn init(state: &mut State) {
-        let state_template = state.template;
+        constructor::world_template::construct(state.template, &mut state.world);
+        constructor::population_template::construct(
+            state.template,
+            &state.world,
+            &mut state.population,
+        );
+        Navigation::init_graph(&state.world, &mut state.navigation.graph);
 
-        let world = std::mem::replace(&mut state.world, World::new(Template::Empty, 0));
-        let population =
-            std::mem::replace(&mut state.population, Population::new(Template::Empty, 0));
-
-        let (construct_tx, construct_rx) = tokio::sync::mpsc::channel(1);
-
-        tokio::task::spawn_blocking(move || {
-            let mut world = world;
-            let mut population = population;
-
-            constructor::world_template::construct(state_template, &mut world);
-            constructor::population_template::construct(state_template, &world, &mut population);
-
-            let _ = construct_tx.blocking_send((world, population));
-        });
-
-        state.construct_rx = Some(construct_rx);
+        // manager.status = Status::Run;
     }
 
-    pub fn load(state: &mut State, manager: &mut Manager) {
-        if let Some(construct_rx) = &mut state.construct_rx {
-            if let Ok((world, population)) = construct_rx.try_recv() {
-                state.world = world;
-                state.population = population;
-
-                Navigation::init_graph(&state.world, &mut state.navigation.graph);
-
-                manager.status = Status::Run;
-            }
-        }
-    }
+    pub fn load(_state: &mut State, _manager: &mut Manager) {}
 
     pub fn tick(state: &mut State) {
         let _ = tracing::info_span!("state_tick").entered();

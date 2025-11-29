@@ -1,10 +1,6 @@
-use crate::simulation::{
-    constructor,
-    state::{
-        self,
-        world::{cell, grid::Grid, sector, World},
-    },
-};
+use crate::simulation::{constants::{SECTOR_VOLUME_IN_CELLS, WORLD_RADIUS_IN_CELLS, WORLD_VOLUME_IN_SECTORS}, state::{
+        self, constructor, world::{World, cell, grid, sector}
+    }};
 use ultraviolet::IVec3;
 
 struct CellIDValidCase {
@@ -14,8 +10,8 @@ struct CellIDValidCase {
 }
 
 impl CellIDValidCase {
-    pub fn check(&self, world: &World) {
-        let valid = Grid::cell_id_valid(self.cell_id, &world.grid);
+    pub fn check(&self) {
+        let valid = grid::cell_id_valid(self.cell_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -36,18 +32,18 @@ fn cell_id_valid() {
         },
         CellIDValidCase {
             description: "cell_id max".to_string(),
-            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
             expected_valid: true,
         },
         CellIDValidCase {
             description: "cell_id max + 1".to_string(),
-            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1 + 1),
+            cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1 + 1),
             expected_valid: false,
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -58,8 +54,8 @@ struct SectorIDValidCase {
 }
 
 impl SectorIDValidCase {
-    pub fn check(&self, world: &World) {
-        let valid = Grid::sector_id_valid(self.sector_id, &world.grid);
+    pub fn check(&self) {
+        let valid = grid::sector_id_valid(self.sector_id);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -80,18 +76,18 @@ fn sector_id_valid() {
         },
         SectorIDValidCase {
             description: "sector_id max".to_string(),
-            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
             expected_valid: true,
         },
         SectorIDValidCase {
             description: "sector_id max + 1".to_string(),
-            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1 + 1),
+            sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1 + 1),
             expected_valid: false,
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -102,8 +98,8 @@ struct PositionValidCase {
 }
 
 impl PositionValidCase {
-    pub fn check(&self, world: &World) {
-        let valid = Grid::position_valid(self.position, &world.grid);
+    pub fn check(&self) {
+        let valid = grid::position_valid(self.position);
 
         assert_eq!(valid, self.expected_valid, "{:?}", self.description);
     }
@@ -116,7 +112,7 @@ fn position_valid() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionValidCase {
@@ -153,6 +149,6 @@ fn position_valid() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }

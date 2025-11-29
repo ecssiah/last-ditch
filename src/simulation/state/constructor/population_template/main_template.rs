@@ -16,13 +16,13 @@ pub fn construct(world: &World, population: &mut Population) {
     setup_agent_map(world, population);
 }
 
-fn setup_judge(world: &World, population: &mut Population) {
+fn setup_judge(_world: &World, population: &mut Population) {
     let judge = &mut population.judge;
 
     Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);
     Judge::set_rotation(0.0, 0.0, judge);
 
-    Sight::set_range(40.0, &world.grid, &mut judge.sight);
+    Sight::set_range(40.0, &mut judge.sight);
 }
 
 fn setup_agent_map(world: &World, population: &mut Population) {

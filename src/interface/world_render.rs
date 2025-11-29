@@ -12,8 +12,9 @@ use crate::{
         world_render::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
-        state::world::{grid::Grid, sector},
-        viewer::view::{SectorView, WorldView},
+        constants::SECTOR_RADIUS_IN_METERS,
+        manager::viewer::{SectorView, WorldView},
+        state::world::sector,
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
@@ -208,13 +209,12 @@ impl WorldRender {
 
             if !camera
                 .frustum
-                .sphere_in_frustum(sector_view.world_position, sector_view.radius * 1.5)
+                .sphere_in_frustum(sector_view.world_position, SECTOR_RADIUS_IN_METERS * 1.5)
             {
                 continue;
             }
 
-            let sector_mesh =
-                Self::get_or_build_sector_mesh(sector_view, &world_view.grid, sector_mesh_cache);
+            let sector_mesh = Self::get_or_build_sector_mesh(sector_view, sector_mesh_cache);
 
             if sector_mesh.vertex_vec.is_empty() {
                 continue;
@@ -235,18 +235,17 @@ impl WorldRender {
 
     fn get_or_build_sector_mesh<'a>(
         sector_view: &SectorView,
-        grid: &Grid,
         sector_mesh_cache: &'a mut HashMap<sector::ID, SectorMesh>,
     ) -> &'a SectorMesh {
         match sector_mesh_cache.entry(sector_view.sector_id) {
             Entry::Vacant(vacant_entry) => {
-                let sector_mesh = SectorMesh::from_sector_view(sector_view, grid);
+                let sector_mesh = SectorMesh::from_sector_view(sector_view);
 
                 vacant_entry.insert(sector_mesh)
             }
             Entry::Occupied(mut occupied_entry) => {
                 if occupied_entry.get().version != sector_view.version {
-                    let sector_mesh = SectorMesh::from_sector_view(sector_view, grid);
+                    let sector_mesh = SectorMesh::from_sector_view(sector_view);
 
                     *occupied_entry.get_mut() = sector_mesh;
                 }

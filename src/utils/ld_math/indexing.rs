@@ -3,7 +3,7 @@
 pub use ultraviolet::{IVec2, IVec3};
 
 #[inline]
-pub fn to_ivec2(index: u32, radius: u32) -> IVec2 {
+pub fn to_ivec2(index: usize, radius: usize) -> IVec2 {
     let index = index as i32;
 
     let radius = radius as i32;
@@ -16,17 +16,17 @@ pub fn to_ivec2(index: u32, radius: u32) -> IVec2 {
 }
 
 #[inline]
-pub fn from_ivec2(vector: IVec2, radius: u32) -> u32 {
+pub fn from_ivec2(vector: IVec2, radius: usize) -> usize {
     let vector_indexable = vector + IVec2::broadcast(radius as i32);
 
     let radius = radius as i32;
     let size = 2 * radius + 1;
 
-    (vector_indexable.x + vector_indexable.y * size) as u32
+    (vector_indexable.x + vector_indexable.y * size) as usize
 }
 
 #[inline]
-pub fn to_ivec3(index: u32, radius: u32) -> IVec3 {
+pub fn to_ivec3(index: usize, radius: usize) -> IVec3 {
     let index = index as i32;
 
     let radius = radius as i32;
@@ -41,12 +41,12 @@ pub fn to_ivec3(index: u32, radius: u32) -> IVec3 {
 }
 
 #[inline]
-pub fn from_ivec3(vector: IVec3, radius: u32) -> u32 {
+pub fn from_ivec3(vector: IVec3, radius: usize) -> usize {
     let vector_indexable = vector + IVec3::broadcast(radius as i32);
 
     let radius = radius as i32;
     let size = 2 * radius + 1;
     let area = size * size;
 
-    (vector_indexable.x + vector_indexable.y * size + vector_indexable.z * area) as u32
+    (vector_indexable.x + vector_indexable.y * size + vector_indexable.z * area) as usize
 }

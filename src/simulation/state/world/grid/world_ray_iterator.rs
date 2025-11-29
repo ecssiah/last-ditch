@@ -1,8 +1,6 @@
-use crate::simulation::state::{
-    physics::aabb::AABB,
-    world::grid::{self, CellSample, Grid},
-    World,
-};
+use crate::simulation::{constants::{CELL_RADIUS_IN_METERS, CELL_SIZE_IN_METERS, WORLD_SIZE_IN_METERS}, state::{
+    World, physics::aabb::AABB, world::grid::{self, CellSample}
+}};
 use ultraviolet::{IVec3, Vec3};
 
 pub struct WorldRayIterator<'world> {
@@ -37,13 +35,9 @@ impl<'world> WorldRayIterator<'world> {
             return None;
         }
 
-        let grid = &world.grid;
-        let cell_size_in_meters = grid.cell_size_in_meters;
-        let cell_radius_in_meters = grid.cell_radius_in_meters;
-
         let world_aabb = AABB::new(
             Vec3::broadcast(0.0),
-            Vec3::broadcast(grid.world_size_in_meters),
+            Vec3::broadcast(WORLD_SIZE_IN_METERS),
         );
 
         let (mut t0, mut t1) = slab_test(origin, direction, &world_aabb);
@@ -69,30 +63,24 @@ impl<'world> WorldRayIterator<'world> {
         );
 
         let world_position = origin + direction * t0 - direction_signum * epsilon;
-        let position = Grid::world_position_to_position(world_position);
+        let position = grid::world_position_to_position(world_position);
 
         let (step_direction_x, t_delta_x, t_remaining_x) = dda_axis_setup(
             position.x,
             world_position.x,
             direction.x,
-            cell_radius_in_meters,
-            cell_size_in_meters,
         );
 
         let (step_direction_y, t_delta_y, t_remaining_y) = dda_axis_setup(
             position.y,
             world_position.y,
             direction.y,
-            cell_radius_in_meters,
-            cell_size_in_meters,
         );
 
         let (step_direction_z, t_delta_z, t_remaining_z) = dda_axis_setup(
             position.z,
             world_position.z,
             direction.z,
-            cell_radius_in_meters,
-            cell_size_in_meters,
         );
 
         let step_direction = IVec3::new(step_direction_x, step_direction_y, step_direction_z);
@@ -123,8 +111,6 @@ impl<'w> Iterator for WorldRayIterator<'w> {
         if self.done {
             return None;
         }
-
-        let grid = &self.world.grid;
 
         loop {
             if !self.t_remaining.x.is_finite()
@@ -158,13 +144,13 @@ impl<'w> Iterator for WorldRayIterator<'w> {
                 }
             }
 
-            if !Grid::position_valid(self.position, grid) {
+            if !grid::position_valid(self.position) {
                 self.done = true;
 
                 return None;
             }
 
-            let (sector_id, cell_id) = Grid::position_to_ids(self.position, grid);
+            let (sector_id, cell_id) = grid::position_to_ids(self.position);
 
             let world_position = self.origin + self.direction * self.t;
 
@@ -232,8 +218,6 @@ fn dda_axis_setup(
     position_axis: i32,
     world_position_axis: f32,
     direction_axis: f32,
-    cell_radius_in_meters: f32,
-    cell_size_in_meters: f32,
 ) -> (i32, f32, f32) {
     use core::f32::INFINITY;
 
@@ -247,12 +231,12 @@ fn dda_axis_setup(
 
     let next_face_world_position = (position_axis as f32)
         + if step_direction > 0 {
-            cell_radius_in_meters
+            CELL_RADIUS_IN_METERS
         } else {
-            -cell_radius_in_meters
+            -CELL_RADIUS_IN_METERS
         };
 
-    let t_delta = cell_size_in_meters / direction_axis.abs();
+    let t_delta = CELL_SIZE_IN_METERS / direction_axis.abs();
     let t_max = (next_face_world_position - world_position_axis) / direction_axis;
 
     (step_direction, t_delta, t_max)

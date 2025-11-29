@@ -1,17 +1,18 @@
 pub mod message;
 pub mod status;
+pub mod viewer;
 
 pub use message::Message;
+pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::status::Status,
+    manager::{status::Status, viewer::View},
     state::{
         State, action::{
             Act, act::{self}
         }, world::block::Kind
     },
-    viewer::{View, Viewer},
 };
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -22,8 +23,8 @@ pub struct Manager {
     pub next_instant: Instant,
     pub ticks_total: u32,
     pub ticks_frame: u32,
-    pub message_rx: UnboundedReceiver<Message>,
     pub viewer: Viewer,
+    pub message_rx: UnboundedReceiver<Message>,
 }
 
 impl Manager {
@@ -44,8 +45,8 @@ impl Manager {
             next_instant,
             ticks_total,
             ticks_frame,
-            message_rx,
             viewer,
+            message_rx,
         }
     }
 
@@ -63,7 +64,7 @@ impl Manager {
             && manager.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
-    pub fn tick(state: &mut State, manager: &mut Manager) -> Status {
+    pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
         manager.ticks_total += 1;
         manager.ticks_frame += 1;
 
@@ -76,7 +77,34 @@ impl Manager {
 
         Viewer::tick(state, manager);
 
-        manager.status
+        match manager.status {
+            Status::Init => true,
+            Status::Load => {
+                State::load(state, manager);
+                true
+            }
+            Status::Run => {
+                State::tick(state);
+                true
+            }
+            Status::Done => false,
+        }
+    }
+
+    pub fn fix_timestep(manager: &mut Manager) {
+        let current_instant = Instant::now();
+
+        if current_instant < manager.next_instant {
+            let remaining_duration = manager.next_instant - current_instant;
+
+            if remaining_duration > Duration::from_millis(2) {
+                std::thread::sleep(remaining_duration - Duration::from_millis(1));
+            }
+
+            while Instant::now() < manager.next_instant {
+                std::hint::spin_loop();
+            }
+        }
     }
 
     fn handle_message(message: &Message, state: &mut State, manager: &mut Manager) {
@@ -148,26 +176,12 @@ impl Manager {
     }
 
     fn handle_option1_message(state: &mut State) {
-        state.population.judge.selected_block_kind = Kind::prev(state.population.judge.selected_block_kind);
+        state.population.judge.selected_block_kind =
+            Kind::prev(state.population.judge.selected_block_kind);
     }
 
     fn handle_option2_message(state: &mut State) {
-        state.population.judge.selected_block_kind = Kind::next(state.population.judge.selected_block_kind);
-    }
-
-    pub fn fix_timestep(manager: &mut Manager) {
-        let current_instant = Instant::now();
-
-        if current_instant < manager.next_instant {
-            let remaining_duration = manager.next_instant - current_instant;
-
-            if remaining_duration > Duration::from_millis(2) {
-                std::thread::sleep(remaining_duration - Duration::from_millis(1));
-            }
-
-            while Instant::now() < manager.next_instant {
-                std::hint::spin_loop();
-            }
-        }
+        state.population.judge.selected_block_kind =
+            Kind::next(state.population.judge.selected_block_kind);
     }
 }

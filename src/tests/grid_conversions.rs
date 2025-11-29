@@ -1,8 +1,11 @@
 use crate::simulation::{
-    constructor,
+    constants::{
+        SECTOR_RADIUS_IN_CELLS, SECTOR_SIZE_IN_CELLS, SECTOR_VOLUME_IN_CELLS,
+        WORLD_RADIUS_IN_CELLS, WORLD_RADIUS_IN_SECTORS, WORLD_VOLUME_IN_SECTORS,
+    },
     state::{
-        self,
-        world::{cell, grid::Grid, sector, World},
+        self, constructor,
+        world::{cell, grid, sector, World},
     },
 };
 use ultraviolet::{IVec3, Vec3};
@@ -14,8 +17,8 @@ struct CellIDToCellCoordinatesCase {
 }
 
 impl CellIDToCellCoordinatesCase {
-    pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::cell_id_to_cell_coordinates(self.cell_id, &world.grid);
+    pub fn check(&self) {
+        let cell_coordinates = grid::cell_id_to_cell_coordinates(self.cell_id);
 
         assert_ne!(
             cell_coordinates,
@@ -38,7 +41,7 @@ fn cell_id_to_cell_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         CellIDToCellCoordinatesCase {
@@ -48,18 +51,18 @@ fn cell_id_to_cell_coordinates() {
         },
         CellIDToCellCoordinatesCase {
             description: "cell id at origin".to_string(),
-            cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+            cell_id: cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
             expected_cell_coordinates: IVec3::broadcast(0),
         },
         CellIDToCellCoordinatesCase {
             description: "cell id max".to_string(),
-            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
             expected_cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -70,10 +73,9 @@ struct CellCoordinatesToCellIDCase {
 }
 
 impl CellCoordinatesToCellIDCase {
-    pub fn check(&self, world: &World) {
-        let cell_id = Grid::cell_coordinates_to_cell_id(self.cell_coordinates, &world.grid);
+    pub fn check(&self) {
+        let cell_id = grid::cell_coordinates_to_cell_id(self.cell_coordinates);
 
-        assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(cell_id, self.expected_cell_id, "{:?}", self.description);
     }
 }
@@ -85,7 +87,7 @@ fn cell_coordinates_to_cell_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         CellCoordinatesToCellIDCase {
@@ -96,17 +98,17 @@ fn cell_coordinates_to_cell_id() {
         CellCoordinatesToCellIDCase {
             description: "cell coordinates origin".to_string(),
             cell_coordinates: IVec3::broadcast(0),
-            expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+            expected_cell_id: cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
         },
         CellCoordinatesToCellIDCase {
             description: "cell coordinates max".to_string(),
             cell_coordinates: IVec3::broadcast(sector_radius_in_cells),
-            expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            expected_cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -117,15 +119,9 @@ struct SectorIDToSectorCoordinates {
 }
 
 impl SectorIDToSectorCoordinates {
-    pub fn check(&self, world: &World) {
-        let sector_coordinates = Grid::sector_id_to_sector_coordinates(self.sector_id, &world.grid);
+    pub fn check(&self) {
+        let sector_coordinates = grid::sector_id_to_sector_coordinates(self.sector_id);
 
-        assert_ne!(
-            sector_coordinates,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
@@ -141,7 +137,7 @@ fn sector_id_to_sector_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
 
     let test_cases = vec![
         SectorIDToSectorCoordinates {
@@ -151,18 +147,18 @@ fn sector_id_to_sector_coordinates() {
         },
         SectorIDToSectorCoordinates {
             description: "sector id at origin".to_string(),
-            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
             expected_sector_coordinates: IVec3::broadcast(0),
         },
         SectorIDToSectorCoordinates {
             description: "sector id max".to_string(),
-            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
             expected_sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -173,8 +169,8 @@ struct SectorCoordinatesToSectorIDCase {
 }
 
 impl SectorCoordinatesToSectorIDCase {
-    pub fn check(&self, world: &World) {
-        let sector_id = Grid::sector_coordinates_to_sector_id(self.sector_coordinates, &world.grid);
+    pub fn check(&self) {
+        let sector_id = grid::sector_coordinates_to_sector_id(self.sector_coordinates);
 
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
@@ -187,7 +183,7 @@ fn sector_coordinates_to_sector_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
 
     let test_cases = vec![
         SectorCoordinatesToSectorIDCase {
@@ -198,17 +194,17 @@ fn sector_coordinates_to_sector_id() {
         SectorCoordinatesToSectorIDCase {
             description: "sector coordinates origin".to_string(),
             sector_coordinates: IVec3::broadcast(0),
-            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            expected_sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
         },
         SectorCoordinatesToSectorIDCase {
             description: "sector coordinates max".to_string(),
             sector_coordinates: IVec3::broadcast(world_radius_in_sectors),
-            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            expected_sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -219,15 +215,9 @@ struct SectorCoordinatesToPositionCase {
 }
 
 impl SectorCoordinatesToPositionCase {
-    pub fn check(&self, world: &World) {
-        let position = Grid::sector_coordinates_to_position(self.sector_coordinates, &world.grid);
+    pub fn check(&self) {
+        let position = grid::sector_coordinates_to_position(self.sector_coordinates);
 
-        assert_ne!(
-            position,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -239,9 +229,9 @@ fn sector_coordinates_to_position() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
-    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         SectorCoordinatesToPositionCase {
@@ -262,7 +252,7 @@ fn sector_coordinates_to_position() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -273,15 +263,9 @@ struct SectorIDToPositionCase {
 }
 
 impl SectorIDToPositionCase {
-    pub fn check(&self, world: &World) {
-        let position = Grid::sector_id_to_position(self.sector_id, &world.grid);
+    pub fn check(&self) {
+        let position = grid::sector_id_to_position(self.sector_id);
 
-        assert_ne!(
-            position,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -293,8 +277,8 @@ fn sector_id_to_position() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         SectorIDToPositionCase {
@@ -304,18 +288,18 @@ fn sector_id_to_position() {
         },
         SectorIDToPositionCase {
             description: "sector_id origin".to_string(),
-            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
             expected_position: IVec3::broadcast(0),
         },
         SectorIDToPositionCase {
             description: "sector_id max".to_string(),
-            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
             expected_position: IVec3::broadcast(world_radius_in_cells - sector_radius_in_cells),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -326,15 +310,9 @@ struct PositionToSectorCoordinatesCase {
 }
 
 impl PositionToSectorCoordinatesCase {
-    pub fn check(&self, world: &World) {
-        let sector_coordinates = Grid::position_to_sector_coordinates(self.position, &world.grid);
+    pub fn check(&self) {
+        let sector_coordinates = grid::position_to_sector_coordinates(self.position);
 
-        assert_ne!(
-            sector_coordinates,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
             "{:?}",
@@ -350,9 +328,9 @@ fn position_to_sector_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
-    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionToSectorCoordinatesCase {
@@ -373,7 +351,7 @@ fn position_to_sector_coordinates() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -384,15 +362,9 @@ struct PositionToCellCoordinatesCase {
 }
 
 impl PositionToCellCoordinatesCase {
-    pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::position_to_cell_coordinates(self.position, &world.grid);
+    pub fn check(&self) {
+        let cell_coordinates = grid::position_to_cell_coordinates(self.position);
 
-        assert_ne!(
-            cell_coordinates,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(
             cell_coordinates, self.expected_cell_coordinates,
             "{:?}",
@@ -408,9 +380,9 @@ fn position_to_cell_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
-    let sector_size_in_cells = world.grid.sector_size_in_cells as i32;
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+    let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionToCellCoordinatesCase {
@@ -461,7 +433,7 @@ fn position_to_cell_coordinates() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -472,8 +444,8 @@ struct PositionToSectorIDCase {
 }
 
 impl PositionToSectorIDCase {
-    pub fn check(&self, world: &World) {
-        let sector_id = Grid::position_to_sector_id(self.position, &world.grid);
+    pub fn check(&self) {
+        let sector_id = grid::position_to_sector_id(self.position);
 
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
@@ -486,7 +458,7 @@ fn position_to_sector_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionToSectorIDCase {
@@ -497,17 +469,17 @@ fn position_to_sector_id() {
         PositionToSectorIDCase {
             description: "position origin".to_string(),
             position: IVec3::broadcast(0),
-            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            expected_sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
         },
         PositionToSectorIDCase {
             description: "position max".to_string(),
             position: IVec3::broadcast(world_radius_in_cells),
-            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            expected_sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -518,10 +490,9 @@ struct PositionToCellIDCase {
 }
 
 impl PositionToCellIDCase {
-    pub fn check(&self, world: &World) {
-        let cell_id = Grid::position_to_cell_id(self.position, &world.grid);
+    pub fn check(&self) {
+        let cell_id = grid::position_to_cell_id(self.position);
 
-        assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(cell_id, self.expected_cell_id, "{:?}", self.description);
     }
 }
@@ -533,7 +504,7 @@ fn position_to_cell_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionToCellIDCase {
@@ -544,17 +515,17 @@ fn position_to_cell_id() {
         PositionToCellIDCase {
             description: "position origin".to_string(),
             position: IVec3::broadcast(0),
-            expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+            expected_cell_id: cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
         },
         PositionToCellIDCase {
             description: "position max".to_string(),
             position: IVec3::broadcast(sector_radius_in_cells),
-            expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            expected_cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -566,15 +537,9 @@ struct IDsToPositionCase {
 }
 
 impl IDsToPositionCase {
-    pub fn check(&self, world: &World) {
-        let position = Grid::ids_to_position(self.sector_id, self.cell_id, &world.grid);
+    pub fn check(&self) {
+        let position = grid::ids_to_position(self.sector_id, self.cell_id);
 
-        assert_ne!(
-            position,
-            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
-            "{:?}",
-            self.description
-        );
         assert_eq!(position, self.expected_position, "{:?}", self.description);
     }
 }
@@ -586,7 +551,7 @@ fn ids_to_position() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         IDsToPositionCase {
@@ -597,20 +562,20 @@ fn ids_to_position() {
         },
         IDsToPositionCase {
             description: "ids at origin".to_string(),
-            sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
-            cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+            sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
+            cell_id: cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
             expected_position: IVec3::broadcast(0),
         },
         IDsToPositionCase {
             description: "ids at max".to_string(),
-            sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
-            cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
+            cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
             expected_position: IVec3::broadcast(world_radius_in_cells),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -621,10 +586,9 @@ struct PositionToIDsCase {
 }
 
 impl PositionToIDsCase {
-    pub fn check(&self, world: &World) {
-        let (sector_id, cell_id) = Grid::position_to_ids(self.position, &world.grid);
+    pub fn check(&self) {
+        let (sector_id, cell_id) = grid::position_to_ids(self.position);
 
-        assert_ne!(cell_id, cell::ID::MAX, "{:?}", self.description);
         assert_eq!(
             (sector_id, cell_id),
             self.expected_ids,
@@ -641,7 +605,7 @@ fn position_to_ids() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let test_cases = vec![
         PositionToIDsCase {
@@ -653,22 +617,22 @@ fn position_to_ids() {
             description: "position at origin".to_string(),
             position: IVec3::broadcast(0),
             expected_ids: (
-                sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
-                cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+                sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
+                cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
             ),
         },
         PositionToIDsCase {
             description: "position at max".to_string(),
             position: IVec3::broadcast(world_radius_in_cells),
             expected_ids: (
-                sector::ID(world.grid.world_volume_in_sectors - 1),
-                cell::ID(world.grid.sector_volume_in_cells - 1),
+                sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
+                cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
             ),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -680,7 +644,7 @@ struct WorldToPositionCase {
 
 impl WorldToPositionCase {
     pub fn check(&self) {
-        let position = Grid::world_position_to_position(self.world_position);
+        let position = grid::world_position_to_position(self.world_position);
 
         assert_eq!(position, self.expected_position, "{:?}", self.description,);
     }
@@ -693,7 +657,7 @@ fn world_position_to_position() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as f32;
 
     let test_cases = vec![
         WorldToPositionCase {
@@ -730,8 +694,8 @@ struct WorldToSectorIDCase {
 }
 
 impl WorldToSectorIDCase {
-    pub fn check(&self, world: &World) {
-        let sector_id = Grid::world_position_to_sector_id(self.world_position, &world.grid);
+    pub fn check(&self) {
+        let sector_id = grid::world_position_to_sector_id(self.world_position);
 
         assert_eq!(sector_id, self.expected_sector_id, "{:?}", self.description);
     }
@@ -744,7 +708,7 @@ fn world_position_to_sector_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as f32;
 
     let test_cases = vec![
         WorldToSectorIDCase {
@@ -755,17 +719,17 @@ fn world_position_to_sector_id() {
         WorldToSectorIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::broadcast(0.0),
-            expected_sector_id: sector::ID((world.grid.world_volume_in_sectors - 1) / 2),
+            expected_sector_id: sector::ID((WORLD_VOLUME_IN_SECTORS - 1) / 2),
         },
         WorldToSectorIDCase {
             description: "world max".to_string(),
             world_position: Vec3::broadcast(world_radius_in_cells),
-            expected_sector_id: sector::ID(world.grid.world_volume_in_sectors - 1),
+            expected_sector_id: sector::ID(WORLD_VOLUME_IN_SECTORS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -776,9 +740,8 @@ struct WorldToSectorCoordinates {
 }
 
 impl WorldToSectorCoordinates {
-    pub fn check(&self, world: &World) {
-        let sector_coordinates =
-            Grid::world_position_to_sector_coordinates(self.world_position, &world.grid);
+    pub fn check(&self) {
+        let sector_coordinates = grid::world_position_to_sector_coordinates(self.world_position);
 
         assert_eq!(
             sector_coordinates, self.expected_sector_coordinates,
@@ -795,8 +758,8 @@ fn world_position_to_sector_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_sectors = world.grid.world_radius_in_sectors as i32;
-    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
+    let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as f32;
 
     let test_cases = vec![
         WorldToSectorCoordinates {
@@ -817,7 +780,7 @@ fn world_position_to_sector_coordinates() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -828,8 +791,8 @@ struct WorldToCellIDCase {
 }
 
 impl WorldToCellIDCase {
-    pub fn check(&self, world: &World) {
-        let cell_id = Grid::world_to_cell_id(&world.grid, self.world_position);
+    pub fn check(&self) {
+        let cell_id = grid::world_to_cell_id(self.world_position);
 
         assert_eq!(cell_id, self.expected_cell_id, "{:?}", self.description);
     }
@@ -842,7 +805,7 @@ fn world_to_cell_id() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as f32;
 
     let test_cases = vec![
         WorldToCellIDCase {
@@ -853,17 +816,17 @@ fn world_to_cell_id() {
         WorldToCellIDCase {
             description: "world origin".to_string(),
             world_position: Vec3::broadcast(0.0),
-            expected_cell_id: cell::ID((world.grid.sector_volume_in_cells - 1) / 2),
+            expected_cell_id: cell::ID((SECTOR_VOLUME_IN_CELLS - 1) / 2),
         },
         WorldToCellIDCase {
             description: "world max".to_string(),
             world_position: Vec3::broadcast(world_radius_in_cells),
-            expected_cell_id: cell::ID(world.grid.sector_volume_in_cells - 1),
+            expected_cell_id: cell::ID(SECTOR_VOLUME_IN_CELLS - 1),
         },
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }
 
@@ -874,8 +837,8 @@ struct WorldToCellCoordinates {
 }
 
 impl WorldToCellCoordinates {
-    pub fn check(&self, world: &World) {
-        let cell_coordinates = Grid::world_to_cell_coordinates(self.world_position, &world.grid);
+    pub fn check(&self) {
+        let cell_coordinates = grid::world_to_cell_coordinates(self.world_position);
 
         assert_eq!(
             cell_coordinates, self.expected_cell_coordinates,
@@ -892,8 +855,8 @@ fn world_to_cell_coordinates() {
     let mut world = World::new(state_template, 0);
     constructor::world_template::construct(state_template, &mut world);
 
-    let sector_radius_in_cells = world.grid.sector_radius_in_cells as i32;
-    let world_radius_in_cells = world.grid.world_radius_in_cells as f32;
+    let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+    let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as f32;
 
     let test_cases = vec![
         WorldToCellCoordinates {
@@ -914,6 +877,6 @@ fn world_to_cell_coordinates() {
     ];
 
     for case in test_cases {
-        case.check(&world);
+        case.check();
     }
 }

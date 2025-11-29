@@ -1,9 +1,7 @@
 #[derive(Debug, Default, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ID(pub u32);
+pub struct ID(pub usize);
 
 impl ID {
-    pub const MAX: Self = Self(u32::MAX);
-
     pub fn to_usize(&self) -> usize {
         self.0 as usize
     }

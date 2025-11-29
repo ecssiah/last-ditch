@@ -1,6 +1,5 @@
 use crate::simulation::{
-    state::population::agent,
-    viewer::view::{AgentView, JudgeView},
+    manager::viewer::{AgentView, JudgeView}, state::population::agent
 };
 use std::collections::HashMap;
 

@@ -1,6 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{manager::Message, viewer::View, Simulation},
+    simulation::{Simulation, manager::{Message, viewer::View}},
 };
 use tokio::sync::mpsc::unbounded_channel;
 use winit::{
