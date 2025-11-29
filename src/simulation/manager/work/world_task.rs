@@ -11,6 +11,12 @@ pub enum WorldTask {
 }
 
 impl WorldTask {
+    pub fn cost(world_task: &WorldTask) -> u32 {
+        match world_task {
+            WorldTask::ConstructWorld(construct_world_data) => ConstructWorldData::cost(&construct_world_data),
+        }
+    }
+
     pub fn step(world: &mut World, world_task: &mut WorldTask) -> bool {
         match world_task {
             WorldTask::ConstructWorld(construct_world_data) => {
@@ -24,8 +30,6 @@ impl WorldTask {
             0 => {
                 ConstructWorldData::build_ground(world);
 
-                tracing::info!("Stage: {:?}", construct_world_data.stage);
-
                 construct_world_data.stage += 1;
 
                 false
@@ -38,16 +42,12 @@ impl WorldTask {
                 ConstructWorldData::build_temple(0, 34, 0, nation::Kind::Eagle, world);
                 ConstructWorldData::build_temple(0, -34, 0, nation::Kind::Horse, world);
 
-                tracing::info!("Stage: {:?}", construct_world_data.stage);
-
                 construct_world_data.stage += 1;
 
                 false
             }
             2 => {
                 ConstructWorldData::build_observation_deck(world);
-
-                tracing::info!("Stage: {:?}", construct_world_data.stage);
 
                 construct_world_data.stage += 1;
 

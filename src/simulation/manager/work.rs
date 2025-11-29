@@ -22,9 +22,9 @@ pub struct Work {
 impl Work {
     pub fn new() -> Self {
         let work = Self {
-            world_worker: WorldWorker::new(),
-            population_worker: PopulationWorker::new(),
-            navigation_worker: NavigationWorker::new(),
+            world_worker: WorldWorker::new(100),
+            population_worker: PopulationWorker::new(100),
+            navigation_worker: NavigationWorker::new(100),
         };
 
         work
@@ -37,50 +37,47 @@ impl Work {
     }
 
     fn perform_world_work(state: &mut State, world_worker: &mut WorldWorker) {
-        let mut remaining_budget = WorldWorker::budget(&world_worker);
+        let mut current_budget = WorldWorker::budget(world_worker);
 
-        while remaining_budget >= WorldWorker::cost(&world_worker) {
-            WorldWorker::work(state, &mut world_worker.task_deque);
+        while current_budget > 0 {
+            let cost = WorldWorker::cost(world_worker);
 
-            let cost = WorldWorker::cost(&world_worker);
-
-            if cost == 0 {
+            if cost == 0 || current_budget < cost {
                 break;
             }
 
-            remaining_budget -= cost;
+            WorldWorker::work(state, &mut world_worker.task_deque);
+            current_budget -= cost;
         }
     }
 
     fn perform_population_work(state: &mut State, population_worker: &mut PopulationWorker) {
-        let mut remaining_budget = PopulationWorker::budget(&population_worker);
+        let mut current_budget = PopulationWorker::budget(&population_worker);
 
-        while remaining_budget >= PopulationWorker::cost(&population_worker) {
-            PopulationWorker::work(state, &mut population_worker.task_deque);
-
+        while current_budget > 0 {
             let cost = PopulationWorker::cost(&population_worker);
 
-            if cost == 0 {
+            if cost == 0 || current_budget < cost {
                 break;
             }
 
-            remaining_budget -= cost;
+            PopulationWorker::work(state, &mut population_worker.task_deque);
+            current_budget -= cost;
         }
     }
 
     fn perform_navigation_work(state: &mut State, navigation_worker: &mut NavigationWorker) {
-        let mut remaining_budget = NavigationWorker::budget(&navigation_worker);
+        let mut current_budget = NavigationWorker::budget(&navigation_worker);
 
-        while remaining_budget >= NavigationWorker::cost(&navigation_worker) {
-            NavigationWorker::work(state, &mut navigation_worker.task_deque);
-
+        while current_budget > 0 {
             let cost = NavigationWorker::cost(&navigation_worker);
 
-            if cost == 0 {
+            if cost == 0 || current_budget < cost {
                 break;
             }
 
-            remaining_budget -= cost;
+            NavigationWorker::work(state, &mut navigation_worker.task_deque);
+            current_budget -= cost;
         }
     }
 }

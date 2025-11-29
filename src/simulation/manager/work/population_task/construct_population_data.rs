@@ -16,6 +16,14 @@ pub struct ConstructPopulationData {
 }
 
 impl ConstructPopulationData {
+    pub fn cost(construct_population_data: &ConstructPopulationData) -> u32 {
+        match construct_population_data.stage {
+            0 => 10,
+            1 => 10,
+            _ => 100,
+        }
+    }
+
     pub fn setup_judge(_world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 

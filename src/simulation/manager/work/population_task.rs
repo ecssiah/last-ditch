@@ -11,6 +11,14 @@ pub enum PopulationTask {
 }
 
 impl PopulationTask {
+    pub fn cost(population_task: &PopulationTask) -> u32 {
+        match population_task {
+            PopulationTask::ConstructPopulation(construct_population_data) => {
+                ConstructPopulationData::cost(&construct_population_data)
+            }
+        }
+    }
+
     pub fn step(
         world: &World,
         population: &mut Population,

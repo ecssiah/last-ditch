@@ -3,12 +3,14 @@ use std::collections::VecDeque;
 
 #[derive(Clone)]
 pub struct PopulationWorker {
+    pub budget: u32,
     pub task_deque: VecDeque<PopulationTask>,
 }
 
 impl PopulationWorker {
-    pub fn new() -> Self {
+    pub fn new(budget: u32) -> Self {
         Self {
+            budget,
             task_deque: VecDeque::new(),
         }
     }
@@ -17,16 +19,16 @@ impl PopulationWorker {
         task_deque.push_back(population_task);
     }
 
-    pub fn active(_population_worker: &PopulationWorker) -> bool {
-        true
+    pub fn budget(population_worker: &PopulationWorker) -> u32 {
+        population_worker.budget
     }
 
-    pub fn budget(_population_worker: &PopulationWorker) -> u32 {
-        500
-    }
-
-    pub fn cost(_population_worker: &PopulationWorker) -> u32 {
-        1
+    pub fn cost(population_worker: &PopulationWorker) -> u32 {
+        if let Some(population_task) = population_worker.task_deque.front() {
+            PopulationTask::cost(population_task)
+        } else {
+            0
+        }
     }
 
     pub fn work(state: &mut State, task_deque: &mut VecDeque<PopulationTask>) {

@@ -1,10 +1,7 @@
 use crate::simulation::{
-    constants::*,
-    state::{
-        population::nation,
-        world::{block, grid},
-        World,
-    },
+    constants::*, state::{
+        World, population::nation, world::{block, grid}
+    }
 };
 use ultraviolet::IVec3;
 
@@ -14,6 +11,15 @@ pub struct ConstructWorldData {
 }
 
 impl ConstructWorldData {
+    pub fn cost(construct_world_data: &ConstructWorldData) -> u32 {
+        match construct_world_data.stage {
+            0 => 10,
+            1 => 10,
+            2 => 10,
+            _ => 100,
+        }
+    }
+
     pub fn build_ground(world: &mut World) {
         let ground_boundary = (WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS) as i32;
 
