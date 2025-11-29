@@ -11,7 +11,6 @@ use ultraviolet::IVec3;
 #[derive(Clone)]
 pub struct ConstructWorldData {
     pub stage: usize,
-    pub stage_count: usize,
 }
 
 impl ConstructWorldData {

@@ -31,7 +31,8 @@ impl PopulationWorker {
 
     pub fn work(state: &mut State, task_deque: &mut VecDeque<PopulationTask>) {
         if let Some(mut population_task) = task_deque.pop_front() {
-            let done = PopulationTask::step(&mut state.population, &mut population_task);
+            let done =
+                PopulationTask::step(&state.world, &mut state.population, &mut population_task);
 
             if !done {
                 task_deque.push_back(population_task)

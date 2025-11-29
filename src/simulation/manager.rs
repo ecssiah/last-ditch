@@ -14,6 +14,8 @@ use crate::simulation::{
         status::Status,
         viewer::View,
         work::{
+            population_task::{construct_population_data::ConstructPopulationData, PopulationTask},
+            population_worker::PopulationWorker,
             world_task::{construct_world_data::ConstructWorldData, WorldTask},
             world_worker::WorldWorker,
             Work,
@@ -71,11 +73,9 @@ impl Manager {
             Status::Run => State::tick(state),
             Status::Done => return false,
         }
-        
-        while let Ok(message) = manager.message_rx.try_recv() {
-            Manager::handle_message(&message, state, manager);
-        }
-        
+
+        Manager::handle_messages(state, manager);
+
         Work::tick(state, &mut manager.work);
         Viewer::tick(manager, state);
 
@@ -84,27 +84,9 @@ impl Manager {
         true
     }
 
-    pub fn update_timestep(manager: &mut Manager) {
-        manager.timestep.ticks_total += 1;
-        manager.timestep.ticks_frame += 1;
-
-        manager.timestep.next_instant = manager.timestep.start_instant
-            + manager.timestep.ticks_total * SIMULATION_TICK_DURATION;
-    }
-
-    pub fn fix_timestep(manager: &mut Manager) {
-        let current_instant = Instant::now();
-
-        if current_instant < manager.timestep.next_instant {
-            let remaining_duration = manager.timestep.next_instant - current_instant;
-
-            if remaining_duration > Duration::from_millis(2) {
-                std::thread::sleep(remaining_duration - Duration::from_millis(1));
-            }
-
-            while Instant::now() < manager.timestep.next_instant {
-                std::hint::spin_loop();
-            }
+    fn handle_messages(state: &mut State, manager: &mut Manager) {
+        while let Ok(message) = manager.message_rx.try_recv() {
+            Manager::handle_message(&message, state, manager);
         }
     }
 
@@ -166,14 +148,20 @@ impl Manager {
     ) {
         State::seed(generate_data.seed, state);
 
-        let construct_world_data = ConstructWorldData {
-            stage: 0,
-            stage_count: 3,
-        };
+        let construct_world_data = ConstructWorldData { stage: 0 };
 
         let world_task = WorldTask::ConstructWorld(construct_world_data);
 
         WorldWorker::enqueue(world_task, &mut manager.work.world_worker.task_deque);
+
+        let construct_population_data = ConstructPopulationData { stage: 0 };
+
+        let population_task = PopulationTask::ConstructPopulation(construct_population_data);
+
+        PopulationWorker::enqueue(
+            population_task,
+            &mut manager.work.population_worker.task_deque,
+        );
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Manager) {
@@ -190,5 +178,29 @@ impl Manager {
     fn handle_option2_message(state: &mut State) {
         state.population.judge.selected_block_kind =
             Kind::next(state.population.judge.selected_block_kind);
+    }
+
+    pub fn update_timestep(manager: &mut Manager) {
+        manager.timestep.ticks_total += 1;
+        manager.timestep.ticks_frame += 1;
+
+        manager.timestep.next_instant = manager.timestep.start_instant
+            + manager.timestep.ticks_total * SIMULATION_TICK_DURATION;
+    }
+
+    pub fn fix_timestep(manager: &mut Manager) {
+        let current_instant = Instant::now();
+
+        if current_instant < manager.timestep.next_instant {
+            let remaining_duration = manager.timestep.next_instant - current_instant;
+
+            if remaining_duration > Duration::from_millis(2) {
+                std::thread::sleep(remaining_duration - Duration::from_millis(1));
+            }
+
+            while Instant::now() < manager.timestep.next_instant {
+                std::hint::spin_loop();
+            }
+        }
     }
 }
