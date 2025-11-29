@@ -1,10 +1,13 @@
-use crate::simulation::{constants::{CELL_RADIUS_IN_METERS, CELL_SIZE_IN_METERS, WORLD_SIZE_IN_METERS}, state::{
-    World, physics::aabb::AABB, world::grid::{self, CellSample}
-}};
+use crate::simulation::{
+    constants::{CELL_RADIUS_IN_METERS, CELL_SIZE_IN_METERS, WORLD_SIZE_IN_METERS},
+    state::{
+        physics::aabb::AABB,
+        world::grid::{self, CellSample},
+    },
+};
 use ultraviolet::{IVec3, Vec3};
 
-pub struct WorldRayIterator<'world> {
-    world: &'world World,
+pub struct WorldRayIterator {
     done: bool,
     t: f32,
     origin: Vec3,
@@ -16,13 +19,8 @@ pub struct WorldRayIterator<'world> {
     t_delta: Vec3,
 }
 
-impl<'world> WorldRayIterator<'world> {
-    pub fn from_ray(
-        world: &'world World,
-        origin: Vec3,
-        direction: Vec3,
-        distance: f32,
-    ) -> Option<Self> {
+impl WorldRayIterator {
+    pub fn from_ray(origin: Vec3, direction: Vec3, distance: f32) -> Option<Self> {
         if distance <= 0.0 {
             return None;
         }
@@ -35,10 +33,7 @@ impl<'world> WorldRayIterator<'world> {
             return None;
         }
 
-        let world_aabb = AABB::new(
-            Vec3::broadcast(0.0),
-            Vec3::broadcast(WORLD_SIZE_IN_METERS),
-        );
+        let world_aabb = AABB::new(Vec3::broadcast(0.0), Vec3::broadcast(WORLD_SIZE_IN_METERS));
 
         let (mut t0, mut t1) = slab_test(origin, direction, &world_aabb);
 
@@ -65,30 +60,20 @@ impl<'world> WorldRayIterator<'world> {
         let world_position = origin + direction * t0 - direction_signum * epsilon;
         let position = grid::world_position_to_position(world_position);
 
-        let (step_direction_x, t_delta_x, t_remaining_x) = dda_axis_setup(
-            position.x,
-            world_position.x,
-            direction.x,
-        );
+        let (step_direction_x, t_delta_x, t_remaining_x) =
+            dda_axis_setup(position.x, world_position.x, direction.x);
 
-        let (step_direction_y, t_delta_y, t_remaining_y) = dda_axis_setup(
-            position.y,
-            world_position.y,
-            direction.y,
-        );
+        let (step_direction_y, t_delta_y, t_remaining_y) =
+            dda_axis_setup(position.y, world_position.y, direction.y);
 
-        let (step_direction_z, t_delta_z, t_remaining_z) = dda_axis_setup(
-            position.z,
-            world_position.z,
-            direction.z,
-        );
+        let (step_direction_z, t_delta_z, t_remaining_z) =
+            dda_axis_setup(position.z, world_position.z, direction.z);
 
         let step_direction = IVec3::new(step_direction_x, step_direction_y, step_direction_z);
         let t_delta = Vec3::new(t_delta_x, t_delta_y, t_delta_z);
         let t_remaining = Vec3::new(t_remaining_x, t_remaining_y, t_remaining_z);
 
         let world_ray_iterator = Self {
-            world,
             done: false,
             t: t_start,
             origin,
@@ -104,7 +89,7 @@ impl<'world> WorldRayIterator<'world> {
     }
 }
 
-impl<'w> Iterator for WorldRayIterator<'w> {
+impl Iterator for WorldRayIterator {
     type Item = CellSample;
 
     fn next(&mut self) -> Option<Self::Item> {

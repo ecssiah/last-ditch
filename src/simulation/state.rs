@@ -20,7 +20,7 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::{
-    manager::Manager,
+    manager::{status::Status, Manager},
     state::{
         self,
         navigation::{Graph, Navigation},
@@ -28,12 +28,14 @@ use crate::simulation::{
         world::block,
     },
 };
-use rand_chacha::rand_core::{RngCore, SeedableRng};
-use rand_chacha::ChaCha8Rng;
+use rand_chacha::{
+    rand_core::{RngCore, SeedableRng},
+    ChaCha8Rng,
+};
 
 pub struct State {
     pub rng: ChaCha8Rng,
-    pub template: state::Template,
+    pub constructor: Constructor,
     pub time: Time,
     pub action: Action,
     pub world: World,
@@ -46,18 +48,17 @@ impl State {
     pub fn new() -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-        let template = state::Template::Main;
-
+        let constructor = Constructor::new(state::Template::Main);
         let action = Action::new();
-        let world = World::new(template, rng.next_u64());
-        let population = Population::new(template, rng.next_u64());
+        let world = World::new(rng.next_u64());
+        let population = Population::new(rng.next_u64());
         let physics = Physics::new();
         let navigation = Navigation::new();
         let time = Time::new();
 
         Self {
             rng,
-            template,
+            constructor,
             action,
             time,
             physics,
@@ -124,19 +125,14 @@ impl State {
         state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
     }
 
-    pub fn init(state: &mut State) {
-        constructor::world_template::construct(state.template, &mut state.world);
-        constructor::population_template::construct(
-            state.template,
-            &state.world,
-            &mut state.population,
-        );
-        Navigation::init_graph(&state.world, &mut state.navigation.graph);
-
-        // manager.status = Status::Run;
+    pub fn load(manager: &mut Manager, state: &mut State) {
+        match state.constructor.phase {
+            constructor::Phase::World => todo!(),
+            constructor::Phase::Population => todo!(),
+            constructor::Phase::Navigation => todo!(),
+            constructor::Phase::Complete => manager.status = Status::Run,
+        }
     }
-
-    pub fn load(_state: &mut State, _manager: &mut Manager) {}
 
     pub fn tick(state: &mut State) {
         let _ = tracing::info_span!("state_tick").entered();

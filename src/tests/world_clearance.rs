@@ -29,7 +29,7 @@ impl GetClearanceCase {
 fn get_clearance() {
     let state_template = state::Template::Test;
 
-    let mut world = World::new(state_template, 0);
+    let mut world = World::new(0);
     constructor::world_template::construct(state_template, &mut world);
 
     let test_cases = vec![

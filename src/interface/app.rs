@@ -1,8 +1,10 @@
 use crate::{
     interface::Interface,
-    simulation::{Simulation, manager::{Message, viewer::View}},
+    simulation::{
+        manager::{viewer::View, Message},
+        Simulation,
+    },
 };
-use tokio::sync::mpsc::unbounded_channel;
 use winit::{
     application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,
     window::WindowId,
@@ -11,22 +13,22 @@ use winit::{
 #[derive(Default)]
 pub struct App<'window> {
     interface: Option<Interface<'window>>,
-    simulation_thread: Option<tokio::task::JoinHandle<()>>,
+    simulation_thread: Option<std::thread::JoinHandle<()>>,
 }
 
 impl<'window> App<'window> {
     pub fn start(
         event_loop: &ActiveEventLoop,
         interface: &mut Option<Interface<'window>>,
-        simulation_thread: &mut Option<tokio::task::JoinHandle<()>>,
+        simulation_thread: &mut Option<std::thread::JoinHandle<()>>,
     ) {
-        let (message_tx, message_rx) = unbounded_channel::<Message>();
+        let (message_tx, message_rx) = crossbeam::channel::unbounded::<Message>();
         let (view_input, view_output) = triple_buffer::triple_buffer(&View::new());
 
         let mut simulation = Box::new(Simulation::new(message_rx, view_input));
         *interface = Some(Interface::new(event_loop, message_tx, view_output));
 
-        *simulation_thread = Some(tokio::spawn(async move {
+        *simulation_thread = Some(std::thread::spawn(move || {
             Simulation::run(&mut simulation.manager, &mut simulation.state)
         }));
     }

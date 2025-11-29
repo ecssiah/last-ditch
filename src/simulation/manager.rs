@@ -1,13 +1,14 @@
 pub mod message;
 pub mod status;
 pub mod viewer;
+pub mod work;
 
 pub use message::Message;
 pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{status::Status, viewer::View},
+    manager::{status::Status, viewer::View, work::Work},
     state::{
         State, action::{
             Act, act::{self}
@@ -15,7 +16,6 @@ use crate::simulation::{
     },
 };
 use std::time::{Duration, Instant};
-use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Manager {
     pub status: Status,
@@ -23,13 +23,14 @@ pub struct Manager {
     pub next_instant: Instant,
     pub ticks_total: u32,
     pub ticks_frame: u32,
+    pub work: Work,
     pub viewer: Viewer,
-    pub message_rx: UnboundedReceiver<Message>,
+    pub message_rx: crossbeam::channel::Receiver<Message>,
 }
 
 impl Manager {
     pub fn new(
-        message_rx: UnboundedReceiver<Message>,
+        message_rx: crossbeam::channel::Receiver<Message>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
         let status = Status::Init;
@@ -37,6 +38,7 @@ impl Manager {
         let next_instant = Instant::now();
         let ticks_total = 0;
         let ticks_frame = 0;
+        let work = Work::new();
         let viewer = Viewer::new(view_input);
 
         Self {
@@ -45,14 +47,10 @@ impl Manager {
             next_instant,
             ticks_total,
             ticks_frame,
+            work,
             viewer,
             message_rx,
         }
-    }
-
-    pub fn init(manager: &mut Manager) {
-        manager.start_instant = Instant::now();
-        manager.next_instant = manager.start_instant;
     }
 
     pub fn start(manager: &mut Manager) {
@@ -65,30 +63,30 @@ impl Manager {
     }
 
     pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
-        manager.ticks_total += 1;
-        manager.ticks_frame += 1;
-
-        manager.next_instant =
-            manager.start_instant + manager.ticks_total * SIMULATION_TICK_DURATION;
+        match manager.status {
+            Status::Init => (),
+            Status::Load => State::load(manager, state),
+            Status::Run => State::tick(state),
+            Status::Done => return false,
+        }
 
         while let Ok(message) = manager.message_rx.try_recv() {
             Manager::handle_message(&message, state, manager);
         }
 
-        Viewer::tick(state, manager);
+        Viewer::tick(manager, state);
 
-        match manager.status {
-            Status::Init => true,
-            Status::Load => {
-                State::load(state, manager);
-                true
-            }
-            Status::Run => {
-                State::tick(state);
-                true
-            }
-            Status::Done => false,
-        }
+        Manager::update_timestep(manager);
+
+        true
+    }
+
+    pub fn update_timestep(manager: &mut Manager) {
+        manager.ticks_total += 1;
+        manager.ticks_frame += 1;
+
+        manager.next_instant =
+            manager.start_instant + manager.ticks_total * SIMULATION_TICK_DURATION;
     }
 
     pub fn fix_timestep(manager: &mut Manager) {
@@ -164,7 +162,6 @@ impl Manager {
         manager: &mut Manager,
     ) {
         State::seed(generate_data.seed, state);
-        State::init(state);
 
         manager.status = Status::Load;
     }

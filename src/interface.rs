@@ -19,11 +19,10 @@ use crate::{
     },
     simulation::{
         self,
-        manager::{self, Viewer, status::Status, viewer::View},
+        manager::{status::Status, viewer::View, Message, Viewer},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
-use tokio::sync::mpsc::UnboundedSender;
 use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
@@ -33,7 +32,7 @@ use winit::{
 
 pub struct Interface<'window> {
     pub last_instant: Instant,
-    pub message_tx: UnboundedSender<manager::Message>,
+    pub message_tx: crossbeam::channel::Sender<Message>,
     pub input: Input,
     pub camera: Camera,
     pub gui: GUI,
@@ -48,7 +47,7 @@ pub struct Interface<'window> {
 impl<'window> Interface<'window> {
     pub fn new(
         event_loop: &ActiveEventLoop,
-        message_tx: UnboundedSender<manager::Message>,
+        message_tx: crossbeam::channel::Sender<Message>,
         view_output: triple_buffer::Output<View>,
     ) -> Self {
         let last_instant = Instant::now();
@@ -395,7 +394,7 @@ impl<'window> Interface<'window> {
     fn send_message_deque(
         gui: &mut GUI,
         input: &mut Input,
-        message_tx: &UnboundedSender<manager::Message>,
+        message_tx: &crossbeam::channel::Sender<Message>,
     ) {
         let mut message_deque = VecDeque::new();
 

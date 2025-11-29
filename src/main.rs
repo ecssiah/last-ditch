@@ -4,7 +4,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 
 static TRACER: OnceLock<Tracer> = OnceLock::new();
 
-pub async fn run() {
+fn main() {
     let tracer = Tracer::new();
     TRACER.set(tracer).unwrap();
 
@@ -16,9 +16,4 @@ pub async fn run() {
 
     #[cfg(feature = "profile")]
     Tracer::export(&tracer.flamegraph_name);
-}
-
-#[tokio::main]
-async fn main() {
-    run().await;
 }

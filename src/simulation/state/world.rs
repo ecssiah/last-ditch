@@ -8,20 +8,18 @@ pub mod sector;
 use crate::simulation::{
     constants::*,
     state::{
-        self,
         physics::aabb::AABB,
         population::nation,
         world::{cell::Cell, sector::Sector},
         Time,
     },
 };
+use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
-use rand_chacha::{ChaCha8Rng, rand_core::SeedableRng};
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
     pub rng: ChaCha8Rng,
-    pub state_template: state::Template,
     pub time: Time,
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<sector::Sector>,
@@ -29,7 +27,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(state_template: state::Template, seed: u64) -> Self {
+    pub fn new(seed: u64) -> Self {
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let block_info_map = block::Info::setup();
@@ -44,7 +42,6 @@ impl World {
 
         Self {
             rng,
-            state_template,
             time,
             block_info_map,
             sector_vec,
@@ -153,10 +150,7 @@ impl World {
         &mut sector.cell_vec[cell_id.to_usize()]
     }
 
-    pub fn get_cell_at<'a>(
-        position: IVec3,
-        sector_vec_slice: &'a [Sector],
-    ) -> &'a Cell {
+    pub fn get_cell_at<'a>(position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a Cell {
         let (sector_id, cell_id) = grid::position_to_ids(position);
 
         Self::get_cell(sector_id, cell_id, sector_vec_slice)
@@ -260,12 +254,7 @@ impl World {
                     let position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block(
-                            position,
-                            block_kind,
-                            block_info_map,
-                            sector_vec_slice,
-                        );
+                        Self::set_block(position, block_kind, block_info_map, sector_vec_slice);
                     } else {
                         Self::set_block(
                             position,

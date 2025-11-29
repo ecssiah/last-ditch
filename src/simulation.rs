@@ -6,10 +6,9 @@ pub mod state;
 pub mod utils;
 
 use crate::simulation::{
-    manager::{Manager, Message, status::Status, viewer::View},
+    manager::{viewer::View, Manager, Message},
     state::State,
 };
-use tokio::sync::mpsc::UnboundedReceiver;
 
 pub struct Simulation {
     pub manager: Manager,
@@ -18,7 +17,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new(
-        message_rx: UnboundedReceiver<Message>,
+        message_rx: crossbeam::channel::Receiver<Message>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
         let manager = Manager::new(message_rx, view_input);
@@ -28,8 +27,6 @@ impl Simulation {
     }
 
     pub fn run(manager: &mut Manager, state: &mut State) {
-        Manager::init(manager);
-
         loop {
             let _ = tracing::info_span!("simulation_loop").entered();
 

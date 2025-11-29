@@ -3,4 +3,5 @@ pub enum Phase {
     World,
     Population,
     Navigation,
+    Complete,
 }
