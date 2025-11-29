@@ -46,9 +46,9 @@ pub struct Interface<'window> {
 
 impl<'window> Interface<'window> {
     pub fn new(
-        event_loop: &ActiveEventLoop,
         message_tx: crossbeam::channel::Sender<Message>,
         view_output: triple_buffer::Output<View>,
+        event_loop: &ActiveEventLoop,
     ) -> Self {
         let last_instant = Instant::now();
 

@@ -13,6 +13,10 @@ impl Worker for PopulationWorker {
         false
     }
 
+    fn budget(&self) -> u32 {
+        500
+    }
+
     fn cost(&self) -> u32 {
         1
     }
