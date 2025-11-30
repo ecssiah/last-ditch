@@ -123,7 +123,7 @@ impl State {
 
         Action::tick(state);
         World::tick(&mut state.world);
-        Population::tick(&state.world, &mut state.population);
+        Population::tick(&state.world, &mut state.navigation, &mut state.population);
         Physics::tick(&state.world, &mut state.population, &mut state.physics);
         Navigation::tick(&state.world, &mut state.navigation);
         Work::tick(state);

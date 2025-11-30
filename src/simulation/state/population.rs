@@ -1,6 +1,7 @@
 //! Entities acting in the simulated environment
 
 pub mod agent;
+pub mod behavior;
 pub mod identity;
 pub mod judge;
 pub mod kinematic;
@@ -12,8 +13,7 @@ pub mod spatial;
 pub use role::Role;
 
 use crate::simulation::state::{
-    population::{agent::Agent, judge::Judge},
-    world::World,
+    navigation::Navigation, population::{agent::Agent, judge::Judge}, world::World
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -63,7 +63,7 @@ impl Population {
         agent_id
     }
 
-    pub fn tick(world: &World, population: &mut Population) {
+    pub fn tick(world: &World, navigation: &mut Navigation, population: &mut Population) {
         let _ = tracing::info_span!("population_tick").entered();
 
         if !population.active {
@@ -73,7 +73,7 @@ impl Population {
         Judge::tick(world, &mut population.judge);
 
         for agent in population.agent_map.values_mut() {
-            Agent::tick(world, agent);
+            Agent::tick(navigation, agent);
         }
     }
 }

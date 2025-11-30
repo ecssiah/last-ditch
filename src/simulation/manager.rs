@@ -63,7 +63,7 @@ impl Manager {
     pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
         Manager::handle_messages(state, manager);
         Manager::update_timestep(manager);
-        
+
         Viewer::tick(state, manager);
 
         match manager.status {
@@ -144,9 +144,11 @@ impl Manager {
             &mut state.work.population_worker.task_deque,
         );
 
+        state.action.active = true;
         state.world.active = true;
         state.population.active = true;
         state.physics.active = true;
+        state.navigation.active = true;
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Manager) {

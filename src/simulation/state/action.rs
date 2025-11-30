@@ -14,17 +14,25 @@ use crate::simulation::{
 use std::collections::VecDeque;
 
 pub struct Action {
+    pub active: bool,
     pub act_deque: VecDeque<Act>,
 }
 
 impl Action {
     pub fn new() -> Self {
+        let active = false;
         let act_deque = VecDeque::new();
 
-        Self { act_deque }
+        Self { active, act_deque }
     }
 
     pub fn tick(state: &mut State) {
+        let _ = tracing::info_span!("action_tick");
+
+        if !state.action.active {
+            return;
+        }
+
         let act_deque: VecDeque<Act> = state.action.act_deque.drain(..).collect();
 
         for act in act_deque {
