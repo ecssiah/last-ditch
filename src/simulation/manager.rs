@@ -91,8 +91,8 @@ impl Manager {
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Option1 => Self::handle_option1_message(state),
             Message::Option2 => Self::handle_option2_message(state),
-            Message::Option3 => todo!(),
-            Message::Option4 => todo!(),
+            Message::Option3 => Self::handle_option3_message(state),
+            Message::Option4 => Self::handle_option4_message(state),
         }
     }
 
@@ -159,6 +159,14 @@ impl Manager {
     fn handle_option2_message(state: &mut State) {
         state.population.judge.selected_block_kind =
             Kind::next(state.population.judge.selected_block_kind);
+    }
+
+    fn handle_option3_message(_state: &mut State) {
+        tracing::info!("Option 3 Message");
+    }
+
+    fn handle_option4_message(_state: &mut State) {
+        tracing::info!("Option 4 Message");
     }
 
     pub fn update_timestep(manager: &mut Manager) {

@@ -6,7 +6,7 @@ pub use model::Model;
 
 use crate::{
     interface::gpu::gpu_context::GPUContext,
-    simulation::manager::{Message, message::GenerateData, viewer::View},
+    simulation::manager::{message::GenerateData, viewer::View, Message},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::{
@@ -37,11 +37,7 @@ impl GUI {
         }
     }
 
-    pub fn get_message_deque(message_deque: &mut VecDeque<Message>) -> VecDeque<Message> {
-        std::mem::take(message_deque)
-    }
-
-    pub fn get_full_output(
+    fn get_full_output(
         window_arc: Arc<winit::window::Window>,
         egui_context: &egui::Context,
         egui_winit_state: &mut egui_winit::State,
@@ -49,20 +45,20 @@ impl GUI {
     ) -> FullOutput {
         let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
-        let mut gui_working = std::mem::take(gui);
+        let mut gui_work = std::mem::take(gui);
 
         let full_output: FullOutput = egui_context.run(raw_input, |context| {
-            Self::show(context, &mut gui_working);
+            Self::show(context, &mut gui_work);
         });
 
-        *gui = gui_working;
+        *gui = gui_work;
 
         full_output
     }
 
-    pub fn show(context: &egui::Context, gui: &mut GUI) {
-        Self::show_menu(context, gui);
+    fn show(context: &egui::Context, gui: &mut GUI) {
         Self::show_hud(context, gui);
+        Self::show_menu(context, gui);
     }
 
     fn show_menu(context: &egui::Context, gui: &mut GUI) {
@@ -123,32 +119,104 @@ impl GUI {
             });
     }
 
-    fn parse_seed(seed_string: &str) -> u64 {
-        let mut hasher = DefaultHasher::new();
-
-        seed_string.hash(&mut hasher);
-
-        let seed = hasher.finish();
-
-        tracing::info!("Seed: {:?}", seed);
-
-        seed
-    }
-
     fn show_hud(context: &egui::Context, gui: &mut GUI) {
         if gui.menu_active {
             return;
         }
 
+        egui::Area::new(Id::new(0))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .show(context, |ui| {
+                Self::show_crosshair(ui);
+            });
+
         if gui.model.info_message_vec.len() > 0 {
             let info_message = &gui.model.info_message_vec[0];
 
-            egui::Area::new(Id::new(0))
+            egui::Area::new(Id::new(1))
                 .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
                 .show(context, |ui| {
                     Self::show_hud_text(ui, Vec2::new(6.0, 6.0), info_message);
                 });
         }
+    }
+
+    fn show_crosshair(ui: &mut Ui) {
+        let rect = ui.max_rect();
+        let center = rect.center();
+
+        let length = 10.0;
+        let stroke = egui::Stroke::new(2.0, egui::Color32::WHITE);
+
+        ui.painter().line_segment(
+            [
+                center + egui::vec2(-length, 0.0),
+                center + egui::vec2(length, 0.0),
+            ],
+            stroke,
+        );
+
+        ui.painter().line_segment(
+            [
+                center + egui::vec2(0.0, -length),
+                center + egui::vec2(0.0, length),
+            ],
+            stroke,
+        );
+    }
+
+    fn show_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
+        let font_size = 16.0;
+
+        ui.painter().text(
+            egui::pos2(position.x - 1.0, position.y + 1.0),
+            egui::Align2::LEFT_TOP,
+            text,
+            FontId::proportional(font_size),
+            egui::Color32::BLACK,
+        );
+
+        ui.painter().text(
+            egui::pos2(position.x, position.y),
+            egui::Align2::LEFT_TOP,
+            text,
+            FontId::proportional(font_size),
+            egui::Color32::WHITE,
+        );
+    }
+
+    pub fn apply_view(view: &View, gui: &mut GUI) {
+        let judge_view = &view.population_view.judge_view;
+
+        let position_string = format!(
+            "Cell: ({:.0}, {:.0}, {:.0})\n",
+            judge_view.position.x, judge_view.position.y, judge_view.position.z,
+        );
+
+        let world_position_string = format!(
+            "World: ({:.2}, {:.2}, {:.2})\n",
+            judge_view.world_position.x, judge_view.world_position.y, judge_view.world_position.z,
+        );
+
+        let sector_string = format!(
+            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
+            judge_view.sector_coordinates.x,
+            judge_view.sector_coordinates.y,
+            judge_view.sector_coordinates.z,
+            judge_view.sector_id.to_usize(),
+        );
+
+        let selected_block_kind_string =
+            format!("Selected Block: {:?}\n", judge_view.selected_block_kind);
+
+        let mut info_message = String::new();
+        info_message.push_str(&position_string);
+        info_message.push_str(&world_position_string);
+        info_message.push_str(&sector_string);
+        info_message.push_str(&selected_block_kind_string);
+
+        gui.model.info_message_vec.clear();
+        gui.model.info_message_vec.push(info_message);
     }
 
     pub fn render(
@@ -200,60 +268,6 @@ impl GUI {
         )
     }
 
-    pub fn apply_view(view: &View, gui: &mut GUI) {
-        let judge_view = &view.population_view.judge_view;
-
-        let position_string = format!(
-            "Cell: ({:.0}, {:.0}, {:.0})\n",
-            judge_view.position.x, judge_view.position.y, judge_view.position.z,
-        );
-
-        let world_position_string = format!(
-            "World: ({:.2}, {:.2}, {:.2})\n",
-            judge_view.world_position.x, judge_view.world_position.y, judge_view.world_position.z,
-        );
-
-        let sector_string = format!(
-            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
-            judge_view.sector_coordinates.x,
-            judge_view.sector_coordinates.y,
-            judge_view.sector_coordinates.z,
-            judge_view.sector_id.to_usize(),
-        );
-
-        let selected_block_kind_string =
-            format!("Selected Block: {:?}\n", judge_view.selected_block_kind);
-
-        let mut info_message = String::new();
-        info_message.push_str(&position_string);
-        info_message.push_str(&world_position_string);
-        info_message.push_str(&sector_string);
-        info_message.push_str(&selected_block_kind_string);
-
-        gui.model.info_message_vec.clear();
-        gui.model.info_message_vec.push(info_message);
-    }
-
-    fn show_hud_text(ui: &mut Ui, position: Vec2, text: &str) {
-        let font_size = 16.0;
-
-        ui.painter().text(
-            egui::pos2(position.x - 1.0, position.y + 1.0),
-            egui::Align2::LEFT_TOP,
-            text,
-            FontId::proportional(font_size),
-            egui::Color32::BLACK,
-        );
-
-        ui.painter().text(
-            egui::pos2(position.x, position.y),
-            egui::Align2::LEFT_TOP,
-            text,
-            FontId::proportional(font_size),
-            egui::Color32::WHITE,
-        );
-    }
-
     pub fn handle_device_event(event: &DeviceEvent, gpu_context: &mut GPUContext) {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             gpu_context.egui_winit_state.on_mouse_motion((*dx, *dy))
@@ -290,5 +304,21 @@ impl GUI {
 
     pub fn toggle_menu_active(gui: &mut GUI, gpu_context: &mut GPUContext) {
         Self::set_menu_active(!gui.menu_active, gui, gpu_context);
+    }
+
+    fn parse_seed(seed_string: &str) -> u64 {
+        let mut hasher = DefaultHasher::new();
+
+        seed_string.hash(&mut hasher);
+
+        let seed = hasher.finish();
+
+        tracing::info!("Seed: {:?}", seed);
+
+        seed
+    }
+
+    pub fn get_message_deque(message_deque: &mut VecDeque<Message>) -> VecDeque<Message> {
+        std::mem::take(message_deque)
     }
 }

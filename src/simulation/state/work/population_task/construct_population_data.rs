@@ -24,6 +24,30 @@ impl ConstructPopulationData {
         }
     }
 
+    pub fn step(
+        world: &World,
+        population: &mut Population,
+        construct_population_data: &mut ConstructPopulationData,
+    ) -> bool {
+        match construct_population_data.stage {
+            0 => {
+                ConstructPopulationData::setup_judge(world, population);
+
+                construct_population_data.stage += 1;
+
+                false
+            }
+            1 => {
+                ConstructPopulationData::setup_agent_map(world, population);
+
+                construct_population_data.stage += 1;
+
+                false
+            }
+            _ => true,
+        }
+    }
+
     pub fn setup_judge(_world: &World, population: &mut Population) {
         let judge = &mut population.judge;
 
