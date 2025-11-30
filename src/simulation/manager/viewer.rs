@@ -43,7 +43,7 @@ impl Viewer {
         }
     }
 
-    pub fn tick(manager: &mut Manager, state: &State) {
+    pub fn tick(state: &State, manager: &mut Manager) {
         let _ = tracing::info_span!("viewer_tick").entered();
 
         let manager_view = Self::update_manager_view(manager);
@@ -120,7 +120,7 @@ impl Viewer {
 
             population_view
                 .agent_view_map
-                .insert(agent.population_id, agent_view);
+                .insert(agent.agent_id, agent_view);
         }
 
         population_view

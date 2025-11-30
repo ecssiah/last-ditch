@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
+    pub active: bool,
     pub rng: ChaCha8Rng,
     pub time: Time,
     pub block_info_map: HashMap<block::Kind, block::Info>,
@@ -28,6 +29,7 @@ pub struct World {
 
 impl World {
     pub fn new(seed: u64) -> Self {
+        let active = false;
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let block_info_map = block::Info::setup();
@@ -41,12 +43,23 @@ impl World {
         ]);
 
         Self {
+            active,
             rng,
             time,
             block_info_map,
             sector_vec,
             flag_position_map,
         }
+    }
+
+    pub fn tick(world: &mut World) {
+        let _ = tracing::info_span!("world_tick");
+
+        if !world.active {
+            return;
+        }
+
+        Time::tick(&mut world.time);
     }
 
     pub fn get_flag(

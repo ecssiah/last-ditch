@@ -19,6 +19,7 @@ use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
 
 pub struct Population {
+    pub active: bool,
     pub rng: ChaCha8Rng,
     pub judge: Judge,
     pub agent_map: HashMap<u64, Agent>,
@@ -28,6 +29,7 @@ pub struct Population {
 
 impl Population {
     pub fn new(seed: u64) -> Self {
+        let active = false;
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let judge = Judge::new(0);
         let agent_map = HashMap::new();
@@ -36,6 +38,7 @@ impl Population {
         let next_agent_id = 0;
 
         Self {
+            active,
             next_judge_id,
             next_agent_id,
             rng,
@@ -62,6 +65,10 @@ impl Population {
 
     pub fn tick(world: &World, population: &mut Population) {
         let _ = tracing::info_span!("population_tick").entered();
+
+        if !population.active {
+            return;
+        }
 
         Judge::tick(world, &mut population.judge);
 

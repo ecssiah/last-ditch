@@ -15,18 +15,24 @@ use ultraviolet::{IVec3, Vec3};
 
 #[derive(Default)]
 pub struct Physics {
+    pub active: bool,
     pub gravity: Vec3,
 }
 
 impl Physics {
     pub fn new() -> Self {
+        let active = false;
         let gravity = Vec3::new(0.0, 0.0, -GRAVITY_ACCELERATION);
 
-        Self { gravity }
+        Self { active, gravity }
     }
 
-    pub fn tick(world: &World, physics: &Physics, population: &mut Population) {
+    pub fn tick(world: &World, population: &mut Population, physics: &mut Physics) {
         let _ = tracing::info_span!("physics_tick").entered();
+
+        if !physics.active {
+            return;
+        }
 
         let (velocity, delta) =
             Physics::integrate(physics.gravity, &mut population.judge.kinematic);

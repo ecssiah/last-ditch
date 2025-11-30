@@ -92,7 +92,7 @@ impl ConstructPopulationData {
 
                     Spatial::set_size(agent_size, &mut agent.spatial);
 
-                    population.agent_map.insert(agent.population_id, agent);
+                    population.agent_map.insert(agent.agent_id, agent);
                 }
             }
         }

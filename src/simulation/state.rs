@@ -31,7 +31,6 @@ use rand_chacha::{
 
 pub struct State {
     pub rng: ChaCha8Rng,
-    pub time: Time,
     pub action: Action,
     pub world: World,
     pub population: Population,
@@ -49,13 +48,11 @@ impl State {
         let population = Population::new(rng.next_u64());
         let physics = Physics::new();
         let navigation = Navigation::new();
-        let time = Time::new();
         let work = Work::new();
 
         Self {
             rng,
             action,
-            time,
             physics,
             world,
             population,
@@ -125,10 +122,10 @@ impl State {
         let _ = tracing::info_span!("state_tick").entered();
 
         Action::tick(state);
+        World::tick(&mut state.world);
         Population::tick(&state.world, &mut state.population);
-        Physics::tick(&state.world, &state.physics, &mut state.population);
+        Physics::tick(&state.world, &mut state.population, &mut state.physics);
         Navigation::tick(&state.world, &mut state.navigation);
-        Time::tick(&mut state.time);
         Work::tick(state);
     }
 }

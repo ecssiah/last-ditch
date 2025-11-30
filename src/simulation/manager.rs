@@ -61,16 +61,15 @@ impl Manager {
     }
 
     pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
+        Manager::handle_messages(state, manager);
+        Manager::update_timestep(manager);
+        
+        Viewer::tick(state, manager);
+
         match manager.status {
             Status::Run => State::tick(state),
             Status::Done => return false,
         }
-
-        Manager::handle_messages(state, manager);
-
-        Viewer::tick(manager, state);
-
-        Manager::update_timestep(manager);
 
         true
     }
@@ -144,6 +143,10 @@ impl Manager {
             population_task,
             &mut state.work.population_worker.task_deque,
         );
+
+        state.world.active = true;
+        state.population.active = true;
+        state.physics.active = true;
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Manager) {

@@ -4,14 +4,14 @@ use crate::simulation::state::{
 };
 
 pub struct Agent {
-    pub population_id: u64,
+    pub agent_id: u64,
     pub identity: Identity,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
 }
 
 impl Agent {
-    pub fn new(population_id: u64, nation_kind: nation::Kind) -> Self {
+    pub fn new(agent_id: u64, nation_kind: nation::Kind) -> Self {
         let identity = Identity {
             role: population::Role::Agent,
             nation_kind,
@@ -21,7 +21,7 @@ impl Agent {
         let kinematic = Kinematic::new();
 
         Self {
-            population_id,
+            agent_id,
             identity,
             spatial,
             kinematic,
