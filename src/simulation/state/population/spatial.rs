@@ -1,9 +1,6 @@
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::{
-        grid::{self},
-        sector,
-    },
+    world::grid::{self},
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -12,7 +9,7 @@ pub struct Spatial {
     pub world_position: Vec3,
     pub rotation_xy: f32,
     pub rotor: Rotor3,
-    pub sector_id: sector::ID,
+    pub sector_id: usize,
     pub sector_updated: bool,
     pub size: Vec3,
     pub body: AABB,
@@ -23,7 +20,7 @@ impl Spatial {
         Self {
             world_position: Vec3::default(),
             rotation_xy: 0.0,
-            sector_id: sector::ID(0),
+            sector_id: 0,
             sector_updated: false,
             size: Vec3::default(),
             body: AABB::default(),

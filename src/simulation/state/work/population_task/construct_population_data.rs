@@ -69,9 +69,11 @@ impl ConstructPopulationData {
                         0.0,
                     );
 
+                    let population_id = Population::get_id(population);
+                    
+                    let mut agent = Agent::new(population_id, nation_kind);
+                    
                     let world_position = flag_position + offset;
-
-                    let mut agent = Agent::new(nation_kind);
 
                     Spatial::set_world_position(world_position, &mut agent.spatial);
 
@@ -90,7 +92,7 @@ impl ConstructPopulationData {
 
                     Spatial::set_size(agent_size, &mut agent.spatial);
 
-                    population.agent_map.insert(agent.id, agent);
+                    population.agent_map.insert(agent.population_id, agent);
                 }
             }
         }

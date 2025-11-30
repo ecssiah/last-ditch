@@ -1,7 +1,13 @@
-use crate::simulation::state::navigation::Navigation;
+pub mod find_path_data;
+
+use crate::simulation::state::{
+    navigation::Navigation, work::navigation_task::find_path_data::FindPathData,
+};
 
 #[derive(Clone)]
-pub enum NavigationTask {}
+pub enum NavigationTask {
+    FindPath(FindPathData),
+}
 
 impl NavigationTask {
     pub fn step(_navigation: &mut Navigation, _navigation_task: &mut NavigationTask) -> bool {

@@ -5,10 +5,16 @@ pub mod mouse_inputs;
 
 use crate::{
     interface::{
-        constants::*, debug::DebugRender, gpu::gpu_context::GPUContext, gui::GUI, input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs}
+        constants::*,
+        debug::DebugRender,
+        gpu::gpu_context::GPUContext,
+        gui::GUI,
+        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
     simulation::manager::{
-        self, Message, message::{move_data::MoveData, rotate_data::RotateData}
+        self,
+        message::{move_data::MoveData, rotate_data::RotateData},
+        Message,
     },
 };
 use std::collections::VecDeque;
@@ -127,7 +133,13 @@ impl Input {
 
     pub fn handle_device_event(event: &DeviceEvent, gui: &GUI, input: &mut Input) -> bool {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            return Self::handle_mouse_motion(*dx, *dy, gui, &mut input.mouse_inputs, &mut input.message_deque);
+            return Self::handle_mouse_motion(
+                *dx,
+                *dy,
+                gui,
+                &mut input.mouse_inputs,
+                &mut input.message_deque,
+            );
         }
 
         false

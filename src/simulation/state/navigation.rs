@@ -3,39 +3,41 @@ pub mod path;
 
 pub use graph::Graph;
 
-use crate::simulation::{
-    constants::SECTOR_RADIUS_IN_CELLS,
-    state::{navigation, World},
-};
+use crate::simulation::{constants::*, state::World};
 use std::collections::VecDeque;
 use ultraviolet::IVec3;
 
 pub struct Navigation {
-    pub next_id: u64,
-    pub graph: navigation::Graph,
+    pub graph: Graph,
     pub path_request_deque: VecDeque<path::Request>,
     pub path_result_vec: Vec<path::Result>,
     pub path_task_vec: Vec<path::Task>,
-    pub path_solver: path::Solver,
+    pub next_id: u64,
 }
 
 impl Navigation {
     pub fn new() -> Self {
-        let next_id = 0;
-        let graph = navigation::Graph::new();
+        let graph = Graph::new();
         let path_request_deque = VecDeque::new();
         let path_result_vec = Vec::new();
         let path_task_vec = Vec::new();
-        let path_solver = path::Solver::new();
+        let next_id = 0;
 
         Self {
-            next_id,
             graph,
             path_request_deque,
             path_result_vec,
             path_task_vec,
-            path_solver,
+            next_id,
         }
+    }
+    
+    pub fn get_id(navigation: &mut Navigation) -> u64 {
+        let id = navigation.next_id;
+
+        navigation.next_id += 1;
+
+        id
     }
 
     pub fn init_graph(world: &World, graph: &mut Graph) {
@@ -44,29 +46,26 @@ impl Navigation {
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
-                    let cell =
-                        World::get_cell_at(IVec3::new(x, y, z), &world.sector_vec);
+                    let cell = World::get_cell_at(IVec3::new(x, y, z), &world.sector_vec);
 
-                    Graph::set_solid(cell.position, cell.solid, graph);
+                    Graph::set_solid(cell.grid_position, cell.solid, graph);
                 }
             }
         }
     }
 
-    pub fn make_request(start: IVec3, end: IVec3, navigation: &mut Navigation) -> path::ID {
-        let path_id = path::ID(navigation.next_id);
-
-        navigation.next_id += 1;
+    pub fn make_request(start: IVec3, end: IVec3, navigation: &mut Navigation) -> u64 {
+        let id = Self::get_id(navigation);
 
         let path_request = path::Request {
-            path_id,
+            id,
             start,
             end,
         };
 
         navigation.path_request_deque.push_back(path_request);
 
-        path_id
+        id
     }
 
     pub fn tick(_world: &World, _navigation: &mut Navigation) {}

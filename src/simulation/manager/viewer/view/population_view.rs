@@ -1,12 +1,10 @@
-use crate::simulation::{
-    manager::viewer::{AgentView, JudgeView}, state::population::agent
-};
+use crate::simulation::manager::viewer::{AgentView, JudgeView};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct PopulationView {
     pub judge_view: JudgeView,
-    pub agent_view_map: HashMap<agent::ID, AgentView>,
+    pub agent_view_map: HashMap<u64, AgentView>,
 }
 
 impl PopulationView {

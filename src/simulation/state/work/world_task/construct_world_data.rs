@@ -26,6 +26,7 @@ impl ConstructWorldData {
     pub fn step(world: &mut World, construct_world_data: &mut ConstructWorldData) -> bool {
         match construct_world_data.stage {
             0 => {
+                ConstructWorldData::build_central_room(world);
                 ConstructWorldData::build_ground(world);
 
                 construct_world_data.stage += 1;
@@ -63,10 +64,10 @@ impl ConstructWorldData {
                 for x in -ground_boundary..=ground_boundary {
                     let position = IVec3::new(x as i32, y as i32, z as i32);
 
-                    let sector_coordinates = grid::position_to_sector_coordinates(position);
+                    let sector_coordinate = grid::grid_position_to_sector_coordinate(position);
 
                     let component_sum =
-                        sector_coordinates.x + sector_coordinates.y + sector_coordinates.z;
+                        sector_coordinate.x + sector_coordinate.y + sector_coordinate.z;
 
                     let kind = if component_sum % 2 == 0 {
                         block::Kind::Polished1
@@ -269,6 +270,18 @@ impl ConstructWorldData {
                 height,
             ),
             block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+    }
+
+    fn build_central_room(world: &mut World) {
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+
+        World::set_box(
+            IVec3::broadcast(-sector_radius_in_cells),
+            IVec3::broadcast(sector_radius_in_cells),
+            block::Kind::Stone2,
             &world.block_info_map,
             &mut world.sector_vec,
         );

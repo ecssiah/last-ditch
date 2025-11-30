@@ -1,4 +1,4 @@
-use crate::simulation::state::navigation::{self, path, Graph};
+use crate::simulation::state::navigation::{self, Graph};
 use std::collections::{BinaryHeap, HashMap};
 use ultraviolet::IVec3;
 
@@ -34,7 +34,7 @@ impl PartialOrd for OpenNode {
 }
 
 pub struct State {
-    pub path_id: path::ID,
+    pub id: u64,
     pub finished: bool,
     pub start: IVec3,
     pub end: IVec3,
@@ -44,15 +44,16 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(path_id: path::ID, start: IVec3, end: IVec3) -> Self {
+    pub fn new(id: u64, start: IVec3, end: IVec3) -> Self {
         let mut open_heap = BinaryHeap::new();
+
         open_heap.push(OpenNode {
             position: start,
             f_cost: 0,
         });
 
         Self {
-            path_id,
+            id,
             finished: false,
             start,
             end,

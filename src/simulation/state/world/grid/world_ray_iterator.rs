@@ -13,7 +13,7 @@ pub struct WorldRayIterator {
     origin: Vec3,
     direction: Vec3,
     t_max: f32,
-    position: IVec3,
+    grid_position: IVec3,
     step_direction: IVec3,
     t_remaining: Vec3,
     t_delta: Vec3,
@@ -58,16 +58,16 @@ impl WorldRayIterator {
         );
 
         let world_position = origin + direction * t0 - direction_signum * epsilon;
-        let position = grid::world_position_to_position(world_position);
+        let grid_position = grid::world_position_to_grid_position(world_position);
 
         let (step_direction_x, t_delta_x, t_remaining_x) =
-            dda_axis_setup(position.x, world_position.x, direction.x);
+            dda_axis_setup(grid_position.x, world_position.x, direction.x);
 
         let (step_direction_y, t_delta_y, t_remaining_y) =
-            dda_axis_setup(position.y, world_position.y, direction.y);
+            dda_axis_setup(grid_position.y, world_position.y, direction.y);
 
         let (step_direction_z, t_delta_z, t_remaining_z) =
-            dda_axis_setup(position.z, world_position.z, direction.z);
+            dda_axis_setup(grid_position.z, world_position.z, direction.z);
 
         let step_direction = IVec3::new(step_direction_x, step_direction_y, step_direction_z);
         let t_delta = Vec3::new(t_delta_x, t_delta_y, t_delta_z);
@@ -79,7 +79,7 @@ impl WorldRayIterator {
             origin,
             direction,
             t_max: t1,
-            position,
+            grid_position,
             step_direction,
             t_delta,
             t_remaining,
@@ -115,7 +115,7 @@ impl Iterator for WorldRayIterator {
             }
 
             self.t = t_next;
-            self.position += direction_entered.to_ivec3();
+            self.grid_position += direction_entered.to_ivec3();
 
             match direction_entered {
                 grid::Direction::East | grid::Direction::West => {
@@ -129,19 +129,19 @@ impl Iterator for WorldRayIterator {
                 }
             }
 
-            if !grid::position_valid(self.position) {
+            if !grid::is_grid_position_valid(self.grid_position) {
                 self.done = true;
 
                 return None;
             }
 
-            let (sector_id, cell_id) = grid::position_to_ids(self.position);
+            let (sector_id, cell_id) = grid::grid_position_to_ids(self.grid_position);
 
             let world_position = self.origin + self.direction * self.t;
 
             let cell_sample = CellSample {
                 t: self.t,
-                position: self.position,
+                grid_position: self.grid_position,
                 world_position,
                 sector_id,
                 cell_id,

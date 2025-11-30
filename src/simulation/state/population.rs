@@ -21,20 +21,31 @@ use std::collections::HashMap;
 pub struct Population {
     pub rng: ChaCha8Rng,
     pub judge: Judge,
-    pub agent_map: HashMap<agent::ID, Agent>,
+    pub agent_map: HashMap<u64, Agent>,
+    pub next_id: u64,
 }
 
 impl Population {
     pub fn new(seed: u64) -> Self {
         let rng = ChaCha8Rng::seed_from_u64(seed);
-        let judge = Judge::new();
+        let judge = Judge::new(0);
         let agent_map = HashMap::new();
+        let next_id = 1;
 
         Self {
             rng,
             judge,
             agent_map,
+            next_id,
         }
+    }
+
+    pub fn get_id(population: &mut Population) -> u64 {
+        let id = population.next_id;
+
+        population.next_id += 1;
+
+        id
     }
 
     pub fn tick(world: &World, population: &mut Population) {

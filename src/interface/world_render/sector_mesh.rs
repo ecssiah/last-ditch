@@ -4,17 +4,18 @@ use crate::{
         world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas},
     },
     simulation::{
-        constants::{CELL_RADIUS_IN_METERS, SECTOR_AREA_IN_CELLS, SECTOR_RADIUS_IN_CELLS, SECTOR_SIZE_IN_CELLS}, manager::viewer::{SectorView, face_mask}, state::world::{
+        constants::*,
+        manager::viewer::{face_mask, SectorView},
+        state::world::{
             block,
             grid::{self, axis::Axis},
-            sector,
-        }
+        },
     },
 };
 use ultraviolet::IVec3;
 
 pub struct SectorMesh {
-    pub sector_id: sector::ID,
+    pub sector_id: usize,
     pub version: u64,
     pub vertex_vec: Vec<SectorVertex>,
     pub index_vec: Vec<u32>,
@@ -50,14 +51,10 @@ impl SectorMesh {
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
-                    let cell_coordinates = IVec3::new(x, y, z);
-                    let cell_id = grid::cell_coordinates_to_cell_id(cell_coordinates);
+                    let cell_coordinate = IVec3::new(x, y, z);
+                    let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
 
-                    // TODO: Fix this
-                    //
-                    // thread 'main' panicked at src/interface/world_render/sector_mesh.rs:58:72:
-                    // index out of bounds: the len is 125 but the index is 125
-                    let block_view_option = &sector_view.block_view_vec[cell_id.to_usize()];
+                    let block_view_option = &sector_view.block_view_vec[cell_id];
 
                     if let Some(block_view) = block_view_option {
                         if face_mask::has(face_mask::EAST, &block_view.face_mask) {
@@ -163,10 +160,7 @@ impl SectorMesh {
         mask_vec
     }
 
-    fn merge_geometry(
-        sector_view: &SectorView,
-        mask_vec: Vec<Vec<Vec<Face>>>,
-    ) -> Self {
+    fn merge_geometry(sector_view: &SectorView, mask_vec: Vec<Vec<Vec<Face>>>) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 

@@ -1,6 +1,3 @@
-pub mod id;
-
-pub use id::ID;
 use ultraviolet::Vec3;
 
 use crate::simulation::{
@@ -18,7 +15,7 @@ use crate::simulation::{
 };
 
 pub struct Judge {
-    pub id: ID,
+    pub population_id: u64,
     pub identity: Identity,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
@@ -27,9 +24,7 @@ pub struct Judge {
 }
 
 impl Judge {
-    pub fn new() -> Self {
-        let id = ID::allocate();
-
+    pub fn new(population_id: u64) -> Self {
         let identity = Identity {
             role: population::Role::Judge,
             nation_kind: nation::Kind::Eagle,
@@ -58,7 +53,7 @@ impl Judge {
         let selected_block_kind = block::Kind::Engraved1;
 
         Self {
-            id,
+            population_id,
             identity,
             spatial,
             kinematic,

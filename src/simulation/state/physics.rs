@@ -5,7 +5,10 @@ pub mod aabb;
 use crate::simulation::{
     constants::*,
     state::{
-        World, physics::aabb::AABB, population::{Population, kinematic::Kinematic, sight::Sight, spatial::Spatial}, world::grid::{self, axis::Axis}
+        physics::aabb::AABB,
+        population::{kinematic::Kinematic, sight::Sight, spatial::Spatial, Population},
+        world::grid::{self, axis::Axis},
+        World,
     },
 };
 use ultraviolet::{IVec3, Vec3};
@@ -127,7 +130,7 @@ impl Physics {
                     aabb_center.z.round() as i32,
                 );
 
-                if grid::position_valid(cell_position) {
+                if grid::is_grid_position_valid(cell_position) {
                     let cell = World::get_cell_at(cell_position, &world.sector_vec);
 
                     cell.solid

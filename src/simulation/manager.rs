@@ -67,7 +67,7 @@ impl Manager {
         }
 
         Manager::handle_messages(state, manager);
-        
+
         Viewer::tick(manager, state);
 
         Manager::update_timestep(manager);
@@ -88,7 +88,6 @@ impl Manager {
             Message::Rotate(rotate_data) => Self::handle_rotate_message(rotate_data, state),
             Message::Move(move_data) => Self::handle_move_message(move_data, state),
             Message::Jump => Self::handle_jump_message(state),
-            Message::Debug => todo!(),
             Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Option1 => Self::handle_option1_message(state),

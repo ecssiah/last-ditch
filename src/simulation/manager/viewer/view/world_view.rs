@@ -1,9 +1,9 @@
-use crate::simulation::{manager::viewer::SectorView, state::world::sector};
+use crate::simulation::manager::viewer::SectorView;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct WorldView {
-    pub sector_view_map: HashMap<sector::ID, SectorView>,
+    pub sector_view_map: HashMap<usize, SectorView>,
 }
 
 impl WorldView {

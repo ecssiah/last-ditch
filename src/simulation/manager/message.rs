@@ -13,7 +13,6 @@ pub enum Message {
     Move(MoveData),
     Rotate(RotateData),
     Jump,
-    Debug,
     Generate(GenerateData),
     Quit,
     Option1,

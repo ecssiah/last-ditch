@@ -2,14 +2,13 @@
 
 pub mod action;
 pub mod config;
-pub mod constructor;
 pub mod navigation;
 pub mod physics;
 pub mod population;
 pub mod template;
 pub mod time;
-pub mod world;
 pub mod work;
+pub mod world;
 
 pub use action::Action;
 pub use config::Config;
@@ -20,7 +19,10 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::state::{
-    navigation::{Graph, Navigation}, population::sight::Sight, work::Work, world::block
+    navigation::{Graph, Navigation},
+    population::sight::Sight,
+    work::Work,
+    world::block,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},

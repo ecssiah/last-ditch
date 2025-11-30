@@ -1,23 +1,17 @@
-pub mod id;
-
-pub use id::ID;
-
 use crate::simulation::state::{
-    population::{self, agent, identity::Identity, kinematic::Kinematic, nation, spatial::Spatial},
+    population::{self, identity::Identity, kinematic::Kinematic, nation, spatial::Spatial},
     World,
 };
 
 pub struct Agent {
-    pub id: agent::ID,
+    pub population_id: u64,
     pub identity: Identity,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
 }
 
 impl Agent {
-    pub fn new(nation_kind: nation::Kind) -> Self {
-        let id = ID::allocate();
-
+    pub fn new(population_id: u64, nation_kind: nation::Kind) -> Self {
         let identity = Identity {
             role: population::Role::Agent,
             nation_kind,
@@ -27,7 +21,7 @@ impl Agent {
         let kinematic = Kinematic::new();
 
         Self {
-            id,
+            population_id,
             identity,
             spatial,
             kinematic,

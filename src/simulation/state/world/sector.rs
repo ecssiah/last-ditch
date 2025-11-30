@@ -1,17 +1,11 @@
-pub mod id;
-
-pub use id::ID;
-
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::{
-        cell::{self, Cell}, grid, sector
-    },
+    world::{cell::Cell, grid},
 };
 use ultraviolet::IVec3;
 
 pub struct Sector {
-    pub sector_id: sector::ID,
+    pub sector_id: usize,
     pub version: u64,
     pub position: IVec3,
     pub aabb: AABB,
@@ -19,26 +13,31 @@ pub struct Sector {
 }
 
 impl Sector {
-    pub fn get_cell<'a>(cell_id: cell::ID, sector: &'a Sector) -> &'a Cell {
-        &sector.cell_vec[cell_id.to_usize()]
+    pub fn get_cell<'a>(cell_id: usize, sector: &'a Sector) -> &'a Cell {
+        let cell = &sector.cell_vec[cell_id];
+
+        cell
     }
 
-    pub fn get_cell_mut<'a>(cell_id: cell::ID, sector: &'a mut Sector) -> &'a mut Cell {
-        &mut sector.cell_vec[cell_id.to_usize()]
+    pub fn get_cell_mut<'a>(cell_id: usize, sector: &'a mut Sector) -> &'a mut Cell {
+        let cell = &mut sector.cell_vec[cell_id];
+
+        cell
     }
 
-    pub fn get_cell_at<'a>(coordinates: IVec3, sector: &'a Sector) -> &'a Cell {
-        let cell_id = grid::cell_coordinates_to_cell_id(coordinates);
+    pub fn get_cell_at<'a>(cell_coordinate: IVec3, sector: &'a Sector) -> &'a Cell {
+        let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
 
-        Self::get_cell(cell_id, sector)
+        let cell = Self::get_cell(cell_id, sector);
+
+        cell
     }
 
-    pub fn get_cell_at_mut<'a>(
-        coordinates: IVec3,
-        sector: &'a mut Sector,
-    ) -> &'a mut Cell {
-        let cell_id = grid::cell_coordinates_to_cell_id(coordinates);
+    pub fn get_cell_at_mut<'a>(cell_coordinate: IVec3, sector: &'a mut Sector) -> &'a mut Cell {
+        let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
 
-        Self::get_cell_mut(cell_id, sector)
+        let cell = Self::get_cell_mut(cell_id, sector);
+
+        cell
     }
 }

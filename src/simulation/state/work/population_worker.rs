@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
 use crate::simulation::state::{work::population_task::PopulationTask, State};
+use std::collections::VecDeque;
 
 #[derive(Clone)]
 pub struct PopulationWorker {

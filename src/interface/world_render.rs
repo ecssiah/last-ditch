@@ -14,7 +14,6 @@ use crate::{
     simulation::{
         constants::SECTOR_RADIUS_IN_METERS,
         manager::viewer::{SectorView, WorldView},
-        state::world::sector,
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
@@ -22,10 +21,10 @@ use std::collections::{hash_map::Entry, HashMap, HashSet};
 pub struct WorldRender {
     pub tile_atlas_bind_group: wgpu::BindGroup,
     pub tile_atlas_bind_group_layout: wgpu::BindGroupLayout,
-    pub sector_mesh_cache: HashMap<sector::ID, SectorMesh>,
-    pub gpu_mesh_cache: HashMap<sector::ID, GpuMesh>,
-    pub active_sector_id_set: HashSet<sector::ID>,
-    pub active_gpu_mesh_vec: Vec<sector::ID>,
+    pub sector_mesh_cache: HashMap<usize, SectorMesh>,
+    pub gpu_mesh_cache: HashMap<usize, GpuMesh>,
+    pub active_sector_id_set: HashSet<usize>,
+    pub active_gpu_mesh_vec: Vec<usize>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -194,10 +193,10 @@ impl WorldRender {
         device: &wgpu::Device,
         camera: &Camera,
         world_view: &WorldView,
-        sector_mesh_cache: &mut HashMap<sector::ID, SectorMesh>,
-        gpu_mesh_cache: &mut HashMap<sector::ID, GpuMesh>,
-        active_sector_id_set: &mut HashSet<sector::ID>,
-        active_gpu_mesh_vec: &mut Vec<sector::ID>,
+        sector_mesh_cache: &mut HashMap<usize, SectorMesh>,
+        gpu_mesh_cache: &mut HashMap<usize, GpuMesh>,
+        active_sector_id_set: &mut HashSet<usize>,
+        active_gpu_mesh_vec: &mut Vec<usize>,
     ) {
         let _ = tracing::info_span!("apply_world_view").entered();
 
@@ -205,7 +204,7 @@ impl WorldRender {
         active_gpu_mesh_vec.clear();
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
-            let _ = tracing::info_span!("sector", id = sector_view.sector_id.to_usize()).entered();
+            let _ = tracing::info_span!("sector", id = sector_view.sector_id).entered();
 
             if !camera
                 .frustum
@@ -235,7 +234,7 @@ impl WorldRender {
 
     fn get_or_build_sector_mesh<'a>(
         sector_view: &SectorView,
-        sector_mesh_cache: &'a mut HashMap<sector::ID, SectorMesh>,
+        sector_mesh_cache: &'a mut HashMap<usize, SectorMesh>,
     ) -> &'a SectorMesh {
         match sector_mesh_cache.entry(sector_view.sector_id) {
             Entry::Vacant(vacant_entry) => {
@@ -258,7 +257,7 @@ impl WorldRender {
     fn get_or_build_gpu_sector_mesh<'a>(
         sector_mesh: &SectorMesh,
         device: &wgpu::Device,
-        gpu_mesh_cache: &'a mut HashMap<sector::ID, GpuMesh>,
+        gpu_mesh_cache: &'a mut HashMap<usize, GpuMesh>,
     ) -> &'a GpuMesh {
         match gpu_mesh_cache.entry(sector_mesh.sector_id) {
             Entry::Vacant(vacant_entry) => {

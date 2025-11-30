@@ -200,10 +200,10 @@ impl GUI {
 
         let sector_string = format!(
             "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
-            judge_view.sector_coordinates.x,
-            judge_view.sector_coordinates.y,
-            judge_view.sector_coordinates.z,
-            judge_view.sector_id.to_usize(),
+            judge_view.sector_coordinate.x,
+            judge_view.sector_coordinate.y,
+            judge_view.sector_coordinate.z,
+            judge_view.sector_id,
         );
 
         let selected_block_kind_string =
