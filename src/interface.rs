@@ -202,6 +202,7 @@ impl<'window> Interface<'window> {
                     if Input::handle_window_event(
                         event,
                         &mut interface.gui,
+                        &mut interface.debug_render,
                         &mut interface.gpu_context,
                         &mut interface.input,
                     ) {
@@ -277,6 +278,14 @@ impl<'window> Interface<'window> {
             &mut encoder,
         );
 
+        DebugRender::render(
+            &surface_texture_view,
+            &depth_texture_view,
+            gpu_context,
+            debug_render,
+            &mut encoder,
+        );
+
         GUI::render(
             &surface_texture_view,
             Arc::clone(&gpu_context.window_arc),
@@ -286,15 +295,6 @@ impl<'window> Interface<'window> {
             gui,
             &mut gpu_context.egui_winit_state,
             &mut gpu_context.egui_renderer,
-            &mut encoder,
-        );
-
-        DebugRender::render(
-            &surface_texture_view,
-            &depth_texture_view,
-            gpu_context,
-            camera,
-            debug_render,
             &mut encoder,
         );
 

@@ -5,15 +5,10 @@ pub mod mouse_inputs;
 
 use crate::{
     interface::{
-        constants::*,
-        gpu::gpu_context::GPUContext,
-        gui::GUI,
-        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
+        constants::*, debug::DebugRender, gpu::gpu_context::GPUContext, gui::GUI, input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs}
     },
     simulation::manager::{
-        self,
-        message::{move_data::MoveData, rotate_data::RotateData},
-        Message,
+        self, Message, message::{move_data::MoveData, rotate_data::RotateData}
     },
 };
 use std::collections::VecDeque;
@@ -96,6 +91,7 @@ impl Input {
     pub fn handle_window_event(
         event: &WindowEvent,
         gui: &mut GUI,
+        debug_render: &mut DebugRender,
         gpu_context: &mut GPUContext,
         input: &mut Input,
     ) -> bool {
@@ -110,6 +106,7 @@ impl Input {
                 event,
                 is_synthetic,
                 gui,
+                debug_render,
                 gpu_context,
                 &mut input.key_inputs,
                 &mut input.message_deque,
@@ -147,6 +144,7 @@ impl Input {
         key_event: &KeyEvent,
         _is_synthetic: &bool,
         gui: &mut GUI,
+        debug_render: &mut DebugRender,
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
         message_deque: &mut VecDeque<Message>,
@@ -164,16 +162,9 @@ impl Input {
         }
 
         match key_event.physical_key {
-            PhysicalKey::Code(KeyCode::Escape) => {
-                if key_event.state == ElementState::Released {
-                    message_deque.push_back(Message::Quit);
-                }
-
-                true
-            }
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
-                    message_deque.push_back(Message::Debug);
+                    DebugRender::toggle_debug_active(debug_render);
                 }
 
                 true

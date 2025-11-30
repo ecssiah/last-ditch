@@ -2,28 +2,28 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        debug::{DebugChannel, DebugVisibility, debug_vertex::DebugVertex},
+        debug::{debug_vertex::DebugVertex, DebugChannel},
         gpu::gpu_context::GPUContext,
     },
-    simulation::{constants::{CELL_RADIUS_IN_METERS, SECTOR_SIZE_IN_CELLS, WORLD_RADIUS_IN_SECTORS}, manager::viewer::View},
+    simulation::{constants::*, manager::viewer::View},
 };
+use std::collections::{HashMap, HashSet};
 use ultraviolet::Vec3;
 
 pub struct DebugRender {
-    pub visible: bool,
-    pub debug_visibility: DebugVisibility,
-    pub channel_vertex_vec_array: [Vec<DebugVertex>; DebugChannel::ALL.len()],
-    pub render_pipeline: wgpu::RenderPipeline,
+    pub debug_active: bool,
     pub camera_bind_group: wgpu::BindGroup,
-    pub vertex_buffer: wgpu::Buffer,
     pub vertex_capacity: usize,
     pub vertex_vec: Vec<DebugVertex>,
+    pub vertex_buffer: wgpu::Buffer,
+    pub channel_set: HashSet<DebugChannel>,
+    pub channel_vertex_map: HashMap<DebugChannel, Vec<DebugVertex>>,
+    pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl DebugRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let visible = false;
-        let debug_visibility = DebugVisibility::CHANNEL1 | DebugVisibility::SECTOR_BORDERS;
+        let debug_active = false;
 
         let vert_shader_module =
             gpu_context
@@ -44,6 +44,27 @@ impl DebugRender {
                         include_assets!("shaders/debug.frag.wgsl").into(),
                     ),
                 });
+
+        let vertex_vec = Vec::new();
+        let vertex_capacity = 64;
+
+        let vertex_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Debug Vertex Buffer"),
+            size: (vertex_capacity * std::mem::size_of::<DebugVertex>()) as u64,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let channel_set = HashSet::from([DebugChannel::SectorBorders, DebugChannel::Custom]);
+
+        let channel_vertex_map: HashMap<_, _> = DebugChannel::ALL
+            .into_iter()
+            .map(|debug_channel| {
+                let key = debug_channel;
+                let value = Vec::new();
+                (key, value)
+            })
+            .collect();
 
         let pipeline_layout =
             gpu_context
@@ -101,39 +122,28 @@ impl DebugRender {
                     cache: None,
                 });
 
-        let initial_capacity = 64;
-
-        let vertex_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Debug Lines Vertex Buffer"),
-            size: (initial_capacity * std::mem::size_of::<DebugVertex>()) as u64,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
-        let channel_vertex_vec_array: [Vec<DebugVertex>; DebugChannel::ALL.len()] =
-            std::array::from_fn(|_| Vec::new());
-
-        let vertex_vec = Vec::new();
-
         Self {
-            visible,
-            debug_visibility,
-            channel_vertex_vec_array,
-            render_pipeline,
+            debug_active,
             camera_bind_group: camera.uniform_bind_group.clone(),
-            vertex_buffer,
-            vertex_capacity: initial_capacity,
             vertex_vec,
+            vertex_capacity,
+            vertex_buffer,
+            channel_set,
+            channel_vertex_map,
+            render_pipeline,
         }
     }
 
-    #[inline]
-    pub fn clear_channel_vertex_vec(
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
-    ) {
-        for vertex_vec in channel_vertex_vec_array {
-            vertex_vec.clear();
-        }
+    pub fn toggle_debug_active(debug_render: &mut DebugRender) {
+        debug_render.debug_active = !debug_render.debug_active;
+    }
+
+    pub fn activate_channel(debug_channel: DebugChannel, debug_render: &mut DebugRender) {
+        debug_render.channel_set.insert(debug_channel);
+    }
+
+    pub fn deactivate_channel(debug_channel: DebugChannel, debug_render: &mut DebugRender) {
+        debug_render.channel_set.remove(&debug_channel);
     }
 
     pub fn add_line(
@@ -141,19 +151,19 @@ impl DebugRender {
         position1: Vec3,
         position2: Vec3,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
+        channel_vertex_map: &mut HashMap<DebugChannel, Vec<DebugVertex>>,
     ) {
-        let vertex_vec = &mut channel_vertex_vec_array[DebugChannel::index(debug_channel)];
+        if let Some(vertex_vec) = channel_vertex_map.get_mut(&debug_channel) {
+            vertex_vec.push(DebugVertex {
+                position: position1.into(),
+                color,
+            });
 
-        vertex_vec.push(DebugVertex {
-            position: position1.into(),
-            color,
-        });
-
-        vertex_vec.push(DebugVertex {
-            position: position2.into(),
-            color,
-        });
+            vertex_vec.push(DebugVertex {
+                position: position2.into(),
+                color,
+            });
+        }
     }
 
     pub fn add_ray(
@@ -162,7 +172,7 @@ impl DebugRender {
         direction: Vec3,
         length: f32,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
+        channel_vertex_map: &mut HashMap<DebugChannel, Vec<DebugVertex>>,
     ) {
         if direction.mag_sq() > 0.0 {
             Self::add_line(
@@ -170,7 +180,7 @@ impl DebugRender {
                 origin,
                 origin + direction.normalized() * length,
                 color,
-                channel_vertex_vec_array,
+                channel_vertex_map,
             );
         }
     }
@@ -179,14 +189,14 @@ impl DebugRender {
         debug_channel: DebugChannel,
         origin: Vec3,
         scale: f32,
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
+        channel_vertex_map: &mut HashMap<DebugChannel, Vec<DebugVertex>>,
     ) {
         Self::add_line(
             debug_channel,
             origin,
             origin + Vec3::unit_x() * scale,
             [1.0, 0.1, 0.1],
-            channel_vertex_vec_array,
+            channel_vertex_map,
         );
 
         Self::add_line(
@@ -194,7 +204,7 @@ impl DebugRender {
             origin,
             origin + Vec3::unit_y() * scale,
             [0.1, 1.0, 0.1],
-            channel_vertex_vec_array,
+            channel_vertex_map,
         );
 
         Self::add_line(
@@ -202,7 +212,7 @@ impl DebugRender {
             origin,
             origin + Vec3::unit_z() * scale,
             [0.1, 0.1, 1.0],
-            channel_vertex_vec_array,
+            channel_vertex_map,
         );
     }
 
@@ -211,7 +221,7 @@ impl DebugRender {
         min: Vec3,
         max: Vec3,
         color: [f32; 3],
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
+        channel_vertex_map: &mut HashMap<DebugChannel, Vec<DebugVertex>>,
     ) {
         let (x0, y0, z0) = (min.x, min.y, min.z);
         let (x1, y1, z1) = (max.x, max.y, max.z);
@@ -237,25 +247,25 @@ impl DebugRender {
                 position1,
                 position2,
                 color,
-                channel_vertex_vec_array,
+                channel_vertex_map,
             );
         }
     }
 
     pub fn apply_debug_view(_view: &View, debug_render: &mut DebugRender) {
-        if debug_render
-            .debug_visibility
-            .contains(DebugVisibility::CHANNEL1)
-        {}
+        if !debug_render.debug_active {
+            return;
+        }
 
         if debug_render
-            .debug_visibility
-            .contains(DebugVisibility::SECTOR_BORDERS)
+            .channel_set
+            .contains(&DebugChannel::SectorBorders)
         {
             let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
             let sector_size_in_cells: f32 = SECTOR_SIZE_IN_CELLS as f32;
 
-            let half_span = (world_radius_in_sectors as f32 + CELL_RADIUS_IN_METERS) * sector_size_in_cells;
+            let half_span =
+                (world_radius_in_sectors as f32 + CELL_RADIUS_IN_METERS) * sector_size_in_cells;
             let min = Vec3::broadcast(-half_span);
             let max = Vec3::broadcast(half_span);
 
@@ -272,7 +282,7 @@ impl DebugRender {
                         Vec3::new(min.x, y, z),
                         Vec3::new(max.x, y, z),
                         [1.0, 0.0, 0.0],
-                        &mut debug_render.channel_vertex_vec_array,
+                        &mut debug_render.channel_vertex_map,
                     );
                 }
             }
@@ -284,7 +294,7 @@ impl DebugRender {
                         Vec3::new(x, min.y, z),
                         Vec3::new(x, max.y, z),
                         [0.0, 1.0, 0.0],
-                        &mut debug_render.channel_vertex_vec_array,
+                        &mut debug_render.channel_vertex_map,
                     );
                 }
             }
@@ -296,34 +306,31 @@ impl DebugRender {
                         Vec3::new(x, y, min.z),
                         Vec3::new(x, y, max.z),
                         [0.0, 0.0, 1.0],
-                        &mut debug_render.channel_vertex_vec_array,
+                        &mut debug_render.channel_vertex_map,
                     );
                 }
             }
         }
+
+        if debug_render.channel_set.contains(&DebugChannel::Custom) {}
     }
 
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
-        camera: &Camera,
         debug_render: &mut DebugRender,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        if !debug_render.visible {
+        if !debug_render.debug_active || debug_render.channel_set.is_empty() {
             return;
         }
 
-        Self::render_debug_crosshair(camera, &mut debug_render.channel_vertex_vec_array);
-
         debug_render.vertex_vec.clear();
 
-        for (index, vertex_vec) in debug_render.channel_vertex_vec_array.iter().enumerate() {
-            let mask = DebugChannel::mask(DebugChannel::ALL[index]);
-
-            if debug_render.debug_visibility.contains(mask) {
-                debug_render.vertex_vec.extend_from_slice(&vertex_vec);
+        for debug_channel in &debug_render.channel_set {
+            if let Some(vertex_vec) = debug_render.channel_vertex_map.get_mut(&debug_channel) {
+                debug_render.vertex_vec.append(vertex_vec);
             }
         }
 
@@ -376,39 +383,5 @@ impl DebugRender {
         render_pass.set_bind_group(0, &debug_render.camera_bind_group, &[]);
         render_pass.set_vertex_buffer(0, debug_render.vertex_buffer.slice(..));
         render_pass.draw(0..(debug_render.vertex_vec.len() as u32), 0..1);
-
-        Self::clear_channel_vertex_vec(&mut debug_render.channel_vertex_vec_array);
-    }
-
-    pub fn render_debug_crosshair(
-        camera: &Camera,
-        channel_vertex_vec_array: &mut [Vec<DebugVertex>; DebugChannel::ALL.len()],
-    ) {
-        use crate::interface::debug::DebugChannel;
-
-        let size = 0.01;
-        let origin = camera.position + camera.forward * 1.0;
-
-        let horizontal_left = origin - camera.right * size;
-        let horizontal_right = origin + camera.right * size;
-
-        let vertical_down = origin - camera.up * size;
-        let vertical_up = origin + camera.up * size;
-
-        DebugRender::add_line(
-            DebugChannel::Channel1,
-            horizontal_left,
-            horizontal_right,
-            [1.0, 1.0, 1.0],
-            channel_vertex_vec_array,
-        );
-
-        DebugRender::add_line(
-            DebugChannel::Channel1,
-            vertical_down,
-            vertical_up,
-            [1.0, 1.0, 1.0],
-            channel_vertex_vec_array,
-        );
     }
 }

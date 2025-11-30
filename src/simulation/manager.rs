@@ -67,7 +67,9 @@ impl Manager {
         }
 
         Manager::handle_messages(state, manager);
+        
         Viewer::tick(manager, state);
+
         Manager::update_timestep(manager);
 
         true
