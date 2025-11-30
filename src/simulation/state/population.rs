@@ -22,7 +22,8 @@ pub struct Population {
     pub rng: ChaCha8Rng,
     pub judge: Judge,
     pub agent_map: HashMap<u64, Agent>,
-    pub next_id: u64,
+    pub next_judge_id: u64,
+    pub next_agent_id: u64,
 }
 
 impl Population {
@@ -30,22 +31,33 @@ impl Population {
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let judge = Judge::new(0);
         let agent_map = HashMap::new();
-        let next_id = 1;
+        
+        let next_judge_id = 1;
+        let next_agent_id = 0;
 
         Self {
+            next_judge_id,
+            next_agent_id,
             rng,
             judge,
             agent_map,
-            next_id,
         }
     }
 
-    pub fn get_id(population: &mut Population) -> u64 {
-        let id = population.next_id;
+    pub fn get_next_judge_id(population: &mut Population) -> u64 {
+        let judge_id = population.next_judge_id;
 
-        population.next_id += 1;
+        population.next_judge_id += 1;
 
-        id
+        judge_id
+    }
+
+    pub fn get_next_agent_id(population: &mut Population) -> u64 {
+        let agent_id = population.next_agent_id;
+
+        population.next_agent_id += 1;
+
+        agent_id
     }
 
     pub fn tick(world: &World, population: &mut Population) {
