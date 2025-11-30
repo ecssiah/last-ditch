@@ -1,5 +1,5 @@
-use crate::simulation::{manager::work::population_task::PopulationTask, state::State};
 use std::collections::VecDeque;
+use crate::simulation::state::{work::population_task::PopulationTask, State};
 
 #[derive(Clone)]
 pub struct PopulationWorker {
@@ -31,13 +31,17 @@ impl PopulationWorker {
         }
     }
 
-    pub fn work(state: &mut State, task_deque: &mut VecDeque<PopulationTask>) {
-        if let Some(mut population_task) = task_deque.pop_front() {
+    pub fn work(state: &mut State) {
+        if let Some(mut population_task) = state.work.population_worker.task_deque.pop_front() {
             let done =
                 PopulationTask::step(&state.world, &mut state.population, &mut population_task);
 
             if !done {
-                task_deque.push_back(population_task)
+                state
+                    .work
+                    .population_worker
+                    .task_deque
+                    .push_back(population_task)
             }
         }
     }

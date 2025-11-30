@@ -1,4 +1,4 @@
-use crate::simulation::{manager::work::world_task::WorldTask, state::State};
+use crate::simulation::state::{work::world_task::WorldTask, State};
 use std::collections::VecDeque;
 
 #[derive(Clone)]
@@ -31,12 +31,12 @@ impl WorldWorker {
         }
     }
 
-    pub fn work(state: &mut State, task_deque: &mut VecDeque<WorldTask>) {
-        if let Some(mut world_task) = task_deque.pop_front() {
+    pub fn work(state: &mut State) {
+        if let Some(mut world_task) = state.work.world_worker.task_deque.pop_front() {
             let done = WorldTask::step(&mut state.world, &mut world_task);
 
             if !done {
-                task_deque.push_back(world_task)
+                state.work.world_worker.task_deque.push_back(world_task)
             }
         }
     }

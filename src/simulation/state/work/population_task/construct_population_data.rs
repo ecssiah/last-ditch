@@ -20,7 +20,7 @@ impl ConstructPopulationData {
         match construct_population_data.stage {
             0 => 10,
             1 => 10,
-            _ => 100,
+            _ => 0,
         }
     }
 

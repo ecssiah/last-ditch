@@ -1,9 +1,6 @@
 pub mod construct_population_data;
 
-use crate::simulation::{
-    manager::work::population_task::construct_population_data::ConstructPopulationData,
-    state::{Population, World},
-};
+use crate::simulation::state::{Population, World, work::population_task::construct_population_data::ConstructPopulationData};
 
 #[derive(Clone)]
 pub enum PopulationTask {

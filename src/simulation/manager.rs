@@ -2,7 +2,6 @@ pub mod message;
 pub mod status;
 pub mod timestep;
 pub mod viewer;
-pub mod work;
 
 pub use message::Message;
 pub use timestep::Timestep;
@@ -10,21 +9,17 @@ pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{
-        status::Status,
-        viewer::View,
+    manager::{status::Status, viewer::View},
+    state::{
+        action::{
+            act::{self},
+            Act,
+        },
         work::{
             population_task::{construct_population_data::ConstructPopulationData, PopulationTask},
             population_worker::PopulationWorker,
             world_task::{construct_world_data::ConstructWorldData, WorldTask},
             world_worker::WorldWorker,
-            Work,
-        },
-    },
-    state::{
-        action::{
-            act::{self},
-            Act,
         },
         world::block::Kind,
         State,
@@ -35,7 +30,6 @@ use std::time::{Duration, Instant};
 pub struct Manager {
     pub status: Status,
     pub timestep: Timestep,
-    pub work: Work,
     pub viewer: Viewer,
     pub message_rx: crossbeam::channel::Receiver<Message>,
 }
@@ -47,13 +41,11 @@ impl Manager {
     ) -> Self {
         let status = Status::Run;
         let timestep = Timestep::new();
-        let work = Work::new();
         let viewer = Viewer::new(view_input);
 
         Self {
             status,
             timestep,
-            work,
             viewer,
             message_rx,
         }
@@ -75,10 +67,7 @@ impl Manager {
         }
 
         Manager::handle_messages(state, manager);
-
-        Work::tick(state, &mut manager.work);
         Viewer::tick(manager, state);
-
         Manager::update_timestep(manager);
 
         true
@@ -98,9 +87,7 @@ impl Manager {
             Message::Move(move_data) => Self::handle_move_message(move_data, state),
             Message::Jump => Self::handle_jump_message(state),
             Message::Debug => todo!(),
-            Message::Generate(generate_data) => {
-                Self::handle_generate_message(generate_data, state, manager)
-            }
+            Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Option1 => Self::handle_option1_message(state),
             Message::Option2 => Self::handle_option2_message(state),
@@ -141,26 +128,20 @@ impl Manager {
         state.action.act_deque.push_back(Act::Jump);
     }
 
-    fn handle_generate_message(
-        generate_data: &message::GenerateData,
-        state: &mut State,
-        manager: &mut Manager,
-    ) {
+    fn handle_generate_message(generate_data: &message::GenerateData, state: &mut State) {
         State::seed(generate_data.seed, state);
 
         let construct_world_data = ConstructWorldData { stage: 0 };
-
         let world_task = WorldTask::ConstructWorld(construct_world_data);
 
-        WorldWorker::enqueue(world_task, &mut manager.work.world_worker.task_deque);
+        WorldWorker::enqueue(world_task, &mut state.work.world_worker.task_deque);
 
         let construct_population_data = ConstructPopulationData { stage: 0 };
-
         let population_task = PopulationTask::ConstructPopulation(construct_population_data);
 
         PopulationWorker::enqueue(
             population_task,
-            &mut manager.work.population_worker.task_deque,
+            &mut state.work.population_worker.task_deque,
         );
     }
 

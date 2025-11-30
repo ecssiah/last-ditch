@@ -1,4 +1,4 @@
-use crate::simulation::{manager::work::navigation_task::NavigationTask, state::State};
+use crate::simulation::state::{work::navigation_task::NavigationTask, State};
 use std::collections::VecDeque;
 
 #[derive(Clone)]
@@ -27,12 +27,16 @@ impl NavigationWorker {
         1
     }
 
-    pub fn work(state: &mut State, task_deque: &mut VecDeque<NavigationTask>) {
-        if let Some(mut navigation_task) = task_deque.pop_front() {
+    pub fn work(state: &mut State) {
+        if let Some(mut navigation_task) = state.work.navigation_worker.task_deque.pop_front() {
             let done = NavigationTask::step(&mut state.navigation, &mut navigation_task);
 
             if !done {
-                task_deque.push_back(navigation_task)
+                state
+                    .work
+                    .navigation_worker
+                    .task_deque
+                    .push_back(navigation_task)
             }
         }
     }

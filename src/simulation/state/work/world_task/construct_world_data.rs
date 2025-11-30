@@ -16,7 +16,7 @@ impl ConstructWorldData {
             0 => 10,
             1 => 10,
             2 => 10,
-            _ => 100,
+            _ => 0,
         }
     }
 
