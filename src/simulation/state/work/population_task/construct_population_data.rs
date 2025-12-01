@@ -69,7 +69,7 @@ impl ConstructPopulationData {
                         0.0,
                     );
 
-                    let agent_id = Population::get_next_agent_id(population);
+                    let agent_id = Population::get_next_entity_id(population);
 
                     let mut agent = Agent::new(agent_id, nation_kind);
 
@@ -92,7 +92,7 @@ impl ConstructPopulationData {
 
                     Spatial::set_size(agent_size, &mut agent.spatial);
 
-                    population.agent_map.insert(agent.agent_id, agent);
+                    population.agent_map.insert(agent.entity_id, agent);
                 }
             }
         }

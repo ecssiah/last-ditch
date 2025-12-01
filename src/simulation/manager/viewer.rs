@@ -120,7 +120,7 @@ impl Viewer {
 
             population_view
                 .agent_view_map
-                .insert(agent.agent_id, agent_view);
+                .insert(agent.entity_id, agent_view);
         }
 
         population_view

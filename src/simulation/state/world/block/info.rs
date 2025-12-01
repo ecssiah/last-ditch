@@ -53,25 +53,25 @@ impl Info {
                 },
             ),
             (
-                block::Kind::MagentaStone,
+                block::Kind::LionStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::PurpleStone,
+                block::Kind::EagleStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::TealStone,
+                block::Kind::WolfStone,
                 Info {
                     solid: true,
                 },
             ),
             (
-                block::Kind::CrimsonStone,
+                block::Kind::HorseStone,
                 Info {
                     solid: true,
                 },

@@ -1,25 +1,33 @@
 pub mod state;
+pub mod tree;
 
 pub use state::State;
+pub use tree::Tree;
+
+use crate::simulation::state::{
+    navigation::Navigation,
+    population::{agent::Agent, behavior},
+    world::grid,
+};
 use ultraviolet::IVec3;
 
-use crate::simulation::state::{navigation::Navigation, population::agent::Agent, world::grid};
-
 pub struct Behavior {
-    pub state: State,
+    pub tree: behavior::Tree,
+    pub state: behavior::State,
 }
 
 impl Behavior {
     pub fn new() -> Self {
-        let state = State::Idle;
+        let tree = behavior::Tree::new();
+        let state = behavior::State::Idle;
 
-        Self { state }
+        Self { tree, state }
     }
 
     pub fn tick(navigation: &mut Navigation, agent: &mut Agent) {
         match &agent.behavior.state {
-            State::Idle => (),
-            State::Navigating {
+            behavior::State::Idle => (),
+            behavior::State::Navigating {
                 grid_position,
                 path_request_id,
             } => Self::handle_navigating_state(
@@ -29,7 +37,7 @@ impl Behavior {
                 navigation,
                 &mut agent.behavior,
             ),
-            State::Moving { path_vec } => {
+            behavior::State::Moving { path_vec } => {
                 Self::handle_moving_state(path_vec.clone(), &mut agent.behavior)
             }
         }
@@ -46,7 +54,7 @@ impl Behavior {
             if Navigation::poll_result(path_request_id, navigation) {
                 if let Some(mut path_result) = Navigation::take_result(path_request_id, navigation)
                 {
-                    behavior.state = State::Moving {
+                    behavior.state = behavior::State::Moving {
                         path_vec: std::mem::take(&mut path_result.path_vec),
                     };
                 }
@@ -55,7 +63,7 @@ impl Behavior {
             let path_request_id =
                 Navigation::make_request(start_grid_position, end_grid_position, navigation);
 
-            behavior.state = State::Navigating {
+            behavior.state = behavior::State::Navigating {
                 grid_position: end_grid_position,
                 path_request_id: Some(path_request_id),
             };

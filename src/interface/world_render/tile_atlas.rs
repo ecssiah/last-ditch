@@ -184,7 +184,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::MagentaStone => {
+            block::Kind::LionStone => {
                 let tile_coordinate_array = [
                     [0, 4],
                     [0, 4],
@@ -196,7 +196,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::PurpleStone => {
+            block::Kind::EagleStone => {
                 let tile_coordinate_array = [
                     [1, 4],
                     [1, 4],
@@ -208,7 +208,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::TealStone => {
+            block::Kind::WolfStone => {
                 let tile_coordinate_array = [
                     [2, 4],
                     [2, 4],
@@ -220,7 +220,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::CrimsonStone => {
+            block::Kind::HorseStone => {
                 let tile_coordinate_array = [
                     [3, 4],
                     [3, 4],

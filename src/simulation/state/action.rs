@@ -27,7 +27,7 @@ impl Action {
     }
 
     pub fn tick(state: &mut State) {
-        let _ = tracing::info_span!("action_tick");
+        let _ = tracing::info_span!("action_tick").entered();
 
         if !state.action.active {
             return;

@@ -1,26 +1,22 @@
 //! Time within simulation
 
-pub mod tick;
-
-pub use tick::Tick;
-
 use std::time::Instant;
 
 pub struct Time {
-    pub tick: Tick,
+    pub tick: u64,
     pub instant: Instant,
 }
 
 impl Time {
     pub fn new() -> Self {
         Self {
-            tick: Tick::ZERO,
+            tick: 0,
             instant: Instant::now(),
         }
     }
 
     pub fn tick(time: &mut Time) {
-        let _time_span = tracing::info_span!("time_tick").entered();
+        let _ = tracing::info_span!("time_tick").entered();
 
         time.tick += 1;
     }

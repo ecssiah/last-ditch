@@ -15,7 +15,7 @@ use crate::simulation::{
 };
 
 pub struct Judge {
-    pub population_id: u64,
+    pub entity_id: u64,
     pub identity: Identity,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
@@ -24,7 +24,7 @@ pub struct Judge {
 }
 
 impl Judge {
-    pub fn new(population_id: u64) -> Self {
+    pub fn new(entity_id: u64) -> Self {
         let identity = Identity {
             role: population::Role::Judge,
             nation_kind: nation::Kind::Eagle,
@@ -53,7 +53,7 @@ impl Judge {
         let selected_block_kind = block::Kind::Engraved1;
 
         Self {
-            population_id,
+            entity_id,
             identity,
             spatial,
             kinematic,

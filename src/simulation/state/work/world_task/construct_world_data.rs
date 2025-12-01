@@ -26,7 +26,7 @@ impl ConstructWorldData {
     pub fn step(world: &mut World, construct_world_data: &mut ConstructWorldData) -> bool {
         match construct_world_data.stage {
             0 => {
-                ConstructWorldData::build_central_room(world);
+                ConstructWorldData::build_central_stage(world);
                 ConstructWorldData::build_ground(world);
 
                 construct_world_data.stage += 1;
@@ -82,36 +82,39 @@ impl ConstructWorldData {
     }
 
     pub fn build_compass(world: &mut World) {
+        let radius = 4;
+        let height = 2;
+
         World::set_block(
             IVec3::new(0, 0, 0),
-            block::Kind::TealStone,
+            block::Kind::Stone2,
             &world.block_info_map,
             &mut world.sector_vec,
         );
 
         World::set_block(
-            IVec3::new(0, 4, 6),
+            IVec3::new(0, radius, height),
             block::Kind::NorthBlock,
             &world.block_info_map,
             &mut world.sector_vec,
         );
 
         World::set_block(
-            IVec3::new(-4, 0, 6),
+            IVec3::new(-radius, 0, height),
             block::Kind::WestBlock,
             &world.block_info_map,
             &mut world.sector_vec,
         );
 
         World::set_block(
-            IVec3::new(0, -4, 6),
+            IVec3::new(0, -radius, height),
             block::Kind::SouthBlock,
             &world.block_info_map,
             &mut world.sector_vec,
         );
 
         World::set_block(
-            IVec3::new(4, 0, 6),
+            IVec3::new(radius, 0, height),
             block::Kind::EastBlock,
             &world.block_info_map,
             &mut world.sector_vec,
@@ -275,13 +278,118 @@ impl ConstructWorldData {
         );
     }
 
-    fn build_central_room(world: &mut World) {
+    fn build_central_stage(world: &mut World) {
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
 
         World::set_box(
             IVec3::broadcast(-sector_radius_in_cells),
             IVec3::broadcast(sector_radius_in_cells),
             block::Kind::Stone2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        // East
+
+        World::set_cube(
+            IVec3::new(sector_radius_in_cells, -2, -1),
+            IVec3::new(sector_radius_in_cells, 2, 4),
+            block::Kind::Engraved2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(sector_radius_in_cells, -1, 0),
+            IVec3::new(sector_radius_in_cells, 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(sector_size_in_cells - 1, -1, 0),
+            IVec3::new(sector_size_in_cells + 1, 1, 12),
+            block::Kind::WolfStone,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        // West
+
+        World::set_cube(
+            IVec3::new(-sector_radius_in_cells, -2, -1),
+            IVec3::new(-sector_radius_in_cells, 2, 4),
+            block::Kind::Engraved2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-sector_radius_in_cells, -1, 0),
+            IVec3::new(-sector_radius_in_cells, 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-sector_size_in_cells - 1, -1, 0),
+            IVec3::new(-sector_size_in_cells + 1, 1, 12),
+            block::Kind::LionStone,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        // North
+
+        World::set_cube(
+            IVec3::new(-2, sector_radius_in_cells, -1),
+            IVec3::new(2, sector_radius_in_cells, 4),
+            block::Kind::Engraved2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, sector_radius_in_cells, 0),
+            IVec3::new(1, sector_radius_in_cells, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, sector_size_in_cells - 1, 0),
+            IVec3::new(1, sector_size_in_cells + 1, 12),
+            block::Kind::EagleStone,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        // South
+
+        World::set_cube(
+            IVec3::new(-2, -sector_radius_in_cells, -1),
+            IVec3::new(2, -sector_radius_in_cells, 4),
+            block::Kind::Engraved2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, -sector_radius_in_cells, 0),
+            IVec3::new(1, -sector_radius_in_cells, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, -sector_size_in_cells - 1, 0),
+            IVec3::new(1, -sector_size_in_cells + 1, 12),
+            block::Kind::HorseStone,
             &world.block_info_map,
             &mut world.sector_vec,
         );

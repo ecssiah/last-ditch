@@ -53,7 +53,7 @@ impl World {
     }
 
     pub fn tick(world: &mut World) {
-        let _ = tracing::info_span!("world_tick");
+        let _ = tracing::info_span!("world_tick").entered();
 
         if !world.active {
             return;
