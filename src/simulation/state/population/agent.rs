@@ -1,9 +1,6 @@
 use crate::simulation::state::{
     navigation::Navigation,
-    population::{
-        self, behavior::Behavior, identity::Identity, kinematic::Kinematic, nation,
-        spatial::Spatial,
-    },
+    population::{self, identity::Identity, kinematic::Kinematic, nation, spatial::Spatial},
 };
 
 pub struct Agent {
@@ -11,7 +8,6 @@ pub struct Agent {
     pub identity: Identity,
     pub spatial: Spatial,
     pub kinematic: Kinematic,
-    pub behavior: Behavior,
 }
 
 impl Agent {
@@ -23,20 +19,16 @@ impl Agent {
 
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
-        let behavior = Behavior::new();
 
         Self {
             entity_id,
             identity,
             spatial,
             kinematic,
-            behavior,
         }
     }
 
-    pub fn tick(navigation: &mut Navigation, agent: &mut Agent) {
-        Behavior::tick(navigation, agent);
-
+    pub fn tick(_navigation: &mut Navigation, agent: &mut Agent) {
         Spatial::update_sector_id(&mut agent.spatial);
     }
 }

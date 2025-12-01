@@ -1,7 +1,6 @@
 //! Entities acting in the simulated environment
 
 pub mod agent;
-pub mod behavior;
 pub mod identity;
 pub mod judge;
 pub mod kinematic;
