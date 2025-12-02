@@ -84,3 +84,9 @@ pub const AGENT_DEFAULT_JUMP_SPEED: f32 = 8.0;
 pub const AGENT_DEFAULT_SIZE_X: f32 = 0.6;
 pub const AGENT_DEFAULT_SIZE_Y: f32 = 0.6;
 pub const AGENT_DEFAULT_SIZE_Z: f32 = 1.73;
+
+pub const FLOOR_HEIGHT: usize = 8;
+pub const FLOOR_COUNT: usize = 4;
+pub const BUILDING_RADIUS: usize = WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS;
+
+pub const CENTRAL_ELEVATOR_SHAFT_RADIUS: usize = 3;

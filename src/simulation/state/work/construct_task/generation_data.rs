@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     simulation::{
         constants::*,
@@ -9,7 +11,7 @@ use crate::{
                 sight::Sight,
                 spatial::Spatial,
             },
-            world::{block, grid},
+            world::block,
             Population, State, World,
         },
     },
@@ -20,68 +22,67 @@ use ultraviolet::{IVec3, Vec3};
 #[derive(Clone)]
 pub struct GenerationData {
     pub stage_index: usize,
-    pub stage_cost_vec: Vec<u32>,
+    pub stage_cost_map: HashMap<usize, u32>,
 }
 
 impl GenerationData {
     pub fn new() -> Self {
         let stage_index = 0;
-        let stage_cost_vec = Vec::from([100, 100, 100]);
+        let stage_cost_map = HashMap::from([(0, 100), (1, 100), (2, 100), (3, 100), (4, 100)]);
 
         Self {
             stage_index,
-            stage_cost_vec,
+            stage_cost_map,
         }
     }
 
     pub fn cost(generation_data: &GenerationData) -> u32 {
-        generation_data.stage_cost_vec[generation_data.stage_index]
+        generation_data.stage_cost_map[&generation_data.stage_index]
     }
 
     pub fn step(state: &mut State, generation_data: &mut GenerationData) -> bool {
         match generation_data.stage_index {
             0 => {
+                GenerationData::construct_elevator_shaft(&mut state.world);
                 GenerationData::construct_building_frame(&mut state.world);
-
-                GenerationData::next_stage(generation_data)
             }
             1 => {
                 GenerationData::construct_halls(&mut state.world);
-
-                GenerationData::next_stage(generation_data)
             }
             2 => {
+                GenerationData::construct_fascade(&mut state.world);
+            }
+            3 => {
+                GenerationData::construct_central_shaft(&mut state.world);
+            }
+            4 => {
                 GenerationData::setup_nations(&mut state.population);
                 GenerationData::setup_judge(&mut state.population);
                 GenerationData::setup_agent_map(&state.world, &mut state.population);
-
-                GenerationData::next_stage(generation_data)
             }
             _ => unreachable!(),
         }
+
+        GenerationData::next_stage(generation_data)
     }
 
     fn next_stage(generation_data: &mut GenerationData) -> bool {
         generation_data.stage_index += 1;
 
-        generation_data.stage_index >= generation_data.stage_cost_vec.len()
+        generation_data.stage_index >= generation_data.stage_cost_map.len()
     }
 
     fn construct_building_frame(world: &mut World) {
-        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
-        let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
+        let floor_height = FLOOR_HEIGHT as i32;
+        let building_radius = BUILDING_RADIUS as i32;
 
-        let floor_height = 8;
-        let floor_count = 3;
-        let building_radius = WORLD_RADIUS_IN_CELLS as i32 - SECTOR_SIZE_IN_CELLS as i32;
-
-        for floor_number in 1..=floor_count {
-            let floor_position = -floor_number * floor_height;
+        for floor_number in 1..=FLOOR_COUNT {
+            let floor_position = -(floor_number as i32) * floor_height;
 
             World::set_cube(
                 IVec3::new(-building_radius, -building_radius, floor_position),
                 IVec3::new(building_radius, building_radius, floor_position),
-                block::Kind::Polished1,
+                block::Kind::Polished2,
                 &world.block_info_map,
                 &mut world.sector_vec,
             );
@@ -90,14 +91,14 @@ impl GenerationData {
                 IVec3::new(
                     -building_radius,
                     -building_radius,
-                    floor_position + floor_height,
+                    floor_position + floor_height - 1,
                 ),
                 IVec3::new(
                     building_radius,
                     building_radius,
-                    floor_position + floor_height,
+                    floor_position + floor_height - 1,
                 ),
-                block::Kind::Polished1,
+                block::Kind::Polished2,
                 &world.block_info_map,
                 &mut world.sector_vec,
             );
@@ -114,20 +115,34 @@ impl GenerationData {
                 &mut world.sector_vec,
             );
         }
+
+        World::set_block(
+            IVec3::new(0, 0, 0),
+            block::Kind::EsayaBlock,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
     }
 
     fn construct_halls(world: &mut World) {
-        let floor_height = 8;
-        let floor_count = 3;
-        let building_radius = WORLD_RADIUS_IN_CELLS as i32 - SECTOR_SIZE_IN_CELLS as i32;
+        let floor_height = FLOOR_HEIGHT as i32;
+        let building_radius = BUILDING_RADIUS as i32;
 
-        for floor_number in 1..=floor_count {
-            let floor_position = -floor_number * floor_height;
+        for floor_number in 1..=FLOOR_COUNT {
+            let floor_position = -(floor_number as i32) * floor_height;
 
             World::set_cube(
                 IVec3::new(-building_radius + 1, -1, floor_position),
                 IVec3::new(building_radius - 1, 1, floor_position),
                 block::Kind::Stone1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            World::set_cube(
+                IVec3::new(-building_radius + 1, -1, floor_position + 1),
+                IVec3::new(building_radius - 1, 1, floor_position + 4),
+                block::Kind::None,
                 &world.block_info_map,
                 &mut world.sector_vec,
             );
@@ -139,345 +154,186 @@ impl GenerationData {
                 &world.block_info_map,
                 &mut world.sector_vec,
             );
+
+            World::set_cube(
+                IVec3::new(-1, -building_radius + 1, floor_position + 1),
+                IVec3::new(1, building_radius - 1, floor_position + 4),
+                block::Kind::None,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
         }
+
+        World::set_cube(
+            IVec3::new(-building_radius + 1, -1, 0),
+            IVec3::new(building_radius - 1, 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, -building_radius + 1, 0),
+            IVec3::new(1, building_radius - 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
     }
 
-    pub fn build_ground(world: &mut World) {
-        let ground_boundary = (WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS) as i32;
+    fn construct_fascade(world: &mut World) {
+        let floor_height = FLOOR_HEIGHT as i32;
+        let building_radius = BUILDING_RADIUS as i32;
 
-        for z in -1..=0 {
-            for y in -ground_boundary..=ground_boundary {
-                for x in -ground_boundary..=ground_boundary {
-                    let position = IVec3::new(x as i32, y as i32, z as i32);
+        for floor_number in 1..=FLOOR_COUNT {
+            let floor_position = -(floor_number as i32) * floor_height;
 
-                    let sector_coordinate = grid::grid_position_to_sector_coordinate(position);
+            let wall_height_min = floor_position + 1;
+            let wall_height_max = floor_position + floor_height - 2;
 
-                    let component_sum =
-                        sector_coordinate.x + sector_coordinate.y + sector_coordinate.z;
+            for y in -building_radius + 1..=building_radius - 1 {
+                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
 
-                    let kind = if component_sum % 2 == 0 {
-                        block::Kind::Polished1
-                    } else {
-                        block::Kind::Polished2
-                    };
+                let wall_height_random = rand_chacha_ext::gen_range_i32(
+                    wall_height_min,
+                    wall_height_max,
+                    &mut world.rng,
+                );
 
-                    World::set_block(position, kind, &world.block_info_map, &mut world.sector_vec);
+                if coin_flip == 0 {
+                    World::set_cube(
+                        IVec3::new(-building_radius, y, wall_height_min),
+                        IVec3::new(-building_radius, y, wall_height_random),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                } else {
+                    World::set_cube(
+                        IVec3::new(-building_radius, y, wall_height_random),
+                        IVec3::new(-building_radius, y, wall_height_max),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                }
+
+                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+
+                let wall_height_random = rand_chacha_ext::gen_range_i32(
+                    wall_height_min,
+                    wall_height_max,
+                    &mut world.rng,
+                );
+
+                if coin_flip == 0 {
+                    World::set_cube(
+                        IVec3::new(building_radius, y, wall_height_min),
+                        IVec3::new(building_radius, y, wall_height_random),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                } else {
+                    World::set_cube(
+                        IVec3::new(building_radius, y, wall_height_random),
+                        IVec3::new(building_radius, y, wall_height_max),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                }
+            }
+
+            for x in -building_radius + 1..=building_radius - 1 {
+                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+
+                let wall_height_random = rand_chacha_ext::gen_range_i32(
+                    wall_height_min,
+                    wall_height_max,
+                    &mut world.rng,
+                );
+
+                if coin_flip == 0 {
+                    World::set_cube(
+                        IVec3::new(x, -building_radius, wall_height_min),
+                        IVec3::new(x, -building_radius, wall_height_random),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                } else {
+                    World::set_cube(
+                        IVec3::new(x, -building_radius, wall_height_random),
+                        IVec3::new(x, -building_radius, wall_height_max),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                }
+
+                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+
+                let wall_height_random = rand_chacha_ext::gen_range_i32(
+                    wall_height_min,
+                    wall_height_max,
+                    &mut world.rng,
+                );
+
+                if coin_flip == 0 {
+                    World::set_cube(
+                        IVec3::new(x, building_radius, wall_height_min),
+                        IVec3::new(x, building_radius, wall_height_random),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                } else {
+                    World::set_cube(
+                        IVec3::new(x, building_radius, wall_height_random),
+                        IVec3::new(x, building_radius, wall_height_max),
+                        block::Kind::Polished1,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
                 }
             }
         }
     }
 
-    pub fn build_compass(world: &mut World) {
-        let radius = 4;
-        let height = 0;
+    fn construct_elevator_shaft(world: &mut World) {
+        let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
 
-        World::set_block(
-            IVec3::new(0, 0, 0),
+        World::set_shell(
+            IVec3::new(
+                -shaft_radius,
+                -shaft_radius,
+                -(WORLD_RADIUS_IN_CELLS as i32),
+            ),
+            IVec3::new(shaft_radius, shaft_radius, 6),
             block::Kind::Stone2,
             &world.block_info_map,
             &mut world.sector_vec,
         );
-
-        World::set_block(
-            IVec3::new(0, radius, height),
-            block::Kind::NorthBlock,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_block(
-            IVec3::new(-radius, 0, height),
-            block::Kind::WestBlock,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_block(
-            IVec3::new(0, -radius, height),
-            block::Kind::SouthBlock,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_block(
-            IVec3::new(radius, 0, height),
-            block::Kind::EastBlock,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
     }
 
-    pub fn build_temple(x: i32, y: i32, z: i32, nation_kind: nation::Kind, world: &mut World) {
-        World::set_block(
-            IVec3::new(x, y, z + 6),
-            Nation::block(&nation_kind),
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 8, y - 8, z + 1),
-            IVec3::new(x + 8, y + 8, z + 1),
-            block::Kind::Stone1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 7, y - 7, z + 2),
-            IVec3::new(x + 7, y + 7, z + 2),
-            block::Kind::Stone1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 6, y - 6, z + 8),
-            IVec3::new(x + 6, y + 6, z + 8),
-            block::Kind::Stone1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 5, y - 5, z + 9),
-            IVec3::new(x + 5, y + 5, z + 9),
-            block::Kind::Stone1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 5, y - 5, z + 8),
-            IVec3::new(x + 5, y + 5, z + 8),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x + 5, y + 5, z + 1),
-            IVec3::new(x + 5, y + 5, z + 8),
-            block::Kind::Engraved1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 5, y + 5, z + 1),
-            IVec3::new(x - 5, y + 5, z + 8),
-            block::Kind::Engraved1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x + 5, y - 5, z + 1),
-            IVec3::new(x + 5, y - 5, z + 8),
-            block::Kind::Engraved1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(x - 5, y - 5, z + 1),
-            IVec3::new(x - 5, y - 5, z + 8),
-            block::Kind::Engraved1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-    }
-
-    pub fn build_observation_deck(world: &mut World) {
-        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
-        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
-
-        let height = 16;
-        let center = 3 * sector_size_in_cells;
-
-        World::set_cube(
-            IVec3::new(-center + 1, -center + 1, height),
-            IVec3::new(-center - 1, -center - 1, 0),
-            block::Kind::Polished2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(center + 1, -center + 1, height),
-            IVec3::new(center - 1, -center - 1, 0),
-            block::Kind::Polished2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-center + 1, center + 1, height),
-            IVec3::new(-center - 1, center - 1, 0),
-            block::Kind::Polished2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(center + 1, center + 1, height),
-            IVec3::new(center - 1, center - 1, 0),
-            block::Kind::Polished2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(
-                -center - sector_radius_in_cells,
-                -center - sector_radius_in_cells,
-                height,
-            ),
-            IVec3::new(
-                center + sector_radius_in_cells,
-                center + sector_radius_in_cells,
-                height,
-            ),
-            block::Kind::Polished1,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(
-                -center + sector_radius_in_cells + 1,
-                -center + sector_radius_in_cells + 1,
-                height,
-            ),
-            IVec3::new(
-                center - sector_radius_in_cells - 1,
-                center - sector_radius_in_cells - 1,
-                height,
-            ),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-    }
-
-    fn build_central_stage(world: &mut World) {
-        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
-        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
+    fn construct_central_shaft(world: &mut World) {
+        let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
 
         World::set_box(
-            IVec3::broadcast(-sector_radius_in_cells),
-            IVec3::broadcast(sector_radius_in_cells),
-            block::Kind::Stone2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        // East
-
-        World::set_cube(
-            IVec3::new(sector_radius_in_cells, -2, -1),
-            IVec3::new(sector_radius_in_cells, 2, 4),
-            block::Kind::Engraved2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(sector_radius_in_cells, -1, 0),
-            IVec3::new(sector_radius_in_cells, 1, 3),
+            IVec3::new(
+                -(shaft_radius - 2),
+                -(shaft_radius - 2),
+                -(WORLD_RADIUS_IN_CELLS as i32) + 1,
+            ),
+            IVec3::new(shaft_radius - 2, shaft_radius - 2, 5),
             block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(sector_size_in_cells - 1, -1, 0),
-            IVec3::new(sector_size_in_cells + 1, 1, 12),
-            block::Kind::WolfStone,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        // West
-
-        World::set_cube(
-            IVec3::new(-sector_radius_in_cells, -2, -1),
-            IVec3::new(-sector_radius_in_cells, 2, 4),
-            block::Kind::Engraved2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-sector_radius_in_cells, -1, 0),
-            IVec3::new(-sector_radius_in_cells, 1, 3),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-sector_size_in_cells - 1, -1, 0),
-            IVec3::new(-sector_size_in_cells + 1, 1, 12),
-            block::Kind::LionStone,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        // North
-
-        World::set_cube(
-            IVec3::new(-2, sector_radius_in_cells, -1),
-            IVec3::new(2, sector_radius_in_cells, 4),
-            block::Kind::Engraved2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, sector_radius_in_cells, 0),
-            IVec3::new(1, sector_radius_in_cells, 3),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, sector_size_in_cells - 1, 0),
-            IVec3::new(1, sector_size_in_cells + 1, 12),
-            block::Kind::EagleStone,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        // South
-
-        World::set_cube(
-            IVec3::new(-2, -sector_radius_in_cells, -1),
-            IVec3::new(2, -sector_radius_in_cells, 4),
-            block::Kind::Engraved2,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, -sector_radius_in_cells, 0),
-            IVec3::new(1, -sector_radius_in_cells, 3),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, -sector_size_in_cells - 1, 0),
-            IVec3::new(1, -sector_size_in_cells + 1, 12),
-            block::Kind::HorseStone,
             &world.block_info_map,
             &mut world.sector_vec,
         );
     }
 
-    pub fn setup_nations(population: &mut Population) {
+    fn setup_nations(population: &mut Population) {
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
 
         let wolf_nation = Nation {
@@ -513,13 +369,13 @@ impl GenerationData {
     pub fn setup_judge(population: &mut Population) {
         let judge = &mut population.judge;
 
-        Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);
+        Judge::set_world_position(Vec3::new(0.0, -4.0, 1.0), judge);
         Judge::set_rotation(0.0, 0.0, judge);
 
         Sight::set_range(100.0, &mut judge.sight);
     }
 
-    pub fn setup_agent_map(_world: &World, population: &mut Population) {
+    fn setup_agent_map(_world: &World, population: &mut Population) {
         let nation_map = population.nation_map.clone();
 
         for (nation_kind, nation) in nation_map {

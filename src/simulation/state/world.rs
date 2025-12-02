@@ -352,6 +352,57 @@ impl World {
         }
     }
 
+    pub fn set_shell(
+        grid_position1: IVec3,
+        grid_position2: IVec3,
+        block_kind: block::Kind,
+        block_info_map: &HashMap<block::Kind, block::Info>,
+        sector_vec_slice: &mut [Sector],
+    ) {
+        let min = IVec3::new(
+            grid_position1.x.min(grid_position2.x),
+            grid_position1.y.min(grid_position2.y),
+            grid_position1.z.min(grid_position2.z),
+        );
+
+        let max = IVec3::new(
+            grid_position1.x.max(grid_position2.x),
+            grid_position1.y.max(grid_position2.y),
+            grid_position1.z.max(grid_position2.z),
+        );
+
+        for z in min.z..=max.z {
+            for y in min.y..=max.y {
+                for x in min.x..=max.x {
+                    let mut on_boundary = false;
+
+                    if min.x != max.x && (x == min.x || x == max.x) {
+                        on_boundary = true;
+                    }
+
+                    if min.y != max.y && (y == min.y || y == max.y) {
+                        on_boundary = true;
+                    }
+
+                    if min.z != max.z && (z == min.z || z == max.z) {
+                        on_boundary = true;
+                    }
+
+                    let grid_position = IVec3::new(x, y, z);
+
+                    if on_boundary {
+                        Self::set_block(
+                            grid_position,
+                            block_kind,
+                            block_info_map,
+                            sector_vec_slice,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     pub fn set_cube(
         grid_position1: IVec3,
         grid_position2: IVec3,
