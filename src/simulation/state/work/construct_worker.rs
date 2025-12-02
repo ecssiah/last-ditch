@@ -36,7 +36,11 @@ impl ConstructWorker {
             let done = ConstructTask::step(state, &mut construct_task);
 
             if !done {
-                state.work.construct_worker.task_deque.push_back(construct_task)
+                state
+                    .work
+                    .construct_worker
+                    .task_deque
+                    .push_back(construct_task)
             }
         }
     }

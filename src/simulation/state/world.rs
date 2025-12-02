@@ -24,7 +24,6 @@ pub struct World {
     pub time: Time,
     pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<sector::Sector>,
-    pub flag_position_map: HashMap<nation::Kind, IVec3>,
 }
 
 impl World {
@@ -35,20 +34,12 @@ impl World {
         let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec();
 
-        let flag_position_map = HashMap::from([
-            (nation::Kind::Eagle, IVec3::new(0, 0, 0)),
-            (nation::Kind::Lion, IVec3::new(0, 0, 0)),
-            (nation::Kind::Wolf, IVec3::new(0, 0, 0)),
-            (nation::Kind::Horse, IVec3::new(0, 0, 0)),
-        ]);
-
         Self {
             active,
             rng,
             time,
             block_info_map,
             sector_vec,
-            flag_position_map,
         }
     }
 
@@ -64,9 +55,9 @@ impl World {
 
     pub fn get_flag(
         nation_kind: nation::Kind,
-        flag_position_map: HashMap<nation::Kind, IVec3>,
+        home_position_map: HashMap<nation::Kind, IVec3>,
     ) -> Option<IVec3> {
-        flag_position_map.get(&nation_kind).cloned()
+        home_position_map.get(&nation_kind).cloned()
     }
 
     fn setup_sector_vec() -> Vec<sector::Sector> {

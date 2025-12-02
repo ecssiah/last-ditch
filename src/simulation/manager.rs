@@ -16,7 +16,7 @@ use crate::simulation::{
             Act,
         },
         work::{
-            construct_task::{construct_world_data::ConstructWorldData, ConstructTask},
+            construct_task::{generation_data::GenerationData, ConstructTask},
             construct_worker::ConstructWorker,
         },
         world::block::Kind,
@@ -129,8 +129,8 @@ impl Manager {
     fn handle_generate_message(generate_data: &message::GenerateData, state: &mut State) {
         State::seed(generate_data.seed, state);
 
-        let construct_world_data = ConstructWorldData::new();
-        let construct_task = ConstructTask::ConstructWorld(construct_world_data);
+        let generation_data = GenerationData::new();
+        let construct_task = ConstructTask::GenerationTask(generation_data);
 
         ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
 

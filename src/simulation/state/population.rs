@@ -12,7 +12,9 @@ pub mod spatial;
 pub use role::Role;
 
 use crate::simulation::state::{
-    navigation::Navigation, population::{agent::Agent, judge::Judge}, world::World
+    navigation::Navigation,
+    population::{agent::Agent, judge::Judge, nation::Nation},
+    world::World,
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -22,6 +24,7 @@ pub struct Population {
     pub rng: ChaCha8Rng,
     pub judge: Judge,
     pub agent_map: HashMap<u64, Agent>,
+    pub nation_map: HashMap<nation::Kind, Nation>,
     pub next_entity_id: u64,
 }
 
@@ -31,6 +34,7 @@ impl Population {
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let judge = Judge::new(0);
         let agent_map = HashMap::new();
+        let nation_map = HashMap::new();
         let next_entity_id = 1;
 
         Self {
@@ -39,6 +43,7 @@ impl Population {
             rng,
             judge,
             agent_map,
+            nation_map,
         }
     }
 

@@ -1,4 +1,2 @@
 #[derive(Clone)]
-pub struct Node {
-
-}
+pub struct Node {}

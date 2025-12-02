@@ -1,15 +1,12 @@
 use crate::simulation::state::{
-    work::{
-        navigation_worker::NavigationWorker,
-        construct_worker::ConstructWorker,
-    },
+    work::{construct_worker::ConstructWorker, navigation_worker::NavigationWorker},
     State,
 };
 
-pub mod navigation_task;
-pub mod navigation_worker;
 pub mod construct_task;
 pub mod construct_worker;
+pub mod navigation_task;
+pub mod navigation_worker;
 
 pub struct Work {
     pub construct_worker: ConstructWorker,
