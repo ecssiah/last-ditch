@@ -1,11 +1,8 @@
 pub mod axis;
-pub mod cell_sample;
 pub mod direction;
-pub mod world_ray_iterator;
 
-pub use cell_sample::CellSample;
+pub use axis::Axis;
 pub use direction::Direction;
-pub use world_ray_iterator::WorldRayIterator;
 
 use crate::{
     simulation::{constants::*, state::physics::aabb::AABB},

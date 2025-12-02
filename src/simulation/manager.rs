@@ -16,10 +16,8 @@ use crate::simulation::{
             Act,
         },
         work::{
-            population_task::{construct_population_data::ConstructPopulationData, PopulationTask},
-            population_worker::PopulationWorker,
-            world_task::{construct_world_data::ConstructWorldData, WorldTask},
-            world_worker::WorldWorker,
+            construct_task::{construct_world_data::ConstructWorldData, ConstructTask},
+            construct_worker::ConstructWorker,
         },
         world::block::Kind,
         State,
@@ -131,18 +129,10 @@ impl Manager {
     fn handle_generate_message(generate_data: &message::GenerateData, state: &mut State) {
         State::seed(generate_data.seed, state);
 
-        let construct_world_data = ConstructWorldData { stage: 0 };
-        let world_task = WorldTask::ConstructWorld(construct_world_data);
+        let construct_world_data = ConstructWorldData::new();
+        let construct_task = ConstructTask::ConstructWorld(construct_world_data);
 
-        WorldWorker::enqueue(world_task, &mut state.work.world_worker.task_deque);
-
-        let construct_population_data = ConstructPopulationData { stage: 0 };
-        let population_task = PopulationTask::ConstructPopulation(construct_population_data);
-
-        PopulationWorker::enqueue(
-            population_task,
-            &mut state.work.population_worker.task_deque,
-        );
+        ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
 
         state.action.active = true;
         state.world.active = true;

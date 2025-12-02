@@ -3,7 +3,7 @@ use crate::{
         constants::*,
         state::{
             population::{agent::Agent, judge::Judge, nation, sight::Sight, spatial::Spatial},
-            Population, World,
+            Population, State, World,
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -16,39 +16,42 @@ pub struct ConstructPopulationData {
 }
 
 impl ConstructPopulationData {
+    pub fn new() -> Self {
+        let stage = 1;
+
+        Self { stage }
+    }
+
     pub fn cost(construct_population_data: &ConstructPopulationData) -> u32 {
         match construct_population_data.stage {
-            0 => 10,
-            1 => 10,
-            _ => 0,
+            1 => 100,
+            2 => 100,
+            _ => panic!("Requesting an invalid state cost"),
         }
     }
 
     pub fn step(
-        world: &World,
-        population: &mut Population,
+        state: &mut State,
         construct_population_data: &mut ConstructPopulationData,
     ) -> bool {
         match construct_population_data.stage {
-            0 => {
-                ConstructPopulationData::setup_judge(world, population);
-
-                construct_population_data.stage += 1;
-
-                false
-            }
             1 => {
-                ConstructPopulationData::setup_agent_map(world, population);
+                ConstructPopulationData::setup_judge(&mut state.population);
 
                 construct_population_data.stage += 1;
 
                 false
+            },
+            2 => {
+                ConstructPopulationData::setup_agent_map(&state.world, &mut state.population);
+
+                true
             }
-            _ => true,
+            _ => unreachable!(),
         }
     }
 
-    pub fn setup_judge(_world: &World, population: &mut Population) {
+    pub fn setup_judge(population: &mut Population) {
         let judge = &mut population.judge;
 
         Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);

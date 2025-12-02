@@ -2,8 +2,12 @@ use crate::simulation::{
     constants::*,
     state::{
         population::nation,
+        work::{
+            construct_task::{construct_population_data::ConstructPopulationData, ConstructTask},
+            construct_worker::ConstructWorker,
+        },
         world::{block, grid},
-        World,
+        State, World,
     },
 };
 use ultraviolet::IVec3;
@@ -14,45 +18,63 @@ pub struct ConstructWorldData {
 }
 
 impl ConstructWorldData {
+    pub fn new() -> Self {
+        let stage = 1;
+
+        Self { stage }
+    }
+
     pub fn cost(construct_world_data: &ConstructWorldData) -> u32 {
         match construct_world_data.stage {
-            0 => 10,
-            1 => 10,
-            2 => 10,
-            _ => 0,
+            1 => 100,
+            2 => 100,
+            3 => 100,
+            4 => 100,
+            _ => panic!("Requesting an invalid state cost"),
         }
     }
 
-    pub fn step(world: &mut World, construct_world_data: &mut ConstructWorldData) -> bool {
+    pub fn step(state: &mut State, construct_world_data: &mut ConstructWorldData) -> bool {
         match construct_world_data.stage {
-            0 => {
-                ConstructWorldData::build_central_stage(world);
-                ConstructWorldData::build_ground(world);
-
-                construct_world_data.stage += 1;
-
-                false
-            }
             1 => {
-                ConstructWorldData::build_compass(world);
-
-                ConstructWorldData::build_temple(34, 0, 0, nation::Kind::Wolf, world);
-                ConstructWorldData::build_temple(-34, 0, 0, nation::Kind::Lion, world);
-                ConstructWorldData::build_temple(0, 34, 0, nation::Kind::Eagle, world);
-                ConstructWorldData::build_temple(0, -34, 0, nation::Kind::Horse, world);
+                ConstructWorldData::build_central_stage(&mut state.world);
+                ConstructWorldData::build_ground(&mut state.world);
 
                 construct_world_data.stage += 1;
 
                 false
             }
             2 => {
-                ConstructWorldData::build_observation_deck(world);
+                ConstructWorldData::build_compass(&mut state.world);
+
+                ConstructWorldData::build_temple(34, 0, 0, nation::Kind::Wolf, &mut state.world);
+                ConstructWorldData::build_temple(-34, 0, 0, nation::Kind::Lion, &mut state.world);
+                ConstructWorldData::build_temple(0, 34, 0, nation::Kind::Eagle, &mut state.world);
+                ConstructWorldData::build_temple(0, -34, 0, nation::Kind::Horse, &mut state.world);
 
                 construct_world_data.stage += 1;
 
                 false
             }
-            _ => true,
+            3 => {
+                ConstructWorldData::build_observation_deck(&mut state.world);
+
+                construct_world_data.stage += 1;
+
+                false
+            }
+            4 => {
+                let construct_population_data = ConstructPopulationData::new();
+                let construct_task = ConstructTask::ConstructPopulation(construct_population_data);
+
+                ConstructWorker::enqueue(
+                    construct_task,
+                    &mut state.work.construct_worker.task_deque,
+                );
+
+                true
+            }
+            _ => unreachable!(),
         }
     }
 
