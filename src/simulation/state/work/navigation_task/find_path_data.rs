@@ -20,4 +20,10 @@ impl FindPathData {
     pub fn step(_navigation: &Navigation, _find_path_data: &mut FindPathData) -> bool {
         true
     }
+
+    // fn next_stage(generation_data: &mut GenerationData) -> bool {
+    //     generation_data.stage += 1;
+
+    //     generation_data.stage >= generation_data.stage_cost_vec.len()
+    // }
 }

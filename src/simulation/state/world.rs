@@ -227,6 +227,73 @@ impl World {
         }
     }
 
+    pub fn set_wireframe_box(
+        grid_position1: IVec3,
+        grid_position2: IVec3,
+        block_kind: block::Kind,
+        block_info_map: &HashMap<block::Kind, block::Info>,
+        sector_vec_slice: &mut [Sector],
+    ) {
+        let min = IVec3::new(
+            grid_position1.x.min(grid_position2.x),
+            grid_position1.y.min(grid_position2.y),
+            grid_position1.z.min(grid_position2.z),
+        );
+
+        let max = IVec3::new(
+            grid_position1.x.max(grid_position2.x),
+            grid_position1.y.max(grid_position2.y),
+            grid_position1.z.max(grid_position2.z),
+        );
+
+        let set_block = |pos: IVec3,
+                sector_vec_slice: &mut [Sector]|
+        {
+            World::set_block(
+                pos,
+                block_kind,
+                block_info_map,
+                sector_vec_slice,
+            );
+        };
+
+        // 12 edges of the AABB
+        //
+        // 4 edges along X at min.y/min.z and max.y/min.z
+        // 4 edges along Y at min.x/min.z and max.x/min.z
+        // 4 vertical edges at min.x/min.y and max.x/max.y
+
+        // --- X edges ---
+        for x in min.x..=max.x {
+            // bottom rectangle (z = min.z)
+            set_block(IVec3::new(x, min.y, min.z), sector_vec_slice);
+            set_block(IVec3::new(x, max.y, min.z), sector_vec_slice);
+
+            // top rectangle (z = max.z)
+            set_block(IVec3::new(x, min.y, max.z), sector_vec_slice);
+            set_block(IVec3::new(x, max.y, max.z), sector_vec_slice);
+        }
+
+        // --- Y edges ---
+        for y in min.y..=max.y {
+            // bottom rectangle (z = min.z)
+            set_block(IVec3::new(min.x, y, min.z), sector_vec_slice);
+            set_block(IVec3::new(max.x, y, min.z), sector_vec_slice);
+
+            // top rectangle (z = max.z)
+            set_block(IVec3::new(min.x, y, max.z), sector_vec_slice);
+            set_block(IVec3::new(max.x, y, max.z), sector_vec_slice);
+        }
+
+        // --- Vertical Z edges ---
+        for z in min.z..=max.z {
+            set_block(IVec3::new(min.x, min.y, z), sector_vec_slice);
+            set_block(IVec3::new(min.x, max.y, z), sector_vec_slice);
+            set_block(IVec3::new(max.x, min.y, z), sector_vec_slice);
+            set_block(IVec3::new(max.x, max.y, z), sector_vec_slice);
+        }
+    }
+
     pub fn set_box(
         grid_position1: IVec3,
         grid_position2: IVec3,

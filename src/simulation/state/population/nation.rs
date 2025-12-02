@@ -28,4 +28,22 @@ impl Nation {
             Kind::Wolf => [0.85, 0.35, 0.35, 1.0],
         }
     }
+
+    pub fn get_kind_from_string(string: &str) -> Option<Kind> {
+        if Self::string_matches_kind(string, "eagle") {
+            Some(Kind::Eagle)
+        } else if Self::string_matches_kind(string, "horse") {
+            Some(Kind::Horse)
+        } else if Self::string_matches_kind(string, "lion") {
+            Some(Kind::Lion)
+        } else if Self::string_matches_kind(string, "wolf") {
+            Some(Kind::Wolf)
+        } else {
+            None
+        }
+    }
+
+    fn string_matches_kind(string: &str, kind: &str) -> bool {
+        string.to_ascii_lowercase().contains(kind)
+    }
 }

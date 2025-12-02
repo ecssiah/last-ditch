@@ -19,71 +19,126 @@ use ultraviolet::{IVec3, Vec3};
 
 #[derive(Clone)]
 pub struct GenerationData {
-    pub stage: usize,
+    pub stage_index: usize,
+    pub stage_cost_vec: Vec<u32>,
 }
 
 impl GenerationData {
     pub fn new() -> Self {
-        let stage = 1;
+        let stage_index = 0;
+        let stage_cost_vec = Vec::from([100, 100, 100]);
 
-        Self { stage }
-    }
-
-    pub fn cost(generation_data: &GenerationData) -> u32 {
-        match generation_data.stage {
-            1 => 100,
-            2 => 100,
-            3 => 100,
-            4 => 100,
-            5 => 100,
-            6 => 100,
-            _ => panic!("Requesting an invalid state cost"),
+        Self {
+            stage_index,
+            stage_cost_vec,
         }
     }
 
+    pub fn cost(generation_data: &GenerationData) -> u32 {
+        generation_data.stage_cost_vec[generation_data.stage_index]
+    }
+
     pub fn step(state: &mut State, generation_data: &mut GenerationData) -> bool {
-        match generation_data.stage {
+        match generation_data.stage_index {
+            0 => {
+                GenerationData::construct_building_frame(&mut state.world);
+
+                GenerationData::next_stage(generation_data)
+            }
             1 => {
-                GenerationData::build_central_stage(&mut state.world);
-                GenerationData::build_ground(&mut state.world);
+                GenerationData::construct_halls(&mut state.world);
 
-                generation_data.stage += 1;
-
-                false
+                GenerationData::next_stage(generation_data)
             }
             2 => {
-                GenerationData::build_compass(&mut state.world);
-
-                GenerationData::build_temple(34, 0, 0, nation::Kind::Wolf, &mut state.world);
-                GenerationData::build_temple(-34, 0, 0, nation::Kind::Lion, &mut state.world);
-                GenerationData::build_temple(0, 34, 0, nation::Kind::Eagle, &mut state.world);
-                GenerationData::build_temple(0, -34, 0, nation::Kind::Horse, &mut state.world);
-
-                generation_data.stage += 1;
-
-                false
-            }
-            3 => {
-                GenerationData::build_observation_deck(&mut state.world);
-
-                generation_data.stage += 1;
-
-                false
-            }
-            4 => {
                 GenerationData::setup_nations(&mut state.population);
-
-                generation_data.stage += 1;
-
-                false
-            }
-            5 => {
                 GenerationData::setup_judge(&mut state.population);
                 GenerationData::setup_agent_map(&state.world, &mut state.population);
 
-                true
+                GenerationData::next_stage(generation_data)
             }
             _ => unreachable!(),
+        }
+    }
+
+    fn next_stage(generation_data: &mut GenerationData) -> bool {
+        generation_data.stage_index += 1;
+
+        generation_data.stage_index >= generation_data.stage_cost_vec.len()
+    }
+
+    fn construct_building_frame(world: &mut World) {
+        let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
+        let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
+
+        let floor_height = 8;
+        let floor_count = 3;
+        let building_radius = WORLD_RADIUS_IN_CELLS as i32 - SECTOR_SIZE_IN_CELLS as i32;
+
+        for floor_number in 1..=floor_count {
+            let floor_position = -floor_number * floor_height;
+
+            World::set_cube(
+                IVec3::new(-building_radius, -building_radius, floor_position),
+                IVec3::new(building_radius, building_radius, floor_position),
+                block::Kind::Polished1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            World::set_cube(
+                IVec3::new(
+                    -building_radius,
+                    -building_radius,
+                    floor_position + floor_height,
+                ),
+                IVec3::new(
+                    building_radius,
+                    building_radius,
+                    floor_position + floor_height,
+                ),
+                block::Kind::Polished1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            World::set_wireframe_box(
+                IVec3::new(-building_radius, -building_radius, floor_position),
+                IVec3::new(
+                    building_radius,
+                    building_radius,
+                    floor_position + floor_height,
+                ),
+                block::Kind::Engraved1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+        }
+    }
+
+    fn construct_halls(world: &mut World) {
+        let floor_height = 8;
+        let floor_count = 3;
+        let building_radius = WORLD_RADIUS_IN_CELLS as i32 - SECTOR_SIZE_IN_CELLS as i32;
+
+        for floor_number in 1..=floor_count {
+            let floor_position = -floor_number * floor_height;
+
+            World::set_cube(
+                IVec3::new(-building_radius + 1, -1, floor_position),
+                IVec3::new(building_radius - 1, 1, floor_position),
+                block::Kind::Stone1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            World::set_cube(
+                IVec3::new(-1, -building_radius + 1, floor_position),
+                IVec3::new(1, building_radius - 1, floor_position),
+                block::Kind::Stone1,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
         }
     }
 
@@ -114,7 +169,7 @@ impl GenerationData {
 
     pub fn build_compass(world: &mut World) {
         let radius = 4;
-        let height = 2;
+        let height = 0;
 
         World::set_block(
             IVec3::new(0, 0, 0),
@@ -461,7 +516,7 @@ impl GenerationData {
         Judge::set_world_position(Vec3::new(0.0, 0.0, 1.0), judge);
         Judge::set_rotation(0.0, 0.0, judge);
 
-        Sight::set_range(40.0, &mut judge.sight);
+        Sight::set_range(100.0, &mut judge.sight);
     }
 
     pub fn setup_agent_map(_world: &World, population: &mut Population) {

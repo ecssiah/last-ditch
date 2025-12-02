@@ -13,14 +13,16 @@ use crate::{
         },
     },
     simulation::{
-        constants::SIMULATION_MAX_ENTITIES,
+        constants::SIMULATION_ENTITY_MAX,
         manager::viewer::PopulationView,
-        state::population::{self, nation},
+        state::population::{
+            self,
+            nation::{self, Nation},
+        },
     },
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
-use tracing::{error, info};
 
 pub struct PopulationRender {
     pub entity_gpu_mesh_map: HashMap<(population::Role, nation::Kind), Arc<GpuMesh>>,
@@ -38,7 +40,7 @@ impl PopulationRender {
 
         let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Population Instance Buffer"),
-            size: (SIMULATION_MAX_ENTITIES * std::mem::size_of::<EntityInstanceData>())
+            size: (SIMULATION_ENTITY_MAX * std::mem::size_of::<EntityInstanceData>())
                 as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
@@ -104,8 +106,8 @@ impl PopulationRender {
                                 Arc::new(EntityMesh::to_gpu_mesh(&entity_mesh, device));
 
                             if let Some(role) = population::Role::from_string(file_stem) {
-                                if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                                    info!("{:?} model loaded", file_stem);
+                                if let Some(nation_kind) = Nation::get_kind_from_string(file_stem) {
+                                    tracing::info!("{:?} model loaded", file_stem);
 
                                     entity_gpu_mesh_map
                                         .insert((role, nation_kind), entity_gpu_mesh_arc);
@@ -113,7 +115,7 @@ impl PopulationRender {
                             }
                         }
                         Err(err) => {
-                            error!("{:?}", err);
+                            tracing::error!("{:?}", err);
                         }
                     }
                 }
@@ -175,8 +177,8 @@ impl PopulationRender {
                     Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
 
                 if let Some(role) = population::Role::from_string(file_stem) {
-                    if let Some(nation_kind) = nation::Kind::from_string(file_stem) {
-                        info!("{:?} texture loaded", file_stem);
+                    if let Some(nation_kind) = Nation::get_kind_from_string(file_stem) {
+                        tracing::info!("{:?} texture loaded", file_stem);
 
                         texture_bind_group_map.insert((role, nation_kind), texture_bind_group);
                     }
