@@ -19,11 +19,11 @@ impl ConstructWorker {
         task_deque.push_back(construct_task);
     }
 
-    pub fn budget(construct_worker: &ConstructWorker) -> u32 {
+    pub fn budget(construct_worker: &Self) -> u32 {
         construct_worker.budget
     }
 
-    pub fn cost(construct_worker: &ConstructWorker) -> u32 {
+    pub fn cost(construct_worker: &Self) -> u32 {
         if let Some(construct_task) = construct_worker.task_deque.front() {
             ConstructTask::cost(construct_task)
         } else {

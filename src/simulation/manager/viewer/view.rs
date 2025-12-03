@@ -5,6 +5,7 @@ pub mod judge_view;
 pub mod manager_view;
 pub mod population_view;
 pub mod sector_view;
+pub mod time_view;
 pub mod world_view;
 
 pub use agent_view::AgentView;
@@ -14,6 +15,7 @@ pub use judge_view::JudgeView;
 pub use manager_view::ManagerView;
 pub use population_view::PopulationView;
 pub use sector_view::SectorView;
+pub use time_view::TimeView;
 pub use world_view::WorldView;
 
 #[derive(Clone)]

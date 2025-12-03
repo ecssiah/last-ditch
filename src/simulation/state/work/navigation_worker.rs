@@ -19,11 +19,11 @@ impl NavigationWorker {
         task_deque.push_back(navigation_task);
     }
 
-    pub fn budget(navigation_worker: &NavigationWorker) -> u32 {
+    pub fn budget(navigation_worker: &Self) -> u32 {
         navigation_worker.budget
     }
 
-    pub fn cost(_navigation_worker: &NavigationWorker) -> u32 {
+    pub fn cost(_navigation_worker: &Self) -> u32 {
         1
     }
 

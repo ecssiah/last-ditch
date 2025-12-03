@@ -28,7 +28,7 @@ impl Agent {
         }
     }
 
-    pub fn tick(_navigation: &mut Navigation, agent: &mut Agent) {
+    pub fn tick(_navigation: &mut Navigation, agent: &mut Self) {
         Spatial::update_sector_id(&mut agent.spatial);
     }
 }

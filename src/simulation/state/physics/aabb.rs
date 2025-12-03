@@ -77,14 +77,14 @@ impl AABB {
         );
     }
 
-    pub fn translate(&self, displacement: Vec3) -> AABB {
-        AABB {
+    pub fn translate(&self, displacement: Vec3) -> Self {
+        Self {
             min: self.min + displacement,
             max: self.max + displacement,
         }
     }
 
-    pub fn intersects(&self, other: AABB) -> bool {
+    pub fn intersects(&self, other: Self) -> bool {
         self.min.x <= other.max.x
             && self.max.x >= other.min.x
             && self.min.y <= other.max.y
@@ -93,7 +93,7 @@ impl AABB {
             && self.max.z >= other.min.z
     }
 
-    pub fn overlaps(&self, other: AABB) -> bool {
+    pub fn overlaps(&self, other: Self) -> bool {
         self.min.x < other.max.x
             && self.max.x > other.min.x
             && self.min.y < other.max.y
@@ -102,7 +102,7 @@ impl AABB {
             && self.max.z > other.min.z
     }
 
-    pub fn overlap_axis(&self, axis_index: usize, cell_aabb: AABB) -> f32 {
+    pub fn overlap_axis(&self, axis_index: usize, cell_aabb: Self) -> f32 {
         let min = self.min[axis_index];
         let max = self.max[axis_index];
 
@@ -126,11 +126,11 @@ impl AABB {
         }
     }
 
-    pub fn approx_eq(&self, other: AABB, epsilon: f32) -> bool {
+    pub fn approx_eq(&self, other: Self, epsilon: f32) -> bool {
         (self.min - other.min).mag() <= epsilon && (self.max - other.max).mag() <= epsilon
     }
 
-    pub fn approx_set_eq(list1: &[AABB], list2: &[AABB], epsilon: f32) -> bool {
+    pub fn approx_set_eq(list1: &[Self], list2: &[Self], epsilon: f32) -> bool {
         if list1.len() != list2.len() {
             return false;
         }
@@ -143,7 +143,7 @@ impl AABB {
                 .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(*aabb1, epsilon)))
     }
 
-    pub fn sweep(aabb1: AABB, aabb2: AABB) -> AABB {
+    pub fn sweep(aabb1: Self, aabb2: Self) -> Self {
         let min = Vec3::new(
             aabb1.min.x.min(aabb2.min.x),
             aabb1.min.y.min(aabb2.min.y),
@@ -159,6 +159,6 @@ impl AABB {
         let center = (min + max) * 0.5;
         let size = max - min;
 
-        AABB::new(center, size)
+        Self::new(center, size)
     }
 }

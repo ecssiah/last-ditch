@@ -24,29 +24,29 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub const CYCLE: &'static [Kind] = &[
-        Kind::Engraved1,
-        Kind::Engraved2,
-        Kind::Stone1,
-        Kind::Stone2,
-        Kind::Polished1,
-        Kind::Polished2,
-        Kind::LionStone,
-        Kind::EagleStone,
-        Kind::WolfStone,
-        Kind::HorseStone,
-        Kind::Lion,
-        Kind::Eagle,
-        Kind::Wolf,
-        Kind::Horse,
-        Kind::NorthBlock,
-        Kind::WestBlock,
-        Kind::SouthBlock,
-        Kind::EastBlock,
-        Kind::EsayaBlock,
+    pub const CYCLE: &'static [Self] = &[
+        Self::Engraved1,
+        Self::Engraved2,
+        Self::Stone1,
+        Self::Stone2,
+        Self::Polished1,
+        Self::Polished2,
+        Self::LionStone,
+        Self::EagleStone,
+        Self::WolfStone,
+        Self::HorseStone,
+        Self::Lion,
+        Self::Eagle,
+        Self::Wolf,
+        Self::Horse,
+        Self::NorthBlock,
+        Self::WestBlock,
+        Self::SouthBlock,
+        Self::EastBlock,
+        Self::EsayaBlock,
     ];
 
-    pub fn next_block_kind(current_block_kind: &Kind) -> Kind {
+    pub fn next_block_kind(current_block_kind: &Self) -> Self {
         let current_block_kind_index = Self::CYCLE
             .iter()
             .position(|block_kind| block_kind == current_block_kind);
@@ -63,7 +63,7 @@ impl Kind {
         }
     }
 
-    pub fn previous_block_kind(current_block_kind: &Kind) -> Kind {
+    pub fn previous_block_kind(current_block_kind: &Self) -> Self {
         let current_block_kind_index = Self::CYCLE
             .iter()
             .position(|block_kind| block_kind == current_block_kind);

@@ -33,7 +33,7 @@ impl Physics {
         }
     }
 
-    pub fn tick(world: &World, population: &mut Population, physics: &mut Physics) {
+    pub fn tick(world: &World, population: &mut Population, physics: &mut Self) {
         let _ = tracing::info_span!("physics_tick").entered();
 
         if !physics.active {
@@ -53,15 +53,15 @@ impl Physics {
         Self::sync(&mut population.judge.spatial, &mut population.judge.sight);
     }
 
-    pub fn set_gravity_active(gravity_active: bool, physics: &mut Physics) {
+    pub fn set_gravity_active(gravity_active: bool, physics: &mut Self) {
         physics.gravity_active = gravity_active;
     }
 
-    pub fn toggle_gravity_active(physics: &mut Physics) {
+    pub fn toggle_gravity_active(physics: &mut Self) {
         Self::set_gravity_active(!physics.gravity_active, physics);
     }
 
-    fn integrate(physics: &Physics, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
+    fn integrate(physics: &Self, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
         let initial_velocity = kinematic.velocity;
 
         let acceleration = if physics.gravity_active {
@@ -167,7 +167,7 @@ impl Physics {
 
     fn sync(spatial: &mut Spatial, sight: &mut Sight) {
         Spatial::set_world_position(spatial.body.bottom_center(), spatial);
-        
+
         Sight::set_world_position(
             spatial.body.bottom_center() + sight.relative_position,
             sight,

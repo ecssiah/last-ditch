@@ -181,7 +181,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Interface>) {
+    pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             let _ = tracing::info_span!("window_event").entered();
 
@@ -215,7 +215,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Interface>) {
+    pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
                 return;
@@ -312,7 +312,7 @@ impl<'window> Interface<'window> {
             .configure(&gpu_context.device, &gpu_context.surface_config);
     }
 
-    fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Interface>) {
+    fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
         let _ = tracing::info_span!("interface update").entered();
 
         if let Some(interface) = interface.as_mut() {

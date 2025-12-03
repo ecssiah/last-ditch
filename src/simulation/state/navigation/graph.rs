@@ -69,7 +69,7 @@ impl Graph {
     }
 
     #[inline]
-    pub fn is_walkable(position: IVec3, graph: &Graph) -> bool {
+    pub fn is_walkable(position: IVec3, graph: &Self) -> bool {
         if !Self::is_grid_position_valid(position) {
             return false;
         }
@@ -93,7 +93,7 @@ impl Graph {
         is_solid_ground
     }
 
-    pub fn set_solid(position: IVec3, is_solid: bool, graph: &mut Graph) {
+    pub fn set_solid(position: IVec3, is_solid: bool, graph: &mut Self) {
         if Self::is_grid_position_valid(position) {
             let index = Self::get_index(position);
 
@@ -102,7 +102,7 @@ impl Graph {
     }
 
     #[inline]
-    pub fn get_cost(position: IVec3, graph: &Graph) -> i32 {
+    pub fn get_cost(position: IVec3, graph: &Self) -> i32 {
         let index = Self::get_index(position);
 
         graph.cost_vec[index] as i32
@@ -111,15 +111,15 @@ impl Graph {
     #[inline]
     pub fn get_valid_neighbor_position_iter(
         position: IVec3,
-        graph: &Graph,
+        graph: &Self,
     ) -> impl Iterator<Item = IVec3> {
         let mut open_neighbor_position_vec = Vec::with_capacity(Self::NEIGHBOR_OFFSETS.len());
 
         for neighbor_offset in Self::NEIGHBOR_OFFSETS.iter() {
             let neighbor_position = position + *neighbor_offset;
 
-            if Graph::is_grid_position_valid(neighbor_position)
-                && Graph::is_walkable(neighbor_position, graph)
+            if Self::is_grid_position_valid(neighbor_position)
+                && Self::is_walkable(neighbor_position, graph)
             {
                 open_neighbor_position_vec.push(neighbor_position);
             }

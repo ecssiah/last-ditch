@@ -182,7 +182,7 @@ impl SectorMesh {
             }
         }
 
-        SectorMesh {
+        Self {
             sector_id: sector_view.sector_id,
             version: sector_view.version,
             vertex_vec,

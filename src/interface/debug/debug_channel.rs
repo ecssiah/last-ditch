@@ -6,5 +6,5 @@ pub enum DebugChannel {
 }
 
 impl DebugChannel {
-    pub const ALL: [DebugChannel; 2] = [DebugChannel::SectorBorders, DebugChannel::Custom];
+    pub const ALL: [Self; 2] = [Self::SectorBorders, Self::Custom];
 }

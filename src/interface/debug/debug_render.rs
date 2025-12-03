@@ -134,15 +134,15 @@ impl DebugRender {
         }
     }
 
-    pub fn toggle_debug_active(debug_render: &mut DebugRender) {
+    pub fn toggle_debug_active(debug_render: &mut Self) {
         debug_render.debug_active = !debug_render.debug_active;
     }
 
-    pub fn activate_channel(debug_channel: DebugChannel, debug_render: &mut DebugRender) {
+    pub fn activate_channel(debug_channel: DebugChannel, debug_render: &mut Self) {
         debug_render.channel_set.insert(debug_channel);
     }
 
-    pub fn deactivate_channel(debug_channel: DebugChannel, debug_render: &mut DebugRender) {
+    pub fn deactivate_channel(debug_channel: DebugChannel, debug_render: &mut Self) {
         debug_render.channel_set.remove(&debug_channel);
     }
 
@@ -252,7 +252,7 @@ impl DebugRender {
         }
     }
 
-    pub fn apply_debug_view(_view: &View, debug_render: &mut DebugRender) {
+    pub fn apply_debug_view(_view: &View, debug_render: &mut Self) {
         if !debug_render.debug_active {
             return;
         }
@@ -319,7 +319,7 @@ impl DebugRender {
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
-        debug_render: &mut DebugRender,
+        debug_render: &mut Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         if !debug_render.debug_active || debug_render.channel_set.is_empty() {

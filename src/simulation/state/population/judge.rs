@@ -63,7 +63,7 @@ impl Judge {
         }
     }
 
-    pub fn set_world_position(world_position: Vec3, judge: &mut Judge) {
+    pub fn set_world_position(world_position: Vec3, judge: &mut Self) {
         Spatial::set_world_position(world_position, &mut judge.spatial);
 
         Sight::set_world_position(
@@ -72,13 +72,13 @@ impl Judge {
         );
     }
 
-    pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, judge: &mut Judge) {
+    pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, judge: &mut Self) {
         Spatial::set_rotation(rotation_xy, &mut judge.spatial);
 
         Sight::set_rotation(rotation_xy, rotation_yz, &mut judge.sight);
     }
 
-    pub fn tick(_world: &World, judge: &mut Judge) {
+    pub fn tick(_world: &World, judge: &mut Self) {
         Spatial::update_sector_id(&mut judge.spatial);
     }
 }

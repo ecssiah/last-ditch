@@ -98,7 +98,7 @@ impl Input {
         gui: &mut GUI,
         debug_render: &mut DebugRender,
         gpu_context: &mut GPUContext,
-        input: &mut Input,
+        input: &mut Self,
     ) -> bool {
         match event {
             WindowEvent::CloseRequested => Self::handle_close_requested(&mut input.message_deque),
@@ -130,7 +130,7 @@ impl Input {
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, gui: &GUI, input: &mut Input) -> bool {
+    pub fn handle_device_event(event: &DeviceEvent, gui: &GUI, input: &mut Self) -> bool {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             return Self::handle_mouse_motion(
                 *dx,

@@ -38,7 +38,7 @@ impl Navigation {
         }
     }
 
-    pub fn get_next_path_request_id(navigation: &mut Navigation) -> u64 {
+    pub fn get_next_path_request_id(navigation: &mut Self) -> u64 {
         let path_id = navigation.next_path_request_id;
 
         navigation.next_path_request_id += 1;
@@ -60,7 +60,7 @@ impl Navigation {
         }
     }
 
-    pub fn make_request(start: IVec3, end: IVec3, navigation: &mut Navigation) -> u64 {
+    pub fn make_request(start: IVec3, end: IVec3, navigation: &mut Self) -> u64 {
         let path_request_id = Self::get_next_path_request_id(navigation);
 
         let path_request = path::Request {
@@ -74,14 +74,14 @@ impl Navigation {
         path_request_id
     }
 
-    pub fn poll_result(path_request_id: u64, navigation: &mut Navigation) -> bool {
+    pub fn poll_result(path_request_id: u64, navigation: &mut Self) -> bool {
         navigation
             .path_result_vec
             .iter()
             .any(|result| result.path_request_id == path_request_id)
     }
 
-    pub fn take_result(path_request_id: u64, navigation: &mut Navigation) -> Option<path::Result> {
+    pub fn take_result(path_request_id: u64, navigation: &mut Self) -> Option<path::Result> {
         let index = navigation
             .path_result_vec
             .iter()
@@ -90,7 +90,7 @@ impl Navigation {
         index.map(|index| navigation.path_result_vec.remove(index))
     }
 
-    pub fn tick(_world: &World, navigation: &mut Navigation) {
+    pub fn tick(_world: &World, navigation: &mut Self) {
         let _ = tracing::info_span!("navigation_tick").entered();
 
         if !navigation.active {

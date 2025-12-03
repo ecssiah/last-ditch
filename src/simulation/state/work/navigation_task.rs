@@ -10,7 +10,7 @@ pub enum NavigationTask {
 }
 
 impl NavigationTask {
-    pub fn step(_navigation: &mut Navigation, _navigation_task: &mut NavigationTask) -> bool {
+    pub fn step(_navigation: &mut Navigation, _navigation_task: &mut Self) -> bool {
         false
     }
 }

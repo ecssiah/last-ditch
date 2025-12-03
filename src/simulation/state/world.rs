@@ -43,7 +43,7 @@ impl World {
         }
     }
 
-    pub fn tick(world: &mut World) {
+    pub fn tick(world: &mut Self) {
         let _ = tracing::info_span!("world_tick").entered();
 
         if !world.active {
@@ -249,7 +249,7 @@ impl World {
         let set_block = |pos: IVec3,
                 sector_vec_slice: &mut [Sector]|
         {
-            World::set_block(
+            Self::set_block(
                 pos,
                 block_kind,
                 block_info_map,
@@ -437,7 +437,7 @@ impl World {
         origin: Vec3,
         direction: Vec3,
         range: f32,
-        world: &World,
+        world: &Self,
     ) -> Option<(IVec3, IVec3)> {
         let direction = direction.normalized();
 

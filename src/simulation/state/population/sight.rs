@@ -42,19 +42,19 @@ impl Sight {
         }
     }
 
-    pub fn get_forward(sight: &Sight) -> Vec3 {
+    pub fn get_forward(sight: &Self) -> Vec3 {
         sight.rotor * Vec3::unit_y()
     }
 
-    pub fn set_relative_position(relative_position: Vec3, sight: &mut Sight) {
+    pub fn set_relative_position(relative_position: Vec3, sight: &mut Self) {
         sight.relative_position = relative_position;
     }
 
-    pub fn set_world_position(world_position: Vec3, sight: &mut Sight) {
+    pub fn set_world_position(world_position: Vec3, sight: &mut Self) {
         sight.world_position = world_position;
     }
 
-    pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, sight: &mut Sight) {
+    pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, sight: &mut Self) {
         sight.rotation_xy = rotation_xy;
         sight.rotation_yz = rotation_yz;
 
@@ -67,13 +67,13 @@ impl Sight {
         sight.rotor = rotor_xy * rotor_yz;
     }
 
-    pub fn set_range(range: f32, sight: &mut Sight) {
+    pub fn set_range(range: f32, sight: &mut Self) {
         sight.range_in_meters = range;
         sight.range_in_sectors =
             ((range - SECTOR_RADIUS_IN_METERS) / SECTOR_SIZE_IN_METERS).ceil() as i32;
     }
 
-    pub fn contains(sight: &Sight, point: Vec3) -> bool {
+    pub fn contains(sight: &Self, point: Vec3) -> bool {
         let to_point = point - sight.world_position;
         let distance = to_point.mag();
 

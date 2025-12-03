@@ -281,7 +281,7 @@ impl WorldRender {
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        world_render: &WorldRender,
+        world_render: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {

@@ -47,7 +47,7 @@ impl Population {
         }
     }
 
-    pub fn get_next_entity_id(population: &mut Population) -> u64 {
+    pub fn get_next_entity_id(population: &mut Self) -> u64 {
         let entity_id = population.next_entity_id;
 
         population.next_entity_id += 1;
@@ -55,7 +55,7 @@ impl Population {
         entity_id
     }
 
-    pub fn tick(world: &World, navigation: &mut Navigation, population: &mut Population) {
+    pub fn tick(world: &World, navigation: &mut Navigation, population: &mut Self) {
         let _ = tracing::info_span!("population_tick").entered();
 
         if !population.active {

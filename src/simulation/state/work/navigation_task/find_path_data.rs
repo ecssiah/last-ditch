@@ -13,11 +13,11 @@ pub struct FindPathData {
 }
 
 impl FindPathData {
-    pub fn cost(_find_path_data: &FindPathData) -> u32 {
+    pub fn cost(_find_path_data: &Self) -> u32 {
         0
     }
 
-    pub fn step(_navigation: &Navigation, _find_path_data: &mut FindPathData) -> bool {
+    pub fn step(_navigation: &Navigation, _find_path_data: &mut Self) -> bool {
         true
     }
 

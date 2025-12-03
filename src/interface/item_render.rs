@@ -138,7 +138,7 @@ impl ItemRender {
         depth_texture_view: &wgpu::TextureView,
         _gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        item_render: &ItemRender,
+        item_render: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {

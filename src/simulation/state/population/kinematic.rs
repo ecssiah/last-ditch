@@ -18,11 +18,11 @@ impl Kinematic {
         }
     }
 
-    pub fn set_flying(flying: bool, kinematic: &mut Kinematic) {
+    pub fn set_flying(flying: bool, kinematic: &mut Self) {
         kinematic.flying = flying;
     }
 
-    pub fn toggle_flying(kinematic: &mut Kinematic) {
+    pub fn toggle_flying(kinematic: &mut Self) {
         Self::set_flying(!kinematic.flying, kinematic);
     }
 }

@@ -41,7 +41,7 @@ impl GUI {
         window_arc: Arc<winit::window::Window>,
         egui_context: &egui::Context,
         egui_winit_state: &mut egui_winit::State,
-        gui: &mut GUI,
+        gui: &mut Self,
     ) -> FullOutput {
         let raw_input = egui_winit_state.take_egui_input(&window_arc);
 
@@ -56,12 +56,12 @@ impl GUI {
         full_output
     }
 
-    fn show(context: &egui::Context, gui: &mut GUI) {
+    fn show(context: &egui::Context, gui: &mut Self) {
         Self::show_hud(context, gui);
         Self::show_menu(context, gui);
     }
 
-    fn show_menu(context: &egui::Context, gui: &mut GUI) {
+    fn show_menu(context: &egui::Context, gui: &mut Self) {
         if !gui.menu_active {
             return;
         }
@@ -119,7 +119,7 @@ impl GUI {
             });
     }
 
-    fn show_hud(context: &egui::Context, gui: &mut GUI) {
+    fn show_hud(context: &egui::Context, gui: &mut Self) {
         if gui.menu_active {
             return;
         }
@@ -185,7 +185,7 @@ impl GUI {
         );
     }
 
-    pub fn apply_view(view: &View, gui: &mut GUI) {
+    pub fn apply_view(view: &View, gui: &mut Self) {
         let judge_view = &view.population_view.judge_view;
 
         let position_string = format!(
@@ -225,7 +225,7 @@ impl GUI {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         egui_context: &egui::Context,
-        gui: &mut GUI,
+        gui: &mut Self,
         egui_winit_state: &mut egui_winit::State,
         egui_renderer: &mut egui_wgpu::Renderer,
         encoder: &mut wgpu::CommandEncoder,
@@ -282,7 +282,7 @@ impl GUI {
         event_response.consumed
     }
 
-    pub fn set_menu_active(menu_active: bool, gui: &mut GUI, gpu_context: &mut GPUContext) {
+    pub fn set_menu_active(menu_active: bool, gui: &mut Self, gpu_context: &mut GPUContext) {
         gui.menu_active = menu_active;
 
         if menu_active {
@@ -302,7 +302,7 @@ impl GUI {
         }
     }
 
-    pub fn toggle_menu_active(gui: &mut GUI, gpu_context: &mut GPUContext) {
+    pub fn toggle_menu_active(gui: &mut Self, gpu_context: &mut GPUContext) {
         Self::set_menu_active(!gui.menu_active, gui, gpu_context);
     }
 

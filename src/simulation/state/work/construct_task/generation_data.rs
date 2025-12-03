@@ -36,37 +36,37 @@ impl GenerationData {
         }
     }
 
-    pub fn cost(generation_data: &GenerationData) -> u32 {
+    pub fn cost(generation_data: &Self) -> u32 {
         generation_data.stage_cost_map[&generation_data.stage_index]
     }
 
-    pub fn step(state: &mut State, generation_data: &mut GenerationData) -> bool {
+    pub fn step(state: &mut State, generation_data: &mut Self) -> bool {
         match generation_data.stage_index {
             0 => {
-                GenerationData::construct_elevator_shaft(&mut state.world);
-                GenerationData::construct_building_frame(&mut state.world);
+                Self::construct_elevator_shaft(&mut state.world);
+                Self::construct_building_frame(&mut state.world);
             }
             1 => {
-                GenerationData::construct_halls(&mut state.world);
+                Self::construct_halls(&mut state.world);
             }
             2 => {
-                GenerationData::construct_fascade(&mut state.world);
+                Self::construct_fascade(&mut state.world);
             }
             3 => {
-                GenerationData::construct_central_shaft(&mut state.world);
+                Self::construct_central_shaft(&mut state.world);
             }
             4 => {
-                GenerationData::setup_nations(&mut state.population);
-                GenerationData::setup_judge(&mut state.population);
-                GenerationData::setup_agent_map(&state.world, &mut state.population);
+                Self::setup_nations(&mut state.population);
+                Self::setup_judge(&mut state.population);
+                Self::setup_agent_map(&state.world, &mut state.population);
             }
             _ => unreachable!(),
         }
 
-        GenerationData::next_stage(generation_data)
+        Self::next_stage(generation_data)
     }
 
-    fn next_stage(generation_data: &mut GenerationData) -> bool {
+    fn next_stage(generation_data: &mut Self) -> bool {
         generation_data.stage_index += 1;
 
         generation_data.stage_index >= generation_data.stage_cost_map.len()

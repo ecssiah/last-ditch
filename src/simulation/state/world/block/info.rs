@@ -8,125 +8,125 @@ pub struct Info {
 
 impl Info {
     #[rustfmt::skip]
-    pub fn setup() -> HashMap<block::Kind, Info> {
+    pub fn setup() -> HashMap<block::Kind, Self> {
         HashMap::from([
             (
                 block::Kind::None,
-                Info {
+                Self {
                     solid: false
                 },
             ),
             (
                 block::Kind::Engraved1,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Engraved2,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Stone1,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Stone2,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Polished1,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Polished2,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::LionStone,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::EagleStone,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::WolfStone,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::HorseStone,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Lion,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Eagle,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Wolf,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::Horse,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::NorthBlock,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::WestBlock,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::SouthBlock,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::EastBlock,
-                Info {
+                Self {
                     solid: true,
                 },
             ),
             (
                 block::Kind::EsayaBlock,
-                Info {
+                Self {
                     solid: true,
                 },
             ),

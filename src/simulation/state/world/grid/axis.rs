@@ -9,13 +9,13 @@ pub enum Axis {
 }
 
 impl Axis {
-    pub const ALL: [Axis; 3] = [Axis::X, Axis::Y, Axis::Z];
+    pub const ALL: [Self; 3] = [Self::X, Self::Y, Self::Z];
 
-    pub fn unit(axis: Axis) -> Vec3 {
+    pub fn unit(axis: Self) -> Vec3 {
         match axis {
-            Axis::X => Vec3::unit_x(),
-            Axis::Y => Vec3::unit_y(),
-            Axis::Z => Vec3::unit_z(),
+            Self::X => Vec3::unit_x(),
+            Self::Y => Vec3::unit_y(),
+            Self::Z => Vec3::unit_z(),
         }
     }
 }

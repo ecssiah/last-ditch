@@ -1,7 +1,3 @@
-pub mod face;
-
-pub use face::Face;
-
 use crate::simulation::{
     constants::CELL_SIZE_IN_METERS,
     state::{physics::aabb::AABB, world::block},

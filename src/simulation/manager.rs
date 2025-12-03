@@ -51,18 +51,18 @@ impl Manager {
         }
     }
 
-    pub fn start(manager: &mut Manager) {
+    pub fn start(manager: &mut Self) {
         manager.timestep.ticks_frame = 0;
     }
 
-    pub fn has_work(manager: &Manager) -> bool {
+    pub fn has_work(manager: &Self) -> bool {
         Instant::now() >= manager.timestep.next_instant
             && manager.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
-    pub fn tick(state: &mut State, manager: &mut Manager) -> bool {
-        Manager::handle_messages(state, manager);
-        Manager::update_timestep(manager);
+    pub fn tick(state: &mut State, manager: &mut Self) -> bool {
+        Self::handle_messages(state, manager);
+        Self::update_timestep(manager);
 
         Viewer::tick(state, manager);
 
@@ -74,13 +74,13 @@ impl Manager {
         true
     }
 
-    fn handle_messages(state: &mut State, manager: &mut Manager) {
+    fn handle_messages(state: &mut State, manager: &mut Self) {
         while let Ok(message) = manager.message_rx.try_recv() {
-            Manager::handle_message(&message, state, manager);
+            Self::handle_message(&message, state, manager);
         }
     }
 
-    fn handle_message(message: &Message, state: &mut State, manager: &mut Manager) {
+    fn handle_message(message: &Message, state: &mut State, manager: &mut Self) {
         match message {
             Message::Interact1 => Self::handle_interact1(state),
             Message::Interact2 => Self::handle_interact2(state),
@@ -159,7 +159,7 @@ impl Manager {
         state.navigation.active = true;
     }
 
-    fn handle_quit_message(_state: &mut State, manager: &mut Manager) {
+    fn handle_quit_message(_state: &mut State, manager: &mut Self) {
         // TODO: Save Simulation State!
 
         manager.status = Status::Done;
@@ -188,7 +188,7 @@ impl Manager {
         tracing::info!("Option 4 Message");
     }
 
-    pub fn update_timestep(manager: &mut Manager) {
+    pub fn update_timestep(manager: &mut Self) {
         manager.timestep.ticks_total += 1;
         manager.timestep.ticks_frame += 1;
 
@@ -196,7 +196,7 @@ impl Manager {
             + manager.timestep.ticks_total * SIMULATION_TICK_DURATION;
     }
 
-    pub fn fix_timestep(manager: &mut Manager) {
+    pub fn fix_timestep(manager: &mut Self) {
         let current_instant = Instant::now();
 
         if current_instant < manager.timestep.next_instant {

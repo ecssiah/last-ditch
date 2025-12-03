@@ -7,5 +7,5 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub const ALL: [Kind; 4] = [Kind::Eagle, Kind::Lion, Kind::Horse, Kind::Wolf];
+    pub const ALL: [Self; 4] = [Self::Eagle, Self::Lion, Self::Horse, Self::Wolf];
 }

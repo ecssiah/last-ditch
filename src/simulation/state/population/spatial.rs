@@ -28,23 +28,23 @@ impl Spatial {
         }
     }
 
-    pub fn set_world_position(world_position: Vec3, spatial: &mut Spatial) {
+    pub fn set_world_position(world_position: Vec3, spatial: &mut Self) {
         spatial.world_position = world_position;
         spatial.body.set_bottom_center(world_position);
     }
 
-    pub fn set_size(size: Vec3, spatial: &mut Spatial) {
+    pub fn set_size(size: Vec3, spatial: &mut Self) {
         spatial.size = size;
         spatial.body.set_size(size);
     }
 
-    pub fn set_rotation(rotation_xy: f32, spatial: &mut Spatial) {
+    pub fn set_rotation(rotation_xy: f32, spatial: &mut Self) {
         let rotation_xy_radians = rotation_xy.to_radians();
 
         spatial.rotor = Rotor3::from_rotation_xy(rotation_xy_radians);
     }
 
-    pub fn update_sector_id(spatial: &mut Spatial) {
+    pub fn update_sector_id(spatial: &mut Self) {
         let sector_id = grid::world_position_to_sector_id(spatial.world_position);
 
         if sector_id != spatial.sector_id {

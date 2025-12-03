@@ -1,20 +1,16 @@
 //! Current state of the simulation
 
 pub mod action;
-pub mod config;
 pub mod navigation;
 pub mod physics;
 pub mod population;
-pub mod template;
 pub mod time;
 pub mod work;
 pub mod world;
 
 pub use action::Action;
-pub use config::Config;
 pub use physics::Physics;
 pub use population::Population;
-pub use template::Template;
 pub use time::Time;
 pub use world::World;
 
@@ -61,7 +57,7 @@ impl State {
         }
     }
 
-    pub fn place_block(state: &mut State) {
+    pub fn place_block(state: &mut Self) {
         let judge = &state.population.judge;
 
         let range = 8.0;
@@ -90,7 +86,7 @@ impl State {
         }
     }
 
-    pub fn remove_block(state: &mut State) {
+    pub fn remove_block(state: &mut Self) {
         let judge = &state.population.judge;
 
         let range = 8.0;
@@ -111,14 +107,14 @@ impl State {
         }
     }
 
-    pub fn seed(seed: u64, state: &mut State) {
+    pub fn seed(seed: u64, state: &mut Self) {
         state.rng = ChaCha8Rng::seed_from_u64(seed);
 
         state.world.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
         state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
     }
 
-    pub fn tick(state: &mut State) {
+    pub fn tick(state: &mut Self) {
         let _ = tracing::info_span!("state_tick").entered();
 
         Action::tick(state);

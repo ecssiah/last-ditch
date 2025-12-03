@@ -7,9 +7,9 @@ pub enum Role {
 impl Role {
     pub fn from_string(string: &str) -> Option<Self> {
         if Self::matches_kind(string, "agent") {
-            Some(Role::Agent)
+            Some(Self::Agent)
         } else if Self::matches_kind(string, "judge") {
-            Some(Role::Judge)
+            Some(Self::Judge)
         } else {
             None
         }

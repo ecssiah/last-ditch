@@ -87,7 +87,7 @@ impl Camera {
         }
     }
 
-    pub fn apply_view(view: &View, camera: &mut Camera) {
+    pub fn apply_view(view: &View, camera: &mut Self) {
         Self::update_camera(&view.population_view.judge_view, camera);
 
         let view_matrix_array = [
@@ -120,7 +120,7 @@ impl Camera {
         };
     }
 
-    fn update_camera(judge_view: &JudgeView, camera: &mut Camera) {
+    fn update_camera(judge_view: &JudgeView, camera: &mut Self) {
         let projection_matrix =
             Self::get_projection_matrix(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
