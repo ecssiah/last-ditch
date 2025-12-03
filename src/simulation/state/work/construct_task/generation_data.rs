@@ -1,18 +1,15 @@
 use std::collections::HashMap;
-
 use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
+            Population, State, World, population::{
                 agent::Agent,
                 judge::Judge,
                 nation::{self, Nation},
                 sight::Sight,
                 spatial::Spatial,
-            },
-            world::block,
-            Population, State, World,
+            }, world::{block, grid::{self}, structure}
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -28,7 +25,14 @@ pub struct GenerationData {
 impl GenerationData {
     pub fn new() -> Self {
         let stage_index = 0;
-        let stage_cost_map = HashMap::from([(0, 100), (1, 100), (2, 100), (3, 100), (4, 100)]);
+
+        #[rustfmt::skip]
+        let stage_cost_map = HashMap::from([
+            (0, 100), 
+            (1, 100), 
+            (2, 100), 
+            (3, 100), 
+        ]);
 
         Self {
             stage_index,
@@ -48,14 +52,13 @@ impl GenerationData {
             }
             1 => {
                 Self::construct_halls(&mut state.world);
-            }
-            2 => {
                 Self::construct_fascade(&mut state.world);
-            }
-            3 => {
                 Self::construct_central_shaft(&mut state.world);
             }
-            4 => {
+            2 => {
+                Self::construct_trade_platforms(&mut state.world);
+            }
+            3 => {
                 Self::setup_nations(&mut state.population);
                 Self::setup_judge(&mut state.population);
                 Self::setup_agent_map(&state.world, &mut state.population);
@@ -333,6 +336,21 @@ impl GenerationData {
         );
     }
 
+    fn construct_trade_platforms(world: &mut World) {
+        let building_radius = BUILDING_RADIUS as i32 + 1;
+
+        Self::construct_trade_platform(IVec3::new(building_radius, 0, 0), grid::Direction::East, world);
+        Self::construct_trade_platform(IVec3::new(-building_radius, 0, 0), grid::Direction::West, world);
+        Self::construct_trade_platform(IVec3::new(0, building_radius, 0), grid::Direction::North, world);
+        Self::construct_trade_platform(IVec3::new(0, -building_radius, 0), grid::Direction::South, world);
+    }
+
+    fn construct_trade_platform(grid_position: IVec3, direction: grid::Direction, world: &mut World) {
+        for (block_kind, block_grid_position) in structure::template::trade_platform(direction) {
+            World::set_block(grid_position + block_grid_position, block_kind, &world.block_info_map, &mut world.sector_vec);
+        }
+    }
+
     fn setup_nations(population: &mut Population) {
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
 
@@ -355,12 +373,15 @@ impl GenerationData {
         population
             .nation_map
             .insert(nation::Kind::Wolf, wolf_nation);
+        
         population
             .nation_map
             .insert(nation::Kind::Lion, lion_nation);
+        
         population
             .nation_map
             .insert(nation::Kind::Eagle, eagle_nation);
+        
         population
             .nation_map
             .insert(nation::Kind::Horse, horse_nation);

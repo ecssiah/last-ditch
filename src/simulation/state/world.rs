@@ -4,6 +4,7 @@ pub mod block;
 pub mod cell;
 pub mod grid;
 pub mod sector;
+pub mod structure;
 
 use crate::simulation::{
     constants::*,

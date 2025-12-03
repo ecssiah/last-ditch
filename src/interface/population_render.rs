@@ -411,7 +411,7 @@ impl PopulationRender {
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        entity_render: &PopulationRender,
+        entity_render: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
