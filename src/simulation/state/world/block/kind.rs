@@ -46,27 +46,31 @@ impl Kind {
         Kind::EsayaBlock,
     ];
 
-    pub fn next(self) -> Kind {
-        let idx = Self::CYCLE.iter().position(|&k| k == self);
+    pub fn next_block_kind(current_block_kind: &Kind) -> Kind {
+        let current_block_kind_index = Self::CYCLE
+            .iter()
+            .position(|block_kind| block_kind == current_block_kind);
 
-        match idx {
-            Some(i) => {
-                if i + 1 < Self::CYCLE.len() {
-                    Self::CYCLE[i + 1]
+        match current_block_kind_index {
+            Some(index) => {
+                if index + 1 < Self::CYCLE.len() {
+                    Self::CYCLE[index + 1]
                 } else {
-                    Self::CYCLE[0] // wrap
+                    Self::CYCLE[0]
                 }
             }
-            None => Self::CYCLE[0], // if starting from None or anything weird
+            None => Self::CYCLE[0],
         }
     }
 
-    pub fn prev(self) -> Kind {
-        let idx = Self::CYCLE.iter().position(|&k| k == self);
+    pub fn previous_block_kind(current_block_kind: &Kind) -> Kind {
+        let current_block_kind_index = Self::CYCLE
+            .iter()
+            .position(|block_kind| block_kind == current_block_kind);
 
-        match idx {
-            Some(0) => Self::CYCLE[Self::CYCLE.len() - 1], // wrap
-            Some(i) => Self::CYCLE[i - 1],
+        match current_block_kind_index {
+            Some(0) => Self::CYCLE[Self::CYCLE.len() - 1],
+            Some(index) => Self::CYCLE[index - 1],
             None => Self::CYCLE[Self::CYCLE.len() - 1],
         }
     }

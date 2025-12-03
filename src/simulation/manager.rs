@@ -84,8 +84,12 @@ impl Manager {
         match message {
             Message::Interact1 => Self::handle_interact1(state),
             Message::Interact2 => Self::handle_interact2(state),
-            Message::RotatationInput(rotate_data) => Self::handle_rotation_input_message(rotate_data, state),
-            Message::MovementInput(move_data) => Self::handle_movement_input_message(move_data, state),
+            Message::RotatationInput(rotate_data) => {
+                Self::handle_rotation_input_message(rotate_data, state)
+            }
+            Message::MovementInput(move_data) => {
+                Self::handle_movement_input_message(move_data, state)
+            }
             Message::JumpInput => Self::handle_jump_input_message(state),
             Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
             Message::Quit => Self::handle_quit_message(state, manager),
@@ -120,7 +124,10 @@ impl Manager {
         state.action.act_deque.push_back(Act::Rotate(rotate_data));
     }
 
-    fn handle_movement_input_message(movement_input_data: &message::MovementInputData, state: &mut State) {
+    fn handle_movement_input_message(
+        movement_input_data: &message::MovementInputData,
+        state: &mut State,
+    ) {
         let move_direction = Vec3::new(
             movement_input_data.input_x,
             movement_input_data.input_y,
@@ -165,12 +172,12 @@ impl Manager {
 
     fn handle_option1_message(state: &mut State) {
         state.population.judge.selected_block_kind =
-            Kind::prev(state.population.judge.selected_block_kind);
+            Kind::previous_block_kind(&state.population.judge.selected_block_kind);
     }
 
     fn handle_option2_message(state: &mut State) {
         state.population.judge.selected_block_kind =
-            Kind::next(state.population.judge.selected_block_kind);
+            Kind::next_block_kind(&state.population.judge.selected_block_kind);
     }
 
     fn handle_option3_message(_state: &mut State) {
