@@ -33,7 +33,7 @@ impl Action {
             return;
         }
 
-        let act_deque: VecDeque<Act> = state.action.act_deque.drain(..).collect();
+        let act_deque = std::mem::take(&mut state.action.act_deque);
 
         for act in act_deque {
             match act {
@@ -66,21 +66,40 @@ impl Action {
     pub fn apply_move(move_data: &MoveData, judge: &mut Judge) {
         const MOVEMENT_EPSILON: f32 = 1e-6;
 
-        if move_data.move_x.abs() > MOVEMENT_EPSILON || move_data.move_y.abs() > MOVEMENT_EPSILON {
-            let move_direction = Vec3::new(move_data.move_x, move_data.move_y, 0.0).normalized();
+        if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
+            if judge.kinematic.flying {
+                let local_horizontal_move_direction =
+                    Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
 
-            let local_velocity = judge.kinematic.speed * move_direction;
-            let velocity = judge.spatial.rotor * local_velocity;
+                let horizontal_move_direction = judge.sight.rotor * local_horizontal_move_direction;
+                let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
 
-            judge.kinematic.velocity.x = velocity.x;
-            judge.kinematic.velocity.y = velocity.y;
+                let move_direction = (horizontal_move_direction + vertical_move_direction).normalized();
+
+                let velocity = judge.kinematic.speed * move_direction;
+
+                judge.kinematic.velocity = velocity;
+            } else {
+                let local_velocity = judge.kinematic.speed * move_data.move_direction;
+
+                let velocity = judge.spatial.rotor * local_velocity;
+
+                judge.kinematic.velocity.x = velocity.x;
+                judge.kinematic.velocity.y = velocity.y;
+            };
         } else {
-            judge.kinematic.velocity.x = 0.0;
-            judge.kinematic.velocity.y = 0.0;
+            if judge.kinematic.flying {
+                judge.kinematic.velocity = Vec3::zero();
+            } else {
+                judge.kinematic.velocity.x = 0.0;
+                judge.kinematic.velocity.y = 0.0;
+            }
         }
     }
 
     pub fn apply_jump(kinematic: &mut Kinematic) {
-        kinematic.velocity.z = kinematic.jump_speed;
+        if !kinematic.flying {
+            kinematic.velocity.z = kinematic.jump_speed;
+        }
     }
 }

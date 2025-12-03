@@ -45,6 +45,7 @@ impl Judge {
             speed: JUDGE_DEFAULT_SPEED,
             jump_speed: JUDGE_DEFAULT_JUMP_SPEED,
             velocity: Vec3::zero(),
+            flying: false,
         };
 
         let mut sight = Sight::new();

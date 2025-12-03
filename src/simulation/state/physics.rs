@@ -16,15 +16,21 @@ use ultraviolet::{IVec3, Vec3};
 #[derive(Default)]
 pub struct Physics {
     pub active: bool,
+    pub gravity_active: bool,
     pub gravity: Vec3,
 }
 
 impl Physics {
     pub fn new() -> Self {
         let active = false;
+        let gravity_active = true;
         let gravity = Vec3::new(0.0, 0.0, -GRAVITY_ACCELERATION);
 
-        Self { active, gravity }
+        Self {
+            active,
+            gravity_active,
+            gravity,
+        }
     }
 
     pub fn tick(world: &World, population: &mut Population, physics: &mut Physics) {
@@ -34,8 +40,7 @@ impl Physics {
             return;
         }
 
-        let (velocity, delta) =
-            Physics::integrate(physics.gravity, &mut population.judge.kinematic);
+        let (velocity, delta) = Self::integrate(physics, &mut population.judge.kinematic);
 
         Self::resolve(
             world,
@@ -48,9 +53,22 @@ impl Physics {
         Self::sync(&mut population.judge.spatial, &mut population.judge.sight);
     }
 
-    fn integrate(gravity: Vec3, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
+    pub fn set_gravity_active(gravity_active: bool, physics: &mut Physics) {
+        physics.gravity_active = gravity_active;
+    }
+
+    pub fn toggle_gravity_active(physics: &mut Physics) {
+        Self::set_gravity_active(!physics.gravity_active, physics);
+    }
+
+    fn integrate(physics: &Physics, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
         let initial_velocity = kinematic.velocity;
-        let acceleration = gravity;
+
+        let acceleration = if physics.gravity_active {
+            physics.gravity
+        } else {
+            Vec3::zero()
+        };
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 
@@ -149,6 +167,7 @@ impl Physics {
 
     fn sync(spatial: &mut Spatial, sight: &mut Sight) {
         Spatial::set_world_position(spatial.body.bottom_center(), spatial);
+        
         Sight::set_world_position(
             spatial.body.bottom_center() + sight.relative_position,
             sight,

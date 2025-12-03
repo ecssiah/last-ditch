@@ -5,6 +5,7 @@ pub mod viewer;
 
 pub use message::Message;
 pub use timestep::Timestep;
+use ultraviolet::Vec3;
 pub use viewer::Viewer;
 
 use crate::simulation::{
@@ -15,12 +16,13 @@ use crate::simulation::{
             act::{self},
             Act,
         },
+        population::kinematic::Kinematic,
         work::{
             construct_task::{generation_data::GenerationData, ConstructTask},
             construct_worker::ConstructWorker,
         },
         world::block::Kind,
-        State,
+        Physics, State,
     },
 };
 use std::time::{Duration, Instant};
@@ -87,6 +89,7 @@ impl Manager {
             Message::Jump => Self::handle_jump_message(state),
             Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
             Message::Quit => Self::handle_quit_message(state, manager),
+            Message::Debug => Self::handle_debug_message(state),
             Message::Option1 => Self::handle_option1_message(state),
             Message::Option2 => Self::handle_option2_message(state),
             Message::Option3 => Self::handle_option3_message(state),
@@ -113,11 +116,10 @@ impl Manager {
     }
 
     fn handle_move_message(move_data: &message::MoveData, state: &mut State) {
-        let move_data = act::MoveData {
-            move_x: move_data.move_x,
-            move_y: move_data.move_y,
-            move_z: move_data.move_z,
-        };
+        let move_direction =
+            Vec3::new(move_data.move_x, move_data.move_y, move_data.move_z).normalized();
+
+        let move_data = act::MoveData { move_direction };
 
         state.action.act_deque.push_back(Act::Move(move_data));
     }
@@ -145,6 +147,11 @@ impl Manager {
         // TODO: Save Simulation State!
 
         manager.status = Status::Done;
+    }
+
+    fn handle_debug_message(state: &mut State) {
+        Physics::toggle_gravity_active(&mut state.physics);
+        Kinematic::toggle_flying(&mut state.population.judge.kinematic);
     }
 
     fn handle_option1_message(state: &mut State) {

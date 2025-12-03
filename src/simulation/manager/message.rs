@@ -15,6 +15,7 @@ pub enum Message {
     Jump,
     Generate(GenerateData),
     Quit,
+    Debug,
     Option1,
     Option2,
     Option3,

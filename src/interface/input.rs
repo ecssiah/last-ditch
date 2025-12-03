@@ -40,6 +40,8 @@ impl Input {
             key_a: 0.0,
             key_s: 0.0,
             key_d: 0.0,
+            key_q: 0.0,
+            key_e: 0.0,
         };
 
         let mouse_inputs = MouseInputs {
@@ -73,7 +75,7 @@ impl Input {
         let move_data = MoveData {
             move_x: key_inputs.key_a + key_inputs.key_d,
             move_y: key_inputs.key_w + key_inputs.key_s,
-            move_z: 0.0,
+            move_z: key_inputs.key_q + key_inputs.key_e,
         };
 
         Message::Move(move_data)
@@ -176,6 +178,8 @@ impl Input {
         match key_event.physical_key {
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
+                    message_deque.push_back(Message::Debug);
+
                     DebugRender::toggle_debug_active(debug_render);
                 }
 
@@ -241,6 +245,24 @@ impl Input {
                     key_inputs.key_d += 1.0;
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_d -= 1.0;
+                }
+
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyQ) => {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
+                    key_inputs.key_q -= 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_q += 1.0;
+                }
+
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyE) => {
+                if key_event.state == ElementState::Pressed && !key_event.repeat {
+                    key_inputs.key_e += 1.0;
+                } else if key_event.state == ElementState::Released {
+                    key_inputs.key_e -= 1.0;
                 }
 
                 true
