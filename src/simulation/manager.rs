@@ -84,9 +84,9 @@ impl Manager {
         match message {
             Message::Interact1 => Self::handle_interact1(state),
             Message::Interact2 => Self::handle_interact2(state),
-            Message::Rotate(rotate_data) => Self::handle_rotate_message(rotate_data, state),
-            Message::Move(move_data) => Self::handle_move_message(move_data, state),
-            Message::Jump => Self::handle_jump_message(state),
+            Message::RotatationInput(rotate_data) => Self::handle_rotation_input_message(rotate_data, state),
+            Message::MovementInput(move_data) => Self::handle_movement_input_message(move_data, state),
+            Message::JumpInput => Self::handle_jump_input_message(state),
             Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Debug => Self::handle_debug_message(state),
@@ -105,28 +105,35 @@ impl Manager {
         state.action.act_deque.push_back(Act::RemoveBlock);
     }
 
-    fn handle_rotate_message(rotate_data: &message::RotateData, state: &mut State) {
+    fn handle_rotation_input_message(
+        rotation_input_data: &message::RotationInputData,
+        state: &mut State,
+    ) {
         let rotate_data = act::RotateData {
             rotation_angles: Vec3::new(
-                rotate_data.rotate_yz,
-                rotate_data.rotate_zx,
-                rotate_data.rotate_xy,
+                rotation_input_data.input_x,
+                rotation_input_data.input_y,
+                rotation_input_data.input_z,
             ),
         };
 
         state.action.act_deque.push_back(Act::Rotate(rotate_data));
     }
 
-    fn handle_move_message(move_data: &message::MoveData, state: &mut State) {
-        let move_direction =
-            Vec3::new(move_data.move_x, move_data.move_y, move_data.move_z).normalized();
+    fn handle_movement_input_message(movement_input_data: &message::MovementInputData, state: &mut State) {
+        let move_direction = Vec3::new(
+            movement_input_data.input_x,
+            movement_input_data.input_y,
+            movement_input_data.input_z,
+        )
+        .normalized();
 
         let move_data = act::MoveData { move_direction };
 
         state.action.act_deque.push_back(Act::Move(move_data));
     }
 
-    fn handle_jump_message(state: &mut State) {
+    fn handle_jump_input_message(state: &mut State) {
         state.action.act_deque.push_back(Act::Jump);
     }
 
