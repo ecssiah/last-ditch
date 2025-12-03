@@ -49,15 +49,13 @@ impl Action {
     }
 
     pub fn apply_rotate(rotate_data: &RotateData, judge: &mut Judge) {
-        const MOVEMENT_EPSILON: f32 = 1e-6;
+        const ROTATION_EPSILON: f32 = 1e-6;
 
-        if rotate_data.rotate_xy.abs() > MOVEMENT_EPSILON
-            || rotate_data.rotate_yz.abs() > MOVEMENT_EPSILON
-        {
-            judge.sight.rotation_xy = judge.sight.rotation_xy + rotate_data.rotate_xy;
+        if rotate_data.rotation_angles.mag_sq() > ROTATION_EPSILON {
+            judge.sight.rotation_xy = judge.sight.rotation_xy + rotate_data.rotation_angles.z;
 
-            judge.sight.rotation_yz =
-                (judge.sight.rotation_yz + rotate_data.rotate_yz).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+            judge.sight.rotation_yz = (judge.sight.rotation_yz + rotate_data.rotation_angles.x)
+                .clamp(-PITCH_LIMIT, PITCH_LIMIT);
 
             Judge::set_rotation(judge.sight.rotation_xy, judge.sight.rotation_yz, judge);
         }
@@ -74,7 +72,8 @@ impl Action {
                 let horizontal_move_direction = judge.sight.rotor * local_horizontal_move_direction;
                 let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
 
-                let move_direction = (horizontal_move_direction + vertical_move_direction).normalized();
+                let move_direction =
+                    (horizontal_move_direction + vertical_move_direction).normalized();
 
                 let velocity = judge.kinematic.speed * move_direction;
 

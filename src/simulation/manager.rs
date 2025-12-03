@@ -107,9 +107,11 @@ impl Manager {
 
     fn handle_rotate_message(rotate_data: &message::RotateData, state: &mut State) {
         let rotate_data = act::RotateData {
-            rotate_xy: rotate_data.rotate_xy,
-            rotate_yz: rotate_data.rotate_yz,
-            rotate_zx: rotate_data.rotate_zx,
+            rotation_angles: Vec3::new(
+                rotate_data.rotate_yz,
+                rotate_data.rotate_zx,
+                rotate_data.rotate_xy,
+            ),
         };
 
         state.action.act_deque.push_back(Act::Rotate(rotate_data));
