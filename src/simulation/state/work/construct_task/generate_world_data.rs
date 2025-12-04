@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use rand_chacha::rand_core::RngCore;
 use ultraviolet::{IVec3, Vec3};
 use crate::{simulation::{constants::*, state::{State, World, population::{judge::Judge, nation::{self, Nation}}, world::{self, block, grid::{self, Axis}, structure}}}, utils::ld_math::rand_chacha_ext};
 
@@ -34,6 +35,8 @@ impl GenerateWorldData {
     pub fn step(state: &mut State, generate_world_data: &mut Self) -> bool {
         match generate_world_data.stage_index {
             0 => {
+                World::reset(&mut state.world);
+
                 Self::construct_building_frame(&mut state.world);
                 Self::construct_fascade(&mut state.world);
             }
@@ -300,6 +303,55 @@ impl GenerateWorldData {
             world.area_map.insert(quadrant3_area.area_id, quadrant3_area);
             world.area_map.insert(quadrant4_area.area_id, quadrant4_area);
         }
+
+        Self::subdivide_areas(world);
+        Self::subdivide_areas(world);
+    }
+
+    fn subdivide_areas(world: &mut World) {
+        let area_map = world.area_map.clone();
+        let area_size_min = 3;
+
+        for (area_id, area) in area_map {
+            let axis_index = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng) as usize;
+
+            let midpoint = area.size[axis_index] / 2;
+            let midpoint_offset = rand_chacha_ext::gen_range_i32(-2, 2, &mut world.rng);
+            let split_offset = midpoint + midpoint_offset;
+
+            if split_offset <= area_size_min || split_offset >= area.size[axis_index] - area_size_min {
+                continue;
+            }
+
+            let area1_grid_position = area.grid_position;
+
+            let mut area1_size = area.size;
+            area1_size[axis_index] = split_offset + 1;
+
+            let mut area2_grid_position = area.grid_position;
+            area2_grid_position[axis_index] = area1_grid_position[axis_index] + split_offset;
+
+            let mut area2_size = area.size;
+            area2_size[axis_index] = area.size[axis_index] - split_offset;
+
+            let area1 = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: area1_grid_position,
+                size: area1_size,
+            };
+
+            let area2 = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: area2_grid_position,
+                size: area2_size,
+            };
+
+            world.area_map.remove(&area_id);
+
+            world.area_map.insert(area1.area_id, area1);
+            world.area_map.insert(area2.area_id, area2);
+
+        }
     }
 
     fn construct_areas(world: &mut World) {
@@ -404,8 +456,8 @@ impl GenerateWorldData {
     }
 
     fn setup_judge(judge: &mut Judge) {
-        Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
-        Judge::set_rotation(0.0, 0.0, judge);
+        // Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
+        // Judge::set_rotation(0.0, 0.0, judge);
     }
 
     fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {

@@ -65,6 +65,11 @@ impl World {
         Time::tick(&mut world.time);
     }
 
+    pub fn reset(world: &mut Self) {
+        world.sector_vec = Self::setup_sector_vec();
+        world.area_map = HashMap::new();
+    }
+
     pub fn get_next_area_id(world: &mut Self) -> u64 {
         let area_id = world.next_area_id;
 

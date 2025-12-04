@@ -1,6 +1,6 @@
 use ultraviolet::IVec3;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Area {
     pub area_id: u64,
     pub grid_position: IVec3,
