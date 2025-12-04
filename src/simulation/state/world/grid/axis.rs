@@ -11,6 +11,10 @@ pub enum Axis {
 impl Axis {
     pub const ALL: [Self; 3] = [Self::X, Self::Y, Self::Z];
 
+    pub fn index(axis: Self) -> u8 {
+        axis as u8
+    }
+
     pub fn unit(axis: Self) -> Vec3 {
         match axis {
             Self::X => Vec3::unit_x(),

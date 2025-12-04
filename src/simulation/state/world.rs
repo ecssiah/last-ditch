@@ -16,7 +16,7 @@ use crate::simulation::{
     state::{
         physics::aabb::AABB,
         population::nation,
-        world::{self},
+        world::{self, grid::Axis},
         Time,
     },
 };
@@ -184,7 +184,10 @@ impl World {
         cell
     }
 
-    pub fn get_cell_at<'a>(grid_position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a world::Cell {
+    pub fn get_cell_at<'a>(
+        grid_position: IVec3,
+        sector_vec_slice: &'a [Sector],
+    ) -> &'a world::Cell {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice);
@@ -250,6 +253,35 @@ impl World {
 
             let sector = Self::get_sector_mut(sector_id, sector_vec_slice);
             sector.version += 1;
+        }
+    }
+
+    pub fn set_plane(
+        grid_position: IVec3,
+        size: (usize, usize),
+        normal_axis: Axis,
+        block_kind: block::Kind,
+        world: &mut Self,
+    ) {
+        let (u, v) = match normal_axis {
+            Axis::X => (1, 2),
+            Axis::Y => (0, 2),
+            Axis::Z => (0, 1),
+        };
+
+        for vy in 0..size.1 {
+            for ux in 0..size.0 {
+                let mut block_grid_position = grid_position;
+                block_grid_position[u] += ux as i32;
+                block_grid_position[v] += vy as i32;
+
+                World::set_block(
+                    block_grid_position,
+                    block_kind,
+                    &world.block_info_map,
+                    &mut world.sector_vec,
+                );
+            }
         }
     }
 

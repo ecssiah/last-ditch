@@ -4,5 +4,5 @@ use ultraviolet::IVec3;
 pub struct Area {
     pub area_id: u64,
     pub grid_position: IVec3,
-    pub size: (usize, usize, usize),
+    pub size: IVec3,
 }
