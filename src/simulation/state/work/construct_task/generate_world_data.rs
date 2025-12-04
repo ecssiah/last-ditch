@@ -1,29 +1,16 @@
 use std::collections::HashMap;
-use crate::{
-    simulation::{
-        constants::*,
-        state::{
-            Population, State, World, population::{
-                agent::Agent,
-                judge::Judge,
-                nation::{self, Nation},
-                sight::Sight,
-                spatial::Spatial,
-            }, world::{block, grid::{self}, structure}
-        },
-    },
-    utils::ld_math::rand_chacha_ext,
-};
 use ultraviolet::{IVec3, Vec3};
 
+use crate::{simulation::{constants::*, state::{State, World, population::judge::Judge, world::{block, grid, structure}}}, utils::ld_math::rand_chacha_ext};
+
 #[derive(Clone)]
-pub struct GenerationData {
+pub struct GenerateWorldData {
     pub stage_index: usize,
     pub stage_cost_map: HashMap<usize, u32>,
 }
 
-impl GenerationData {
-    pub fn new() -> Self {
+impl GenerateWorldData {
+        pub fn new() -> Self {
         let stage_index = 0;
 
         #[rustfmt::skip]
@@ -31,7 +18,6 @@ impl GenerationData {
             (0, 100), 
             (1, 100), 
             (2, 100), 
-            (3, 100), 
         ]);
 
         Self {
@@ -47,21 +33,17 @@ impl GenerationData {
     pub fn step(state: &mut State, generation_data: &mut Self) -> bool {
         match generation_data.stage_index {
             0 => {
-                Self::construct_elevator_shaft(&mut state.world);
-                Self::construct_building_frame(&mut state.world);
+                Self::setup_judge(&mut state.population.judge);
             }
             1 => {
+                Self::construct_elevator_shaft(&mut state.world);
+                Self::construct_building_frame(&mut state.world);
                 Self::construct_halls(&mut state.world);
-                Self::construct_fascade(&mut state.world);
-                Self::construct_central_shaft(&mut state.world);
             }
             2 => {
+                Self::construct_fascade(&mut state.world);
+                Self::construct_central_shaft(&mut state.world);
                 Self::construct_trade_platforms(&mut state.world);
-            }
-            3 => {
-                Self::setup_nations(&mut state.population);
-                Self::setup_judge(&mut state.population);
-                Self::setup_agent_map(&state.world, &mut state.population);
             }
             _ => unreachable!(),
         }
@@ -73,6 +55,11 @@ impl GenerationData {
         generation_data.stage_index += 1;
 
         generation_data.stage_index >= generation_data.stage_cost_map.len()
+    }
+
+    fn setup_judge(judge: &mut Judge) {
+        Judge::set_world_position(Vec3::new(0.0, -4.0, 1.0), judge);
+        Judge::set_rotation(0.0, 0.0, judge);
     }
 
     fn construct_building_frame(world: &mut World) {
@@ -351,89 +338,4 @@ impl GenerationData {
         }
     }
 
-    fn setup_nations(population: &mut Population) {
-        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
-
-        let wolf_nation = Nation {
-            home_position: IVec3::new(sector_size_in_cells, 0, 0),
-        };
-
-        let lion_nation = Nation {
-            home_position: IVec3::new(-sector_size_in_cells, 0, 0),
-        };
-
-        let eagle_nation = Nation {
-            home_position: IVec3::new(0, sector_size_in_cells, 0),
-        };
-
-        let horse_nation = Nation {
-            home_position: IVec3::new(0, -sector_size_in_cells, 0),
-        };
-
-        population
-            .nation_map
-            .insert(nation::Kind::Wolf, wolf_nation);
-        
-        population
-            .nation_map
-            .insert(nation::Kind::Lion, lion_nation);
-        
-        population
-            .nation_map
-            .insert(nation::Kind::Eagle, eagle_nation);
-        
-        population
-            .nation_map
-            .insert(nation::Kind::Horse, horse_nation);
-    }
-
-    pub fn setup_judge(population: &mut Population) {
-        let judge = &mut population.judge;
-
-        Judge::set_world_position(Vec3::new(0.0, -4.0, 1.0), judge);
-        Judge::set_rotation(0.0, 0.0, judge);
-
-        Sight::set_range(100.0, &mut judge.sight);
-    }
-
-    fn setup_agent_map(_world: &World, population: &mut Population) {
-        let nation_map = population.nation_map.clone();
-
-        for (nation_kind, nation) in nation_map {
-            let home_position = Vec3::from(nation.home_position);
-
-            for _ in 1..=AGENT_INITIAL_POPULATION {
-                let offset = Vec3::new(
-                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
-                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
-                    0.0,
-                );
-
-                let agent_id = Population::get_next_entity_id(population);
-
-                let mut agent = Agent::new(agent_id, nation_kind);
-
-                let world_position = home_position + offset;
-
-                Spatial::set_world_position(world_position, &mut agent.spatial);
-
-                let agent_size = Vec3::new(
-                    AGENT_DEFAULT_SIZE_X,
-                    AGENT_DEFAULT_SIZE_Y,
-                    rand_chacha_ext::gen_range_f32(
-                        AGENT_DEFAULT_SIZE_Z - 0.2,
-                        AGENT_DEFAULT_SIZE_Z + 0.2,
-                        &mut population.rng,
-                    ),
-                );
-
-                agent.kinematic.speed = AGENT_DEFAULT_SPEED;
-                agent.kinematic.jump_speed = AGENT_DEFAULT_JUMP_SPEED;
-
-                Spatial::set_size(agent_size, &mut agent.spatial);
-
-                population.agent_map.insert(agent.entity_id, agent);
-            }
-        }
-    }
 }

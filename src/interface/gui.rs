@@ -6,7 +6,7 @@ pub use model::Model;
 
 use crate::{
     interface::gpu::gpu_context::GPUContext,
-    simulation::manager::{message::GenerateData, viewer::View, Message},
+    simulation::manager::{message::SeedData, viewer::View, Message},
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::{
@@ -86,26 +86,41 @@ impl GUI {
 
                             ui.add(
                                 egui::TextEdit::singleline(&mut gui.model.seed_input_string)
-                                    .desired_width(ui.available_width() * 0.1)
+                                    .desired_width(120.0)
                                     .horizontal_align(egui::Align::Center),
                             );
 
-                            ui.add_space(ui.available_height() * 0.1);
+                            ui.add_space(20.0);
 
-                            let generate_clicked = ui
-                                .add_sized([200.0, 60.0], egui::Button::new("Generate"))
+                            let generate_world_clicked = ui
+                                .add_sized([200.0, 60.0], egui::Button::new("Generate World"))
                                 .clicked();
 
-                            if generate_clicked {
-                                let generate_data = GenerateData {
+                            if generate_world_clicked {
+                                let seed_data = SeedData {
                                     seed: Self::parse_seed(&gui.model.seed_input_string),
                                 };
 
-                                gui.message_deque
-                                    .push_back(Message::Generate(generate_data));
+                                gui.message_deque.push_back(Message::SetSeed(seed_data));
+                                gui.message_deque.push_back(Message::GenerateWorld);
+                            }
+                            
+                            ui.add_space(20.0);
+
+                            let generate_population_clicked = ui
+                                .add_sized([200.0, 60.0], egui::Button::new("Generate Population"))
+                                .clicked();
+
+                            if generate_population_clicked {
+                                let seed_data = SeedData {
+                                    seed: Self::parse_seed(&gui.model.seed_input_string),
+                                };
+
+                                gui.message_deque.push_back(Message::SetSeed(seed_data));
+                                gui.message_deque.push_back(Message::GeneratePopulation);
                             }
 
-                            ui.add_space(ui.available_height() * 0.1);
+                            ui.add_space(20.0);
 
                             let quit_clicked = ui
                                 .add_sized([200.0, 60.0], egui::Button::new("Quit"))

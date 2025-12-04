@@ -1,8 +1,8 @@
-pub mod generate_data;
+pub mod seed_data;
 pub mod movement_input_data;
 pub mod rotation_input_data;
 
-pub use generate_data::GenerateData;
+pub use seed_data::SeedData;
 pub use movement_input_data::MovementInputData;
 pub use rotation_input_data::RotationInputData;
 
@@ -13,7 +13,9 @@ pub enum Message {
     MovementInput(MovementInputData),
     RotatationInput(RotationInputData),
     JumpInput,
-    Generate(GenerateData),
+    SetSeed(SeedData),
+    GenerateWorld,
+    GeneratePopulation,
     Quit,
     Debug,
     Option1,

@@ -10,11 +10,15 @@ pub mod sight;
 pub mod spatial;
 
 pub use role::Role;
+use ultraviolet::{IVec3, Vec3};
 
-use crate::simulation::state::{
-    navigation::Navigation,
-    population::{agent::Agent, judge::Judge, nation::Nation},
-    world::World,
+use crate::simulation::{
+    constants::SECTOR_SIZE_IN_CELLS,
+    state::{
+        navigation::Navigation,
+        population::{agent::Agent, judge::Judge, nation::Nation, sight::Sight},
+        world::World,
+    },
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -32,9 +36,9 @@ impl Population {
     pub fn new(seed: u64) -> Self {
         let active = false;
         let rng = ChaCha8Rng::seed_from_u64(seed);
-        let judge = Judge::new(0);
+        let judge = Self::setup_judge();
         let agent_map = HashMap::new();
-        let nation_map = HashMap::new();
+        let nation_map = Self::setup_nation_map();
         let next_entity_id = 1;
 
         Self {
@@ -45,6 +49,46 @@ impl Population {
             agent_map,
             nation_map,
         }
+    }
+
+    fn setup_judge() -> Judge {
+        let mut judge = Judge::new(0);
+
+        Judge::set_world_position(Vec3::new(0.0, 0.0, 0.0), &mut judge);
+        Judge::set_rotation(0.0, 0.0, &mut judge);
+
+        Sight::set_range(100.0, &mut judge.sight);
+
+        judge
+    }
+
+    fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
+        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
+
+        let wolf_nation = Nation {
+            home_position: IVec3::new(sector_size_in_cells, 0, 0),
+        };
+
+        let lion_nation = Nation {
+            home_position: IVec3::new(-sector_size_in_cells, 0, 0),
+        };
+
+        let eagle_nation = Nation {
+            home_position: IVec3::new(0, sector_size_in_cells, 0),
+        };
+
+        let horse_nation = Nation {
+            home_position: IVec3::new(0, -sector_size_in_cells, 0),
+        };
+
+        let nation_map = HashMap::from([
+            (nation::Kind::Wolf, wolf_nation),
+            (nation::Kind::Lion, lion_nation),
+            (nation::Kind::Eagle, eagle_nation),
+            (nation::Kind::Horse, horse_nation),
+        ]);
+
+        nation_map
     }
 
     pub fn get_next_entity_id(population: &mut Self) -> u64 {

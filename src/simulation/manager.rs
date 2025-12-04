@@ -10,7 +10,7 @@ pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{status::Status, viewer::View},
+    manager::{message::seed_data, status::Status, viewer::View},
     state::{
         action::{
             act::{self},
@@ -18,7 +18,11 @@ use crate::simulation::{
         },
         population::kinematic::Kinematic,
         work::{
-            construct_task::{generation_data::GenerationData, ConstructTask},
+            construct_task::{
+                generate_population_data::{self, GeneratePopulationData},
+                generate_world_data::GenerateWorldData,
+                ConstructTask,
+            },
             construct_worker::ConstructWorker,
         },
         world::block::Kind,
@@ -91,7 +95,9 @@ impl Manager {
                 Self::handle_movement_input_message(move_data, state)
             }
             Message::JumpInput => Self::handle_jump_input_message(state),
-            Message::Generate(generate_data) => Self::handle_generate_message(generate_data, state),
+            Message::SetSeed(seed_data) => Self::handle_set_seed_message(seed_data, state),
+            Message::GenerateWorld => Self::handle_generate_world_message(state),
+            Message::GeneratePopulation => Self::handle_generate_population_message(state),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Debug => Self::handle_debug_message(state),
             Message::Option1 => Self::handle_option1_message(state),
@@ -144,11 +150,26 @@ impl Manager {
         state.action.act_deque.push_back(Act::Jump);
     }
 
-    fn handle_generate_message(generate_data: &message::GenerateData, state: &mut State) {
-        State::seed(generate_data.seed, state);
+    fn handle_set_seed_message(seed_data: &message::SeedData, state: &mut State) {
+        State::seed(seed_data.seed, state);
+    }
 
-        let generation_data = GenerationData::new();
-        let construct_task = ConstructTask::GenerationTask(generation_data);
+    fn handle_generate_world_message(state: &mut State) {
+        let generate_world_data = GenerateWorldData::new();
+        let construct_task = ConstructTask::GenerateWorld(generate_world_data);
+
+        ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
+
+        state.action.active = true;
+        state.world.active = true;
+        state.population.active = true;
+        state.physics.active = true;
+        state.navigation.active = true;
+    }
+
+    fn handle_generate_population_message(state: &mut State) {
+        let generate_population_data = GeneratePopulationData::new();
+        let construct_task = ConstructTask::GeneratePopulation(generate_population_data);
 
         ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
 

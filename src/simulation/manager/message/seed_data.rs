@@ -1,4 +1,4 @@
 #[derive(Debug)]
-pub struct GenerateData {
+pub struct SeedData {
     pub seed: u64,
 }
