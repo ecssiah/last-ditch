@@ -56,7 +56,10 @@ pub fn trade_platform(direction: grid::Direction) -> Vec<(block::Kind, IVec3)> {
     rotate_template(template, direction)
 }
 
-fn rotate_template(template: Vec<(block::Kind, IVec3)>, direction: grid::Direction) -> Vec<(block::Kind, IVec3)> {
+fn rotate_template(
+    template: Vec<(block::Kind, IVec3)>,
+    direction: grid::Direction,
+) -> Vec<(block::Kind, IVec3)> {
     match direction {
         grid::Direction::East => template
             .into_iter()

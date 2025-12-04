@@ -11,8 +11,8 @@ pub enum Axis {
 impl Axis {
     pub const ALL: [Self; 3] = [Self::X, Self::Y, Self::Z];
 
-    pub fn index(axis: Self) -> u8 {
-        axis as u8
+    pub fn index(axis: Self) -> usize {
+        axis as usize
     }
 
     pub fn unit(axis: Self) -> Vec3 {

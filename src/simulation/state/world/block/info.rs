@@ -125,7 +125,13 @@ impl Info {
                 },
             ),
             (
-                block::Kind::EsayaBlock,
+                block::Kind::ServerBlock1,
+                Self {
+                    solid: true,
+                },
+            ),
+            (
+                block::Kind::ServerBlock2,
                 Self {
                     solid: true,
                 },

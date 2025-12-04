@@ -20,7 +20,8 @@ pub enum Kind {
     WestBlock,
     SouthBlock,
     EastBlock,
-    EsayaBlock,
+    ServerBlock1,
+    ServerBlock2,
 }
 
 impl Kind {
@@ -43,7 +44,8 @@ impl Kind {
         Self::WestBlock,
         Self::SouthBlock,
         Self::EastBlock,
-        Self::EsayaBlock,
+        Self::ServerBlock1,
+        Self::ServerBlock2,
     ];
 
     pub fn next_block_kind(current_block_kind: &Self) -> Self {

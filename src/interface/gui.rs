@@ -104,7 +104,7 @@ impl GUI {
                                 gui.message_deque.push_back(Message::SetSeed(seed_data));
                                 gui.message_deque.push_back(Message::GenerateWorld);
                             }
-                            
+
                             ui.add_space(20.0);
 
                             let generate_population_clicked = ui

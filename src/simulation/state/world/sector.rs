@@ -33,7 +33,10 @@ impl Sector {
         cell
     }
 
-    pub fn get_cell_at_mut<'a>(cell_coordinate: IVec3, sector: &'a mut Self) -> &'a mut world::Cell {
+    pub fn get_cell_at_mut<'a>(
+        cell_coordinate: IVec3,
+        sector: &'a mut Self,
+    ) -> &'a mut world::Cell {
         let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
 
         let cell = Self::get_cell_mut(cell_id, sector);

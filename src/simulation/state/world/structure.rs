@@ -1,5 +1,3 @@
 pub mod template;
 
-pub struct Structure {
-    
-}
+pub struct Structure {}

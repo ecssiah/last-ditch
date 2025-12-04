@@ -328,7 +328,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::EsayaBlock => {
+            block::Kind::ServerBlock1 => {
                 let tile_coordinate_array = [
                     [0, 6],
                     [0, 6],
@@ -336,6 +336,18 @@ pub fn get_gpu_texture_data(
                     [0, 6],
                     [0, 6],
                     [0, 6]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::ServerBlock2 => {
+                let tile_coordinate_array = [
+                    [1, 6],
+                    [1, 6],
+                    [1, 6],
+                    [1, 6],
+                    [1, 6],
+                    [1, 6]
                 ];
 
                 tile_coordinate_array[direction as usize]

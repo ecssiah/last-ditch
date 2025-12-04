@@ -12,12 +12,10 @@ pub mod spatial;
 pub use role::Role;
 use ultraviolet::{IVec3, Vec3};
 
-use crate::simulation::{
-    state::{
-        navigation::Navigation,
-        population::{agent::Agent, judge::Judge, nation::Nation, sight::Sight},
-        world::World,
-    },
+use crate::simulation::state::{
+    navigation::Navigation,
+    population::{agent::Agent, judge::Judge, nation::Nation, sight::Sight},
+    world::World,
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;

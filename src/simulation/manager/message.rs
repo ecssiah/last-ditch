@@ -1,10 +1,10 @@
-pub mod seed_data;
 pub mod movement_input_data;
 pub mod rotation_input_data;
+pub mod seed_data;
 
-pub use seed_data::SeedData;
 pub use movement_input_data::MovementInputData;
 pub use rotation_input_data::RotationInputData;
+pub use seed_data::SeedData;
 
 #[derive(Debug)]
 pub enum Message {

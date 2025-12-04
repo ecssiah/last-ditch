@@ -1,7 +1,16 @@
 use std::collections::HashMap;
 use ultraviolet::Vec3;
 
-use crate::{simulation::{constants::*, state::{Population, State, World, population::{agent::Agent, spatial::Spatial}}}, utils::ld_math::rand_chacha_ext};
+use crate::{
+    simulation::{
+        constants::*,
+        state::{
+            population::{agent::Agent, spatial::Spatial},
+            Population, State, World,
+        },
+    },
+    utils::ld_math::rand_chacha_ext,
+};
 
 #[derive(Clone)]
 pub struct GeneratePopulationData {
@@ -15,7 +24,7 @@ impl GeneratePopulationData {
 
         #[rustfmt::skip]
         let stage_cost_map = HashMap::from([
-            (0, 100), 
+            (0, 100),
         ]);
 
         Self {

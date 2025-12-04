@@ -19,9 +19,8 @@ use crate::simulation::{
         population::kinematic::Kinematic,
         work::{
             construct_task::{
-                generate_population_data::{GeneratePopulationData},
-                generate_world_data::GenerateWorldData,
-                ConstructTask,
+                generate_population_data::GeneratePopulationData,
+                generate_world_data::GenerateWorldData, ConstructTask,
             },
             construct_worker::ConstructWorker,
         },

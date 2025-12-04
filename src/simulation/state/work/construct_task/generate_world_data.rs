@@ -1,7 +1,23 @@
+use crate::{
+    simulation::{
+        constants::*,
+        state::{
+            population::{
+                judge::Judge,
+                nation::{self, Nation},
+            },
+            world::{
+                self, block,
+                grid::{self, Axis},
+                structure,
+            },
+            State, World,
+        },
+    },
+    utils::ld_math::rand_chacha_ext,
+};
 use std::collections::HashMap;
-use rand_chacha::rand_core::RngCore;
-use ultraviolet::{IVec3, Vec3};
-use crate::{simulation::{constants::*, state::{State, World, population::{judge::Judge, nation::{self, Nation}}, world::{self, block, grid::{self, Axis}, structure}}}, utils::ld_math::rand_chacha_ext};
+use ultraviolet::IVec3;
 
 #[derive(Clone)]
 pub struct GenerateWorldData {
@@ -15,11 +31,11 @@ impl GenerateWorldData {
 
         #[rustfmt::skip]
         let stage_cost_map = HashMap::from([
-            (0, 100), 
-            (1, 100), 
-            (2, 100), 
-            (3, 100), 
-            (4, 100), 
+            (0, 100),
+            (1, 100),
+            (2, 100),
+            (3, 100),
+            (4, 100),
         ]);
 
         Self {
@@ -49,7 +65,7 @@ impl GenerateWorldData {
                 Self::construct_areas(&mut state.world);
             }
             3 => {
-                // Self::construct_trade_platforms(&mut state.world);
+                Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
                 Self::setup_judge(&mut state.population.judge);
@@ -77,11 +93,17 @@ impl GenerateWorldData {
         for floor_number in -lower_floor_count..=-1 {
             let floor_position = World::get_floor_position(floor_number);
 
-            let cornerstone_grid_position = IVec3::new(-building_radius, -building_radius, floor_position);
+            let cornerstone_grid_position =
+                IVec3::new(-building_radius, -building_radius, floor_position);
 
             World::set_wireframe_box(
                 cornerstone_grid_position,
-                cornerstone_grid_position + IVec3::new(building_size as i32 - 1, building_size as i32 - 1, floor_height - 1),
+                cornerstone_grid_position
+                    + IVec3::new(
+                        building_size as i32 - 1,
+                        building_size as i32 - 1,
+                        floor_height - 1,
+                    ),
                 block::Kind::Engraved1,
                 &world.block_info_map,
                 &mut world.sector_vec,
@@ -96,7 +118,11 @@ impl GenerateWorldData {
             );
 
             World::set_plane(
-                IVec3::new(-building_radius + 1, -building_radius + 1, floor_position + floor_height - 1),
+                IVec3::new(
+                    -building_radius + 1,
+                    -building_radius + 1,
+                    floor_position + floor_height - 1,
+                ),
                 (building_size - 2, building_size - 2),
                 Axis::Z,
                 block::Kind::Polished2,
@@ -110,6 +136,14 @@ impl GenerateWorldData {
             Axis::Z,
             block::Kind::Polished2,
             world,
+        );
+
+        World::set_wireframe_box(
+            IVec3::new(-building_radius, -building_radius, -1),
+            IVec3::new(building_radius, building_radius, 0),
+            block::Kind::Engraved1,
+            &world.block_info_map,
+            &mut world.sector_vec,
         );
     }
 
@@ -245,33 +279,34 @@ impl GenerateWorldData {
 
         let floor_height = FLOOR_HEIGHT as i32;
         let lower_floor_count = LOWER_FLOOR_COUNT as i32;
-        let quadrant_size = building_radius - external_hall_radius - central_elevator_shaft_radius - 3;
+        let quadrant_size =
+            building_radius - external_hall_radius - central_elevator_shaft_radius - 3;
 
         for floor_number in -lower_floor_count..=-1 {
             let floor_position = World::get_floor_position(floor_number);
 
             let quadrant1_grid_position = IVec3::new(
-                -(building_radius - 1) + external_hall_size, 
-                central_elevator_shaft_radius + 1, 
-                floor_position
+                -(building_radius - 1) + external_hall_size,
+                central_elevator_shaft_radius + 1,
+                floor_position,
             );
 
             let quadrant2_grid_position = IVec3::new(
-                central_elevator_shaft_radius + 1, 
-                central_elevator_shaft_radius + 1, 
-                floor_position
+                central_elevator_shaft_radius + 1,
+                central_elevator_shaft_radius + 1,
+                floor_position,
             );
 
             let quadrant3_grid_position = IVec3::new(
-                -(building_radius - 1) + external_hall_size, 
-                -(building_radius - 1) + external_hall_size, 
-                floor_position
+                -(building_radius - 1) + external_hall_size,
+                -(building_radius - 1) + external_hall_size,
+                floor_position,
             );
 
             let quadrant4_grid_position = IVec3::new(
-                central_elevator_shaft_radius + 1, 
-                -(building_radius - 1) + external_hall_size, 
-                floor_position
+                central_elevator_shaft_radius + 1,
+                -(building_radius - 1) + external_hall_size,
+                floor_position,
             );
 
             let quadrant1_area = world::Area {
@@ -298,10 +333,18 @@ impl GenerateWorldData {
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
             };
 
-            world.area_map.insert(quadrant1_area.area_id, quadrant1_area);
-            world.area_map.insert(quadrant2_area.area_id, quadrant2_area);
-            world.area_map.insert(quadrant3_area.area_id, quadrant3_area);
-            world.area_map.insert(quadrant4_area.area_id, quadrant4_area);
+            world
+                .area_map
+                .insert(quadrant1_area.area_id, quadrant1_area);
+            world
+                .area_map
+                .insert(quadrant2_area.area_id, quadrant2_area);
+            world
+                .area_map
+                .insert(quadrant3_area.area_id, quadrant3_area);
+            world
+                .area_map
+                .insert(quadrant4_area.area_id, quadrant4_area);
         }
 
         Self::subdivide_areas(world);
@@ -319,7 +362,9 @@ impl GenerateWorldData {
             let midpoint_offset = rand_chacha_ext::gen_range_i32(-2, 2, &mut world.rng);
             let split_offset = midpoint + midpoint_offset;
 
-            if split_offset <= area_size_min || split_offset >= area.size[axis_index] - area_size_min {
+            if split_offset <= area_size_min
+                || split_offset >= area.size[axis_index] - area_size_min
+            {
                 continue;
             }
 
@@ -350,7 +395,6 @@ impl GenerateWorldData {
 
             world.area_map.insert(area1.area_id, area1);
             world.area_map.insert(area2.area_id, area2);
-
         }
     }
 
@@ -358,37 +402,137 @@ impl GenerateWorldData {
         for (_, area) in world.area_map.clone() {
             Self::construct_room(&area, world);
         }
+
+        for (_, area) in world.area_map.clone() {
+            Self::construct_doors(&area, world);
+        }
     }
 
     fn construct_room(area: &world::Area, world: &mut World) {
-        World::set_wireframe_box(
-            area.grid_position, 
-            area.grid_position + area.size - IVec3::broadcast(1), 
-            block::Kind::Polished1, 
-            &world.block_info_map, 
-            &mut world.sector_vec
+        World::set_box(
+            area.grid_position,
+            area.grid_position + area.size - IVec3::broadcast(1),
+            block::Kind::Polished1,
+            &world.block_info_map,
+            &mut world.sector_vec,
         );
+    }
+
+    fn construct_doors(area: &world::Area, world: &mut World) {
+        let room_size_min = ROOM_SIZE_MIN as i32;
+
+        if area.size[Axis::index(Axis::X)] >= 5 {
+            let door1_grid_position = IVec3::new(
+                rand_chacha_ext::gen_range_i32(
+                    area.grid_position.x + 1,
+                    area.grid_position.x + area.size.x - room_size_min - 1,
+                    &mut world.rng,
+                ),
+                area.grid_position.y,
+                area.grid_position.z,
+            );
+
+            World::set_frame(
+                door1_grid_position,
+                (3, 4),
+                Axis::Y,
+                block::Kind::Engraved2,
+                world,
+            );
+
+            let door2_grid_position = IVec3::new(
+                rand_chacha_ext::gen_range_i32(
+                    area.grid_position.x + 1,
+                    area.grid_position.x + area.size.x - room_size_min - 1,
+                    &mut world.rng,
+                ),
+                area.grid_position.y + area.size.y - 1,
+                area.grid_position.z,
+            );
+
+            World::set_frame(
+                door2_grid_position,
+                (3, 4),
+                Axis::Y,
+                block::Kind::Engraved2,
+                world,
+            );
+        }
+
+        if area.size[Axis::index(Axis::Y)] >= 5 {
+            let door1_grid_position = IVec3::new(
+                area.grid_position.x,
+                rand_chacha_ext::gen_range_i32(
+                    area.grid_position.y + 1,
+                    area.grid_position.y + area.size.y - room_size_min - 1,
+                    &mut world.rng,
+                ),
+                area.grid_position.z,
+            );
+
+            World::set_frame(
+                door1_grid_position,
+                (3, 4),
+                Axis::X,
+                block::Kind::Engraved2,
+                world,
+            );
+
+            let door2_grid_position = IVec3::new(
+                area.grid_position.x + area.size.x - 1,
+                rand_chacha_ext::gen_range_i32(
+                    area.grid_position.y + 1,
+                    area.grid_position.y + area.size.y - room_size_min - 1,
+                    &mut world.rng,
+                ),
+                area.grid_position.z,
+            );
+
+            World::set_frame(
+                door2_grid_position,
+                (3, 4),
+                Axis::X,
+                block::Kind::Engraved2,
+                world,
+            );
+        }
     }
 
     fn construct_halls(world: &mut World) {
         let floor_height = FLOOR_HEIGHT as i32;
-        let internal_hall_radius = INTERNAL_HALL_SIZE as i32;
+        let internal_hall_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32 - 1;
         let building_radius = BUILDING_RADIUS as i32;
 
         for floor_number in 0..LOWER_FLOOR_COUNT {
             let floor_position = -((LOWER_FLOOR_COUNT - floor_number) as i32) * floor_height - 1;
 
             World::set_cube(
-                IVec3::new(-building_radius + internal_hall_radius, -1, floor_position + 1),
-                IVec3::new(building_radius - internal_hall_radius, 1, floor_position + 4),
+                IVec3::new(
+                    -building_radius + internal_hall_radius,
+                    -1,
+                    floor_position + 1,
+                ),
+                IVec3::new(
+                    building_radius - internal_hall_radius,
+                    1,
+                    floor_position + 4,
+                ),
                 block::Kind::None,
                 &world.block_info_map,
                 &mut world.sector_vec,
             );
 
             World::set_cube(
-                IVec3::new(-1, -building_radius + internal_hall_radius, floor_position + 1),
-                IVec3::new(1, building_radius - internal_hall_radius, floor_position + 4),
+                IVec3::new(
+                    -1,
+                    -building_radius + internal_hall_radius,
+                    floor_position + 1,
+                ),
+                IVec3::new(
+                    1,
+                    building_radius - internal_hall_radius,
+                    floor_position + 4,
+                ),
                 block::Kind::None,
                 &world.block_info_map,
                 &mut world.sector_vec,
@@ -443,27 +587,56 @@ impl GenerateWorldData {
     fn construct_trade_platforms(world: &mut World) {
         let building_radius = BUILDING_RADIUS as i32 + 1;
 
-        Self::construct_trade_platform(IVec3::new(building_radius, 0, 0), grid::Direction::East, world);
-        Self::construct_trade_platform(IVec3::new(-building_radius, 0, 0), grid::Direction::West, world);
-        Self::construct_trade_platform(IVec3::new(0, building_radius, 0), grid::Direction::North, world);
-        Self::construct_trade_platform(IVec3::new(0, -building_radius, 0), grid::Direction::South, world);
+        Self::construct_trade_platform(
+            IVec3::new(building_radius, 0, 0),
+            grid::Direction::East,
+            world,
+        );
+        Self::construct_trade_platform(
+            IVec3::new(-building_radius, 0, 0),
+            grid::Direction::West,
+            world,
+        );
+        Self::construct_trade_platform(
+            IVec3::new(0, building_radius, 0),
+            grid::Direction::North,
+            world,
+        );
+        Self::construct_trade_platform(
+            IVec3::new(0, -building_radius, 0),
+            grid::Direction::South,
+            world,
+        );
     }
 
-    fn construct_trade_platform(grid_position: IVec3, direction: grid::Direction, world: &mut World) {
+    fn construct_trade_platform(
+        grid_position: IVec3,
+        direction: grid::Direction,
+        world: &mut World,
+    ) {
         for (block_kind, block_grid_position) in structure::template::trade_platform(direction) {
-            World::set_block(grid_position + block_grid_position, block_kind, &world.block_info_map, &mut world.sector_vec);
+            World::set_block(
+                grid_position + block_grid_position,
+                block_kind,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
         }
     }
 
-    fn setup_judge(judge: &mut Judge) {
+    fn setup_judge(_judge: &mut Judge) {
         // Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
         // Judge::set_rotation(0.0, 0.0, judge);
     }
 
     fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {
         for (nation_kind, nation) in nation_map {
-            World::set_block(nation.home_position - IVec3::unit_z(), Nation::block(nation_kind), &world.block_info_map, &mut world.sector_vec);
+            World::set_block(
+                nation.home_position - IVec3::unit_z(),
+                Nation::block(nation_kind),
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
         }
     }
-
 }

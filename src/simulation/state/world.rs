@@ -261,6 +261,111 @@ impl World {
         }
     }
 
+    pub fn set_frame(
+        grid_position: IVec3,
+        size: (usize, usize),
+        normal_axis: Axis,
+        block_kind: block::Kind,
+        world: &mut Self,
+    ) {
+        let (u, v) = match normal_axis {
+            Axis::X => (1, 2),
+            Axis::Y => (0, 2),
+            Axis::Z => (0, 1),
+        };
+
+        let min_u = grid_position[u];
+        let min_v = grid_position[v];
+        let max_u = min_u + size.0 as i32 - 1;
+        let max_v = min_v + size.1 as i32 - 1;
+
+        //
+        // 1. DRAW THE FRAME
+        //
+
+        // Vertical edges
+        for vy in 0..size.1 {
+            let v_val = min_v + vy as i32;
+
+            // Left edge
+            let mut pos = grid_position;
+            pos[v] = v_val;
+            pos[u] = min_u;
+            World::set_block(
+                pos,
+                block_kind,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            // Right edge
+            let mut pos = grid_position;
+            pos[v] = v_val;
+            pos[u] = max_u;
+            World::set_block(
+                pos,
+                block_kind,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+        }
+
+        // Horizontal edges
+        for ux in 0..size.0 {
+            let u_val = min_u + ux as i32;
+
+            // Bottom edge
+            let mut pos = grid_position;
+            pos[u] = u_val;
+            pos[v] = min_v;
+            World::set_block(
+                pos,
+                block_kind,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            // Top edge
+            let mut pos = grid_position;
+            pos[u] = u_val;
+            pos[v] = max_v;
+            World::set_block(
+                pos,
+                block_kind,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+        }
+
+        //
+        // 2. CLEAR INTERIOR
+        //
+        // Only clear if there actually *is* an interior (size >= 3 on both axes)
+        //
+
+        if size.0 > 2 && size.1 > 2 {
+            let interior_min_u = min_u + 1;
+            let interior_max_u = max_u - 1;
+            let interior_min_v = min_v + 1;
+            let interior_max_v = max_v - 1;
+
+            for vy in interior_min_v..=interior_max_v {
+                for ux in interior_min_u..=interior_max_u {
+                    let mut pos = grid_position;
+                    pos[u] = ux;
+                    pos[v] = vy;
+
+                    World::set_block(
+                        pos,
+                        block::Kind::None,
+                        &world.block_info_map,
+                        &mut world.sector_vec,
+                    );
+                }
+            }
+        }
+    }
+
     pub fn set_plane(
         grid_position: IVec3,
         size: (usize, usize),

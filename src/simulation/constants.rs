@@ -91,4 +91,4 @@ pub const BUILDING_RADIUS: usize = WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS;
 
 pub const CENTRAL_ELEVATOR_SHAFT_RADIUS: usize = 3;
 pub const EXTERNAL_HALL_SIZE: usize = 3;
-pub const INTERNAL_HALL_SIZE: usize = 3;
+pub const ROOM_SIZE_MIN: usize = 3;
