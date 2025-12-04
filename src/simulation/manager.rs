@@ -10,7 +10,7 @@ pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{message::seed_data, status::Status, viewer::View},
+    manager::{status::Status, viewer::View},
     state::{
         action::{
             act::{self},
@@ -19,7 +19,7 @@ use crate::simulation::{
         population::kinematic::Kinematic,
         work::{
             construct_task::{
-                generate_population_data::{self, GeneratePopulationData},
+                generate_population_data::{GeneratePopulationData},
                 generate_world_data::GenerateWorldData,
                 ConstructTask,
             },

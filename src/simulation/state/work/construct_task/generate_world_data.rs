@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
-use crate::{simulation::{constants::*, state::{State, World, population::judge::Judge, world::{block, grid, structure}}}, utils::ld_math::rand_chacha_ext};
+use crate::{simulation::{constants::*, state::{State, World, population::{judge::Judge, nation::{self, Nation}}, world::{block, grid, structure}}}, utils::ld_math::rand_chacha_ext};
 
 #[derive(Clone)]
 pub struct GenerateWorldData {
@@ -34,6 +34,7 @@ impl GenerateWorldData {
         match generation_data.stage_index {
             0 => {
                 Self::setup_judge(&mut state.population.judge);
+                Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
             }
             1 => {
                 Self::construct_elevator_shaft(&mut state.world);
@@ -60,6 +61,13 @@ impl GenerateWorldData {
     fn setup_judge(judge: &mut Judge) {
         Judge::set_world_position(Vec3::new(0.0, -4.0, 1.0), judge);
         Judge::set_rotation(0.0, 0.0, judge);
+    }
+
+    fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {
+        for (nation_kind, nation) in nation_map {
+            println!("{:?}: {:?}", nation_kind, nation.home_position);
+            World::set_block(nation.home_position + 6 * IVec3::unit_z(), Nation::block(nation_kind), &world.block_info_map, &mut world.sector_vec);
+        }
     }
 
     fn construct_building_frame(world: &mut World) {

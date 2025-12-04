@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use ultraviolet::Vec3;
 
-use crate::{simulation::{constants::*, state::{Population, State, World, population::{agent::Agent, judge::Judge, spatial::Spatial}}}, utils::ld_math::rand_chacha_ext};
+use crate::{simulation::{constants::*, state::{Population, State, World, population::{agent::Agent, spatial::Spatial}}}, utils::ld_math::rand_chacha_ext};
 
 #[derive(Clone)]
 pub struct GeneratePopulationData {

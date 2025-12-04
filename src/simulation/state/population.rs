@@ -63,22 +63,22 @@ impl Population {
     }
 
     fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
-        let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
+        let radius = 20;
 
         let wolf_nation = Nation {
-            home_position: IVec3::new(sector_size_in_cells, 0, 0),
+            home_position: IVec3::new(radius, 0, 0),
         };
 
         let lion_nation = Nation {
-            home_position: IVec3::new(-sector_size_in_cells, 0, 0),
+            home_position: IVec3::new(-radius, 0, 0),
         };
 
         let eagle_nation = Nation {
-            home_position: IVec3::new(0, sector_size_in_cells, 0),
+            home_position: IVec3::new(0, radius, 0),
         };
 
         let horse_nation = Nation {
-            home_position: IVec3::new(0, -sector_size_in_cells, 0),
+            home_position: IVec3::new(0, -radius, 0),
         };
 
         let nation_map = HashMap::from([
