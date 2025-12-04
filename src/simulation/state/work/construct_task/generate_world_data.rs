@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
-
-use crate::{simulation::{constants::*, state::{State, World, population::{judge::Judge, nation::{self, Nation}}, world::{block, grid, structure}}}, utils::ld_math::rand_chacha_ext};
+use crate::{simulation::{constants::*, state::{State, World, population::{judge::Judge, nation::{self, Nation}}, world::{self, block, grid, structure}}}, utils::ld_math::rand_chacha_ext};
 
 #[derive(Clone)]
 pub struct GenerateWorldData {
@@ -10,7 +9,7 @@ pub struct GenerateWorldData {
 }
 
 impl GenerateWorldData {
-        pub fn new() -> Self {
+    pub fn new() -> Self {
         let stage_index = 0;
 
         #[rustfmt::skip]
@@ -18,6 +17,8 @@ impl GenerateWorldData {
             (0, 100), 
             (1, 100), 
             (2, 100), 
+            (3, 100), 
+            (4, 100), 
         ]);
 
         Self {
@@ -30,52 +31,55 @@ impl GenerateWorldData {
         generation_data.stage_cost_map[&generation_data.stage_index]
     }
 
-    pub fn step(state: &mut State, generation_data: &mut Self) -> bool {
-        match generation_data.stage_index {
+    pub fn step(state: &mut State, generate_world_data: &mut Self) -> bool {
+        match generate_world_data.stage_index {
             0 => {
-                Self::setup_judge(&mut state.population.judge);
-                Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
+                Self::construct_building_frame(&mut state.world);
+                Self::construct_fascade(&mut state.world);
             }
             1 => {
                 Self::construct_elevator_shaft(&mut state.world);
-                Self::construct_building_frame(&mut state.world);
                 Self::construct_halls(&mut state.world);
             }
             2 => {
-                Self::construct_fascade(&mut state.world);
-                Self::construct_central_shaft(&mut state.world);
+                Self::layout_areas(&mut state.world);
+                Self::construct_areas(&mut state.world);
+            }
+            3 => {
                 Self::construct_trade_platforms(&mut state.world);
+            }
+            4 => {
+                Self::setup_judge(&mut state.population.judge);
+                Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
             }
             _ => unreachable!(),
         }
 
-        Self::next_stage(generation_data)
+        Self::next_stage(generate_world_data)
     }
 
-    fn next_stage(generation_data: &mut Self) -> bool {
-        generation_data.stage_index += 1;
+    fn next_stage(generate_world_data: &mut Self) -> bool {
+        generate_world_data.stage_index += 1;
 
-        generation_data.stage_index >= generation_data.stage_cost_map.len()
-    }
-
-    fn setup_judge(judge: &mut Judge) {
-        Judge::set_world_position(Vec3::new(0.0, -4.0, 1.0), judge);
-        Judge::set_rotation(0.0, 0.0, judge);
-    }
-
-    fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {
-        for (nation_kind, nation) in nation_map {
-            println!("{:?}: {:?}", nation_kind, nation.home_position);
-            World::set_block(nation.home_position + 6 * IVec3::unit_z(), Nation::block(nation_kind), &world.block_info_map, &mut world.sector_vec);
-        }
+        generate_world_data.stage_index >= generate_world_data.stage_cost_map.len()
     }
 
     fn construct_building_frame(world: &mut World) {
-        let floor_height = FLOOR_HEIGHT as i32;
         let building_radius = BUILDING_RADIUS as i32;
 
-        for floor_number in 1..=FLOOR_COUNT {
-            let floor_position = -(floor_number as i32) * floor_height;
+        let floor_height = FLOOR_HEIGHT as i32;
+        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+
+        World::set_cube(
+            IVec3::new(-building_radius, -building_radius, -1),
+            IVec3::new(building_radius, building_radius, -1),
+            block::Kind::Polished2,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        for floor_number in -lower_floor_count..=-1 {
+            let floor_position = World::get_floor_position(floor_number);
 
             World::set_cube(
                 IVec3::new(-building_radius, -building_radius, floor_position),
@@ -122,69 +126,14 @@ impl GenerateWorldData {
         );
     }
 
-    fn construct_halls(world: &mut World) {
-        let floor_height = FLOOR_HEIGHT as i32;
-        let building_radius = BUILDING_RADIUS as i32;
-
-        for floor_number in 1..=FLOOR_COUNT {
-            let floor_position = -(floor_number as i32) * floor_height;
-
-            World::set_cube(
-                IVec3::new(-building_radius + 1, -1, floor_position),
-                IVec3::new(building_radius - 1, 1, floor_position),
-                block::Kind::Stone1,
-                &world.block_info_map,
-                &mut world.sector_vec,
-            );
-
-            World::set_cube(
-                IVec3::new(-building_radius + 1, -1, floor_position + 1),
-                IVec3::new(building_radius - 1, 1, floor_position + 4),
-                block::Kind::None,
-                &world.block_info_map,
-                &mut world.sector_vec,
-            );
-
-            World::set_cube(
-                IVec3::new(-1, -building_radius + 1, floor_position),
-                IVec3::new(1, building_radius - 1, floor_position),
-                block::Kind::Stone1,
-                &world.block_info_map,
-                &mut world.sector_vec,
-            );
-
-            World::set_cube(
-                IVec3::new(-1, -building_radius + 1, floor_position + 1),
-                IVec3::new(1, building_radius - 1, floor_position + 4),
-                block::Kind::None,
-                &world.block_info_map,
-                &mut world.sector_vec,
-            );
-        }
-
-        World::set_cube(
-            IVec3::new(-building_radius + 1, -1, 0),
-            IVec3::new(building_radius - 1, 1, 3),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, -building_radius + 1, 0),
-            IVec3::new(1, building_radius - 1, 3),
-            block::Kind::None,
-            &world.block_info_map,
-            &mut world.sector_vec,
-        );
-    }
-
     fn construct_fascade(world: &mut World) {
-        let floor_height = FLOOR_HEIGHT as i32;
         let building_radius = BUILDING_RADIUS as i32;
 
-        for floor_number in 1..=FLOOR_COUNT {
-            let floor_position = -(floor_number as i32) * floor_height;
+        let floor_height = FLOOR_HEIGHT as i32;
+        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+
+        for floor_number in -lower_floor_count..=-1 {
+            let floor_position = World::get_floor_position(floor_number);
 
             let wall_height_min = floor_position + 1;
             let wall_height_max = floor_position + floor_height - 2;
@@ -299,6 +248,111 @@ impl GenerateWorldData {
         }
     }
 
+    fn layout_areas(world: &mut World) {
+        let external_hall_radius = 1;
+        let external_hall_size = 2 * external_hall_radius + 1;
+        let internal_hall_radius = 1;
+
+        let building_radius = BUILDING_RADIUS as i32;
+
+        let central_elevator_shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
+
+        let floor_height = FLOOR_HEIGHT as i32;
+        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+
+        for floor_number in -lower_floor_count..=-1 {
+            let floor_position = World::get_floor_position(floor_number);
+
+            let quadrant_size = (building_radius - external_hall_radius - central_elevator_shaft_radius - 4) as usize;
+
+            let quadrant1_grid_position = IVec3::new(-building_radius + external_hall_size + 1, central_elevator_shaft_radius + 1, floor_position);
+            let quadrant2_grid_position = IVec3::new(central_elevator_shaft_radius + 1, central_elevator_shaft_radius + 1, floor_position);
+            let quadrant3_grid_position = IVec3::new(-building_radius + external_hall_size + 1, -building_radius + external_hall_size + 1, floor_position);
+            let quadrant4_grid_position = IVec3::new(central_elevator_shaft_radius + 1, -building_radius + external_hall_size + 1, floor_position);
+
+            let quadrant1_area = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: quadrant1_grid_position,
+                size: (quadrant_size, quadrant_size, 1),
+            };
+
+            let quadrant2_area = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: quadrant2_grid_position,
+                size: (quadrant_size, quadrant_size, 1),
+            };
+
+            let quadrant3_area = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: quadrant3_grid_position,
+                size: (quadrant_size, quadrant_size, 1),
+            };
+
+            let quadrant4_area = world::Area {
+                area_id: World::get_next_area_id(world),
+                grid_position: quadrant4_grid_position,
+                size: (quadrant_size, quadrant_size, 1),
+            };
+
+            world.area_map.insert(quadrant1_area.area_id, quadrant1_area);
+            world.area_map.insert(quadrant2_area.area_id, quadrant2_area);
+            world.area_map.insert(quadrant3_area.area_id, quadrant3_area);
+            world.area_map.insert(quadrant4_area.area_id, quadrant4_area);
+        }
+    }
+
+    fn construct_areas(world: &mut World) {
+        for (_, area) in world.area_map.clone() {
+            Self::construct_room(&area, world);
+        }
+    }
+
+    fn construct_room(area: &world::Area, world: &mut World) {
+        World::set_wireframe_box(area.grid_position, area.grid_position + IVec3::new(area.size.0 as i32, area.size.1 as i32, area.size.2 as i32), block::Kind::Polished2, &world.block_info_map, &mut world.sector_vec);
+    }
+
+    fn construct_halls(world: &mut World) {
+        let floor_height = FLOOR_HEIGHT as i32;
+        let internal_hall_radius = INTERNAL_HALL_SIZE as i32;
+        let building_radius = BUILDING_RADIUS as i32;
+
+        for floor_number in 0..LOWER_FLOOR_COUNT {
+            let floor_position = -((LOWER_FLOOR_COUNT - floor_number) as i32) * floor_height - 1;
+
+            World::set_cube(
+                IVec3::new(-building_radius + internal_hall_radius, -1, floor_position + 1),
+                IVec3::new(building_radius - internal_hall_radius, 1, floor_position + 4),
+                block::Kind::None,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+
+            World::set_cube(
+                IVec3::new(-1, -building_radius + internal_hall_radius, floor_position + 1),
+                IVec3::new(1, building_radius - internal_hall_radius, floor_position + 4),
+                block::Kind::None,
+                &world.block_info_map,
+                &mut world.sector_vec,
+            );
+        }
+
+        World::set_cube(
+            IVec3::new(-building_radius + 1, -1, 0),
+            IVec3::new(building_radius - 1, 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+
+        World::set_cube(
+            IVec3::new(-1, -building_radius + 1, 0),
+            IVec3::new(1, building_radius - 1, 3),
+            block::Kind::None,
+            &world.block_info_map,
+            &mut world.sector_vec,
+        );
+    }
+
     fn construct_elevator_shaft(world: &mut World) {
         let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
 
@@ -313,10 +367,6 @@ impl GenerateWorldData {
             &world.block_info_map,
             &mut world.sector_vec,
         );
-    }
-
-    fn construct_central_shaft(world: &mut World) {
-        let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
 
         World::set_box(
             IVec3::new(
@@ -343,6 +393,17 @@ impl GenerateWorldData {
     fn construct_trade_platform(grid_position: IVec3, direction: grid::Direction, world: &mut World) {
         for (block_kind, block_grid_position) in structure::template::trade_platform(direction) {
             World::set_block(grid_position + block_grid_position, block_kind, &world.block_info_map, &mut world.sector_vec);
+        }
+    }
+
+    fn setup_judge(judge: &mut Judge) {
+        Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
+        Judge::set_rotation(0.0, 0.0, judge);
+    }
+
+    fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {
+        for (nation_kind, nation) in nation_map {
+            World::set_block(nation.home_position - IVec3::unit_z(), Nation::block(nation_kind), &world.block_info_map, &mut world.sector_vec);
         }
     }
 

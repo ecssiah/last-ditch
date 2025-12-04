@@ -1,17 +1,22 @@
 //! The simulated environment
 
+pub mod area;
 pub mod block;
 pub mod cell;
 pub mod grid;
 pub mod sector;
 pub mod structure;
 
+pub use area::Area;
+pub use cell::Cell;
+pub use sector::Sector;
+
 use crate::simulation::{
     constants::*,
     state::{
         physics::aabb::AABB,
         population::nation,
-        world::{cell::Cell, sector::Sector},
+        world::{self},
         Time,
     },
 };
@@ -24,7 +29,9 @@ pub struct World {
     pub rng: ChaCha8Rng,
     pub time: Time,
     pub block_info_map: HashMap<block::Kind, block::Info>,
-    pub sector_vec: Vec<sector::Sector>,
+    pub sector_vec: Vec<world::Sector>,
+    pub area_map: HashMap<u64, world::Area>,
+    pub next_area_id: u64,
 }
 
 impl World {
@@ -34,6 +41,8 @@ impl World {
         let time = Time::new();
         let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec();
+        let area_map = HashMap::new();
+        let next_area_id = 0;
 
         Self {
             active,
@@ -41,6 +50,8 @@ impl World {
             time,
             block_info_map,
             sector_vec,
+            area_map,
+            next_area_id,
         }
     }
 
@@ -54,6 +65,14 @@ impl World {
         Time::tick(&mut world.time);
     }
 
+    pub fn get_next_area_id(world: &mut Self) -> u64 {
+        let area_id = world.next_area_id;
+
+        world.next_area_id += 1;
+
+        area_id
+    }
+
     pub fn get_flag(
         nation_kind: nation::Kind,
         home_position_map: HashMap<nation::Kind, IVec3>,
@@ -61,7 +80,13 @@ impl World {
         home_position_map.get(&nation_kind).cloned()
     }
 
-    fn setup_sector_vec() -> Vec<sector::Sector> {
+    pub fn get_floor_position(floor_number: i32) -> i32 {
+        let floor_position = floor_number * FLOOR_HEIGHT as i32 - 1;
+
+        floor_position
+    }
+
+    fn setup_sector_vec() -> Vec<world::Sector> {
         grid::sector_id_vec()
             .into_iter()
             .map(|sector_id| {
@@ -86,13 +111,13 @@ impl World {
             .collect()
     }
 
-    fn setup_cell_vec(sector_id: usize) -> Vec<Cell> {
+    fn setup_cell_vec(sector_id: usize) -> Vec<world::Cell> {
         grid::cell_id_vec()
             .into_iter()
             .map(|cell_id| {
                 let grid_position = grid::ids_to_grid_position(sector_id, cell_id);
 
-                Cell {
+                world::Cell {
                     cell_id,
                     sector_id,
                     grid_position,
@@ -140,7 +165,7 @@ impl World {
         sector
     }
 
-    pub fn get_cell(sector_id: usize, cell_id: usize, sector_vec_slice: &[Sector]) -> &Cell {
+    pub fn get_cell(sector_id: usize, cell_id: usize, sector_vec_slice: &[Sector]) -> &world::Cell {
         let sector = &sector_vec_slice[sector_id];
         let cell = &sector.cell_vec[cell_id];
 
@@ -151,7 +176,7 @@ impl World {
         sector_id: usize,
         cell_id: usize,
         sector_vec_slice: &mut [Sector],
-    ) -> &mut Cell {
+    ) -> &mut world::Cell {
         let sector = &mut sector_vec_slice[sector_id];
 
         let cell = &mut sector.cell_vec[cell_id];
@@ -159,7 +184,7 @@ impl World {
         cell
     }
 
-    pub fn get_cell_at<'a>(grid_position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a Cell {
+    pub fn get_cell_at<'a>(grid_position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a world::Cell {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice);
@@ -170,7 +195,7 @@ impl World {
     pub fn get_cell_at_mut<'a>(
         grid_position: IVec3,
         sector_vec_slice: &'a mut [Sector],
-    ) -> &'a mut Cell {
+    ) -> &'a mut world::Cell {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         let cell = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice);
@@ -247,15 +272,8 @@ impl World {
             grid_position1.z.max(grid_position2.z),
         );
 
-        let set_block = |pos: IVec3,
-                sector_vec_slice: &mut [Sector]|
-        {
-            Self::set_block(
-                pos,
-                block_kind,
-                block_info_map,
-                sector_vec_slice,
-            );
+        let set_block = |pos: IVec3, sector_vec_slice: &mut [Sector]| {
+            Self::set_block(pos, block_kind, block_info_map, sector_vec_slice);
         };
 
         // 12 edges of the AABB

@@ -13,7 +13,6 @@ pub use role::Role;
 use ultraviolet::{IVec3, Vec3};
 
 use crate::simulation::{
-    constants::SECTOR_SIZE_IN_CELLS,
     state::{
         navigation::Navigation,
         population::{agent::Agent, judge::Judge, nation::Nation, sight::Sight},
