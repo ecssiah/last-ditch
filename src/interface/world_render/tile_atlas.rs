@@ -352,6 +352,54 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
+            block::Kind::EngravedMetal1 => {
+                let tile_coordinate_array = [
+                    [0, 7],
+                    [0, 7],
+                    [0, 7],
+                    [0, 7],
+                    [0, 7],
+                    [0, 7]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Metal1 => {
+                let tile_coordinate_array = [
+                    [0, 8],
+                    [0, 8],
+                    [0, 8],
+                    [0, 8],
+                    [0, 8],
+                    [0, 8]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Metal2 => {
+                let tile_coordinate_array = [
+                    [1, 8],
+                    [1, 8],
+                    [1, 8],
+                    [1, 8],
+                    [1, 8],
+                    [1, 8]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Metal3 => {
+                let tile_coordinate_array = [
+                    [2, 8],
+                    [2, 8],
+                    [2, 8],
+                    [2, 8],
+                    [2, 8],
+                    [2, 8]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
         }
     }
 

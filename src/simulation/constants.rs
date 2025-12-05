@@ -76,14 +76,14 @@ pub const JUDGE_DEFAULT_SIZE_Z: f32 = 1.9;
 
 pub const PITCH_LIMIT: f32 = 89.99;
 
-pub const AGENT_INITIAL_POPULATION: i32 = 16;
+pub const INITIAL_NATION_POPULATION: i32 = 16;
 
-pub const AGENT_DEFAULT_SPEED: f32 = 6.0;
-pub const AGENT_DEFAULT_JUMP_SPEED: f32 = 8.0;
+pub const PERSON_DEFAULT_SPEED: f32 = 6.0;
+pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;
 
-pub const AGENT_DEFAULT_SIZE_X: f32 = 0.6;
-pub const AGENT_DEFAULT_SIZE_Y: f32 = 0.6;
-pub const AGENT_DEFAULT_SIZE_Z: f32 = 1.73;
+pub const PERSON_DEFAULT_SIZE_X: f32 = 0.6;
+pub const PERSON_DEFAULT_SIZE_Y: f32 = 0.6;
+pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.73;
 
 pub const FLOOR_HEIGHT: usize = 8;
 pub const LOWER_FLOOR_COUNT: usize = 4;

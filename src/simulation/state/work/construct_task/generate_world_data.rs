@@ -2,16 +2,13 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
-                judge::Judge,
-                nation::{self, Nation},
-            },
-            world::{
+            State, World, population::{
+                nation::{self, Nation}, person::Person,
+            }, world::{
                 self, block,
                 grid::{self, Axis},
                 structure,
-            },
-            State, World,
+            }
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -44,8 +41,8 @@ impl GenerateWorldData {
         }
     }
 
-    pub fn cost(generation_data: &Self) -> u32 {
-        generation_data.stage_cost_map[&generation_data.stage_index]
+    pub fn cost(generate_world_data: &Self) -> u32 {
+        generate_world_data.stage_cost_map[&generate_world_data.stage_index]
     }
 
     pub fn step(state: &mut State, generate_world_data: &mut Self) -> bool {
@@ -62,13 +59,17 @@ impl GenerateWorldData {
             }
             2 => {
                 Self::layout_areas(&mut state.world);
-                Self::construct_areas(&mut state.world);
+                Self::subdivide_areas(&mut state.world);
+                Self::subdivide_areas(&mut state.world);
+
+                Self::layout_connections(&mut state.world);
             }
             3 => {
+                Self::construct_areas(&mut state.world);
                 Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
-                Self::setup_judge(&mut state.population.judge);
+                Self::setup_judge(&mut state.population.person_map);
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
             }
             _ => unreachable!(),
@@ -105,7 +106,6 @@ impl GenerateWorldData {
                         floor_height - 1,
                     ),
                 block::Kind::Engraved1,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
 
@@ -142,7 +142,6 @@ impl GenerateWorldData {
             IVec3::new(-building_radius, -building_radius, -1),
             IVec3::new(building_radius, building_radius, 0),
             block::Kind::Engraved1,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
     }
@@ -173,7 +172,6 @@ impl GenerateWorldData {
                         IVec3::new(-building_radius, y, wall_height_min),
                         IVec3::new(-building_radius, y, wall_height_random),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 } else {
@@ -181,7 +179,6 @@ impl GenerateWorldData {
                         IVec3::new(-building_radius, y, wall_height_random),
                         IVec3::new(-building_radius, y, wall_height_max),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 }
@@ -199,7 +196,6 @@ impl GenerateWorldData {
                         IVec3::new(building_radius, y, wall_height_min),
                         IVec3::new(building_radius, y, wall_height_random),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 } else {
@@ -207,7 +203,6 @@ impl GenerateWorldData {
                         IVec3::new(building_radius, y, wall_height_random),
                         IVec3::new(building_radius, y, wall_height_max),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 }
@@ -227,7 +222,6 @@ impl GenerateWorldData {
                         IVec3::new(x, -building_radius, wall_height_min),
                         IVec3::new(x, -building_radius, wall_height_random),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 } else {
@@ -235,7 +229,6 @@ impl GenerateWorldData {
                         IVec3::new(x, -building_radius, wall_height_random),
                         IVec3::new(x, -building_radius, wall_height_max),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 }
@@ -253,7 +246,6 @@ impl GenerateWorldData {
                         IVec3::new(x, building_radius, wall_height_min),
                         IVec3::new(x, building_radius, wall_height_random),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 } else {
@@ -261,7 +253,6 @@ impl GenerateWorldData {
                         IVec3::new(x, building_radius, wall_height_random),
                         IVec3::new(x, building_radius, wall_height_max),
                         block::Kind::Polished1,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 }
@@ -313,24 +304,28 @@ impl GenerateWorldData {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant1_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                connection_vec: Vec::new(),
             };
 
             let quadrant2_area = world::Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant2_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                connection_vec: Vec::new(),
             };
 
             let quadrant3_area = world::Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant3_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                connection_vec: Vec::new(),
             };
 
             let quadrant4_area = world::Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant4_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                connection_vec: Vec::new(),
             };
 
             world
@@ -346,9 +341,6 @@ impl GenerateWorldData {
                 .area_map
                 .insert(quadrant4_area.area_id, quadrant4_area);
         }
-
-        Self::subdivide_areas(world);
-        Self::subdivide_areas(world);
     }
 
     fn subdivide_areas(world: &mut World) {
@@ -383,12 +375,14 @@ impl GenerateWorldData {
                 area_id: World::get_next_area_id(world),
                 grid_position: area1_grid_position,
                 size: area1_size,
+                connection_vec: Vec::new(),
             };
 
             let area2 = world::Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: area2_grid_position,
                 size: area2_size,
+                connection_vec: Vec::new(),
             };
 
             world.area_map.remove(&area_id);
@@ -398,13 +392,13 @@ impl GenerateWorldData {
         }
     }
 
+    fn layout_connections(_world: &mut World) {
+
+    }
+
     fn construct_areas(world: &mut World) {
         for (_, area) in world.area_map.clone() {
             Self::construct_room(&area, world);
-        }
-
-        for (_, area) in world.area_map.clone() {
-            Self::construct_doors(&area, world);
         }
     }
 
@@ -413,89 +407,8 @@ impl GenerateWorldData {
             area.grid_position,
             area.grid_position + area.size - IVec3::broadcast(1),
             block::Kind::Polished1,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
-    }
-
-    fn construct_doors(area: &world::Area, world: &mut World) {
-        let room_size_min = ROOM_SIZE_MIN as i32;
-
-        if area.size[Axis::index(Axis::X)] >= 5 {
-            let door1_grid_position = IVec3::new(
-                rand_chacha_ext::gen_range_i32(
-                    area.grid_position.x + 1,
-                    area.grid_position.x + area.size.x - room_size_min - 1,
-                    &mut world.rng,
-                ),
-                area.grid_position.y,
-                area.grid_position.z,
-            );
-
-            World::set_frame(
-                door1_grid_position,
-                (3, 4),
-                Axis::Y,
-                block::Kind::Engraved2,
-                world,
-            );
-
-            let door2_grid_position = IVec3::new(
-                rand_chacha_ext::gen_range_i32(
-                    area.grid_position.x + 1,
-                    area.grid_position.x + area.size.x - room_size_min - 1,
-                    &mut world.rng,
-                ),
-                area.grid_position.y + area.size.y - 1,
-                area.grid_position.z,
-            );
-
-            World::set_frame(
-                door2_grid_position,
-                (3, 4),
-                Axis::Y,
-                block::Kind::Engraved2,
-                world,
-            );
-        }
-
-        if area.size[Axis::index(Axis::Y)] >= 5 {
-            let door1_grid_position = IVec3::new(
-                area.grid_position.x,
-                rand_chacha_ext::gen_range_i32(
-                    area.grid_position.y + 1,
-                    area.grid_position.y + area.size.y - room_size_min - 1,
-                    &mut world.rng,
-                ),
-                area.grid_position.z,
-            );
-
-            World::set_frame(
-                door1_grid_position,
-                (3, 4),
-                Axis::X,
-                block::Kind::Engraved2,
-                world,
-            );
-
-            let door2_grid_position = IVec3::new(
-                area.grid_position.x + area.size.x - 1,
-                rand_chacha_ext::gen_range_i32(
-                    area.grid_position.y + 1,
-                    area.grid_position.y + area.size.y - room_size_min - 1,
-                    &mut world.rng,
-                ),
-                area.grid_position.z,
-            );
-
-            World::set_frame(
-                door2_grid_position,
-                (3, 4),
-                Axis::X,
-                block::Kind::Engraved2,
-                world,
-            );
-        }
     }
 
     fn construct_halls(world: &mut World) {
@@ -518,7 +431,6 @@ impl GenerateWorldData {
                     floor_position + 4,
                 ),
                 block::Kind::None,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
 
@@ -534,7 +446,6 @@ impl GenerateWorldData {
                     floor_position + 4,
                 ),
                 block::Kind::None,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
         }
@@ -543,7 +454,6 @@ impl GenerateWorldData {
             IVec3::new(-building_radius + 1, -1, 0),
             IVec3::new(building_radius - 1, 1, 3),
             block::Kind::None,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
 
@@ -551,7 +461,6 @@ impl GenerateWorldData {
             IVec3::new(-1, -building_radius + 1, 0),
             IVec3::new(1, building_radius - 1, 3),
             block::Kind::None,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
     }
@@ -567,7 +476,6 @@ impl GenerateWorldData {
             ),
             IVec3::new(shaft_radius, shaft_radius, 6),
             block::Kind::Stone2,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
 
@@ -579,7 +487,6 @@ impl GenerateWorldData {
             ),
             IVec3::new(shaft_radius - 2, shaft_radius - 2, 5),
             block::Kind::None,
-            &world.block_info_map,
             &mut world.sector_vec,
         );
     }
@@ -618,13 +525,12 @@ impl GenerateWorldData {
             World::set_block(
                 grid_position + block_grid_position,
                 block_kind,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
         }
     }
 
-    fn setup_judge(_judge: &mut Judge) {
+    fn setup_judge(_person_map: &mut HashMap<u64, Person>) {
         // Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
         // Judge::set_rotation(0.0, 0.0, judge);
     }
@@ -634,7 +540,6 @@ impl GenerateWorldData {
             World::set_block(
                 nation.home_position - IVec3::unit_z(),
                 Nation::block(nation_kind),
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
         }

@@ -1,17 +1,17 @@
 pub mod act;
 
 pub use act::Act;
-use ultraviolet::Vec3;
 
 use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
-        action::act::{move_data::MoveData, rotate_data::RotateData},
-        population::{judge::Judge, kinematic::Kinematic},
-        State,
+        action::act::{move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData},
+        population::person::Person,
+        Population, State, World,
     },
 };
 use std::collections::VecDeque;
+use ultraviolet::Vec3;
 
 pub struct Action {
     pub active: bool,
@@ -37,68 +37,102 @@ impl Action {
 
         for act in act_deque {
             match act {
-                Act::Rotate(rotate_data) => {
-                    Self::apply_rotate(&rotate_data, &mut state.population.judge)
+                Act::Rotate(rotate_data) => Self::apply_rotate(&rotate_data, &mut state.population),
+                Act::Move(move_data) => Self::apply_move(&move_data, &mut state.population),
+                Act::Jump(jump_data) => Self::apply_jump(&jump_data, &mut state.population),
+                Act::PlaceBlock(place_block_data) => Self::apply_place_block(
+                    &place_block_data,
+                    &mut state.world,
+                    &mut state.population,
+                ),
+                Act::RemoveBlock(remove_block_data) => Self::apply_remove_block(
+                    &remove_block_data,
+                    &mut state.world,
+                    &mut state.population,
+                ),
+            }
+        }
+    }
+
+    pub fn apply_rotate(rotate_data: &RotateData, population: &mut Population) {
+        if let Some(person) = population.person_map.get_mut(&rotate_data.person_id) {
+            const ROTATION_EPSILON: f32 = 1e-6;
+
+            if rotate_data.rotation_angles.mag_sq() > ROTATION_EPSILON {
+                person.sight.rotation_xy = person.sight.rotation_xy + rotate_data.rotation_angles.z;
+
+                person.sight.rotation_yz = (person.sight.rotation_yz
+                    + rotate_data.rotation_angles.x)
+                    .clamp(-PITCH_LIMIT, PITCH_LIMIT);
+
+                Person::set_rotation(person.sight.rotation_xy, person.sight.rotation_yz, person);
+            }
+        }
+    }
+
+    pub fn apply_move(move_data: &MoveData, population: &mut Population) {
+        if let Some(person) = population.person_map.get_mut(&move_data.person_id) {
+            const MOVEMENT_EPSILON: f32 = 1e-6;
+
+            if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
+                if person.kinematic.flying {
+                    let local_horizontal_move_direction =
+                        Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+
+                    let horizontal_move_direction =
+                        person.sight.rotor * local_horizontal_move_direction;
+                    let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
+
+                    let move_direction =
+                        (horizontal_move_direction + vertical_move_direction).normalized();
+
+                    let velocity = person.kinematic.speed * move_direction;
+
+                    person.kinematic.velocity = velocity;
+                } else {
+                    let local_velocity = person.kinematic.speed * move_data.move_direction;
+
+                    let velocity = person.spatial.rotor * local_velocity;
+
+                    person.kinematic.velocity.x = velocity.x;
+                    person.kinematic.velocity.y = velocity.y;
+                };
+            } else {
+                if person.kinematic.flying {
+                    person.kinematic.velocity = Vec3::zero();
+                } else {
+                    person.kinematic.velocity.x = 0.0;
+                    person.kinematic.velocity.y = 0.0;
                 }
-                Act::Move(move_data) => Self::apply_move(&move_data, &mut state.population.judge),
-                Act::Jump => Self::apply_jump(&mut state.population.judge.kinematic),
-                Act::PlaceBlock => State::place_block(state),
-                Act::RemoveBlock => State::remove_block(state),
             }
         }
     }
 
-    pub fn apply_rotate(rotate_data: &RotateData, judge: &mut Judge) {
-        const ROTATION_EPSILON: f32 = 1e-6;
-
-        if rotate_data.rotation_angles.mag_sq() > ROTATION_EPSILON {
-            judge.sight.rotation_xy = judge.sight.rotation_xy + rotate_data.rotation_angles.z;
-
-            judge.sight.rotation_yz = (judge.sight.rotation_yz + rotate_data.rotation_angles.x)
-                .clamp(-PITCH_LIMIT, PITCH_LIMIT);
-
-            Judge::set_rotation(judge.sight.rotation_xy, judge.sight.rotation_yz, judge);
-        }
-    }
-
-    pub fn apply_move(move_data: &MoveData, judge: &mut Judge) {
-        const MOVEMENT_EPSILON: f32 = 1e-6;
-
-        if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
-            if judge.kinematic.flying {
-                let local_horizontal_move_direction =
-                    Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
-
-                let horizontal_move_direction = judge.sight.rotor * local_horizontal_move_direction;
-                let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
-
-                let move_direction =
-                    (horizontal_move_direction + vertical_move_direction).normalized();
-
-                let velocity = judge.kinematic.speed * move_direction;
-
-                judge.kinematic.velocity = velocity;
-            } else {
-                let local_velocity = judge.kinematic.speed * move_data.move_direction;
-
-                let velocity = judge.spatial.rotor * local_velocity;
-
-                judge.kinematic.velocity.x = velocity.x;
-                judge.kinematic.velocity.y = velocity.y;
-            };
-        } else {
-            if judge.kinematic.flying {
-                judge.kinematic.velocity = Vec3::zero();
-            } else {
-                judge.kinematic.velocity.x = 0.0;
-                judge.kinematic.velocity.y = 0.0;
+    pub fn apply_jump(jump_data: &JumpData, population: &mut Population) {
+        if let Some(person) = population.person_map.get_mut(&jump_data.person_id) {
+            if !person.kinematic.flying {
+                person.kinematic.velocity.z = person.kinematic.jump_speed;
             }
         }
     }
 
-    pub fn apply_jump(kinematic: &mut Kinematic) {
-        if !kinematic.flying {
-            kinematic.velocity.z = kinematic.jump_speed;
+    fn apply_place_block(
+        place_block_data: &PlaceBlockData,
+        world: &mut World,
+        population: &mut Population,
+    ) {
+        if let Some(person) = population.person_map.get_mut(&place_block_data.person_id) {
+            State::place_block(person, world);
+        }
+    }
+
+    fn apply_remove_block(
+        remove_block_data: &RemoveBlockData,
+        world: &mut World,
+        population: &mut Population,
+    ) {
+        if let Some(person) = population.person_map.get_mut(&remove_block_data.person_id) {
+            State::remove_block(person, world);
         }
     }
 }

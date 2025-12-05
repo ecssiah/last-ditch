@@ -1,6 +1,6 @@
-pub mod entity_instance_data;
-pub mod entity_mesh;
-pub mod entity_vertex;
+pub mod person_instance_data;
+pub mod person_mesh;
+pub mod person_vertex;
 
 use crate::{
     include_assets,
@@ -8,45 +8,41 @@ use crate::{
         camera::Camera,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
         population_render::{
-            entity_instance_data::EntityInstanceData, entity_mesh::EntityMesh,
-            entity_vertex::EntityVertex,
+            person_instance_data::PersonInstanceData, person_mesh::PersonMesh,
+            person_vertex::PersonVertex,
         },
     },
     simulation::{
-        constants::SIMULATION_ENTITY_MAX,
-        manager::viewer::PopulationView,
-        state::population::{
-            self,
-            nation::{self, Nation},
-        },
+        constants::*,
+        manager::viewer::{PersonView, PopulationView},
+        state::population::identity,
     },
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
-    pub entity_gpu_mesh_map: HashMap<(population::Role, nation::Kind), Arc<GpuMesh>>,
+    pub person_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
     pub entity_instance_buffer: wgpu::Buffer,
-    pub entity_instance_data_group_vec:
-        Vec<((population::Role, nation::Kind), Vec<EntityInstanceData>)>,
+    pub person_instance_data_group_vec: Vec<(String, Vec<PersonInstanceData>)>,
     pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_arc_map: HashMap<(population::Role, nation::Kind), Arc<wgpu::BindGroup>>,
+    pub texture_bind_group_arc_map: HashMap<String, Arc<wgpu::BindGroup>>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let entity_gpu_mesh_map = Self::load_entity_gpu_mesh_map(&gpu_context.device);
+        let person_gpu_mesh_map = Self::load_person_gpu_mesh_map(&gpu_context.device);
 
         let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Population Instance Buffer"),
-            size: (SIMULATION_ENTITY_MAX * std::mem::size_of::<EntityInstanceData>())
+            size: (SIMULATION_ENTITY_MAX * std::mem::size_of::<PersonInstanceData>())
                 as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
-        let entity_instance_data_group_vec = Vec::new();
+        let person_instance_data_group_vec = Vec::new();
 
         let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
         let texture_bind_group_arc_map =
@@ -59,27 +55,25 @@ impl PopulationRender {
         );
 
         Self {
-            entity_gpu_mesh_map,
+            person_gpu_mesh_map,
             entity_instance_buffer,
-            entity_instance_data_group_vec,
+            person_instance_data_group_vec,
             texture_bind_group_layout,
             texture_bind_group_arc_map,
             render_pipeline,
         }
     }
 
-    fn load_entity_gpu_mesh_map(
-        device: &wgpu::Device,
-    ) -> HashMap<(population::Role, nation::Kind), Arc<GpuMesh>> {
-        let mut entity_gpu_mesh_map = HashMap::new();
+    fn load_person_gpu_mesh_map(device: &wgpu::Device) -> HashMap<String, Arc<GpuMesh>> {
+        let mut person_gpu_mesh_map = HashMap::new();
 
-        let entity_models_path = std::path::Path::new("assets/models/entity");
+        let person_models_path = std::path::Path::new("assets/models/person");
 
-        let mut entity_model_entries =
-            std::fs::read_dir(entity_models_path).expect("Failed to read entity models directory");
+        let mut person_models_directory_iterator =
+            std::fs::read_dir(person_models_path).expect("Failed to read Person models directory");
 
-        while let Some(Ok(entity_model_entry)) = entity_model_entries.next() {
-            let path = entity_model_entry.path();
+        while let Some(Ok(person_model_entry)) = person_models_directory_iterator.next() {
+            let path = person_model_entry.path();
 
             if path.extension().and_then(|extension| extension.to_str()) == Some("obj") {
                 let file_stem = path.file_stem().unwrap().to_str().unwrap();
@@ -89,11 +83,11 @@ impl PopulationRender {
 
                     match load_obj(model_file_reader) {
                         Ok(model) => {
-                            let entity_mesh = EntityMesh {
+                            let person_mesh = PersonMesh {
                                 vertex_vec: model
                                     .vertices
                                     .iter()
-                                    .map(|vertex: &TexturedVertex| EntityVertex {
+                                    .map(|vertex: &TexturedVertex| PersonVertex {
                                         position: vertex.position,
                                         normal: vertex.normal,
                                         uv: [vertex.texture[0], vertex.texture[1]],
@@ -102,17 +96,12 @@ impl PopulationRender {
                                 index_vec: model.indices,
                             };
 
-                            let entity_gpu_mesh_arc =
-                                Arc::new(EntityMesh::to_gpu_mesh(&entity_mesh, device));
+                            let person_gpu_mesh_arc =
+                                Arc::new(PersonMesh::to_gpu_mesh(&person_mesh, device));
 
-                            if let Some(role) = population::Role::from_string(file_stem) {
-                                if let Some(nation_kind) = Nation::get_kind_from_string(file_stem) {
-                                    tracing::info!("{:?} model loaded", file_stem);
+                            person_gpu_mesh_map.insert(file_stem.to_string(), person_gpu_mesh_arc);
 
-                                    entity_gpu_mesh_map
-                                        .insert((role, nation_kind), entity_gpu_mesh_arc);
-                                }
-                            }
+                            tracing::info!("{:?} model loaded", file_stem);
                         }
                         Err(err) => {
                             tracing::error!("{:?}", err);
@@ -122,7 +111,7 @@ impl PopulationRender {
             }
         }
 
-        entity_gpu_mesh_map
+        person_gpu_mesh_map
     }
 
     fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
@@ -152,16 +141,16 @@ impl PopulationRender {
     fn load_texture_bind_group_arc_map(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-    ) -> HashMap<(population::Role, nation::Kind), Arc<wgpu::BindGroup>> {
+    ) -> HashMap<String, Arc<wgpu::BindGroup>> {
         let mut texture_bind_group_map = HashMap::new();
 
-        let entity_textures_path = std::path::Path::new("assets/textures/entity");
+        let person_textures_path = std::path::Path::new("assets/textures/person");
 
-        let mut entity_texture_entries_itr = std::fs::read_dir(entity_textures_path)
-            .expect("Failed to read entity models directory");
+        let mut person_textures_directory_iterator = std::fs::read_dir(person_textures_path)
+            .expect("Failed to read Person textures directory");
 
-        while let Some(Ok(entity_texture_entry)) = entity_texture_entries_itr.next() {
-            let path = entity_texture_entry.path();
+        while let Some(Ok(person_texture_entry)) = person_textures_directory_iterator.next() {
+            let path = person_texture_entry.path();
 
             if path.extension().and_then(|extension| extension.to_str()) == Some("png") {
                 let file_stem = path.file_stem().unwrap().to_str().unwrap();
@@ -176,13 +165,9 @@ impl PopulationRender {
                 let texture_bind_group =
                     Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
 
-                if let Some(role) = population::Role::from_string(file_stem) {
-                    if let Some(nation_kind) = Nation::get_kind_from_string(file_stem) {
-                        tracing::info!("{:?} texture loaded", file_stem);
+                texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
 
-                        texture_bind_group_map.insert((role, nation_kind), texture_bind_group);
-                    }
-                }
+                tracing::info!("{:?} texture loaded", file_stem);
             }
         }
 
@@ -307,7 +292,7 @@ impl PopulationRender {
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Population Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/entity.vert.wgsl").into(),
+                        include_assets!("shaders/person.vert.wgsl").into(),
                     ),
                 });
 
@@ -317,7 +302,7 @@ impl PopulationRender {
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Population Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/entity.frag.wgsl").into(),
+                        include_assets!("shaders/person.frag.wgsl").into(),
                     ),
                 });
 
@@ -338,7 +323,7 @@ impl PopulationRender {
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[EntityVertex::desc(), EntityInstanceData::desc()],
+                    buffers: &[PersonVertex::desc(), PersonInstanceData::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {
@@ -379,31 +364,29 @@ impl PopulationRender {
 
     pub fn apply_population_view(
         population_view: &PopulationView,
-        entity_instance_data_group_vec: &mut Vec<(
-            (population::Role, nation::Kind),
-            Vec<EntityInstanceData>,
-        )>,
+        person_instance_data_group_vec: &mut Vec<(String, Vec<PersonInstanceData>)>,
     ) {
-        entity_instance_data_group_vec.clear();
+        person_instance_data_group_vec.clear();
 
-        let mut group_map: HashMap<(population::Role, nation::Kind), Vec<EntityInstanceData>> =
-            HashMap::new();
+        let mut group_map: HashMap<String, Vec<PersonInstanceData>> = HashMap::new();
 
-        for agent_view in population_view.agent_view_map.values() {
-            let entity_instance_data = EntityInstanceData {
-                world_position: *agent_view.spatial.world_position.as_array(),
-                size_y: agent_view.spatial.size.y,
-                rotation_xy: agent_view.spatial.rotation_xy,
+        for person_view in population_view.person_view_map.values() {
+            let person_instance_data = PersonInstanceData {
+                world_position: *person_view.spatial.world_position.as_array(),
+                size_y: person_view.spatial.size.y,
+                rotation_xy: person_view.spatial.rotation_xy,
                 _padding: [0.0, 0.0, 0.0],
             };
 
+            let person_model_name = Self::get_person_model_name(person_view);
+
             group_map
-                .entry((agent_view.role, agent_view.nation_kind))
+                .entry(person_model_name.to_string())
                 .or_default()
-                .push(entity_instance_data);
+                .push(person_instance_data);
         }
 
-        entity_instance_data_group_vec.extend(group_map.into_iter());
+        person_instance_data_group_vec.extend(group_map.into_iter());
     }
 
     pub fn render(
@@ -411,7 +394,7 @@ impl PopulationRender {
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        entity_render: &Self,
+        population_render: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -440,50 +423,67 @@ impl PopulationRender {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&entity_render.render_pipeline);
+        render_pass.set_pipeline(&population_render.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
 
         let mut offset_bytes = 0;
 
-        for (kind, entity_instance_data_vec) in &entity_render.entity_instance_data_group_vec {
-            let byte_len = (entity_instance_data_vec.len()
-                * std::mem::size_of::<EntityInstanceData>())
+        for (person_model_name, person_instance_data_vec) in
+            &population_render.person_instance_data_group_vec
+        {
+            let byte_len = (person_instance_data_vec.len()
+                * std::mem::size_of::<PersonInstanceData>())
                 as wgpu::BufferAddress;
 
             gpu_context.queue.write_buffer(
-                &entity_render.entity_instance_buffer,
+                &population_render.entity_instance_buffer,
                 offset_bytes,
-                bytemuck::cast_slice(&entity_instance_data_vec),
+                bytemuck::cast_slice(&person_instance_data_vec),
             );
 
-            let entity_gpu_mesh_arc =
-                Arc::clone(entity_render.entity_gpu_mesh_map.get(&kind).unwrap());
+            let person_gpu_mesh_arc = Arc::clone(
+                population_render
+                    .person_gpu_mesh_map
+                    .get(person_model_name)
+                    .unwrap(),
+            );
 
-            let texture_bind_group_arc =
-                Arc::clone(entity_render.texture_bind_group_arc_map.get(&kind).unwrap());
+            let texture_bind_group_arc = Arc::clone(
+                population_render
+                    .texture_bind_group_arc_map
+                    .get(person_model_name)
+                    .unwrap(),
+            );
 
             render_pass.set_vertex_buffer(
                 1,
-                entity_render
+                population_render
                     .entity_instance_buffer
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
 
             render_pass.set_bind_group(1, texture_bind_group_arc.deref(), &[]);
 
-            render_pass.set_vertex_buffer(0, entity_gpu_mesh_arc.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(0, person_gpu_mesh_arc.vertex_buffer.slice(..));
 
             render_pass.set_index_buffer(
-                entity_gpu_mesh_arc.index_buffer.slice(..),
+                person_gpu_mesh_arc.index_buffer.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
 
-            let instance_count = entity_instance_data_vec.len() as u32;
-            render_pass.draw_indexed(0..entity_gpu_mesh_arc.index_count, 0, 0..instance_count);
+            let instance_count = person_instance_data_vec.len() as u32;
+            render_pass.draw_indexed(0..person_gpu_mesh_arc.index_count, 0, 0..instance_count);
 
             offset_bytes += byte_len;
         }
 
         drop(render_pass);
+    }
+
+    fn get_person_model_name(person_view: &PersonView) -> String {
+        match person_view.identity.sex {
+            identity::Sex::Male => String::from("man"),
+            identity::Sex::Female => String::from("woman"),
+        }
     }
 }

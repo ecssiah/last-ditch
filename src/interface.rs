@@ -385,7 +385,7 @@ impl<'window> Interface<'window> {
 
         PopulationRender::apply_population_view(
             &view.population_view,
-            &mut population_render.entity_instance_data_group_vec,
+            &mut population_render.person_instance_data_group_vec,
         );
 
         DebugRender::apply_debug_view(view, debug_render);

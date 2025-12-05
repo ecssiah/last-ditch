@@ -6,7 +6,10 @@ pub use model::Model;
 
 use crate::{
     interface::gpu::gpu_context::GPUContext,
-    simulation::manager::{message::SeedData, viewer::View, Message},
+    simulation::{
+        manager::{message::SeedData, viewer::View, Message},
+        state::world::grid,
+    },
 };
 use egui::{FontId, FullOutput, Id, Ui};
 use std::{
@@ -201,37 +204,49 @@ impl GUI {
     }
 
     pub fn apply_view(view: &View, gui: &mut Self) {
-        let judge_view = &view.population_view.judge_view;
+        if let Some(person_view) = view
+            .population_view
+            .person_view_map
+            .get(&view.population_view.judge_id)
+        {
+            let grid_position =
+                grid::world_position_to_grid_position(person_view.spatial.world_position);
 
-        let position_string = format!(
-            "Cell: ({:.0}, {:.0}, {:.0})\n",
-            judge_view.position.x, judge_view.position.y, judge_view.position.z,
-        );
+            let position_string = format!(
+                "Cell: ({:.0}, {:.0}, {:.0})\n",
+                grid_position.x, grid_position.y, grid_position.z,
+            );
 
-        let world_position_string = format!(
-            "World: ({:.2}, {:.2}, {:.2})\n",
-            judge_view.world_position.x, judge_view.world_position.y, judge_view.world_position.z,
-        );
+            let world_position_string = format!(
+                "World: ({:.2}, {:.2}, {:.2})\n",
+                person_view.spatial.world_position.x,
+                person_view.spatial.world_position.y,
+                person_view.spatial.world_position.z,
+            );
 
-        let sector_string = format!(
-            "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
-            judge_view.sector_coordinate.x,
-            judge_view.sector_coordinate.y,
-            judge_view.sector_coordinate.z,
-            judge_view.sector_id,
-        );
+            let sector_coordinate =
+                grid::sector_id_to_sector_coordinate(person_view.spatial.sector_id);
 
-        let selected_block_kind_string =
-            format!("Selected Block: {:?}\n", judge_view.selected_block_kind);
+            let sector_string = format!(
+                "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
+                sector_coordinate.x,
+                sector_coordinate.y,
+                sector_coordinate.z,
+                person_view.spatial.sector_id,
+            );
 
-        let mut info_message = String::new();
-        info_message.push_str(&position_string);
-        info_message.push_str(&world_position_string);
-        info_message.push_str(&sector_string);
-        info_message.push_str(&selected_block_kind_string);
+            let selected_block_kind_string =
+                format!("Selected Block: {:?}\n", person_view.selected_block_kind);
 
-        gui.model.info_message_vec.clear();
-        gui.model.info_message_vec.push(info_message);
+            let mut info_message = String::new();
+            info_message.push_str(&position_string);
+            info_message.push_str(&world_position_string);
+            info_message.push_str(&sector_string);
+            info_message.push_str(&selected_block_kind_string);
+
+            gui.model.info_message_vec.clear();
+            gui.model.info_message_vec.push(info_message);
+        }
     }
 
     pub fn render(

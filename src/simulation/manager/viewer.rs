@@ -3,10 +3,9 @@
 pub mod face_mask;
 pub mod view;
 
-pub use view::AgentView;
 pub use view::BlockView;
 pub use view::FaceView;
-pub use view::JudgeView;
+pub use view::PersonView;
 pub use view::PopulationView;
 pub use view::SectorView;
 pub use view::View;
@@ -82,45 +81,34 @@ impl Viewer {
     }
 
     fn update_population_view(state: &State) -> PopulationView {
-        let judge = &state.population.judge;
-
-        let judge_view = JudgeView {
-            position: grid::world_position_to_grid_position(judge.spatial.world_position),
-            world_position: judge.spatial.world_position,
-            sector_id: judge.spatial.sector_id,
-            sector_coordinate: grid::sector_id_to_sector_coordinate(judge.spatial.sector_id),
-            size: judge.spatial.size,
-            sight_world_position: judge.sight.world_position,
-            sight_rotor: judge.sight.rotor,
-            selected_block_kind: judge.selected_block_kind,
-        };
-
         let mut population_view = PopulationView {
-            judge_view,
-            agent_view_map: HashMap::new(),
+            judge_id: state.population.judge_id,
+            person_view_map: HashMap::new(),
         };
 
-        let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
+        if let Some(judge) = state.population.person_map.get(&state.population.judge_id) {
+            let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
-        for agent in state.population.agent_map.values() {
-            let agent_to_judge_mag_sq = (agent.spatial.world_position
-                - state.population.judge.spatial.world_position)
-                .mag_sq();
+            for (person_id, person) in &state.population.person_map {
+                let person_to_judge_distance_squared =
+                    (person.spatial.world_position - judge.spatial.world_position).mag_sq();
 
-            if agent_to_judge_mag_sq > judge_sight_range_squared {
-                continue;
+                if person_id == &state.population.judge_id
+                    || person_to_judge_distance_squared > judge_sight_range_squared
+                {
+                    let person_view = PersonView {
+                        identity: person.identity,
+                        spatial: person.spatial,
+                        kinematic: person.kinematic,
+                        sight: person.sight,
+                        selected_block_kind: person.selected_block_kind,
+                    };
+
+                    population_view
+                        .person_view_map
+                        .insert(person.person_id, person_view);
+                }
             }
-
-            let agent_view = AgentView {
-                role: agent.identity.role,
-                nation_kind: agent.identity.nation_kind,
-                spatial: agent.spatial,
-                kinematic: agent.kinematic,
-            };
-
-            population_view
-                .agent_view_map
-                .insert(agent.entity_id, agent_view);
         }
 
         population_view
@@ -135,38 +123,38 @@ impl Viewer {
             sector_view_map: HashMap::new(),
         };
 
-        let judge = &state.population.judge;
+        if let Some(judge) = state.population.person_map.get(&state.population.judge_id) {
+            let judge_sector_coordinate =
+                grid::world_position_to_sector_coordinate(judge.spatial.world_position);
 
-        let judge_sector_coordinate =
-            grid::world_position_to_sector_coordinate(judge.spatial.world_position);
+            let sight_range = judge.sight.range_in_sectors;
 
-        let sight_range = judge.sight.range_in_sectors;
+            for dz in -sight_range..=sight_range {
+                for dy in -sight_range..=sight_range {
+                    for dx in -sight_range..=sight_range {
+                        let sector_coordinate = judge_sector_coordinate + IVec3::new(dx, dy, dz);
 
-        for dz in -sight_range..=sight_range {
-            for dy in -sight_range..=sight_range {
-                for dx in -sight_range..=sight_range {
-                    let sector_coordinate = judge_sector_coordinate + IVec3::new(dx, dy, dz);
+                        if !grid::is_sector_coordinate_valid(sector_coordinate) {
+                            continue;
+                        }
 
-                    if !grid::is_sector_coordinate_valid(sector_coordinate) {
-                        continue;
+                        let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
+                        let sector = &state.world.sector_vec[sector_id];
+
+                        let block_view_vec =
+                            Self::get_block_view_vec(sector, sector_version_map, block_view_cache);
+
+                        let sector_view = SectorView {
+                            sector_id: sector.sector_id,
+                            version: sector.version,
+                            world_position: Vec3::from(sector.position),
+                            block_view_vec,
+                        };
+
+                        world_view
+                            .sector_view_map
+                            .insert(sector.sector_id, sector_view);
                     }
-
-                    let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
-                    let sector = &state.world.sector_vec[sector_id];
-
-                    let block_view_vec =
-                        Self::get_block_view_vec(sector, sector_version_map, block_view_cache);
-
-                    let sector_view = SectorView {
-                        sector_id: sector.sector_id,
-                        version: sector.version,
-                        world_position: Vec3::from(sector.position),
-                        block_view_vec,
-                    };
-
-                    world_view
-                        .sector_view_map
-                        .insert(sector.sector_id, sector_view);
                 }
             }
         }

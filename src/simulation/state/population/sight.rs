@@ -20,7 +20,7 @@ pub struct Sight {
 impl Sight {
     pub fn new() -> Self {
         let world_position = Vec3::zero();
-        let relative_position = Vec3::zero();
+        let relative_position = Vec3::new(0.0, 0.0, 1.5);
         let rotation_xy = 0.0;
         let rotation_yz = 0.0;
         let rotor = Rotor3::identity();

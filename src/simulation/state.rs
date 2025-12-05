@@ -15,8 +15,8 @@ pub use time::Time;
 pub use world::World;
 
 use crate::simulation::state::{
-    navigation::{Graph, Navigation},
-    population::sight::Sight,
+    navigation::Navigation,
+    population::{person::Person, sight::Sight},
     work::Work,
     world::block,
 };
@@ -57,53 +57,31 @@ impl State {
         }
     }
 
-    pub fn place_block(state: &mut Self) {
-        let judge = &state.population.judge;
-
+    pub fn place_block(person: &Person, world: &mut World) {
         let range = 8.0;
-        let origin = judge.sight.world_position;
-        let direction = Sight::get_forward(&judge.sight);
+        let origin = person.sight.world_position;
+        let direction = Sight::get_forward(&person.sight);
 
         if let Some((hit_position, normal)) =
-            World::raycast_to_block(origin, direction, range, &state.world)
+            World::raycast_to_block(origin, direction, range, world)
         {
             let placement_position = hit_position + normal;
 
             World::set_block(
                 placement_position,
-                judge.selected_block_kind,
-                &state.world.block_info_map,
-                &mut state.world.sector_vec,
-            );
-
-            let block_info = state.world.block_info_map[&judge.selected_block_kind];
-
-            Graph::set_solid(
-                placement_position,
-                block_info.solid,
-                &mut state.navigation.graph,
+                person.selected_block_kind,
+                &mut world.sector_vec,
             );
         }
     }
 
-    pub fn remove_block(state: &mut Self) {
-        let judge = &state.population.judge;
-
+    pub fn remove_block(person: &Person, world: &mut World) {
         let range = 8.0;
-        let origin = judge.sight.world_position;
-        let direction = Sight::get_forward(&judge.sight);
+        let origin = person.sight.world_position;
+        let direction = Sight::get_forward(&person.sight);
 
-        if let Some((hit_position, _)) =
-            World::raycast_to_block(origin, direction, range, &state.world)
-        {
-            World::set_block(
-                hit_position,
-                block::Kind::None,
-                &state.world.block_info_map,
-                &mut state.world.sector_vec,
-            );
-
-            Graph::set_solid(hit_position, false, &mut state.navigation.graph);
+        if let Some((hit_position, _)) = World::raycast_to_block(origin, direction, range, world) {
+            World::set_block(hit_position, block::Kind::None, &mut world.sector_vec);
         }
     }
 
@@ -119,7 +97,7 @@ impl State {
 
         Action::tick(state);
         World::tick(&mut state.world);
-        Population::tick(&state.world, &mut state.navigation, &mut state.population);
+        Population::tick(&state.world, &mut state.population);
         Physics::tick(&state.world, &mut state.population, &mut state.physics);
         Navigation::tick(&state.world, &mut state.navigation);
         Work::tick(state);

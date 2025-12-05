@@ -9,7 +9,7 @@ use crate::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
     },
-    simulation::manager::viewer::{JudgeView, View},
+    simulation::manager::viewer::{PersonView, View},
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 
@@ -88,7 +88,13 @@ impl Camera {
     }
 
     pub fn apply_view(view: &View, camera: &mut Self) {
-        Self::update_camera(&view.population_view.judge_view, camera);
+        if let Some(person_view) = view
+            .population_view
+            .person_view_map
+            .get(&view.population_view.judge_id)
+        {
+            Self::update_camera(&person_view, camera);
+        }
 
         let view_matrix_array = [
             *camera.view_matrix.cols[0].as_array(),
@@ -120,20 +126,22 @@ impl Camera {
         };
     }
 
-    fn update_camera(judge_view: &JudgeView, camera: &mut Self) {
+    fn update_camera(person_view: &PersonView, camera: &mut Self) {
         let projection_matrix =
             Self::get_projection_matrix(FOV_RADIANS, WINDOW_ASPECT_RATIO, NEAR_PLANE, FAR_PLANE);
 
-        camera.right = judge_view.sight_rotor * Vec3::unit_x();
-        camera.forward = judge_view.sight_rotor * Vec3::unit_y();
-        camera.up = judge_view.sight_rotor * Vec3::unit_z();
+        camera.right = person_view.sight.rotor * Vec3::unit_x();
+        camera.forward = person_view.sight.rotor * Vec3::unit_y();
+        camera.up = person_view.sight.rotor * Vec3::unit_z();
 
-        let target = judge_view.sight_world_position + camera.forward;
+        let target = person_view.sight.world_position + camera.forward;
 
-        let view_matrix = Self::get_view_matrix(judge_view.sight_world_position, target, camera.up);
+        let view_matrix =
+            Self::get_view_matrix(person_view.sight.world_position, target, camera.up);
+
         let view_projection_matrix = projection_matrix * view_matrix;
 
-        camera.position = judge_view.sight_world_position;
+        camera.position = person_view.sight.world_position;
         camera.view_matrix = view_matrix;
         camera.projection_matrix = projection_matrix;
         camera.view_projection_matrix = view_projection_matrix;

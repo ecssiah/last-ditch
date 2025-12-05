@@ -5,7 +5,7 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{agent::Agent, spatial::Spatial},
+            population::{person::Person, spatial::Spatial},
             Population, State, World,
         },
     },
@@ -33,66 +33,64 @@ impl GeneratePopulationData {
         }
     }
 
-    pub fn cost(generation_data: &Self) -> u32 {
-        generation_data.stage_cost_map[&generation_data.stage_index]
+    pub fn cost(generate_population_data: &Self) -> u32 {
+        generate_population_data.stage_cost_map[&generate_population_data.stage_index]
     }
 
-    pub fn step(state: &mut State, generation_data: &mut Self) -> bool {
-        match generation_data.stage_index {
+    pub fn step(state: &mut State, generate_population_data: &mut Self) -> bool {
+        match generate_population_data.stage_index {
             0 => {
-                Self::setup_agent_map(&state.world, &mut state.population);
+                Self::setup_person_map(&state.world, &mut state.population);
             }
             _ => unreachable!(),
         }
 
-        Self::next_stage(generation_data)
+        Self::next_stage(generate_population_data)
     }
 
-    fn next_stage(generation_data: &mut Self) -> bool {
-        generation_data.stage_index += 1;
+    fn next_stage(generate_population_data: &mut Self) -> bool {
+        generate_population_data.stage_index += 1;
 
-        generation_data.stage_index >= generation_data.stage_cost_map.len()
+        generate_population_data.stage_index >= generate_population_data.stage_cost_map.len()
     }
 
-    fn setup_agent_map(_world: &World, population: &mut Population) {
-        population.agent_map.clear();
-
+    fn setup_person_map(_world: &World, population: &mut Population) {
         let nation_map = population.nation_map.clone();
 
-        for (nation_kind, nation) in nation_map {
+        for nation in nation_map.values() {
             let home_position = Vec3::from(nation.home_position);
 
-            for _ in 1..=AGENT_INITIAL_POPULATION {
+            for _ in 1..=INITIAL_NATION_POPULATION {
                 let offset = Vec3::new(
                     rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
                     rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
                     0.0,
                 );
 
-                let agent_id = Population::get_next_entity_id(population);
+                let person_id = Population::get_next_entity_id(population);
 
-                let mut agent = Agent::new(agent_id, nation_kind);
+                let mut person = Person::new(person_id);
 
                 let world_position = home_position + offset;
 
-                Spatial::set_world_position(world_position, &mut agent.spatial);
+                Spatial::set_world_position(world_position, &mut person.spatial);
 
-                let agent_size = Vec3::new(
-                    AGENT_DEFAULT_SIZE_X,
-                    AGENT_DEFAULT_SIZE_Y,
+                let person_size = Vec3::new(
+                    PERSON_DEFAULT_SIZE_X,
+                    PERSON_DEFAULT_SIZE_Y,
                     rand_chacha_ext::gen_range_f32(
-                        AGENT_DEFAULT_SIZE_Z - 0.2,
-                        AGENT_DEFAULT_SIZE_Z + 0.2,
+                        PERSON_DEFAULT_SIZE_Z - 0.2,
+                        PERSON_DEFAULT_SIZE_Z + 0.2,
                         &mut population.rng,
                     ),
                 );
 
-                agent.kinematic.speed = AGENT_DEFAULT_SPEED;
-                agent.kinematic.jump_speed = AGENT_DEFAULT_JUMP_SPEED;
+                person.kinematic.speed = PERSON_DEFAULT_SPEED;
+                person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
 
-                Spatial::set_size(agent_size, &mut agent.spatial);
+                Spatial::set_size(person_size, &mut person.spatial);
 
-                population.agent_map.insert(agent.entity_id, agent);
+                population.person_map.insert(person.person_id, person);
             }
         }
     }

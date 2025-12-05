@@ -5,7 +5,6 @@ pub mod viewer;
 
 pub use message::Message;
 pub use timestep::Timestep;
-use ultraviolet::Vec3;
 pub use viewer::Viewer;
 
 use crate::simulation::{
@@ -13,7 +12,7 @@ use crate::simulation::{
     manager::{status::Status, viewer::View},
     state::{
         action::{
-            act::{self},
+            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
             Act,
         },
         population::kinematic::Kinematic,
@@ -29,6 +28,7 @@ use crate::simulation::{
     },
 };
 use std::time::{Duration, Instant};
+use ultraviolet::Vec3;
 
 pub struct Manager {
     pub status: Status,
@@ -107,11 +107,25 @@ impl Manager {
     }
 
     fn handle_interact1(state: &mut State) {
-        state.action.act_deque.push_back(Act::PlaceBlock);
+        let place_block_data = PlaceBlockData {
+            person_id: state.population.judge_id,
+        };
+
+        state
+            .action
+            .act_deque
+            .push_back(Act::PlaceBlock(place_block_data));
     }
 
     fn handle_interact2(state: &mut State) {
-        state.action.act_deque.push_back(Act::RemoveBlock);
+        let remove_block_data = RemoveBlockData {
+            person_id: state.population.judge_id,
+        };
+
+        state
+            .action
+            .act_deque
+            .push_back(Act::RemoveBlock(remove_block_data));
     }
 
     fn handle_rotation_input_message(
@@ -119,6 +133,7 @@ impl Manager {
         state: &mut State,
     ) {
         let rotate_data = act::RotateData {
+            person_id: state.population.judge_id,
             rotation_angles: Vec3::new(
                 rotation_input_data.input_x,
                 rotation_input_data.input_y,
@@ -140,13 +155,20 @@ impl Manager {
         )
         .normalized();
 
-        let move_data = act::MoveData { move_direction };
+        let move_data = act::MoveData {
+            person_id: state.population.judge_id,
+            move_direction,
+        };
 
         state.action.act_deque.push_back(Act::Move(move_data));
     }
 
     fn handle_jump_input_message(state: &mut State) {
-        state.action.act_deque.push_back(Act::Jump);
+        let jump_data = JumpData {
+            person_id: state.population.judge_id,
+        };
+
+        state.action.act_deque.push_back(Act::Jump(jump_data));
     }
 
     fn handle_set_seed_message(seed_data: &message::SeedData, state: &mut State) {
@@ -186,18 +208,34 @@ impl Manager {
     }
 
     fn handle_debug_message(state: &mut State) {
-        Physics::toggle_gravity_active(&mut state.physics);
-        Kinematic::toggle_flying(&mut state.population.judge.kinematic);
+        if let Some(judge) = state
+            .population
+            .person_map
+            .get_mut(&state.population.judge_id)
+        {
+            Physics::toggle_gravity_active(&mut state.physics);
+            Kinematic::toggle_flying(&mut judge.kinematic);
+        }
     }
 
     fn handle_option1_message(state: &mut State) {
-        state.population.judge.selected_block_kind =
-            Kind::previous_block_kind(&state.population.judge.selected_block_kind);
+        if let Some(judge) = state
+            .population
+            .person_map
+            .get_mut(&state.population.judge_id)
+        {
+            judge.selected_block_kind = Kind::previous_block_kind(&judge.selected_block_kind);
+        }
     }
 
     fn handle_option2_message(state: &mut State) {
-        state.population.judge.selected_block_kind =
-            Kind::next_block_kind(&state.population.judge.selected_block_kind);
+        if let Some(judge) = state
+            .population
+            .person_map
+            .get_mut(&state.population.judge_id)
+        {
+            judge.selected_block_kind = Kind::next_block_kind(&judge.selected_block_kind);
+        }
     }
 
     fn handle_option3_message(_state: &mut State) {

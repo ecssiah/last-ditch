@@ -40,17 +40,19 @@ impl Physics {
             return;
         }
 
-        let (velocity, delta) = Self::integrate(physics, &mut population.judge.kinematic);
+        if let Some(judge) = population.person_map.get_mut(&population.judge_id) {
+            let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 
-        Self::resolve(
-            world,
-            &velocity,
-            &delta,
-            &mut population.judge.spatial,
-            &mut population.judge.kinematic,
-        );
+            Self::resolve(
+                world,
+                &velocity,
+                &delta,
+                &mut judge.spatial,
+                &mut judge.kinematic,
+            );
 
-        Self::sync(&mut population.judge.spatial, &mut population.judge.sight);
+            Self::sync(&mut judge.spatial, &mut judge.sight);
+        }
     }
 
     pub fn set_gravity_active(gravity_active: bool, physics: &mut Self) {

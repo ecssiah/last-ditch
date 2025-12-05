@@ -1,0 +1,7 @@
+use ultraviolet::IVec3;
+
+#[derive(Clone, Debug)]
+pub struct Connection {
+    pub area_id: u64,
+    pub grid_position: IVec3,
+}

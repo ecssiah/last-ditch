@@ -28,7 +28,6 @@ pub struct World {
     pub active: bool,
     pub rng: ChaCha8Rng,
     pub time: Time,
-    pub block_info_map: HashMap<block::Kind, block::Info>,
     pub sector_vec: Vec<world::Sector>,
     pub area_map: HashMap<u64, world::Area>,
     pub next_area_id: u64,
@@ -39,7 +38,6 @@ impl World {
         let active = false;
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
-        let block_info_map = block::Info::setup();
         let sector_vec = Self::setup_sector_vec();
         let area_map = HashMap::new();
         let next_area_id = 0;
@@ -48,7 +46,6 @@ impl World {
             active,
             rng,
             time,
-            block_info_map,
             sector_vec,
             area_map,
             next_area_id,
@@ -244,13 +241,12 @@ impl World {
     pub fn set_block(
         grid_position: IVec3,
         block_kind: block::Kind,
-        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         if grid::is_sector_id_valid(sector_id) && grid::is_cell_id_valid(cell_id) {
-            let block_info = block_info_map[&block_kind];
+            let block_info = block::get_info(block_kind);
 
             let cell = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice);
             cell.block_kind = block_kind;
@@ -279,69 +275,49 @@ impl World {
         let max_u = min_u + size.0 as i32 - 1;
         let max_v = min_v + size.1 as i32 - 1;
 
-        //
-        // 1. DRAW THE FRAME
-        //
-
-        // Vertical edges
         for vy in 0..size.1 {
             let v_val = min_v + vy as i32;
 
-            // Left edge
-            let mut pos = grid_position;
-            pos[v] = v_val;
-            pos[u] = min_u;
+            let mut block_grid_position = grid_position;
+            block_grid_position[v] = v_val;
+            block_grid_position[u] = min_u;
             World::set_block(
-                pos,
+                block_grid_position,
                 block_kind,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
 
-            // Right edge
-            let mut pos = grid_position;
-            pos[v] = v_val;
-            pos[u] = max_u;
+            let mut block_grid_position = grid_position;
+            block_grid_position[v] = v_val;
+            block_grid_position[u] = max_u;
             World::set_block(
-                pos,
+                block_grid_position,
                 block_kind,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
         }
 
-        // Horizontal edges
         for ux in 0..size.0 {
             let u_val = min_u + ux as i32;
 
-            // Bottom edge
-            let mut pos = grid_position;
-            pos[u] = u_val;
-            pos[v] = min_v;
+            let mut block_grid_position = grid_position;
+            block_grid_position[u] = u_val;
+            block_grid_position[v] = min_v;
             World::set_block(
-                pos,
+                block_grid_position,
                 block_kind,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
 
-            // Top edge
-            let mut pos = grid_position;
-            pos[u] = u_val;
-            pos[v] = max_v;
+            let mut block_grid_position = grid_position;
+            block_grid_position[u] = u_val;
+            block_grid_position[v] = max_v;
             World::set_block(
-                pos,
+                block_grid_position,
                 block_kind,
-                &world.block_info_map,
                 &mut world.sector_vec,
             );
         }
-
-        //
-        // 2. CLEAR INTERIOR
-        //
-        // Only clear if there actually *is* an interior (size >= 3 on both axes)
-        //
 
         if size.0 > 2 && size.1 > 2 {
             let interior_min_u = min_u + 1;
@@ -351,14 +327,13 @@ impl World {
 
             for vy in interior_min_v..=interior_max_v {
                 for ux in interior_min_u..=interior_max_u {
-                    let mut pos = grid_position;
-                    pos[u] = ux;
-                    pos[v] = vy;
+                    let mut block_grid_position = grid_position;
+                    block_grid_position[u] = ux;
+                    block_grid_position[v] = vy;
 
                     World::set_block(
-                        pos,
+                        block_grid_position,
                         block::Kind::None,
-                        &world.block_info_map,
                         &mut world.sector_vec,
                     );
                 }
@@ -388,7 +363,6 @@ impl World {
                 World::set_block(
                     block_grid_position,
                     block_kind,
-                    &world.block_info_map,
                     &mut world.sector_vec,
                 );
             }
@@ -399,7 +373,6 @@ impl World {
         grid_position1: IVec3,
         grid_position2: IVec3,
         block_kind: block::Kind,
-        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = IVec3::new(
@@ -414,8 +387,8 @@ impl World {
             grid_position1.z.max(grid_position2.z),
         );
 
-        let set_block = |pos: IVec3, sector_vec_slice: &mut [Sector]| {
-            Self::set_block(pos, block_kind, block_info_map, sector_vec_slice);
+        let set_block = |block_grid_position: IVec3, sector_vec_slice: &mut [Sector]| {
+            Self::set_block(block_grid_position, block_kind, sector_vec_slice);
         };
 
         // 12 edges of the AABB
@@ -459,7 +432,6 @@ impl World {
         grid_position1: IVec3,
         grid_position2: IVec3,
         block_kind: block::Kind,
-        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = IVec3::new(
@@ -497,14 +469,12 @@ impl World {
                         Self::set_block(
                             grid_position,
                             block_kind,
-                            block_info_map,
                             sector_vec_slice,
                         );
                     } else {
                         Self::set_block(
                             grid_position,
                             block::Kind::None,
-                            block_info_map,
                             sector_vec_slice,
                         );
                     }
@@ -517,7 +487,6 @@ impl World {
         grid_position1: IVec3,
         grid_position2: IVec3,
         block_kind: block::Kind,
-        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let min = IVec3::new(
@@ -555,7 +524,6 @@ impl World {
                         Self::set_block(
                             grid_position,
                             block_kind,
-                            block_info_map,
                             sector_vec_slice,
                         );
                     }
@@ -568,7 +536,6 @@ impl World {
         grid_position1: IVec3,
         grid_position2: IVec3,
         block_kind: block::Kind,
-        block_info_map: &HashMap<block::Kind, block::Info>,
         sector_vec_slice: &mut [Sector],
     ) {
         let grid_position_min = IVec3::new(
@@ -588,7 +555,7 @@ impl World {
                 for x in grid_position_min.x..=grid_position_max.x {
                     let position = IVec3::new(x, y, z);
 
-                    Self::set_block(position, block_kind, block_info_map, sector_vec_slice);
+                    Self::set_block(position, block_kind, sector_vec_slice);
                 }
             }
         }
