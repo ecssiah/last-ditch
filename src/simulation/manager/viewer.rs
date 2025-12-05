@@ -81,20 +81,16 @@ impl Viewer {
     }
 
     fn update_population_view(state: &State) -> PopulationView {
-        let mut population_view = PopulationView {
-            judge_id: state.population.judge_id,
-            person_view_map: HashMap::new(),
-        };
+        let mut population_view = PopulationView::new();
 
-        if let Some(judge) = state.population.person_map.get(&state.population.judge_id) {
+        if let Some(judge) = state.population.person_map.get(&state.population.leadership.judge_id) {
             let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
-            for (person_id, person) in &state.population.person_map {
+            for person in state.population.person_map.values() {
                 let person_to_judge_distance_squared =
                     (person.spatial.world_position - judge.spatial.world_position).mag_sq();
 
-                if person_id == &state.population.judge_id
-                    || person_to_judge_distance_squared <= judge_sight_range_squared
+                if person_to_judge_distance_squared <= judge_sight_range_squared
                 {
                     let person_view = PersonView {
                         identity: person.identity,
@@ -123,7 +119,7 @@ impl Viewer {
             sector_view_map: HashMap::new(),
         };
 
-        if let Some(judge) = state.population.person_map.get(&state.population.judge_id) {
+        if let Some(judge) = state.population.person_map.get(&state.population.leadership.judge_id) {
             let judge_sector_coordinate =
                 grid::world_position_to_sector_coordinate(judge.spatial.world_position);
 

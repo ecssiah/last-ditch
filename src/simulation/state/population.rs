@@ -6,14 +6,15 @@ pub mod nation;
 pub mod person;
 pub mod sight;
 pub mod spatial;
+pub mod leadership;
+
+pub use leadership::Leadership;
 
 use ultraviolet::{IVec3, Vec3};
 
 use crate::simulation::{
-    constants::{JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z},
-    state::{
-        population::{nation::Nation, person::Person, sight::Sight, spatial::Spatial},
-    },
+    constants::{INITIAL_PERSON_ID, JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z, JUDGE_ID_0},
+    state::population::{nation::Nation, person::Person, sight::Sight, spatial::Spatial},
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -21,7 +22,7 @@ use std::collections::HashMap;
 pub struct Population {
     pub active: bool,
     pub rng: ChaCha8Rng,
-    pub judge_id: u64,
+    pub leadership: Leadership,
     pub next_person_id: u64,
     pub person_map: HashMap<u64, Person>,
     pub nation_map: HashMap<nation::Kind, Nation>,
@@ -32,8 +33,11 @@ impl Population {
         let active = false;
         let rng = ChaCha8Rng::seed_from_u64(seed);
 
-        let judge_id = 0;
-        let next_person_id = 1;
+        let leadership = Leadership {
+            judge_id: JUDGE_ID_0,
+        };
+
+        let next_person_id = INITIAL_PERSON_ID;
 
         let person_map = Self::setup_person_map();
         let nation_map = Self::setup_nation_map();
@@ -41,7 +45,7 @@ impl Population {
         Self {
             active,
             rng,
-            judge_id,
+            leadership,
             next_person_id,
             person_map,
             nation_map,

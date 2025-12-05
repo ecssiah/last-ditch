@@ -108,7 +108,7 @@ impl Manager {
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {
-            person_id: state.population.judge_id,
+            person_id: state.population.leadership.judge_id,
         };
 
         state
@@ -119,7 +119,7 @@ impl Manager {
 
     fn handle_interact2(state: &mut State) {
         let remove_block_data = RemoveBlockData {
-            person_id: state.population.judge_id,
+            person_id: state.population.leadership.judge_id,
         };
 
         state
@@ -133,7 +133,7 @@ impl Manager {
         state: &mut State,
     ) {
         let rotate_data = act::RotateData {
-            person_id: state.population.judge_id,
+            person_id: state.population.leadership.judge_id,
             rotation_angles: Vec3::new(
                 rotation_input_data.input_x,
                 rotation_input_data.input_y,
@@ -156,7 +156,7 @@ impl Manager {
         .normalized();
 
         let move_data = act::MoveData {
-            person_id: state.population.judge_id,
+            person_id: state.population.leadership.judge_id,
             move_direction,
         };
 
@@ -165,7 +165,7 @@ impl Manager {
 
     fn handle_jump_input_message(state: &mut State) {
         let jump_data = JumpData {
-            person_id: state.population.judge_id,
+            person_id: state.population.leadership.judge_id,
         };
 
         state.action.act_deque.push_back(Act::Jump(jump_data));
@@ -211,7 +211,7 @@ impl Manager {
         if let Some(judge) = state
             .population
             .person_map
-            .get_mut(&state.population.judge_id)
+            .get_mut(&state.population.leadership.judge_id)
         {
             Physics::toggle_gravity_active(&mut state.physics);
             Kinematic::toggle_flying(&mut judge.kinematic);
@@ -222,7 +222,7 @@ impl Manager {
         if let Some(judge) = state
             .population
             .person_map
-            .get_mut(&state.population.judge_id)
+            .get_mut(&state.population.leadership.judge_id)
         {
             judge.selected_block_kind = Kind::previous_block_kind(&judge.selected_block_kind);
         }
@@ -232,7 +232,7 @@ impl Manager {
         if let Some(judge) = state
             .population
             .person_map
-            .get_mut(&state.population.judge_id)
+            .get_mut(&state.population.leadership.judge_id)
         {
             judge.selected_block_kind = Kind::next_block_kind(&judge.selected_block_kind);
         }

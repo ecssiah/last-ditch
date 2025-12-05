@@ -207,7 +207,7 @@ impl GUI {
         if let Some(person_view) = view
             .population_view
             .person_view_map
-            .get(&view.population_view.judge_id)
+            .get(&view.population_view.leadership_view.judge_id)
         {
             let grid_position =
                 grid::world_position_to_grid_position(person_view.spatial.world_position);

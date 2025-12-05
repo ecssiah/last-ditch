@@ -67,6 +67,13 @@ pub const MINIMUM_CLEARANCE: u32 = 3;
 pub const CONTACT_OFFSET: f32 = 0.001;
 pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
 
+pub const JUDGE_ID_0: u64 = 0;
+pub const JUDGE_ID_1: u64 = 1;
+pub const JUDGE_ID_2: u64 = 2;
+pub const JUDGE_ID_3: u64 = 3;
+
+pub const INITIAL_PERSON_ID: u64 = 100;
+
 pub const JUDGE_DEFAULT_SPEED: f32 = 8.0;
 pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
 

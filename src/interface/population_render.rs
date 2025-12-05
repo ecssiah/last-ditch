@@ -19,6 +19,7 @@ use crate::{
     },
 };
 use obj::{load_obj, TexturedVertex};
+use ultraviolet::Vec3;
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
@@ -379,9 +380,15 @@ impl PopulationRender {
 
         let mut group_map: HashMap<String, Vec<PersonInstanceData>> = HashMap::new();
 
-        for person_view in population_view.person_view_map.values() {
+        for (person_id, person_view) in &population_view.person_view_map {
+            if person_id == &population_view.leadership_view.judge_id {
+                continue;
+            }
+
+            let world_position = person_view.spatial.world_position - Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
+
             let person_instance_data = PersonInstanceData {
-                world_position: *person_view.spatial.world_position.as_array(),
+                world_position: *(world_position).as_array(),
                 scale_z: person_view.spatial.size.z / PERSON_DEFAULT_SIZE_Z,
                 rotation_xy: person_view.spatial.rotation_xy,
                 _padding: [0.0, 0.0, 0.0],
