@@ -83,7 +83,7 @@ pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;
 
 pub const PERSON_DEFAULT_SIZE_X: f32 = 0.6;
 pub const PERSON_DEFAULT_SIZE_Y: f32 = 0.6;
-pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.73;
+pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.6;
 
 pub const FLOOR_HEIGHT: usize = 8;
 pub const LOWER_FLOOR_COUNT: usize = 4;

@@ -94,7 +94,7 @@ impl Viewer {
                     (person.spatial.world_position - judge.spatial.world_position).mag_sq();
 
                 if person_id == &state.population.judge_id
-                    || person_to_judge_distance_squared > judge_sight_range_squared
+                    || person_to_judge_distance_squared <= judge_sight_range_squared
                 {
                     let person_view = PersonView {
                         identity: person.identity,

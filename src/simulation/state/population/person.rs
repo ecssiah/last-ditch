@@ -2,7 +2,6 @@ use ultraviolet::Vec3;
 use crate::simulation::state::{
     population::{identity::Identity, kinematic::Kinematic, sight::Sight, spatial::Spatial},
     world::block,
-    World,
 };
 
 pub struct Person {
@@ -45,9 +44,5 @@ impl Person {
         Spatial::set_rotation(rotation_xy, &mut person.spatial);
 
         Sight::set_rotation(rotation_xy, rotation_yz, &mut person.sight);
-    }
-
-    pub fn tick(_world: &World, person: &mut Self) {
-        Spatial::update_sector_id(&mut person.spatial);
     }
 }

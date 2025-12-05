@@ -13,7 +13,6 @@ use crate::simulation::{
     constants::{JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z},
     state::{
         population::{nation::Nation, person::Person, sight::Sight, spatial::Spatial},
-        world::World,
     },
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
@@ -108,15 +107,11 @@ impl Population {
         person_id
     }
 
-    pub fn tick(world: &World, population: &mut Self) {
+    pub fn tick(population: &mut Self) {
         let _ = tracing::info_span!("population_tick").entered();
 
         if !population.active {
             return;
-        }
-
-        for person in population.person_map.values_mut() {
-            Person::tick(world, person);
         }
     }
 }

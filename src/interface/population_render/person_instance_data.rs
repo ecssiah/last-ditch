@@ -1,8 +1,8 @@
 #[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct PersonInstanceData {
     pub world_position: [f32; 3],
-    pub size_y: f32,
+    pub scale_z: f32,
     pub rotation_xy: f32,
     pub _padding: [f32; 3],
 }

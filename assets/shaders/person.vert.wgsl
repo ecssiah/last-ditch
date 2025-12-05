@@ -11,7 +11,7 @@ struct VertexInput {
     @location(1) normal: vec3<f32>,
     @location(2) uv: vec2<f32>,
     @location(3) instance_world_position: vec3<f32>,
-    @location(4) instance_size_y: f32,
+    @location(4) instance_scale_z: f32,
     @location(5) instance_yaw: f32,
 };
 
@@ -24,7 +24,7 @@ struct VertexOutput {
 fn main(input: VertexInput) -> VertexOutput {
     let model_matrix = get_model_matrix(
         input.instance_world_position, 
-        input.instance_size_y, 
+        input.instance_scale_z, 
         input.instance_yaw
     );
 
@@ -38,7 +38,7 @@ fn main(input: VertexInput) -> VertexOutput {
     return output;
 }
 
-fn get_model_matrix(world_position: vec3<f32>, size_y: f32, yaw: f32) -> mat4x4<f32> {
+fn get_model_matrix(world_position: vec3<f32>, instance_scale_z: f32, yaw: f32) -> mat4x4<f32> {
     let cos_yaw = cos(yaw);
     let sin_yaw = sin(yaw);
 
@@ -56,9 +56,9 @@ fn get_model_matrix(world_position: vec3<f32>, size_y: f32, yaw: f32) -> mat4x4<
         vec4<f32>(world_position, 1.0),
     );
 
-    let scale_x = size_y;
-    let scale_y = size_y;
-    let scale_z = size_y;
+    let scale_x = instance_scale_z;
+    let scale_y = instance_scale_z;
+    let scale_z = instance_scale_z;
 
     let scale = mat4x4<f32>(
         vec4<f32>(scale_x, 0.0, 0.0, 0.0),

@@ -23,10 +23,10 @@ use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
 
 pub struct PopulationRender {
     pub person_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
-    pub entity_instance_buffer: wgpu::Buffer,
+    pub person_instance_buffer: wgpu::Buffer,
     pub person_instance_data_group_vec: Vec<(String, Vec<PersonInstanceData>)>,
-    pub texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_arc_map: HashMap<String, Arc<wgpu::BindGroup>>,
+    pub person_texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub person_texture_bind_group_arc_map: HashMap<String, Arc<wgpu::BindGroup>>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -34,8 +34,8 @@ impl PopulationRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let person_gpu_mesh_map = Self::load_person_gpu_mesh_map(&gpu_context.device);
 
-        let entity_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Population Instance Buffer"),
+        let person_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Person Instance Buffer"),
             size: (SIMULATION_ENTITY_MAX * std::mem::size_of::<PersonInstanceData>())
                 as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
@@ -44,22 +44,24 @@ impl PopulationRender {
 
         let person_instance_data_group_vec = Vec::new();
 
-        let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
-        let texture_bind_group_arc_map =
-            Self::load_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
+        let person_texture_bind_group_layout =
+            Self::create_person_texture_bind_group_layout(&gpu_context.device);
+
+        let person_texture_bind_group_arc_map =
+            Self::load_person_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &texture_bind_group_layout,
+            &person_texture_bind_group_layout,
         );
 
         Self {
             person_gpu_mesh_map,
-            entity_instance_buffer,
+            person_instance_buffer,
             person_instance_data_group_vec,
-            texture_bind_group_layout,
-            texture_bind_group_arc_map,
+            person_texture_bind_group_layout,
+            person_texture_bind_group_arc_map,
             render_pipeline,
         }
     }
@@ -88,7 +90,11 @@ impl PopulationRender {
                                     .vertices
                                     .iter()
                                     .map(|vertex: &TexturedVertex| PersonVertex {
-                                        position: vertex.position,
+                                        position: [
+                                            vertex.position[0],
+                                            vertex.position[1],
+                                            vertex.position[2],
+                                        ],
                                         normal: vertex.normal,
                                         uv: [vertex.texture[0], vertex.texture[1]],
                                     })
@@ -101,7 +107,7 @@ impl PopulationRender {
 
                             person_gpu_mesh_map.insert(file_stem.to_string(), person_gpu_mesh_arc);
 
-                            tracing::info!("{:?} model loaded", file_stem);
+                            tracing::info!("{:?}.obj loaded", file_stem);
                         }
                         Err(err) => {
                             tracing::error!("{:?}", err);
@@ -114,7 +120,7 @@ impl PopulationRender {
         person_gpu_mesh_map
     }
 
-    fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    fn create_person_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
             entries: &[
@@ -138,7 +144,7 @@ impl PopulationRender {
         })
     }
 
-    fn load_texture_bind_group_arc_map(
+    fn load_person_texture_bind_group_arc_map(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
     ) -> HashMap<String, Arc<wgpu::BindGroup>> {
@@ -167,7 +173,7 @@ impl PopulationRender {
 
                 texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
 
-                tracing::info!("{:?} texture loaded", file_stem);
+                tracing::info!("{:?}.png loaded", file_stem);
             }
         }
 
@@ -223,7 +229,7 @@ impl PopulationRender {
         label: &str,
     ) -> GpuTextureData {
         let img = image::open(path)
-            .expect("Failed to open texture atlas")
+            .expect("Failed to open Person texture data")
             .into_rgba8();
 
         let (width, height) = img.dimensions();
@@ -284,7 +290,7 @@ impl PopulationRender {
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
-        texture_bind_group_layout: &wgpu::BindGroupLayout,
+        person_texture_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let vert_shader_module =
             gpu_context
@@ -311,7 +317,10 @@ impl PopulationRender {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Population Render Pipeline Layout"),
-                    bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
+                    bind_group_layouts: &[
+                        camera_bind_group_layout,
+                        person_texture_bind_group_layout,
+                    ],
                     push_constant_ranges: &[],
                 });
 
@@ -373,7 +382,7 @@ impl PopulationRender {
         for person_view in population_view.person_view_map.values() {
             let person_instance_data = PersonInstanceData {
                 world_position: *person_view.spatial.world_position.as_array(),
-                size_y: person_view.spatial.size.y,
+                scale_z: person_view.spatial.size.z / PERSON_DEFAULT_SIZE_Z,
                 rotation_xy: person_view.spatial.rotation_xy,
                 _padding: [0.0, 0.0, 0.0],
             };
@@ -381,7 +390,7 @@ impl PopulationRender {
             let person_model_name = Self::get_person_model_name(person_view);
 
             group_map
-                .entry(person_model_name.to_string())
+                .entry(person_model_name)
                 .or_default()
                 .push(person_instance_data);
         }
@@ -436,7 +445,7 @@ impl PopulationRender {
                 as wgpu::BufferAddress;
 
             gpu_context.queue.write_buffer(
-                &population_render.entity_instance_buffer,
+                &population_render.person_instance_buffer,
                 offset_bytes,
                 bytemuck::cast_slice(&person_instance_data_vec),
             );
@@ -450,7 +459,7 @@ impl PopulationRender {
 
             let texture_bind_group_arc = Arc::clone(
                 population_render
-                    .texture_bind_group_arc_map
+                    .person_texture_bind_group_arc_map
                     .get(person_model_name)
                     .unwrap(),
             );
@@ -458,7 +467,7 @@ impl PopulationRender {
             render_pass.set_vertex_buffer(
                 1,
                 population_render
-                    .entity_instance_buffer
+                    .person_instance_buffer
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
 

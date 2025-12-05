@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use ultraviolet::Vec3;
+use ultraviolet::{IVec3, Vec3};
 
 use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{person::Person, spatial::Spatial},
-            Population, State, World,
+            Population, State, World, population::{identity, person::Person, spatial::Spatial}, world::grid
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -58,20 +57,28 @@ impl GeneratePopulationData {
         let nation_map = population.nation_map.clone();
 
         for nation in nation_map.values() {
-            let home_position = Vec3::from(nation.home_position);
+            let home_position = nation.home_position;
 
             for _ in 1..=INITIAL_NATION_POPULATION {
-                let offset = Vec3::new(
-                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
-                    rand_chacha_ext::gen_range_f32(-4.0, 4.0, &mut population.rng),
-                    0.0,
+                let offset = IVec3::new(
+                    rand_chacha_ext::gen_range_i32(-4, 4, &mut population.rng),
+                    rand_chacha_ext::gen_range_i32(-4, 4, &mut population.rng),
+                    0,
                 );
 
                 let person_id = Population::get_next_entity_id(population);
 
                 let mut person = Person::new(person_id);
 
-                let world_position = home_position + offset;
+                let sex = match rand_chacha_ext::gen_range_i32(0, 1, &mut population.rng) {
+                    0 => identity::Sex::Male,
+                    _ => identity::Sex::Female,
+                };
+
+                person.identity.sex = sex;
+
+                let grid_position = home_position + offset;
+                let world_position = grid::grid_position_to_world_position(grid_position);
 
                 Spatial::set_world_position(world_position, &mut person.spatial);
 

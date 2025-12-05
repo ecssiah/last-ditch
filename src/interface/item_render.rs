@@ -17,18 +17,18 @@ pub struct ItemRender {
 
 impl ItemRender {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let texture_bind_group_layout = Self::create_texture_bind_group_layout(&gpu_context.device);
+        let person_texture_bind_group_layout = Self::create_person_texture_bind_group_layout(&gpu_context.device);
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &texture_bind_group_layout,
+            &person_texture_bind_group_layout,
         );
 
         Self { render_pipeline }
     }
 
-    fn create_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    fn create_person_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Item Render Bind Group Layout"),
             entries: &[
@@ -55,7 +55,7 @@ impl ItemRender {
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
-        texture_bind_group_layout: &wgpu::BindGroupLayout,
+        person_texture_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let vert_shader_module =
             gpu_context
@@ -82,7 +82,7 @@ impl ItemRender {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Item Render Pipeline Layout"),
-                    bind_group_layouts: &[camera_bind_group_layout, texture_bind_group_layout],
+                    bind_group_layouts: &[camera_bind_group_layout, person_texture_bind_group_layout],
                     push_constant_ranges: &[],
                 });
 

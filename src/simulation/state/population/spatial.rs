@@ -1,6 +1,5 @@
 use crate::simulation::state::{
     physics::aabb::AABB,
-    world::grid::{self},
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -42,14 +41,5 @@ impl Spatial {
         let rotation_xy_radians = rotation_xy.to_radians();
 
         spatial.rotor = Rotor3::from_rotation_xy(rotation_xy_radians);
-    }
-
-    pub fn update_sector_id(spatial: &mut Self) {
-        let sector_id = grid::world_position_to_sector_id(spatial.world_position);
-
-        if sector_id != spatial.sector_id {
-            spatial.sector_updated = true;
-            spatial.sector_id = sector_id;
-        }
     }
 }

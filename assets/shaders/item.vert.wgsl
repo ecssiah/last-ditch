@@ -11,7 +11,7 @@ struct VertexInput {
     @location(1) normal: vec3<f32>,
     @location(2) uv: vec2<f32>,
     @location(3) instance_world_position: vec3<f32>,
-    @location(4) instance_size_y: f32,
+    @location(4) instance_height: f32,
     @location(5) instance_yaw: f32,
 };
 
@@ -24,7 +24,7 @@ struct VertexOutput {
 fn main(input: VertexInput) -> VertexOutput {
     let model_matrix = get_model_matrix(
         input.instance_world_position, 
-        input.instance_size_y, 
+        input.instance_height, 
         input.instance_yaw
     );
 
