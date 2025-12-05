@@ -1,4 +1,4 @@
-use crate::simulation::manager::viewer::BlockView;
+use crate::simulation::manager::viewer::{BlockView, view::ObjectView};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
@@ -7,4 +7,5 @@ pub struct SectorView {
     pub version: u64,
     pub world_position: Vec3,
     pub block_view_vec: Vec<Option<BlockView>>,
+    pub object_view_vec: Vec<ObjectView>,
 }

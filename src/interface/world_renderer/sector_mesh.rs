@@ -1,7 +1,7 @@
 use crate::{
     interface::{
         gpu::gpu_mesh::GpuMesh,
-        world_render::{face::Face, sector_vertex::SectorVertex, tile_atlas},
+        world_renderer::{face::Face, sector_vertex::SectorVertex, tile_atlas},
     },
     simulation::{
         constants::*,

@@ -3,23 +3,21 @@
 pub mod app;
 pub mod camera;
 pub mod constants;
-pub mod debug;
+pub mod debug_renderer;
 pub mod gpu;
 pub mod gui;
 pub mod input;
-pub mod item_render;
-pub mod population_render;
-pub mod world_render;
+pub mod object_renderer;
+pub mod population_renderer;
+pub mod world_renderer;
 
 use crate::{
     interface::{
-        camera::Camera, constants::*, debug::DebugRender, gpu::gpu_context::GPUContext, gui::GUI,
-        input::Input, item_render::ItemRender, population_render::PopulationRender,
-        world_render::WorldRender,
+        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::Input, object_renderer::ObjectRenderer, population_renderer::PopulationRenderer, world_renderer::WorldRenderer
     },
     simulation::{
         self,
-        manager::{status::Status, viewer::View, Message, Viewer},
+        manager::{Message, Viewer, status::Status, viewer::View},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
@@ -36,10 +34,10 @@ pub struct Interface<'window> {
     pub input: Input,
     pub camera: Camera,
     pub gui: GUI,
-    pub world_render: WorldRender,
-    pub item_render: ItemRender,
-    pub population_render: PopulationRender,
-    pub debug_render: DebugRender,
+    pub world_renderer: WorldRenderer,
+    pub object_renderer: ObjectRenderer,
+    pub population_renderer: PopulationRenderer,
+    pub debug_renderer: DebugRenderer,
     pub gpu_context: GPUContext<'window>,
     pub view_output: triple_buffer::Output<View>,
 }
@@ -159,10 +157,10 @@ impl<'window> Interface<'window> {
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
         let gui = GUI::new();
-        let world_render = WorldRender::new(&gpu_context, &camera);
-        let item_render = ItemRender::new(&gpu_context, &camera);
-        let population_render = PopulationRender::new(&gpu_context, &camera);
-        let debug_render = DebugRender::new(&gpu_context, &camera);
+        let world_renderer = WorldRenderer::new(&gpu_context, &camera);
+        let object_renderer = ObjectRenderer::new(&gpu_context, &camera);
+        let population_renderer = PopulationRenderer::new(&gpu_context, &camera);
+        let debug_renderer = DebugRenderer::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -172,10 +170,10 @@ impl<'window> Interface<'window> {
             input,
             camera,
             gui,
-            world_render,
-            item_render,
-            population_render,
-            debug_render,
+            world_renderer,
+            object_renderer,
+            population_renderer,
+            debug_renderer,
             gpu_context,
             view_output,
         }
@@ -190,10 +188,10 @@ impl<'window> Interface<'window> {
                     &interface.camera,
                     &mut interface.gpu_context,
                     &mut interface.gui,
-                    &mut interface.world_render,
-                    &mut interface.item_render,
-                    &mut interface.population_render,
-                    &mut interface.debug_render,
+                    &mut interface.world_renderer,
+                    &mut interface.object_renderer,
+                    &mut interface.population_renderer,
+                    &mut interface.debug_renderer,
                 ),
                 WindowEvent::Resized(size) => {
                     Self::handle_resized(*size, &mut interface.gpu_context)
@@ -202,7 +200,7 @@ impl<'window> Interface<'window> {
                     if Input::handle_window_event(
                         event,
                         &mut interface.gui,
-                        &mut interface.debug_render,
+                        &mut interface.debug_renderer,
                         &mut interface.gpu_context,
                         &mut interface.input,
                     ) {
@@ -229,10 +227,10 @@ impl<'window> Interface<'window> {
         camera: &Camera,
         gpu_context: &mut GPUContext,
         gui: &mut GUI,
-        world_render: &mut WorldRender,
-        item_render: &mut ItemRender,
-        population_render: &mut PopulationRender,
-        debug_render: &mut DebugRender,
+        world_renderer: &mut WorldRenderer,
+        object_renderer: &mut ObjectRenderer,
+        population_renderer: &mut PopulationRenderer,
+        debug_renderer: &mut DebugRenderer,
     ) {
         let _ = tracing::info_span!("redraw").entered();
 
@@ -252,37 +250,37 @@ impl<'window> Interface<'window> {
         let depth_texture_view =
             Self::create_depth_texture(&gpu_context.device, &gpu_context.surface_config);
 
-        WorldRender::render(
+        WorldRenderer::render(
             &surface_texture_view,
             &depth_texture_view,
             &camera.uniform_bind_group,
-            world_render,
+            world_renderer,
             &mut encoder,
         );
 
-        ItemRender::render(
+        ObjectRenderer::render(
             &surface_texture_view,
             &depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
-            item_render,
+            object_renderer,
             &mut encoder,
         );
 
-        PopulationRender::render(
+        PopulationRenderer::render(
             &surface_texture_view,
             &depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
-            population_render,
+            population_renderer,
             &mut encoder,
         );
 
-        DebugRender::render(
+        DebugRenderer::render(
             &surface_texture_view,
             &depth_texture_view,
             gpu_context,
-            debug_render,
+            debug_renderer,
             &mut encoder,
         );
 
@@ -334,9 +332,10 @@ impl<'window> Interface<'window> {
                 &interface.gpu_context,
                 &mut interface.camera,
                 &mut interface.gui,
-                &mut interface.world_render,
-                &mut interface.population_render,
-                &mut interface.debug_render,
+                &mut interface.world_renderer,
+                &mut interface.object_renderer,
+                &mut interface.population_renderer,
+                &mut interface.debug_renderer,
             );
 
             let instant = Instant::now();
@@ -355,9 +354,10 @@ impl<'window> Interface<'window> {
         gpu_context: &GPUContext,
         camera: &mut Camera,
         gui: &mut GUI,
-        world_render: &mut WorldRender,
-        population_render: &mut PopulationRender,
-        debug_render: &mut DebugRender,
+        world_renderer: &mut WorldRenderer,
+        object_renderer: &mut ObjectRenderer,
+        population_renderer: &mut PopulationRenderer,
+        debug_renderer: &mut DebugRenderer,
     ) {
         if view.manager_view.status == Status::Done {
             event_loop.exit();
@@ -373,22 +373,23 @@ impl<'window> Interface<'window> {
             bytemuck::cast_slice(&[camera.uniform_data]),
         );
 
-        WorldRender::apply_world_view(
+        WorldRenderer::apply_world_view(
             &gpu_context.device,
             camera,
             &view.world_view,
-            &mut world_render.sector_mesh_cache,
-            &mut world_render.gpu_mesh_cache,
-            &mut world_render.active_sector_id_set,
-            &mut world_render.active_gpu_mesh_vec,
+            &mut world_renderer.sector_mesh_cache,
+            &mut world_renderer.gpu_mesh_cache,
+            &mut world_renderer.active_sector_id_set,
+            &mut world_renderer.active_gpu_mesh_vec,
+            &mut object_renderer.object_instance_data_group_vec,
         );
 
-        PopulationRender::apply_population_view(
+        PopulationRenderer::apply_population_view(
             &view.population_view,
-            &mut population_render.person_instance_data_group_vec,
+            &mut population_renderer.person_instance_data_group_vec,
         );
 
-        DebugRender::apply_debug_view(view, debug_render);
+        DebugRenderer::apply_debug_view(view, debug_renderer);
     }
 
     fn send_message_deque(

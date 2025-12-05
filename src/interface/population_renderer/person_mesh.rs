@@ -1,4 +1,4 @@
-use crate::interface::{gpu::gpu_mesh::GpuMesh, population_render::person_vertex::PersonVertex};
+use crate::interface::{gpu::gpu_mesh::GpuMesh, population_renderer::person_vertex::PersonVertex};
 
 pub struct PersonMesh {
     pub vertex_vec: Vec<PersonVertex>,

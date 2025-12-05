@@ -1,8 +1,8 @@
-use ultraviolet::Vec3;
 use crate::simulation::state::{
     population::{identity::Identity, kinematic::Kinematic, sight::Sight, spatial::Spatial},
     world::block,
 };
+use ultraviolet::Vec3;
 
 pub struct Person {
     pub person_id: u64,

@@ -5,16 +5,10 @@ pub mod mouse_inputs;
 
 use crate::{
     interface::{
-        constants::*,
-        debug::DebugRender,
-        gpu::gpu_context::GPUContext,
-        gui::GUI,
-        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
+        constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs}
     },
     simulation::manager::{
-        self,
-        message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData},
-        Message,
+        self, Message, message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData}
     },
 };
 use std::collections::VecDeque;
@@ -96,7 +90,7 @@ impl Input {
     pub fn handle_window_event(
         event: &WindowEvent,
         gui: &mut GUI,
-        debug_render: &mut DebugRender,
+        debug_renderer: &mut DebugRenderer,
         gpu_context: &mut GPUContext,
         input: &mut Self,
     ) -> bool {
@@ -111,7 +105,7 @@ impl Input {
                 event,
                 is_synthetic,
                 gui,
-                debug_render,
+                debug_renderer,
                 gpu_context,
                 &mut input.key_inputs,
                 &mut input.message_deque,
@@ -155,7 +149,7 @@ impl Input {
         key_event: &KeyEvent,
         _is_synthetic: &bool,
         gui: &mut GUI,
-        debug_render: &mut DebugRender,
+        debug_renderer: &mut DebugRenderer,
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
         message_deque: &mut VecDeque<Message>,
@@ -177,7 +171,7 @@ impl Input {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Debug);
 
-                    DebugRender::toggle_debug_active(debug_render);
+                    DebugRenderer::toggle_debug_active(debug_renderer);
                 }
 
                 true

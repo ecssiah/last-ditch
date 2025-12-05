@@ -6,10 +6,7 @@ pub mod tile_atlas;
 use crate::{
     include_assets,
     interface::{
-        camera::Camera,
-        constants::WINDOW_CLEAR_COLOR,
-        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        world_render::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
+        camera::Camera, constants::WINDOW_CLEAR_COLOR, gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh}, object_renderer::{ObjectRenderer, object_instance_data::ObjectInstanceData}, world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex}
     },
     simulation::{
         constants::SECTOR_RADIUS_IN_METERS,
@@ -18,7 +15,7 @@ use crate::{
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 
-pub struct WorldRender {
+pub struct WorldRenderer {
     pub tile_atlas_bind_group: wgpu::BindGroup,
     pub tile_atlas_bind_group_layout: wgpu::BindGroupLayout,
     pub sector_mesh_cache: HashMap<usize, SectorMesh>,
@@ -28,7 +25,7 @@ pub struct WorldRender {
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl WorldRender {
+impl WorldRenderer {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
 
@@ -197,6 +194,7 @@ impl WorldRender {
         gpu_mesh_cache: &mut HashMap<usize, GpuMesh>,
         active_sector_id_set: &mut HashSet<usize>,
         active_gpu_mesh_vec: &mut Vec<usize>,
+        object_instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>
     ) {
         let _ = tracing::info_span!("apply_world_view").entered();
 
@@ -222,6 +220,8 @@ impl WorldRender {
             active_sector_id_set.insert(*sector_id);
 
             Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
+
+            ObjectRenderer::apply_object_view_vec(&sector_view.object_view_vec, object_instance_data_group_vec);
 
             active_gpu_mesh_vec.push(*sector_id);
         }
@@ -281,7 +281,7 @@ impl WorldRender {
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         camera_uniform_bind_group: &wgpu::BindGroup,
-        world_render: &Self,
+        world_renderer: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
@@ -315,12 +315,12 @@ impl WorldRender {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&world_render.render_pipeline);
+        render_pass.set_pipeline(&world_renderer.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-        render_pass.set_bind_group(1, &world_render.tile_atlas_bind_group, &[]);
+        render_pass.set_bind_group(1, &world_renderer.tile_atlas_bind_group, &[]);
 
-        for sector_id in &world_render.active_gpu_mesh_vec {
-            let gpu_mesh = &world_render.gpu_mesh_cache[sector_id];
+        for sector_id in &world_renderer.active_gpu_mesh_vec {
+            let gpu_mesh = &world_renderer.gpu_mesh_cache[sector_id];
 
             render_pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
 

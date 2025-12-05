@@ -6,4 +6,3 @@ pub enum Role {
     Priest,
     Judge,
 }
-

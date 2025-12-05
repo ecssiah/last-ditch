@@ -2,49 +2,51 @@
 
 pub mod identity;
 pub mod kinematic;
+pub mod leadership;
 pub mod nation;
 pub mod person;
 pub mod sight;
 pub mod spatial;
-pub mod leadership;
-
-pub use leadership::Leadership;
-
-use ultraviolet::{IVec3, Vec3};
 
 use crate::simulation::{
-    constants::{INITIAL_PERSON_ID, JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z, JUDGE_ID_0},
-    state::population::{nation::Nation, person::Person, sight::Sight, spatial::Spatial},
+    constants::{
+        INITIAL_PERSON_ID, JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z,
+        JUDGE_ID_0,
+    },
+    state::population::{
+        leadership::Leadership, nation::Nation, person::Person, sight::Sight, spatial::Spatial,
+    },
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
+use ultraviolet::{IVec3, Vec3};
 
 pub struct Population {
     pub active: bool,
-    pub rng: ChaCha8Rng,
-    pub leadership: Leadership,
+    pub random_number_generator: ChaCha8Rng,
     pub next_person_id: u64,
     pub person_map: HashMap<u64, Person>,
     pub nation_map: HashMap<nation::Kind, Nation>,
+    pub leadership: Leadership,
 }
 
 impl Population {
     pub fn new(seed: u64) -> Self {
         let active = false;
-        let rng = ChaCha8Rng::seed_from_u64(seed);
-
-        let leadership = Leadership {
-            judge_id: JUDGE_ID_0,
-        };
+        let random_number_generator = ChaCha8Rng::seed_from_u64(seed);
 
         let next_person_id = INITIAL_PERSON_ID;
 
         let person_map = Self::setup_person_map();
         let nation_map = Self::setup_nation_map();
 
+        let leadership = Leadership {
+            judge_id: JUDGE_ID_0,
+        };
+
         Self {
             active,
-            rng,
+            random_number_generator,
             leadership,
             next_person_id,
             person_map,
@@ -53,7 +55,7 @@ impl Population {
     }
 
     fn setup_person_map() -> HashMap<u64, Person> {
-        let mut judge = Person::new(0);
+        let mut judge = Person::new(JUDGE_ID_0);
 
         Person::set_world_position(Vec3::new(0.0, -8.0, 2.0), &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);
@@ -69,28 +71,28 @@ impl Population {
 
         Sight::set_range(100.0, &mut judge.sight);
 
-        let person_map = HashMap::from([(0, judge)]);
+        let person_map = HashMap::from([(judge.person_id, judge)]);
 
         person_map
     }
 
     fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
-        let radius = 20;
+        let home_radius = 20;
 
         let wolf_nation = Nation {
-            home_position: IVec3::new(radius, 0, 0),
+            home_position: IVec3::new(home_radius, 0, 0),
         };
 
         let lion_nation = Nation {
-            home_position: IVec3::new(-radius, 0, 0),
+            home_position: IVec3::new(-home_radius, 0, 0),
         };
 
         let eagle_nation = Nation {
-            home_position: IVec3::new(0, radius, 0),
+            home_position: IVec3::new(0, home_radius, 0),
         };
 
         let horse_nation = Nation {
-            home_position: IVec3::new(0, -radius, 0),
+            home_position: IVec3::new(0, -home_radius, 0),
         };
 
         let nation_map = HashMap::from([

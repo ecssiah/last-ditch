@@ -1,8 +1,8 @@
-pub mod kind;
 pub mod info;
+pub mod kind;
 
-pub use kind::Kind;
 pub use info::Info;
+pub use kind::Kind;
 
 use crate::simulation::state::world::block;
 

@@ -2,13 +2,16 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
-                nation::{self, Nation}, person::Person,
-            }, world::{
+            population::{
+                nation::{self, Nation},
+                person::Person,
+            },
+            world::{
                 self, block,
                 grid::{self, Axis},
-                structure,
-            }
+                object, structure,
+            },
+            State, World,
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -71,6 +74,13 @@ impl GenerateWorldData {
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
+
+                World::set_object(
+                    IVec3::new(0, 8, 1),
+                    grid::Direction::East,
+                    object::Kind::Stairs,
+                    &mut state.world,
+                );
             }
             _ => unreachable!(),
         }
@@ -159,12 +169,13 @@ impl GenerateWorldData {
             let wall_height_max = floor_position + floor_height - 2;
 
             for y in -building_radius + 1..=building_radius - 1 {
-                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+                let coin_flip =
+                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
 
                 let wall_height_random = rand_chacha_ext::gen_range_i32(
                     wall_height_min,
                     wall_height_max,
-                    &mut world.rng,
+                    &mut world.random_number_generator,
                 );
 
                 if coin_flip == 0 {
@@ -183,12 +194,13 @@ impl GenerateWorldData {
                     );
                 }
 
-                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+                let coin_flip =
+                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
 
                 let wall_height_random = rand_chacha_ext::gen_range_i32(
                     wall_height_min,
                     wall_height_max,
-                    &mut world.rng,
+                    &mut world.random_number_generator,
                 );
 
                 if coin_flip == 0 {
@@ -209,12 +221,13 @@ impl GenerateWorldData {
             }
 
             for x in -building_radius + 1..=building_radius - 1 {
-                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+                let coin_flip =
+                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
 
                 let wall_height_random = rand_chacha_ext::gen_range_i32(
                     wall_height_min,
                     wall_height_max,
-                    &mut world.rng,
+                    &mut world.random_number_generator,
                 );
 
                 if coin_flip == 0 {
@@ -233,12 +246,13 @@ impl GenerateWorldData {
                     );
                 }
 
-                let coin_flip = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng);
+                let coin_flip =
+                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
 
                 let wall_height_random = rand_chacha_ext::gen_range_i32(
                     wall_height_min,
                     wall_height_max,
-                    &mut world.rng,
+                    &mut world.random_number_generator,
                 );
 
                 if coin_flip == 0 {
@@ -348,10 +362,12 @@ impl GenerateWorldData {
         let area_size_min = 3;
 
         for (area_id, area) in area_map {
-            let axis_index = rand_chacha_ext::gen_range_i32(0, 1, &mut world.rng) as usize;
+            let axis_index =
+                rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) as usize;
 
             let midpoint = area.size[axis_index] / 2;
-            let midpoint_offset = rand_chacha_ext::gen_range_i32(-2, 2, &mut world.rng);
+            let midpoint_offset =
+                rand_chacha_ext::gen_range_i32(-2, 2, &mut world.random_number_generator);
             let split_offset = midpoint + midpoint_offset;
 
             if split_offset <= area_size_min
@@ -392,9 +408,7 @@ impl GenerateWorldData {
         }
     }
 
-    fn layout_connections(_world: &mut World) {
-
-    }
+    fn layout_connections(_world: &mut World) {}
 
     fn construct_areas(world: &mut World) {
         for (_, area) in world.area_map.clone() {

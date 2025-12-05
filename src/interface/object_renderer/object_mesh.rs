@@ -1,20 +1,23 @@
-use crate::interface::{gpu::gpu_mesh::GpuMesh, item_render::item_vertex::ItemVertex};
+use crate::interface::{gpu::gpu_mesh::GpuMesh, object_renderer::object_vertex::ObjectVertex};
 
-pub struct ItemMesh {
-    pub vertex_vec: Vec<ItemVertex>,
+pub struct ObjectMesh {
+    pub vertex_vec: Vec<ObjectVertex>,
     pub index_vec: Vec<u32>,
 }
 
-impl ItemMesh {
-    pub fn to_gpu_mesh(item_mesh: &Self, device: &wgpu::Device) -> GpuMesh {
-        assert!(!item_mesh.vertex_vec.is_empty(), "Vertex buffer is empty!");
-        assert!(!item_mesh.index_vec.is_empty(), "Index buffer is empty!");
+impl ObjectMesh {
+    pub fn to_gpu_mesh(person_mesh: &Self, device: &wgpu::Device) -> GpuMesh {
+        assert!(
+            !person_mesh.vertex_vec.is_empty(),
+            "Vertex buffer is empty!"
+        );
+        assert!(!person_mesh.index_vec.is_empty(), "Index buffer is empty!");
 
         let vertex_buffer = wgpu::util::DeviceExt::create_buffer_init(
             device,
             &wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&item_mesh.vertex_vec),
+                contents: bytemuck::cast_slice(&person_mesh.vertex_vec),
                 usage: wgpu::BufferUsages::VERTEX,
             },
         );
@@ -23,12 +26,12 @@ impl ItemMesh {
             device,
             &wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&item_mesh.index_vec),
+                contents: bytemuck::cast_slice(&person_mesh.index_vec),
                 usage: wgpu::BufferUsages::INDEX,
             },
         );
 
-        let index_count = item_mesh.index_vec.len() as u32;
+        let index_count = person_mesh.index_vec.len() as u32;
 
         let material_id = 0;
 

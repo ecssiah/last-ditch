@@ -26,7 +26,7 @@ use rand_chacha::{
 };
 
 pub struct State {
-    pub rng: ChaCha8Rng,
+    pub random_number_generator: ChaCha8Rng,
     pub action: Action,
     pub world: World,
     pub population: Population,
@@ -37,17 +37,17 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let mut rng = ChaCha8Rng::seed_from_u64(1);
+        let mut random_number_generator = ChaCha8Rng::seed_from_u64(1);
 
         let action = Action::new();
-        let world = World::new(rng.next_u64());
-        let population = Population::new(rng.next_u64());
+        let world = World::new(random_number_generator.next_u64());
+        let population = Population::new(random_number_generator.next_u64());
         let physics = Physics::new();
         let navigation = Navigation::new();
         let work = Work::new();
 
         Self {
-            rng,
+            random_number_generator,
             action,
             physics,
             world,
@@ -86,10 +86,12 @@ impl State {
     }
 
     pub fn seed(seed: u64, state: &mut Self) {
-        state.rng = ChaCha8Rng::seed_from_u64(seed);
+        state.random_number_generator = ChaCha8Rng::seed_from_u64(seed);
 
-        state.world.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
-        state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
+        state.world.random_number_generator =
+            ChaCha8Rng::seed_from_u64(state.random_number_generator.next_u64());
+        state.population.random_number_generator =
+            ChaCha8Rng::seed_from_u64(state.random_number_generator.next_u64());
     }
 
     pub fn tick(state: &mut Self) {

@@ -1,17 +1,15 @@
 #[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct ItemInstanceData {
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct ObjectInstanceData {
     pub world_position: [f32; 3],
-    pub size_y: f32,
-    pub yaw: f32,
+    pub rotation_xy: f32,
     pub _padding: [f32; 3],
 }
 
-impl ItemInstanceData {
-    const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
+impl ObjectInstanceData {
+    const ATTRIBS: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![
         3 => Float32x3,
         4 => Float32,
-        5 => Float32,
     ];
 
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {

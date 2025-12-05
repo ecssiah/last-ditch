@@ -13,6 +13,8 @@ pub use view::WorldView;
 
 use crate::simulation::constants::SECTOR_RADIUS_IN_CELLS;
 use crate::simulation::constants::SECTOR_VOLUME_IN_CELLS;
+use crate::simulation::manager::viewer::view::ObjectView;
+use crate::simulation::state::world::Object;
 use crate::simulation::{
     manager::{viewer::view::ManagerView, Manager},
     state::{
@@ -83,15 +85,18 @@ impl Viewer {
     fn update_population_view(state: &State) -> PopulationView {
         let mut population_view = PopulationView::new();
 
-        if let Some(judge) = state.population.person_map.get(&state.population.leadership.judge_id) {
+        if let Some(judge) = state
+            .population
+            .person_map
+            .get(&state.population.leadership.judge_id)
+        {
             let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
             for person in state.population.person_map.values() {
                 let person_to_judge_distance_squared =
                     (person.spatial.world_position - judge.spatial.world_position).mag_sq();
 
-                if person_to_judge_distance_squared <= judge_sight_range_squared
-                {
+                if person_to_judge_distance_squared <= judge_sight_range_squared {
                     let person_view = PersonView {
                         identity: person.identity,
                         spatial: person.spatial,
@@ -115,11 +120,13 @@ impl Viewer {
         sector_version_map: &mut HashMap<usize, u64>,
         block_view_cache: &mut HashMap<usize, Vec<Option<BlockView>>>,
     ) -> WorldView {
-        let mut world_view = WorldView {
-            sector_view_map: HashMap::new(),
-        };
+        let mut world_view = WorldView::new();
 
-        if let Some(judge) = state.population.person_map.get(&state.population.leadership.judge_id) {
+        if let Some(judge) = state
+            .population
+            .person_map
+            .get(&state.population.leadership.judge_id)
+        {
             let judge_sector_coordinate =
                 grid::world_position_to_sector_coordinate(judge.spatial.world_position);
 
@@ -140,11 +147,15 @@ impl Viewer {
                         let block_view_vec =
                             Self::get_block_view_vec(sector, sector_version_map, block_view_cache);
 
+                        let object_view_vec =
+                            Self::get_object_view_vec(sector.sector_id, &state.world.object_map);
+
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
                             version: sector.version,
                             world_position: Vec3::from(sector.position),
                             block_view_vec,
+                            object_view_vec,
                         };
 
                         world_view
@@ -230,5 +241,24 @@ impl Viewer {
         }
 
         block_view_vec
+    }
+
+    fn get_object_view_vec(
+        sector_id: usize,
+        object_map: &HashMap<usize, Vec<Object>>,
+    ) -> Vec<ObjectView> {
+        if let Some(object_vec) = object_map.get(&sector_id) {
+            object_vec
+                .iter()
+                .map(|object| ObjectView {
+                    object_id: object.object_id,
+                    object_kind: object.kind,
+                    grid_position: object.grid_position,
+                    direction: object.direction,
+                })
+                .collect()
+        } else {
+            Vec::new()
+        }
     }
 }

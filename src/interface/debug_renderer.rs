@@ -1,8 +1,11 @@
+pub mod debug_channel;
+pub mod debug_vertex;
+
 use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        debug::{debug_vertex::DebugVertex, DebugChannel},
+        debug_renderer::{debug_channel::DebugChannel, debug_vertex::DebugVertex},
         gpu::gpu_context::GPUContext,
     },
     simulation::{constants::*, manager::viewer::View},
@@ -10,7 +13,7 @@ use crate::{
 use std::collections::{HashMap, HashSet};
 use ultraviolet::Vec3;
 
-pub struct DebugRender {
+pub struct DebugRenderer {
     pub debug_active: bool,
     pub camera_bind_group: wgpu::BindGroup,
     pub vertex_capacity: usize,
@@ -21,7 +24,7 @@ pub struct DebugRender {
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl DebugRender {
+impl DebugRenderer {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let debug_active = false;
 
@@ -134,16 +137,16 @@ impl DebugRender {
         }
     }
 
-    pub fn toggle_debug_active(debug_render: &mut Self) {
-        debug_render.debug_active = !debug_render.debug_active;
+    pub fn toggle_debug_active(debug_renderer: &mut Self) {
+        debug_renderer.debug_active = !debug_renderer.debug_active;
     }
 
-    pub fn activate_channel(debug_channel: DebugChannel, debug_render: &mut Self) {
-        debug_render.channel_set.insert(debug_channel);
+    pub fn activate_channel(debug_channel: DebugChannel, debug_renderer: &mut Self) {
+        debug_renderer.channel_set.insert(debug_channel);
     }
 
-    pub fn deactivate_channel(debug_channel: DebugChannel, debug_render: &mut Self) {
-        debug_render.channel_set.remove(&debug_channel);
+    pub fn deactivate_channel(debug_channel: DebugChannel, debug_renderer: &mut Self) {
+        debug_renderer.channel_set.remove(&debug_channel);
     }
 
     pub fn add_line(
@@ -252,12 +255,12 @@ impl DebugRender {
         }
     }
 
-    pub fn apply_debug_view(_view: &View, debug_render: &mut Self) {
-        if !debug_render.debug_active {
+    pub fn apply_debug_view(_view: &View, debug_renderer: &mut Self) {
+        if !debug_renderer.debug_active {
             return;
         }
 
-        if debug_render
+        if debug_renderer
             .channel_set
             .contains(&DebugChannel::SectorBorders)
         {
@@ -282,7 +285,7 @@ impl DebugRender {
                         Vec3::new(min.x, y, z),
                         Vec3::new(max.x, y, z),
                         [1.0, 0.0, 0.0],
-                        &mut debug_render.channel_vertex_map,
+                        &mut debug_renderer.channel_vertex_map,
                     );
                 }
             }
@@ -294,7 +297,7 @@ impl DebugRender {
                         Vec3::new(x, min.y, z),
                         Vec3::new(x, max.y, z),
                         [0.0, 1.0, 0.0],
-                        &mut debug_render.channel_vertex_map,
+                        &mut debug_renderer.channel_vertex_map,
                     );
                 }
             }
@@ -306,45 +309,45 @@ impl DebugRender {
                         Vec3::new(x, y, min.z),
                         Vec3::new(x, y, max.z),
                         [0.0, 0.0, 1.0],
-                        &mut debug_render.channel_vertex_map,
+                        &mut debug_renderer.channel_vertex_map,
                     );
                 }
             }
         }
 
-        if debug_render.channel_set.contains(&DebugChannel::Custom) {}
+        if debug_renderer.channel_set.contains(&DebugChannel::Custom) {}
     }
 
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         gpu_context: &GPUContext,
-        debug_render: &mut Self,
+        debug_renderer: &mut Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        if !debug_render.debug_active || debug_render.channel_set.is_empty() {
+        if !debug_renderer.debug_active || debug_renderer.channel_set.is_empty() {
             return;
         }
 
-        debug_render.vertex_vec.clear();
+        debug_renderer.vertex_vec.clear();
 
-        for debug_channel in &debug_render.channel_set {
-            if let Some(vertex_vec) = debug_render.channel_vertex_map.get_mut(&debug_channel) {
-                debug_render.vertex_vec.append(vertex_vec);
+        for debug_channel in &debug_renderer.channel_set {
+            if let Some(vertex_vec) = debug_renderer.channel_vertex_map.get_mut(&debug_channel) {
+                debug_renderer.vertex_vec.append(vertex_vec);
             }
         }
 
-        if debug_render.vertex_vec.is_empty() {
+        if debug_renderer.vertex_vec.is_empty() {
             return;
         }
 
-        if debug_render.vertex_capacity < debug_render.vertex_vec.len() {
-            debug_render.vertex_capacity = debug_render.vertex_vec.len().next_power_of_two();
+        if debug_renderer.vertex_capacity < debug_renderer.vertex_vec.len() {
+            debug_renderer.vertex_capacity = debug_renderer.vertex_vec.len().next_power_of_two();
 
-            debug_render.vertex_buffer =
+            debug_renderer.vertex_buffer =
                 gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
                     label: Some("Debug Render Vertex Buffer"),
-                    size: (debug_render.vertex_capacity * std::mem::size_of::<DebugVertex>())
+                    size: (debug_renderer.vertex_capacity * std::mem::size_of::<DebugVertex>())
                         as u64,
                     usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,
@@ -352,9 +355,9 @@ impl DebugRender {
         }
 
         gpu_context.queue.write_buffer(
-            &debug_render.vertex_buffer,
+            &debug_renderer.vertex_buffer,
             0,
-            bytemuck::cast_slice(&debug_render.vertex_vec),
+            bytemuck::cast_slice(&debug_renderer.vertex_vec),
         );
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -379,9 +382,9 @@ impl DebugRender {
             occlusion_query_set: None,
         });
 
-        render_pass.set_pipeline(&debug_render.render_pipeline);
-        render_pass.set_bind_group(0, &debug_render.camera_bind_group, &[]);
-        render_pass.set_vertex_buffer(0, debug_render.vertex_buffer.slice(..));
-        render_pass.draw(0..(debug_render.vertex_vec.len() as u32), 0..1);
+        render_pass.set_pipeline(&debug_renderer.render_pipeline);
+        render_pass.set_bind_group(0, &debug_renderer.camera_bind_group, &[]);
+        render_pass.set_vertex_buffer(0, debug_renderer.vertex_buffer.slice(..));
+        render_pass.draw(0..(debug_renderer.vertex_vec.len() as u32), 0..1);
     }
 }

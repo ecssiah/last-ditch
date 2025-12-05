@@ -1,6 +1,4 @@
-use crate::simulation::state::{
-    physics::aabb::AABB,
-};
+use crate::simulation::state::physics::aabb::AABB;
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug)]

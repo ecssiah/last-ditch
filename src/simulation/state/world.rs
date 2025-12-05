@@ -4,11 +4,13 @@ pub mod area;
 pub mod block;
 pub mod cell;
 pub mod grid;
+pub mod object;
 pub mod sector;
 pub mod structure;
 
 pub use area::Area;
 pub use cell::Cell;
+pub use object::Object;
 pub use sector::Sector;
 
 use crate::simulation::{
@@ -26,29 +28,36 @@ use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
     pub active: bool,
-    pub rng: ChaCha8Rng,
+    pub random_number_generator: ChaCha8Rng,
     pub time: Time,
     pub sector_vec: Vec<world::Sector>,
+    pub object_map: HashMap<usize, Vec<Object>>,
     pub area_map: HashMap<u64, world::Area>,
     pub next_area_id: u64,
+    pub next_object_id: u64,
 }
 
 impl World {
     pub fn new(seed: u64) -> Self {
         let active = false;
-        let rng = ChaCha8Rng::seed_from_u64(seed);
+        let random_number_generator = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let sector_vec = Self::setup_sector_vec();
+        let object_map = Self::setup_object_map();
         let area_map = HashMap::new();
+
         let next_area_id = 0;
+        let next_object_id = 0;
 
         Self {
             active,
-            rng,
+            random_number_generator,
             time,
             sector_vec,
+            object_map,
             area_map,
             next_area_id,
+            next_object_id,
         }
     }
 
@@ -73,6 +82,14 @@ impl World {
         world.next_area_id += 1;
 
         area_id
+    }
+
+    pub fn get_next_object_id(world: &mut Self) -> u64 {
+        let object_id = world.next_object_id;
+
+        world.next_object_id += 1;
+
+        object_id
     }
 
     pub fn get_flag(
@@ -111,6 +128,33 @@ impl World {
                 }
             })
             .collect()
+    }
+
+    fn setup_object_map() -> HashMap<usize, Vec<Object>> {
+        grid::sector_id_vec()
+            .into_iter()
+            .map(|sector_id| (sector_id, Vec::new()))
+            .collect()
+    }
+
+    pub fn set_object(
+        grid_position: IVec3,
+        direction: grid::Direction,
+        object_kind: object::Kind,
+        world: &mut Self,
+    ) {
+        let object = Object {
+            object_id: World::get_next_object_id(world),
+            kind: object_kind,
+            grid_position,
+            direction,
+        };
+
+        let sector_id = grid::grid_position_to_sector_id(grid_position);
+        
+        if let Some(object_vec) = world.object_map.get_mut(&sector_id) {
+            object_vec.push(object);
+        }
     }
 
     fn setup_cell_vec(sector_id: usize) -> Vec<world::Cell> {
@@ -281,20 +325,12 @@ impl World {
             let mut block_grid_position = grid_position;
             block_grid_position[v] = v_val;
             block_grid_position[u] = min_u;
-            World::set_block(
-                block_grid_position,
-                block_kind,
-                &mut world.sector_vec,
-            );
+            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
 
             let mut block_grid_position = grid_position;
             block_grid_position[v] = v_val;
             block_grid_position[u] = max_u;
-            World::set_block(
-                block_grid_position,
-                block_kind,
-                &mut world.sector_vec,
-            );
+            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
         }
 
         for ux in 0..size.0 {
@@ -303,20 +339,12 @@ impl World {
             let mut block_grid_position = grid_position;
             block_grid_position[u] = u_val;
             block_grid_position[v] = min_v;
-            World::set_block(
-                block_grid_position,
-                block_kind,
-                &mut world.sector_vec,
-            );
+            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
 
             let mut block_grid_position = grid_position;
             block_grid_position[u] = u_val;
             block_grid_position[v] = max_v;
-            World::set_block(
-                block_grid_position,
-                block_kind,
-                &mut world.sector_vec,
-            );
+            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
         }
 
         if size.0 > 2 && size.1 > 2 {
@@ -360,11 +388,7 @@ impl World {
                 block_grid_position[u] += ux as i32;
                 block_grid_position[v] += vy as i32;
 
-                World::set_block(
-                    block_grid_position,
-                    block_kind,
-                    &mut world.sector_vec,
-                );
+                World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
             }
         }
     }
@@ -466,17 +490,9 @@ impl World {
                     let grid_position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block(
-                            grid_position,
-                            block_kind,
-                            sector_vec_slice,
-                        );
+                        Self::set_block(grid_position, block_kind, sector_vec_slice);
                     } else {
-                        Self::set_block(
-                            grid_position,
-                            block::Kind::None,
-                            sector_vec_slice,
-                        );
+                        Self::set_block(grid_position, block::Kind::None, sector_vec_slice);
                     }
                 }
             }
@@ -521,11 +537,7 @@ impl World {
                     let grid_position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block(
-                            grid_position,
-                            block_kind,
-                            sector_vec_slice,
-                        );
+                        Self::set_block(grid_position, block_kind, sector_vec_slice);
                     }
                 }
             }
