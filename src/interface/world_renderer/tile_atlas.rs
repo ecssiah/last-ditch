@@ -112,7 +112,7 @@ pub fn get_gpu_texture_data(
             block::Kind::None => {
                 panic!("None block has no tile data!")
             }
-            block::Kind::Engraved1 => {
+            block::Kind::EngravedStone1 => {
                 let tile_coordinate_array = [
                     [0, 0],
                     [0, 0],
@@ -124,7 +124,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::Engraved2 => {
+            block::Kind::EngravedStone2 => {
                 let tile_coordinate_array = [
                     [1, 0],
                     [1, 0],
@@ -160,7 +160,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::Polished1 => {
+            block::Kind::PolishedStone1 => {
                 let tile_coordinate_array = [
                     [0, 2],
                     [0, 2],
@@ -172,7 +172,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::Polished2 => {
+            block::Kind::PolishedStone2 => {
                 let tile_coordinate_array = [
                     [1, 2],
                     [1, 2],
@@ -180,54 +180,6 @@ pub fn get_gpu_texture_data(
                     [1, 2],
                     [1, 2],
                     [1, 2]
-                ];
-
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::LionStone => {
-                let tile_coordinate_array = [
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4]
-                ];
-
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::EagleStone => {
-                let tile_coordinate_array = [
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4]
-                ];
-
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::WolfStone => {
-                let tile_coordinate_array = [
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4]
-                ];
-
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::HorseStone => {
-                let tile_coordinate_array = [
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4]
                 ];
 
                 tile_coordinate_array[direction as usize]
@@ -280,7 +232,55 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::NorthBlock => {
+                        block::Kind::LionStone => {
+                let tile_coordinate_array = [
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
+                    [0, 4],
+                    [0, 4]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::EagleStone => {
+                let tile_coordinate_array = [
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
+                    [1, 4],
+                    [1, 4]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::WolfStone => {
+                let tile_coordinate_array = [
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
+                    [2, 4],
+                    [2, 4]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::HorseStone => {
+                let tile_coordinate_array = [
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
+                    [3, 4],
+                    [3, 4]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::EastBlock => {
                 let tile_coordinate_array = [
                     [0, 5],
                     [0, 5],
@@ -304,7 +304,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::SouthBlock => {
+            block::Kind::NorthBlock => {
                 let tile_coordinate_array = [
                     [2, 5],
                     [2, 5],
@@ -316,7 +316,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::EastBlock => {
+            block::Kind::SouthBlock => {
                 let tile_coordinate_array = [
                     [3, 5],
                     [3, 5],
@@ -348,6 +348,18 @@ pub fn get_gpu_texture_data(
                     [1, 6],
                     [1, 6],
                     [1, 6]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::VentBlock => {
+                let tile_coordinate_array = [
+                    [2, 6],
+                    [2, 6],
+                    [2, 6],
+                    [2, 6],
+                    [2, 6],
+                    [2, 6]
                 ];
 
                 tile_coordinate_array[direction as usize]
@@ -396,6 +408,30 @@ pub fn get_gpu_texture_data(
                     [2, 8],
                     [2, 8],
                     [2, 8]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Crate => {
+                let tile_coordinate_array = [
+                    [3, 8],
+                    [3, 8],
+                    [3, 8],
+                    [3, 8],
+                    [3, 8],
+                    [3, 8]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Fan1 => {
+                let tile_coordinate_array = [
+                    [4, 8],
+                    [4, 8],
+                    [4, 8],
+                    [4, 8],
+                    [4, 8],
+                    [4, 8]
                 ];
 
                 tile_coordinate_array[direction as usize]

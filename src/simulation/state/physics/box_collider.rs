@@ -1,12 +1,12 @@
 use ultraviolet::{Vec2, Vec3};
 
 #[derive(Copy, Clone, Debug, Default)]
-pub struct AABB {
+pub struct BoxCollider {
     pub min: Vec3,
     pub max: Vec3,
 }
 
-impl AABB {
+impl BoxCollider {
     pub fn new(center: Vec3, size: Vec3) -> Self {
         let radius = size * 0.5;
         let min = center - radius;
@@ -137,23 +137,23 @@ impl AABB {
 
         list1
             .iter()
-            .all(|aabb1| list2.iter().any(|aabb2| aabb1.approx_eq(*aabb2, epsilon)))
+            .all(|box1| list2.iter().any(|box2| box1.approx_eq(*box2, epsilon)))
             && list2
                 .iter()
-                .all(|aabb2| list1.iter().any(|aabb1| aabb2.approx_eq(*aabb1, epsilon)))
+                .all(|box2| list1.iter().any(|box1| box2.approx_eq(*box1, epsilon)))
     }
 
-    pub fn sweep(aabb1: Self, aabb2: Self) -> Self {
+    pub fn sweep(box1: Self, box2: Self) -> Self {
         let min = Vec3::new(
-            aabb1.min.x.min(aabb2.min.x),
-            aabb1.min.y.min(aabb2.min.y),
-            aabb1.min.z.min(aabb2.min.z),
+            box1.min.x.min(box2.min.x),
+            box1.min.y.min(box2.min.y),
+            box1.min.z.min(box2.min.z),
         );
 
         let max = Vec3::new(
-            aabb1.max.x.max(aabb2.max.x),
-            aabb1.max.y.max(aabb2.max.y),
-            aabb1.max.z.max(aabb2.max.z),
+            box1.max.x.max(box2.max.x),
+            box1.max.y.max(box2.max.y),
+            box1.max.z.max(box2.max.z),
         );
 
         let center = (min + max) * 0.5;

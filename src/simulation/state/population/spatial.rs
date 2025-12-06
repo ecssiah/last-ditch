@@ -1,4 +1,4 @@
-use crate::simulation::state::physics::aabb::AABB;
+use crate::simulation::state::physics::box_collider::BoxCollider;
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy, Debug)]
@@ -9,7 +9,7 @@ pub struct Spatial {
     pub sector_id: usize,
     pub sector_updated: bool,
     pub size: Vec3,
-    pub body: AABB,
+    pub body: BoxCollider,
 }
 
 impl Spatial {
@@ -20,7 +20,7 @@ impl Spatial {
             sector_id: 0,
             sector_updated: false,
             size: Vec3::default(),
-            body: AABB::default(),
+            body: BoxCollider::default(),
             rotor: Rotor3::default(),
         }
     }

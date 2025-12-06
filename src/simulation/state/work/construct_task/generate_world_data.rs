@@ -52,23 +52,23 @@ impl GenerateWorldData {
         match generate_world_data.stage_index {
             0 => {
                 World::reset(&mut state.world);
-
-                Self::construct_building_frame(&mut state.world);
-                Self::construct_fascade(&mut state.world);
             }
             1 => {
-                Self::construct_elevator_shaft(&mut state.world);
-                Self::construct_halls(&mut state.world);
-            }
-            2 => {
                 Self::layout_areas(&mut state.world);
                 Self::subdivide_areas(&mut state.world);
                 Self::subdivide_areas(&mut state.world);
-
                 Self::layout_connections(&mut state.world);
             }
-            3 => {
+            2 => {
                 Self::construct_areas(&mut state.world);
+            }
+            3 => {
+                Self::construct_building_frame(&mut state.world);
+                Self::construct_fascade(&mut state.world);
+
+                Self::construct_elevator_shaft(&mut state.world);
+                Self::construct_halls(&mut state.world);
+
                 Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
@@ -98,8 +98,15 @@ impl GenerateWorldData {
 
                 World::set_object(
                     IVec3::new(0, 12, 0),
-                    grid::Direction::North,
-                    object::Kind::Door,
+                    grid::Direction::East,
+                    object::Kind::DoorOpen,
+                    &mut state.world,
+                );
+
+                World::set_object(
+                    IVec3::new(0, 14, 0),
+                    grid::Direction::East,
+                    object::Kind::DoorClosed,
                     &mut state.world,
                 );
             }
@@ -136,7 +143,7 @@ impl GenerateWorldData {
                         building_size as i32 - 1,
                         floor_height - 1,
                     ),
-                block::Kind::Engraved1,
+                block::Kind::Metal3,
                 &mut world.sector_vec,
             );
 
@@ -144,7 +151,7 @@ impl GenerateWorldData {
                 IVec3::new(-building_radius + 1, -building_radius + 1, floor_position),
                 (building_size - 2, building_size - 2),
                 Axis::Z,
-                block::Kind::Polished2,
+                block::Kind::PolishedStone2,
                 world,
             );
 
@@ -156,7 +163,7 @@ impl GenerateWorldData {
                 ),
                 (building_size - 2, building_size - 2),
                 Axis::Z,
-                block::Kind::Polished2,
+                block::Kind::PolishedStone2,
                 world,
             );
         }
@@ -165,14 +172,14 @@ impl GenerateWorldData {
             IVec3::new(-building_radius + 1, -building_radius + 1, -1),
             (building_size - 2, building_size - 2),
             Axis::Z,
-            block::Kind::Polished2,
+            block::Kind::PolishedStone2,
             world,
         );
 
         World::set_wireframe_box(
             IVec3::new(-building_radius, -building_radius, -1),
             IVec3::new(building_radius, building_radius, 0),
-            block::Kind::Engraved1,
+            block::Kind::Metal2,
             &mut world.sector_vec,
         );
     }
@@ -203,14 +210,14 @@ impl GenerateWorldData {
                     World::set_cube(
                         IVec3::new(-building_radius, y, wall_height_min),
                         IVec3::new(-building_radius, y, wall_height_random),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
                         IVec3::new(-building_radius, y, wall_height_random),
                         IVec3::new(-building_radius, y, wall_height_max),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 }
@@ -228,14 +235,14 @@ impl GenerateWorldData {
                     World::set_cube(
                         IVec3::new(building_radius, y, wall_height_min),
                         IVec3::new(building_radius, y, wall_height_random),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
                         IVec3::new(building_radius, y, wall_height_random),
                         IVec3::new(building_radius, y, wall_height_max),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 }
@@ -255,14 +262,14 @@ impl GenerateWorldData {
                     World::set_cube(
                         IVec3::new(x, -building_radius, wall_height_min),
                         IVec3::new(x, -building_radius, wall_height_random),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
                         IVec3::new(x, -building_radius, wall_height_random),
                         IVec3::new(x, -building_radius, wall_height_max),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 }
@@ -280,14 +287,14 @@ impl GenerateWorldData {
                     World::set_cube(
                         IVec3::new(x, building_radius, wall_height_min),
                         IVec3::new(x, building_radius, wall_height_random),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
                         IVec3::new(x, building_radius, wall_height_random),
                         IVec3::new(x, building_radius, wall_height_max),
-                        block::Kind::Polished1,
+                        block::Kind::Metal2,
                         &mut world.sector_vec,
                     );
                 }
@@ -441,7 +448,7 @@ impl GenerateWorldData {
         World::set_box(
             area.grid_position,
             area.grid_position + area.size - IVec3::broadcast(1),
-            block::Kind::Polished1,
+            block::Kind::Metal1,
             &mut world.sector_vec,
         );
     }
@@ -510,7 +517,7 @@ impl GenerateWorldData {
                 World::get_floor_position(-(LOWER_FLOOR_COUNT as i32)),
             ),
             IVec3::new(shaft_radius, shaft_radius, 6),
-            block::Kind::Stone2,
+            block::Kind::Metal3,
             &mut world.sector_vec,
         );
 
@@ -534,16 +541,19 @@ impl GenerateWorldData {
             grid::Direction::East,
             world,
         );
+
         Self::construct_trade_platform(
             IVec3::new(-building_radius, 0, 0),
             grid::Direction::West,
             world,
         );
+
         Self::construct_trade_platform(
             IVec3::new(0, building_radius, 0),
             grid::Direction::North,
             world,
         );
+
         Self::construct_trade_platform(
             IVec3::new(0, -building_radius, 0),
             grid::Direction::South,

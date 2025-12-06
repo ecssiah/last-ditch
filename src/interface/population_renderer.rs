@@ -16,7 +16,6 @@ use crate::{
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
-use ultraviolet::Vec3;
 
 pub struct PopulationRenderer {
     pub person_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
@@ -100,7 +99,7 @@ impl PopulationRenderer {
 
                             person_gpu_mesh_map.insert(file_stem.to_string(), person_gpu_mesh_arc);
 
-                            tracing::info!("{:?}.obj loaded", file_stem);
+                            tracing::info!("{}.obj loaded", file_stem);
                         }
                         Err(err) => {
                             tracing::error!("{:?}", err);
@@ -166,7 +165,7 @@ impl PopulationRenderer {
 
                 texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
 
-                tracing::info!("{:?}.png loaded", file_stem);
+                tracing::info!("{}.png loaded", file_stem);
             }
         }
 
@@ -377,8 +376,7 @@ impl PopulationRenderer {
                 continue;
             }
 
-            let world_position =
-                person_view.spatial.world_position - Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
+            let world_position = person_view.spatial.world_position;
 
             let person_instance_data = PersonInstanceData {
                 world_position: *(world_position).as_array(),

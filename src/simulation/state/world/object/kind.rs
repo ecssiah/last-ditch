@@ -1,6 +1,7 @@
 #[derive(Clone, Copy, Debug)]
 pub enum Kind {
-    Door,
+    DoorOpen,
+    DoorClosed,
     Stairs,
     Platform,
 }
@@ -8,7 +9,8 @@ pub enum Kind {
 impl Kind {
     pub fn to_string(object_kind: Self) -> String {
         match object_kind {
-            Self::Door => String::from("door"),
+            Self::DoorOpen => String::from("door_open"),
+            Self::DoorClosed => String::from("door_closed"),
             Self::Stairs => String::from("stairs"),
             Self::Platform => String::from("platform"),
         }

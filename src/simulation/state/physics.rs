@@ -1,11 +1,11 @@
 //! Forces affecting Population
 
-pub mod aabb;
+pub mod box_collider;
 
 use crate::simulation::{
     constants::*,
     state::{
-        physics::aabb::AABB,
+        physics::box_collider::BoxCollider,
         population::{kinematic::Kinematic, sight::Sight, spatial::Spatial, Population},
         world::grid::{self, axis::Axis},
         World,
@@ -90,7 +90,7 @@ impl Physics {
         spatial: &mut Spatial,
         kinematic: &mut Kinematic,
     ) {
-        let mut aabb = spatial.body;
+        let mut body_collider = spatial.body;
         let mut velocity = *velocity;
 
         for axis in [Axis::Y, Axis::X, Axis::Z] {
@@ -100,9 +100,9 @@ impl Physics {
                 Axis::Z => delta.z,
             };
 
-            let (resolved_aabb, step) = Self::resolve_axis(aabb, world, axis, delta_axis);
+            let (resolved_aabb, step) = Self::resolve_axis(body_collider, world, axis, delta_axis);
 
-            aabb = resolved_aabb;
+            body_collider = resolved_aabb;
 
             match axis {
                 Axis::X => velocity.x = step / SIMULATION_TICK_IN_SECONDS,
@@ -111,13 +111,13 @@ impl Physics {
             }
         }
 
-        spatial.body = aabb;
+        spatial.body = body_collider;
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(aabb: AABB, world: &World, axis: Axis, delta: f32) -> (AABB, f32) {
+    fn resolve_axis(body_collider: BoxCollider, world: &World, axis: Axis, delta: f32) -> (BoxCollider, f32) {
         if delta.abs() < EPSILON_COLLISION {
-            return (aabb, 0.0);
+            return (body_collider, 0.0);
         }
 
         let mut min = 0.0;
@@ -126,9 +126,9 @@ impl Physics {
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-            let test_aabb = aabb.translate(Axis::unit(axis) * mid);
+            let test_box_collider = body_collider.translate(Axis::unit(axis) * mid);
 
-            if Self::get_solid_collisions(test_aabb, world).is_empty() {
+            if Self::get_solid_collisions(test_box_collider, world).is_empty() {
                 final_delta = mid;
                 min = mid;
             } else {
@@ -136,7 +136,7 @@ impl Physics {
             }
         }
 
-        let adjusted_aabb = aabb.translate(Axis::unit(axis) * final_delta);
+        let adjusted_aabb = body_collider.translate(Axis::unit(axis) * final_delta);
 
         let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
             0.0
@@ -147,8 +147,8 @@ impl Physics {
         (adjusted_aabb, adjusted_velocity)
     }
 
-    fn get_solid_collisions(aabb: AABB, world: &World) -> Vec<AABB> {
-        grid::cells_overlapping(aabb)
+    fn get_solid_collisions(box_collider: BoxCollider, world: &World) -> Vec<BoxCollider> {
+        grid::cells_overlapping(box_collider)
             .into_iter()
             .filter(|cell_aabb| {
                 let aabb_center = cell_aabb.center();

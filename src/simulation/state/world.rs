@@ -16,7 +16,7 @@ pub use sector::Sector;
 use crate::simulation::{
     constants::*,
     state::{
-        physics::aabb::AABB,
+        physics::box_collider::BoxCollider,
         population::nation,
         world::{self, grid::Axis},
         Time,
@@ -43,8 +43,8 @@ impl World {
         let random_number_generator = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let sector_vec = Self::setup_sector_vec();
-        let object_map = Self::setup_object_map();
         let area_map = HashMap::new();
+        let object_map = Self::setup_object_map();
 
         let next_area_id = 0;
         let next_object_id = 0;
@@ -73,7 +73,11 @@ impl World {
 
     pub fn reset(world: &mut Self) {
         world.sector_vec = Self::setup_sector_vec();
-        world.area_map = HashMap::new();
+        world.area_map.clear();
+
+        for object_vec in world.object_map.values_mut() {
+            object_vec.clear();
+        }
     }
 
     pub fn get_next_area_id(world: &mut Self) -> u64 {
@@ -109,11 +113,11 @@ impl World {
         grid::sector_id_vec()
             .into_iter()
             .map(|sector_id| {
-                let position = grid::sector_id_to_grid_position(sector_id);
+                let grid_position = grid::sector_id_to_grid_position(sector_id);
                 let version = 0;
 
-                let aabb = AABB::new(
-                    Vec3::from(position),
+                let box_collider = BoxCollider::new(
+                    Vec3::from(grid_position),
                     Vec3::broadcast(SECTOR_SIZE_IN_CELLS as f32),
                 );
 
@@ -122,8 +126,8 @@ impl World {
                 Sector {
                     sector_id,
                     version,
-                    position,
-                    aabb,
+                    grid_position,
+                    box_collider,
                     cell_vec,
                 }
             })
@@ -415,7 +419,7 @@ impl World {
             Self::set_block(block_grid_position, block_kind, sector_vec_slice);
         };
 
-        // 12 edges of the AABB
+        // 12 edges of the BoxCollider
         //
         // 4 edges along X at min.y/min.z and max.y/min.z
         // 4 edges along Y at min.x/min.z and max.x/min.z

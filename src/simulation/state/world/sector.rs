@@ -1,5 +1,5 @@
 use crate::simulation::state::{
-    physics::aabb::AABB,
+    physics::box_collider::BoxCollider,
     world::{self, grid},
 };
 use ultraviolet::IVec3;
@@ -7,8 +7,8 @@ use ultraviolet::IVec3;
 pub struct Sector {
     pub sector_id: usize,
     pub version: u64,
-    pub position: IVec3,
-    pub aabb: AABB,
+    pub grid_position: IVec3,
+    pub box_collider: BoxCollider,
     pub cell_vec: Vec<world::Cell>,
 }
 

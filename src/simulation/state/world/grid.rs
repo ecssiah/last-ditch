@@ -5,7 +5,7 @@ pub use axis::Axis;
 pub use direction::Direction;
 
 use crate::{
-    simulation::{constants::*, state::physics::aabb::AABB},
+    simulation::{constants::*, state::physics::box_collider::BoxCollider},
     utils::ld_math::indexing,
 };
 use ultraviolet::{IVec3, Vec3};
@@ -264,19 +264,19 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn cells_overlapping(aabb: AABB) -> Vec<AABB> {
+pub fn cells_overlapping(box_collider: BoxCollider) -> Vec<BoxCollider> {
     let mut aabb_vec = Vec::new();
 
     let min = IVec3::new(
-        aabb.min.x.round() as i32,
-        aabb.min.y.round() as i32,
-        aabb.min.z.round() as i32,
+        box_collider.min.x.round() as i32,
+        box_collider.min.y.round() as i32,
+        box_collider.min.z.round() as i32,
     );
 
     let max = IVec3::new(
-        aabb.max.x.round() as i32,
-        aabb.max.y.round() as i32,
-        aabb.max.z.round() as i32,
+        box_collider.max.x.round() as i32,
+        box_collider.max.y.round() as i32,
+        box_collider.max.z.round() as i32,
     );
 
     let size = Vec3::broadcast(CELL_SIZE_IN_METERS);
@@ -285,9 +285,9 @@ pub fn cells_overlapping(aabb: AABB) -> Vec<AABB> {
         for y in min.y..=max.y {
             for x in min.x..=max.x {
                 let cell_position = IVec3::new(x, y, z);
-                let cell_aabb = AABB::new(Vec3::from(cell_position), size);
+                let cell_aabb = BoxCollider::new(Vec3::from(cell_position), size);
 
-                if cell_aabb.overlaps(aabb) {
+                if cell_aabb.overlaps(box_collider) {
                     aabb_vec.push(cell_aabb);
                 }
             }

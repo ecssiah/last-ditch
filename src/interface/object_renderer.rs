@@ -20,7 +20,6 @@ use crate::{
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
-use ultraviolet::Vec3;
 
 pub struct ObjectRenderer {
     pub object_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
@@ -104,7 +103,7 @@ impl ObjectRenderer {
 
                             object_gpu_mesh_map.insert(file_stem.to_string(), object_gpu_mesh_arc);
 
-                            tracing::info!("{:?}.obj loaded", file_stem);
+                            tracing::info!("{}.obj loaded", file_stem);
                         }
                         Err(err) => {
                             tracing::error!("{:?}", err);
@@ -170,7 +169,7 @@ impl ObjectRenderer {
 
                 texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
 
-                tracing::info!("{:?}.png loaded", file_stem);
+                tracing::info!("{}.png loaded", file_stem);
             }
         }
 

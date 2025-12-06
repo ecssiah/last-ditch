@@ -6,7 +6,11 @@ pub mod tile_atlas;
 use crate::{
     include_assets,
     interface::{
-        camera::Camera, constants::WINDOW_CLEAR_COLOR, gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh}, object_renderer::{ObjectRenderer, object_instance_data::ObjectInstanceData}, world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex}
+        camera::Camera,
+        constants::WINDOW_CLEAR_COLOR,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
+        object_renderer::{object_instance_data::ObjectInstanceData, ObjectRenderer},
+        world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
         constants::SECTOR_RADIUS_IN_METERS,
@@ -194,7 +198,7 @@ impl WorldRenderer {
         gpu_mesh_cache: &mut HashMap<usize, GpuMesh>,
         active_sector_id_set: &mut HashSet<usize>,
         active_gpu_mesh_vec: &mut Vec<usize>,
-        object_instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>
+        object_instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>,
     ) {
         let _ = tracing::info_span!("apply_world_view").entered();
 
@@ -215,17 +219,15 @@ impl WorldRenderer {
 
             let sector_mesh = Self::get_or_build_sector_mesh(sector_view, sector_mesh_cache);
 
-            // TODO: Should empty sectors in range still display objects? 
+            object_view_vec.extend(&sector_view.object_view_vec);
+
             if sector_mesh.vertex_vec.is_empty() {
                 continue;
             }
-            
-            active_sector_id_set.insert(*sector_id);
-            
-            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
-            
-            object_view_vec.extend(&sector_view.object_view_vec);
 
+            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
+
+            active_sector_id_set.insert(*sector_id);
             active_gpu_mesh_vec.push(*sector_id);
         }
 
