@@ -1,7 +1,4 @@
-pub mod connection;
-
-pub use connection::Connection;
-
+use crate::simulation::state::world::grid::Connection;
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]

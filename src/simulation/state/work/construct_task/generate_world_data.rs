@@ -2,19 +2,17 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
+            State, World, population::{
                 nation::{self, Nation},
                 person::Person,
-            },
-            world::{
+            }, world::{
                 self, block,
-                grid::{self, Axis},
+                grid::{self, Area, AreaEdge, Axis},
                 object, structure,
-            },
-            State, World,
+            }
         },
     },
-    utils::ld_math::rand_chacha_ext,
+    utils::{UnionFind, ld_math::rand_chacha_ext},
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -343,28 +341,28 @@ impl GenerateWorldData {
                 floor_position,
             );
 
-            let quadrant1_area = world::Area {
+            let quadrant1_area = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant1_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
-            let quadrant2_area = world::Area {
+            let quadrant2_area = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant2_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
-            let quadrant3_area = world::Area {
+            let quadrant3_area = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant3_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
-            let quadrant4_area = world::Area {
+            let quadrant4_area = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: quadrant4_grid_position,
                 size: IVec3::new(quadrant_size, quadrant_size, floor_height),
@@ -416,14 +414,14 @@ impl GenerateWorldData {
             let mut area2_size = area.size;
             area2_size[axis_index] = area.size[axis_index] - split_offset;
 
-            let area1 = world::Area {
+            let area1 = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: area1_grid_position,
                 size: area1_size,
                 connection_vec: Vec::new(),
             };
 
-            let area2 = world::Area {
+            let area2 = Area {
                 area_id: World::get_next_area_id(world),
                 grid_position: area2_grid_position,
                 size: area2_size,
@@ -438,8 +436,45 @@ impl GenerateWorldData {
     }
 
     fn layout_connections(world: &mut World) {
-        for (_, _area) in world.area_map.clone() {
+        let mut area_edge_vec = Vec::new();
 
+        for (area1_id, area1) in &world.area_map {
+            for (area2_id, area2) in &world.area_map {
+                if area1_id >= area2_id {
+                    continue;
+                }
+
+                if let Some(line) = Area::find_shared_line(area1, area2) {
+                    let area_edge = AreaEdge {
+                        area1_id: *area1_id,
+                        area2_id: *area2_id,
+                        line,
+                        weight: rand_chacha_ext::gen_range_i32(
+                            0,
+                            100,
+                            &mut world.random_number_generator,
+                        ),
+                    };
+
+                    area_edge_vec.push(area_edge);
+                }
+            }
+        }
+
+        area_edge_vec.sort_by_key(|area_edge| area_edge.weight);
+
+        let mut union_find = UnionFind::new(world.area_map.len());
+
+        for area_edge in &area_edge_vec {
+            if union_find.union(area_edge.area1_id as usize, area_edge.area2_id as usize) {
+                World::create_connection(area_edge.area1_id, area_edge.area2_id, world);
+            }
+        }
+
+        for area_edge in &area_edge_vec {
+            if rand_chacha_ext::gen_range_i32(0, 10, &mut world.random_number_generator) == 0 {
+                World::create_connection(area_edge, world);
+            }
         }
     }
 

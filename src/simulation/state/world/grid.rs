@@ -1,8 +1,16 @@
+pub mod area;
+pub mod area_edge;
 pub mod axis;
+pub mod connection;
 pub mod direction;
+pub mod line;
 
+pub use area::Area;
+pub use area_edge::AreaEdge;
 pub use axis::Axis;
+pub use connection::Connection;
 pub use direction::Direction;
+pub use line::Line;
 
 use crate::{
     simulation::{constants::*, state::physics::box_collider::BoxCollider},

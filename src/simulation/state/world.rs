@@ -1,6 +1,5 @@
 //! The simulated environment
 
-pub mod area;
 pub mod block;
 pub mod cell;
 pub mod grid;
@@ -8,7 +7,6 @@ pub mod object;
 pub mod sector;
 pub mod structure;
 
-pub use area::Area;
 pub use cell::Cell;
 pub use object::Object;
 pub use sector::Sector;
@@ -16,10 +14,7 @@ pub use sector::Sector;
 use crate::simulation::{
     constants::*,
     state::{
-        physics::box_collider::BoxCollider,
-        population::nation,
-        world::{self, grid::Axis},
-        Time,
+        Time, physics::box_collider::BoxCollider, population::nation, world::{self, grid::{Area, Axis}}
     },
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
@@ -32,7 +27,7 @@ pub struct World {
     pub time: Time,
     pub sector_vec: Vec<world::Sector>,
     pub object_map: HashMap<usize, Vec<Object>>,
-    pub area_map: HashMap<u64, world::Area>,
+    pub area_map: HashMap<u64, Area>,
     pub next_area_id: u64,
     pub next_object_id: u64,
 }
