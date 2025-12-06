@@ -29,12 +29,14 @@ pub fn get_info(block_kind: block::Kind) -> block::Info {
         Kind::SouthBlock => Info { solid: true },
         Kind::ServerBlock1 => Info { solid: true },
         Kind::ServerBlock2 => Info { solid: true },
-        Kind::VentBlock => Info { solid: true },
+        Kind::Vent1 => Info { solid: true },
+        Kind::Vent2 => Info { solid: true },
         Kind::EngravedMetal1 => Info { solid: true },
         Kind::Metal1 => Info { solid: true },
         Kind::Metal2 => Info { solid: true },
         Kind::Metal3 => Info { solid: true },
-        Kind::Crate => Info { solid: true },
+        Kind::SupportBeam1 => Info { solid: true },
+        Kind::Crate1 => Info { solid: true },
         Kind::Fan1 => Info { solid: true },
     }
 }

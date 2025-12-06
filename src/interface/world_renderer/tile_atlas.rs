@@ -232,7 +232,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-                        block::Kind::LionStone => {
+            block::Kind::LionStone => {
                 let tile_coordinate_array = [
                     [0, 4],
                     [0, 4],
@@ -352,7 +352,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::VentBlock => {
+            block::Kind::Vent1 => {
                 let tile_coordinate_array = [
                     [2, 6],
                     [2, 6],
@@ -360,6 +360,18 @@ pub fn get_gpu_texture_data(
                     [2, 6],
                     [2, 6],
                     [2, 6]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Vent2 => {
+                let tile_coordinate_array = [
+                    [3, 6],
+                    [3, 6],
+                    [3, 6],
+                    [3, 6],
+                    [3, 6],
+                    [3, 6]
                 ];
 
                 tile_coordinate_array[direction as usize]
@@ -412,26 +424,38 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::Crate => {
+            block::Kind::SupportBeam1 => {
                 let tile_coordinate_array = [
-                    [3, 8],
-                    [3, 8],
-                    [3, 8],
-                    [3, 8],
-                    [3, 8],
-                    [3, 8]
+                    [0, 9],
+                    [0, 9],
+                    [0, 9],
+                    [0, 9],
+                    [0, 9],
+                    [0, 9]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Crate1 => {
+                let tile_coordinate_array = [
+                    [1, 9],
+                    [1, 9],
+                    [1, 9],
+                    [1, 9],
+                    [1, 9],
+                    [1, 9]
                 ];
 
                 tile_coordinate_array[direction as usize]
             }
             block::Kind::Fan1 => {
                 let tile_coordinate_array = [
-                    [4, 8],
-                    [4, 8],
-                    [4, 8],
-                    [4, 8],
-                    [4, 8],
-                    [4, 8]
+                    [2, 9],
+                    [2, 9],
+                    [2, 9],
+                    [2, 9],
+                    [2, 9],
+                    [2, 9]
                 ];
 
                 tile_coordinate_array[direction as usize]

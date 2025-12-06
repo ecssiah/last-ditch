@@ -22,12 +22,14 @@ pub enum Kind {
     EastBlock,
     ServerBlock1,
     ServerBlock2,
-    VentBlock,
+    Vent1,
+    Vent2,
     EngravedMetal1,
     Metal1,
     Metal2,
     Metal3,
-    Crate,
+    SupportBeam1,
+    Crate1,
     Fan1,
 }
 
@@ -53,12 +55,14 @@ impl Kind {
         Self::EastBlock,
         Self::ServerBlock1,
         Self::ServerBlock2,
-        Self::VentBlock,
+        Self::Vent1,
+        Self::Vent2,
         Self::EngravedMetal1,
         Self::Metal1,
         Self::Metal2,
         Self::Metal3,
-        Self::Crate,
+        Self::SupportBeam1,
+        Self::Crate1,
         Self::Fan1,
     ];
 
