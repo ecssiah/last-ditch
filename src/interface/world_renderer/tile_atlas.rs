@@ -352,7 +352,7 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             }
-            block::Kind::Vent1 => {
+            block::Kind::ServerBlock3 => {
                 let tile_coordinate_array = [
                     [2, 6],
                     [2, 6],
@@ -360,18 +360,6 @@ pub fn get_gpu_texture_data(
                     [2, 6],
                     [2, 6],
                     [2, 6]
-                ];
-
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::Vent2 => {
-                let tile_coordinate_array = [
-                    [3, 6],
-                    [3, 6],
-                    [3, 6],
-                    [3, 6],
-                    [3, 6],
-                    [3, 6]
                 ];
 
                 tile_coordinate_array[direction as usize]
@@ -456,6 +444,30 @@ pub fn get_gpu_texture_data(
                     [2, 9],
                     [2, 9],
                     [2, 9]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Vent1 => {
+                let tile_coordinate_array = [
+                    [0, 10],
+                    [0, 10],
+                    [0, 10],
+                    [0, 10],
+                    [0, 10],
+                    [0, 10]
+                ];
+
+                tile_coordinate_array[direction as usize]
+            }
+            block::Kind::Vent2 => {
+                let tile_coordinate_array = [
+                    [1, 10],
+                    [1, 10],
+                    [1, 10],
+                    [1, 10],
+                    [1, 10],
+                    [1, 10]
                 ];
 
                 tile_coordinate_array[direction as usize]

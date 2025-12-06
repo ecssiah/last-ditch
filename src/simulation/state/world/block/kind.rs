@@ -22,8 +22,7 @@ pub enum Kind {
     EastBlock,
     ServerBlock1,
     ServerBlock2,
-    Vent1,
-    Vent2,
+    ServerBlock3,
     EngravedMetal1,
     Metal1,
     Metal2,
@@ -31,6 +30,8 @@ pub enum Kind {
     SupportBeam1,
     Crate1,
     Fan1,
+    Vent1,
+    Vent2,
 }
 
 impl Kind {
@@ -55,8 +56,7 @@ impl Kind {
         Self::EastBlock,
         Self::ServerBlock1,
         Self::ServerBlock2,
-        Self::Vent1,
-        Self::Vent2,
+        Self::ServerBlock3,
         Self::EngravedMetal1,
         Self::Metal1,
         Self::Metal2,
@@ -64,6 +64,8 @@ impl Kind {
         Self::SupportBeam1,
         Self::Crate1,
         Self::Fan1,
+        Self::Vent1,
+        Self::Vent2,
     ];
 
     pub fn next_block_kind(current_block_kind: &Self) -> Self {

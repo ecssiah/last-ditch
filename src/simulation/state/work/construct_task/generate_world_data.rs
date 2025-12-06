@@ -57,6 +57,7 @@ impl GenerateWorldData {
                 Self::layout_areas(&mut state.world);
                 Self::subdivide_areas(&mut state.world);
                 Self::subdivide_areas(&mut state.world);
+
                 Self::layout_connections(&mut state.world);
             }
             2 => {
@@ -436,7 +437,11 @@ impl GenerateWorldData {
         }
     }
 
-    fn layout_connections(_world: &mut World) {}
+    fn layout_connections(world: &mut World) {
+        for (_, _area) in world.area_map.clone() {
+
+        }
+    }
 
     fn construct_areas(world: &mut World) {
         for (_, area) in world.area_map.clone() {
