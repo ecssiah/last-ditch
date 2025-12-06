@@ -27,7 +27,7 @@ use crate::simulation::{
     },
 };
 use std::collections::HashMap;
-use ultraviolet::{IVec3, Vec3};
+use ultraviolet::IVec3;
 
 pub struct Viewer {
     pub view_input: triple_buffer::Input<View>,
@@ -153,7 +153,7 @@ impl Viewer {
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
                             version: sector.version,
-                            world_position: Vec3::from(sector.position),
+                            world_position: grid::grid_position_to_world_position(sector.position),
                             block_view_vec,
                             object_view_vec,
                         };

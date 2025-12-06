@@ -201,6 +201,8 @@ impl WorldRenderer {
         active_sector_id_set.clear();
         active_gpu_mesh_vec.clear();
 
+        let mut object_view_vec = Vec::new();
+
         for (sector_id, sector_view) in &world_view.sector_view_map {
             let _ = tracing::info_span!("sector", id = sector_view.sector_id).entered();
 
@@ -213,18 +215,21 @@ impl WorldRenderer {
 
             let sector_mesh = Self::get_or_build_sector_mesh(sector_view, sector_mesh_cache);
 
+            // TODO: Should empty sectors in range still display objects? 
             if sector_mesh.vertex_vec.is_empty() {
                 continue;
             }
-
+            
             active_sector_id_set.insert(*sector_id);
-
+            
             Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
-
-            ObjectRenderer::apply_object_view_vec(&sector_view.object_view_vec, object_instance_data_group_vec);
+            
+            object_view_vec.extend(&sector_view.object_view_vec);
 
             active_gpu_mesh_vec.push(*sector_id);
         }
+
+        ObjectRenderer::apply_object_view_vec(&object_view_vec, object_instance_data_group_vec);
 
         sector_mesh_cache.retain(|sector_id, _| active_sector_id_set.contains(sector_id));
         gpu_mesh_cache.retain(|sector_id, _| active_gpu_mesh_vec.contains(sector_id));

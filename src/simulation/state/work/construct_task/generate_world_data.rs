@@ -76,9 +76,30 @@ impl GenerateWorldData {
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
 
                 World::set_object(
-                    IVec3::new(0, 8, 1),
+                    IVec3::new(0, 8, 0),
                     grid::Direction::East,
                     object::Kind::Stairs,
+                    &mut state.world,
+                );
+
+                World::set_object(
+                    IVec3::new(-1, 8, 1),
+                    grid::Direction::East,
+                    object::Kind::Stairs,
+                    &mut state.world,
+                );
+
+                World::set_object(
+                    IVec3::new(0, 10, 0),
+                    grid::Direction::East,
+                    object::Kind::Platform,
+                    &mut state.world,
+                );
+
+                World::set_object(
+                    IVec3::new(0, 12, 0),
+                    grid::Direction::East,
+                    object::Kind::Door,
                     &mut state.world,
                 );
             }

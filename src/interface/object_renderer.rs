@@ -356,7 +356,11 @@ impl ObjectRenderer {
                     depth_write_enabled: true,
                     depth_compare: wgpu::CompareFunction::Less,
                     stencil: wgpu::StencilState::default(),
-                    bias: wgpu::DepthBiasState::default(),
+                    bias: wgpu::DepthBiasState {
+                        constant: -2,
+                        slope_scale: -0.5,
+                        clamp: 0.0,
+                    },
                 }),
                 multisample: wgpu::MultisampleState {
                     count: 1,
@@ -377,8 +381,7 @@ impl ObjectRenderer {
         let mut group_map: HashMap<String, Vec<ObjectInstanceData>> = HashMap::new();
 
         for object_view in object_view_vec {
-            let world_position = grid::grid_position_to_world_position(object_view.grid_position)
-                - Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
+            let world_position = grid::grid_position_to_world_position(object_view.grid_position);
 
             let rotation_xy = match object_view.direction {
                 grid::Direction::East => 0.0,
