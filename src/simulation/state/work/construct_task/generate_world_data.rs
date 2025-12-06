@@ -98,7 +98,7 @@ impl GenerateWorldData {
 
                 World::set_object(
                     IVec3::new(0, 12, 0),
-                    grid::Direction::East,
+                    grid::Direction::North,
                     object::Kind::Door,
                     &mut state.world,
                 );

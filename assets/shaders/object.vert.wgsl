@@ -37,13 +37,13 @@ fn main(input: VertexInput) -> VertexOutput {
 }
 
 fn get_model_matrix(world_position: vec3<f32>, rotation_xy: f32) -> mat4x4<f32> {
-    let cos_yaw = cos(rotation_xy);
-    let sin_yaw = sin(rotation_xy);
+    let cos_xy = cos(rotation_xy);
+    let sin_xy = sin(rotation_xy);
 
     let rotation = mat4x4<f32>(
-        vec4<f32>(cos_yaw, 0.0, -sin_yaw, 0.0),
-        vec4<f32>(0.0, 1.0, 0.0, 0.0),
-        vec4<f32>(sin_yaw, 0.0, cos_yaw, 0.0),
+        vec4<f32>(cos_xy, sin_xy, 0.0, 0.0),
+        vec4<f32>(-sin_xy, cos_xy, 0.0, 0.0),
+        vec4<f32>(0.0, 0.0, 1.0, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0),
     );
 

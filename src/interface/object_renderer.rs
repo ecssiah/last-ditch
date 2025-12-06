@@ -384,10 +384,10 @@ impl ObjectRenderer {
             let world_position = grid::grid_position_to_world_position(object_view.grid_position);
 
             let rotation_xy = match object_view.direction {
-                grid::Direction::East => 0.0,
-                grid::Direction::West => 180.0,
-                grid::Direction::North => 90.0,
-                grid::Direction::South => 270.0,
+                grid::Direction::East => 0.0f32.to_radians(),
+                grid::Direction::West => 180.0f32.to_radians(),
+                grid::Direction::North => 90.0f32.to_radians(),
+                grid::Direction::South => 270.0f32.to_radians(),
                 _ => 0.0,
             };
 
