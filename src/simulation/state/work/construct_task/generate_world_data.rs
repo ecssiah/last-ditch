@@ -61,55 +61,21 @@ impl GenerateWorldData {
                 Self::layout_connections(&mut state.world);
             }
             2 => {
-                Self::construct_areas(&mut state.world);
             }
             3 => {
-                Self::construct_building_frame(&mut state.world);
+                // Self::construct_building_frame(&mut state.world);
                 Self::construct_fascade(&mut state.world);
 
                 Self::construct_elevator_shaft(&mut state.world);
                 Self::construct_halls(&mut state.world);
+
+                Self::construct_areas(&mut state.world);
 
                 Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
-
-                World::set_object(
-                    IVec3::new(0, 8, 0),
-                    grid::Direction::East,
-                    object::Kind::Stairs,
-                    &mut state.world,
-                );
-
-                World::set_object(
-                    IVec3::new(-1, 8, 1),
-                    grid::Direction::East,
-                    object::Kind::Stairs,
-                    &mut state.world,
-                );
-
-                World::set_object(
-                    IVec3::new(0, 10, 0),
-                    grid::Direction::East,
-                    object::Kind::Platform,
-                    &mut state.world,
-                );
-
-                World::set_object(
-                    IVec3::new(0, 12, 0),
-                    grid::Direction::East,
-                    object::Kind::DoorOpen,
-                    &mut state.world,
-                );
-
-                World::set_object(
-                    IVec3::new(0, 14, 0),
-                    grid::Direction::East,
-                    object::Kind::DoorClosed,
-                    &mut state.world,
-                );
             }
             _ => unreachable!(),
         }
@@ -152,7 +118,7 @@ impl GenerateWorldData {
                 IVec3::new(-building_radius + 1, -building_radius + 1, floor_position),
                 (building_size - 2, building_size - 2),
                 Axis::Z,
-                block::Kind::PolishedStone2,
+                block::Kind::CarvedStone1,
                 world,
             );
 
@@ -164,7 +130,7 @@ impl GenerateWorldData {
                 ),
                 (building_size - 2, building_size - 2),
                 Axis::Z,
-                block::Kind::PolishedStone2,
+                block::Kind::CarvedStone2,
                 world,
             );
         }
@@ -173,7 +139,7 @@ impl GenerateWorldData {
             IVec3::new(-building_radius + 1, -building_radius + 1, -1),
             (building_size - 2, building_size - 2),
             Axis::Z,
-            block::Kind::PolishedStone2,
+            block::Kind::CarvedStone2,
             world,
         );
 
@@ -353,28 +319,32 @@ impl GenerateWorldData {
             let quadrant1_area = Area {
                 area_id: World::get_next_area_id(world),
                 min: quadrant1_grid_position,
-                max: quadrant1_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
+                max: quadrant1_grid_position
+                    + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant2_area = Area {
                 area_id: World::get_next_area_id(world),
                 min: quadrant2_grid_position,
-                max: quadrant2_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
+                max: quadrant2_grid_position
+                    + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant3_area = Area {
                 area_id: World::get_next_area_id(world),
                 min: quadrant3_grid_position,
-                max: quadrant3_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
+                max: quadrant3_grid_position
+                    + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant4_area = Area {
                 area_id: World::get_next_area_id(world),
                 min: quadrant4_grid_position,
-                max: quadrant4_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
+                max: quadrant4_grid_position
+                    + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
@@ -418,21 +388,19 @@ impl GenerateWorldData {
                 continue;
             }
 
-            let area1_min = area.min;
-
-            let mut area1_size = Area::size(&area);
-            area1_size[axis_index] = split_offset + 1;
+            let mut area_size = Area::size(&area);
+            area_size[axis_index] = split_offset + 1;
 
             let mut area2_min = area.min;
-            area2_min[axis_index] = area1_min[axis_index] + split_offset;
+            area2_min[axis_index] = area.min[axis_index] + split_offset;
 
             let mut area2_size = Area::size(&area);
             area2_size[axis_index] = Area::size(&area)[axis_index] - split_offset;
 
             let area1 = Area {
                 area_id: World::get_next_area_id(world),
-                min: area1_min,
-                max: area1_min + area1_size,
+                min: area.min,
+                max: area.min + area_size,
                 connection_vec: Vec::new(),
             };
 
@@ -516,7 +484,14 @@ impl GenerateWorldData {
     }
 
     fn construct_room(area: &Area, world: &mut World) {
-        World::set_box(
+        World::set_cube(
+            area.min,
+            IVec3::new(area.max.x, area.max.y, area.min.z),
+            block::Kind::CarvedStone1,
+            &mut world.sector_vec,
+        );
+
+        World::set_wireframe_box(
             area.min,
             area.max - IVec3::broadcast(1),
             block::Kind::Metal1,

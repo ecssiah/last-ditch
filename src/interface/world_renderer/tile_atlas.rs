@@ -112,366 +112,366 @@ pub fn get_gpu_texture_data(
             block::Kind::None => {
                 panic!("None block has no tile data!")
             }
-            block::Kind::EngravedStone1 => {
+            block::Kind::Engraved1 => {
                 let tile_coordinate_array = [
-                    [0, 0],
-                    [0, 0],
-                    [0, 0],
-                    [0, 0],
-                    [0, 0],
-                    [0, 0]
+                    [0, 0], [0, 0],
+                    [0, 0], [0, 0],
+                    [0, 0], [0, 0],
                 ];
 
                 tile_coordinate_array[direction as usize]
-            }
-            block::Kind::EngravedStone2 => {
+            },
+            block::Kind::Engraved2 => {
                 let tile_coordinate_array = [
-                    [1, 0],
-                    [1, 0],
-                    [1, 0],
-                    [1, 0],
-                    [1, 0],
-                    [1, 0]
+                    [1, 0], [1, 0],
+                    [1, 0], [1, 0],
+                    [1, 0], [1, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]                
+            },
+            block::Kind::Engraved3 => {
+                let tile_coordinate_array = [
+                    [2, 0], [2, 0],
+                    [2, 0], [2, 0],
+                    [2, 0], [2, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]                
+            },
+            block::Kind::Engraved4 => {
+                let tile_coordinate_array = [
+                    [3, 0], [3, 0],
+                    [3, 0], [3, 0],
+                    [3, 0], [3, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]                
+            },
+            block::Kind::Ornate1 => {
+                let tile_coordinate_array = [
+                    [8, 0], [8, 0],
+                    [8, 0], [8, 0],
+                    [8, 0], [8, 0],
                 ];
 
                 tile_coordinate_array[direction as usize]
-            }
+            },
+            block::Kind::Ornate2 => {
+                let tile_coordinate_array = [
+                    [9, 0], [9, 0],
+                    [9, 0], [9, 0],
+                    [9, 0], [9, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]
+            },
+            block::Kind::CarvedStone1 => {
+                let tile_coordinate_array = [
+                    [0, 1], [0, 1],
+                    [0, 1], [0, 1],
+                    [0, 1], [0, 1],
+                ];
+
+                tile_coordinate_array[direction as usize]
+            },
+            block::Kind::CarvedStone2 => {
+                let tile_coordinate_array = [
+                    [1, 1], [1, 1],
+                    [1, 1], [1, 1],
+                    [1, 1], [1, 1],
+                ];
+
+                tile_coordinate_array[direction as usize]                
+            },
+            block::Kind::CarvedStone3 => {
+                let tile_coordinate_array = [
+                    [2, 1], [2, 1],
+                    [2, 1], [2, 1],
+                    [2, 1], [2, 1],
+                ];
+
+                tile_coordinate_array[direction as usize]
+            },
+            block::Kind::CarvedStone4 => {
+                let tile_coordinate_array = [
+                    [3, 1], [3, 1],
+                    [3, 1], [3, 1],
+                    [3, 1], [3, 1],
+                ];
+
+                tile_coordinate_array[direction as usize]                
+            },
             block::Kind::Stone1 => {
                 let tile_coordinate_array = [
-                    [0, 1],
-                    [0, 1],
-                    [0, 1],
-                    [0, 1],
-                    [0, 1],
-                    [0, 1]
+                    [0, 2], [0, 2],
+                    [0, 2], [0, 2],
+                    [0, 2], [0, 2],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                
+            },
             block::Kind::Stone2 => {
                 let tile_coordinate_array = [
-                    [1, 1],
-                    [1, 1],
-                    [1, 1],
-                    [1, 1],
-                    [1, 1],
-                    [1, 1]
+                    [1, 2], [1, 2],
+                    [1, 2], [1, 2],
+                    [1, 2], [1, 2],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::PolishedStone1 => {
+                tile_coordinate_array[direction as usize]                
+            },
+            block::Kind::Stone3 => {
                 let tile_coordinate_array = [
-                    [0, 2],
-                    [0, 2],
-                    [0, 2],
-                    [0, 2],
-                    [0, 2],
-                    [0, 2]
+                    [2, 2], [2, 2],
+                    [2, 2], [2, 2],
+                    [2, 2], [2, 2],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::PolishedStone2 => {
+                tile_coordinate_array[direction as usize]                  
+            },
+            block::Kind::Stone4 => {
                 let tile_coordinate_array = [
-                    [1, 2],
-                    [1, 2],
-                    [1, 2],
-                    [1, 2],
-                    [1, 2],
-                    [1, 2]
+                    [3, 2], [3, 2],
+                    [3, 2], [3, 2],
+                    [3, 2], [3, 2],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::Lion => {
                 let tile_coordinate_array = [
-                    [0, 3],
-                    [0, 3],
-                    [0, 3],
-                    [0, 3],
-                    [0, 3],
-                    [0, 3]
+                    [0, 3], [0, 3],
+                    [0, 3], [0, 3],
+                    [0, 3], [0, 3],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::Eagle => {
                 let tile_coordinate_array = [
-                    [1, 3],
-                    [1, 3],
-                    [1, 3],
-                    [1, 3],
-                    [1, 3],
-                    [1, 3]
+                    [1, 3], [1, 3],
+                    [1, 3], [1, 3],
+                    [1, 3], [1, 3],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize] 
+            },
             block::Kind::Wolf => {
                 let tile_coordinate_array = [
-                    [2, 3],
-                    [2, 3],
-                    [2, 3],
-                    [2, 3],
-                    [2, 3],
-                    [2, 3]
+                    [2, 3], [2, 3],
+                    [2, 3], [2, 3],
+                    [2, 3], [2, 3],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::Horse => {
                 let tile_coordinate_array = [
-                    [3, 3],
-                    [3, 3],
-                    [3, 3],
-                    [3, 3],
-                    [3, 3],
-                    [3, 3]
+                    [3, 3], [3, 3],
+                    [3, 3], [3, 3],
+                    [3, 3], [3, 3],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::LionStone => {
                 let tile_coordinate_array = [
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4],
-                    [0, 4]
+                    [0, 4], [0, 4],
+                    [0, 4], [0, 4],
+                    [0, 4], [0, 4],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::EagleStone => {
                 let tile_coordinate_array = [
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4],
-                    [1, 4]
+                    [1, 4], [1, 4],
+                    [1, 4], [1, 4],
+                    [1, 4], [1, 4],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::WolfStone => {
                 let tile_coordinate_array = [
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4],
-                    [2, 4]
+                    [2, 4], [2, 4],
+                    [2, 4], [2, 4],
+                    [2, 4], [2, 4],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::HorseStone => {
                 let tile_coordinate_array = [
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4],
-                    [3, 4]
+                    [3, 4], [3, 4],
+                    [3, 4], [3, 4],
+                    [3, 4], [3, 4],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::EastBlock => {
                 let tile_coordinate_array = [
-                    [0, 5],
-                    [0, 5],
-                    [0, 5],
-                    [0, 5],
-                    [0, 5],
-                    [0, 5]
+                    [0, 5], [0, 5],
+                    [0, 5], [0, 5],
+                    [0, 5], [0, 5],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::WestBlock => {
                 let tile_coordinate_array = [
-                    [1, 5],
-                    [1, 5],
-                    [1, 5],
-                    [1, 5],
-                    [1, 5],
-                    [1, 5]
+                    [1, 5], [1, 5],
+                    [1, 5], [1, 5],
+                    [1, 5], [1, 5],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::NorthBlock => {
                 let tile_coordinate_array = [
-                    [2, 5],
-                    [2, 5],
-                    [2, 5],
-                    [2, 5],
-                    [2, 5],
-                    [2, 5]
+                    [2, 5], [2, 5],
+                    [2, 5], [2, 5],
+                    [2, 5], [2, 5],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]      
+            },
             block::Kind::SouthBlock => {
                 let tile_coordinate_array = [
-                    [3, 5],
-                    [3, 5],
-                    [3, 5],
-                    [3, 5],
-                    [3, 5],
-                    [3, 5]
+                    [3, 5], [3, 5],
+                    [3, 5], [3, 5],
+                    [3, 5], [3, 5],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::ServerBlock1 => {
+                tile_coordinate_array[direction as usize]                      
+            },
+            block::Kind::Server1 => { 
                 let tile_coordinate_array = [
-                    [0, 6],
-                    [0, 6],
-                    [0, 6],
-                    [0, 6],
-                    [0, 6],
-                    [0, 6]
+                    [0, 6], [0, 6],
+                    [0, 6], [0, 6],
+                    [0, 6], [0, 6],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::ServerBlock2 => {
+                tile_coordinate_array[direction as usize]                      
+            },
+            block::Kind::Server2 => {
                 let tile_coordinate_array = [
-                    [1, 6],
-                    [1, 6],
-                    [1, 6],
-                    [1, 6],
-                    [1, 6],
-                    [1, 6]
+                    [1, 6], [1, 6],
+                    [1, 6], [1, 6],
+                    [1, 6], [1, 6],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::ServerBlock3 => {
+                tile_coordinate_array[direction as usize]                 
+            },
+            block::Kind::Server3 => {
                 let tile_coordinate_array = [
-                    [2, 6],
-                    [2, 6],
-                    [2, 6],
-                    [2, 6],
-                    [2, 6],
-                    [2, 6]
+                    [2, 6], [2, 6],
+                    [2, 6], [2, 6],
+                    [2, 6], [2, 6],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::EngravedMetal1 => {
+                tile_coordinate_array[direction as usize]                 
+            },
+            block::Kind::Server4 => {
                 let tile_coordinate_array = [
-                    [0, 7],
-                    [0, 7],
-                    [0, 7],
-                    [0, 7],
-                    [0, 7],
-                    [0, 7]
+                    [3, 6], [3, 6],
+                    [3, 6], [3, 6],
+                    [3, 6], [3, 6],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::Metal1 => {
                 let tile_coordinate_array = [
-                    [0, 8],
-                    [0, 8],
-                    [0, 8],
-                    [0, 8],
-                    [0, 8],
-                    [0, 8]
+                    [0, 8], [0, 8],
+                    [0, 8], [0, 8],
+                    [0, 8], [0, 8],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::Metal2 => {
                 let tile_coordinate_array = [
-                    [1, 8],
-                    [1, 8],
-                    [1, 8],
-                    [1, 8],
-                    [1, 8],
-                    [1, 8]
+                    [1, 8], [1, 8],
+                    [1, 8], [1, 8],
+                    [1, 8], [1, 8],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize] 
+            },
             block::Kind::Metal3 => {
                 let tile_coordinate_array = [
-                    [2, 8],
-                    [2, 8],
-                    [2, 8],
-                    [2, 8],
-                    [2, 8],
-                    [2, 8]
+                    [2, 8], [2, 8],
+                    [2, 8], [2, 8],
+                    [2, 8], [2, 8],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::SupportBeam1 => {
+                tile_coordinate_array[direction as usize]                 
+            },
+            block::Kind::Panel1 => {
                 let tile_coordinate_array = [
-                    [0, 9],
-                    [0, 9],
-                    [0, 9],
-                    [0, 9],
-                    [0, 9],
-                    [0, 9]
+                    [0, 9], [0, 9],
+                    [0, 9], [0, 9],
+                    [0, 9], [0, 9],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::Crate1 => {
+                tile_coordinate_array[direction as usize]                 
+            },
+            block::Kind::Panel2 => {
                 let tile_coordinate_array = [
-                    [1, 9],
-                    [1, 9],
-                    [1, 9],
-                    [1, 9],
-                    [1, 9],
-                    [1, 9]
+                    [1, 9], [1, 9],
+                    [1, 9], [1, 9],
+                    [1, 9], [1, 9],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
-            block::Kind::Fan1 => {
+                tile_coordinate_array[direction as usize]                  
+            },
+            block::Kind::Panel3 => {
                 let tile_coordinate_array = [
-                    [2, 9],
-                    [2, 9],
-                    [2, 9],
-                    [2, 9],
-                    [2, 9],
-                    [2, 9]
+                    [2, 9], [2, 9],
+                    [2, 9], [2, 9],
+                    [2, 9], [2, 9],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]  
+            },
             block::Kind::Vent1 => {
                 let tile_coordinate_array = [
-                    [0, 10],
-                    [0, 10],
-                    [0, 10],
-                    [0, 10],
-                    [0, 10],
-                    [0, 10]
+                    [0, 10], [0, 10],
+                    [0, 10], [0, 10],
+                    [0, 10], [0, 10],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                  
+            },
             block::Kind::Vent2 => {
                 let tile_coordinate_array = [
-                    [1, 10],
-                    [1, 10],
-                    [1, 10],
-                    [1, 10],
-                    [1, 10],
-                    [1, 10]
+                    [1, 10], [1, 10],
+                    [1, 10], [1, 10],
+                    [1, 10], [1, 10],
                 ];
 
-                tile_coordinate_array[direction as usize]
-            }
+                tile_coordinate_array[direction as usize]                   
+            },
+            block::Kind::Vent3 => {
+                let tile_coordinate_array = [
+                    [2, 10], [2, 10],
+                    [2, 10], [2, 10],
+                    [2, 10], [2, 10],
+                ];
+
+                tile_coordinate_array[direction as usize]                   
+            },
+            block::Kind::Caution => {
+                let tile_coordinate_array = [
+                    [0, 11], [0, 11],
+                    [0, 11], [0, 11],
+                    [0, 11], [0, 11],
+                ];
+
+                tile_coordinate_array[direction as usize]                   
+            },
         }
     }
 

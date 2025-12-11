@@ -19,7 +19,7 @@ impl Person {
         let spatial = Spatial::new();
         let kinematic = Kinematic::new();
         let sight = Sight::new();
-        let selected_block_kind = block::Kind::EngravedStone1;
+        let selected_block_kind = block::Kind::Engraved1;
 
         Self {
             person_id,

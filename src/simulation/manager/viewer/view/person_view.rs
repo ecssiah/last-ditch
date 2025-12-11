@@ -19,7 +19,7 @@ impl PersonView {
             spatial: Spatial::new(),
             kinematic: Kinematic::new(),
             sight: Sight::new(),
-            selected_block_kind: block::Kind::EngravedStone1,
+            selected_block_kind: block::Kind::Engraved1,
         }
     }
 }
