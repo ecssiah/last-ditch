@@ -104,10 +104,10 @@ impl World {
         home_position_map.get(&nation_kind).cloned()
     }
 
-    pub fn get_floor_position(floor_number: i32) -> i32 {
-        let floor_position = floor_number * FLOOR_HEIGHT as i32 - 1;
+    pub fn get_floor_z(floor_number: i32) -> i32 {
+        let floor_z = floor_number * FLOOR_HEIGHT as i32;
 
-        floor_position
+        floor_z
     }
 
     fn setup_sector_vec() -> Vec<world::Sector> {

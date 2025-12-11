@@ -96,7 +96,9 @@ pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.6;
 
 pub const FLOOR_HEIGHT: usize = 8;
 pub const LOWER_FLOOR_COUNT: usize = 4;
+
 pub const BUILDING_RADIUS: usize = WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS;
+pub const BUILDING_SIZE: usize = 2 * BUILDING_RADIUS + 1;
 
 pub const CENTRAL_ELEVATOR_SHAFT_RADIUS: usize = 3;
 pub const EXTERNAL_HALL_SIZE: usize = 3;
