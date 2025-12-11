@@ -13,11 +13,13 @@ pub mod world_renderer;
 
 use crate::{
     interface::{
-        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::Input, object_renderer::ObjectRenderer, population_renderer::PopulationRenderer, world_renderer::WorldRenderer
+        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext,
+        gui::GUI, input::Input, object_renderer::ObjectRenderer,
+        population_renderer::PopulationRenderer, world_renderer::WorldRenderer,
     },
     simulation::{
         self,
-        manager::{Message, Viewer, status::Status, viewer::View},
+        manager::{status::Status, viewer::View, Message, Viewer},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};

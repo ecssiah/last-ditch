@@ -14,7 +14,13 @@ pub use sector::Sector;
 use crate::simulation::{
     constants::*,
     state::{
-        Time, physics::box_collider::BoxCollider, population::nation, world::{self, grid::{Area, Axis}}
+        physics::box_collider::BoxCollider,
+        population::nation,
+        world::{
+            self,
+            grid::{Area, Axis},
+        },
+        Time,
     },
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
@@ -150,7 +156,7 @@ impl World {
         };
 
         let sector_id = grid::grid_position_to_sector_id(grid_position);
-        
+
         if let Some(object_vec) = world.object_map.get_mut(&sector_id) {
             object_vec.push(object);
         }

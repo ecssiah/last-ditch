@@ -1,4 +1,4 @@
-use crate::simulation::manager::viewer::{BlockView, view::ObjectView};
+use crate::simulation::manager::viewer::{view::ObjectView, BlockView};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]

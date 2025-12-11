@@ -1,10 +1,10 @@
+pub mod ethnicity;
 pub mod role;
 pub mod sex;
-pub mod ethnicity;
 
+pub use ethnicity::Ethnicity;
 pub use role::Role;
 pub use sex::Sex;
-pub use ethnicity::Ethnicity;
 
 use crate::simulation::state::population::nation;
 

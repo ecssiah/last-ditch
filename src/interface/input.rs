@@ -5,10 +5,16 @@ pub mod mouse_inputs;
 
 use crate::{
     interface::{
-        constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs}
+        constants::*,
+        debug_renderer::DebugRenderer,
+        gpu::gpu_context::GPUContext,
+        gui::GUI,
+        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
     simulation::manager::{
-        self, Message, message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData}
+        self,
+        message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData},
+        Message,
     },
 };
 use std::collections::VecDeque;

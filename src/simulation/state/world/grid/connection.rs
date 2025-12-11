@@ -1,11 +1,11 @@
-use ultraviolet::IVec3;
 use crate::simulation::state::world::grid::Line;
+use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct Connection {
     pub area_id1: u64,
     pub area_id2: u64,
-    pub cost: f32,
+    pub entrance_vec: Vec<IVec3>,
     pub line: Line,
-    pub grid_position: IVec3,
+    pub cost: f32,
 }

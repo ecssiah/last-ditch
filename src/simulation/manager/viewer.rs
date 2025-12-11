@@ -153,7 +153,9 @@ impl Viewer {
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
                             version: sector.version,
-                            world_position: grid::grid_position_to_world_position(sector.grid_position),
+                            world_position: grid::grid_position_to_world_position(
+                                sector.grid_position,
+                            ),
                             block_view_vec,
                             object_view_vec,
                         };

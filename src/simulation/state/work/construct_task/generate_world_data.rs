@@ -2,17 +2,19 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
+            population::{
                 nation::{self, Nation},
                 person::Person,
-            }, world::{
-                self, block,
-                grid::{self, Area, AreaEdge, Axis, Connection},
+            },
+            world::{
+                block,
+                grid::{self, Area, Axis, Connection, Line},
                 object, structure,
-            }
+            },
+            State, World,
         },
     },
-    utils::{UnionFind, ld_math::rand_chacha_ext},
+    utils::ld_math::rand_chacha_ext,
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -54,7 +56,7 @@ impl GenerateWorldData {
             1 => {
                 Self::layout_areas(&mut state.world);
                 Self::subdivide_areas(&mut state.world);
-                Self::subdivide_areas(&mut state.world);
+                // Self::subdivide_areas(&mut state.world);
 
                 Self::layout_connections(&mut state.world);
             }
@@ -350,41 +352,44 @@ impl GenerateWorldData {
 
             let quadrant1_area = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: quadrant1_grid_position,
-                size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                min: quadrant1_grid_position,
+                max: quadrant1_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant2_area = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: quadrant2_grid_position,
-                size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                min: quadrant2_grid_position,
+                max: quadrant2_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant3_area = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: quadrant3_grid_position,
-                size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                min: quadrant3_grid_position,
+                max: quadrant3_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             let quadrant4_area = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: quadrant4_grid_position,
-                size: IVec3::new(quadrant_size, quadrant_size, floor_height),
+                min: quadrant4_grid_position,
+                max: quadrant4_grid_position + IVec3::new(quadrant_size, quadrant_size, floor_height),
                 connection_vec: Vec::new(),
             };
 
             world
                 .area_map
                 .insert(quadrant1_area.area_id, quadrant1_area);
+
             world
                 .area_map
                 .insert(quadrant2_area.area_id, quadrant2_area);
+
             world
                 .area_map
                 .insert(quadrant3_area.area_id, quadrant3_area);
+
             world
                 .area_map
                 .insert(quadrant4_area.area_id, quadrant4_area);
@@ -392,54 +397,57 @@ impl GenerateWorldData {
     }
 
     fn subdivide_areas(world: &mut World) {
-        let area_map = world.area_map.clone();
+        let mut area_map_subdivided = HashMap::new();
+
         let area_size_min = 3;
 
-        for (area_id, area) in area_map {
+        for (_, area) in world.area_map.clone() {
             let axis_index =
                 rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) as usize;
 
-            let midpoint = area.size[axis_index] / 2;
+            let midpoint = Area::size(&area)[axis_index] / 2;
+
             let midpoint_offset =
                 rand_chacha_ext::gen_range_i32(-2, 2, &mut world.random_number_generator);
+
             let split_offset = midpoint + midpoint_offset;
 
             if split_offset <= area_size_min
-                || split_offset >= area.size[axis_index] - area_size_min
+                || split_offset >= Area::size(&area)[axis_index] - area_size_min
             {
                 continue;
             }
 
-            let area1_grid_position = area.grid_position;
+            let area1_min = area.min;
 
-            let mut area1_size = area.size;
+            let mut area1_size = Area::size(&area);
             area1_size[axis_index] = split_offset + 1;
 
-            let mut area2_grid_position = area.grid_position;
-            area2_grid_position[axis_index] = area1_grid_position[axis_index] + split_offset;
+            let mut area2_min = area.min;
+            area2_min[axis_index] = area1_min[axis_index] + split_offset;
 
-            let mut area2_size = area.size;
-            area2_size[axis_index] = area.size[axis_index] - split_offset;
+            let mut area2_size = Area::size(&area);
+            area2_size[axis_index] = Area::size(&area)[axis_index] - split_offset;
 
             let area1 = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: area1_grid_position,
-                size: area1_size,
+                min: area1_min,
+                max: area1_min + area1_size,
                 connection_vec: Vec::new(),
             };
 
             let area2 = Area {
                 area_id: World::get_next_area_id(world),
-                grid_position: area2_grid_position,
-                size: area2_size,
+                min: area2_min,
+                max: area2_min + area2_size,
                 connection_vec: Vec::new(),
             };
 
-            world.area_map.remove(&area_id);
-
-            world.area_map.insert(area1.area_id, area1);
-            world.area_map.insert(area2.area_id, area2);
+            area_map_subdivided.insert(area1.area_id, area1);
+            area_map_subdivided.insert(area2.area_id, area2);
         }
+
+        world.area_map = area_map_subdivided;
     }
 
     fn layout_connections(world: &mut World) {
@@ -452,18 +460,29 @@ impl GenerateWorldData {
                 }
 
                 if let Some(shared_line) = Area::find_shared_line(area1, area2) {
+                    let entrance_vec = vec![Line::midpoint(&shared_line)];
                     let cost = rand_chacha_ext::gen_f32(&mut world.random_number_generator);
 
                     let connection_candidate = Connection {
                         area_id1: *area1_id,
                         area_id2: *area2_id,
-                        cost,
+                        entrance_vec,
                         line: shared_line,
-                        grid_position: IVec3::zero(),
+                        cost,
                     };
 
                     connection_candidate_vec.push(connection_candidate);
                 }
+            }
+        }
+
+        for connection in connection_candidate_vec {
+            if let Some(area1) = world.area_map.get_mut(&connection.area_id1) {
+                area1.connection_vec.push(connection.clone());
+            }
+
+            if let Some(area2) = world.area_map.get_mut(&connection.area_id2) {
+                area2.connection_vec.push(connection.clone());
             }
         }
     }
@@ -471,13 +490,35 @@ impl GenerateWorldData {
     fn construct_areas(world: &mut World) {
         for (_, area) in world.area_map.clone() {
             Self::construct_room(&area, world);
+
+            for connection in &area.connection_vec {
+                let direction = match connection.line.axis {
+                    Axis::X => grid::Direction::North,
+                    Axis::Y => grid::Direction::East,
+                    Axis::Z => grid::Direction::Up,
+                };
+
+                World::set_cube(
+                    connection.entrance_vec[0],
+                    connection.entrance_vec[0] + 2 * IVec3::unit_z(),
+                    block::Kind::None,
+                    &mut world.sector_vec,
+                );
+
+                World::set_object(
+                    connection.entrance_vec[0] + IVec3::unit_z(),
+                    direction,
+                    object::Kind::DoorOpen,
+                    world,
+                );
+            }
         }
     }
 
     fn construct_room(area: &Area, world: &mut World) {
         World::set_box(
-            area.grid_position,
-            area.grid_position + area.size - IVec3::broadcast(1),
+            area.min,
+            area.max - IVec3::broadcast(1),
             block::Kind::Metal1,
             &mut world.sector_vec,
         );

@@ -14,10 +14,10 @@ impl UnionFind {
     pub fn find(&mut self, x: usize) -> usize {
         if self.parent_vec[x] != x {
             let root = self.find(self.parent_vec[x]);
-            
+
             self.parent_vec[x] = root;
         }
-        
+
         self.parent_vec[x]
     }
 

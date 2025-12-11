@@ -1,5 +1,5 @@
-use ultraviolet::IVec3;
 use crate::simulation::state::world::{grid, object};
+use ultraviolet::IVec3;
 
 #[derive(Clone, Copy, Debug)]
 pub struct ObjectView {

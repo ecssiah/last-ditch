@@ -115,7 +115,12 @@ impl Physics {
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(body_collider: BoxCollider, world: &World, axis: Axis, delta: f32) -> (BoxCollider, f32) {
+    fn resolve_axis(
+        body_collider: BoxCollider,
+        world: &World,
+        axis: Axis,
+        delta: f32,
+    ) -> (BoxCollider, f32) {
         if delta.abs() < EPSILON_COLLISION {
             return (body_collider, 0.0);
         }
