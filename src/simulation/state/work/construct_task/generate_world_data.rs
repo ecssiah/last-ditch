@@ -7,7 +7,7 @@ use crate::{
                 person::Person,
             }, world::{
                 self, block,
-                grid::{self, Area, AreaEdge, Axis},
+                grid::{self, Area, AreaEdge, Axis, Connection},
                 object, structure,
             }
         },
@@ -177,6 +177,13 @@ impl GenerateWorldData {
 
         World::set_wireframe_box(
             IVec3::new(-building_radius, -building_radius, -1),
+            IVec3::new(building_radius, building_radius, -1),
+            block::Kind::Metal3,
+            &mut world.sector_vec,
+        );
+
+        World::set_wireframe_box(
+            IVec3::new(-building_radius, -building_radius, 0),
             IVec3::new(building_radius, building_radius, 0),
             block::Kind::Metal2,
             &mut world.sector_vec,
@@ -436,7 +443,7 @@ impl GenerateWorldData {
     }
 
     fn layout_connections(world: &mut World) {
-        let mut area_edge_vec = Vec::new();
+        let mut connection_candidate_vec = Vec::new();
 
         for (area1_id, area1) in &world.area_map {
             for (area2_id, area2) in &world.area_map {
@@ -444,36 +451,19 @@ impl GenerateWorldData {
                     continue;
                 }
 
-                if let Some(line) = Area::find_shared_line(area1, area2) {
-                    let area_edge = AreaEdge {
-                        area1_id: *area1_id,
-                        area2_id: *area2_id,
-                        line,
-                        weight: rand_chacha_ext::gen_range_i32(
-                            0,
-                            100,
-                            &mut world.random_number_generator,
-                        ),
+                if let Some(shared_line) = Area::find_shared_line(area1, area2) {
+                    let cost = rand_chacha_ext::gen_f32(&mut world.random_number_generator);
+
+                    let connection_candidate = Connection {
+                        area_id1: *area1_id,
+                        area_id2: *area2_id,
+                        cost,
+                        line: shared_line,
+                        grid_position: IVec3::zero(),
                     };
 
-                    area_edge_vec.push(area_edge);
+                    connection_candidate_vec.push(connection_candidate);
                 }
-            }
-        }
-
-        area_edge_vec.sort_by_key(|area_edge| area_edge.weight);
-
-        let mut union_find = UnionFind::new(world.area_map.len());
-
-        for area_edge in &area_edge_vec {
-            if union_find.union(area_edge.area1_id as usize, area_edge.area2_id as usize) {
-                World::create_connection(area_edge.area1_id, area_edge.area2_id, world);
-            }
-        }
-
-        for area_edge in &area_edge_vec {
-            if rand_chacha_ext::gen_range_i32(0, 10, &mut world.random_number_generator) == 0 {
-                World::create_connection(area_edge, world);
             }
         }
     }
@@ -484,7 +474,7 @@ impl GenerateWorldData {
         }
     }
 
-    fn construct_room(area: &world::Area, world: &mut World) {
+    fn construct_room(area: &Area, world: &mut World) {
         World::set_box(
             area.grid_position,
             area.grid_position + area.size - IVec3::broadcast(1),

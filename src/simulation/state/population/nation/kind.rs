@@ -1,5 +1,6 @@
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Kind {
+    None,
     Eagle,
     Lion,
     Horse,
@@ -7,5 +8,5 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub const ALL: [Self; 4] = [Self::Eagle, Self::Lion, Self::Horse, Self::Wolf];
+    pub const ALL: [Self; 5] = [Self::None, Self::Eagle, Self::Lion, Self::Horse, Self::Wolf];
 }

@@ -98,7 +98,7 @@ impl Viewer {
 
                 if person_to_judge_distance_squared <= judge_sight_range_squared {
                     let person_view = PersonView {
-                        identity: person.identity,
+                        identity: person.identity.clone(),
                         spatial: person.spatial,
                         kinematic: person.kinematic,
                         sight: person.sight,

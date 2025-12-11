@@ -13,6 +13,7 @@ pub struct Nation {
 impl Nation {
     pub fn block(nation_kind: &Kind) -> block::Kind {
         match nation_kind {
+            Kind::None => block::Kind::None,
             Kind::Eagle => block::Kind::Eagle,
             Kind::Lion => block::Kind::Lion,
             Kind::Horse => block::Kind::Horse,
@@ -22,6 +23,7 @@ impl Nation {
 
     pub fn color(nation_kind: &Kind) -> [f32; 4] {
         match nation_kind {
+            Kind::None => [0.0, 0.0, 0.0, 1.0],
             Kind::Eagle => [0.65, 0.70, 0.80, 1.0],
             Kind::Lion => [0.70, 0.55, 0.85, 1.0],
             Kind::Horse => [0.988, 0.863, 0.592, 1.0],

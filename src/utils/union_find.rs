@@ -1,22 +1,24 @@
 pub struct UnionFind {
-    parent: Vec<usize>,
-    rank: Vec<usize>,
+    parent_vec: Vec<usize>,
+    rank_vec: Vec<usize>,
 }
 
 impl UnionFind {
     pub fn new(size: usize) -> Self {
         Self {
-            parent: (0..size).collect(),
-            rank: vec![0; size],
+            parent_vec: (0..size).collect(),
+            rank_vec: vec![0; size],
         }
     }
 
     pub fn find(&mut self, x: usize) -> usize {
-        if self.parent[x] != x {
-            let root = self.find(self.parent[x]);
-            self.parent[x] = root;
+        if self.parent_vec[x] != x {
+            let root = self.find(self.parent_vec[x]);
+            
+            self.parent_vec[x] = root;
         }
-        self.parent[x]
+        
+        self.parent_vec[x]
     }
 
     pub fn union(&mut self, a: usize, b: usize) -> bool {
@@ -27,13 +29,13 @@ impl UnionFind {
             return false;
         }
 
-        if self.rank[root_a] < self.rank[root_b] {
-            self.parent[root_a] = root_b;
-        } else if self.rank[root_a] > self.rank[root_b] {
-            self.parent[root_b] = root_a;
+        if self.rank_vec[root_a] < self.rank_vec[root_b] {
+            self.parent_vec[root_a] = root_b;
+        } else if self.rank_vec[root_a] > self.rank_vec[root_b] {
+            self.parent_vec[root_b] = root_a;
         } else {
-            self.parent[root_b] = root_a;
-            self.rank[root_a] += 1;
+            self.parent_vec[root_b] = root_a;
+            self.rank_vec[root_a] += 1;
         }
 
         true
