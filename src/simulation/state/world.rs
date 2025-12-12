@@ -6,10 +6,12 @@ pub mod grid;
 pub mod object;
 pub mod sector;
 pub mod structure;
+pub mod tower;
 
 pub use cell::Cell;
 pub use object::Object;
 pub use sector::Sector;
+pub use tower::Tower;
 
 use crate::simulation::{
     constants::*,
@@ -102,12 +104,6 @@ impl World {
         home_position_map: HashMap<nation::Kind, IVec3>,
     ) -> Option<IVec3> {
         home_position_map.get(&nation_kind).cloned()
-    }
-
-    pub fn get_floor_z(floor_number: i32) -> i32 {
-        let floor_z = floor_number * FLOOR_HEIGHT as i32;
-
-        floor_z
     }
 
     fn setup_sector_vec() -> Vec<world::Sector> {
@@ -374,107 +370,40 @@ impl World {
         }
     }
 
-    pub fn set_plane(
-        grid_position: IVec3,
-        size: (usize, usize),
-        normal_axis: Axis,
-        block_kind: block::Kind,
-        world: &mut Self,
-    ) {
-        let (u, v) = match normal_axis {
-            Axis::X => (1, 2),
-            Axis::Y => (0, 2),
-            Axis::Z => (0, 1),
-        };
-
-        for vy in 0..size.1 {
-            for ux in 0..size.0 {
-                let mut block_grid_position = grid_position;
-                block_grid_position[u] += ux as i32;
-                block_grid_position[v] += vy as i32;
-
-                World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
-            }
-        }
-    }
-
     pub fn set_wireframe_box(
-        grid_position1: IVec3,
-        grid_position2: IVec3,
+        min: IVec3,
+        max: IVec3,
         block_kind: block::Kind,
         sector_vec_slice: &mut [Sector],
     ) {
-        let min = IVec3::new(
-            grid_position1.x.min(grid_position2.x),
-            grid_position1.y.min(grid_position2.y),
-            grid_position1.z.min(grid_position2.z),
-        );
-
-        let max = IVec3::new(
-            grid_position1.x.max(grid_position2.x),
-            grid_position1.y.max(grid_position2.y),
-            grid_position1.z.max(grid_position2.z),
-        );
-
-        let set_block = |block_grid_position: IVec3, sector_vec_slice: &mut [Sector]| {
-            Self::set_block(block_grid_position, block_kind, sector_vec_slice);
-        };
-
-        // 12 edges of the BoxCollider
-        //
-        // 4 edges along X at min.y/min.z and max.y/min.z
-        // 4 edges along Y at min.x/min.z and max.x/min.z
-        // 4 vertical edges at min.x/min.y and max.x/max.y
-
-        // --- X edges ---
         for x in min.x..=max.x {
-            // bottom rectangle (z = min.z)
-            set_block(IVec3::new(x, min.y, min.z), sector_vec_slice);
-            set_block(IVec3::new(x, max.y, min.z), sector_vec_slice);
-
-            // top rectangle (z = max.z)
-            set_block(IVec3::new(x, min.y, max.z), sector_vec_slice);
-            set_block(IVec3::new(x, max.y, max.z), sector_vec_slice);
+            Self::set_block(IVec3::new(x, min.y, min.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(x, max.y, min.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(x, min.y, max.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(x, max.y, max.z), block_kind, sector_vec_slice);
         }
 
-        // --- Y edges ---
         for y in min.y..=max.y {
-            // bottom rectangle (z = min.z)
-            set_block(IVec3::new(min.x, y, min.z), sector_vec_slice);
-            set_block(IVec3::new(max.x, y, min.z), sector_vec_slice);
-
-            // top rectangle (z = max.z)
-            set_block(IVec3::new(min.x, y, max.z), sector_vec_slice);
-            set_block(IVec3::new(max.x, y, max.z), sector_vec_slice);
+            Self::set_block(IVec3::new(min.x, y, min.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(max.x, y, min.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(min.x, y, max.z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(max.x, y, max.z), block_kind, sector_vec_slice);
         }
 
-        // --- Vertical Z edges ---
         for z in min.z..=max.z {
-            set_block(IVec3::new(min.x, min.y, z), sector_vec_slice);
-            set_block(IVec3::new(min.x, max.y, z), sector_vec_slice);
-            set_block(IVec3::new(max.x, min.y, z), sector_vec_slice);
-            set_block(IVec3::new(max.x, max.y, z), sector_vec_slice);
+            Self::set_block(IVec3::new(min.x, min.y, z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(min.x, max.y, z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(max.x, min.y, z), block_kind, sector_vec_slice);
+            Self::set_block(IVec3::new(max.x, max.y, z), block_kind, sector_vec_slice);
         }
     }
 
     pub fn set_box(
-        grid_position1: IVec3,
-        grid_position2: IVec3,
+        min: IVec3,
+        max: IVec3,
         block_kind: block::Kind,
         sector_vec_slice: &mut [Sector],
     ) {
-        let min = IVec3::new(
-            grid_position1.x.min(grid_position2.x),
-            grid_position1.y.min(grid_position2.y),
-            grid_position1.z.min(grid_position2.z),
-        );
-
-        let max = IVec3::new(
-            grid_position1.x.max(grid_position2.x),
-            grid_position1.y.max(grid_position2.y),
-            grid_position1.z.max(grid_position2.z),
-        );
-
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -505,23 +434,11 @@ impl World {
     }
 
     pub fn set_shell(
-        grid_position1: IVec3,
-        grid_position2: IVec3,
+        min: IVec3,
+        max: IVec3,
         block_kind: block::Kind,
         sector_vec_slice: &mut [Sector],
     ) {
-        let min = IVec3::new(
-            grid_position1.x.min(grid_position2.x),
-            grid_position1.y.min(grid_position2.y),
-            grid_position1.z.min(grid_position2.z),
-        );
-
-        let max = IVec3::new(
-            grid_position1.x.max(grid_position2.x),
-            grid_position1.y.max(grid_position2.y),
-            grid_position1.z.max(grid_position2.z),
-        );
-
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -550,26 +467,14 @@ impl World {
     }
 
     pub fn set_cube(
-        grid_position1: IVec3,
-        grid_position2: IVec3,
+        min: IVec3,
+        max: IVec3,
         block_kind: block::Kind,
         sector_vec_slice: &mut [Sector],
     ) {
-        let grid_position_min = IVec3::new(
-            grid_position1.x.min(grid_position2.x),
-            grid_position1.y.min(grid_position2.y),
-            grid_position1.z.min(grid_position2.z),
-        );
-
-        let grid_position_max = IVec3::new(
-            grid_position1.x.max(grid_position2.x),
-            grid_position1.y.max(grid_position2.y),
-            grid_position1.z.max(grid_position2.z),
-        );
-
-        for z in grid_position_min.z..=grid_position_max.z {
-            for y in grid_position_min.y..=grid_position_max.y {
-                for x in grid_position_min.x..=grid_position_max.x {
+        for z in min.z..=max.z {
+            for y in min.y..=max.y {
+                for x in min.x..=max.x {
                     let position = IVec3::new(x, y, z);
 
                     Self::set_block(position, block_kind, sector_vec_slice);

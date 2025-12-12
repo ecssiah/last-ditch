@@ -35,12 +35,14 @@ pub enum Kind {
     Metal1,
     Metal2,
     Metal3,
+    Metal4,
     Panel1,
     Panel2,
     Panel3,
     Vent1,
     Vent2,
     Vent3,
+    Vent4,
     Caution,
 }
 
@@ -79,12 +81,14 @@ impl Kind {
         Self::Metal1,
         Self::Metal2,
         Self::Metal3,
+        Self::Metal4,
         Self::Panel1,
         Self::Panel2,
         Self::Panel3,
         Self::Vent1,
         Self::Vent2,
         Self::Vent3,
+        Self::Vent4,
         Self::Caution,
     ];
 

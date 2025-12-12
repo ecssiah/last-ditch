@@ -94,12 +94,6 @@ pub const PERSON_DEFAULT_SIZE_X: f32 = 0.6;
 pub const PERSON_DEFAULT_SIZE_Y: f32 = 0.6;
 pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.6;
 
-pub const FLOOR_HEIGHT: usize = 8;
-pub const LOWER_FLOOR_COUNT: usize = 4;
-
-pub const BUILDING_RADIUS: usize = WORLD_RADIUS_IN_CELLS - SECTOR_SIZE_IN_CELLS;
-pub const BUILDING_SIZE: usize = 2 * BUILDING_RADIUS + 1;
-
-pub const CENTRAL_ELEVATOR_SHAFT_RADIUS: usize = 3;
-pub const EXTERNAL_HALL_SIZE: usize = 3;
-pub const ROOM_SIZE_MIN: usize = 3;
+pub const TOWER_FLOOR_HEIGHT: usize = 8;
+pub const TOWER_FLOOR_COUNT: usize = 4;
+pub const TOWER_RADIUS: usize = WORLD_RADIUS_IN_CELLS - 10;

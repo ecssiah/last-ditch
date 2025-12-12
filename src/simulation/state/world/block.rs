@@ -42,12 +42,14 @@ pub fn get_info(block_kind: block::Kind) -> block::Info {
         Kind::Metal1 => Info { solid: true },
         Kind::Metal2 => Info { solid: true },
         Kind::Metal3 => Info { solid: true },
+        Kind::Metal4 => Info { solid: true },
         Kind::Panel1 => Info { solid: true },
         Kind::Panel2 => Info { solid: true },
         Kind::Panel3 => Info { solid: true },
         Kind::Vent1 => Info { solid: true },
         Kind::Vent2 => Info { solid: true },
         Kind::Vent3 => Info { solid: true },
+        Kind::Vent4 => Info { solid: true },
         Kind::Caution => Info { solid: true },
     }
 }

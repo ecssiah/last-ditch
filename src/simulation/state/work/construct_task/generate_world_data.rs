@@ -2,16 +2,12 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
+            State, World, population::{
                 nation::{self, Nation},
                 person::Person,
-            },
-            world::{
-                block,
-                grid::{self, Area, Axis, Connection, Line},
-                object, structure,
-            },
-            State, World,
+            }, world::{
+                Tower, block, grid::{self, Area, Axis, Connection, Line}, object, structure
+            }
         },
     },
     utils::ld_math::rand_chacha_ext,
@@ -55,27 +51,30 @@ impl GenerateWorldData {
             }
             1 => {
                 Self::construct_building_frame(&mut state.world);
-                Self::construct_fascade(&mut state.world);
-
+                Self::construct_tower_exterior(&mut state.world);
             }
             2 => {
-                Self::layout_areas(&mut state.world);
-                Self::subdivide_areas(&mut state.world);
+                // Self::layout_areas(&mut state.world);
                 // Self::subdivide_areas(&mut state.world);
-                Self::layout_connections(&mut state.world);
-                Self::construct_areas(&mut state.world);
+                // // Self::subdivide_areas(&mut state.world);
+                // Self::layout_connections(&mut state.world);
+                // Self::construct_areas(&mut state.world);
             }
             3 => {
-                Self::construct_elevator_shaft(&mut state.world);
+                // Self::construct_elevator_shaft(&mut state.world);
                 // Self::construct_halls(&mut state.world);
 
-                Self::construct_trade_platforms(&mut state.world);
+                // Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
 
-                World::set_block(IVec3::zero(), block::Kind::Ornate1, &mut state.world.sector_vec);
+                World::set_block(
+                    IVec3::zero(),
+                    block::Kind::Ornate1,
+                    &mut state.world.sector_vec,
+                );
             }
             _ => unreachable!(),
         }
@@ -90,33 +89,24 @@ impl GenerateWorldData {
     }
 
     fn construct_building_frame(world: &mut World) {
-        let building_radius = BUILDING_RADIUS as i32;
-        let building_size = BUILDING_SIZE as i32;
+        tracing::info!("Constructing Frame");
 
-        let floor_height = FLOOR_HEIGHT as i32;
-        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
+            let floor_min = Tower::get_floor_min(floor_number);
+            let floor_max = Tower::get_floor_max(floor_number);
 
-        for floor_number in -lower_floor_count..=0 {
-            let floor_size = IVec3::new(building_size as i32 - 1, building_size as i32 - 1, floor_height);
-
-            let floor_min = IVec3::new(
-                -building_radius,
-                -building_radius,
-                World::get_floor_z(floor_number),
-            );
-
-            let floor_max = floor_min + floor_size;
+            tracing::info!("Floor: {:?} Min: {:?} Max: {:?}", floor_number, floor_min, floor_max);
 
             World::set_cube(
                 floor_min,
-                floor_min + IVec3::new(floor_size.x, floor_size.y, 0),
+                IVec3::new(floor_max.x, floor_max.y, floor_min.z),
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
 
             World::set_cube(
-                floor_min + IVec3::new(0, 0, floor_height - 1),
-                floor_min + IVec3::new(floor_size.x, floor_size.y, floor_height - 1),
+                IVec3::new(floor_min.x, floor_min.y, floor_max.z),
+                floor_max,
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
@@ -128,124 +118,115 @@ impl GenerateWorldData {
                 &mut world.sector_vec,
             );
         }
+
+        let roof_min = Tower::get_floor_min(0);
+        let roof_max = Tower::get_floor_max(0);
+
+        World::set_cube(
+            roof_min,
+            IVec3::new(roof_max.x, roof_max.y, roof_min.z),
+            block::Kind::Panel2,
+            &mut world.sector_vec,
+        );
     }
 
-    fn construct_fascade(world: &mut World) {
-        let building_radius = BUILDING_RADIUS as i32;
-        let building_size = BUILDING_SIZE as i32;
+    fn construct_tower_exterior(world: &mut World) {
+        tracing::info!("Constructing Tower Exterior");
 
-        let floor_height = FLOOR_HEIGHT as i32;
-        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+        let tower_radius = TOWER_RADIUS as i32;
 
-        for floor_number in -lower_floor_count..0 {
-            let floor_size = IVec3::new(building_size as i32 - 1, building_size as i32 - 1, floor_height);
+        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
+            let floor_min = Tower::get_floor_min(floor_number);
+            let floor_max = Tower::get_floor_max(floor_number);
 
-            let floor_min = IVec3::new(
-                -building_radius,
-                -building_radius,
-                World::get_floor_z(floor_number),
-            );
+            tracing::info!("Floor: {:?} Min: {:?} Max: {:?}", floor_number, floor_min, floor_max);
 
-            let floor_max = floor_min + floor_size;
-
-            for y in -building_radius + 1..=building_radius - 1 {
-                let coin_flip =
-                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
-
+            for y in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random = rand_chacha_ext::gen_range_i32(
                     floor_min.z + 1,
-                    floor_max.z - 2,
+                    floor_max.z - 1,
                     &mut world.random_number_generator,
                 );
 
-                if coin_flip == 0 {
+                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
                     World::set_cube(
-                        IVec3::new(-building_radius, y, floor_min.z + 1),
-                        IVec3::new(-building_radius, y, floor_z_random),
+                        IVec3::new(-tower_radius, y, floor_min.z + 1),
+                        IVec3::new(-tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
-                        IVec3::new(-building_radius, y, floor_z_random),
-                        IVec3::new(-building_radius, y, floor_max.z - 2),
+                        IVec3::new(-tower_radius, y, floor_z_random),
+                        IVec3::new(-tower_radius, y, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
-                let coin_flip =
-                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
-
                 let floor_z_random = rand_chacha_ext::gen_range_i32(
                     floor_min.z + 1,
-                    floor_max.z - 2,
+                    floor_max.z - 1,
                     &mut world.random_number_generator,
                 );
 
-                if coin_flip == 0 {
+                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
                     World::set_cube(
-                        IVec3::new(building_radius, y, floor_min.z + 1),
-                        IVec3::new(building_radius, y, floor_z_random),
+                        IVec3::new(tower_radius, y, floor_min.z + 1),
+                        IVec3::new(tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
-                        IVec3::new(building_radius, y, floor_z_random),
-                        IVec3::new(building_radius, y, floor_max.z - 2),
+                        IVec3::new(tower_radius, y, floor_z_random),
+                        IVec3::new(tower_radius, y, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
             }
 
-            for x in -building_radius + 1..=building_radius - 1 {
-                let coin_flip =
-                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
-
+            for x in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random = rand_chacha_ext::gen_range_i32(
                     floor_min.z + 1,
-                    floor_max.z - 2,
+                    floor_max.z - 1,
                     &mut world.random_number_generator,
                 );
 
-                if coin_flip == 0 {
+                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
                     World::set_cube(
-                        IVec3::new(x, -building_radius, floor_min.z + 1),
-                        IVec3::new(x, -building_radius, floor_z_random),
+                        IVec3::new(x, -tower_radius, floor_min.z + 1),
+                        IVec3::new(x, -tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
-                        IVec3::new(x, -building_radius, floor_z_random),
-                        IVec3::new(x, -building_radius, floor_max.z - 2),
+                        IVec3::new(x, -tower_radius, floor_z_random),
+                        IVec3::new(x, -tower_radius, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
-                let coin_flip =
-                    rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator);
-
                 let floor_z_random = rand_chacha_ext::gen_range_i32(
                     floor_min.z + 1,
-                    floor_max.z - 2,
+                    floor_max.z - 1,
                     &mut world.random_number_generator,
                 );
 
-                if coin_flip == 0 {
+                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
                     World::set_cube(
-                        IVec3::new(x, building_radius, floor_min.z + 1),
-                        IVec3::new(x, building_radius, floor_z_random),
+                        IVec3::new(x, tower_radius, floor_min.z + 1),
+                        IVec3::new(x, tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 } else {
                     World::set_cube(
-                        IVec3::new(x, building_radius, floor_z_random),
-                        IVec3::new(x, building_radius, floor_max.z - 2),
+                        IVec3::new(x, tower_radius, floor_z_random),
+                        IVec3::new(x, tower_radius, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
@@ -255,95 +236,49 @@ impl GenerateWorldData {
     }
 
     fn layout_areas(world: &mut World) {
-        let external_hall_radius = 1;
-        let external_hall_size = 2 * external_hall_radius + 1;
+        // let tower_radius = TOWER_RADIUS as i32;
+        // let tower_floor_count = TOWER_FLOOR_COUNT as i32;
+        // let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
 
-        let building_radius = BUILDING_RADIUS as i32;
+        // for floor_number in -tower_floor_count..=-1 {
+        //     let floor_z = World::get_floor_z(floor_number);
 
-        let central_elevator_shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
+        //     let ne_area = Area {
+        //         area_id: World::get_next_area_id(world),
+        //         min: quadrant1_min,
+        //         max: quadrant1_min + quadrant_size,
+        //         connection_vec: Vec::new(),
+        //     };
 
-        let floor_height = FLOOR_HEIGHT as i32;
-        let lower_floor_count = LOWER_FLOOR_COUNT as i32;
+        //     let nw_area = Area {
+        //         area_id: World::get_next_area_id(world),
+        //         min: quadrant2_min,
+        //         max: quadrant2_min + quadrant_size,
+        //         connection_vec: Vec::new(),
+        //     };
 
-        let quadrant_size = building_radius - external_hall_radius - central_elevator_shaft_radius;
+        //     let sw_area = Area {
+        //         area_id: World::get_next_area_id(world),
+        //         min: quadrant3_min,
+        //         max: quadrant3_min + quadrant_size,
+        //         connection_vec: Vec::new(),
+        //     };
 
-        for floor_number in -lower_floor_count..=-1 {
-            let floor_z = World::get_floor_z(floor_number);
+        //     let se_area = Area {
+        //         area_id: World::get_next_area_id(world),
+        //         min: quadrant4_min,
+        //         max: quadrant4_min + quadrant_size,
+        //         connection_vec: Vec::new(),
+        //     };
 
-            let quadrant1_min = IVec3::new(
-                -building_radius + external_hall_size,
-                central_elevator_shaft_radius,
-                floor_z,
-            );
+        //     world.area_map.insert(ne_area.area_id, ne_area);
 
-            let quadrant2_min = IVec3::new(
-                central_elevator_shaft_radius,
-                central_elevator_shaft_radius,
-                floor_z,
-            );
+        //     world.area_map.insert(nw_area.area_id, nw_area);
 
-            let quadrant3_min = IVec3::new(
-                -building_radius + external_hall_size,
-                -building_radius + external_hall_size,
-                floor_z,
-            );
+        //     world.area_map.insert(sw_area.area_id, sw_area);
 
-            let quadrant4_min = IVec3::new(
-                central_elevator_shaft_radius,
-                -building_radius + external_hall_size,
-                floor_z,
-            );
-
-            let quadrant_size = IVec3::new(
-                quadrant_size - 1,
-                quadrant_size - 1,
-                floor_height,
-            );
-
-            let quadrant1_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: quadrant1_min,
-                max: quadrant1_min + quadrant_size,
-                connection_vec: Vec::new(),
-            };
-
-            let quadrant2_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: quadrant2_min,
-                max: quadrant2_min + quadrant_size,
-                connection_vec: Vec::new(),
-            };
-
-            let quadrant3_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: quadrant3_min,
-                max: quadrant3_min + quadrant_size,
-                connection_vec: Vec::new(),
-            };
-
-            let quadrant4_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: quadrant4_min,
-                max: quadrant4_min + quadrant_size,
-                connection_vec: Vec::new(),
-            };
-
-            world
-                .area_map
-                .insert(quadrant1_area.area_id, quadrant1_area);
-
-            world
-                .area_map
-                .insert(quadrant2_area.area_id, quadrant2_area);
-
-            world
-                .area_map
-                .insert(quadrant3_area.area_id, quadrant3_area);
-
-            world
-                .area_map
-                .insert(quadrant4_area.area_id, quadrant4_area);
-        }
+        //     world.area_map.insert(se_area.area_id, se_area);
+        // }
     }
 
     fn subdivide_areas(world: &mut World) {
@@ -479,52 +414,6 @@ impl GenerateWorldData {
         );
     }
 
-    fn construct_halls(world: &mut World) {
-        let floor_height = FLOOR_HEIGHT as i32;
-        let internal_hall_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32 - 1;
-        let building_radius = BUILDING_RADIUS as i32;
-
-        for floor_number in 0..LOWER_FLOOR_COUNT {
-            let floor_height = -((LOWER_FLOOR_COUNT - floor_number) as i32) * floor_height - 1;
-
-            World::set_cube(
-                IVec3::new(
-                    -building_radius + internal_hall_radius,
-                    -1,
-                    floor_height + 1,
-                ),
-                IVec3::new(building_radius - internal_hall_radius, 1, floor_height + 4),
-                block::Kind::None,
-                &mut world.sector_vec,
-            );
-
-            World::set_cube(
-                IVec3::new(
-                    -1,
-                    -building_radius + internal_hall_radius,
-                    floor_height + 1,
-                ),
-                IVec3::new(1, building_radius - internal_hall_radius, floor_height + 4),
-                block::Kind::None,
-                &mut world.sector_vec,
-            );
-        }
-
-        World::set_cube(
-            IVec3::new(-building_radius + 1, -1, 0),
-            IVec3::new(building_radius - 1, 1, 3),
-            block::Kind::None,
-            &mut world.sector_vec,
-        );
-
-        World::set_cube(
-            IVec3::new(-1, -building_radius + 1, 0),
-            IVec3::new(1, building_radius - 1, 3),
-            block::Kind::None,
-            &mut world.sector_vec,
-        );
-    }
-
     fn construct_elevator_shaft(world: &mut World) {
         // let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
 
@@ -532,7 +421,7 @@ impl GenerateWorldData {
         //     IVec3::new(
         //         -shaft_radius,
         //         -shaft_radius,
-        //         World::get_floor_height(-(LOWER_FLOOR_COUNT as i32)),
+        //         World::get_tower_floor_height(-(LOWER_FLOOR_COUNT as i32)),
         //     ),
         //     IVec3::new(shaft_radius, shaft_radius, 6),
         //     block::Kind::Metal3,
@@ -543,7 +432,7 @@ impl GenerateWorldData {
         //     IVec3::new(
         //         -(shaft_radius - 2),
         //         -(shaft_radius - 2),
-        //         World::get_floor_height(-(LOWER_FLOOR_COUNT as i32)) + 1,
+        //         World::get_tower_floor_height(-(LOWER_FLOOR_COUNT as i32)) + 1,
         //     ),
         //     IVec3::new(shaft_radius - 2, shaft_radius - 2, 5),
         //     block::Kind::None,
@@ -552,7 +441,7 @@ impl GenerateWorldData {
     }
 
     fn construct_trade_platforms(world: &mut World) {
-        let platform_radius = BUILDING_RADIUS as i32 + 1;
+        let platform_radius = TOWER_RADIUS as i32 + 1;
 
         Self::construct_trade_platform(
             IVec3::new(platform_radius, 0, 0),

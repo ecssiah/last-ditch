@@ -409,6 +409,15 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]                 
             },
+            block::Kind::Metal4 => {
+                let tile_coordinate_array = [
+                    [3, 8], [3, 8],
+                    [3, 8], [3, 8],
+                    [3, 8], [3, 8],
+                ];
+
+                tile_coordinate_array[direction as usize]                 
+            },
             block::Kind::Panel1 => {
                 let tile_coordinate_array = [
                     [0, 9], [0, 9],
@@ -459,6 +468,15 @@ pub fn get_gpu_texture_data(
                     [2, 10], [2, 10],
                     [2, 10], [2, 10],
                     [2, 10], [2, 10],
+                ];
+
+                tile_coordinate_array[direction as usize]                   
+            },
+            block::Kind::Vent4 => {
+                let tile_coordinate_array = [
+                    [3, 10], [3, 10],
+                    [3, 10], [3, 10],
+                    [3, 10], [3, 10],
                 ];
 
                 tile_coordinate_array[direction as usize]                   

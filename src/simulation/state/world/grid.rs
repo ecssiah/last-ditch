@@ -4,6 +4,7 @@ pub mod axis;
 pub mod connection;
 pub mod direction;
 pub mod line;
+pub mod quadrant;
 
 pub use area::Area;
 pub use area_edge::AreaEdge;
@@ -11,6 +12,7 @@ pub use axis::Axis;
 pub use connection::Connection;
 pub use direction::Direction;
 pub use line::Line;
+pub use quadrant::Quadrant;
 
 use crate::{
     simulation::{constants::*, state::physics::box_collider::BoxCollider},
