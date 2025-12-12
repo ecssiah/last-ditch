@@ -244,36 +244,34 @@ impl GenerateWorldData {
     fn layout_areas(world: &mut World) {
         tracing::info!("Laying out tower areas");
 
-        let padding = IVec3::new(3, 3, 0);
-
         for floor_number in -(TOWER_FLOOR_COUNT as i32)..=-1 {
             tracing::info!("Floor: {:?}", floor_number);
 
             let ne_area = Area {
                 area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::NE, floor_number) + padding,
-                max: Tower::get_quadrant_max(Quadrant::NE, floor_number) - padding,
+                min: Tower::get_quadrant_min(Quadrant::NE, floor_number),
+                max: Tower::get_quadrant_max(Quadrant::NE, floor_number),
                 connection_vec: Vec::new(),
             };
 
             let nw_area = Area {
                 area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::NW, floor_number) + padding,
-                max: Tower::get_quadrant_max(Quadrant::NW, floor_number) - padding,
+                min: Tower::get_quadrant_min(Quadrant::NW, floor_number),
+                max: Tower::get_quadrant_max(Quadrant::NW, floor_number),
                 connection_vec: Vec::new(),
             };
 
             let sw_area = Area {
                 area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::SW, floor_number) + padding,
-                max: Tower::get_quadrant_max(Quadrant::SW, floor_number) - padding,
+                min: Tower::get_quadrant_min(Quadrant::SW, floor_number),
+                max: Tower::get_quadrant_max(Quadrant::SW, floor_number),
                 connection_vec: Vec::new(),
             };
 
             let se_area = Area {
                 area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::SE, floor_number) + padding,
-                max: Tower::get_quadrant_max(Quadrant::SE, floor_number) - padding,
+                min: Tower::get_quadrant_min(Quadrant::SE, floor_number),
+                max: Tower::get_quadrant_max(Quadrant::SE, floor_number),
                 connection_vec: Vec::new(),
             };
 

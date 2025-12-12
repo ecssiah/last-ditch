@@ -97,5 +97,5 @@ pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.6;
 pub const TOWER_FLOOR_HEIGHT: usize = 8;
 pub const TOWER_FLOOR_COUNT: usize = 4;
 pub const TOWER_RADIUS: usize = WORLD_RADIUS_IN_CELLS - 10;
-pub const TOWER_EXTERNAL_HALL_SIZE: usize = 2;
-pub const TOWER_CENTRAL_HALL_RADIUS: usize = 1;
+pub const TOWER_EXTERNAL_HALL_SIZE: usize = 3;
+pub const TOWER_CENTRAL_HALL_RADIUS: usize = 2;
