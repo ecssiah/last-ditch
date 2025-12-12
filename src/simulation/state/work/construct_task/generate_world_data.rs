@@ -2,15 +2,19 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
+            population::{
                 nation::{self, Nation},
                 person::Person,
-            }, world::{
-                Tower, block, grid::{self, Area, Axis, Connection, Line}, object, structure
-            }
+            },
+            world::{
+                block,
+                grid::{self, Area, Axis, Connection, Line, Quadrant},
+                object, structure, Tower,
+            },
+            State, World,
         },
     },
-    utils::ld_math::rand_chacha_ext,
+    utils::ld_math::rand_chacha_ext::{self, gen_bool, gen_range_i32},
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -54,17 +58,21 @@ impl GenerateWorldData {
                 Self::construct_tower_exterior(&mut state.world);
             }
             2 => {
-                // Self::layout_areas(&mut state.world);
-                // Self::subdivide_areas(&mut state.world);
-                // // Self::subdivide_areas(&mut state.world);
+                Self::layout_areas(&mut state.world);
+
+                Self::subdivide_areas(&mut state.world);
+                Self::subdivide_areas(&mut state.world);
+                Self::subdivide_areas(&mut state.world);
+
                 // Self::layout_connections(&mut state.world);
-                // Self::construct_areas(&mut state.world);
+
+                Self::construct_areas(&mut state.world);
             }
             3 => {
                 // Self::construct_elevator_shaft(&mut state.world);
                 // Self::construct_halls(&mut state.world);
 
-                // Self::construct_trade_platforms(&mut state.world);
+                Self::construct_trade_platforms(&mut state.world);
             }
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
@@ -95,7 +103,12 @@ impl GenerateWorldData {
             let floor_min = Tower::get_floor_min(floor_number);
             let floor_max = Tower::get_floor_max(floor_number);
 
-            tracing::info!("Floor: {:?} Min: {:?} Max: {:?}", floor_number, floor_min, floor_max);
+            tracing::info!(
+                "Floor: {:?} Min: {:?} Max: {:?}",
+                floor_number,
+                floor_min,
+                floor_max
+            );
 
             World::set_cube(
                 floor_min,
@@ -125,7 +138,7 @@ impl GenerateWorldData {
         World::set_cube(
             roof_min,
             IVec3::new(roof_max.x, roof_max.y, roof_min.z),
-            block::Kind::Panel2,
+            block::Kind::Stone3,
             &mut world.sector_vec,
         );
     }
@@ -139,16 +152,18 @@ impl GenerateWorldData {
             let floor_min = Tower::get_floor_min(floor_number);
             let floor_max = Tower::get_floor_max(floor_number);
 
-            tracing::info!("Floor: {:?} Min: {:?} Max: {:?}", floor_number, floor_min, floor_max);
+            tracing::info!(
+                "Floor: {:?} Min: {:?} Max: {:?}",
+                floor_number,
+                floor_min,
+                floor_max
+            );
 
             for y in -tower_radius + 1..=tower_radius - 1 {
-                let floor_z_random = rand_chacha_ext::gen_range_i32(
-                    floor_min.z + 1,
-                    floor_max.z - 1,
-                    &mut world.random_number_generator,
-                );
+                let floor_z_random =
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
-                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
+                if gen_bool(&mut world.rng) {
                     World::set_cube(
                         IVec3::new(-tower_radius, y, floor_min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
@@ -164,13 +179,10 @@ impl GenerateWorldData {
                     );
                 }
 
-                let floor_z_random = rand_chacha_ext::gen_range_i32(
-                    floor_min.z + 1,
-                    floor_max.z - 1,
-                    &mut world.random_number_generator,
-                );
+                let floor_z_random =
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
-                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
+                if gen_bool(&mut world.rng) {
                     World::set_cube(
                         IVec3::new(tower_radius, y, floor_min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
@@ -188,13 +200,10 @@ impl GenerateWorldData {
             }
 
             for x in -tower_radius + 1..=tower_radius - 1 {
-                let floor_z_random = rand_chacha_ext::gen_range_i32(
-                    floor_min.z + 1,
-                    floor_max.z - 1,
-                    &mut world.random_number_generator,
-                );
+                let floor_z_random =
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
-                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
+                if gen_bool(&mut world.rng) {
                     World::set_cube(
                         IVec3::new(x, -tower_radius, floor_min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
@@ -210,13 +219,10 @@ impl GenerateWorldData {
                     );
                 }
 
-                let floor_z_random = rand_chacha_ext::gen_range_i32(
-                    floor_min.z + 1,
-                    floor_max.z - 1,
-                    &mut world.random_number_generator,
-                );
+                let floor_z_random =
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
-                if rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) == 0 {
+                if gen_bool(&mut world.rng) {
                     World::set_cube(
                         IVec3::new(x, tower_radius, floor_min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
@@ -236,98 +242,105 @@ impl GenerateWorldData {
     }
 
     fn layout_areas(world: &mut World) {
-        // let tower_radius = TOWER_RADIUS as i32;
-        // let tower_floor_count = TOWER_FLOOR_COUNT as i32;
-        // let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
+        tracing::info!("Laying out tower areas");
 
-        // for floor_number in -tower_floor_count..=-1 {
-        //     let floor_z = World::get_floor_z(floor_number);
+        let padding = IVec3::new(3, 3, 0);
 
-        //     let ne_area = Area {
-        //         area_id: World::get_next_area_id(world),
-        //         min: quadrant1_min,
-        //         max: quadrant1_min + quadrant_size,
-        //         connection_vec: Vec::new(),
-        //     };
+        for floor_number in -(TOWER_FLOOR_COUNT as i32)..=-1 {
+            tracing::info!("Floor: {:?}", floor_number);
 
-        //     let nw_area = Area {
-        //         area_id: World::get_next_area_id(world),
-        //         min: quadrant2_min,
-        //         max: quadrant2_min + quadrant_size,
-        //         connection_vec: Vec::new(),
-        //     };
+            let ne_area = Area {
+                area_id: World::get_next_area_id(world),
+                min: Tower::get_quadrant_min(Quadrant::NE, floor_number) + padding,
+                max: Tower::get_quadrant_max(Quadrant::NE, floor_number) - padding,
+                connection_vec: Vec::new(),
+            };
 
-        //     let sw_area = Area {
-        //         area_id: World::get_next_area_id(world),
-        //         min: quadrant3_min,
-        //         max: quadrant3_min + quadrant_size,
-        //         connection_vec: Vec::new(),
-        //     };
+            let nw_area = Area {
+                area_id: World::get_next_area_id(world),
+                min: Tower::get_quadrant_min(Quadrant::NW, floor_number) + padding,
+                max: Tower::get_quadrant_max(Quadrant::NW, floor_number) - padding,
+                connection_vec: Vec::new(),
+            };
 
-        //     let se_area = Area {
-        //         area_id: World::get_next_area_id(world),
-        //         min: quadrant4_min,
-        //         max: quadrant4_min + quadrant_size,
-        //         connection_vec: Vec::new(),
-        //     };
+            let sw_area = Area {
+                area_id: World::get_next_area_id(world),
+                min: Tower::get_quadrant_min(Quadrant::SW, floor_number) + padding,
+                max: Tower::get_quadrant_max(Quadrant::SW, floor_number) - padding,
+                connection_vec: Vec::new(),
+            };
 
-        //     world.area_map.insert(ne_area.area_id, ne_area);
+            let se_area = Area {
+                area_id: World::get_next_area_id(world),
+                min: Tower::get_quadrant_min(Quadrant::SE, floor_number) + padding,
+                max: Tower::get_quadrant_max(Quadrant::SE, floor_number) - padding,
+                connection_vec: Vec::new(),
+            };
 
-        //     world.area_map.insert(nw_area.area_id, nw_area);
-
-        //     world.area_map.insert(sw_area.area_id, sw_area);
-
-        //     world.area_map.insert(se_area.area_id, se_area);
-        // }
+            world.area_map.insert(ne_area.area_id, ne_area);
+            world.area_map.insert(nw_area.area_id, nw_area);
+            world.area_map.insert(sw_area.area_id, sw_area);
+            world.area_map.insert(se_area.area_id, se_area);
+        }
     }
 
     fn subdivide_areas(world: &mut World) {
         let mut area_map_subdivided = HashMap::new();
 
-        let area_size_min = 3;
+        let area_size_min = 5;
 
         for (_, area) in world.area_map.clone() {
-            let axis_index =
-                rand_chacha_ext::gen_range_i32(0, 1, &mut world.random_number_generator) as usize;
+            if gen_bool(&mut world.rng) {
+                let split_point = gen_range_i32(area.min.x + 2, area.max.x - 2, &mut world.rng);
 
-            let midpoint = Area::size(&area)[axis_index] / 2;
+                if split_point - area.min.x + 1 >= area_size_min
+                    && area.max.x - split_point + 1 >= area_size_min
+                {
+                    let area1 = Area {
+                        area_id: World::get_next_area_id(world),
+                        min: area.min,
+                        max: IVec3::new(split_point, area.max.y, area.max.z),
+                        connection_vec: Vec::new(),
+                    };
 
-            let midpoint_offset =
-                rand_chacha_ext::gen_range_i32(-2, 2, &mut world.random_number_generator);
+                    let area2 = Area {
+                        area_id: World::get_next_area_id(world),
+                        min: IVec3::new(split_point, area.min.y, area.min.z),
+                        max: area.max,
+                        connection_vec: Vec::new(),
+                    };
 
-            let split_offset = midpoint + midpoint_offset;
+                    area_map_subdivided.insert(area1.area_id, area1);
+                    area_map_subdivided.insert(area2.area_id, area2);
+                } else {
+                    area_map_subdivided.insert(area.area_id, area);
+                }
+            } else {
+                let split_point = gen_range_i32(area.min.y + 2, area.max.y - 2, &mut world.rng);
 
-            if split_offset <= area_size_min
-                || split_offset >= Area::size(&area)[axis_index] - area_size_min
-            {
-                continue;
+                if split_point - area.min.y + 1 >= area_size_min
+                    && area.max.y - split_point + 1 >= area_size_min
+                {
+                    let area1 = Area {
+                        area_id: World::get_next_area_id(world),
+                        min: area.min,
+                        max: IVec3::new(area.max.x, split_point, area.max.z),
+                        connection_vec: Vec::new(),
+                    };
+
+                    let area2 = Area {
+                        area_id: World::get_next_area_id(world),
+                        min: IVec3::new(area.min.x, split_point, area.min.z),
+                        max: area.max,
+                        connection_vec: Vec::new(),
+                    };
+
+                    area_map_subdivided.insert(area1.area_id, area1);
+                    area_map_subdivided.insert(area2.area_id, area2);
+                } else {
+                    area_map_subdivided.insert(area.area_id, area);
+                }
             }
-
-            let mut area_size = Area::size(&area);
-            area_size[axis_index] = split_offset + 1;
-
-            let mut area2_min = area.min;
-            area2_min[axis_index] = area.min[axis_index] + split_offset;
-
-            let mut area2_size = Area::size(&area);
-            area2_size[axis_index] = Area::size(&area)[axis_index] - split_offset;
-
-            let area1 = Area {
-                area_id: World::get_next_area_id(world),
-                min: area.min,
-                max: area.min + area_size,
-                connection_vec: Vec::new(),
-            };
-
-            let area2 = Area {
-                area_id: World::get_next_area_id(world),
-                min: area2_min,
-                max: area2_min + area2_size,
-                connection_vec: Vec::new(),
-            };
-
-            area_map_subdivided.insert(area1.area_id, area1);
-            area_map_subdivided.insert(area2.area_id, area2);
         }
 
         world.area_map = area_map_subdivided;
@@ -344,7 +357,7 @@ impl GenerateWorldData {
 
                 if let Some(shared_line) = Area::find_shared_line(area1, area2) {
                     let entrance_vec = vec![Line::midpoint(&shared_line)];
-                    let cost = rand_chacha_ext::gen_f32(&mut world.random_number_generator);
+                    let cost = rand_chacha_ext::gen_f32(&mut world.rng);
 
                     let connection_candidate = Connection {
                         area_id1: *area1_id,

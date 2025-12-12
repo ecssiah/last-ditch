@@ -10,7 +10,7 @@ use crate::{
             Population, State, World,
         },
     },
-    utils::ld_math::rand_chacha_ext,
+    utils::ld_math::rand_chacha_ext::{self, gen_range_i32},
 };
 
 #[derive(Clone)]
@@ -63,8 +63,8 @@ impl GeneratePopulationData {
 
             for _ in 1..=INITIAL_NATION_POPULATION {
                 let offset = IVec3::new(
-                    rand_chacha_ext::gen_range_i32(-4, 4, &mut population.random_number_generator),
-                    rand_chacha_ext::gen_range_i32(-4, 4, &mut population.random_number_generator),
+                    gen_range_i32(-4, 4, &mut population.rng),
+                    gen_range_i32(-4, 4, &mut population.rng),
                     0,
                 );
 
@@ -72,11 +72,7 @@ impl GeneratePopulationData {
 
                 let mut person = Person::new(person_id);
 
-                let sex = match rand_chacha_ext::gen_range_i32(
-                    0,
-                    1,
-                    &mut population.random_number_generator,
-                ) {
+                let sex = match gen_range_i32(0, 1, &mut population.rng) {
                     0 => identity::Sex::Male,
                     _ => identity::Sex::Female,
                 };
@@ -94,7 +90,7 @@ impl GeneratePopulationData {
                     rand_chacha_ext::gen_range_f32(
                         PERSON_DEFAULT_SIZE_Z - 0.2,
                         PERSON_DEFAULT_SIZE_Z + 0.2,
-                        &mut population.random_number_generator,
+                        &mut population.rng,
                     ),
                 );
 

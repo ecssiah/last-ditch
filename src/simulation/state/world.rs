@@ -31,7 +31,7 @@ use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
     pub active: bool,
-    pub random_number_generator: ChaCha8Rng,
+    pub rng: ChaCha8Rng,
     pub time: Time,
     pub sector_vec: Vec<world::Sector>,
     pub object_map: HashMap<usize, Vec<Object>>,
@@ -43,7 +43,7 @@ pub struct World {
 impl World {
     pub fn new(seed: u64) -> Self {
         let active = false;
-        let random_number_generator = ChaCha8Rng::seed_from_u64(seed);
+        let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let sector_vec = Self::setup_sector_vec();
         let area_map = HashMap::new();
@@ -54,7 +54,7 @@ impl World {
 
         Self {
             active,
-            random_number_generator,
+            rng,
             time,
             sector_vec,
             object_map,

@@ -23,7 +23,7 @@ use ultraviolet::{IVec3, Vec3};
 
 pub struct Population {
     pub active: bool,
-    pub random_number_generator: ChaCha8Rng,
+    pub rng: ChaCha8Rng,
     pub next_person_id: u64,
     pub person_map: HashMap<u64, Person>,
     pub nation_map: HashMap<nation::Kind, Nation>,
@@ -33,7 +33,7 @@ pub struct Population {
 impl Population {
     pub fn new(seed: u64) -> Self {
         let active = false;
-        let random_number_generator = ChaCha8Rng::seed_from_u64(seed);
+        let rng = ChaCha8Rng::seed_from_u64(seed);
 
         let next_person_id = INITIAL_PERSON_ID;
 
@@ -46,7 +46,7 @@ impl Population {
 
         Self {
             active,
-            random_number_generator,
+            rng,
             leadership,
             next_person_id,
             person_map,
