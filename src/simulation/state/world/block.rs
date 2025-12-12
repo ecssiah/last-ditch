@@ -15,6 +15,8 @@ pub fn get_info(block_kind: block::Kind) -> block::Info {
         Kind::Engraved4 => Info { solid: true },
         Kind::Ornate1 => Info { solid: true },
         Kind::Ornate2 => Info { solid: true },
+        Kind::Ornate3 => Info { solid: true },
+        Kind::Ornate4 => Info { solid: true },
         Kind::CarvedStone1 => Info { solid: true },
         Kind::CarvedStone2 => Info { solid: true },
         Kind::CarvedStone3 => Info { solid: true },

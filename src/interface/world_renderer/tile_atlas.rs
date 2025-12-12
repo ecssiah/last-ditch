@@ -166,6 +166,24 @@ pub fn get_gpu_texture_data(
 
                 tile_coordinate_array[direction as usize]
             },
+            block::Kind::Ornate3 => {
+                let tile_coordinate_array = [
+                    [10, 0], [10, 0],
+                    [10, 0], [10, 0],
+                    [10, 0], [10, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]
+            },
+            block::Kind::Ornate4 => {
+                let tile_coordinate_array = [
+                    [11, 0], [11, 0],
+                    [11, 0], [11, 0],
+                    [11, 0], [11, 0],
+                ];
+
+                tile_coordinate_array[direction as usize]
+            },
             block::Kind::CarvedStone1 => {
                 let tile_coordinate_array = [
                     [0, 1], [0, 1],
