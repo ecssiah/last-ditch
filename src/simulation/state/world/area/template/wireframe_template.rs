@@ -1,11 +1,11 @@
 use crate::simulation::state::{
-    world::{area::template::TemplateConstructor, block},
+    world::{area::template::Template, block},
     World,
 };
 
 pub struct WireframeTemplate {}
 
-impl TemplateConstructor for WireframeTemplate {
+impl Template for WireframeTemplate {
     fn construct(
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,

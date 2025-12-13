@@ -6,7 +6,6 @@ pub mod cell;
 pub mod grid;
 pub mod object;
 pub mod sector;
-pub mod structure;
 pub mod tower;
 
 pub use area::Area;
@@ -20,7 +19,7 @@ use crate::{
         state::{
             physics::box_collider::BoxCollider,
             population::nation,
-            world::{self, grid::Axis, tower::Tower},
+            world::{self, tower::Tower},
             Time,
         },
         utils::IDGenerator,

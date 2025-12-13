@@ -1,12 +1,12 @@
-use ultraviolet::IVec3;
 use crate::simulation::state::{
-    world::{area::template::TemplateConstructor, block},
+    world::{area::template::Template, block},
     World,
 };
+use ultraviolet::IVec3;
 
 pub struct ElevatorTemplate {}
 
-impl TemplateConstructor for ElevatorTemplate {
+impl Template for ElevatorTemplate {
     fn construct(
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,

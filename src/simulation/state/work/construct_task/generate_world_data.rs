@@ -7,16 +7,16 @@ use crate::{
                 person::Person,
             }, world::{
                 Area, area::{
-                    self,
-                    template::{
-                        ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, TemplateConstructor, TradingPlatformTemplate, WireframeTemplate
-                    },
-                }, block, grid::{self, Direction}, structure, tower::{self, Tower}
+                    self, Connection, template::{
+                        ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
+                        TradingPlatformTemplate, WireframeTemplate,
+                    }
+                }, block, grid::{Direction, Line}, tower::{self, Tower}
             }
         },
         utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},
+    utils::ldmath::rand_chacha_ext::{self, gen_bool, gen_range_i32},
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -66,15 +66,10 @@ impl GenerateWorldData {
                 Self::subdivide_room_areas(&mut state.world);
                 Self::subdivide_room_areas(&mut state.world);
 
-                // Self::layout_connections(&mut state.world);
-
-                Self::construct_areas(&mut state.world);
+                Self::layout_connections(&mut state.world);
             }
             3 => {
-                // Self::construct_elevator_shaft(&mut state.world);
-                // Self::construct_halls(&mut state.world);
-
-                Self::construct_trade_platforms(&mut state.world);
+                Self::construct_areas(&mut state.world);
             }
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
@@ -343,14 +338,17 @@ impl GenerateWorldData {
             .tower
             .area_map
             .insert(wolf_trading_area.area_id, wolf_trading_area);
+
         world
             .tower
             .area_map
             .insert(eagle_trading_area.area_id, eagle_trading_area);
+
         world
             .tower
             .area_map
             .insert(lion_trading_area.area_id, lion_trading_area);
+
         world
             .tower
             .area_map
@@ -402,40 +400,58 @@ impl GenerateWorldData {
     }
 
     fn layout_connections(world: &mut World) {
-        // let mut connection_candidate_vec = Vec::new();
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
-        // for (area1_id, area1) in &world.room_area_map {
-        //     for (area2_id, area2) in &world.room_area_map {
-        //         if area1_id >= area2_id {
-        //             continue;
-        //         }
+        for floor_number in -tower_floor_count..0 {
+            let floor = world
+                .tower
+                .floor_map
+                .get_mut(&floor_number)
+                .expect("Floors should exist!");
 
-        //         if let Some(shared_line) = Area::find_shared_line(area1, area2) {
-        //             let entrance_vec = vec![Line::midpoint(&shared_line)];
-        //             let cost = rand_chacha_ext::gen_f32(&mut world.rng);
+            tracing::info!("Connecting rooms");
+            tracing::info!(
+                "Floor: {:?} Min: {:?} Max: {:?}",
+                floor.floor_number,
+                floor.min,
+                floor.max,
+            );
 
-        //             let connection_candidate = Connection {
-        //                 area_id1: *area1_id,
-        //                 area_id2: *area2_id,
-        //                 entrance_vec,
-        //                 line: shared_line,
-        //                 cost,
-        //             };
+            let mut cancidate_connection_vec = Vec::new();
 
-        //             connection_candidate_vec.push(connection_candidate);
-        //         }
-        //     }
-        // }
+            for (area1_id, area1) in &floor.area_id_map {
+                for (area2_id, area2) in &floor.area_id_map {
+                    if area1_id >= area2_id {
+                        continue;
+                    }
 
-        // for connection in connection_candidate_vec {
-        //     if let Some(area1) = world.room_area_map.get_mut(&connection.area_id1) {
-        //         area1.connection_vec.push(connection.clone());
-        //     }
+                    if let Some(shared_line) = Area::find_shared_line(area1, area2) {
+                        let entrance_vec = vec![Line::midpoint(&shared_line)];
+                        let cost = rand_chacha_ext::gen_f32(&mut world.rng);
 
-        //     if let Some(area2) = world.room_area_map.get_mut(&connection.area_id2) {
-        //         area2.connection_vec.push(connection.clone());
-        //     }
-        // }
+                        let connection_candidate = Connection {
+                            area_id1: *area1_id,
+                            area_id2: *area2_id,
+                            entrance_vec,
+                            line: shared_line,
+                            cost,
+                        };
+
+                        cancidate_connection_vec.push(connection_candidate.clone());
+                    }
+                }
+            }
+
+            for connection in cancidate_connection_vec {
+                if let Some(area1) = floor.area_id_map.get_mut(&connection.area_id1) {
+                    area1.connection_vec.push(connection.clone());
+                }
+
+                if let Some(area2) = floor.area_id_map.get_mut(&connection.area_id2) {
+                    area2.connection_vec.push(connection.clone());
+                }
+            }
+        }
     }
 
     fn construct_areas(world: &mut World) {
@@ -476,48 +492,6 @@ impl GenerateWorldData {
             area::Style::Elevator => ElevatorTemplate::construct(area, world),
             area::Style::ElevatorCap => ElevatorCapTemplate::construct(area, world),
             area::Style::TradingPlatform => TradingPlatformTemplate::construct(area, world),
-        }
-    }
-
-    fn construct_trade_platforms(world: &mut World) {
-        let platform_radius = TOWER_RADIUS as i32 + 1;
-
-        Self::construct_trade_platform(
-            IVec3::new(platform_radius, 0, 0),
-            grid::Direction::East,
-            world,
-        );
-
-        Self::construct_trade_platform(
-            IVec3::new(-platform_radius, 0, 0),
-            grid::Direction::West,
-            world,
-        );
-
-        Self::construct_trade_platform(
-            IVec3::new(0, platform_radius, 0),
-            grid::Direction::North,
-            world,
-        );
-
-        Self::construct_trade_platform(
-            IVec3::new(0, -platform_radius, 0),
-            grid::Direction::South,
-            world,
-        );
-    }
-
-    fn construct_trade_platform(
-        grid_position: IVec3,
-        direction: grid::Direction,
-        world: &mut World,
-    ) {
-        for (block_kind, block_grid_position) in structure::template::trade_platform(direction) {
-            World::set_block(
-                grid_position + block_grid_position,
-                block_kind,
-                &mut world.sector_vec,
-            );
         }
     }
 

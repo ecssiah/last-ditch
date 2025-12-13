@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     world::{
-        area::template::TemplateConstructor,
+        area::template::{self, Template},
         block,
         grid::{Axis, Direction},
         object, Area,
@@ -11,13 +11,14 @@ use ultraviolet::IVec3;
 
 pub struct GenericRoomTemplate {}
 
-impl TemplateConstructor for GenericRoomTemplate {
+impl Template for GenericRoomTemplate {
     fn construct(area: &Area, world: &mut World) {
-        World::set_wireframe(
-            area.min,
-            area.max,
+        template::set_box(
+            IVec3::new(0, 0, 0),
+            IVec3::new(0, 0, 0),
             block::Kind::Metal1,
-            &mut world.sector_vec,
+            area,
+            world,
         );
 
         for connection in &area.connection_vec {
