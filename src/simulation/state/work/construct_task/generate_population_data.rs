@@ -10,7 +10,7 @@ use crate::{
             Population, State, World,
         },
     },
-    utils::ld_math::rand_chacha_ext::{self, gen_range_i32},
+    utils::ldmath::rand_chacha_ext::{self, gen_range_i32},
 };
 
 #[derive(Clone)]

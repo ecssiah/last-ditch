@@ -25,7 +25,7 @@ use crate::{
         },
         utils::IDGenerator,
     },
-    utils::ld_math::rand_chacha_ext::{gen_bool, gen_range_i32},
+    utils::ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -291,75 +291,7 @@ impl World {
         }
     }
 
-    pub fn set_frame(
-        grid_position: IVec3,
-        size: (usize, usize),
-        normal_axis: Axis,
-        block_kind: block::Kind,
-        world: &mut Self,
-    ) {
-        let (u, v) = match normal_axis {
-            Axis::X => (1, 2),
-            Axis::Y => (0, 2),
-            Axis::Z => (0, 1),
-        };
-
-        let min_u = grid_position[u];
-        let min_v = grid_position[v];
-        let max_u = min_u + size.0 as i32 - 1;
-        let max_v = min_v + size.1 as i32 - 1;
-
-        for vy in 0..size.1 {
-            let v_val = min_v + vy as i32;
-
-            let mut block_grid_position = grid_position;
-            block_grid_position[v] = v_val;
-            block_grid_position[u] = min_u;
-            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
-
-            let mut block_grid_position = grid_position;
-            block_grid_position[v] = v_val;
-            block_grid_position[u] = max_u;
-            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
-        }
-
-        for ux in 0..size.0 {
-            let u_val = min_u + ux as i32;
-
-            let mut block_grid_position = grid_position;
-            block_grid_position[u] = u_val;
-            block_grid_position[v] = min_v;
-            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
-
-            let mut block_grid_position = grid_position;
-            block_grid_position[u] = u_val;
-            block_grid_position[v] = max_v;
-            World::set_block(block_grid_position, block_kind, &mut world.sector_vec);
-        }
-
-        if size.0 > 2 && size.1 > 2 {
-            let interior_min_u = min_u + 1;
-            let interior_max_u = max_u - 1;
-            let interior_min_v = min_v + 1;
-            let interior_max_v = max_v - 1;
-
-            for vy in interior_min_v..=interior_max_v {
-                for ux in interior_min_u..=interior_max_u {
-                    let mut block_grid_position = grid_position;
-                    block_grid_position[u] = ux;
-                    block_grid_position[v] = vy;
-
-                    World::set_block(
-                        block_grid_position,
-                        block::Kind::None,
-                        &mut world.sector_vec,
-                    );
-                }
-            }
-        }
-    }
-
-    pub fn set_wireframe_box(
+    pub fn set_wireframe(
         min: IVec3,
         max: IVec3,
         block_kind: block::Kind,
@@ -605,18 +537,20 @@ impl World {
             {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
-                    kind: area::Kind::Room,
+                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     min: area.min,
                     max: IVec3::new(split_point, area.max.y, area.max.z),
+                    direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
                 let area2 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
-                    kind: area::Kind::Room,
+                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     min: IVec3::new(split_point, area.min.y, area.min.z),
+                    direction: area.direction,
                     max: area.max,
                     connection_vec: Vec::new(),
                 };
@@ -633,18 +567,20 @@ impl World {
             {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
-                    kind: area::Kind::Room,
+                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     min: area.min,
                     max: IVec3::new(area.max.x, split_point, area.max.z),
+                    direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
                 let area2 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
-                    kind: area::Kind::Room,
+                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     min: IVec3::new(area.min.x, split_point, area.min.z),
+                    direction: area.direction,
                     max: area.max,
                     connection_vec: Vec::new(),
                 };

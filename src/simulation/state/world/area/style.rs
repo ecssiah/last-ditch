@@ -4,4 +4,6 @@ pub enum Style {
     Wireframe,
     GenericRoom,
     Elevator,
+    ElevatorCap,
+    TradingPlatform,
 }

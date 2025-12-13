@@ -1,6 +1,6 @@
 use crate::{
     simulation::constants::{JUDGE_DEFAULT_SIZE_Z, SECTOR_RADIUS_IN_METERS, SECTOR_SIZE_IN_METERS},
-    utils::ld_math::rotor3_ext,
+    utils::ldmath::rotor3_ext,
 };
 use ultraviolet::{Rotor3, Vec3};
 

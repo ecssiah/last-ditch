@@ -4,23 +4,32 @@ pub use floor::Floor;
 
 use crate::simulation::{
     constants::*,
-    state::world::grid::{self, Quadrant},
+    state::world::{
+        grid::{self, Quadrant},
+        Area,
+    },
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
 
 pub struct Tower {
+    pub area_map: HashMap<u64, Area>,
     pub floor_map: HashMap<i32, Floor>,
 }
 
 impl Tower {
     pub fn new() -> Self {
+        let area_map = HashMap::new();
         let floor_map = HashMap::new();
 
-        Self { floor_map }
+        Self {
+            area_map,
+            floor_map,
+        }
     }
 
     pub fn reset(tower: &mut Tower) {
+        tower.area_map.clear();
         tower.floor_map.clear();
     }
 

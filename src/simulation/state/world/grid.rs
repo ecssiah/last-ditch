@@ -10,7 +10,7 @@ pub use quadrant::Quadrant;
 
 use crate::{
     simulation::{constants::*, state::physics::box_collider::BoxCollider},
-    utils::ld_math::indexing,
+    utils::ldmath::indexing,
 };
 use ultraviolet::{IVec3, Vec3};
 

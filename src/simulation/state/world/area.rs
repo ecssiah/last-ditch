@@ -7,7 +7,10 @@ pub use connection::Connection;
 pub use kind::Kind;
 pub use style::Style;
 
-use crate::simulation::state::world::grid::Line;
+use crate::{
+    simulation::state::world::grid::{Direction, Line},
+    utils::ldmath::ivec3_ext::rotate_by_direction,
+};
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]
@@ -17,12 +20,37 @@ pub struct Area {
     pub style: Style,
     pub min: IVec3,
     pub max: IVec3,
+    pub direction: Direction,
     pub connection_vec: Vec<Connection>,
 }
 
 impl Area {
     pub fn size(area: &Self) -> IVec3 {
-        area.max + IVec3::one() - area.min
+        area.max - area.min
+    }
+
+    pub fn local_to_world_bounds(min_offset: IVec3, max_offset: IVec3, area: &Self) -> (IVec3, IVec3) {
+        let size = area.max - area.min;
+
+        let min_offset_rotated = rotate_by_direction(min_offset, area.direction);
+        let max_offset_rotated = rotate_by_direction(size + max_offset, area.direction);
+
+        let min_world = area.min + min_offset_rotated;
+        let max_world = area.min + max_offset_rotated;
+
+        let min = IVec3::new(
+            min_world.x.min(max_world.x),
+            min_world.y.min(max_world.y),
+            min_world.z.min(max_world.z),
+        );
+
+        let max = IVec3::new(
+            min_world.x.max(max_world.x),
+            min_world.y.max(max_world.y),
+            min_world.z.max(max_world.z),
+        );
+
+        (min, max)
     }
 
     pub fn find_shared_line(area1: &Self, area2: &Self) -> Option<Line> {

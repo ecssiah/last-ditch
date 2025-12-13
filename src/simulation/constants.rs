@@ -100,3 +100,6 @@ pub const TOWER_RADIUS: usize = WORLD_RADIUS_IN_CELLS - 10;
 pub const TOWER_OUTER_HALL_SIZE: usize = 4;
 pub const TOWER_CENTER_HALL_RADIUS: usize = 3;
 pub const TOWER_AREA_SIZE_MIN: usize = 5;
+
+pub const TOWER_TRADING_PLATFORM_RADIUS_X: usize = 6;
+pub const TOWER_TRADING_PLATFORM_RADIUS_Y: usize = 4;
