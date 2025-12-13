@@ -6,7 +6,7 @@ use crate::{
                 nation::{self, Nation},
                 person::Person,
             }, world::{
-                Area, Tower, area, block, grid::{self, Axis}, object, structure, tower
+                Area, area, block, grid::{self, Axis}, object, structure, tower::{self, Tower}
             }
         },
     },
@@ -95,9 +95,9 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = tower::Floor::new(floor_number, world);
+            let floor = tower::Floor::new(floor_number, &mut world.area_id_generator);
 
-            world.floor_map.insert(floor_number, floor);
+            world.tower.floor_map.insert(floor_number, floor);
         }
     }
 
@@ -105,7 +105,7 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
             
             tracing::info!("Constructing Frame");
             tracing::info!(
@@ -153,7 +153,7 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
         
         for floor_number in -tower_floor_count..0 {
-            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
             
             tracing::info!("Constructing Tower Exterior");
             tracing::info!(
@@ -249,7 +249,7 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
 
             tracing::info!("Subdividing rooms");
             tracing::info!(
@@ -320,8 +320,10 @@ impl GenerateWorldData {
     }
 
     fn construct_areas(world: &mut World) {
-        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
-            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
+
+        for floor_number in -tower_floor_count..0 {
+            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
 
             for (_, area) in floor.area_id_map.clone() {
                 Self::construct_room(&area, world);

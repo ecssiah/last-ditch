@@ -2,15 +2,30 @@ pub mod floor;
 
 pub use floor::Floor;
 
+use std::collections::HashMap;
 use crate::simulation::{
     constants::*,
     state::world::grid::{self, Quadrant},
 };
 use ultraviolet::IVec3;
 
-pub struct Tower {}
+pub struct Tower {
+    pub floor_map: HashMap<i32, Floor>,
+}
 
 impl Tower {
+    pub fn new() -> Self {
+        let floor_map = HashMap::new();
+
+        Self {
+            floor_map,
+        }
+    }
+
+    pub fn reset(tower: &mut Tower) {
+        tower.floor_map.clear();
+    }
+
     pub fn get_floor_z_min(floor_number: i32) -> i32 {
         let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
 

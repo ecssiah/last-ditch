@@ -1,11 +1,9 @@
 use crate::simulation::{
-    state::{
-        world::{
-            area,
-            grid::{Direction, Quadrant},
-            Area, Tower,
-        },
-        World,
+    state::world::{
+        area,
+        grid::{Direction, Quadrant},
+        tower::Tower,
+        Area,
     },
     utils::IDGenerator,
 };
@@ -21,12 +19,12 @@ pub struct Floor {
 }
 
 impl Floor {
-    pub fn new(floor_number: i32, world: &mut World) -> Self {
+    pub fn new(floor_number: i32, area_id_generator: &mut IDGenerator) -> Self {
         let min = Tower::get_floor_min(floor_number);
         let max = Tower::get_floor_max(floor_number);
 
         let center_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Center,
             min: Tower::get_center_min(floor_number),
             max: Tower::get_center_max(floor_number),
@@ -34,7 +32,7 @@ impl Floor {
         };
 
         let center_hall_east_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::East),
             min: Tower::get_center_hall_min(Direction::East, floor_number),
             max: Tower::get_center_hall_max(Direction::East, floor_number),
@@ -42,7 +40,7 @@ impl Floor {
         };
 
         let center_hall_west_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::West),
             min: Tower::get_center_hall_min(Direction::West, floor_number),
             max: Tower::get_center_hall_max(Direction::West, floor_number),
@@ -50,7 +48,7 @@ impl Floor {
         };
 
         let center_hall_north_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::North),
             min: Tower::get_center_hall_min(Direction::North, floor_number),
             max: Tower::get_center_hall_max(Direction::North, floor_number),
@@ -58,7 +56,7 @@ impl Floor {
         };
 
         let center_hall_south_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::South),
             min: Tower::get_center_hall_min(Direction::South, floor_number),
             max: Tower::get_center_hall_max(Direction::South, floor_number),
@@ -66,7 +64,7 @@ impl Floor {
         };
 
         let outer_hall_east_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::East),
             min: Tower::get_outer_hall_main(Direction::East, floor_number),
             max: Tower::get_outer_hall_max(Direction::East, floor_number),
@@ -74,7 +72,7 @@ impl Floor {
         };
 
         let outer_hall_west_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::West),
             min: Tower::get_outer_hall_main(Direction::West, floor_number),
             max: Tower::get_outer_hall_max(Direction::West, floor_number),
@@ -82,7 +80,7 @@ impl Floor {
         };
 
         let outer_hall_north_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::North),
             min: Tower::get_outer_hall_main(Direction::North, floor_number),
             max: Tower::get_outer_hall_max(Direction::North, floor_number),
@@ -90,7 +88,7 @@ impl Floor {
         };
 
         let outer_hall_south_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::South),
             min: Tower::get_outer_hall_main(Direction::South, floor_number),
             max: Tower::get_outer_hall_max(Direction::South, floor_number),
@@ -98,7 +96,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_ne_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::NE),
             min: Tower::get_corner_hall_min(Quadrant::NE, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::NE, floor_number),
@@ -106,7 +104,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_nw_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::NW),
             min: Tower::get_corner_hall_min(Quadrant::NW, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::NW, floor_number),
@@ -114,7 +112,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_sw_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::SW),
             min: Tower::get_corner_hall_min(Quadrant::SW, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::SW, floor_number),
@@ -122,7 +120,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_se_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::SE),
             min: Tower::get_corner_hall_min(Quadrant::SE, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::SE, floor_number),
@@ -130,7 +128,7 @@ impl Floor {
         };
 
         let ne_room_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
             min: Tower::get_quadrant_min(Quadrant::NE, floor_number),
             max: Tower::get_quadrant_max(Quadrant::NE, floor_number),
@@ -138,7 +136,7 @@ impl Floor {
         };
 
         let nw_room_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
             min: Tower::get_quadrant_min(Quadrant::NW, floor_number),
             max: Tower::get_quadrant_max(Quadrant::NW, floor_number),
@@ -146,7 +144,7 @@ impl Floor {
         };
 
         let sw_room_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
             min: Tower::get_quadrant_min(Quadrant::SW, floor_number),
             max: Tower::get_quadrant_max(Quadrant::SW, floor_number),
@@ -154,7 +152,7 @@ impl Floor {
         };
 
         let se_room_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
             min: Tower::get_quadrant_min(Quadrant::SE, floor_number),
             max: Tower::get_quadrant_max(Quadrant::SE, floor_number),

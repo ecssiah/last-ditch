@@ -13,16 +13,12 @@ pub use area::Area;
 pub use cell::Cell;
 pub use object::Object;
 pub use sector::Sector;
-pub use tower::Tower;
 
 use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::box_collider::BoxCollider,
-            population::nation,
-            world::{self, grid::Axis},
-            Time,
+            Time, physics::box_collider::BoxCollider, population::nation, world::{self, grid::Axis, tower::Tower}
         },
         utils::IDGenerator,
     },
@@ -41,7 +37,7 @@ pub struct World {
     pub time: Time,
     pub sector_vec: Vec<world::Sector>,
     pub object_map: HashMap<usize, Vec<Object>>,
-    pub floor_map: HashMap<i32, tower::Floor>,
+    pub tower: Tower,
     pub area_id_generator: IDGenerator,
     pub object_id_generator: IDGenerator,
 }
@@ -52,8 +48,8 @@ impl World {
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let sector_vec = Self::setup_sector_vec();
-        let floor_map = HashMap::new();
         let object_map = Self::setup_object_map();
+        let tower = Tower::new();
         let area_id_generator = IDGenerator::new(100);
         let object_id_generator = IDGenerator::new(100);
 
@@ -62,7 +58,7 @@ impl World {
             rng,
             time,
             sector_vec,
-            floor_map,
+            tower,
             object_map,
             area_id_generator,
             object_id_generator,
@@ -81,7 +77,8 @@ impl World {
 
     pub fn reset(world: &mut Self) {
         world.sector_vec = Self::setup_sector_vec();
-        world.floor_map.clear();
+        
+        Tower::reset(&mut world.tower);
 
         for object_vec in world.object_map.values_mut() {
             object_vec.clear();
