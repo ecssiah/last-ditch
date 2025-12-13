@@ -2,19 +2,15 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
+            State, World, population::{
                 nation::{self, Nation},
                 person::Person,
-            },
-            world::{
-                block,
-                grid::{self, Area, Axis, Connection, Line, Quadrant},
-                object, structure, Tower,
-            },
-            State, World,
+            }, world::{
+                Area, Tower, area, block, grid::{self, Axis}, object, structure, tower
+            }
         },
     },
-    utils::ld_math::rand_chacha_ext::{self, gen_bool, gen_range_i32},
+    utils::ld_math::rand_chacha_ext::{gen_bool, gen_range_i32},
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -54,15 +50,14 @@ impl GenerateWorldData {
                 World::reset(&mut state.world);
             }
             1 => {
+                Self::construct_floor_map(&mut state.world);
                 Self::construct_building_frame(&mut state.world);
                 Self::construct_tower_exterior(&mut state.world);
             }
             2 => {
-                Self::layout_areas(&mut state.world);
-
-                Self::subdivide_areas(&mut state.world);
-                Self::subdivide_areas(&mut state.world);
-                Self::subdivide_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
 
                 // Self::layout_connections(&mut state.world);
 
@@ -96,37 +91,47 @@ impl GenerateWorldData {
         generate_world_data.stage_index >= generate_world_data.stage_cost_map.len()
     }
 
+    fn construct_floor_map(world: &mut World) {
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
+
+        for floor_number in -tower_floor_count..0 {
+            let floor = tower::Floor::new(floor_number, world);
+
+            world.floor_map.insert(floor_number, floor);
+        }
+    }
+
     fn construct_building_frame(world: &mut World) {
-        tracing::info!("Constructing Frame");
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
-        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
-            let floor_min = Tower::get_floor_min(floor_number);
-            let floor_max = Tower::get_floor_max(floor_number);
-
+        for floor_number in -tower_floor_count..0 {
+            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            
+            tracing::info!("Constructing Frame");
             tracing::info!(
                 "Floor: {:?} Min: {:?} Max: {:?}",
-                floor_number,
-                floor_min,
-                floor_max
+                floor.floor_number,
+                floor.min,
+                floor.max,
             );
 
             World::set_cube(
-                floor_min,
-                IVec3::new(floor_max.x, floor_max.y, floor_min.z),
+                floor.min,
+                IVec3::new(floor.max.x, floor.max.y, floor.min.z),
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
 
             World::set_cube(
-                IVec3::new(floor_min.x, floor_min.y, floor_max.z),
-                floor_max,
+                IVec3::new(floor.min.x, floor.min.y, floor.max.z),
+                floor.max,
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
 
             World::set_wireframe_box(
-                floor_min,
-                floor_max,
+                floor.min,
+                floor.max,
                 block::Kind::Caution,
                 &mut world.sector_vec,
             );
@@ -144,28 +149,27 @@ impl GenerateWorldData {
     }
 
     fn construct_tower_exterior(world: &mut World) {
-        tracing::info!("Constructing Tower Exterior");
-
         let tower_radius = TOWER_RADIUS as i32;
-
-        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
-            let floor_min = Tower::get_floor_min(floor_number);
-            let floor_max = Tower::get_floor_max(floor_number);
-
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
+        
+        for floor_number in -tower_floor_count..0 {
+            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            
+            tracing::info!("Constructing Tower Exterior");
             tracing::info!(
                 "Floor: {:?} Min: {:?} Max: {:?}",
-                floor_number,
-                floor_min,
-                floor_max
+                floor.floor_number,
+                floor.min,
+                floor.max,
             );
 
             for y in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
+                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(-tower_radius, y, floor_min.z + 1),
+                        IVec3::new(-tower_radius, y, floor.min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -173,18 +177,18 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
-                        IVec3::new(-tower_radius, y, floor_max.z - 1),
+                        IVec3::new(-tower_radius, y, floor.max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
+                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(tower_radius, y, floor_min.z + 1),
+                        IVec3::new(tower_radius, y, floor.min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -192,7 +196,7 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
-                        IVec3::new(tower_radius, y, floor_max.z - 1),
+                        IVec3::new(tower_radius, y, floor.max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
@@ -201,11 +205,11 @@ impl GenerateWorldData {
 
             for x in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
+                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(x, -tower_radius, floor_min.z + 1),
+                        IVec3::new(x, -tower_radius, floor.min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -213,18 +217,18 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
-                        IVec3::new(x, -tower_radius, floor_max.z - 1),
+                        IVec3::new(x, -tower_radius, floor.max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
+                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(x, tower_radius, floor_min.z + 1),
+                        IVec3::new(x, tower_radius, floor.min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -232,7 +236,7 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
-                        IVec3::new(x, tower_radius, floor_max.z - 1),
+                        IVec3::new(x, tower_radius, floor.max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
@@ -241,170 +245,108 @@ impl GenerateWorldData {
         }
     }
 
-    fn layout_areas(world: &mut World) {
-        tracing::info!("Laying out tower areas");
+    fn subdivide_room_areas(world: &mut World) {       
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
-        for floor_number in -(TOWER_FLOOR_COUNT as i32)..=-1 {
-            tracing::info!("Floor: {:?}", floor_number);
+        for floor_number in -tower_floor_count..0 {
+            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
 
-            let ne_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::NE, floor_number),
-                max: Tower::get_quadrant_max(Quadrant::NE, floor_number),
-                connection_vec: Vec::new(),
-            };
+            tracing::info!("Subdividing rooms");
+            tracing::info!(
+                "Floor: {:?} Min: {:?} Max: {:?}",
+                floor.floor_number,
+                floor.min,
+                floor.max,
+            );
 
-            let nw_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::NW, floor_number),
-                max: Tower::get_quadrant_max(Quadrant::NW, floor_number),
-                connection_vec: Vec::new(),
-            };
+            let room_id_vec: Vec<u64> = floor.area_id_map
+                .iter()
+                .filter(|(_, area)| area.kind == area::Kind::Room)
+                .map(|(area_id, _)| *area_id)
+                .collect();
 
-            let sw_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::SW, floor_number),
-                max: Tower::get_quadrant_max(Quadrant::SW, floor_number),
-                connection_vec: Vec::new(),
-            };
+            let mut new_room_area_map: HashMap<u64, Area> = HashMap::new();
 
-            let se_area = Area {
-                area_id: World::get_next_area_id(world),
-                min: Tower::get_quadrant_min(Quadrant::SE, floor_number),
-                max: Tower::get_quadrant_max(Quadrant::SE, floor_number),
-                connection_vec: Vec::new(),
-            };
+            for area_id in room_id_vec {
+                let area = floor.area_id_map.remove(&area_id).unwrap();
 
-            world.area_map.insert(ne_area.area_id, ne_area);
-            world.area_map.insert(nw_area.area_id, nw_area);
-            world.area_map.insert(sw_area.area_id, sw_area);
-            world.area_map.insert(se_area.area_id, se_area);
-        }
-    }
-
-    fn subdivide_areas(world: &mut World) {
-        let mut area_map_subdivided = HashMap::new();
-
-        let area_size_min = 5;
-
-        for (_, area) in world.area_map.clone() {
-            if gen_bool(&mut world.rng) {
-                let split_point = gen_range_i32(area.min.x + 2, area.max.x - 2, &mut world.rng);
-
-                if split_point - area.min.x + 1 >= area_size_min
-                    && area.max.x - split_point + 1 >= area_size_min
-                {
-                    let area1 = Area {
-                        area_id: World::get_next_area_id(world),
-                        min: area.min,
-                        max: IVec3::new(split_point, area.max.y, area.max.z),
-                        connection_vec: Vec::new(),
-                    };
-
-                    let area2 = Area {
-                        area_id: World::get_next_area_id(world),
-                        min: IVec3::new(split_point, area.min.y, area.min.z),
-                        max: area.max,
-                        connection_vec: Vec::new(),
-                    };
-
-                    area_map_subdivided.insert(area1.area_id, area1);
-                    area_map_subdivided.insert(area2.area_id, area2);
+                if let Some((area1, area2)) = World::subdivide_area(&area, &mut world.area_id_generator, &mut world.rng) {
+                    new_room_area_map.insert(area1.area_id, area1);
+                    new_room_area_map.insert(area2.area_id, area2);
                 } else {
-                    area_map_subdivided.insert(area.area_id, area);
-                }
-            } else {
-                let split_point = gen_range_i32(area.min.y + 2, area.max.y - 2, &mut world.rng);
-
-                if split_point - area.min.y + 1 >= area_size_min
-                    && area.max.y - split_point + 1 >= area_size_min
-                {
-                    let area1 = Area {
-                        area_id: World::get_next_area_id(world),
-                        min: area.min,
-                        max: IVec3::new(area.max.x, split_point, area.max.z),
-                        connection_vec: Vec::new(),
-                    };
-
-                    let area2 = Area {
-                        area_id: World::get_next_area_id(world),
-                        min: IVec3::new(area.min.x, split_point, area.min.z),
-                        max: area.max,
-                        connection_vec: Vec::new(),
-                    };
-
-                    area_map_subdivided.insert(area1.area_id, area1);
-                    area_map_subdivided.insert(area2.area_id, area2);
-                } else {
-                    area_map_subdivided.insert(area.area_id, area);
+                    new_room_area_map.insert(area.area_id, area);
                 }
             }
-        }
 
-        world.area_map = area_map_subdivided;
+            floor.area_id_map.extend(new_room_area_map);
+        }
     }
 
     fn layout_connections(world: &mut World) {
-        let mut connection_candidate_vec = Vec::new();
+        // let mut connection_candidate_vec = Vec::new();
 
-        for (area1_id, area1) in &world.area_map {
-            for (area2_id, area2) in &world.area_map {
-                if area1_id >= area2_id {
-                    continue;
-                }
+        // for (area1_id, area1) in &world.room_area_map {
+        //     for (area2_id, area2) in &world.room_area_map {
+        //         if area1_id >= area2_id {
+        //             continue;
+        //         }
 
-                if let Some(shared_line) = Area::find_shared_line(area1, area2) {
-                    let entrance_vec = vec![Line::midpoint(&shared_line)];
-                    let cost = rand_chacha_ext::gen_f32(&mut world.rng);
+        //         if let Some(shared_line) = Area::find_shared_line(area1, area2) {
+        //             let entrance_vec = vec![Line::midpoint(&shared_line)];
+        //             let cost = rand_chacha_ext::gen_f32(&mut world.rng);
 
-                    let connection_candidate = Connection {
-                        area_id1: *area1_id,
-                        area_id2: *area2_id,
-                        entrance_vec,
-                        line: shared_line,
-                        cost,
-                    };
+        //             let connection_candidate = Connection {
+        //                 area_id1: *area1_id,
+        //                 area_id2: *area2_id,
+        //                 entrance_vec,
+        //                 line: shared_line,
+        //                 cost,
+        //             };
 
-                    connection_candidate_vec.push(connection_candidate);
-                }
-            }
-        }
+        //             connection_candidate_vec.push(connection_candidate);
+        //         }
+        //     }
+        // }
 
-        for connection in connection_candidate_vec {
-            if let Some(area1) = world.area_map.get_mut(&connection.area_id1) {
-                area1.connection_vec.push(connection.clone());
-            }
+        // for connection in connection_candidate_vec {
+        //     if let Some(area1) = world.room_area_map.get_mut(&connection.area_id1) {
+        //         area1.connection_vec.push(connection.clone());
+        //     }
 
-            if let Some(area2) = world.area_map.get_mut(&connection.area_id2) {
-                area2.connection_vec.push(connection.clone());
-            }
-        }
+        //     if let Some(area2) = world.room_area_map.get_mut(&connection.area_id2) {
+        //         area2.connection_vec.push(connection.clone());
+        //     }
+        // }
     }
 
     fn construct_areas(world: &mut World) {
-        for (_, area) in world.area_map.clone() {
-            Self::construct_room(&area, world);
+        for floor_number in -(TOWER_FLOOR_COUNT as i32)..0 {
+            let floor = world.floor_map.get_mut(&floor_number).expect("Floors should exist!");
 
-            for connection in &area.connection_vec {
-                let direction = match connection.line.axis {
-                    Axis::X => grid::Direction::North,
-                    Axis::Y => grid::Direction::East,
-                    Axis::Z => grid::Direction::Up,
-                };
-
-                World::set_cube(
-                    connection.entrance_vec[0] + 1 * IVec3::unit_z(),
-                    connection.entrance_vec[0] + 2 * IVec3::unit_z(),
-                    block::Kind::None,
-                    &mut world.sector_vec,
-                );
-
-                World::set_object(
-                    connection.entrance_vec[0] + 1 * IVec3::unit_z(),
-                    direction,
-                    object::Kind::DoorOpen,
-                    world,
-                );
+            for (_, area) in floor.area_id_map.clone() {
+                Self::construct_room(&area, world);
+    
+                for connection in &area.connection_vec {
+                    let direction = match connection.line.axis {
+                        Axis::X => grid::Direction::North,
+                        Axis::Y => grid::Direction::East,
+                        Axis::Z => grid::Direction::Up,
+                    };
+    
+                    World::set_cube(
+                        connection.entrance_vec[0] + 1 * IVec3::unit_z(),
+                        connection.entrance_vec[0] + 2 * IVec3::unit_z(),
+                        block::Kind::None,
+                        &mut world.sector_vec,
+                    );
+    
+                    World::set_object(
+                        connection.entrance_vec[0] + 1 * IVec3::unit_z(),
+                        direction,
+                        object::Kind::DoorOpen,
+                        world,
+                    );
+                }
             }
         }
     }

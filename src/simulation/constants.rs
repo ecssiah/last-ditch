@@ -99,3 +99,4 @@ pub const TOWER_FLOOR_COUNT: usize = 4;
 pub const TOWER_RADIUS: usize = WORLD_RADIUS_IN_CELLS - 10;
 pub const TOWER_EXTERNAL_HALL_SIZE: usize = 3;
 pub const TOWER_CENTRAL_HALL_RADIUS: usize = 2;
+pub const TOWER_AREA_SIZE_MIN: usize = 5;

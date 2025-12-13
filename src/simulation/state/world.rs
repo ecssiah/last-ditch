@@ -1,5 +1,6 @@
 //! The simulated environment
 
+pub mod area;
 pub mod block;
 pub mod cell;
 pub mod grid;
@@ -8,24 +9,29 @@ pub mod sector;
 pub mod structure;
 pub mod tower;
 
+pub use area::Area;
 pub use cell::Cell;
 pub use object::Object;
 pub use sector::Sector;
 pub use tower::Tower;
 
-use crate::simulation::{
-    constants::*,
-    state::{
-        physics::box_collider::BoxCollider,
-        population::nation,
-        world::{
-            self,
-            grid::{Area, Axis},
+use crate::{
+    simulation::{
+        constants::*,
+        state::{
+            physics::box_collider::BoxCollider,
+            population::nation,
+            world::{self, grid::Axis},
+            Time,
         },
-        Time,
+        utils::IDGenerator,
     },
+    utils::ld_math::rand_chacha_ext::{gen_bool, gen_range_i32},
 };
-use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
+use rand_chacha::{
+    rand_core::{RngCore, SeedableRng},
+    ChaCha8Rng,
+};
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
@@ -35,9 +41,9 @@ pub struct World {
     pub time: Time,
     pub sector_vec: Vec<world::Sector>,
     pub object_map: HashMap<usize, Vec<Object>>,
-    pub area_map: HashMap<u64, Area>,
-    pub next_area_id: u64,
-    pub next_object_id: u64,
+    pub floor_map: HashMap<i32, tower::Floor>,
+    pub area_id_generator: IDGenerator,
+    pub object_id_generator: IDGenerator,
 }
 
 impl World {
@@ -46,21 +52,20 @@ impl World {
         let rng = ChaCha8Rng::seed_from_u64(seed);
         let time = Time::new();
         let sector_vec = Self::setup_sector_vec();
-        let area_map = HashMap::new();
+        let floor_map = HashMap::new();
         let object_map = Self::setup_object_map();
-
-        let next_area_id = 0;
-        let next_object_id = 0;
+        let area_id_generator = IDGenerator::new(100);
+        let object_id_generator = IDGenerator::new(100);
 
         Self {
             active,
             rng,
             time,
             sector_vec,
+            floor_map,
             object_map,
-            area_map,
-            next_area_id,
-            next_object_id,
+            area_id_generator,
+            object_id_generator,
         }
     }
 
@@ -76,27 +81,11 @@ impl World {
 
     pub fn reset(world: &mut Self) {
         world.sector_vec = Self::setup_sector_vec();
-        world.area_map.clear();
+        world.floor_map.clear();
 
         for object_vec in world.object_map.values_mut() {
             object_vec.clear();
         }
-    }
-
-    pub fn get_next_area_id(world: &mut Self) -> u64 {
-        let area_id = world.next_area_id;
-
-        world.next_area_id += 1;
-
-        area_id
-    }
-
-    pub fn get_next_object_id(world: &mut Self) -> u64 {
-        let object_id = world.next_object_id;
-
-        world.next_object_id += 1;
-
-        object_id
     }
 
     pub fn get_flag(
@@ -145,7 +134,7 @@ impl World {
         world: &mut Self,
     ) {
         let object = Object {
-            object_id: World::get_next_object_id(world),
+            object_id: IDGenerator::allocate(&mut world.object_id_generator),
             kind: object_kind,
             grid_position,
             direction,
@@ -599,5 +588,67 @@ impl World {
         }
 
         None
+    }
+
+    pub fn subdivide_area(
+        area: &Area,
+        area_id_generator: &mut IDGenerator,
+        rng: &mut impl RngCore,
+    ) -> Option<(Area, Area)> {
+        let tower_area_size_min = TOWER_AREA_SIZE_MIN as i32;
+
+        if gen_bool(rng) {
+            let split_point = gen_range_i32(area.min.x + 2, area.max.x - 2, rng);
+
+            if split_point - area.min.x + 1 >= tower_area_size_min
+                && area.max.x - split_point + 1 >= tower_area_size_min
+            {
+                let area1 = Area {
+                    area_id: IDGenerator::allocate(area_id_generator),
+                    kind: area::Kind::Room,
+                    min: area.min,
+                    max: IVec3::new(split_point, area.max.y, area.max.z),
+                    connection_vec: Vec::new(),
+                };
+
+                let area2 = Area {
+                    area_id: IDGenerator::allocate(area_id_generator),
+                    kind: area::Kind::Room,
+                    min: IVec3::new(split_point, area.min.y, area.min.z),
+                    max: area.max,
+                    connection_vec: Vec::new(),
+                };
+
+                return Some((area1, area2));
+            } else {
+                return None;
+            }
+        } else {
+            let split_point = gen_range_i32(area.min.y + 2, area.max.y - 2, rng);
+
+            if split_point - area.min.y + 1 >= tower_area_size_min
+                && area.max.y - split_point + 1 >= tower_area_size_min
+            {
+                let area1 = Area {
+                    area_id: IDGenerator::allocate(area_id_generator),
+                    kind: area::Kind::Room,
+                    min: area.min,
+                    max: IVec3::new(area.max.x, split_point, area.max.z),
+                    connection_vec: Vec::new(),
+                };
+
+                let area2 = Area {
+                    area_id: IDGenerator::allocate(area_id_generator),
+                    kind: area::Kind::Room,
+                    min: IVec3::new(area.min.x, split_point, area.min.z),
+                    max: area.max,
+                    connection_vec: Vec::new(),
+                };
+
+                return Some((area1, area2));
+            } else {
+                return None;
+            }
+        }
     }
 }

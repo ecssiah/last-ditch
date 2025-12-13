@@ -1,3 +1,7 @@
+pub mod floor;
+
+pub use floor::Floor;
+
 use crate::simulation::{
     constants::*,
     state::world::grid::{self, Quadrant},
@@ -129,7 +133,7 @@ impl Tower {
         }
     }
 
-    pub fn get_corner_min(quadrant: Quadrant, floor_number: i32) -> IVec3 {
+    pub fn get_corner_hall_min(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
 
@@ -155,7 +159,7 @@ impl Tower {
         }
     }
 
-    pub fn get_corner_max(quadrant: Quadrant, floor_number: i32) -> IVec3 {
+    pub fn get_corner_hall_max(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
 
         let floor_max = Self::get_floor_max(floor_number);
@@ -168,7 +172,7 @@ impl Tower {
         }
     }
 
-    pub fn get_external_hall_min(direction: grid::Direction, floor_number: i32) -> IVec3 {
+    pub fn get_outer_hall_main(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
 
@@ -199,7 +203,7 @@ impl Tower {
         }
     }
 
-    pub fn get_external_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
+    pub fn get_outer_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
 
@@ -230,7 +234,7 @@ impl Tower {
         }
     }
 
-    pub fn get_central_hall_min(direction: grid::Direction, floor_number: i32) -> IVec3 {
+    pub fn get_center_hall_min(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
         let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
@@ -262,7 +266,7 @@ impl Tower {
         }
     }
 
-    pub fn get_central_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
+    pub fn get_center_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
         let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;

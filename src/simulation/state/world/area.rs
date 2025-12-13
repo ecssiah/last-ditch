@@ -1,9 +1,16 @@
-use crate::simulation::state::world::grid::{Connection, Line};
+pub mod connection;
+pub mod kind;
+
+pub use kind::Kind;
+pub use connection::Connection;
+
+use crate::simulation::state::world::grid::{Line};
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct Area {
     pub area_id: u64,
+    pub kind: Kind,
     pub min: IVec3,
     pub max: IVec3,
     pub connection_vec: Vec<Connection>,
