@@ -77,7 +77,7 @@ impl World {
 
     pub fn reset(world: &mut Self) {
         world.sector_vec = Self::setup_sector_vec();
-        
+
         Tower::reset(&mut world.tower);
 
         for object_vec in world.object_map.values_mut() {
@@ -603,6 +603,7 @@ impl World {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::Room,
+                    style: area::Style::GenericRoom,
                     min: area.min,
                     max: IVec3::new(split_point, area.max.y, area.max.z),
                     connection_vec: Vec::new(),
@@ -611,6 +612,7 @@ impl World {
                 let area2 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::Room,
+                    style: area::Style::GenericRoom,
                     min: IVec3::new(split_point, area.min.y, area.min.z),
                     max: area.max,
                     connection_vec: Vec::new(),
@@ -629,6 +631,7 @@ impl World {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::Room,
+                    style: area::Style::GenericRoom,
                     min: area.min,
                     max: IVec3::new(area.max.x, split_point, area.max.z),
                     connection_vec: Vec::new(),
@@ -637,6 +640,7 @@ impl World {
                 let area2 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::Room,
+                    style: area::Style::GenericRoom,
                     min: IVec3::new(area.min.x, split_point, area.min.z),
                     max: area.max,
                     connection_vec: Vec::new(),

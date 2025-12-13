@@ -26,6 +26,7 @@ impl Floor {
         let center_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Center,
+            style: area::Style::None,
             min: Tower::get_center_min(floor_number),
             max: Tower::get_center_max(floor_number),
             connection_vec: Vec::new(),
@@ -34,6 +35,7 @@ impl Floor {
         let center_hall_east_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::East),
+            style: area::Style::None,
             min: Tower::get_center_hall_min(Direction::East, floor_number),
             max: Tower::get_center_hall_max(Direction::East, floor_number),
             connection_vec: Vec::new(),
@@ -42,6 +44,7 @@ impl Floor {
         let center_hall_west_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::West),
+            style: area::Style::None,
             min: Tower::get_center_hall_min(Direction::West, floor_number),
             max: Tower::get_center_hall_max(Direction::West, floor_number),
             connection_vec: Vec::new(),
@@ -50,6 +53,7 @@ impl Floor {
         let center_hall_north_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::North),
+            style: area::Style::None,
             min: Tower::get_center_hall_min(Direction::North, floor_number),
             max: Tower::get_center_hall_max(Direction::North, floor_number),
             connection_vec: Vec::new(),
@@ -58,6 +62,7 @@ impl Floor {
         let center_hall_south_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall(Direction::South),
+            style: area::Style::None,
             min: Tower::get_center_hall_min(Direction::South, floor_number),
             max: Tower::get_center_hall_max(Direction::South, floor_number),
             connection_vec: Vec::new(),
@@ -66,7 +71,8 @@ impl Floor {
         let outer_hall_east_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::East),
-            min: Tower::get_outer_hall_main(Direction::East, floor_number),
+            style: area::Style::None,
+            min: Tower::get_outer_hall_min(Direction::East, floor_number),
             max: Tower::get_outer_hall_max(Direction::East, floor_number),
             connection_vec: Vec::new(),
         };
@@ -74,7 +80,8 @@ impl Floor {
         let outer_hall_west_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::West),
-            min: Tower::get_outer_hall_main(Direction::West, floor_number),
+            style: area::Style::None,
+            min: Tower::get_outer_hall_min(Direction::West, floor_number),
             max: Tower::get_outer_hall_max(Direction::West, floor_number),
             connection_vec: Vec::new(),
         };
@@ -82,7 +89,8 @@ impl Floor {
         let outer_hall_north_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::North),
-            min: Tower::get_outer_hall_main(Direction::North, floor_number),
+            style: area::Style::None,
+            min: Tower::get_outer_hall_min(Direction::North, floor_number),
             max: Tower::get_outer_hall_max(Direction::North, floor_number),
             connection_vec: Vec::new(),
         };
@@ -90,7 +98,8 @@ impl Floor {
         let outer_hall_south_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall(Direction::South),
-            min: Tower::get_outer_hall_main(Direction::South, floor_number),
+            style: area::Style::None,
+            min: Tower::get_outer_hall_min(Direction::South, floor_number),
             max: Tower::get_outer_hall_max(Direction::South, floor_number),
             connection_vec: Vec::new(),
         };
@@ -98,6 +107,7 @@ impl Floor {
         let corner_hall_quadrant_ne_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::NE),
+            style: area::Style::None,
             min: Tower::get_corner_hall_min(Quadrant::NE, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::NE, floor_number),
             connection_vec: Vec::new(),
@@ -106,6 +116,7 @@ impl Floor {
         let corner_hall_quadrant_nw_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::NW),
+            style: area::Style::None,
             min: Tower::get_corner_hall_min(Quadrant::NW, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::NW, floor_number),
             connection_vec: Vec::new(),
@@ -114,6 +125,7 @@ impl Floor {
         let corner_hall_quadrant_sw_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::SW),
+            style: area::Style::None,
             min: Tower::get_corner_hall_min(Quadrant::SW, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::SW, floor_number),
             connection_vec: Vec::new(),
@@ -122,6 +134,7 @@ impl Floor {
         let corner_hall_quadrant_se_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall(Quadrant::SE),
+            style: area::Style::None,
             min: Tower::get_corner_hall_min(Quadrant::SE, floor_number),
             max: Tower::get_corner_hall_max(Quadrant::SE, floor_number),
             connection_vec: Vec::new(),
@@ -130,6 +143,7 @@ impl Floor {
         let ne_room_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
+            style: area::Style::GenericRoom,
             min: Tower::get_quadrant_min(Quadrant::NE, floor_number),
             max: Tower::get_quadrant_max(Quadrant::NE, floor_number),
             connection_vec: Vec::new(),
@@ -138,6 +152,7 @@ impl Floor {
         let nw_room_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
+            style: area::Style::GenericRoom,
             min: Tower::get_quadrant_min(Quadrant::NW, floor_number),
             max: Tower::get_quadrant_max(Quadrant::NW, floor_number),
             connection_vec: Vec::new(),
@@ -146,6 +161,7 @@ impl Floor {
         let sw_room_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
+            style: area::Style::GenericRoom,
             min: Tower::get_quadrant_min(Quadrant::SW, floor_number),
             max: Tower::get_quadrant_max(Quadrant::SW, floor_number),
             connection_vec: Vec::new(),
@@ -154,6 +170,7 @@ impl Floor {
         let se_room_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::Room,
+            style: area::Style::GenericRoom,
             min: Tower::get_quadrant_min(Quadrant::SE, floor_number),
             max: Tower::get_quadrant_max(Quadrant::SE, floor_number),
             connection_vec: Vec::new(),

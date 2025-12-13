@@ -6,7 +6,7 @@ use crate::{
                 nation::{self, Nation},
                 person::Person,
             }, world::{
-                Area, area, block, grid::{self, Axis}, object, structure, tower::{self, Tower}
+                Area, area::{self, template::{ElevatorTemplate, GenericRoomTemplate, Template, WireframeTemplate}}, block, grid::{self, Axis}, object, structure, tower::{self, Tower}
             }
         },
     },
@@ -64,7 +64,7 @@ impl GenerateWorldData {
                 Self::construct_areas(&mut state.world);
             }
             3 => {
-                // Self::construct_elevator_shaft(&mut state.world);
+                Self::construct_elevator_shaft(&mut state.world);
                 // Self::construct_halls(&mut state.world);
 
                 Self::construct_trade_platforms(&mut state.world);
@@ -354,45 +354,39 @@ impl GenerateWorldData {
     }
 
     fn construct_room(area: &Area, world: &mut World) {
-        // World::set_cube(
-        //     area.min,
-        //     IVec3::new(area.max.x, area.max.y, area.min.z),
-        //     block::Kind::CarvedStone1,
-        //     &mut world.sector_vec,
-        // );
-
-        World::set_wireframe_box(
-            area.min,
-            area.max,
-            block::Kind::Metal1,
-            &mut world.sector_vec,
-        );
+        match &area.style {
+            area::Style::None => (),
+            area::Style::Wireframe => WireframeTemplate::construct(area, world),
+            area::Style::GenericRoom => GenericRoomTemplate::construct(area, world),
+            area::Style::Elevator => ElevatorTemplate::construct(area, world),
+        }
     }
 
     fn construct_elevator_shaft(world: &mut World) {
-        // let shaft_radius = CENTRAL_ELEVATOR_SHAFT_RADIUS as i32;
+        let tower_floor_count = TOWER_FLOOR_COUNT as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
 
-        // World::set_shell(
-        //     IVec3::new(
-        //         -shaft_radius,
-        //         -shaft_radius,
-        //         World::get_tower_floor_height(-(LOWER_FLOOR_COUNT as i32)),
-        //     ),
-        //     IVec3::new(shaft_radius, shaft_radius, 6),
-        //     block::Kind::Metal3,
-        //     &mut world.sector_vec,
-        // );
+        World::set_shell(
+            IVec3::new(
+                -tower_central_hall_radius,
+                -tower_central_hall_radius,
+                Tower::get_floor_z_min(-tower_floor_count),
+            ),
+            IVec3::new(tower_central_hall_radius, tower_central_hall_radius, 6),
+            block::Kind::Metal3,
+            &mut world.sector_vec,
+        );
 
-        // World::set_box(
-        //     IVec3::new(
-        //         -(shaft_radius - 2),
-        //         -(shaft_radius - 2),
-        //         World::get_tower_floor_height(-(LOWER_FLOOR_COUNT as i32)) + 1,
-        //     ),
-        //     IVec3::new(shaft_radius - 2, shaft_radius - 2, 5),
-        //     block::Kind::None,
-        //     &mut world.sector_vec,
-        // );
+        World::set_box(
+            IVec3::new(
+                -(tower_central_hall_radius - 2),
+                -(tower_central_hall_radius - 2),
+                Tower::get_floor_z_min(-tower_floor_count + 1),
+            ),
+            IVec3::new(tower_central_hall_radius - 2, tower_central_hall_radius - 2, 5),
+            block::Kind::None,
+            &mut world.sector_vec,
+        );
     }
 
     fn construct_trade_platforms(world: &mut World) {

@@ -19,7 +19,13 @@ impl Kinematic {
     }
 
     pub fn set_flying(flying: bool, kinematic: &mut Self) {
-        kinematic.flying = flying;
+        if flying {
+            kinematic.flying = true;
+            kinematic.speed = 12.0;
+        } else {
+            kinematic.flying = false;
+            kinematic.speed = 6.0;
+        }
     }
 
     pub fn toggle_flying(kinematic: &mut Self) {

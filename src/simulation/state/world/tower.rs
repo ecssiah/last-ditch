@@ -2,11 +2,11 @@ pub mod floor;
 
 pub use floor::Floor;
 
-use std::collections::HashMap;
 use crate::simulation::{
     constants::*,
     state::world::grid::{self, Quadrant},
 };
+use std::collections::HashMap;
 use ultraviolet::IVec3;
 
 pub struct Tower {
@@ -17,9 +17,7 @@ impl Tower {
     pub fn new() -> Self {
         let floor_map = HashMap::new();
 
-        Self {
-            floor_map,
-        }
+        Self { floor_map }
     }
 
     pub fn reset(tower: &mut Tower) {
@@ -67,7 +65,7 @@ impl Tower {
     }
 
     pub fn get_center_min(floor_number: i32) -> IVec3 {
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
 
         IVec3::new(
             -tower_central_hall_radius,
@@ -77,7 +75,7 @@ impl Tower {
     }
 
     pub fn get_center_max(floor_number: i32) -> IVec3 {
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
 
         IVec3::new(
             tower_central_hall_radius,
@@ -88,30 +86,30 @@ impl Tower {
 
     pub fn get_quadrant_min(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_min = Self::get_floor_min(floor_number);
 
         match quadrant {
             Quadrant::NE => IVec3::new(
-                tower_central_hall_radius + 1,
-                tower_central_hall_radius + 1,
+                tower_central_hall_radius,
+                tower_central_hall_radius,
                 floor_min.z,
             ),
             Quadrant::NW => IVec3::new(
-                -tower_radius + tower_external_hall_size + 1,
-                tower_central_hall_radius + 1,
+                -tower_radius + tower_outer_hall_size,
+                tower_central_hall_radius,
                 floor_min.z,
             ),
             Quadrant::SW => IVec3::new(
-                -tower_radius + tower_external_hall_size + 1,
-                -tower_radius + tower_external_hall_size + 1,
+                -tower_radius + tower_outer_hall_size,
+                -tower_radius + tower_outer_hall_size,
                 floor_min.z,
             ),
             Quadrant::SE => IVec3::new(
-                tower_central_hall_radius + 1,
-                -tower_radius + tower_external_hall_size + 1,
+                tower_central_hall_radius,
+                -tower_radius + tower_outer_hall_size,
                 floor_min.z,
             ),
         }
@@ -119,30 +117,30 @@ impl Tower {
 
     pub fn get_quadrant_max(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_max = Self::get_floor_max(floor_number);
 
         match quadrant {
             Quadrant::NE => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                tower_radius - tower_external_hall_size - 1,
+                tower_radius - tower_outer_hall_size,
+                tower_radius - tower_outer_hall_size,
                 floor_max.z,
             ),
             Quadrant::NW => IVec3::new(
-                -tower_central_hall_radius - 1,
-                tower_radius - tower_external_hall_size - 1,
+                -tower_central_hall_radius,
+                tower_radius - tower_outer_hall_size,
                 floor_max.z,
             ),
             Quadrant::SW => IVec3::new(
-                -tower_central_hall_radius - 1,
-                -tower_central_hall_radius - 1,
+                -tower_central_hall_radius,
+                -tower_central_hall_radius,
                 floor_max.z,
             ),
             Quadrant::SE => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                -tower_central_hall_radius - 1,
+                tower_radius - tower_outer_hall_size,
+                -tower_central_hall_radius,
                 floor_max.z,
             ),
         }
@@ -150,25 +148,25 @@ impl Tower {
 
     pub fn get_corner_hall_min(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_min = Self::get_floor_min(floor_number);
 
         match quadrant {
             Quadrant::NE => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                tower_radius - tower_external_hall_size - 1,
+                tower_radius - tower_outer_hall_size,
+                tower_radius - tower_outer_hall_size,
                 floor_min.z,
             ),
             Quadrant::NW => IVec3::new(
-                -tower_radius + 1,
-                tower_radius - tower_external_hall_size - 1,
+                -tower_radius,
+                tower_radius - tower_outer_hall_size,
                 floor_min.z,
             ),
-            Quadrant::SW => IVec3::new(-tower_radius + 1, -tower_radius + 1, floor_min.z),
+            Quadrant::SW => IVec3::new(-tower_radius, -tower_radius, floor_min.z),
             Quadrant::SE => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                -tower_radius + 1,
+                tower_radius - tower_outer_hall_size,
+                -tower_radius,
                 floor_min.z,
             ),
         }
@@ -176,42 +174,59 @@ impl Tower {
 
     pub fn get_corner_hall_max(quadrant: Quadrant, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_max = Self::get_floor_max(floor_number);
 
         match quadrant {
-            Quadrant::NE => IVec3::new(tower_radius - 1, tower_radius - 1, floor_max.z),
-            Quadrant::NW => IVec3::new(-tower_radius + 1, tower_radius - 1, floor_max.z),
-            Quadrant::SW => IVec3::new(-tower_radius + 1, -tower_radius + 1, floor_max.z),
-            Quadrant::SE => IVec3::new(tower_radius - 1, -tower_radius + 1, floor_max.z),
+            Quadrant::NE => IVec3::new(
+                tower_radius,
+                tower_radius,
+                floor_max.z,
+            ),
+            Quadrant::NW => IVec3::new(
+                -tower_radius + tower_outer_hall_size,
+                tower_radius,
+                floor_max.z,
+            ),
+            Quadrant::SW => IVec3::new(
+                -tower_radius + tower_outer_hall_size,
+                -tower_radius + tower_outer_hall_size,
+                floor_max.z,
+            ),
+            Quadrant::SE => IVec3::new(
+                tower_radius,
+                -tower_radius + tower_outer_hall_size,
+                floor_max.z,
+            ),
         }
     }
 
-    pub fn get_outer_hall_main(direction: grid::Direction, floor_number: i32) -> IVec3 {
+    pub fn get_outer_hall_min(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_min = Self::get_floor_min(floor_number);
 
         match direction {
             grid::Direction::East => IVec3::new(
-                tower_radius - tower_external_hall_size,
-                -tower_radius + tower_external_hall_size + 1,
+                tower_radius - tower_outer_hall_size,
+                -tower_radius + tower_outer_hall_size,
                 floor_min.z,
             ),
             grid::Direction::West => IVec3::new(
-                -tower_radius + 1,
-                -tower_radius + tower_external_hall_size + 1,
+                -tower_radius,
+                -tower_radius + tower_outer_hall_size,
                 floor_min.z,
             ),
             grid::Direction::North => IVec3::new(
-                -tower_radius + tower_external_hall_size + 1,
-                tower_radius - tower_external_hall_size,
+                -tower_radius + tower_outer_hall_size,
+                tower_radius - tower_outer_hall_size,
                 floor_min.z,
             ),
             grid::Direction::South => IVec3::new(
-                -tower_radius + tower_external_hall_size + 1,
-                -tower_radius + 1,
+                -tower_radius + tower_outer_hall_size,
+                -tower_radius,
                 floor_min.z,
             ),
             _ => panic!("No external hall in this direction!"),
@@ -220,29 +235,29 @@ impl Tower {
 
     pub fn get_outer_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_max = Self::get_floor_max(floor_number);
 
         match direction {
             grid::Direction::East => IVec3::new(
-                tower_radius - 1,
-                tower_radius - tower_external_hall_size - 1,
+                tower_radius,
+                tower_radius - tower_outer_hall_size,
                 floor_max.z,
             ),
             grid::Direction::West => IVec3::new(
-                -tower_radius + 1,
-                tower_radius - tower_external_hall_size - 1,
+                -tower_radius,
+                tower_radius - tower_outer_hall_size,
                 floor_max.z,
             ),
             grid::Direction::North => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                tower_radius - 1,
+                tower_radius - tower_outer_hall_size,
+                tower_radius,
                 floor_max.z,
             ),
             grid::Direction::South => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
-                -tower_radius + tower_external_hall_size,
+                tower_radius - tower_outer_hall_size,
+                -tower_radius + tower_outer_hall_size,
                 floor_max.z,
             ),
             _ => panic!("No external hall in this direction!"),
@@ -251,30 +266,30 @@ impl Tower {
 
     pub fn get_center_hall_min(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_min = Self::get_floor_min(floor_number);
 
         match direction {
             grid::Direction::East => IVec3::new(
-                tower_central_hall_radius + 1,
+                tower_central_hall_radius,
                 -tower_central_hall_radius,
                 floor_min.z,
             ),
             grid::Direction::West => IVec3::new(
-                -tower_radius + tower_external_hall_size + 1,
+                -tower_radius + tower_outer_hall_size,
                 -tower_central_hall_radius,
                 floor_min.z,
             ),
             grid::Direction::North => IVec3::new(
                 -tower_central_hall_radius,
-                tower_central_hall_radius + 1,
+                tower_central_hall_radius,
                 floor_min.z,
             ),
             grid::Direction::South => IVec3::new(
                 -tower_central_hall_radius,
-                -tower_radius + tower_external_hall_size + 1,
+                -tower_radius + tower_outer_hall_size,
                 floor_min.z,
             ),
             _ => panic!("No internal hall in this direction!"),
@@ -283,30 +298,30 @@ impl Tower {
 
     pub fn get_center_hall_max(direction: grid::Direction, floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
-        let tower_central_hall_radius = TOWER_CENTRAL_HALL_RADIUS as i32;
-        let tower_external_hall_size = TOWER_EXTERNAL_HALL_SIZE as i32;
+        let tower_central_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
+        let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
 
         let floor_max = Self::get_floor_max(floor_number);
 
         match direction {
             grid::Direction::East => IVec3::new(
-                tower_radius - tower_external_hall_size - 1,
+                tower_radius - tower_outer_hall_size,
                 tower_central_hall_radius,
                 floor_max.z,
             ),
             grid::Direction::West => IVec3::new(
-                -tower_central_hall_radius - 1,
+                -tower_central_hall_radius,
                 tower_central_hall_radius,
                 floor_max.z,
             ),
             grid::Direction::North => IVec3::new(
                 tower_central_hall_radius,
-                tower_radius - tower_external_hall_size - 1,
+                tower_radius - tower_outer_hall_size,
                 floor_max.z,
             ),
             grid::Direction::South => IVec3::new(
                 tower_central_hall_radius,
-                -tower_central_hall_radius - 1,
+                -tower_central_hall_radius,
                 floor_max.z,
             ),
             _ => panic!("No internal hall in this direction!"),

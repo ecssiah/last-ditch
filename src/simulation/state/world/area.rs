@@ -1,8 +1,11 @@
 pub mod connection;
 pub mod kind;
+pub mod style;
+pub mod template;
 
 pub use kind::Kind;
 pub use connection::Connection;
+pub use style::Style;
 
 use crate::simulation::state::world::grid::{Line};
 use ultraviolet::IVec3;
@@ -11,6 +14,7 @@ use ultraviolet::IVec3;
 pub struct Area {
     pub area_id: u64,
     pub kind: Kind,
+    pub style: Style,
     pub min: IVec3,
     pub max: IVec3,
     pub connection_vec: Vec<Connection>,
