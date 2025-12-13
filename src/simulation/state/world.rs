@@ -18,7 +18,10 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            Time, physics::box_collider::BoxCollider, population::nation, world::{self, grid::Axis, tower::Tower}
+            physics::box_collider::BoxCollider,
+            population::nation,
+            world::{self, grid::Axis, tower::Tower},
+            Time,
         },
         utils::IDGenerator,
     },

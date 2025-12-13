@@ -3,11 +3,11 @@ pub mod kind;
 pub mod style;
 pub mod template;
 
-pub use kind::Kind;
 pub use connection::Connection;
+pub use kind::Kind;
 pub use style::Style;
 
-use crate::simulation::state::world::grid::{Line};
+use crate::simulation::state::world::grid::Line;
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]

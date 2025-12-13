@@ -179,11 +179,7 @@ impl Tower {
         let floor_max = Self::get_floor_max(floor_number);
 
         match quadrant {
-            Quadrant::NE => IVec3::new(
-                tower_radius,
-                tower_radius,
-                floor_max.z,
-            ),
+            Quadrant::NE => IVec3::new(tower_radius, tower_radius, floor_max.z),
             Quadrant::NW => IVec3::new(
                 -tower_radius + tower_outer_hall_size,
                 tower_radius,

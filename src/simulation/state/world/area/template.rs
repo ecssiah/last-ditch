@@ -6,7 +6,7 @@ pub use elevator_template::ElevatorTemplate;
 pub use generic_room_template::GenericRoomTemplate;
 pub use wireframe_template::WireframeTemplate;
 
-use crate::simulation::state::{World, world::Area};
+use crate::simulation::state::{world::Area, World};
 
 pub trait Template {
     fn construct(area: &Area, world: &mut World);

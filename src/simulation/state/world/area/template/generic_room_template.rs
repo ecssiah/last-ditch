@@ -1,8 +1,9 @@
-use crate::simulation::state::{World, world::{Area, area::template::Template, block}};
+use crate::simulation::state::{
+    world::{area::template::Template, block, Area},
+    World,
+};
 
-pub struct GenericRoomTemplate {
-
-}
+pub struct GenericRoomTemplate {}
 
 impl Template for GenericRoomTemplate {
     fn construct(area: &Area, world: &mut World) {

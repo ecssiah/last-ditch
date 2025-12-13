@@ -5,7 +5,9 @@ pub struct IDGenerator {
 
 impl IDGenerator {
     pub fn new(initial_id: u64) -> Self {
-        Self { next_id: initial_id }
+        Self {
+            next_id: initial_id,
+        }
     }
 
     #[inline]
@@ -22,7 +24,7 @@ impl IDGenerator {
         let start = id_generator.next_id;
 
         id_generator.next_id += count;
-        
+
         start
     }
 }

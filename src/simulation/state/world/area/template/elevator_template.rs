@@ -1,11 +1,15 @@
-use crate::simulation::state::{World, world::{area::template::Template, block}};
+use crate::simulation::state::{
+    world::{area::template::Template, block},
+    World,
+};
 
-pub struct ElevatorTemplate {
-
-}
+pub struct ElevatorTemplate {}
 
 impl Template for ElevatorTemplate {
-    fn construct(area: &crate::simulation::state::world::Area, world: &mut crate::simulation::state::World) {
+    fn construct(
+        area: &crate::simulation::state::world::Area,
+        world: &mut crate::simulation::state::World,
+    ) {
         World::set_wireframe_box(
             area.min,
             area.max,
@@ -14,4 +18,3 @@ impl Template for ElevatorTemplate {
         );
     }
 }
-

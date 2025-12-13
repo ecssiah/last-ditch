@@ -2,12 +2,24 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
+            population::{
                 nation::{self, Nation},
                 person::Person,
-            }, world::{
-                Area, area::{self, template::{ElevatorTemplate, GenericRoomTemplate, Template, WireframeTemplate}}, block, grid::{self, Axis}, object, structure, tower::{self, Tower}
-            }
+            },
+            world::{
+                area::{
+                    self,
+                    template::{
+                        ElevatorTemplate, GenericRoomTemplate, Template, WireframeTemplate,
+                    },
+                },
+                block,
+                grid::{self, Axis},
+                object, structure,
+                tower::{self, Tower},
+                Area,
+            },
+            State, World,
         },
     },
     utils::ld_math::rand_chacha_ext::{gen_bool, gen_range_i32},
@@ -105,8 +117,12 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
-            
+            let floor = world
+                .tower
+                .floor_map
+                .get_mut(&floor_number)
+                .expect("Floors should exist!");
+
             tracing::info!("Constructing Frame");
             tracing::info!(
                 "Floor: {:?} Min: {:?} Max: {:?}",
@@ -151,10 +167,14 @@ impl GenerateWorldData {
     fn construct_tower_exterior(world: &mut World) {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
-        
+
         for floor_number in -tower_floor_count..0 {
-            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
-            
+            let floor = world
+                .tower
+                .floor_map
+                .get_mut(&floor_number)
+                .expect("Floors should exist!");
+
             tracing::info!("Constructing Tower Exterior");
             tracing::info!(
                 "Floor: {:?} Min: {:?} Max: {:?}",
@@ -245,11 +265,15 @@ impl GenerateWorldData {
         }
     }
 
-    fn subdivide_room_areas(world: &mut World) {       
+    fn subdivide_room_areas(world: &mut World) {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            let floor = world
+                .tower
+                .floor_map
+                .get_mut(&floor_number)
+                .expect("Floors should exist!");
 
             tracing::info!("Subdividing rooms");
             tracing::info!(
@@ -259,7 +283,8 @@ impl GenerateWorldData {
                 floor.max,
             );
 
-            let room_id_vec: Vec<u64> = floor.area_id_map
+            let room_id_vec: Vec<u64> = floor
+                .area_id_map
                 .iter()
                 .filter(|(_, area)| area.kind == area::Kind::Room)
                 .map(|(area_id, _)| *area_id)
@@ -270,7 +295,9 @@ impl GenerateWorldData {
             for area_id in room_id_vec {
                 let area = floor.area_id_map.remove(&area_id).unwrap();
 
-                if let Some((area1, area2)) = World::subdivide_area(&area, &mut world.area_id_generator, &mut world.rng) {
+                if let Some((area1, area2)) =
+                    World::subdivide_area(&area, &mut world.area_id_generator, &mut world.rng)
+                {
                     new_room_area_map.insert(area1.area_id, area1);
                     new_room_area_map.insert(area2.area_id, area2);
                 } else {
@@ -323,25 +350,29 @@ impl GenerateWorldData {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
-            let floor = world.tower.floor_map.get_mut(&floor_number).expect("Floors should exist!");
+            let floor = world
+                .tower
+                .floor_map
+                .get_mut(&floor_number)
+                .expect("Floors should exist!");
 
             for (_, area) in floor.area_id_map.clone() {
                 Self::construct_room(&area, world);
-    
+
                 for connection in &area.connection_vec {
                     let direction = match connection.line.axis {
                         Axis::X => grid::Direction::North,
                         Axis::Y => grid::Direction::East,
                         Axis::Z => grid::Direction::Up,
                     };
-    
+
                     World::set_cube(
                         connection.entrance_vec[0] + 1 * IVec3::unit_z(),
                         connection.entrance_vec[0] + 2 * IVec3::unit_z(),
                         block::Kind::None,
                         &mut world.sector_vec,
                     );
-    
+
                     World::set_object(
                         connection.entrance_vec[0] + 1 * IVec3::unit_z(),
                         direction,
@@ -383,7 +414,11 @@ impl GenerateWorldData {
                 -(tower_central_hall_radius - 2),
                 Tower::get_floor_z_min(-tower_floor_count + 1),
             ),
-            IVec3::new(tower_central_hall_radius - 2, tower_central_hall_radius - 2, 5),
+            IVec3::new(
+                tower_central_hall_radius - 2,
+                tower_central_hall_radius - 2,
+                5,
+            ),
             block::Kind::None,
             &mut world.sector_vec,
         );
