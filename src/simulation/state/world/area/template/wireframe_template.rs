@@ -2,6 +2,7 @@ use crate::simulation::state::world::{
     area::template::{self, Template},
     block,
 };
+use ultraviolet::IVec3;
 
 pub struct WireframeTemplate {}
 
@@ -11,9 +12,9 @@ impl Template for WireframeTemplate {
         world: &mut crate::simulation::state::World,
     ) {
         template::set_wireframe(
-            area.grid_position,
+            IVec3::new(0, 0, 0),
             area.size,
-            block::Kind::Metal1,
+            block::Kind::Caution,
             area,
             world,
         );

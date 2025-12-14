@@ -529,64 +529,64 @@ impl World {
         let tower_area_size_min = TOWER_AREA_SIZE_MIN as i32;
 
         if gen_bool(rng) {
-            let split = gen_range_i32(2, area.size.x - 2, rng);
+            let split_position = gen_range_i32(2, area.size.x - 2, rng);
 
-            let left_size = split;
-            let right_size = area.size.x - split + 1;
+            let west_size = split_position;
+            let east_size = area.size.x - split_position + 1;
 
-            if left_size >= tower_area_size_min && right_size >= tower_area_size_min {
-                let area1 = Area {
+            if west_size >= tower_area_size_min && east_size >= tower_area_size_min {
+                let west_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
-                    size: IVec3::new(left_size, area.size.y, area.size.z),
+                    size: IVec3::new(west_size, area.size.y, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
-                let area2 = Area {
+                let east_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    grid_position: area.grid_position + IVec3::new(split - 1, 0, 0),
-                    size: IVec3::new(right_size, area.size.y, area.size.z),
+                    grid_position: area.grid_position + IVec3::new(split_position - 1, 0, 0),
+                    size: IVec3::new(east_size, area.size.y, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
-                return Some((area1, area2));
+                return Some((west_area, east_area));
             } else {
                 return None;
             }
         } else {
-            let split = gen_range_i32(2, area.size.y - 2, rng);
+            let split_position = gen_range_i32(2, area.size.y - 2, rng);
 
-            let bottom_size = split;
-            let top_size = area.size.y - split + 1;
+            let south_size = split_position;
+            let north_size = area.size.y - split_position + 1;
 
-            if bottom_size >= tower_area_size_min && top_size >= tower_area_size_min {
-                let area1 = Area {
+            if south_size >= tower_area_size_min && north_size >= tower_area_size_min {
+                let south_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
-                    size: IVec3::new(area.size.x, bottom_size, area.size.z),
+                    size: IVec3::new(area.size.x, south_size, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
-                let area2 = Area {
+                let north_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    grid_position: area.grid_position + IVec3::new(0, split - 1, 0),
-                    size: IVec3::new(area.size.x, top_size, area.size.z),
+                    grid_position: area.grid_position + IVec3::new(0, split_position - 1, 0),
+                    size: IVec3::new(area.size.x, north_size, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
 
-                return Some((area1, area2));
+                return Some((south_area, north_area));
             } else {
                 return None;
             }

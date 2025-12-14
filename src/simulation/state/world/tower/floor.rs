@@ -33,7 +33,7 @@ impl Floor {
         let center_hall_north_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_center_hall_grid_position(Direction::North, floor_number),
             size: Tower::get_center_hall_size(Direction::North),
             direction: Direction::North,
@@ -43,7 +43,7 @@ impl Floor {
         let center_hall_west_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_center_hall_grid_position(Direction::West, floor_number),
             size: Tower::get_center_hall_size(Direction::West),
             direction: Direction::North,
@@ -53,7 +53,7 @@ impl Floor {
         let center_hall_south_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_center_hall_grid_position(Direction::South, floor_number),
             size: Tower::get_center_hall_size(Direction::South),
             direction: Direction::North,
@@ -63,7 +63,7 @@ impl Floor {
         let center_hall_east_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CenterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_center_hall_grid_position(Direction::East, floor_number),
             size: Tower::get_center_hall_size(Direction::East),
             direction: Direction::North,
@@ -189,11 +189,6 @@ impl Floor {
             direction: Direction::North,
             connection_vec: Vec::new(),
         };
-
-        tracing::warn!("NW: {:?}", nw_room_area.grid_position);
-        tracing::warn!("SW: {:?}", sw_room_area.grid_position);
-        tracing::warn!("SE: {:?}", se_room_area.grid_position);
-        tracing::warn!("NE: {:?}", ne_room_area.grid_position);
 
         let area_kind_map = HashMap::from([
             (area::Kind::Center, center_area.area_id),
