@@ -2,17 +2,25 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
+            population::{
                 nation::{self, Nation},
                 person::Person,
-            }, world::{
-                Area, area::{
-                    self, Connection, template::{
+            },
+            world::{
+                area::{
+                    self,
+                    template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TradingPlatformTemplate, WireframeTemplate,
-                    }
-                }, block, grid::{Direction, Line}, tower::{self, Tower}
-            }
+                    },
+                    Connection,
+                },
+                block,
+                grid::{self, Direction, Line},
+                tower::{self, Tower},
+                Area,
+            },
+            State, World,
         },
         utils::IDGenerator,
     },
@@ -54,9 +62,10 @@ impl GenerateWorldData {
         match generate_world_data.stage_index {
             0 => {
                 World::reset(&mut state.world);
+
+                Self::construct_floor_map(&mut state.world);
             }
             1 => {
-                Self::construct_floor_map(&mut state.world);
                 Self::construct_building_frame(&mut state.world);
                 Self::construct_tower_exterior(&mut state.world);
                 Self::construct_roof(&mut state.world);
@@ -66,7 +75,7 @@ impl GenerateWorldData {
                 Self::subdivide_room_areas(&mut state.world);
                 Self::subdivide_room_areas(&mut state.world);
 
-                Self::layout_connections(&mut state.world);
+                // Self::layout_connections(&mut state.world);
             }
             3 => {
                 Self::construct_areas(&mut state.world);
@@ -100,12 +109,16 @@ impl GenerateWorldData {
     fn construct_building_frame(world: &mut World) {
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
-        let base_min = Tower::get_floor_min(-tower_floor_count);
-        let base_max = Tower::get_floor_max(-tower_floor_count);
+        let floor_size = Tower::get_floor_size();
+
+        let (base_min, base_max) = grid::get_bounds(
+            Tower::get_floor_grid_position(-tower_floor_count) + IVec3::new(0, 0, -1),
+            floor_size,
+        );
 
         World::set_cube(
-            IVec3::new(base_min.x, base_min.y, base_min.z - 1),
-            IVec3::new(base_max.x, base_max.y, base_min.z - 1),
+            base_min,
+            IVec3::new(base_max.x, base_max.y, base_min.z),
             block::Kind::Stone3,
             &mut world.sector_vec,
         );
@@ -117,31 +130,33 @@ impl GenerateWorldData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
+            let (floor_min, floor_max) = grid::get_bounds(floor.grid_position, floor_size);
+
             tracing::info!("Constructing Frame");
             tracing::info!(
-                "Floor: {:?} Min: {:?} Max: {:?}",
+                "Floor: {:?} Position: {:?} Size: {:?}",
                 floor.floor_number,
-                floor.min,
-                floor.max,
+                floor.grid_position,
+                floor_size,
             );
 
             World::set_cube(
-                floor.min,
-                IVec3::new(floor.max.x, floor.max.y, floor.min.z),
+                floor_min,
+                IVec3::new(floor_max.x, floor_max.y, floor_min.z),
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
 
             World::set_cube(
-                IVec3::new(floor.min.x, floor.min.y, floor.max.z),
-                floor.max,
+                IVec3::new(floor_min.x, floor_min.y, floor_max.z),
+                floor_max,
                 block::Kind::Panel2,
                 &mut world.sector_vec,
             );
 
             World::set_wireframe(
-                floor.min,
-                floor.max,
+                floor_min,
+                floor_max,
                 block::Kind::Caution,
                 &mut world.sector_vec,
             );
@@ -159,21 +174,24 @@ impl GenerateWorldData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
+            let floor_size = Tower::get_floor_size();
+
+            let (floor_min, floor_max) = grid::get_bounds(floor.grid_position, floor_size);
+
             tracing::info!("Constructing Tower Exterior");
             tracing::info!(
-                "Floor: {:?} Min: {:?} Max: {:?}",
+                "Floor: {:?} Position: {:?}",
                 floor.floor_number,
-                floor.min,
-                floor.max,
+                floor.grid_position,
             );
 
             for y in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(-tower_radius, y, floor.min.z + 1),
+                        IVec3::new(-tower_radius, y, floor_min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -181,18 +199,18 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
-                        IVec3::new(-tower_radius, y, floor.max.z - 1),
+                        IVec3::new(-tower_radius, y, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(tower_radius, y, floor.min.z + 1),
+                        IVec3::new(tower_radius, y, floor_min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -200,7 +218,7 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
-                        IVec3::new(tower_radius, y, floor.max.z - 1),
+                        IVec3::new(tower_radius, y, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
@@ -209,11 +227,11 @@ impl GenerateWorldData {
 
             for x in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(x, -tower_radius, floor.min.z + 1),
+                        IVec3::new(x, -tower_radius, floor_min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -221,18 +239,18 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
-                        IVec3::new(x, -tower_radius, floor.max.z - 1),
+                        IVec3::new(x, -tower_radius, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor.min.z + 1, floor.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_min.z + 1, floor_max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_cube(
-                        IVec3::new(x, tower_radius, floor.min.z + 1),
+                        IVec3::new(x, tower_radius, floor_min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
@@ -240,7 +258,7 @@ impl GenerateWorldData {
                 } else {
                     World::set_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
-                        IVec3::new(x, tower_radius, floor.max.z - 1),
+                        IVec3::new(x, tower_radius, floor_max.z - 1),
                         block::Kind::Metal3,
                         &mut world.sector_vec,
                     );
@@ -250,11 +268,9 @@ impl GenerateWorldData {
     }
 
     fn construct_roof(world: &mut World) {
-        let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
-        let tower_center_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
+        let floor_size = Tower::get_floor_size();
 
-        let roof_min = Tower::get_floor_min(0);
-        let roof_max = Tower::get_floor_max(0);
+        let (roof_min, roof_max) = grid::get_bounds(Tower::get_floor_grid_position(0), floor_size);
 
         World::set_cube(
             roof_min,
@@ -267,13 +283,9 @@ impl GenerateWorldData {
             area_id: IDGenerator::allocate(&mut world.area_id_generator),
             kind: area::Kind::UpperRoom,
             style: area::Style::ElevatorCap,
-            min: IVec3::new(-tower_center_hall_radius, -tower_center_hall_radius, 0),
-            max: IVec3::new(
-                tower_center_hall_radius,
-                tower_center_hall_radius,
-                tower_floor_height - 1,
-            ),
-            direction: Direction::East,
+            grid_position: Tower::get_center_grid_position(0),
+            size: Tower::get_center_size(),
+            direction: Direction::North,
             connection_vec: Vec::new(),
         };
 
@@ -282,77 +294,74 @@ impl GenerateWorldData {
             .area_map
             .insert(roof_elevator_area.area_id, roof_elevator_area);
 
-        let tower_radius = TOWER_RADIUS as i32;
-        let tower_trading_platform_radius_x = TOWER_TRADING_PLATFORM_RADIUS_X as i32;
-        let tower_trading_platform_radius_y = TOWER_TRADING_PLATFORM_RADIUS_Y as i32;
+        // let tower_radius = TOWER_RADIUS as i32;
 
-        let wolf_trading_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
-            kind: area::Kind::UpperArea,
-            style: area::Style::TradingPlatform,
-            min: IVec3::new(tower_radius + 1, tower_trading_platform_radius_y, 0),
-            max: IVec3::new(
-                tower_radius + 1 + tower_trading_platform_radius_x,
-                -tower_trading_platform_radius_x,
-                0,
-            ),
-            direction: Direction::East,
-            connection_vec: Vec::new(),
-        };
+        // let trading_platform_radius_x = TRADING_PLATFORM_RADIUS_X as i32;
+        // let trading_platform_radius_y = TRADING_PLATFORM_RADIUS_Y as i32;
 
-        let eagle_trading_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
-            kind: area::Kind::UpperArea,
-            style: area::Style::TradingPlatform,
-            min: IVec3::new(-tower_radius - 1, -tower_trading_platform_radius_x, 0),
-            max: IVec3::new(
-                -tower_radius - 1 + tower_trading_platform_radius_y,
-                tower_trading_platform_radius_y,
-                0,
-            ),
-            direction: Direction::East,
-            connection_vec: Vec::new(),
-        };
+        // let mut lion_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        // lion_trading_area.style = area::Style::TradingPlatform;
+        // lion_trading_area.direction = Direction::North;
+        // lion_trading_area.grid_position =
+        //     IVec3::new(-trading_platform_radius_x, tower_radius + 1, 0);
+        // lion_trading_area.size = IVec3::new(
+        //     2 * trading_platform_radius_x + 1,
+        //     2 * trading_platform_radius_y + 1,
+        //     1,
+        // );
 
-        let lion_trading_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
-            kind: area::Kind::UpperArea,
-            style: area::Style::TradingPlatform,
-            min: IVec3::new(tower_radius + 1, tower_trading_platform_radius_x, 0),
-            max: IVec3::new(tower_radius + 1 + tower_trading_platform_radius_y, 0, 0),
-            direction: Direction::East,
-            connection_vec: Vec::new(),
-        };
+        // let mut eagle_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        // eagle_trading_area.style = area::Style::TradingPlatform;
+        // eagle_trading_area.direction = Direction::West;
+        // eagle_trading_area.grid_position =
+        //     IVec3::new(-tower_radius - 1, -trading_platform_radius_x, 0);
+        // eagle_trading_area.size = IVec3::new(
+        //     2 * trading_platform_radius_x + 1,
+        //     2 * trading_platform_radius_y + 1,
+        //     1,
+        // );
 
-        let horse_trading_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
-            kind: area::Kind::UpperArea,
-            style: area::Style::TradingPlatform,
-            min: IVec3::new(tower_radius + 1, tower_trading_platform_radius_x, 0),
-            max: IVec3::new(tower_radius + 1 + tower_trading_platform_radius_y, 0, 0),
-            direction: Direction::East,
-            connection_vec: Vec::new(),
-        };
+        // let mut horse_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        // horse_trading_area.style = area::Style::TradingPlatform;
+        // horse_trading_area.direction = Direction::South;
+        // horse_trading_area.grid_position =
+        //     IVec3::new(-trading_platform_radius_x, -tower_radius - 1, 0);
+        // horse_trading_area.size = IVec3::new(
+        //     2 * trading_platform_radius_x + 1,
+        //     2 * trading_platform_radius_y + 1,
+        //     1,
+        // );
 
-        world
-            .tower
-            .area_map
-            .insert(wolf_trading_area.area_id, wolf_trading_area);
+        // let mut wolf_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        // wolf_trading_area.style = area::Style::TradingPlatform;
+        // wolf_trading_area.direction = Direction::East;
+        // wolf_trading_area.grid_position =
+        //     IVec3::new(tower_radius + 1, trading_platform_radius_y, 0);
+        // wolf_trading_area.size = IVec3::new(
+        //     2 * trading_platform_radius_x + 1,
+        //     2 * trading_platform_radius_y + 1,
+        //     1,
+        // );
 
-        world
-            .tower
-            .area_map
-            .insert(eagle_trading_area.area_id, eagle_trading_area);
+        // world
+        //     .tower
+        //     .area_map
+        //     .insert(lion_trading_area.area_id, lion_trading_area);
 
-        world
-            .tower
-            .area_map
-            .insert(lion_trading_area.area_id, lion_trading_area);
+        // world
+        //     .tower
+        //     .area_map
+        //     .insert(eagle_trading_area.area_id, eagle_trading_area);
 
-        world
-            .tower
-            .area_map
-            .insert(horse_trading_area.area_id, horse_trading_area);
+        // world
+        //     .tower
+        //     .area_map
+        //     .insert(horse_trading_area.area_id, horse_trading_area);
+
+        // world
+        //     .tower
+        //     .area_map
+        //     .insert(wolf_trading_area.area_id, wolf_trading_area);
     }
 
     fn subdivide_room_areas(world: &mut World) {
@@ -367,10 +376,9 @@ impl GenerateWorldData {
 
             tracing::info!("Subdividing rooms");
             tracing::info!(
-                "Floor: {:?} Min: {:?} Max: {:?}",
+                "Floor: {:?} Position: {:?}",
                 floor.floor_number,
-                floor.min,
-                floor.max,
+                floor.grid_position,
             );
 
             let lower_room_id_vec: Vec<u64> = floor
@@ -411,10 +419,9 @@ impl GenerateWorldData {
 
             tracing::info!("Connecting rooms");
             tracing::info!(
-                "Floor: {:?} Min: {:?} Max: {:?}",
+                "Floor: {:?} Position: {:?}",
                 floor.floor_number,
-                floor.min,
-                floor.max,
+                floor.grid_position,
             );
 
             let mut cancidate_connection_vec = Vec::new();

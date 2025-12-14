@@ -13,9 +13,9 @@ pub struct GenericRoomTemplate {}
 
 impl Template for GenericRoomTemplate {
     fn construct(area: &Area, world: &mut World) {
-        template::set_box(
+        template::set_wireframe(
             IVec3::new(0, 0, 0),
-            IVec3::new(0, 0, 0),
+            area.size,
             block::Kind::Metal1,
             area,
             world,

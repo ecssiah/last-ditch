@@ -529,17 +529,18 @@ impl World {
         let tower_area_size_min = TOWER_AREA_SIZE_MIN as i32;
 
         if gen_bool(rng) {
-            let split_point = gen_range_i32(area.min.x + 2, area.max.x - 2, rng);
+            let split = gen_range_i32(2, area.size.x - 2, rng);
 
-            if split_point - area.min.x + 1 >= tower_area_size_min
-                && area.max.x - split_point + 1 >= tower_area_size_min
-            {
+            let left_size = split;
+            let right_size = area.size.x - split + 1;
+
+            if left_size >= tower_area_size_min && right_size >= tower_area_size_min {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    min: area.min,
-                    max: IVec3::new(split_point, area.max.y, area.max.z),
+                    grid_position: area.grid_position,
+                    size: IVec3::new(left_size, area.size.y, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
@@ -548,9 +549,9 @@ impl World {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    min: IVec3::new(split_point, area.min.y, area.min.z),
+                    grid_position: area.grid_position + IVec3::new(split - 1, 0, 0),
+                    size: IVec3::new(right_size, area.size.y, area.size.z),
                     direction: area.direction,
-                    max: area.max,
                     connection_vec: Vec::new(),
                 };
 
@@ -559,17 +560,18 @@ impl World {
                 return None;
             }
         } else {
-            let split_point = gen_range_i32(area.min.y + 2, area.max.y - 2, rng);
+            let split = gen_range_i32(2, area.size.y - 2, rng);
 
-            if split_point - area.min.y + 1 >= tower_area_size_min
-                && area.max.y - split_point + 1 >= tower_area_size_min
-            {
+            let bottom_size = split;
+            let top_size = area.size.y - split + 1;
+
+            if bottom_size >= tower_area_size_min && top_size >= tower_area_size_min {
                 let area1 = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    min: area.min,
-                    max: IVec3::new(area.max.x, split_point, area.max.z),
+                    grid_position: area.grid_position,
+                    size: IVec3::new(area.size.x, bottom_size, area.size.z),
                     direction: area.direction,
                     connection_vec: Vec::new(),
                 };
@@ -578,9 +580,9 @@ impl World {
                     area_id: IDGenerator::allocate(area_id_generator),
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
-                    min: IVec3::new(area.min.x, split_point, area.min.z),
+                    grid_position: area.grid_position + IVec3::new(0, split - 1, 0),
+                    size: IVec3::new(area.size.x, top_size, area.size.z),
                     direction: area.direction,
-                    max: area.max,
                     connection_vec: Vec::new(),
                 };
 

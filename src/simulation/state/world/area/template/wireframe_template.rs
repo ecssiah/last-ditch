@@ -1,6 +1,6 @@
-use crate::simulation::state::{
-    world::{area::template::Template, block},
-    World,
+use crate::simulation::state::world::{
+    area::template::{self, Template},
+    block,
 };
 
 pub struct WireframeTemplate {}
@@ -10,11 +10,12 @@ impl Template for WireframeTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        World::set_wireframe(
-            area.min,
-            area.max,
+        template::set_wireframe(
+            area.grid_position,
+            area.size,
             block::Kind::Metal1,
-            &mut world.sector_vec,
+            area,
+            world,
         );
     }
 }

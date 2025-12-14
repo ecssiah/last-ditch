@@ -1,5 +1,5 @@
 use crate::simulation::state::{
-    world::{area::template::Template, block},
+    world::{area::template::Template, block, grid},
     World,
 };
 use ultraviolet::IVec3;
@@ -11,30 +11,32 @@ impl Template for ElevatorTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
+        let (area_min, area_max) = grid::get_bounds(area.grid_position, area.size);
+
         World::set_box(
-            area.min,
-            area.max,
+            area_min,
+            area_max,
             block::Kind::Metal2,
             &mut world.sector_vec,
         );
 
         World::set_cube(
-            IVec3::new(area.min.x + 2, area.min.y + 0, area.min.z + 1),
-            IVec3::new(area.max.x - 2, area.max.y + 0, area.max.z - 3),
+            IVec3::new(area_min.x + 2, area_min.y + 0, area_min.z + 1),
+            IVec3::new(area_max.x - 2, area_max.y + 0, area_max.z - 3),
             block::Kind::None,
             &mut world.sector_vec,
         );
 
         World::set_cube(
-            IVec3::new(area.min.x + 0, area.min.y + 2, area.min.z + 1),
-            IVec3::new(area.max.x + 0, area.max.y - 2, area.max.z - 3),
+            IVec3::new(area_min.x + 0, area_min.y + 2, area_min.z + 1),
+            IVec3::new(area_max.x + 0, area_max.y - 2, area_max.z - 3),
             block::Kind::None,
             &mut world.sector_vec,
         );
 
         World::set_cube(
-            IVec3::new(area.min.x + 2, area.min.y + 2, area.min.z + 0),
-            IVec3::new(area.max.x - 2, area.max.y - 2, area.max.z + 0),
+            IVec3::new(area_min.x + 2, area_min.y + 2, area_min.z + 0),
+            IVec3::new(area_max.x - 2, area_max.y - 2, area_max.z + 0),
             block::Kind::None,
             &mut world.sector_vec,
         );

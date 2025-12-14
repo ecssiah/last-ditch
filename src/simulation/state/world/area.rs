@@ -8,7 +8,7 @@ pub use kind::Kind;
 pub use style::Style;
 
 use crate::{
-    simulation::state::world::grid::{Direction, Line},
+    simulation::state::world::grid::{self, Direction, Line},
     utils::ldmath::ivec3_ext::rotate_by_direction,
 };
 use ultraviolet::IVec3;
@@ -18,58 +18,56 @@ pub struct Area {
     pub area_id: u64,
     pub kind: Kind,
     pub style: Style,
-    pub min: IVec3,
-    pub max: IVec3,
+    pub grid_position: IVec3,
+    pub size: IVec3,
     pub direction: Direction,
     pub connection_vec: Vec<Connection>,
 }
 
 impl Area {
-    pub fn size(area: &Self) -> IVec3 {
-        area.max - area.min
+    pub fn new(area_id: u64) -> Self {
+        Self {
+            area_id,
+            kind: Kind::UpperArea,
+            style: Style::None,
+            grid_position: IVec3::zero(),
+            size: IVec3::one(),
+            direction: Direction::North,
+            connection_vec: Vec::new(),
+        }
     }
 
-    pub fn local_to_world_bounds(
-        min_offset: IVec3,
-        max_offset: IVec3,
-        area: &Self,
-    ) -> (IVec3, IVec3) {
-        let size = area.max - area.min;
+    pub fn set_local(origin: IVec3, size: IVec3, area: &Self) -> (IVec3, IVec3) {
+        let local_min = origin;
+        let local_max = origin + size - IVec3::one();
 
-        let min_offset_rotated = rotate_by_direction(min_offset, area.direction);
-        let max_offset_rotated = rotate_by_direction(size + max_offset, area.direction);
+        let (area_min, _) = grid::get_bounds(area.grid_position, area.size);
 
-        let min_world = area.min + min_offset_rotated;
-        let max_world = area.min + max_offset_rotated;
+        let a = area_min + rotate_by_direction(local_min, area.direction);
+        let b = area_min + rotate_by_direction(local_max, area.direction);
 
-        let min = IVec3::new(
-            min_world.x.min(max_world.x),
-            min_world.y.min(max_world.y),
-            min_world.z.min(max_world.z),
-        );
-
-        let max = IVec3::new(
-            min_world.x.max(max_world.x),
-            min_world.y.max(max_world.y),
-            min_world.z.max(max_world.z),
-        );
+        let min = IVec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
+        let max = IVec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
 
         (min, max)
     }
 
     pub fn find_shared_line(area1: &Self, area2: &Self) -> Option<Line> {
-        if area1.max.x == area2.min.x || area2.max.x == area1.min.x {
-            let x = if area1.max.x == area2.min.x {
-                area1.max.x
+        let (area1_min, area1_max) = grid::get_bounds(area1.grid_position, area1.size);
+        let (area2_min, area2_max) = grid::get_bounds(area2.grid_position, area2.size);
+
+        if area1_max.x == area2_min.x || area2_max.x == area1_min.x {
+            let x = if area1_max.x == area2_min.x {
+                area1_max.x
             } else {
-                area2.max.x
+                area2_max.x
             };
 
             let y_overlap =
-                Self::interval_overlap(area1.min.y, area1.max.y, area2.min.y, area2.max.y)?;
+                Self::interval_overlap(area1_min.y, area1_max.y, area2_min.y, area2_max.y)?;
 
             let z_overlap =
-                Self::interval_overlap(area1.min.z, area1.max.z, area2.min.z, area2.max.z)?;
+                Self::interval_overlap(area1_min.z, area1_max.z, area2_min.z, area2_max.z)?;
 
             if (y_overlap.1 - y_overlap.0) >= (z_overlap.1 - z_overlap.0) {
                 return Some(Line::new(
@@ -84,18 +82,18 @@ impl Area {
             }
         }
 
-        if area1.max.y == area2.min.y || area2.max.y == area1.min.y {
-            let y = if area1.max.y == area2.min.y {
-                area1.max.y
+        if area1_max.y == area2_min.y || area2_max.y == area1_min.y {
+            let y = if area1_max.y == area2_min.y {
+                area1_max.y
             } else {
-                area2.max.y
+                area2_max.y
             };
 
             let x_overlap =
-                Self::interval_overlap(area1.min.x, area1.max.x, area2.min.x, area2.max.x)?;
+                Self::interval_overlap(area1_min.x, area1_max.x, area2_min.x, area2_max.x)?;
 
             let z_overlap =
-                Self::interval_overlap(area1.min.z, area1.max.z, area2.min.z, area2.max.z)?;
+                Self::interval_overlap(area1_min.z, area1_max.z, area2_min.z, area2_max.z)?;
 
             if (x_overlap.1 - x_overlap.0) >= (z_overlap.1 - z_overlap.0) {
                 return Some(Line::new(
@@ -110,18 +108,18 @@ impl Area {
             }
         }
 
-        if area1.max.z == area2.min.z || area2.max.z == area1.min.z {
-            let z = if area1.max.z == area2.min.z {
-                area1.max.z
+        if area1_max.z == area2_min.z || area2_max.z == area1_min.z {
+            let z = if area1_max.z == area2_min.z {
+                area1_max.z
             } else {
-                area2.max.z
+                area2_max.z
             };
 
             let x_overlap =
-                Self::interval_overlap(area1.min.x, area1.max.x, area2.min.x, area2.max.x)?;
+                Self::interval_overlap(area1_min.x, area1_max.x, area2_min.x, area2_max.x)?;
 
             let y_overlap =
-                Self::interval_overlap(area1.min.y, area1.max.y, area2.min.y, area2.max.y)?;
+                Self::interval_overlap(area1_min.y, area1_max.y, area2_min.y, area2_max.y)?;
 
             if (x_overlap.1 - x_overlap.0) >= (y_overlap.1 - y_overlap.0) {
                 return Some(Line::new(
