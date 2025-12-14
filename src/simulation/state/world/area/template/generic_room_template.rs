@@ -13,13 +13,13 @@ pub struct GenericRoomTemplate {}
 
 impl Template for GenericRoomTemplate {
     fn construct(area: &Area, world: &mut World) {
-        // template::set_wireframe(
-        //     IVec3::new(0, 0, 0),
-        //     area.size,
-        //     block::Kind::Metal1,
-        //     area,
-        //     world,
-        // );
+        template::set_wireframe(
+            IVec3::new(0, 0, 0),
+            area.size,
+            block::Kind::Ornate1,
+            area,
+            world,
+        );
 
         // for connection in &area.connection_vec {
         //     let direction = match connection.line.axis {

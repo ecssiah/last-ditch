@@ -11,12 +11,12 @@ impl Template for WireframeTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        template::set_wireframe(
-            IVec3::new(0, 0, 0),
-            area.size,
-            block::Kind::Caution,
-            area,
-            world,
-        );
+        // template::set_wireframe(
+        //     IVec3::new(0, 0, 0),
+        //     area.size,
+        //     block::Kind::Caution,
+        //     area,
+        //     world,
+        // );
     }
 }

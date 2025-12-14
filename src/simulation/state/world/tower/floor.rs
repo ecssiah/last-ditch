@@ -73,7 +73,7 @@ impl Floor {
         let outer_hall_north_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_outer_hall_grid_position(Direction::North, floor_number),
             size: Tower::get_outer_hall_size(Direction::North),
             direction: Direction::North,
@@ -83,7 +83,7 @@ impl Floor {
         let outer_hall_west_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_outer_hall_grid_position(Direction::West, floor_number),
             size: Tower::get_outer_hall_size(Direction::West),
             direction: Direction::North,
@@ -93,7 +93,7 @@ impl Floor {
         let outer_hall_south_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_outer_hall_grid_position(Direction::South, floor_number),
             size: Tower::get_outer_hall_size(Direction::South),
             direction: Direction::North,
@@ -103,9 +103,19 @@ impl Floor {
         let outer_hall_east_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::OuterHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_outer_hall_grid_position(Direction::East, floor_number),
             size: Tower::get_outer_hall_size(Direction::East),
+            direction: Direction::North,
+            connection_vec: Vec::new(),
+        };
+
+        let corner_hall_quadrant_ne_area = Area {
+            area_id: IDGenerator::allocate(area_id_generator),
+            kind: area::Kind::CornerHall,
+            style: area::Style::Wireframe,
+            grid_position: Tower::get_corner_hall_grid_position(Quadrant::NE, floor_number),
+            size: Tower::get_corner_hall_size(),
             direction: Direction::North,
             connection_vec: Vec::new(),
         };
@@ -113,7 +123,7 @@ impl Floor {
         let corner_hall_quadrant_nw_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_corner_hall_grid_position(Quadrant::NW, floor_number),
             size: Tower::get_corner_hall_size(),
             direction: Direction::North,
@@ -123,7 +133,7 @@ impl Floor {
         let corner_hall_quadrant_sw_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_corner_hall_grid_position(Quadrant::SW, floor_number),
             size: Tower::get_corner_hall_size(),
             direction: Direction::North,
@@ -133,19 +143,19 @@ impl Floor {
         let corner_hall_quadrant_se_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
             kind: area::Kind::CornerHall,
-            style: area::Style::None,
+            style: area::Style::Wireframe,
             grid_position: Tower::get_corner_hall_grid_position(Quadrant::SE, floor_number),
             size: Tower::get_corner_hall_size(),
             direction: Direction::North,
             connection_vec: Vec::new(),
         };
 
-        let corner_hall_quadrant_ne_area = Area {
+        let ne_room_area = Area {
             area_id: IDGenerator::allocate(area_id_generator),
-            kind: area::Kind::CornerHall,
-            style: area::Style::None,
-            grid_position: Tower::get_corner_hall_grid_position(Quadrant::NE, floor_number),
-            size: Tower::get_corner_hall_size(),
+            kind: area::Kind::LowerRoom,
+            style: area::Style::GenericRoom,
+            grid_position: Tower::get_quadrant_grid_position(Quadrant::NE, floor_number),
+            size: Tower::get_quadrant_size(),
             direction: Direction::North,
             connection_vec: Vec::new(),
         };
@@ -175,16 +185,6 @@ impl Floor {
             kind: area::Kind::LowerRoom,
             style: area::Style::GenericRoom,
             grid_position: Tower::get_quadrant_grid_position(Quadrant::SE, floor_number),
-            size: Tower::get_quadrant_size(),
-            direction: Direction::North,
-            connection_vec: Vec::new(),
-        };
-
-        let ne_room_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
-            kind: area::Kind::LowerRoom,
-            style: area::Style::GenericRoom,
-            grid_position: Tower::get_quadrant_grid_position(Quadrant::NE, floor_number),
             size: Tower::get_quadrant_size(),
             direction: Direction::North,
             connection_vec: Vec::new(),
