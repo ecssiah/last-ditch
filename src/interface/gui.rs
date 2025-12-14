@@ -8,7 +8,7 @@ use crate::{
     interface::gpu::gpu_context::GPUContext,
     simulation::{
         manager::{message::SeedData, viewer::View, Message},
-        state::world::grid,
+        state::world::grid::{self, Direction},
     },
 };
 use egui::{FontId, FullOutput, Id, Ui};
@@ -225,15 +225,19 @@ impl GUI {
             );
 
             let sector_coordinate =
-                grid::sector_id_to_sector_coordinate(person_view.spatial.sector_id);
+                grid::world_position_to_sector_coordinate(person_view.spatial.world_position);
 
             let sector_string = format!(
-                "Sector: ({:.0}, {:.0}, {:.0}) ID {:?}\n",
-                sector_coordinate.x,
-                sector_coordinate.y,
-                sector_coordinate.z,
-                person_view.spatial.sector_id,
+                "Sector: ({:.0}, {:.0}, {:.0})\n",
+                sector_coordinate.x, sector_coordinate.y, sector_coordinate.z,
             );
+
+            let direction_string = format!(
+                "Direction: {:?}\n",
+                Direction::from_rotation(person_view.spatial.rotation_xy)
+            );
+
+            println!("{:?}", person_view.spatial.rotation_xy);
 
             let selected_block_kind_string =
                 format!("Selected Block: {:?}\n", person_view.selected_block_kind);
@@ -242,6 +246,7 @@ impl GUI {
             info_message.push_str(&position_string);
             info_message.push_str(&world_position_string);
             info_message.push_str(&sector_string);
+            info_message.push_str(&direction_string);
             info_message.push_str(&selected_block_kind_string);
 
             gui.model.info_message_vec.clear();

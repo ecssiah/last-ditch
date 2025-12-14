@@ -6,8 +6,6 @@ pub struct Spatial {
     pub world_position: Vec3,
     pub rotation_xy: f32,
     pub rotor: Rotor3,
-    pub sector_id: usize,
-    pub sector_updated: bool,
     pub size: Vec3,
     pub body: BoxCollider,
 }
@@ -17,8 +15,6 @@ impl Spatial {
         Self {
             world_position: Vec3::default(),
             rotation_xy: 0.0,
-            sector_id: 0,
-            sector_updated: false,
             size: Vec3::default(),
             body: BoxCollider::default(),
             rotor: Rotor3::default(),
@@ -38,6 +34,7 @@ impl Spatial {
     pub fn set_rotation(rotation_xy: f32, spatial: &mut Self) {
         let rotation_xy_radians = rotation_xy.to_radians();
 
+        spatial.rotation_xy = rotation_xy;
         spatial.rotor = Rotor3::from_rotation_xy(rotation_xy_radians);
     }
 }

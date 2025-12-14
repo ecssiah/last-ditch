@@ -27,46 +27,27 @@ impl Template for TradingPlatformTemplate {
         );
 
         template::set_cube(
-            IVec3::new(2, 2, 2),
-            IVec3::new(3, 1, 1),
-            block::Kind::Ornate1,
+            IVec3::new(1, 2, 1),
+            IVec3::new(1, 1, 2),
+            block::Kind::Server1,
             area,
             world,
         );
 
-        // let (min, max) = Area::local_to_world_bounds(IVec3::zero(), IVec3::zero(), area);
+        template::set_cube(
+            IVec3::new(8, 4, 1),
+            IVec3::new(2, 2, 2),
+            block::Kind::Server2,
+            area,
+            world,
+        );
 
-        // World::set_box(min, max, block::Kind::Metal2, &mut world.sector_vec);
-
-        // let (min, max) =
-        //     Area::local_to_world_bounds(IVec3::new(2, 0, 1), IVec3::new(-2, 0, -3), area);
-
-        // World::set_cube(min, max, block::Kind::None, &mut world.sector_vec);
-
-        // let (min, max) =
-        //     Area::local_to_world_bounds(IVec3::new(0, 2, 1), IVec3::new(0, -2, -3), area);
-
-        // World::set_cube(min, max, block::Kind::None, &mut world.sector_vec);
-
-        // let (min, max) =
-        //     Area::local_to_world_bounds(IVec3::new(2, 2, 0), IVec3::new(-2, -2, 0), area);
-
-        // World::set_cube(min, max, block::Kind::None, &mut world.sector_vec);
-
-        // let (min, max) = Area::local_to_world_bounds(
-        //     IVec3::new(1, 1, area.max.z + 1),
-        //     IVec3::new(-1, -1, 1),
-        //     area,
-        // );
-
-        // World::set_wireframe(min, max, block::Kind::Metal2, &mut world.sector_vec);
-
-        // let (min, max) = Area::local_to_world_bounds(
-        //     IVec3::new(2, 2, area.max.z + 2),
-        //     IVec3::new(-2, -2, 2),
-        //     area,
-        // );
-
-        // World::set_wireframe(min, max, block::Kind::Metal2, &mut world.sector_vec);
+        template::set_cube(
+            IVec3::new(1, 4, 1),
+            IVec3::new(1, 2, 1),
+            block::Kind::Server3,
+            area,
+            world,
+        );
     }
 }

@@ -42,4 +42,33 @@ impl Direction {
             Self::Down => Vec3::new(0.0, 0.0, -1.0),
         }
     }
+
+    pub fn from_rotation(rotation: f32) -> Self {
+        let mut rotation_normalized = rotation % 360.0;
+
+        if rotation_normalized < 0.0 {
+            rotation_normalized += 360.0;
+        }
+
+        match rotation_normalized {
+            rotation_normalized if rotation_normalized < 45.0 || rotation_normalized >= 315.0 => {
+                Direction::North
+            }
+            rotation_normalized if rotation_normalized < 135.0 => Direction::East,
+            rotation_normalized if rotation_normalized < 225.0 => Direction::South,
+            rotation_normalized if rotation_normalized < 315.0 => Direction::West,
+            _ => Direction::North,
+        }
+    }
+
+    pub fn to_string(direction: Direction) -> String {
+        match direction {
+            Direction::North => String::from("North"),
+            Direction::West => String::from("West"),
+            Direction::South => String::from("South"),
+            Direction::East => String::from("East"),
+            Direction::Up => String::from("Up"),
+            Direction::Down => String::from("Down"),
+        }
+    }
 }

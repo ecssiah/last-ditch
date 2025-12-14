@@ -294,74 +294,64 @@ impl GenerateWorldData {
             .area_map
             .insert(roof_elevator_area.area_id, roof_elevator_area);
 
-        // let tower_radius = TOWER_RADIUS as i32;
+        let tower_radius = TOWER_RADIUS as i32;
 
-        // let trading_platform_radius_x = TRADING_PLATFORM_RADIUS_X as i32;
-        // let trading_platform_radius_y = TRADING_PLATFORM_RADIUS_Y as i32;
+        let trading_platform_radius_x = TRADING_PLATFORM_RADIUS_X as i32;
+        let trading_platform_radius_y = TRADING_PLATFORM_RADIUS_Y as i32;
 
-        // let mut lion_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
-        // lion_trading_area.style = area::Style::TradingPlatform;
-        // lion_trading_area.direction = Direction::North;
-        // lion_trading_area.grid_position =
-        //     IVec3::new(-trading_platform_radius_x, tower_radius + 1, 0);
-        // lion_trading_area.size = IVec3::new(
-        //     2 * trading_platform_radius_x + 1,
-        //     2 * trading_platform_radius_y + 1,
-        //     1,
-        // );
+        let trading_platform_size = IVec3::new(
+            2 * trading_platform_radius_x + 1,
+            2 * trading_platform_radius_y + 1,
+            1,
+        );
 
-        // let mut eagle_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
-        // eagle_trading_area.style = area::Style::TradingPlatform;
-        // eagle_trading_area.direction = Direction::West;
-        // eagle_trading_area.grid_position =
-        //     IVec3::new(-tower_radius - 1, -trading_platform_radius_x, 0);
-        // eagle_trading_area.size = IVec3::new(
-        //     2 * trading_platform_radius_x + 1,
-        //     2 * trading_platform_radius_y + 1,
-        //     1,
-        // );
+        let mut lion_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        lion_trading_area.style = area::Style::TradingPlatform;
+        lion_trading_area.direction = Direction::North;
+        lion_trading_area.grid_position =
+            IVec3::new(-trading_platform_radius_x, tower_radius + 1, 0);
+        lion_trading_area.size = trading_platform_size;
 
-        // let mut horse_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
-        // horse_trading_area.style = area::Style::TradingPlatform;
-        // horse_trading_area.direction = Direction::South;
-        // horse_trading_area.grid_position =
-        //     IVec3::new(-trading_platform_radius_x, -tower_radius - 1, 0);
-        // horse_trading_area.size = IVec3::new(
-        //     2 * trading_platform_radius_x + 1,
-        //     2 * trading_platform_radius_y + 1,
-        //     1,
-        // );
+        let mut eagle_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        eagle_trading_area.style = area::Style::TradingPlatform;
+        eagle_trading_area.direction = Direction::West;
+        eagle_trading_area.grid_position =
+            IVec3::new(-tower_radius - 1, -trading_platform_radius_x, 0);
+        eagle_trading_area.size = trading_platform_size;
 
-        // let mut wolf_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
-        // wolf_trading_area.style = area::Style::TradingPlatform;
-        // wolf_trading_area.direction = Direction::East;
-        // wolf_trading_area.grid_position =
-        //     IVec3::new(tower_radius + 1, trading_platform_radius_y, 0);
-        // wolf_trading_area.size = IVec3::new(
-        //     2 * trading_platform_radius_x + 1,
-        //     2 * trading_platform_radius_y + 1,
-        //     1,
-        // );
+        let mut horse_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        horse_trading_area.style = area::Style::TradingPlatform;
+        horse_trading_area.direction = Direction::South;
+        horse_trading_area.grid_position =
+            IVec3::new(trading_platform_radius_x, -tower_radius - 1, 0);
+        horse_trading_area.size = trading_platform_size;
 
-        // world
-        //     .tower
-        //     .area_map
-        //     .insert(lion_trading_area.area_id, lion_trading_area);
+        let mut wolf_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        wolf_trading_area.style = area::Style::TradingPlatform;
+        wolf_trading_area.direction = Direction::East;
+        wolf_trading_area.grid_position =
+            IVec3::new(tower_radius + 1, trading_platform_radius_x, 0);
+        wolf_trading_area.size = trading_platform_size;
 
-        // world
-        //     .tower
-        //     .area_map
-        //     .insert(eagle_trading_area.area_id, eagle_trading_area);
+        world
+            .tower
+            .area_map
+            .insert(lion_trading_area.area_id, lion_trading_area);
 
-        // world
-        //     .tower
-        //     .area_map
-        //     .insert(horse_trading_area.area_id, horse_trading_area);
+        world
+            .tower
+            .area_map
+            .insert(eagle_trading_area.area_id, eagle_trading_area);
 
-        // world
-        //     .tower
-        //     .area_map
-        //     .insert(wolf_trading_area.area_id, wolf_trading_area);
+        world
+            .tower
+            .area_map
+            .insert(horse_trading_area.area_id, horse_trading_area);
+
+        world
+            .tower
+            .area_map
+            .insert(wolf_trading_area.area_id, wolf_trading_area);
     }
 
     fn subdivide_room_areas(world: &mut World) {
