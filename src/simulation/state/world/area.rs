@@ -1,9 +1,11 @@
 pub mod connection;
+pub mod contact;
 pub mod kind;
 pub mod style;
 pub mod template;
 
 pub use connection::Connection;
+pub use contact::Contact;
 pub use kind::Kind;
 pub use style::Style;
 
@@ -52,7 +54,7 @@ impl Area {
         (min, max)
     }
 
-    pub fn find_shared_line(area1: &Self, area2: &Self) -> Option<Line> {
+    pub fn find_contact(area1: &Self, area2: &Self) -> Option<Contact> {
         let (area1_min, area1_max) = grid::get_bounds(area1.grid_position, area1.size);
         let (area2_min, area2_max) = grid::get_bounds(area2.grid_position, area2.size);
 
@@ -69,17 +71,13 @@ impl Area {
             let z_overlap =
                 Self::interval_overlap(area1_min.z, area1_max.z, area2_min.z, area2_max.z)?;
 
-            if (y_overlap.1 - y_overlap.0) >= (z_overlap.1 - z_overlap.0) {
-                return Some(Line::new(
-                    IVec3::new(x, y_overlap.0, z_overlap.0),
-                    IVec3::new(x, y_overlap.1, z_overlap.0),
-                ));
-            } else {
-                return Some(Line::new(
-                    IVec3::new(x, y_overlap.0, z_overlap.0),
-                    IVec3::new(x, y_overlap.0, z_overlap.1),
-                ));
-            }
+            let contact = Contact::X {
+                x,
+                y_range: y_overlap,
+                z_range: z_overlap,
+            };
+
+            return Some(contact);
         }
 
         if area1_max.y == area2_min.y || area2_max.y == area1_min.y {
@@ -95,17 +93,13 @@ impl Area {
             let z_overlap =
                 Self::interval_overlap(area1_min.z, area1_max.z, area2_min.z, area2_max.z)?;
 
-            if (x_overlap.1 - x_overlap.0) >= (z_overlap.1 - z_overlap.0) {
-                return Some(Line::new(
-                    IVec3::new(x_overlap.0, y, z_overlap.0),
-                    IVec3::new(x_overlap.1, y, z_overlap.0),
-                ));
-            } else {
-                return Some(Line::new(
-                    IVec3::new(x_overlap.0, y, z_overlap.0),
-                    IVec3::new(x_overlap.0, y, z_overlap.1),
-                ));
-            }
+            let contact = Contact::Y {
+                y,
+                x_range: x_overlap,
+                z_range: z_overlap,
+            };
+
+            return Some(contact);
         }
 
         if area1_max.z == area2_min.z || area2_max.z == area1_min.z {
@@ -121,20 +115,58 @@ impl Area {
             let y_overlap =
                 Self::interval_overlap(area1_min.y, area1_max.y, area2_min.y, area2_max.y)?;
 
-            if (x_overlap.1 - x_overlap.0) >= (y_overlap.1 - y_overlap.0) {
-                return Some(Line::new(
-                    IVec3::new(x_overlap.0, y_overlap.0, z),
-                    IVec3::new(x_overlap.1, y_overlap.0, z),
-                ));
-            } else {
-                return Some(Line::new(
-                    IVec3::new(x_overlap.0, y_overlap.0, z),
-                    IVec3::new(x_overlap.0, y_overlap.1, z),
-                ));
-            }
+            let contact = Contact::Z {
+                z,
+                x_range: x_overlap,
+                y_range: y_overlap,
+            };
+
+            return Some(contact);
         }
 
         None
+    }
+
+    pub fn find_ground_line(ground_level: i32, length_min: i32, contact: Contact) -> Option<Line> {
+        match contact {
+            Contact::X {
+                x,
+                y_range,
+                z_range,
+            } => {
+                if ground_level < z_range.0 || ground_level > z_range.1 {
+                    return None;
+                }
+
+                if y_range.1 - y_range.0 < length_min - 1 {
+                    return None;
+                }
+
+                Some(Line::new(
+                    IVec3::new(x, y_range.0, ground_level),
+                    IVec3::new(x, y_range.1, ground_level),
+                ))
+            }
+            Contact::Y {
+                y,
+                x_range,
+                z_range,
+            } => {
+                if ground_level < z_range.0 || ground_level > z_range.1 {
+                    return None;
+                }
+
+                if x_range.1 - x_range.0 < length_min - 1 {
+                    return None;
+                }
+
+                Some(Line::new(
+                    IVec3::new(x_range.0, y, ground_level),
+                    IVec3::new(x_range.1, y, ground_level),
+                ))
+            }
+            Contact::Z { .. } => None,
+        }
     }
 
     fn interval_overlap(a0: i32, a1: i32, b0: i32, b1: i32) -> Option<(i32, i32)> {

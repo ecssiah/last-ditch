@@ -32,11 +32,11 @@ impl Tower {
         tower.area_map.clear();
         tower.floor_map.clear();
     }
-    
+
     pub fn get_floor_grid_position(floor_number: i32) -> IVec3 {
         let tower_radius = TOWER_RADIUS as i32;
         let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
-        
+
         IVec3::new(
             -tower_radius,
             -tower_radius,
@@ -53,7 +53,7 @@ impl Tower {
             TOWER_FLOOR_HEIGHT as i32,
         )
     }
-    
+
     pub fn get_center_grid_position(floor_number: i32) -> IVec3 {
         let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
         let tower_center_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
@@ -112,7 +112,7 @@ impl Tower {
         let tower_floor_height = TOWER_FLOOR_HEIGHT as i32;
         let tower_center_hall_radius = TOWER_CENTER_HALL_RADIUS as i32;
         let tower_outer_hall_size = TOWER_OUTER_HALL_SIZE as i32;
- 
+
         match direction {
             Direction::North | Direction::South => IVec3::new(
                 2 * tower_center_hall_radius + 1,

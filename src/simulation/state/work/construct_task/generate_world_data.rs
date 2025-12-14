@@ -75,7 +75,7 @@ impl GenerateWorldData {
                 Self::subdivide_room_areas(&mut state.world);
                 Self::subdivide_room_areas(&mut state.world);
 
-                // Self::layout_connections(&mut state.world);
+                Self::layout_connections(&mut state.world);
             }
             3 => {
                 Self::construct_areas(&mut state.world);
@@ -432,19 +432,23 @@ impl GenerateWorldData {
                         continue;
                     }
 
-                    if let Some(shared_line) = Area::find_shared_line(area1, area2) {
-                        let entrance_vec = vec![Line::midpoint(&shared_line)];
-                        let cost = rand_chacha_ext::gen_f32(&mut world.rng);
+                    if let Some(contact) = Area::find_contact(area1, area2) {
+                        if let Some(line) =
+                            Area::find_ground_line(floor.grid_position.z, 3, contact)
+                        {
+                            let entrance_vec = vec![Line::midpoint(&line)];
+                            let cost = rand_chacha_ext::gen_f32(&mut world.rng);
 
-                        let connection_candidate = Connection {
-                            area_id1: *area1_id,
-                            area_id2: *area2_id,
-                            entrance_vec,
-                            line: shared_line,
-                            cost,
-                        };
+                            let connection_candidate = Connection {
+                                area_id1: *area1_id,
+                                area_id2: *area2_id,
+                                entrance_vec,
+                                line,
+                                cost,
+                            };
 
-                        cancidate_connection_vec.push(connection_candidate.clone());
+                            cancidate_connection_vec.push(connection_candidate.clone());
+                        }
                     }
                 }
             }
