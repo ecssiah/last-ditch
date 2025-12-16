@@ -537,6 +537,7 @@ impl World {
             if west_size >= tower_area_size_min && east_size >= tower_area_size_min {
                 let west_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    floor_number: area.floor_number,
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
@@ -547,6 +548,7 @@ impl World {
 
                 let east_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    floor_number: area.floor_number,
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position + IVec3::new(split_position - 1, 0, 0),
@@ -568,6 +570,7 @@ impl World {
             if south_size >= tower_area_size_min && north_size >= tower_area_size_min {
                 let south_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    floor_number: area.floor_number,
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
@@ -578,6 +581,7 @@ impl World {
 
                 let north_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    floor_number: area.floor_number,
                     kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position + IVec3::new(0, split_position - 1, 0),

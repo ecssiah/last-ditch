@@ -11,7 +11,7 @@ pub mod spatial;
 use crate::simulation::{
     constants::{
         INITIAL_PERSON_ID, JUDGE_DEFAULT_SIZE_X, JUDGE_DEFAULT_SIZE_Y, JUDGE_DEFAULT_SIZE_Z,
-        JUDGE_ID_0,
+        JUDGE_ID_0, TOWER_RADIUS,
     },
     state::population::{
         leadership::Leadership, nation::Nation, person::Person, sight::Sight, spatial::Spatial,
@@ -77,22 +77,24 @@ impl Population {
     }
 
     fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
-        let home_radius = 20;
+        let tower_radius = TOWER_RADIUS as i32;
+
+        let home_radius = tower_radius - 6;
 
         let wolf_nation = Nation {
-            home_position: IVec3::new(home_radius, 0, 0),
+            home_position: IVec3::new(home_radius, 0, 6),
         };
 
         let lion_nation = Nation {
-            home_position: IVec3::new(-home_radius, 0, 0),
+            home_position: IVec3::new(-home_radius, 0, 6),
         };
 
         let eagle_nation = Nation {
-            home_position: IVec3::new(0, home_radius, 0),
+            home_position: IVec3::new(0, home_radius, 6),
         };
 
         let horse_nation = Nation {
-            home_position: IVec3::new(0, -home_radius, 0),
+            home_position: IVec3::new(0, -home_radius, 6),
         };
 
         let nation_map = HashMap::from([

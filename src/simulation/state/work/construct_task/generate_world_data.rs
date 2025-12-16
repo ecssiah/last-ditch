@@ -281,6 +281,7 @@ impl GenerateWorldData {
 
         let roof_elevator_area = Area {
             area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            floor_number: 0,
             kind: area::Kind::UpperRoom,
             style: area::Style::ElevatorCap,
             grid_position: Tower::get_center_grid_position(0),

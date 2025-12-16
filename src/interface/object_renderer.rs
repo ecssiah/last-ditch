@@ -19,14 +19,14 @@ use crate::{
     },
 };
 use obj::{load_obj, TexturedVertex};
-use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
+use std::{collections::HashMap, fs::File, io::BufReader, sync::Arc};
 
 pub struct ObjectRenderer {
     pub object_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
     pub object_instance_buffer: wgpu::Buffer,
     pub object_instance_data_group_vec: Vec<(String, Vec<ObjectInstanceData>)>,
     pub object_texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub object_texture_bind_group_arc_map: HashMap<String, Arc<wgpu::BindGroup>>,
+    pub object_atlas_bind_group: Arc<wgpu::BindGroup>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -47,8 +47,15 @@ impl ObjectRenderer {
         let object_texture_bind_group_layout =
             Self::create_object_texture_bind_group_layout(&gpu_context.device);
 
-        let object_texture_bind_group_arc_map =
-            Self::load_object_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
+        let gpu_texture_data = pollster::block_on(Self::load_texture_data(
+            &gpu_context.device,
+            &gpu_context.queue,
+            "assets/textures/object/object_atlas_0.png",
+            "object_atlas_0",
+        ));
+
+        let object_atlas_bind_group =
+            Arc::new(Self::create_texture_bind_group(&gpu_context.device, &gpu_texture_data));
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -61,7 +68,7 @@ impl ObjectRenderer {
             object_instance_buffer,
             object_instance_data_group_vec,
             object_texture_bind_group_layout,
-            object_texture_bind_group_arc_map,
+            object_atlas_bind_group,
             render_pipeline,
         }
     }
@@ -92,7 +99,7 @@ impl ObjectRenderer {
                                     .map(|vertex: &TexturedVertex| ObjectVertex {
                                         position: vertex.position,
                                         normal: vertex.normal,
-                                        uv: [vertex.texture[0], vertex.texture[1]],
+                                        uv: [vertex.texture[0], 1.0 - vertex.texture[1]],
                                     })
                                     .collect(),
                                 index_vec: model.indices,
@@ -140,41 +147,6 @@ impl ObjectRenderer {
         })
     }
 
-    fn load_object_texture_bind_group_arc_map(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-    ) -> HashMap<String, Arc<wgpu::BindGroup>> {
-        let mut texture_bind_group_map = HashMap::new();
-
-        let object_textures_path = std::path::Path::new("assets/textures/object");
-
-        let mut object_textures_directory_iterator = std::fs::read_dir(object_textures_path)
-            .expect("Failed to read Object textures directory");
-
-        while let Some(Ok(object_texture_entry)) = object_textures_directory_iterator.next() {
-            let path = object_texture_entry.path();
-
-            if path.extension().and_then(|extension| extension.to_str()) == Some("png") {
-                let file_stem = path.file_stem().unwrap().to_str().unwrap();
-
-                let gpu_texture_data = pollster::block_on(Self::load_texture_data(
-                    device,
-                    queue,
-                    path.to_str().unwrap(),
-                    file_stem,
-                ));
-
-                let texture_bind_group =
-                    Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
-
-                texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
-
-                tracing::info!("{}.png loaded", file_stem);
-            }
-        }
-
-        texture_bind_group_map
-    }
 
     pub fn create_texture_bind_group(
         device: &wgpu::Device,
@@ -443,6 +415,7 @@ impl ObjectRenderer {
 
         render_pass.set_pipeline(&object_renderer.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
+        render_pass.set_bind_group(1, object_renderer.object_atlas_bind_group.as_ref(), &[]);
 
         let mut offset_bytes = 0;
 
@@ -466,21 +439,12 @@ impl ObjectRenderer {
                     .unwrap(),
             );
 
-            let texture_bind_group_arc = Arc::clone(
-                object_renderer
-                    .object_texture_bind_group_arc_map
-                    .get(object_model_name)
-                    .unwrap(),
-            );
-
             render_pass.set_vertex_buffer(
                 1,
                 object_renderer
                     .object_instance_buffer
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
-
-            render_pass.set_bind_group(1, texture_bind_group_arc.deref(), &[]);
 
             render_pass.set_vertex_buffer(0, object_gpu_mesh_arc.vertex_buffer.slice(..));
 

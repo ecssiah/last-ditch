@@ -65,7 +65,7 @@ impl GeneratePopulationData {
                 let offset = IVec3::new(
                     gen_range_i32(-4, 4, &mut population.rng),
                     gen_range_i32(-4, 4, &mut population.rng),
-                    0,
+                    1,
                 );
 
                 let person_id = Population::get_next_entity_id(population);

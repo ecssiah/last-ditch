@@ -44,19 +44,15 @@ impl Direction {
     }
 
     pub fn from_rotation(rotation: f32) -> Self {
-        let mut rotation_normalized = rotation % 360.0;
-
-        if rotation_normalized < 0.0 {
-            rotation_normalized += 360.0;
-        }
+        let rotation_normalized = rotation.rem_euclid(360.0);
 
         match rotation_normalized {
             rotation_normalized if rotation_normalized < 45.0 || rotation_normalized >= 315.0 => {
                 Direction::North
             }
-            rotation_normalized if rotation_normalized < 135.0 => Direction::East,
+            rotation_normalized if rotation_normalized < 135.0 => Direction::West,
             rotation_normalized if rotation_normalized < 225.0 => Direction::South,
-            rotation_normalized if rotation_normalized < 315.0 => Direction::West,
+            rotation_normalized if rotation_normalized < 315.0 => Direction::East,
             _ => Direction::North,
         }
     }

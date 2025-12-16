@@ -1,6 +1,11 @@
-use crate::simulation::state::world::{
-    area::template::{self, Template},
-    block,
+use crate::simulation::state::{
+    world::{
+        area::template::{self, Template},
+        block,
+        grid::{self, Direction},
+        object,
+    },
+    World,
 };
 use ultraviolet::IVec3;
 
@@ -50,6 +55,15 @@ impl Template for ElevatorCapTemplate {
             IVec3::new(area.size.x - 4, area.size.y - 4, 1),
             block::Kind::Metal2,
             area,
+            world,
+        );
+
+        let (area_min, _) = grid::get_bounds(area.grid_position, area.size);
+
+        World::set_object(
+            IVec3::new(area_min.x + 2, area_min.y + 2, area_min.z),
+            Direction::South,
+            object::Kind::Platform,
             world,
         );
     }

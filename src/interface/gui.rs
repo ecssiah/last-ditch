@@ -237,8 +237,6 @@ impl GUI {
                 Direction::from_rotation(person_view.spatial.rotation_xy)
             );
 
-            println!("{:?}", person_view.spatial.rotation_xy);
-
             let selected_block_kind_string =
                 format!("Selected Block: {:?}\n", person_view.selected_block_kind);
 
