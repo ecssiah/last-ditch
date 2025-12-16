@@ -1,5 +1,7 @@
 use ultraviolet::Vec3;
 
+use crate::simulation::state::world::grid::Direction;
+
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum Axis {
@@ -20,6 +22,14 @@ impl Axis {
             Self::X => Vec3::unit_x(),
             Self::Y => Vec3::unit_y(),
             Self::Z => Vec3::unit_z(),
+        }
+    }
+
+    pub fn to_direction(axis: Self) -> Direction {
+        match axis {
+            Self::X => Direction::East,
+            Self::Y => Direction::North,
+            Self::Z => Direction::Up,
         }
     }
 }

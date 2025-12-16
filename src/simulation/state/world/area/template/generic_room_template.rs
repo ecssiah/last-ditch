@@ -59,14 +59,14 @@ impl Template for GenericRoomTemplate {
             };
 
             World::set_cube(
+                connection.entrance_vec[0] + 0 * IVec3::unit_z(),
                 connection.entrance_vec[0] + 1 * IVec3::unit_z(),
-                connection.entrance_vec[0] + 2 * IVec3::unit_z(),
                 block::Kind::None,
                 &mut world.sector_vec,
             );
 
             World::set_object(
-                connection.entrance_vec[0] + 1 * IVec3::unit_z(),
+                connection.entrance_vec[0] + 0 * IVec3::unit_z(),
                 direction,
                 if gen_bool(&mut world.rng) {
                     object::Kind::DoorOpen

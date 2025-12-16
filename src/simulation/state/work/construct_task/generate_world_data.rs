@@ -425,7 +425,7 @@ impl GenerateWorldData {
 
                     if let Some(contact) = Area::find_contact(area1, area2) {
                         if let Some(line) =
-                            Area::find_ground_line(floor.grid_position.z, 3, contact)
+                            Area::find_ground_line(floor.grid_position.z + 1, 3, contact)
                         {
                             let entrance_vec = vec![Line::midpoint(&line)];
                             let cost = rand_chacha_ext::gen_f32(&mut world.rng);
