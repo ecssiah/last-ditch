@@ -80,21 +80,22 @@ impl Population {
         let tower_radius = TOWER_RADIUS as i32;
 
         let home_radius = tower_radius - 6;
+        let home_height = 0;
 
         let wolf_nation = Nation {
-            home_position: IVec3::new(home_radius, 0, 6),
+            home_position: IVec3::new(home_radius, 0, home_height),
         };
 
         let lion_nation = Nation {
-            home_position: IVec3::new(-home_radius, 0, 6),
+            home_position: IVec3::new(-home_radius, 0, home_height),
         };
 
         let eagle_nation = Nation {
-            home_position: IVec3::new(0, home_radius, 6),
+            home_position: IVec3::new(0, home_radius, home_height),
         };
 
         let horse_nation = Nation {
-            home_position: IVec3::new(0, -home_radius, 6),
+            home_position: IVec3::new(0, -home_radius, home_height),
         };
 
         let nation_map = HashMap::from([

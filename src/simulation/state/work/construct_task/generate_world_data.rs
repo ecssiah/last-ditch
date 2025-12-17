@@ -415,7 +415,7 @@ impl GenerateWorldData {
                 floor.grid_position,
             );
 
-            let mut cancidate_connection_vec = Vec::new();
+            let mut candidate_connection_vec = Vec::new();
 
             for (area1_id, area1) in &floor.area_id_map {
                 for (area2_id, area2) in &floor.area_id_map {
@@ -438,13 +438,13 @@ impl GenerateWorldData {
                                 cost,
                             };
 
-                            cancidate_connection_vec.push(connection_candidate.clone());
+                            candidate_connection_vec.push(connection_candidate.clone());
                         }
                     }
                 }
             }
 
-            for connection in cancidate_connection_vec {
+            for connection in candidate_connection_vec {
                 if let Some(area1) = floor.area_id_map.get_mut(&connection.area_id1) {
                     area1.connection_vec.push(connection.clone());
                 }

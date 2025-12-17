@@ -22,7 +22,7 @@ pub struct PopulationRenderer {
     pub person_instance_buffer: wgpu::Buffer,
     pub person_instance_data_group_vec: Vec<(String, Vec<PersonInstanceData>)>,
     pub person_texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub person_texture_bind_group_arc_map: HashMap<String, Arc<wgpu::BindGroup>>,
+    pub population_atlas_bind_group: Arc<wgpu::BindGroup>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -43,8 +43,10 @@ impl PopulationRenderer {
         let person_texture_bind_group_layout =
             Self::create_person_texture_bind_group_layout(&gpu_context.device);
 
-        let person_texture_bind_group_arc_map =
-            Self::load_person_texture_bind_group_arc_map(&gpu_context.device, &gpu_context.queue);
+        let population_atlas_bind_group = Arc::new(Self::load_population_atlas_bind_group(
+            &gpu_context.device,
+            &gpu_context.queue,
+        ));
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -57,7 +59,7 @@ impl PopulationRenderer {
             person_instance_buffer,
             person_instance_data_group_vec,
             person_texture_bind_group_layout,
-            person_texture_bind_group_arc_map,
+            population_atlas_bind_group,
             render_pipeline,
         }
     }
@@ -65,10 +67,10 @@ impl PopulationRenderer {
     fn load_person_gpu_mesh_map(device: &wgpu::Device) -> HashMap<String, Arc<GpuMesh>> {
         let mut person_gpu_mesh_map = HashMap::new();
 
-        let person_models_path = std::path::Path::new("assets/models/person");
+        let person_models_path = std::path::Path::new("assets/models/population");
 
-        let mut person_models_directory_iterator =
-            std::fs::read_dir(person_models_path).expect("Failed to read Person models directory");
+        let mut person_models_directory_iterator = std::fs::read_dir(person_models_path)
+            .expect("Failed to read Population models directory");
 
         while let Some(Ok(person_model_entry)) = person_models_directory_iterator.next() {
             let path = person_model_entry.path();
@@ -88,7 +90,7 @@ impl PopulationRenderer {
                                     .map(|vertex: &TexturedVertex| PersonVertex {
                                         position: vertex.position,
                                         normal: vertex.normal,
-                                        uv: [vertex.texture[0], vertex.texture[1]],
+                                        uv: [vertex.texture[0], 1.0 - vertex.texture[1]],
                                     })
                                     .collect(),
                                 index_vec: model.indices,
@@ -136,40 +138,18 @@ impl PopulationRenderer {
         })
     }
 
-    fn load_person_texture_bind_group_arc_map(
+    fn load_population_atlas_bind_group(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-    ) -> HashMap<String, Arc<wgpu::BindGroup>> {
-        let mut texture_bind_group_map = HashMap::new();
+    ) -> wgpu::BindGroup {
+        let gpu_texture_data = pollster::block_on(Self::load_texture_data(
+            device,
+            queue,
+            "assets/textures/population/population_atlas_0.png",
+            "population_atlas_0",
+        ));
 
-        let person_textures_path = std::path::Path::new("assets/textures/person");
-
-        let mut person_textures_directory_iterator = std::fs::read_dir(person_textures_path)
-            .expect("Failed to read Person textures directory");
-
-        while let Some(Ok(person_texture_entry)) = person_textures_directory_iterator.next() {
-            let path = person_texture_entry.path();
-
-            if path.extension().and_then(|extension| extension.to_str()) == Some("png") {
-                let file_stem = path.file_stem().unwrap().to_str().unwrap();
-
-                let gpu_texture_data = pollster::block_on(Self::load_texture_data(
-                    device,
-                    queue,
-                    path.to_str().unwrap(),
-                    file_stem,
-                ));
-
-                let texture_bind_group =
-                    Arc::new(Self::create_texture_bind_group(device, &gpu_texture_data));
-
-                texture_bind_group_map.insert(file_stem.to_string(), texture_bind_group);
-
-                tracing::info!("{}.png loaded", file_stem);
-            }
-        }
-
-        texture_bind_group_map
+        Self::create_texture_bind_group(device, &gpu_texture_data)
     }
 
     pub fn create_texture_bind_group(
@@ -199,7 +179,7 @@ impl PopulationRenderer {
         });
 
         device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Person Texture and Sampler Bind Group"),
+            label: Some("Population Texture and Sampler Bind Group"),
             layout: &bind_group_layout,
             entries: &[
                 wgpu::BindGroupEntry {
@@ -221,7 +201,7 @@ impl PopulationRenderer {
         label: &str,
     ) -> GpuTextureData {
         let img = image::open(path)
-            .expect("Failed to open Person texture data")
+            .expect("Failed to open Population texture data")
             .into_rgba8();
 
         let (width, height) = img.dimensions();
@@ -290,7 +270,7 @@ impl PopulationRenderer {
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Population Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/person.vert.wgsl").into(),
+                        include_assets!("shaders/population.vert.wgsl").into(),
                     ),
                 });
 
@@ -300,7 +280,7 @@ impl PopulationRenderer {
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Population Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/person.frag.wgsl").into(),
+                        include_assets!("shaders/population.frag.wgsl").into(),
                     ),
                 });
 
@@ -455,12 +435,8 @@ impl PopulationRenderer {
                     .unwrap(),
             );
 
-            let texture_bind_group_arc = Arc::clone(
-                population_renderer
-                    .person_texture_bind_group_arc_map
-                    .get(person_model_name)
-                    .unwrap(),
-            );
+            let texture_bind_group_arc =
+                Arc::clone(&population_renderer.population_atlas_bind_group);
 
             render_pass.set_vertex_buffer(
                 1,
