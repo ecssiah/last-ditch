@@ -150,11 +150,11 @@ impl Tower {
                 floor_number * tower_floor_height,
             ),
             Direction::East => IVec3::new(
-                tower_radius - tower_outer_hall_size - 1,
-                -tower_radius + tower_outer_hall_size + 1,
+                tower_radius - tower_outer_hall_size + 1,
+                -tower_radius + tower_outer_hall_size - 1,
                 floor_number * tower_floor_height,
             ),
-            _ => panic!("No external hall in this direction!"),
+            _ => panic!("No outer hall in this direction!"),
         }
     }
 
