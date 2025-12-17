@@ -1,18 +1,40 @@
+pub mod info;
+pub mod kind;
+pub mod owner;
+
+pub use info::Info;
+pub use kind::Kind;
+pub use owner::Owner;
+
+use crate::simulation::state::physics::collider;
 use ultraviolet::{Vec2, Vec3};
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct BoxCollider {
+#[derive(Copy, Clone, Debug)]
+pub struct Collider {
     pub min: Vec3,
     pub max: Vec3,
+    pub kind: collider::Kind,
+    pub owner: collider::Owner,
 }
 
-impl BoxCollider {
+impl Collider {
     pub fn new(center: Vec3, size: Vec3) -> Self {
         let radius = size * 0.5;
         let min = center - radius;
         let max = center + radius;
+        let kind = collider::Kind::Physics;
+        let owner = collider::Owner::None;
 
-        Self { min, max }
+        Self {
+            min,
+            max,
+            kind,
+            owner,
+        }
+    }
+
+    pub fn default() -> Self {
+        Self::new(Vec3::zero(), Vec3::one())
     }
 
     pub fn contains_point(&self, point: Vec3) -> bool {
@@ -81,6 +103,8 @@ impl BoxCollider {
         Self {
             min: self.min + displacement,
             max: self.max + displacement,
+            kind: self.kind,
+            owner: self.owner,
         }
     }
 
@@ -135,25 +159,28 @@ impl BoxCollider {
             return false;
         }
 
-        list1
-            .iter()
-            .all(|box1| list2.iter().any(|box2| box1.approx_eq(*box2, epsilon)))
-            && list2
+        list1.iter().all(|collider1| {
+            list2
                 .iter()
-                .all(|box2| list1.iter().any(|box1| box2.approx_eq(*box1, epsilon)))
+                .any(|collider2| collider1.approx_eq(*collider2, epsilon))
+        }) && list2.iter().all(|collider2| {
+            list1
+                .iter()
+                .any(|collider1| collider2.approx_eq(*collider1, epsilon))
+        })
     }
 
-    pub fn sweep(box1: Self, box2: Self) -> Self {
+    pub fn sweep(collider1: Self, collider2: Self) -> Self {
         let min = Vec3::new(
-            box1.min.x.min(box2.min.x),
-            box1.min.y.min(box2.min.y),
-            box1.min.z.min(box2.min.z),
+            collider1.min.x.min(collider2.min.x),
+            collider1.min.y.min(collider2.min.y),
+            collider1.min.z.min(collider2.min.z),
         );
 
         let max = Vec3::new(
-            box1.max.x.max(box2.max.x),
-            box1.max.y.max(box2.max.y),
-            box1.max.z.max(box2.max.z),
+            collider1.max.x.max(collider2.max.x),
+            collider1.max.y.max(collider2.max.y),
+            collider1.max.z.max(collider2.max.z),
         );
 
         let center = (min + max) * 0.5;

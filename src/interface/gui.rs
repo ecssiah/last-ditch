@@ -210,7 +210,7 @@ impl GUI {
             .get(&view.population_view.leadership_view.judge_id)
         {
             let grid_position =
-                grid::world_position_to_grid_position(person_view.spatial.world_position);
+                grid::world_position_to_grid_position(person_view.transform.world_position);
 
             let position_string = format!(
                 "Cell: ({:.0}, {:.0}, {:.0})\n",
@@ -219,13 +219,13 @@ impl GUI {
 
             let world_position_string = format!(
                 "World: ({:.2}, {:.2}, {:.2})\n",
-                person_view.spatial.world_position.x,
-                person_view.spatial.world_position.y,
-                person_view.spatial.world_position.z,
+                person_view.transform.world_position.x,
+                person_view.transform.world_position.y,
+                person_view.transform.world_position.z,
             );
 
             let sector_coordinate =
-                grid::world_position_to_sector_coordinate(person_view.spatial.world_position);
+                grid::world_position_to_sector_coordinate(person_view.transform.world_position);
 
             let sector_string = format!(
                 "Sector: ({:.0}, {:.0}, {:.0})\n",
@@ -234,7 +234,7 @@ impl GUI {
 
             let direction_string = format!(
                 "Direction: {:?}\n",
-                Direction::from_rotation(person_view.spatial.rotation_xy)
+                Direction::from_rotation(person_view.transform.rotation_xy)
             );
 
             let selected_block_kind_string =

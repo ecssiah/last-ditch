@@ -17,7 +17,6 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::box_collider::BoxCollider,
             population::nation,
             world::{self, tower::Tower},
             Time,
@@ -101,18 +100,12 @@ impl World {
                 let grid_position = grid::sector_id_to_grid_position(sector_id);
                 let version = 0;
 
-                let box_collider = BoxCollider::new(
-                    Vec3::from(grid_position),
-                    Vec3::broadcast(SECTOR_SIZE_IN_CELLS as f32),
-                );
-
                 let cell_vec = Self::setup_cell_vec(sector_id);
 
                 Sector {
                     sector_id,
                     version,
                     grid_position,
-                    box_collider,
                     cell_vec,
                 }
             })

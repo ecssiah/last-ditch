@@ -94,12 +94,12 @@ impl Viewer {
 
             for person in state.population.person_map.values() {
                 let person_to_judge_distance_squared =
-                    (person.spatial.world_position - judge.spatial.world_position).mag_sq();
+                    (person.transform.world_position - judge.transform.world_position).mag_sq();
 
                 if person_to_judge_distance_squared <= judge_sight_range_squared {
                     let person_view = PersonView {
                         identity: person.identity.clone(),
-                        spatial: person.spatial,
+                        transform: person.transform,
                         kinematic: person.kinematic,
                         sight: person.sight,
                         selected_block_kind: person.selected_block_kind,
@@ -128,7 +128,7 @@ impl Viewer {
             .get(&state.population.leadership.judge_id)
         {
             let judge_sector_coordinate =
-                grid::world_position_to_sector_coordinate(judge.spatial.world_position);
+                grid::world_position_to_sector_coordinate(judge.transform.world_position);
 
             let sight_range = judge.sight.range_in_sectors;
 

@@ -5,7 +5,7 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{identity, person::Person, spatial::Spatial},
+            population::{identity, person::Person},
             world::grid,
             Population, State, World,
         },
@@ -82,22 +82,23 @@ impl GeneratePopulationData {
                 let grid_position = home_position + offset;
                 let world_position = grid::grid_position_to_world_position(grid_position);
 
-                Spatial::set_world_position(world_position, &mut person.spatial);
+                Person::set_world_position(world_position, &mut person);
 
-                let person_size = Vec3::new(
-                    PERSON_DEFAULT_SIZE_X,
-                    PERSON_DEFAULT_SIZE_Y,
-                    rand_chacha_ext::gen_range_f32(
-                        PERSON_DEFAULT_SIZE_Z - 0.2,
-                        PERSON_DEFAULT_SIZE_Z + 0.2,
-                        &mut population.rng,
+                Person::set_size(
+                    Vec3::new(
+                        PERSON_DEFAULT_SIZE_X,
+                        PERSON_DEFAULT_SIZE_Y,
+                        rand_chacha_ext::gen_range_f32(
+                            PERSON_DEFAULT_SIZE_Z - 0.2,
+                            PERSON_DEFAULT_SIZE_Z + 0.2,
+                            &mut population.rng,
+                        ),
                     ),
+                    &mut person,
                 );
 
                 person.kinematic.speed = PERSON_DEFAULT_SPEED;
                 person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
-
-                Spatial::set_size(person_size, &mut person.spatial);
 
                 population.person_map.insert(person.person_id, person);
             }

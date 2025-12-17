@@ -1,12 +1,13 @@
 //! Forces affecting Population
 
-pub mod box_collider;
+pub mod collider;
 
 use crate::simulation::{
     constants::*,
     state::{
-        physics::box_collider::BoxCollider,
-        population::{kinematic::Kinematic, sight::Sight, spatial::Spatial, Population},
+        body::person_body::PersonBody,
+        physics::collider::Collider,
+        population::{kinematic::Kinematic, sight::Sight, transform::Transform, Population},
         world::grid::{self, axis::Axis},
         World,
     },
@@ -50,11 +51,11 @@ impl Physics {
                 world,
                 &velocity,
                 &delta,
-                &mut judge.spatial,
+                &mut judge.person_body,
                 &mut judge.kinematic,
             );
 
-            Self::sync(&mut judge.spatial, &mut judge.sight);
+            Self::sync(&judge.person_body, &mut judge.transform, &mut judge.sight);
         }
     }
 
@@ -87,11 +88,11 @@ impl Physics {
         world: &World,
         velocity: &Vec3,
         delta: &Vec3,
-        spatial: &mut Spatial,
+        person_body: &mut PersonBody,
         kinematic: &mut Kinematic,
     ) {
-        let mut body_collider = spatial.body;
         let mut velocity = *velocity;
+        let mut collider = person_body.core;
 
         for axis in [Axis::Y, Axis::X, Axis::Z] {
             let delta_axis = match axis {
@@ -100,29 +101,40 @@ impl Physics {
                 Axis::Z => delta.z,
             };
 
-            let (resolved_aabb, step) = Self::resolve_axis(body_collider, world, axis, delta_axis);
+            let (resolved_collider, resolved_delta) =
+                Self::resolve_axis(collider, world, axis, delta_axis);
 
-            body_collider = resolved_aabb;
+            collider = resolved_collider;
+
+            let blocked = (resolved_delta - delta_axis).abs() > EPSILON_COLLISION;
 
             match axis {
-                Axis::X => velocity.x = step / SIMULATION_TICK_IN_SECONDS,
-                Axis::Y => velocity.y = step / SIMULATION_TICK_IN_SECONDS,
-                Axis::Z => velocity.z = step / SIMULATION_TICK_IN_SECONDS,
+                Axis::X => {
+                    if blocked {
+                        velocity.x = 0.0;
+                    }
+                }
+                Axis::Y => {
+                    if blocked {
+                        velocity.y = 0.0;
+                    }
+                }
+                Axis::Z => {
+                    if blocked {
+                        velocity.z = 0.0;
+                    }
+                }
             }
         }
 
-        spatial.body = body_collider;
+        person_body.core = collider;
+
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(
-        body_collider: BoxCollider,
-        world: &World,
-        axis: Axis,
-        delta: f32,
-    ) -> (BoxCollider, f32) {
+    fn resolve_axis(collider: Collider, world: &World, axis: Axis, delta: f32) -> (Collider, f32) {
         if delta.abs() < EPSILON_COLLISION {
-            return (body_collider, 0.0);
+            return (collider, 0.0);
         }
 
         let mut min = 0.0;
@@ -131,9 +143,9 @@ impl Physics {
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-            let test_box_collider = body_collider.translate(Axis::unit(axis) * mid);
+            let test_collider = collider.translate(Axis::unit(axis) * mid);
 
-            if Self::get_solid_collisions(test_box_collider, world).is_empty() {
+            if Self::get_solid_collisions(test_collider, world).is_empty() {
                 final_delta = mid;
                 min = mid;
             } else {
@@ -141,27 +153,21 @@ impl Physics {
             }
         }
 
-        let adjusted_aabb = body_collider.translate(Axis::unit(axis) * final_delta);
+        let collider_resolved = collider.translate(Axis::unit(axis) * final_delta);
 
-        let adjusted_velocity = if (final_delta - delta).abs() > 0.0001 {
-            0.0
-        } else {
-            final_delta
-        };
-
-        (adjusted_aabb, adjusted_velocity)
+        (collider_resolved, final_delta)
     }
 
-    fn get_solid_collisions(box_collider: BoxCollider, world: &World) -> Vec<BoxCollider> {
-        grid::cells_overlapping(box_collider)
+    fn get_solid_collisions(collider: Collider, world: &World) -> Vec<Collider> {
+        grid::cells_overlapping(collider)
             .into_iter()
-            .filter(|cell_aabb| {
-                let aabb_center = cell_aabb.center();
+            .filter(|cell_collider| {
+                let collider_center_position = cell_collider.center();
 
                 let cell_position = IVec3::new(
-                    aabb_center.x.round() as i32,
-                    aabb_center.y.round() as i32,
-                    aabb_center.z.round() as i32,
+                    collider_center_position.x.round() as i32,
+                    collider_center_position.y.round() as i32,
+                    collider_center_position.z.round() as i32,
                 );
 
                 if grid::is_grid_position_valid(cell_position) {
@@ -175,11 +181,11 @@ impl Physics {
             .collect()
     }
 
-    fn sync(spatial: &mut Spatial, sight: &mut Sight) {
-        Spatial::set_world_position(spatial.body.bottom_center(), spatial);
+    fn sync(person_body: &PersonBody, transform: &mut Transform, sight: &mut Sight) {
+        Transform::set_world_position(person_body.core.bottom_center(), transform);
 
         Sight::set_world_position(
-            spatial.body.bottom_center() + sight.relative_position,
+            person_body.core.bottom_center() + sight.relative_position,
             sight,
         );
     }

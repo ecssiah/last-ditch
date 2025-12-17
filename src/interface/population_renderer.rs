@@ -356,12 +356,12 @@ impl PopulationRenderer {
                 continue;
             }
 
-            let world_position = person_view.spatial.world_position;
+            let world_position = person_view.transform.world_position;
 
             let person_instance_data = PersonInstanceData {
                 world_position: *(world_position).as_array(),
-                scale_z: person_view.spatial.size.z / PERSON_DEFAULT_SIZE_Z,
-                rotation_xy: person_view.spatial.rotation_xy,
+                scale_z: person_view.transform.size.z / PERSON_DEFAULT_SIZE_Z,
+                rotation_xy: person_view.transform.rotation_xy,
                 _padding: [0.0, 0.0, 0.0],
             };
 

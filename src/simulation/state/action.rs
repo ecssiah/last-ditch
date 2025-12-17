@@ -92,7 +92,7 @@ impl Action {
                 } else {
                     let local_velocity = person.kinematic.speed * move_data.move_direction;
 
-                    let velocity = person.spatial.rotor * local_velocity;
+                    let velocity = person.transform.rotor * local_velocity;
 
                     person.kinematic.velocity.x = velocity.x;
                     person.kinematic.velocity.y = velocity.y;
