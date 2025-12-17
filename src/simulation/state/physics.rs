@@ -183,7 +183,6 @@ impl Physics {
 
     fn sync_simple_body(body: &SimpleBody, transform: &mut Transform, sight: &mut Sight) {
         Transform::set_world_position(body.world_position, transform);
-
-        Sight::set_world_position(sight.relative_position + body.world_position, sight);
+        Sight::set_world_position(body.world_position + sight.relative_position, sight);
     }
 }

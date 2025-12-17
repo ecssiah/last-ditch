@@ -55,7 +55,7 @@ impl Sight {
     }
 
     pub fn set_world_position(world_position: Vec3, sight: &mut Self) {
-        sight.world_position = sight.relative_position + world_position;
+        sight.world_position = world_position;
     }
 
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, sight: &mut Self) {
