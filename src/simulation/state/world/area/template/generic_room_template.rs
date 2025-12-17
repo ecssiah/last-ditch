@@ -79,12 +79,12 @@ impl Template for GenericRoomTemplate {
 
         let resource_count = gen_i32(8, 16, &mut world.rng);
 
-        let (area_min, area_max) = grid::get_bounds(area.grid_position, area.size);
+        let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
 
         for _ in 0..resource_count {
-            let x = gen_i32(area_min.x + 1, area_max.x - 1, &mut world.rng);
-            let y = gen_i32(area_min.y + 1, area_max.y - 1, &mut world.rng);
-            let z = gen_i32(area_min.z + 2, area_max.z - 2, &mut world.rng);
+            let x = gen_i32(area_ibox.min.x + 1, area_ibox.max.x - 1, &mut world.rng);
+            let y = gen_i32(area_ibox.min.y + 1, area_ibox.max.y - 1, &mut world.rng);
+            let z = gen_i32(area_ibox.min.z + 2, area_ibox.max.z - 2, &mut world.rng);
 
             let resource_block_kind_vec = GenericRoomTemplate::resource_map(area.floor_number);
 
@@ -97,7 +97,7 @@ impl Template for GenericRoomTemplate {
             let resource_block_kind = resource_block_kind_vec[resource_block_kind_index];
 
             World::set_cube(
-                IVec3::new(x, y, area_min.z + 1),
+                IVec3::new(x, y, area_ibox.min.z + 1),
                 IVec3::new(x, y, z),
                 resource_block_kind,
                 &mut world.sector_vec,

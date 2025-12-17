@@ -1,4 +1,4 @@
-use crate::simulation::state::physics::{bounding_box::BoundingBox, collider::Collider};
+use crate::simulation::state::physics::{fbox::FBox, collider::Collider};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
@@ -21,10 +21,10 @@ impl SimpleBody {
         Self::new(Vec3::zero(), Vec3::one())
     }
 
-    pub fn bounding_box(body: &Self) -> BoundingBox {
+    pub fn get_cell_bounding_box(body: &Self) -> FBox {
         let size = body.collider.size * 0.5;
 
-        BoundingBox {
+        FBox {
             min: body.world_position + body.collider.relative_position - size,
             max: body.world_position + body.collider.relative_position + size,
         }

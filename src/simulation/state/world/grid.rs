@@ -9,7 +9,10 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::{constants::*, state::physics::bounding_box::BoundingBox},
+    simulation::{
+        constants::*,
+        state::physics::{fbox::FBox, ibox::IBox},
+    },
     utils::ldmath::indexing,
 };
 use ultraviolet::{IVec3, Vec3};
@@ -268,30 +271,34 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn bounding_box(grid_position: IVec3) -> BoundingBox {
+pub fn get_cell_fbox(grid_position: IVec3) -> FBox {
     let world_position = grid_position_to_world_position(grid_position);
     let radius = Vec3::broadcast(CELL_SIZE_IN_METERS as f32);
 
-    BoundingBox {
+    FBox {
         min: world_position - radius,
         max: world_position + radius,
     }
 }
 
+pub fn get_grid_ibox(grid_position: IVec3, size: IVec3) -> IBox {
+    IBox::new(grid_position, grid_position + size - IVec3::one())
+}
+
 #[inline]
-pub fn grid_overlap(bounding_box: &BoundingBox) -> Vec<IVec3> {
+pub fn grid_overlap(fbox: &FBox) -> Vec<IVec3> {
     let mut grid_position_vec = Vec::new();
 
     let grid_min = IVec3::new(
-        (bounding_box.min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
-        (bounding_box.min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
-        (bounding_box.min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (fbox.min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (fbox.min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (fbox.min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
     );
 
     let grid_max = IVec3::new(
-        (bounding_box.max.x + CELL_RADIUS_IN_METERS).floor() as i32,
-        (bounding_box.max.y + CELL_RADIUS_IN_METERS).floor() as i32,
-        (bounding_box.max.z + CELL_RADIUS_IN_METERS).floor() as i32,
+        (fbox.max.x + CELL_RADIUS_IN_METERS).floor() as i32,
+        (fbox.max.y + CELL_RADIUS_IN_METERS).floor() as i32,
+        (fbox.max.z + CELL_RADIUS_IN_METERS).floor() as i32,
     );
 
     for z in grid_min.z..=grid_max.z {
@@ -299,7 +306,7 @@ pub fn grid_overlap(bounding_box: &BoundingBox) -> Vec<IVec3> {
             for x in grid_min.x..=grid_max.x {
                 let grid_position = IVec3::new(x, y, z);
 
-                if BoundingBox::overlaps(bounding_box, &self::bounding_box(grid_position)) {
+                if FBox::overlaps(fbox, &self::get_cell_fbox(grid_position)) {
                     grid_position_vec.push(grid_position);
                 }
             }
@@ -338,12 +345,4 @@ pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
     (-radius..=radius).flat_map(move |x| {
         (-radius..=radius).flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
     })
-}
-
-#[inline]
-pub fn get_bounds(grid_position: IVec3, size: IVec3) -> (IVec3, IVec3) {
-    let min = grid_position;
-    let max = grid_position + size - IVec3::one();
-
-    (min, max)
 }
