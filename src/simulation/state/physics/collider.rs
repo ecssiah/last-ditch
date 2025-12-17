@@ -7,27 +7,27 @@ pub use kind::Kind;
 pub use owner::Owner;
 
 use crate::simulation::state::physics::collider;
-use ultraviolet::{Vec2, Vec3};
+use ultraviolet::Vec3;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Collider {
-    pub min: Vec3,
-    pub max: Vec3,
+    pub relative_position: Vec3,
+    pub world_position: Vec3,
+    pub size: Vec3,
     pub kind: collider::Kind,
     pub owner: collider::Owner,
 }
 
 impl Collider {
-    pub fn new(center: Vec3, size: Vec3) -> Self {
-        let radius = size * 0.5;
-        let min = center - radius;
-        let max = center + radius;
+    pub fn new(world_position: Vec3, size: Vec3) -> Self {
+        let relative_position = Vec3::zero();
         let kind = collider::Kind::Physics;
         let owner = collider::Owner::None;
 
         Self {
-            min,
-            max,
+            relative_position,
+            world_position,
+            size,
             kind,
             owner,
         }
@@ -37,155 +37,48 @@ impl Collider {
         Self::new(Vec3::zero(), Vec3::one())
     }
 
-    pub fn contains_point(&self, point: Vec3) -> bool {
-        point.x >= self.min.x
-            && point.x <= self.max.x
-            && point.y >= self.min.y
-            && point.y <= self.max.y
-            && point.z >= self.min.z
-            && point.z <= self.max.z
+    pub fn set_relative_position(relative_position: Vec3, collider: &mut Self) {
+        collider.relative_position = relative_position;
     }
 
-    pub fn radius(&self) -> Vec3 {
-        self.size() * 0.5
+    pub fn set_world_position(world_position: Vec3, collider: &mut Self) {
+        collider.world_position = world_position;
     }
 
-    pub fn size(&self) -> Vec3 {
-        self.max - self.min
+    pub fn set_size(size: Vec3, collider: &mut Self) {
+        collider.size = size;
     }
 
-    pub fn set_size(&mut self, size: Vec3) {
-        let center = self.center();
-        let half_size = size * 0.5;
+    // pub fn overlaps(&self, other: Self) -> bool {
+    //     self.min.x < other.max.x
+    //         && self.max.x > other.min.x
+    //         && self.min.y < other.max.y
+    //         && self.max.y > other.min.y
+    //         && self.min.z < other.max.z
+    //         && self.max.z > other.min.z
+    // }
 
-        self.min = center - half_size;
-        self.max = center + half_size;
-    }
+    // pub fn overlap_axis(&self, axis_index: usize, cell_aabb: Self) -> f32 {
+    //     let min = self.min[axis_index];
+    //     let max = self.max[axis_index];
 
-    pub fn center(&self) -> Vec3 {
-        (self.min + self.max) * 0.5
-    }
+    //     let cell_min = cell_aabb.min[axis_index];
+    //     let cell_max = cell_aabb.max[axis_index];
 
-    pub fn set_center(&mut self, x: f32, y: f32, z: f32) {
-        let center = Vec3::new(x, y, z);
-        let radius = (self.max - self.min) * 0.5;
+    //     if max > cell_min && min < cell_max {
+    //         let offset_positive = cell_max - min;
+    //         let offset_negative = max - cell_min;
 
-        self.min = center - radius;
-        self.max = center + radius;
-    }
+    //         let center = (min + max) * 0.5;
+    //         let cell_center = (cell_min + cell_max) * 0.5;
 
-    pub fn bottom_center(&self) -> Vec3 {
-        Vec3::new(
-            (self.min.x + self.max.x) * 0.5,
-            (self.min.y + self.max.y) * 0.5,
-            self.min.z,
-        )
-    }
-
-    pub fn set_bottom_center(&mut self, world_position: Vec3) {
-        let size = self.size();
-        let xy_radius = Vec2::new(size.x, size.y) * 0.5;
-
-        self.min = Vec3::new(
-            world_position.x - xy_radius.x,
-            world_position.y - xy_radius.y,
-            world_position.z,
-        );
-
-        self.max = Vec3::new(
-            world_position.x + xy_radius.x,
-            world_position.y + xy_radius.y,
-            world_position.z + size.z,
-        );
-    }
-
-    pub fn translate(&self, displacement: Vec3) -> Self {
-        Self {
-            min: self.min + displacement,
-            max: self.max + displacement,
-            kind: self.kind,
-            owner: self.owner,
-        }
-    }
-
-    pub fn intersects(&self, other: Self) -> bool {
-        self.min.x <= other.max.x
-            && self.max.x >= other.min.x
-            && self.min.y <= other.max.y
-            && self.max.y >= other.min.y
-            && self.min.z <= other.max.z
-            && self.max.z >= other.min.z
-    }
-
-    pub fn overlaps(&self, other: Self) -> bool {
-        self.min.x < other.max.x
-            && self.max.x > other.min.x
-            && self.min.y < other.max.y
-            && self.max.y > other.min.y
-            && self.min.z < other.max.z
-            && self.max.z > other.min.z
-    }
-
-    pub fn overlap_axis(&self, axis_index: usize, cell_aabb: Self) -> f32 {
-        let min = self.min[axis_index];
-        let max = self.max[axis_index];
-
-        let cell_min = cell_aabb.min[axis_index];
-        let cell_max = cell_aabb.max[axis_index];
-
-        if max > cell_min && min < cell_max {
-            let offset_positive = cell_max - min;
-            let offset_negative = max - cell_min;
-
-            let center = (min + max) * 0.5;
-            let cell_center = (cell_min + cell_max) * 0.5;
-
-            if center < cell_center {
-                offset_positive
-            } else {
-                -offset_negative
-            }
-        } else {
-            0.0
-        }
-    }
-
-    pub fn approx_eq(&self, other: Self, epsilon: f32) -> bool {
-        (self.min - other.min).mag() <= epsilon && (self.max - other.max).mag() <= epsilon
-    }
-
-    pub fn approx_set_eq(list1: &[Self], list2: &[Self], epsilon: f32) -> bool {
-        if list1.len() != list2.len() {
-            return false;
-        }
-
-        list1.iter().all(|collider1| {
-            list2
-                .iter()
-                .any(|collider2| collider1.approx_eq(*collider2, epsilon))
-        }) && list2.iter().all(|collider2| {
-            list1
-                .iter()
-                .any(|collider1| collider2.approx_eq(*collider1, epsilon))
-        })
-    }
-
-    pub fn sweep(collider1: Self, collider2: Self) -> Self {
-        let min = Vec3::new(
-            collider1.min.x.min(collider2.min.x),
-            collider1.min.y.min(collider2.min.y),
-            collider1.min.z.min(collider2.min.z),
-        );
-
-        let max = Vec3::new(
-            collider1.max.x.max(collider2.max.x),
-            collider1.max.y.max(collider2.max.y),
-            collider1.max.z.max(collider2.max.z),
-        );
-
-        let center = (min + max) * 0.5;
-        let size = max - min;
-
-        Self::new(center, size)
-    }
+    //         if center < cell_center {
+    //             offset_positive
+    //         } else {
+    //             -offset_negative
+    //         }
+    //     } else {
+    //         0.0
+    //     }
+    // }
 }

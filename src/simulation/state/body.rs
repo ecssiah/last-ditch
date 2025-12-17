@@ -1,3 +1,5 @@
-pub mod ladder_body;
-pub mod person_body;
-pub mod stair_body;
+pub mod simple_body;
+pub mod compound_body;
+
+pub use simple_body::SimpleBody;
+pub use compound_body::CompoundBody;

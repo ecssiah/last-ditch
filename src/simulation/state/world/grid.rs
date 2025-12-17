@@ -8,10 +8,7 @@ pub use direction::Direction;
 pub use line::Line;
 pub use quadrant::Quadrant;
 
-use crate::{
-    simulation::{constants::*, state::physics::collider::Collider},
-    utils::ldmath::indexing,
-};
+use crate::{simulation::constants::*, utils::ldmath::indexing};
 use ultraviolet::{IVec3, Vec3};
 
 #[inline]
@@ -268,37 +265,51 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn cells_overlapping(collider: Collider) -> Vec<Collider> {
-    let mut aabb_vec = Vec::new();
+pub fn grid_overlap(min: Vec3, max: Vec3) -> Vec<IVec3> {
+    let mut grid_position_vec = Vec::new();
 
-    let min = IVec3::new(
-        collider.min.x.round() as i32,
-        collider.min.y.round() as i32,
-        collider.min.z.round() as i32,
+    let grid_min = IVec3::new(
+        (min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
     );
 
-    let max = IVec3::new(
-        collider.max.x.round() as i32,
-        collider.max.y.round() as i32,
-        collider.max.z.round() as i32,
+    let grid_max = IVec3::new(
+        (max.x + CELL_RADIUS_IN_METERS).floor() as i32,
+        (max.y + CELL_RADIUS_IN_METERS).floor() as i32,
+        (max.z + CELL_RADIUS_IN_METERS).floor() as i32,
     );
 
-    let size = Vec3::broadcast(CELL_SIZE_IN_METERS);
-
-    for z in min.z..=max.z {
-        for y in min.y..=max.y {
-            for x in min.x..=max.x {
+    for z in grid_min.z..=grid_max.z {
+        for y in grid_min.y..=grid_max.y {
+            for x in grid_min.x..=grid_max.x {
                 let cell_position = IVec3::new(x, y, z);
-                let cell_aabb = Collider::new(Vec3::from(cell_position), size);
 
-                if cell_aabb.overlaps(collider) {
-                    aabb_vec.push(cell_aabb);
+                let cell_min = Vec3::new(
+                    cell_position.x as f32 - CELL_RADIUS_IN_METERS,
+                    cell_position.y as f32 - CELL_RADIUS_IN_METERS,
+                    cell_position.z as f32 - CELL_RADIUS_IN_METERS,
+                );
+                let cell_max = Vec3::new(
+                    cell_position.x as f32 + CELL_RADIUS_IN_METERS,
+                    cell_position.y as f32 + CELL_RADIUS_IN_METERS,
+                    cell_position.z as f32 + CELL_RADIUS_IN_METERS,
+                );
+
+                if min.x < cell_max.x
+                    && max.x > cell_min.x
+                    && min.y < cell_max.y
+                    && max.y > cell_min.y
+                    && min.z < cell_max.z
+                    && max.z > cell_min.z
+                {
+                    grid_position_vec.push(cell_position);
                 }
             }
         }
     }
 
-    aabb_vec
+    grid_position_vec
 }
 
 #[inline]

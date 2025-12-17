@@ -5,14 +5,13 @@ pub mod collider;
 use crate::simulation::{
     constants::*,
     state::{
-        body::person_body::PersonBody,
-        physics::collider::Collider,
+        body::SimpleBody,
         population::{kinematic::Kinematic, sight::Sight, transform::Transform, Population},
         world::grid::{self, axis::Axis},
         World,
     },
 };
-use ultraviolet::{IVec3, Vec3};
+use ultraviolet::Vec3;
 
 #[derive(Default)]
 pub struct Physics {
@@ -47,15 +46,15 @@ impl Physics {
         {
             let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 
-            Self::resolve(
+            Self::resolve_simple_body(
                 world,
                 &velocity,
                 &delta,
-                &mut judge.person_body,
+                &mut judge.body,
                 &mut judge.kinematic,
             );
 
-            Self::sync(&judge.person_body, &mut judge.transform, &mut judge.sight);
+            Self::sync_simple_body(&judge.body, &mut judge.transform, &mut judge.sight);
         }
     }
 
@@ -84,15 +83,15 @@ impl Physics {
         (velocity, delta)
     }
 
-    fn resolve(
+    fn resolve_simple_body(
         world: &World,
         velocity: &Vec3,
         delta: &Vec3,
-        person_body: &mut PersonBody,
+        body: &mut SimpleBody,
         kinematic: &mut Kinematic,
     ) {
         let mut velocity = *velocity;
-        let mut collider = person_body.core;
+        let mut body_working = body.clone();
 
         for axis in [Axis::Y, Axis::X, Axis::Z] {
             let delta_axis = match axis {
@@ -101,12 +100,12 @@ impl Physics {
                 Axis::Z => delta.z,
             };
 
-            let (resolved_collider, resolved_delta) =
-                Self::resolve_axis(collider, world, axis, delta_axis);
+            let (body_resolved, delta_resolved) =
+                Self::resolve_axis_simple_body(body_working, world, axis, delta_axis);
 
-            collider = resolved_collider;
+            body_working = body_resolved;
 
-            let blocked = (resolved_delta - delta_axis).abs() > EPSILON_COLLISION;
+            let blocked = (delta_resolved - delta_axis).abs() > EPSILON_COLLISION;
 
             match axis {
                 Axis::X => {
@@ -127,25 +126,35 @@ impl Physics {
             }
         }
 
-        person_body.core = collider;
-
+        *body = body_working;
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis(collider: Collider, world: &World, axis: Axis, delta: f32) -> (Collider, f32) {
+    fn resolve_axis_simple_body(
+        body: SimpleBody,
+        world: &World,
+        axis: Axis,
+        delta: f32,
+    ) -> (SimpleBody, f32) {
         if delta.abs() < EPSILON_COLLISION {
-            return (collider, 0.0);
+            return (body, 0.0);
         }
 
         let mut min = 0.0;
         let mut max = delta;
+
         let mut final_delta = 0.0;
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
-            let test_collider = collider.translate(Axis::unit(axis) * mid);
 
-            if Self::get_solid_collisions(test_collider, world).is_empty() {
+            let test_body = SimpleBody {
+                active: true,
+                world_position: body.world_position + Axis::unit(axis) * mid,
+                collider: body.collider,
+            };
+
+            if !Self::is_simple_body_colliding(&test_body, world) {
                 final_delta = mid;
                 min = mid;
             } else {
@@ -153,40 +162,28 @@ impl Physics {
             }
         }
 
-        let collider_resolved = collider.translate(Axis::unit(axis) * final_delta);
+        let body_resolved = SimpleBody {
+            active: true,
+            world_position: body.world_position + Axis::unit(axis) * final_delta,
+            collider: body.collider,
+        };
 
-        (collider_resolved, final_delta)
+        (body_resolved, final_delta)
     }
 
-    fn get_solid_collisions(collider: Collider, world: &World) -> Vec<Collider> {
-        grid::cells_overlapping(collider)
+    fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
+        grid::grid_overlap(SimpleBody::min(body), SimpleBody::max(body))
             .into_iter()
-            .filter(|cell_collider| {
-                let collider_center_position = cell_collider.center();
+            .any(|cell_position| {
+                let cell = World::get_cell_at(cell_position, &world.sector_vec);
 
-                let cell_position = IVec3::new(
-                    collider_center_position.x.round() as i32,
-                    collider_center_position.y.round() as i32,
-                    collider_center_position.z.round() as i32,
-                );
-
-                if grid::is_grid_position_valid(cell_position) {
-                    let cell = World::get_cell_at(cell_position, &world.sector_vec);
-
-                    cell.solid
-                } else {
-                    true
-                }
+                cell.solid
             })
-            .collect()
     }
 
-    fn sync(person_body: &PersonBody, transform: &mut Transform, sight: &mut Sight) {
-        Transform::set_world_position(person_body.core.bottom_center(), transform);
+    fn sync_simple_body(body: &SimpleBody, transform: &mut Transform, sight: &mut Sight) {
+        Transform::set_world_position(body.world_position, transform);
 
-        Sight::set_world_position(
-            person_body.core.bottom_center() + sight.relative_position,
-            sight,
-        );
+        Sight::set_world_position(sight.relative_position + body.world_position, sight);
     }
 }

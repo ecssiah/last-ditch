@@ -18,6 +18,10 @@ impl Transform {
         }
     }
 
+    pub fn default() -> Self {
+        Self::new()
+    }
+
     pub fn set_world_position(world_position: Vec3, transform: &mut Self) {
         transform.world_position = world_position;
     }

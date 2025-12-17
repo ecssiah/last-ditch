@@ -17,6 +17,7 @@ use crate::{
     simulation::{
         constants::*,
         state::{
+            body::SimpleBody,
             population::nation,
             world::{self, tower::Tower},
             Time,
@@ -145,12 +146,17 @@ impl World {
             .map(|cell_id| {
                 let grid_position = grid::ids_to_grid_position(sector_id, cell_id);
 
+                let cell_world_position = grid::grid_position_to_world_position(grid_position);
+                let cell_size = Vec3::broadcast(CELL_SIZE_IN_METERS);
+                let cell_body = SimpleBody::new(cell_world_position, cell_size);
+
                 world::Cell {
                     cell_id,
                     sector_id,
                     grid_position,
                     block_kind: block::Kind::None,
                     solid: false,
+                    body: cell_body,
                 }
             })
             .collect()

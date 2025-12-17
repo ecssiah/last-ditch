@@ -18,6 +18,10 @@ impl Kinematic {
         }
     }
 
+    pub fn default() -> Self {
+        Self::new()
+    }
+
     pub fn set_flying(flying: bool, kinematic: &mut Self) {
         if flying {
             kinematic.flying = true;

@@ -42,6 +42,10 @@ impl Sight {
         }
     }
 
+    pub fn default() -> Self {
+        Self::new()
+    }
+
     pub fn get_forward(sight: &Self) -> Vec3 {
         sight.rotor * Vec3::unit_y()
     }

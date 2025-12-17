@@ -29,4 +29,8 @@ impl Identity {
 
         identity
     }
+
+    pub fn default() -> Self {
+        Self::new()
+    }
 }
