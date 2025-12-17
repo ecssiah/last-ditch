@@ -4,6 +4,7 @@ pub enum Kind {
     DoorClosed,
     Stairs,
     Platform,
+    Ladder,
 }
 
 impl Kind {
@@ -13,6 +14,7 @@ impl Kind {
             Self::DoorClosed => String::from("door_closed"),
             Self::Stairs => String::from("stairs"),
             Self::Platform => String::from("platform"),
+            Self::Ladder => String::from("ladder"),
         }
     }
 }

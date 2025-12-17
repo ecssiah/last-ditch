@@ -2,25 +2,17 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{
+            State, World, population::{
                 nation::{self, Nation},
                 person::Person,
-            },
-            world::{
-                area::{
-                    self,
-                    template::{
+            }, world::{
+                Area, area::{
+                    self, Connection, template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TradingPlatformTemplate, WireframeTemplate,
-                    },
-                    Connection,
-                },
-                block,
-                grid::{self, Direction, Line},
-                tower::{self, Tower},
-                Area,
-            },
-            State, World,
+                    }
+                }, block, grid::{self, Direction, Line}, object, tower::{self, Tower}
+            }
         },
         utils::IDGenerator,
     },
@@ -83,6 +75,10 @@ impl GenerateWorldData {
             4 => {
                 Self::setup_judge(&mut state.population.person_map);
                 Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
+
+                World::set_object(IVec3::new(0, 12, 1), Direction::North, object::Kind::Ladder, &mut state.world);
+                World::set_object(IVec3::new(0, 12, 2), Direction::North, object::Kind::Ladder, &mut state.world);
+                World::set_object(IVec3::new(0, 12, 3), Direction::North, object::Kind::Ladder, &mut state.world);
             }
             _ => unreachable!(),
         }

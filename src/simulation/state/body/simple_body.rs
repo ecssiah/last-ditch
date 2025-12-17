@@ -21,7 +21,7 @@ impl SimpleBody {
         Self::new(Vec3::zero(), Vec3::one())
     }
 
-    pub fn get_cell_bounding_box(body: &Self) -> FBox {
+    pub fn get_fbox(body: &Self) -> FBox {
         let size = body.collider.size * 0.5;
 
         FBox {

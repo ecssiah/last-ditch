@@ -154,11 +154,11 @@ impl Physics {
                 collider: body.collider,
             };
 
-            if !Self::is_simple_body_colliding(&test_body, world) {
+            if Self::is_simple_body_colliding(&test_body, world) {
+                max = mid;
+            } else {
                 final_delta = mid;
                 min = mid;
-            } else {
-                max = mid;
             }
         }
 
@@ -172,7 +172,7 @@ impl Physics {
     }
 
     fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
-        grid::grid_overlap(&SimpleBody::get_cell_bounding_box(body))
+        grid::grid_overlap(&SimpleBody::get_fbox(body))
             .into_iter()
             .any(|cell_position| {
                 let cell = World::get_cell_at(cell_position, &world.sector_vec);
