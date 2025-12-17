@@ -16,7 +16,7 @@ pub use sector::Sector;
 use crate::{
     simulation::{
         constants::*,
-        state::{population::nation, world::tower::Tower, Time},
+        state::{Time, population::nation, world::tower::Tower},
         utils::IDGenerator,
     },
     utils::ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},

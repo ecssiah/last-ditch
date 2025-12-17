@@ -10,11 +10,8 @@ pub use kind::Kind;
 pub use style::Style;
 
 use crate::{
-    simulation::state::{
-        physics::ibox::IBox,
-        world::grid::{self, Direction, Line},
-    },
-    utils::ldmath::ivec3_ext::rotate_by_direction,
+    simulation::state::world::grid::{self, Direction, Line},
+    utils::ldmath::{IBox, ivec3_ext::rotate_by_direction},
 };
 use ultraviolet::IVec3;
 

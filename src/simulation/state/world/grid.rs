@@ -9,11 +9,8 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::{
-        constants::*,
-        state::physics::{fbox::FBox, ibox::IBox},
-    },
-    utils::ldmath::indexing,
+    simulation::constants::*,
+    utils::ldmath::{FBox, IBox, indexing},
 };
 use ultraviolet::{IVec3, Vec3};
 

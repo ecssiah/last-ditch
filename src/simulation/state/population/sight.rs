@@ -26,8 +26,8 @@ impl Sight {
         let rotor = Rotor3::identity();
         let horizontal_fov = 180.0;
         let vertical_fov = 60.0;
-        let range_in_meters = 12.0;
-        let range_in_sectors = 1;
+        let range_in_meters = 100.0;
+        let range_in_sectors = Self::calculate_range_in_sectors(range_in_meters);
 
         Self {
             world_position,
@@ -55,7 +55,7 @@ impl Sight {
     }
 
     pub fn set_world_position(world_position: Vec3, sight: &mut Self) {
-        sight.world_position = world_position;
+        sight.world_position = sight.relative_position + world_position;
     }
 
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, sight: &mut Self) {
@@ -73,8 +73,11 @@ impl Sight {
 
     pub fn set_range(range: f32, sight: &mut Self) {
         sight.range_in_meters = range;
-        sight.range_in_sectors =
-            ((range - SECTOR_RADIUS_IN_METERS) / SECTOR_SIZE_IN_METERS).ceil() as i32;
+        sight.range_in_sectors = Self::calculate_range_in_sectors(range);
+    }
+
+    fn calculate_range_in_sectors(range: f32) -> i32 {
+        ((range - SECTOR_RADIUS_IN_METERS) / SECTOR_SIZE_IN_METERS).ceil() as i32
     }
 
     pub fn contains(sight: &Self, point: Vec3) -> bool {

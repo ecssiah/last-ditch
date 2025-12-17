@@ -1,7 +1,5 @@
 //! Forces affecting Population
 
-pub mod ibox;
-pub mod fbox;
 pub mod collider;
 
 use crate::simulation::{

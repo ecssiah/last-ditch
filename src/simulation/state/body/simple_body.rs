@@ -1,4 +1,4 @@
-use crate::simulation::state::physics::{fbox::FBox, collider::Collider};
+use crate::{simulation::state::physics::collider::Collider, utils::ldmath::FBox};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
