@@ -20,7 +20,7 @@ pub struct Collider {
 
 impl Collider {
     pub fn new(world_position: Vec3, size: Vec3) -> Self {
-        let relative_position = Vec3::zero();
+        let relative_position = Vec3::new(0.0, 0.0, 0.9);
         let kind = collider::Kind::Physics;
         let owner = collider::Owner::None;
 
@@ -48,37 +48,4 @@ impl Collider {
     pub fn set_size(size: Vec3, collider: &mut Self) {
         collider.size = size;
     }
-
-    // pub fn overlaps(&self, other: Self) -> bool {
-    //     self.min.x < other.max.x
-    //         && self.max.x > other.min.x
-    //         && self.min.y < other.max.y
-    //         && self.max.y > other.min.y
-    //         && self.min.z < other.max.z
-    //         && self.max.z > other.min.z
-    // }
-
-    // pub fn overlap_axis(&self, axis_index: usize, cell_aabb: Self) -> f32 {
-    //     let min = self.min[axis_index];
-    //     let max = self.max[axis_index];
-
-    //     let cell_min = cell_aabb.min[axis_index];
-    //     let cell_max = cell_aabb.max[axis_index];
-
-    //     if max > cell_min && min < cell_max {
-    //         let offset_positive = cell_max - min;
-    //         let offset_negative = max - cell_min;
-
-    //         let center = (min + max) * 0.5;
-    //         let cell_center = (cell_min + cell_max) * 0.5;
-
-    //         if center < cell_center {
-    //             offset_positive
-    //         } else {
-    //             -offset_negative
-    //         }
-    //     } else {
-    //         0.0
-    //     }
-    // }
 }

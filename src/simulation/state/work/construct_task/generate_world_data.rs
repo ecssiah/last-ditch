@@ -498,8 +498,7 @@ impl GenerateWorldData {
     }
 
     fn setup_judge(_person_map: &mut HashMap<u64, Person>) {
-        // Judge::set_world_position(Vec3::new(0.0, -8.0, 2.0), judge);
-        // Judge::set_rotation(0.0, 0.0, judge);
+        
     }
 
     fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {

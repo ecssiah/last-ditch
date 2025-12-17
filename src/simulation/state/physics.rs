@@ -1,5 +1,6 @@
 //! Forces affecting Population
 
+pub mod bounding_box;
 pub mod collider;
 
 use crate::simulation::{
@@ -172,7 +173,7 @@ impl Physics {
     }
 
     fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
-        grid::grid_overlap(SimpleBody::min(body), SimpleBody::max(body))
+        grid::grid_overlap(&SimpleBody::bounding_box(body))
             .into_iter()
             .any(|cell_position| {
                 let cell = World::get_cell_at(cell_position, &world.sector_vec);

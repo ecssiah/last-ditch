@@ -8,7 +8,10 @@ pub use direction::Direction;
 pub use line::Line;
 pub use quadrant::Quadrant;
 
-use crate::{simulation::constants::*, utils::ldmath::indexing};
+use crate::{
+    simulation::{constants::*, state::physics::bounding_box::BoundingBox},
+    utils::ldmath::indexing,
+};
 use ultraviolet::{IVec3, Vec3};
 
 #[inline]
@@ -265,45 +268,39 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn grid_overlap(min: Vec3, max: Vec3) -> Vec<IVec3> {
+pub fn bounding_box(grid_position: IVec3) -> BoundingBox {
+    let world_position = grid_position_to_world_position(grid_position);
+    let radius = Vec3::broadcast(CELL_SIZE_IN_METERS as f32);
+
+    BoundingBox {
+        min: world_position - radius,
+        max: world_position + radius,
+    }
+}
+
+#[inline]
+pub fn grid_overlap(bounding_box: &BoundingBox) -> Vec<IVec3> {
     let mut grid_position_vec = Vec::new();
 
     let grid_min = IVec3::new(
-        (min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
-        (min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
-        (min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (bounding_box.min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (bounding_box.min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
+        (bounding_box.min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
     );
 
     let grid_max = IVec3::new(
-        (max.x + CELL_RADIUS_IN_METERS).floor() as i32,
-        (max.y + CELL_RADIUS_IN_METERS).floor() as i32,
-        (max.z + CELL_RADIUS_IN_METERS).floor() as i32,
+        (bounding_box.max.x + CELL_RADIUS_IN_METERS).floor() as i32,
+        (bounding_box.max.y + CELL_RADIUS_IN_METERS).floor() as i32,
+        (bounding_box.max.z + CELL_RADIUS_IN_METERS).floor() as i32,
     );
 
     for z in grid_min.z..=grid_max.z {
         for y in grid_min.y..=grid_max.y {
             for x in grid_min.x..=grid_max.x {
-                let cell_position = IVec3::new(x, y, z);
+                let grid_position = IVec3::new(x, y, z);
 
-                let cell_min = Vec3::new(
-                    cell_position.x as f32 - CELL_RADIUS_IN_METERS,
-                    cell_position.y as f32 - CELL_RADIUS_IN_METERS,
-                    cell_position.z as f32 - CELL_RADIUS_IN_METERS,
-                );
-                let cell_max = Vec3::new(
-                    cell_position.x as f32 + CELL_RADIUS_IN_METERS,
-                    cell_position.y as f32 + CELL_RADIUS_IN_METERS,
-                    cell_position.z as f32 + CELL_RADIUS_IN_METERS,
-                );
-
-                if min.x < cell_max.x
-                    && max.x > cell_min.x
-                    && min.y < cell_max.y
-                    && max.y > cell_min.y
-                    && min.z < cell_max.z
-                    && max.z > cell_min.z
-                {
-                    grid_position_vec.push(cell_position);
+                if BoundingBox::overlaps(bounding_box, &self::bounding_box(grid_position)) {
+                    grid_position_vec.push(grid_position);
                 }
             }
         }

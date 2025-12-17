@@ -16,12 +16,7 @@ pub use sector::Sector;
 use crate::{
     simulation::{
         constants::*,
-        state::{
-            body::SimpleBody,
-            population::nation,
-            world::{self, tower::Tower},
-            Time,
-        },
+        state::{population::nation, world::tower::Tower, Time},
         utils::IDGenerator,
     },
     utils::ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},
@@ -37,7 +32,7 @@ pub struct World {
     pub active: bool,
     pub rng: ChaCha8Rng,
     pub time: Time,
-    pub sector_vec: Vec<world::Sector>,
+    pub sector_vec: Vec<Sector>,
     pub object_map: HashMap<usize, Vec<Object>>,
     pub tower: Tower,
     pub area_id_generator: IDGenerator,
@@ -94,7 +89,7 @@ impl World {
         home_position_map.get(&nation_kind).cloned()
     }
 
-    fn setup_sector_vec() -> Vec<world::Sector> {
+    fn setup_sector_vec() -> Vec<Sector> {
         grid::sector_id_vec()
             .into_iter()
             .map(|sector_id| {
@@ -140,23 +135,18 @@ impl World {
         }
     }
 
-    fn setup_cell_vec(sector_id: usize) -> Vec<world::Cell> {
+    fn setup_cell_vec(sector_id: usize) -> Vec<Cell> {
         grid::cell_id_vec()
             .into_iter()
             .map(|cell_id| {
                 let grid_position = grid::ids_to_grid_position(sector_id, cell_id);
 
-                let cell_world_position = grid::grid_position_to_world_position(grid_position);
-                let cell_size = Vec3::broadcast(CELL_SIZE_IN_METERS);
-                let cell_body = SimpleBody::new(cell_world_position, cell_size);
-
-                world::Cell {
+                Cell {
                     cell_id,
                     sector_id,
                     grid_position,
                     block_kind: block::Kind::None,
                     solid: false,
-                    body: cell_body,
                 }
             })
             .collect()
@@ -199,7 +189,7 @@ impl World {
         sector
     }
 
-    pub fn get_cell(sector_id: usize, cell_id: usize, sector_vec_slice: &[Sector]) -> &world::Cell {
+    pub fn get_cell(sector_id: usize, cell_id: usize, sector_vec_slice: &[Sector]) -> &Cell {
         let sector = &sector_vec_slice[sector_id];
         let cell = &sector.cell_vec[cell_id];
 
@@ -210,7 +200,7 @@ impl World {
         sector_id: usize,
         cell_id: usize,
         sector_vec_slice: &mut [Sector],
-    ) -> &mut world::Cell {
+    ) -> &mut Cell {
         let sector = &mut sector_vec_slice[sector_id];
 
         let cell = &mut sector.cell_vec[cell_id];
@@ -218,10 +208,7 @@ impl World {
         cell
     }
 
-    pub fn get_cell_at<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a [Sector],
-    ) -> &'a world::Cell {
+    pub fn get_cell_at<'a>(grid_position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a Cell {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice);
@@ -232,7 +219,7 @@ impl World {
     pub fn get_cell_at_mut<'a>(
         grid_position: IVec3,
         sector_vec_slice: &'a mut [Sector],
-    ) -> &'a mut world::Cell {
+    ) -> &'a mut Cell {
         let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
 
         let cell = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice);
