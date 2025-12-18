@@ -4,7 +4,7 @@ use crate::{
         state::{
             population::{
                 identity,
-                nation::{self, Nation},
+                nation::{self},
                 person::Person,
             },
             world::{
@@ -134,15 +134,7 @@ impl GenerateData {
 
         for (_, nation) in nation_map {
             for _ in 1..=NATION_INITIAL_POPULATION {
-                let offset = IVec3::new(
-                    gen_range_i32(-4, 4, &mut population.rng),
-                    gen_range_i32(-4, 4, &mut population.rng),
-                    1,
-                );
-
-                let person_id = IDGenerator::allocate(&mut population.id_generator);
-
-                let mut person = Person::new(person_id);
+                let mut person = Person::new(IDGenerator::allocate(&mut population.id_generator));
 
                 let sex = match gen_range_i32(0, 1, &mut population.rng) {
                     0 => identity::Sex::Male,
@@ -151,7 +143,16 @@ impl GenerateData {
 
                 person.identity.sex = sex;
 
-                let grid_position = nation.home_grid_position + offset;
+                let temple_radius_x = TEMPLE_RADIUS_X as i32;
+                let temple_radius_y = TEMPLE_RADIUS_Y as i32;
+
+                let home_offset = IVec3::new(
+                    gen_range_i32(-temple_radius_x + 2, temple_radius_x - 2, &mut population.rng),
+                    gen_range_i32(-temple_radius_y + 2, temple_radius_y - 2, &mut population.rng),
+                    3,
+                );
+
+                let grid_position = nation.home_grid_position + home_offset;
                 let world_position = grid::grid_position_to_world_position(grid_position);
 
                 Person::set_world_position(world_position, &mut person);

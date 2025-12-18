@@ -49,7 +49,7 @@ impl Population {
     fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
         let tower_radius = TOWER_RADIUS as i32;
 
-        let home_radius = tower_radius - 6;
+        let home_radius = tower_radius - 10;
         let home_height = 0;
 
         let mut lion_nation = Nation::new(nation::Kind::Lion);

@@ -87,7 +87,7 @@ pub const JUDGE_DEFAULT_SIZE_Z: f32 = 1.9;
 
 pub const PITCH_LIMIT: f32 = 89.99;
 
-pub const NATION_INITIAL_POPULATION: i32 = 16;
+pub const NATION_INITIAL_POPULATION: i32 = 4;
 
 pub const PERSON_DEFAULT_SPEED: f32 = 6.0;
 pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;
@@ -106,6 +106,6 @@ pub const TOWER_AREA_SIZE_MIN: usize = 5;
 pub const TRADING_PLATFORM_RADIUS_X: usize = 5;
 pub const TRADING_PLATFORM_RADIUS_Y: usize = 4;
 
-pub const TEMPLE_RADIUS_X: usize = 4;
+pub const TEMPLE_RADIUS_X: usize = 5;
 pub const TEMPLE_RADIUS_Y: usize = 3;
-pub const TEMPLE_SIZE_Z: usize = 7;
+pub const TEMPLE_SIZE_Z: usize = 8;
