@@ -5,7 +5,7 @@ use crate::{
     },
     simulation::{
         constants::*,
-        manager::viewer::{face_mask, SectorView},
+        manager::viewer::{face_mask, view::SectorView},
         state::world::{
             block,
             grid::{self, axis::Axis},

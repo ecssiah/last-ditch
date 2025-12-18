@@ -19,7 +19,7 @@ use crate::{
     },
     simulation::{
         self,
-        manager::{status::Status, viewer::View, Message, Viewer},
+        manager::{Message, Viewer, status::Status, viewer::view::View},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};

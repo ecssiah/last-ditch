@@ -9,12 +9,11 @@ use crate::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        object_renderer::{object_instance_data::ObjectInstanceData, ObjectRenderer},
+        object_renderer::{ObjectRenderer, object_instance_data::ObjectInstanceData},
         world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
-        constants::SECTOR_RADIUS_IN_METERS,
-        manager::viewer::{SectorView, WorldView},
+        constants::SECTOR_RADIUS_IN_METERS, manager::viewer::view::{SectorView, WorldView},
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};

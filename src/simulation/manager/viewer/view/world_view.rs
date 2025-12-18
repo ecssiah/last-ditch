@@ -9,7 +9,11 @@ pub struct WorldView {
 impl WorldView {
     pub fn new() -> Self {
         Self {
-            sector_view_map: HashMap::new(),
+            sector_view_map: HashMap::default(),
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new()
     }
 }

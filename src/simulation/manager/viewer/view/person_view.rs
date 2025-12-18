@@ -15,11 +15,15 @@ pub struct PersonView {
 impl PersonView {
     pub fn new() -> Self {
         Self {
-            identity: Identity::new(),
-            transform: Transform::new(),
-            kinematic: Kinematic::new(),
-            sight: Sight::new(),
+            identity: Identity::default(),
+            transform: Transform::default(),
+            kinematic: Kinematic::default(),
+            sight: Sight::default(),
             selected_block_kind: block::Kind::Engraved1,
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new()
     }
 }

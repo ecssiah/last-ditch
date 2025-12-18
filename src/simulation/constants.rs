@@ -69,12 +69,14 @@ pub const MINIMUM_CLEARANCE: u32 = 3;
 pub const CONTACT_OFFSET: f32 = 0.001;
 pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
 
-pub const JUDGE_ID_0: u64 = 0;
-pub const JUDGE_ID_1: u64 = 1;
-pub const JUDGE_ID_2: u64 = 2;
-pub const JUDGE_ID_3: u64 = 3;
+pub const ID_NULL: u64 = 0;
 
-pub const INITIAL_PERSON_ID: u64 = 100;
+pub const ID_JUDGE_1: u64 = 1;
+pub const ID_JUDGE_2: u64 = 2;
+pub const ID_JUDGE_3: u64 = 3;
+pub const ID_JUDGE_4: u64 = 4;
+
+pub const ID_START: u64 = 100;
 
 pub const JUDGE_DEFAULT_SPEED: f32 = 8.0;
 pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
@@ -85,7 +87,7 @@ pub const JUDGE_DEFAULT_SIZE_Z: f32 = 1.9;
 
 pub const PITCH_LIMIT: f32 = 89.99;
 
-pub const INITIAL_NATION_POPULATION: i32 = 16;
+pub const NATION_INITIAL_POPULATION: i32 = 16;
 
 pub const PERSON_DEFAULT_SPEED: f32 = 6.0;
 pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;

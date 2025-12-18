@@ -7,7 +7,7 @@ pub use model::Model;
 use crate::{
     interface::gpu::gpu_context::GPUContext,
     simulation::{
-        manager::{message::SeedData, viewer::View, Message},
+        manager::{Message, message::SeedData, viewer::view::View},
         state::world::grid::{self, Direction},
     },
 };
@@ -95,32 +95,17 @@ impl GUI {
 
                             ui.add_space(20.0);
 
-                            let generate_world_clicked = ui
-                                .add_sized([200.0, 60.0], egui::Button::new("Generate World"))
+                            let generate_clicked = ui
+                                .add_sized([200.0, 60.0], egui::Button::new("Generate"))
                                 .clicked();
 
-                            if generate_world_clicked {
+                            if generate_clicked {
                                 let seed_data = SeedData {
                                     seed: Self::parse_seed(&gui.model.seed_input_string),
                                 };
 
                                 gui.message_deque.push_back(Message::SetSeed(seed_data));
-                                gui.message_deque.push_back(Message::GenerateWorld);
-                            }
-
-                            ui.add_space(20.0);
-
-                            let generate_population_clicked = ui
-                                .add_sized([200.0, 60.0], egui::Button::new("Generate Population"))
-                                .clicked();
-
-                            if generate_population_clicked {
-                                let seed_data = SeedData {
-                                    seed: Self::parse_seed(&gui.model.seed_input_string),
-                                };
-
-                                gui.message_deque.push_back(Message::SetSeed(seed_data));
-                                gui.message_deque.push_back(Message::GeneratePopulation);
+                                gui.message_deque.push_back(Message::Generate);
                             }
 
                             ui.add_space(20.0);

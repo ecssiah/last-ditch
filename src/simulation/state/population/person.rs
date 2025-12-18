@@ -55,3 +55,9 @@ impl Person {
         Sight::set_rotation(rotation_xy, rotation_yz, &mut person.sight);
     }
 }
+
+impl std::fmt::Display for Person {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "Person ID: {}", self.person_id)
+    }
+}

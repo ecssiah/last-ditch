@@ -12,7 +12,7 @@ use crate::{
             person_vertex::PersonVertex,
         },
     },
-    simulation::{constants::*, manager::viewer::PopulationView, state::population::identity},
+    simulation::{constants::*, manager::viewer::view::PopulationView, state::population::identity},
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};

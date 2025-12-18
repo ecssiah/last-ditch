@@ -8,8 +8,7 @@ use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
-    },
-    simulation::manager::viewer::{PersonView, View},
+    }, simulation::manager::viewer::view::{PersonView, View},
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 

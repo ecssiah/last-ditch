@@ -3,27 +3,15 @@
 pub mod face_mask;
 pub mod view;
 
-pub use view::BlockView;
-pub use view::FaceView;
-pub use view::PersonView;
-pub use view::PopulationView;
-pub use view::SectorView;
-pub use view::View;
-pub use view::WorldView;
-
-use crate::simulation::constants::SECTOR_RADIUS_IN_CELLS;
-use crate::simulation::constants::SECTOR_VOLUME_IN_CELLS;
-use crate::simulation::manager::viewer::view::ObjectView;
-use crate::simulation::state::world::Object;
 use crate::simulation::{
-    manager::{viewer::view::ManagerView, Manager},
+    constants::*,
+    manager::{
+        Manager, viewer::view::{BlockView, ManagerView, ObjectView, PersonView, PopulationView, SectorView, View, WorldView}
+    },
     state::{
-        world::{
-            block,
-            grid::{self},
-            sector::Sector,
-        },
-        State,
+        State, world::{
+            Object, block, grid::{self}, sector::Sector
+        }
     },
 };
 use std::collections::HashMap;
@@ -85,11 +73,7 @@ impl Viewer {
     fn update_population_view(state: &State) -> PopulationView {
         let mut population_view = PopulationView::new();
 
-        if let Some(judge) = state
-            .population
-            .person_map
-            .get(&state.population.leadership.judge_id)
-        {
+        if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
             let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
             for person in state.population.person_map.values() {
@@ -122,11 +106,7 @@ impl Viewer {
     ) -> WorldView {
         let mut world_view = WorldView::new();
 
-        if let Some(judge) = state
-            .population
-            .person_map
-            .get(&state.population.leadership.judge_id)
-        {
+        if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
             let judge_sector_coordinate =
                 grid::world_position_to_sector_coordinate(judge.transform.world_position);
 

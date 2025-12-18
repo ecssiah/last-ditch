@@ -11,4 +11,8 @@ impl ManagerView {
             status: Status::Run,
         }
     }
+
+    pub fn default() -> Self {
+        Self::new()
+    }
 }

@@ -1,29 +1,31 @@
+use crate::simulation::constants::ID_START;
+
 #[derive(Debug)]
 pub struct IDGenerator {
-    next_id: u64,
+    current_id: u64,
 }
 
 impl IDGenerator {
-    pub fn new(initial_id: u64) -> Self {
+    pub fn new() -> Self {
         Self {
-            next_id: initial_id,
+            current_id: ID_START,
         }
     }
 
     #[inline]
     pub fn allocate(id_generator: &mut Self) -> u64 {
-        let id = id_generator.next_id;
+        let id = id_generator.current_id;
 
-        id_generator.next_id += 1;
+        id_generator.current_id += 1;
 
         id
     }
 
     #[inline]
     pub fn allocate_many(count: u64, id_generator: &mut Self) -> u64 {
-        let start = id_generator.next_id;
+        let start = id_generator.current_id;
 
-        id_generator.next_id += count;
+        id_generator.current_id += count;
 
         start
     }

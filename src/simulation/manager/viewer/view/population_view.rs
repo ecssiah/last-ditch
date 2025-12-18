@@ -10,8 +10,12 @@ pub struct PopulationView {
 impl PopulationView {
     pub fn new() -> Self {
         Self {
-            leadership_view: LeadershipView::new(),
-            person_view_map: HashMap::new(),
+            leadership_view: LeadershipView::default(),
+            person_view_map: HashMap::default(),
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new()
     }
 }

@@ -1,15 +1,15 @@
 use crate::simulation::constants::ID_NULL;
 
 #[derive(Clone, Debug)]
-pub struct LeadershipView {
+pub struct Leadership {
     pub judge_id: u64,
 }
 
-impl LeadershipView {
+impl Leadership {
     pub fn new() -> Self {
-        let judge_id = ID_NULL;
-
-        Self { judge_id }
+        Self {
+            judge_id: ID_NULL,
+        }
     }
 
     pub fn default() -> Self {

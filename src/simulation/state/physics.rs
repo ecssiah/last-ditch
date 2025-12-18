@@ -42,7 +42,7 @@ impl Physics {
 
         if let Some(judge) = population
             .person_map
-            .get_mut(&population.leadership.judge_id)
+            .get_mut(&ID_JUDGE_1)
         {
             let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 

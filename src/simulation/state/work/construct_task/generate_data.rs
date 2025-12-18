@@ -2,43 +2,41 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            State, World, population::{
-                nation::{self, Nation},
-                person::Person,
-            }, world::{
-                Area, area::{
-                    self, Connection, template::{
+            population::{identity, nation::Nation, person::Person},
+            world::{
+                area::{
+                    self,
+                    template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TradingPlatformTemplate, WireframeTemplate,
-                    }
-                }, block, grid::{self, Direction, Line}, object, tower::{self, Tower}
-            }
+                    },
+                    Connection,
+                },
+                block,
+                grid::{self, Direction, Line},
+                object,
+                tower::{self, Tower},
+                Area,
+            },
+            Population, State, World,
         },
         utils::IDGenerator,
     },
     utils::ldmath::rand_chacha_ext::{self, gen_bool, gen_range_i32},
 };
 use std::collections::HashMap;
-use ultraviolet::IVec3;
+use ultraviolet::{IVec3, Vec3};
 
 #[derive(Clone)]
-pub struct GenerateWorldData {
+pub struct GenerateData {
     pub stage_index: usize,
     pub stage_cost_map: HashMap<usize, u32>,
 }
 
-impl GenerateWorldData {
+impl GenerateData {
     pub fn new() -> Self {
         let stage_index = 0;
-
-        #[rustfmt::skip]
-        let stage_cost_map = HashMap::from([
-            (0, 100),
-            (1, 100),
-            (2, 100),
-            (3, 100),
-            (4, 100),
-        ]);
+        let stage_cost_map = HashMap::from([(0, 100), (1, 100), (2, 100), (3, 100), (4, 100)]);
 
         Self {
             stage_index,
@@ -53,32 +51,47 @@ impl GenerateWorldData {
     pub fn step(state: &mut State, generate_world_data: &mut Self) -> bool {
         match generate_world_data.stage_index {
             0 => {
+                Population::reset(&mut state.population);
                 World::reset(&mut state.world);
-
-                Self::construct_floor_map(&mut state.world);
             }
             1 => {
+                Self::generate_population(&state.world, &mut state.population);
+            }
+            2 => {
+                Self::construct_floor_map(&mut state.world);
                 Self::construct_building_frame(&mut state.world);
                 Self::construct_tower_exterior(&mut state.world);
                 Self::construct_roof(&mut state.world);
+                Self::construct_nation_temples(&state.population, &mut state.world);
             }
-            2 => {
+            3 => {
                 Self::subdivide_room_areas(&mut state.world);
                 Self::subdivide_room_areas(&mut state.world);
                 Self::subdivide_room_areas(&mut state.world);
 
                 Self::layout_connections(&mut state.world);
             }
-            3 => {
-                Self::construct_areas(&mut state.world);
-            }
             4 => {
-                Self::setup_judge(&mut state.population.person_map);
-                Self::setup_nation_blocks(&state.population.nation_map, &mut state.world);
+                Self::construct_areas(&mut state.world);
 
-                World::set_object(IVec3::new(0, 12, 1), Direction::North, object::Kind::Ladder, &mut state.world);
-                World::set_object(IVec3::new(0, 12, 2), Direction::North, object::Kind::Ladder, &mut state.world);
-                World::set_object(IVec3::new(0, 12, 3), Direction::North, object::Kind::Ladder, &mut state.world);
+                World::set_object(
+                    IVec3::new(0, 12, 1),
+                    Direction::North,
+                    object::Kind::Ladder,
+                    &mut state.world,
+                );
+                World::set_object(
+                    IVec3::new(0, 12, 2),
+                    Direction::North,
+                    object::Kind::Ladder,
+                    &mut state.world,
+                );
+                World::set_object(
+                    IVec3::new(0, 12, 3),
+                    Direction::North,
+                    object::Kind::Ladder,
+                    &mut state.world,
+                );
             }
             _ => unreachable!(),
         }
@@ -92,10 +105,82 @@ impl GenerateWorldData {
         generate_world_data.stage_index >= generate_world_data.stage_cost_map.len()
     }
 
+    fn generate_population(_world: &World, population: &mut Population) {
+        tracing::info!("Generating Judge 1");
+
+        let mut judge = Person::new(ID_JUDGE_1);
+
+        Person::set_world_position(Vec3::new(0.0, -8.0, 2.0), &mut judge);
+        Person::set_rotation(0.0, 0.0, &mut judge);
+
+        Person::set_size(
+            Vec3::new(
+                JUDGE_DEFAULT_SIZE_X,
+                JUDGE_DEFAULT_SIZE_Y,
+                JUDGE_DEFAULT_SIZE_Z,
+            ),
+            &mut judge,
+        );
+
+        population.person_map.insert(judge.person_id, judge);
+
+        tracing::info!("Generating Nations");
+
+        let nation_map = population.nation_map.clone();
+
+        for (_, nation) in nation_map {
+            for _ in 1..=NATION_INITIAL_POPULATION {
+                let offset = IVec3::new(
+                    gen_range_i32(-4, 4, &mut population.rng),
+                    gen_range_i32(-4, 4, &mut population.rng),
+                    1,
+                );
+
+                let person_id = IDGenerator::allocate(&mut population.id_generator);
+
+                let mut person = Person::new(person_id);
+
+                let sex = match gen_range_i32(0, 1, &mut population.rng) {
+                    0 => identity::Sex::Male,
+                    _ => identity::Sex::Female,
+                };
+
+                person.identity.sex = sex;
+
+                let grid_position = nation.home_grid_position + offset;
+                let world_position = grid::grid_position_to_world_position(grid_position);
+
+                Person::set_world_position(world_position, &mut person);
+
+                Person::set_size(
+                    Vec3::new(
+                        PERSON_DEFAULT_SIZE_X,
+                        PERSON_DEFAULT_SIZE_Y,
+                        rand_chacha_ext::gen_range_f32(
+                            PERSON_DEFAULT_SIZE_Z - 0.2,
+                            PERSON_DEFAULT_SIZE_Z + 0.2,
+                            &mut population.rng,
+                        ),
+                    ),
+                    &mut person,
+                );
+
+                person.kinematic.speed = PERSON_DEFAULT_SPEED;
+                person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
+
+                population.person_map.insert(person.person_id, person);
+            }
+        }
+    }
+
     fn construct_floor_map(world: &mut World) {
+        tracing::info!("Constructing Floors");
+
         let tower_floor_count = TOWER_FLOOR_COUNT as i32;
 
         for floor_number in -tower_floor_count..0 {
+            tracing::info!("Constructing Floor {:?}", floor_number);
+
             let floor = tower::Floor::new(floor_number, &mut world.area_id_generator);
 
             world.tower.floor_map.insert(floor_number, floor);
@@ -128,13 +213,7 @@ impl GenerateWorldData {
 
             let floor_ibox = grid::get_grid_ibox(floor.grid_position, floor_size);
 
-            tracing::info!("Constructing Frame");
-            tracing::info!(
-                "Floor: {:?} Position: {:?} Size: {:?}",
-                floor.floor_number,
-                floor.grid_position,
-                floor_size,
-            );
+            tracing::info!("Constructing Frame, Floor: {:?}", floor.floor_number);
 
             World::set_cube(
                 floor_ibox.min,
@@ -174,12 +253,7 @@ impl GenerateWorldData {
 
             let floor_ibox = grid::get_grid_ibox(floor.grid_position, floor_size);
 
-            tracing::info!("Constructing Tower Exterior");
-            tracing::info!(
-                "Floor: {:?} Position: {:?}",
-                floor.floor_number,
-                floor.grid_position,
-            );
+            tracing::info!("Constructing Exterior, Floor: {:?}", floor.floor_number);
 
             for y in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
@@ -264,6 +338,8 @@ impl GenerateWorldData {
     }
 
     fn construct_roof(world: &mut World) {
+        tracing::info!("Constructing Roof");
+
         let floor_size = Tower::get_floor_size();
 
         let roof_ibox = grid::get_grid_ibox(Tower::get_floor_grid_position(0), floor_size);
@@ -361,12 +437,7 @@ impl GenerateWorldData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
-            tracing::info!("Subdividing rooms");
-            tracing::info!(
-                "Floor: {:?} Position: {:?}",
-                floor.floor_number,
-                floor.grid_position,
-            );
+            tracing::info!("Subdividing Rooms, Floor {:?}", floor.floor_number);
 
             let lower_room_id_vec: Vec<u64> = floor
                 .area_id_map
@@ -404,12 +475,7 @@ impl GenerateWorldData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
-            tracing::info!("Connecting rooms");
-            tracing::info!(
-                "Floor: {:?} Position: {:?}",
-                floor.floor_number,
-                floor.grid_position,
-            );
+            tracing::info!("Connecting Rooms, Floor: {:?}", floor.floor_number);
 
             let mut candidate_connection_vec = Vec::new();
 
@@ -462,6 +528,8 @@ impl GenerateWorldData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
+            tracing::info!("Constructing Areas, Floor {:?}", floor_number);
+
             let area_id_map = floor.area_id_map.clone();
 
             let (center_area_id_map, other_area_id_map): (Vec<_>, Vec<_>) = area_id_map
@@ -493,13 +561,15 @@ impl GenerateWorldData {
         }
     }
 
-    fn setup_judge(_person_map: &mut HashMap<u64, Person>) {}
+    fn construct_nation_temples(population: &Population, world: &mut World) {
+        tracing::info!("Constructing Nation Temples");
 
-    fn setup_nation_blocks(nation_map: &HashMap<nation::Kind, Nation>, world: &mut World) {
-        for (nation_kind, nation) in nation_map {
+        for (nation_kind, nation) in &population.nation_map {
+            tracing::info!("Constructing {:?} Temple", nation.nation_kind);
+
             World::set_block(
-                nation.home_position,
-                Nation::block(nation_kind),
+                nation.home_grid_position,
+                Nation::get_block_kind(nation_kind),
                 &mut world.sector_vec,
             );
         }

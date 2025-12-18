@@ -8,8 +8,8 @@ pub use timestep::Timestep;
 pub use viewer::Viewer;
 
 use crate::simulation::{
-    constants::{SIMULATION_MAX_TICKS_PER_FRAME, SIMULATION_TICK_DURATION},
-    manager::{status::Status, viewer::View},
+    constants::*,
+    manager::{status::Status, viewer::view::View},
     state::{
         action::{
             act::{self, JumpData, PlaceBlockData, RemoveBlockData},
@@ -17,10 +17,7 @@ use crate::simulation::{
         },
         population::kinematic::Kinematic,
         work::{
-            construct_task::{
-                generate_population_data::GeneratePopulationData,
-                generate_world_data::GenerateWorldData, ConstructTask,
-            },
+            construct_task::{generate_data::GenerateData, ConstructTask},
             construct_worker::ConstructWorker,
         },
         world::block::Kind,
@@ -95,8 +92,7 @@ impl Manager {
             }
             Message::JumpInput => Self::handle_jump_input_message(state),
             Message::SetSeed(seed_data) => Self::handle_set_seed_message(seed_data, state),
-            Message::GenerateWorld => Self::handle_generate_world_message(state),
-            Message::GeneratePopulation => Self::handle_generate_population_message(state),
+            Message::Generate => Self::handle_generate_message(state),
             Message::Quit => Self::handle_quit_message(state, manager),
             Message::Debug => Self::handle_debug_message(state),
             Message::Option1 => Self::handle_option1_message(state),
@@ -108,7 +104,7 @@ impl Manager {
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {
-            person_id: state.population.leadership.judge_id,
+            person_id: ID_JUDGE_1,
         };
 
         state
@@ -119,7 +115,7 @@ impl Manager {
 
     fn handle_interact2(state: &mut State) {
         let remove_block_data = RemoveBlockData {
-            person_id: state.population.leadership.judge_id,
+            person_id: ID_JUDGE_1,
         };
 
         state
@@ -133,7 +129,7 @@ impl Manager {
         state: &mut State,
     ) {
         let rotate_data = act::RotateData {
-            person_id: state.population.leadership.judge_id,
+            person_id: ID_JUDGE_1,
             rotation_angles: Vec3::new(
                 rotation_input_data.input_x,
                 rotation_input_data.input_y,
@@ -156,7 +152,7 @@ impl Manager {
         .normalized();
 
         let move_data = act::MoveData {
-            person_id: state.population.leadership.judge_id,
+            person_id: ID_JUDGE_1,
             move_direction,
         };
 
@@ -165,7 +161,7 @@ impl Manager {
 
     fn handle_jump_input_message(state: &mut State) {
         let jump_data = JumpData {
-            person_id: state.population.leadership.judge_id,
+            person_id: ID_JUDGE_1,
         };
 
         state.action.act_deque.push_back(Act::Jump(jump_data));
@@ -175,22 +171,9 @@ impl Manager {
         State::seed(seed_data.seed, state);
     }
 
-    fn handle_generate_world_message(state: &mut State) {
-        let generate_world_data = GenerateWorldData::new();
-        let construct_task = ConstructTask::GenerateWorld(generate_world_data);
-
-        ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
-
-        state.action.active = true;
-        state.world.active = true;
-        state.population.active = true;
-        state.physics.active = true;
-        state.navigation.active = true;
-    }
-
-    fn handle_generate_population_message(state: &mut State) {
-        let generate_population_data = GeneratePopulationData::new();
-        let construct_task = ConstructTask::GeneratePopulation(generate_population_data);
+    fn handle_generate_message(state: &mut State) {
+        let generate_data = GenerateData::new();
+        let construct_task = ConstructTask::Generate(generate_data);
 
         ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
 
@@ -208,32 +191,20 @@ impl Manager {
     }
 
     fn handle_debug_message(state: &mut State) {
-        if let Some(judge) = state
-            .population
-            .person_map
-            .get_mut(&state.population.leadership.judge_id)
-        {
+        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             Physics::toggle_gravity_active(&mut state.physics);
             Kinematic::toggle_flying(&mut judge.kinematic);
         }
     }
 
     fn handle_option1_message(state: &mut State) {
-        if let Some(judge) = state
-            .population
-            .person_map
-            .get_mut(&state.population.leadership.judge_id)
-        {
+        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             judge.selected_block_kind = Kind::previous_block_kind(&judge.selected_block_kind);
         }
     }
 
     fn handle_option2_message(state: &mut State) {
-        if let Some(judge) = state
-            .population
-            .person_map
-            .get_mut(&state.population.leadership.judge_id)
-        {
+        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             judge.selected_block_kind = Kind::next_block_kind(&judge.selected_block_kind);
         }
     }

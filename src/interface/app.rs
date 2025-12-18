@@ -1,9 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{
-        manager::{viewer::View, Message},
-        Simulation,
-    },
+    simulation::{Simulation, manager::{Message, viewer::view::View}},
 };
 use winit::{
     application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,

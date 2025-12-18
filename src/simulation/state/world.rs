@@ -47,8 +47,8 @@ impl World {
         let sector_vec = Self::setup_sector_vec();
         let object_map = Self::setup_object_map();
         let tower = Tower::new();
-        let area_id_generator = IDGenerator::new(100);
-        let object_id_generator = IDGenerator::new(100);
+        let area_id_generator = IDGenerator::new();
+        let object_id_generator = IDGenerator::new();
 
         Self {
             active,
@@ -74,12 +74,9 @@ impl World {
 
     pub fn reset(world: &mut Self) {
         world.sector_vec = Self::setup_sector_vec();
+        world.object_map = Self::setup_object_map();
 
         Tower::reset(&mut world.tower);
-
-        for object_vec in world.object_map.values_mut() {
-            object_vec.clear();
-        }
     }
 
     pub fn get_flag(

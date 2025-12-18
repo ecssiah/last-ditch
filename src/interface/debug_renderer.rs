@@ -8,7 +8,7 @@ use crate::{
         debug_renderer::{debug_channel::DebugChannel, debug_vertex::DebugVertex},
         gpu::gpu_context::GPUContext,
     },
-    simulation::{constants::*, manager::viewer::View},
+    simulation::{constants::*, manager::viewer::view::View},
 };
 use std::collections::{HashMap, HashSet};
 use ultraviolet::Vec3;

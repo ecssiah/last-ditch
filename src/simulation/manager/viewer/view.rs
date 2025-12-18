@@ -30,9 +30,9 @@ pub struct View {
 impl View {
     pub fn new() -> Self {
         Self {
-            manager_view: ManagerView::new(),
-            population_view: PopulationView::new(),
-            world_view: WorldView::new(),
+            manager_view: ManagerView::default(),
+            population_view: PopulationView::default(),
+            world_view: WorldView::default(),
         }
     }
 }
