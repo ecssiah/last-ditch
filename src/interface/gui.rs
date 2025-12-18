@@ -7,8 +7,7 @@ pub use model::Model;
 use crate::{
     interface::gpu::gpu_context::GPUContext,
     simulation::{
-        manager::{Message, message::SeedData, viewer::view::View},
-        state::world::grid::{self, Direction},
+        constants::ID_JUDGE_1, manager::{Message, message::SeedData, viewer::view::View}, state::world::grid::{self, Direction}
     },
 };
 use egui::{FontId, FullOutput, Id, Ui};
@@ -192,7 +191,7 @@ impl GUI {
         if let Some(person_view) = view
             .population_view
             .person_view_map
-            .get(&view.population_view.leadership_view.judge_id)
+            .get(&ID_JUDGE_1)
         {
             let grid_position =
                 grid::world_position_to_grid_position(person_view.transform.world_position);

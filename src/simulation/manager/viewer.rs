@@ -6,12 +6,20 @@ pub mod view;
 use crate::simulation::{
     constants::*,
     manager::{
-        Manager, viewer::view::{BlockView, ManagerView, ObjectView, PersonView, PopulationView, SectorView, View, WorldView}
+        viewer::view::{
+            BlockView, ManagerView, ObjectView, PersonView, PopulationView, SectorView, View,
+            WorldView,
+        },
+        Manager,
     },
     state::{
-        State, world::{
-            Object, block, grid::{self}, sector::Sector
-        }
+        world::{
+            block,
+            grid::{self},
+            sector::Sector,
+            Object,
+        },
+        State,
     },
 };
 use std::collections::HashMap;

@@ -352,7 +352,7 @@ impl PopulationRenderer {
         let mut group_map: HashMap<String, Vec<PersonInstanceData>> = HashMap::new();
 
         for (person_id, person_view) in &population_view.person_view_map {
-            if person_id == &population_view.leadership_view.judge_id {
+            if person_id == &ID_JUDGE_1 {
                 continue;
             }
 

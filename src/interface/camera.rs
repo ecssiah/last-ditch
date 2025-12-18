@@ -8,7 +8,7 @@ use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
-    }, simulation::manager::viewer::view::{PersonView, View},
+    }, simulation::{constants::ID_JUDGE_1, manager::viewer::view::{PersonView, View}},
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 
@@ -90,7 +90,7 @@ impl Camera {
         if let Some(person_view) = view
             .population_view
             .person_view_map
-            .get(&view.population_view.leadership_view.judge_id)
+            .get(&ID_JUDGE_1)
         {
             Self::update_camera(&person_view, camera);
         }
