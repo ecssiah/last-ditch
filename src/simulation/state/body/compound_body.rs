@@ -1,4 +1,4 @@
-use crate::simulation::state::{physics::collider::Collider};
+use crate::simulation::state::physics::collider::Collider;
 use std::collections::HashMap;
 use ultraviolet::Vec3;
 
@@ -34,7 +34,10 @@ impl CompoundBody {
         body.world_position += displacement;
 
         for collider in body.collider_vec.iter_mut() {
-            Collider::set_world_position(collider.relative_position + body.world_position, collider);
+            Collider::set_world_position(
+                collider.relative_position + body.world_position,
+                collider,
+            );
         }
     }
 }

@@ -10,7 +10,7 @@ pub use quadrant::Quadrant;
 
 use crate::{
     simulation::constants::*,
-    utils::ldmath::{FBox, IBox, indexing},
+    utils::ldmath::{indexing, FBox, IBox},
 };
 use ultraviolet::{IVec3, Vec3};
 

@@ -40,10 +40,7 @@ impl Physics {
             return;
         }
 
-        if let Some(judge) = population
-            .person_map
-            .get_mut(&ID_JUDGE_1)
-        {
+        if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
             let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 
             Self::resolve_simple_body(
@@ -182,8 +179,6 @@ impl Physics {
     }
 
     fn sync_simple_body(body: &SimpleBody, transform: &mut Transform, sight: &mut Sight) {
-        tracing::info!("{:?}", body.world_position);
-
         Transform::set_world_position(body.world_position, transform);
         Sight::set_world_position(body.world_position + sight.relative_position, sight);
     }

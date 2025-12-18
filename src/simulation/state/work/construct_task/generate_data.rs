@@ -117,8 +117,6 @@ impl GenerateData {
         Person::set_world_position(Vec3::new(0.0, -8.0, 2.0), &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);
 
-        tracing::warn!("Initial: {:?} {:?}", judge.transform.world_position, judge.body.world_position);
-
         Person::set_size(
             Vec3::new(
                 JUDGE_DEFAULT_SIZE_X,

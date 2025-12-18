@@ -6,7 +6,7 @@ pub mod state;
 pub mod utils;
 
 use crate::simulation::{
-    manager::{Manager, Message, viewer::view::View},
+    manager::{viewer::view::View, Manager, Message},
     state::State,
 };
 

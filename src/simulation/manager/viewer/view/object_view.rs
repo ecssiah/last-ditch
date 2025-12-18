@@ -1,4 +1,7 @@
-use crate::simulation::{constants::ID_NULL, state::world::{grid, object}};
+use crate::simulation::{
+    constants::ID_NULL,
+    state::world::{grid, object},
+};
 use ultraviolet::IVec3;
 
 #[derive(Clone, Copy, Debug)]

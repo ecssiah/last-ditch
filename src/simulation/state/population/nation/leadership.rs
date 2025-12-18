@@ -7,9 +7,7 @@ pub struct Leadership {
 
 impl Leadership {
     pub fn new() -> Self {
-        Self {
-            judge_id: ID_NULL,
-        }
+        Self { judge_id: ID_NULL }
     }
 
     pub fn default() -> Self {

@@ -60,9 +60,9 @@ impl Direction {
             Direction::North
         } else if rotation_normalized < 135.0 && rotation_normalized >= 45.0 {
             Direction::West
-        } else if rotation_normalized < 315.0 && rotation_normalized >= 225.0 {
-            Direction::South
         } else if rotation_normalized < 225.0 && rotation_normalized >= 135.0 {
+            Direction::South
+        } else if rotation_normalized < 315.0 && rotation_normalized >= 225.0 {
             Direction::East
         } else {
             panic!("Improper rotation value")

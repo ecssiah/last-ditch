@@ -11,7 +11,7 @@ pub use style::Style;
 
 use crate::{
     simulation::state::world::grid::{self, Direction, Line},
-    utils::ldmath::{IBox, ivec3_ext::rotate_by_direction},
+    utils::ldmath::{ivec3_ext::rotate_by_direction, IBox},
 };
 use ultraviolet::IVec3;
 
