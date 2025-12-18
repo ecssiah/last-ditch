@@ -31,6 +31,8 @@ impl SimpleBody {
     }
 
     pub fn set_world_position(world_position: Vec3, body: &mut Self) {
+        body.world_position = world_position;
+
         Collider::set_world_position(
             body.collider.relative_position + world_position,
             &mut body.collider,
