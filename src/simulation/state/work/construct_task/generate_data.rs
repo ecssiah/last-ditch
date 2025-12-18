@@ -12,7 +12,7 @@ use crate::{
                     self,
                     template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
-                        TradingPlatformTemplate, WireframeTemplate,
+                        TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
                     },
                     Connection,
                 },
@@ -553,27 +553,16 @@ impl GenerateData {
                 .partition(|(_, area)| area.kind == area::Kind::Center);
 
             for (_, area) in other_area_id_map {
-                Self::construct_room(area, world);
+                Self::construct_area(area, world);
             }
 
             for (_, area) in center_area_id_map {
-                Self::construct_room(area, world);
+                Self::construct_area(area, world);
             }
         }
 
         for (_, area) in world.tower.area_map.clone() {
-            Self::construct_room(&area, world);
-        }
-    }
-
-    fn construct_room(area: &Area, world: &mut World) {
-        match &area.style {
-            area::Style::None => (),
-            area::Style::Wireframe => WireframeTemplate::construct(area, world),
-            area::Style::GenericRoom => GenericRoomTemplate::construct(area, world),
-            area::Style::Elevator => ElevatorTemplate::construct(area, world),
-            area::Style::ElevatorCap => ElevatorCapTemplate::construct(area, world),
-            area::Style::TradingPlatform => TradingPlatformTemplate::construct(area, world),
+            Self::construct_area(&area, world);
         }
     }
 
@@ -583,11 +572,58 @@ impl GenerateData {
         for (nation_kind, nation) in &population.nation_map {
             tracing::info!("Constructing {:?} Temple", nation.nation_kind);
 
-            World::set_block(
-                nation.home_grid_position,
-                Nation::get_block_kind(nation_kind),
-                &mut world.sector_vec,
+            let mut temple_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+
+            let temple_radius_x = TEMPLE_RADIUS_X as i32;
+            let temple_radius_y = TEMPLE_RADIUS_Y as i32;
+            let temple_size_z = TEMPLE_SIZE_Z as i32;
+
+            let temple_grid_position = nation.home_grid_position
+                + match nation_kind {
+                    nation::Kind::Lion => IVec3::new(temple_radius_x, temple_radius_y, 0),
+                    nation::Kind::Eagle => IVec3::new(-temple_radius_y, temple_radius_x, 0),
+                    nation::Kind::Horse => IVec3::new(-temple_radius_x, -temple_radius_y, 0),
+                    nation::Kind::Wolf => IVec3::new(temple_radius_y, -temple_radius_x, 0),
+                    nation::Kind::None => panic!("No temple for None nation"),
+                };
+
+            let temple_direction = match nation_kind {
+                nation::Kind::Lion => Direction::South,
+                nation::Kind::Eagle => Direction::East,
+                nation::Kind::Horse => Direction::North,
+                nation::Kind::Wolf => Direction::West,
+                nation::Kind::None => panic!("No temple for None nation"),
+            };
+
+            temple_area.grid_position = temple_grid_position;
+            temple_area.size = IVec3::new(
+                2 * temple_radius_x + 1,
+                2 * temple_radius_y + 1,
+                temple_size_z,
             );
+            temple_area.direction = temple_direction;
+            temple_area.style = area::Style::Temple {
+                nation_kind: *nation_kind,
+            };
+
+            Self::construct_area(&temple_area, world);
+
+            world
+                .tower
+                .area_map
+                .insert(temple_area.area_id, temple_area);
+        }
+    }
+
+    fn construct_area(area: &Area, world: &mut World) {
+        match &area.style {
+            area::Style::None => (),
+            area::Style::Wireframe => WireframeTemplate::construct(area, world),
+            area::Style::GenericRoom => GenericRoomTemplate::construct(area, world),
+            area::Style::Elevator => ElevatorTemplate::construct(area, world),
+            area::Style::ElevatorCap => ElevatorCapTemplate::construct(area, world),
+            area::Style::TradingPlatform => TradingPlatformTemplate::construct(area, world),
+            area::Style::Temple { nation_kind: _ } => TempleTemplate::construct(area, world),
         }
     }
 }

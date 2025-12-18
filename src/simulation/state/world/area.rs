@@ -31,7 +31,7 @@ impl Area {
     pub fn new(area_id: u64) -> Self {
         Self {
             area_id,
-            floor_number: -1,
+            floor_number: 0,
             kind: Kind::UpperArea,
             style: Style::None,
             grid_position: IVec3::zero(),

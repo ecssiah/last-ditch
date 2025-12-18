@@ -105,3 +105,7 @@ pub const TOWER_AREA_SIZE_MIN: usize = 5;
 
 pub const TRADING_PLATFORM_RADIUS_X: usize = 5;
 pub const TRADING_PLATFORM_RADIUS_Y: usize = 4;
+
+pub const TEMPLE_RADIUS_X: usize = 4;
+pub const TEMPLE_RADIUS_Y: usize = 3;
+pub const TEMPLE_SIZE_Z: usize = 7;
