@@ -2,7 +2,11 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            population::{identity, nation::Nation, person::Person},
+            population::{
+                identity,
+                nation::{self, Nation},
+                person::Person,
+            },
             world::{
                 area::{
                     self,
@@ -164,6 +168,18 @@ impl GenerateData {
                     ),
                     &mut person,
                 );
+
+                let direction = match nation.nation_kind {
+                    nation::Kind::Lion => Direction::South,
+                    nation::Kind::Eagle => Direction::East,
+                    nation::Kind::Horse => Direction::North,
+                    nation::Kind::Wolf => Direction::West,
+                    _ => Direction::North,
+                };
+
+                let rotation_xy = Direction::to_rotation(direction);
+
+                Person::set_rotation(rotation_xy, 0.0, &mut person);
 
                 person.kinematic.speed = PERSON_DEFAULT_SPEED;
                 person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;

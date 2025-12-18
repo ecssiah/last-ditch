@@ -12,6 +12,16 @@ impl ObjectInstanceData {
         4 => Float32,
     ];
 
+    pub fn new(world_position: [f32; 3], rotation_xy: f32) -> Self {
+        let padding = [0.0, 0.0, 0.0];
+
+        Self {
+            world_position,
+            rotation_xy,
+            _padding: padding,
+        }
+    }
+
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Self>() as wgpu::BufferAddress,

@@ -1,5 +1,7 @@
 use ultraviolet::{Rotor3, Vec3};
 
+use crate::utils::ldmath::rotor3_ext;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Transform {
     pub world_position: Vec3,
@@ -14,7 +16,7 @@ impl Transform {
             world_position: Vec3::default(),
             rotation_xy: 0.0,
             size: Vec3::default(),
-            rotor: Rotor3::default(),
+            rotor: rotor3_ext::from_rotation_xy_deg(0.0),
         }
     }
 
@@ -31,9 +33,7 @@ impl Transform {
     }
 
     pub fn set_rotation(rotation_xy: f32, transform: &mut Self) {
-        let rotation_xy_radians = rotation_xy.to_radians();
-
         transform.rotation_xy = rotation_xy;
-        transform.rotor = Rotor3::from_rotation_xy(rotation_xy_radians);
+        transform.rotor = rotor3_ext::from_rotation_xy_deg(rotation_xy);
     }
 }

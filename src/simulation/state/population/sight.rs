@@ -62,11 +62,8 @@ impl Sight {
         sight.rotation_xy = rotation_xy;
         sight.rotation_yz = rotation_yz;
 
-        let rotation_xy_radians = rotation_xy.to_radians();
-        let rotation_yz_radians = rotation_yz.to_radians();
-
-        let rotor_xy = Rotor3::from_rotation_xy(rotation_xy_radians);
-        let rotor_yz = Rotor3::from_rotation_yz(rotation_yz_radians);
+        let rotor_xy = rotor3_ext::from_rotation_xy_deg(rotation_xy);
+        let rotor_yz = rotor3_ext::from_rotation_yz_deg(rotation_yz);
 
         sight.rotor = rotor_xy * rotor_yz;
     }

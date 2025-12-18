@@ -15,7 +15,10 @@ use crate::{
     simulation::{
         constants::*,
         manager::viewer::view::ObjectView,
-        state::world::{grid, object},
+        state::world::{
+            grid::{self, Direction},
+            object,
+        },
     },
 };
 use obj::{load_obj, TexturedVertex};
@@ -54,8 +57,10 @@ impl ObjectRenderer {
             "object_atlas_0",
         ));
 
-        let object_atlas_bind_group =
-            Arc::new(Self::create_texture_bind_group(&gpu_context.device, &gpu_texture_data));
+        let object_atlas_bind_group = Arc::new(Self::create_texture_bind_group(
+            &gpu_context.device,
+            &gpu_texture_data,
+        ));
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -146,7 +151,6 @@ impl ObjectRenderer {
             ],
         })
     }
-
 
     pub fn create_texture_bind_group(
         device: &wgpu::Device,
@@ -352,21 +356,11 @@ impl ObjectRenderer {
         let mut group_map: HashMap<String, Vec<ObjectInstanceData>> = HashMap::new();
 
         for object_view in object_view_vec {
-            let world_position = grid::grid_position_to_world_position(object_view.grid_position);
+            let world_position =
+                *(grid::grid_position_to_world_position(object_view.grid_position)).as_array();
+            let rotation_xy = Direction::to_rotation(object_view.direction);
 
-            let rotation_xy = match object_view.direction {
-                grid::Direction::East => 0.0f32.to_radians(),
-                grid::Direction::West => 180.0f32.to_radians(),
-                grid::Direction::North => 90.0f32.to_radians(),
-                grid::Direction::South => 270.0f32.to_radians(),
-                _ => 0.0,
-            };
-
-            let object_instance_data = ObjectInstanceData {
-                world_position: *(world_position).as_array(),
-                rotation_xy,
-                _padding: [0.0, 0.0, 0.0],
-            };
+            let object_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
 
             let object_model_name = object::Kind::to_string(object_view.object_kind);
 

@@ -43,17 +43,29 @@ impl Direction {
         }
     }
 
+    pub fn to_rotation(direction: Direction) -> f32 {
+        match direction {
+            Direction::North => 0.0f32.to_radians(),
+            Direction::East => 270.0f32.to_radians(),
+            Direction::South => 180.0f32.to_radians(),
+            Direction::West => 90.0f32.to_radians(),
+            _ => 0.0,
+        }
+    }
+
     pub fn from_rotation(rotation: f32) -> Self {
         let rotation_normalized = rotation.rem_euclid(360.0);
 
-        match rotation_normalized {
-            rotation_normalized if rotation_normalized < 45.0 || rotation_normalized >= 315.0 => {
-                Direction::North
-            }
-            rotation_normalized if rotation_normalized < 135.0 => Direction::West,
-            rotation_normalized if rotation_normalized < 225.0 => Direction::South,
-            rotation_normalized if rotation_normalized < 315.0 => Direction::East,
-            _ => Direction::North,
+        if rotation_normalized < 45.0 || rotation_normalized >= 315.0 {
+            Direction::North
+        } else if rotation_normalized < 135.0 && rotation_normalized >= 45.0 {
+            Direction::West
+        } else if rotation_normalized < 315.0 && rotation_normalized >= 225.0 {
+            Direction::South
+        } else if rotation_normalized < 225.0 && rotation_normalized >= 135.0 {
+            Direction::East
+        } else {
+            panic!("Improper rotation value")
         }
     }
 

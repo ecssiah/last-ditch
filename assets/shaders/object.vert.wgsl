@@ -40,14 +40,14 @@ fn get_model_matrix(world_position: vec3<f32>, rotation_xy: f32) -> mat4x4<f32> 
     let cos_xy = cos(rotation_xy);
     let sin_xy = sin(rotation_xy);
 
-    let rotation = mat4x4<f32>(
+    let rotation_matrix = mat4x4<f32>(
         vec4<f32>(cos_xy, sin_xy, 0.0, 0.0),
         vec4<f32>(-sin_xy, cos_xy, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, 1.0, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0),
     );
 
-    let translation = mat4x4<f32>(
+    let translation_matrix = mat4x4<f32>(
         vec4<f32>(1.0, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, 1.0, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, 1.0, 0.0),
@@ -58,12 +58,12 @@ fn get_model_matrix(world_position: vec3<f32>, rotation_xy: f32) -> mat4x4<f32> 
     let scale_y = 1.0;
     let scale_z = 1.0;
 
-    let scale = mat4x4<f32>(
+    let scale_matrix = mat4x4<f32>(
         vec4<f32>(scale_x, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, scale_y, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, scale_z, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0)
     );
 
-    return translation * rotation * scale;
+    return translation_matrix * rotation_matrix * scale_matrix;
 }

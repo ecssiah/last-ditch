@@ -53,10 +53,10 @@ impl Population {
         let home_height = 0;
 
         let mut lion_nation = Nation::new(nation::Kind::Lion);
-        lion_nation.home_grid_position = IVec3::new(-home_radius, 0, home_height);
+        lion_nation.home_grid_position = IVec3::new(0, home_radius, home_height);
 
         let mut eagle_nation = Nation::new(nation::Kind::Eagle);
-        eagle_nation.home_grid_position = IVec3::new(0, home_radius, home_height);
+        eagle_nation.home_grid_position = IVec3::new(-home_radius, 0, home_height);
 
         let mut horse_nation = Nation::new(nation::Kind::Horse);
         horse_nation.home_grid_position = IVec3::new(0, -home_radius, home_height);

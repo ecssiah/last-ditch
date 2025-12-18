@@ -12,7 +12,9 @@ use crate::{
             person_vertex::PersonVertex,
         },
     },
-    simulation::{constants::*, manager::viewer::view::PopulationView, state::population::identity},
+    simulation::{
+        constants::*, manager::viewer::view::PopulationView, state::population::identity,
+    },
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
@@ -356,14 +358,11 @@ impl PopulationRenderer {
                 continue;
             }
 
-            let world_position = person_view.transform.world_position;
+            let world_position = *(person_view.transform.world_position).as_array();
+            let scale = person_view.transform.size.z / PERSON_DEFAULT_SIZE_Z;
+            let rotation_xy = person_view.transform.rotation_xy;
 
-            let person_instance_data = PersonInstanceData {
-                world_position: *(world_position).as_array(),
-                scale_z: person_view.transform.size.z / PERSON_DEFAULT_SIZE_Z,
-                rotation_xy: person_view.transform.rotation_xy,
-                _padding: [0.0, 0.0, 0.0],
-            };
+            let person_instance_data = PersonInstanceData::new(world_position, scale, rotation_xy);
 
             let person_model_name = identity::Sex::to_string(person_view.identity.sex);
 

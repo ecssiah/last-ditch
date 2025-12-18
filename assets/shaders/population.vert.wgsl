@@ -11,8 +11,8 @@ struct VertexInput {
     @location(1) normal: vec3<f32>,
     @location(2) uv: vec2<f32>,
     @location(3) instance_world_position: vec3<f32>,
-    @location(4) instance_scale_z: f32,
-    @location(5) instance_yaw: f32,
+    @location(4) instance_scale: f32,
+    @location(5) instance_rotation_xy: f32,
 };
 
 struct VertexOutput {
@@ -24,8 +24,8 @@ struct VertexOutput {
 fn main(input: VertexInput) -> VertexOutput {
     let model_matrix = get_model_matrix(
         input.instance_world_position, 
-        input.instance_scale_z, 
-        input.instance_yaw
+        input.instance_scale,
+        input.instance_rotation_xy
     );
 
     let mvp_matrix = camera_uniform_data.view_projection_matrix * model_matrix;
@@ -38,34 +38,34 @@ fn main(input: VertexInput) -> VertexOutput {
     return output;
 }
 
-fn get_model_matrix(world_position: vec3<f32>, instance_scale_z: f32, yaw: f32) -> mat4x4<f32> {
-    let cos_yaw = cos(yaw);
-    let sin_yaw = sin(yaw);
+fn get_model_matrix(world_position: vec3<f32>, scale: f32, rotation_xy: f32) -> mat4x4<f32> {
+    let cos_xy = cos(rotation_xy);
+    let sin_xy = sin(rotation_xy);
 
-    let rotation = mat4x4<f32>(
-        vec4<f32>(cos_yaw, 0.0, -sin_yaw, 0.0),
-        vec4<f32>(0.0, 1.0, 0.0, 0.0),
-        vec4<f32>(sin_yaw, 0.0, cos_yaw, 0.0),
+    let rotation_matrix = mat4x4<f32>(
+        vec4<f32>(cos_xy, sin_xy, 0.0, 0.0),
+        vec4<f32>(-sin_xy, cos_xy, 0.0, 0.0),
+        vec4<f32>(0.0, 0.0, 1.0, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0),
     );
 
-    let translation = mat4x4<f32>(
+    let translation_matrix = mat4x4<f32>(
         vec4<f32>(1.0, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, 1.0, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, 1.0, 0.0),
         vec4<f32>(world_position, 1.0),
     );
 
-    let scale_x = instance_scale_z;
-    let scale_y = instance_scale_z;
-    let scale_z = instance_scale_z;
+    let scale_x = 0.8 * scale;
+    let scale_y = 0.8 * scale;
+    let scale_z = 1.0 * scale;
 
-    let scale = mat4x4<f32>(
+    let scale_matrix = mat4x4<f32>(
         vec4<f32>(scale_x, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, scale_y, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, scale_z, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 1.0)
     );
 
-    return translation * rotation * scale;
+    return translation_matrix * rotation_matrix * scale_matrix;
 }

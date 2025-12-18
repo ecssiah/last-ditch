@@ -39,6 +39,7 @@ impl Person {
     pub fn set_world_position(world_position: Vec3, person: &mut Self) {
         Transform::set_world_position(world_position, &mut person.transform);
         SimpleBody::set_world_position(world_position, &mut person.body);
+        
         Sight::set_world_position(
             world_position + person.sight.relative_position,
             &mut person.sight,

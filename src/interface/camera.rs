@@ -8,7 +8,11 @@ use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
         constants::*,
-    }, simulation::{constants::ID_JUDGE_1, manager::viewer::view::{PersonView, View}},
+    },
+    simulation::{
+        constants::ID_JUDGE_1,
+        manager::viewer::view::{PersonView, View},
+    },
 };
 use ultraviolet::{Mat4, Vec3, Vec4};
 
@@ -87,11 +91,7 @@ impl Camera {
     }
 
     pub fn apply_view(view: &View, camera: &mut Self) {
-        if let Some(person_view) = view
-            .population_view
-            .person_view_map
-            .get(&ID_JUDGE_1)
-        {
+        if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
             Self::update_camera(&person_view, camera);
         }
 
@@ -148,18 +148,18 @@ impl Camera {
     }
 
     fn get_view_matrix(eye: Vec3, target: Vec3, up: Vec3) -> Mat4 {
-        let y_unit = Vec3::normalized(&(target - eye));
-        let x_unit = Vec3::normalized(&Vec3::cross(&y_unit, up));
-        let z_unit = Vec3::cross(&x_unit, y_unit);
+        let forward = Vec3::normalized(&(target - eye));
+        let right = Vec3::normalized(&Vec3::cross(&forward, up));
+        let up = Vec3::cross(&right, forward);
 
         Mat4::new(
-            Vec4::new(x_unit.x, z_unit.x, y_unit.x, 0.0),
-            Vec4::new(x_unit.y, z_unit.y, y_unit.y, 0.0),
-            Vec4::new(x_unit.z, z_unit.z, y_unit.z, 0.0),
+            Vec4::new(right.x, up.x, -forward.x, 0.0),
+            Vec4::new(right.y, up.y, -forward.y, 0.0),
+            Vec4::new(right.z, up.z, -forward.z, 0.0),
             Vec4::new(
-                -Vec3::dot(&x_unit, eye),
-                -Vec3::dot(&z_unit, eye),
-                -Vec3::dot(&y_unit, eye),
+                -Vec3::dot(&right, eye),
+                -Vec3::dot(&up, eye),
+                -Vec3::dot(&-forward, eye),
                 1.0,
             ),
         )
@@ -173,13 +173,13 @@ impl Camera {
     ) -> Mat4 {
         let y_scale = 1.0 / f32::tan(vertical_fov / 2.0);
         let x_scale = y_scale / aspect_ratio;
-        let z_scale = z_far / (z_far - z_near);
-        let z_offset = (-z_near * z_far) / (z_far - z_near);
+        let z_scale = z_far / (z_near - z_far);
+        let z_offset = (z_near * z_far) / (z_near - z_far);
 
         Mat4::new(
             Vec4::new(x_scale, 0.0, 0.0, 0.0),
             Vec4::new(0.0, y_scale, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, z_scale, 1.0),
+            Vec4::new(0.0, 0.0, z_scale, -1.0),
             Vec4::new(0.0, 0.0, z_offset, 0.0),
         )
     }
