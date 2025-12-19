@@ -21,8 +21,8 @@ impl Direction {
         Self::Down,
     ];
 
-    pub fn to_ivec3(&self) -> IVec3 {
-        match self {
+    pub fn to_ivec3(direction: Self) -> IVec3 {
+        match direction {
             Self::North => IVec3::new(0, 1, 0),
             Self::West => IVec3::new(-1, 0, 0),
             Self::South => IVec3::new(0, -1, 0),
@@ -32,8 +32,8 @@ impl Direction {
         }
     }
 
-    pub fn to_vec3(&self) -> Vec3 {
-        match self {
+    pub fn to_vec3(direction: Self) -> Vec3 {
+        match direction {
             Self::North => Vec3::new(0.0, 1.0, 0.0),
             Self::West => Vec3::new(-1.0, 0.0, 0.0),
             Self::South => Vec3::new(0.0, -1.0, 0.0),
@@ -45,10 +45,10 @@ impl Direction {
 
     pub fn to_rotation(direction: Direction) -> f32 {
         match direction {
-            Direction::North => 0.0f32.to_radians(),
-            Direction::East => 270.0f32.to_radians(),
-            Direction::South => 180.0f32.to_radians(),
-            Direction::West => 90.0f32.to_radians(),
+            Self::North => 0.0f32.to_radians(),
+            Self::East => 270.0f32.to_radians(),
+            Self::South => 180.0f32.to_radians(),
+            Self::West => 90.0f32.to_radians(),
             _ => 0.0,
         }
     }
@@ -57,26 +57,37 @@ impl Direction {
         let rotation_normalized = rotation.rem_euclid(360.0);
 
         if rotation_normalized < 45.0 || rotation_normalized >= 315.0 {
-            Direction::North
+            Self::North
         } else if rotation_normalized < 135.0 && rotation_normalized >= 45.0 {
-            Direction::West
+            Self::West
         } else if rotation_normalized < 225.0 && rotation_normalized >= 135.0 {
-            Direction::South
+            Self::South
         } else if rotation_normalized < 315.0 && rotation_normalized >= 225.0 {
-            Direction::East
+            Self::East
         } else {
             panic!("Improper rotation value")
         }
     }
 
-    pub fn to_string(direction: Direction) -> String {
+    pub fn to_opposing(direction: Self) -> Self {
         match direction {
-            Direction::North => String::from("North"),
-            Direction::West => String::from("West"),
-            Direction::South => String::from("South"),
-            Direction::East => String::from("East"),
-            Direction::Up => String::from("Up"),
-            Direction::Down => String::from("Down"),
+            Self::North => Self::South,
+            Self::West => Self::East,
+            Self::South => Self::North,
+            Self::East => Self::West,
+            Self::Up => Self::Down,
+            Self::Down => Self::Up,
+        }
+    }
+
+    pub fn to_string(direction: Self) -> String {
+        match direction {
+            Self::North => String::from("North"),
+            Self::West => String::from("West"),
+            Self::South => String::from("South"),
+            Self::East => String::from("East"),
+            Self::Up => String::from("Up"),
+            Self::Down => String::from("Down"),
         }
     }
 }

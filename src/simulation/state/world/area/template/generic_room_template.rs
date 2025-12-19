@@ -43,7 +43,7 @@ impl GenericRoomTemplate {
 
 impl Template for GenericRoomTemplate {
     fn construct(area: &Area, world: &mut World) {
-        template::set_box(
+        template::set_block_box(
             IVec3::new(0, 0, 0),
             area.size,
             block::Kind::Metal1,
@@ -58,11 +58,11 @@ impl Template for GenericRoomTemplate {
                 Axis::Z => Direction::Up,
             };
 
-            World::set_cube(
+            World::set_block_cube(
                 connection.entrance_vec[0] + 0 * IVec3::unit_z(),
                 connection.entrance_vec[0] + 1 * IVec3::unit_z(),
                 block::Kind::None,
-                &mut world.sector_vec,
+                world,
             );
 
             World::set_object(
@@ -96,11 +96,11 @@ impl Template for GenericRoomTemplate {
 
             let resource_block_kind = resource_block_kind_vec[resource_block_kind_index];
 
-            World::set_cube(
+            World::set_block_cube(
                 IVec3::new(x, y, area_ibox.min.z + 1),
                 IVec3::new(x, y, z),
                 resource_block_kind,
-                &mut world.sector_vec,
+                world,
             );
         }
     }

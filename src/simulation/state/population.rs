@@ -50,7 +50,7 @@ impl Population {
         let tower_radius = TOWER_RADIUS as i32;
 
         let home_radius = tower_radius - 10;
-        let home_height = 0;
+        let home_height = 1;
 
         let mut lion_nation = Nation::new(nation::Kind::Lion);
         lion_nation.home_grid_position = IVec3::new(0, home_radius, home_height);

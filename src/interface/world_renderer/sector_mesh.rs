@@ -8,7 +8,7 @@ use crate::{
         manager::viewer::{face_mask, view::SectorView},
         state::world::{
             block,
-            grid::{self, axis::Axis},
+            grid::{self, axis::Axis, Direction},
         },
     },
 };
@@ -357,7 +357,7 @@ impl SectorMesh {
                 )
             };
 
-        let normal: [f32; 3] = *face.direction.to_vec3().as_array();
+        let normal: [f32; 3] = *Direction::to_vec3(face.direction).as_array();
 
         let (width_blocks, height_blocks) = match axis {
             Axis::X => {

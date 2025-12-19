@@ -36,8 +36,8 @@ pub struct Interface<'window> {
     pub input: Input,
     pub camera: Camera,
     pub gui: GUI,
-    pub world_renderer: WorldRenderer,
     pub object_renderer: ObjectRenderer,
+    pub world_renderer: WorldRenderer,
     pub population_renderer: PopulationRenderer,
     pub debug_renderer: DebugRenderer,
     pub gpu_context: GPUContext<'window>,
@@ -159,8 +159,8 @@ impl<'window> Interface<'window> {
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
         let gui = GUI::new();
-        let world_renderer = WorldRenderer::new(&gpu_context, &camera);
         let object_renderer = ObjectRenderer::new(&gpu_context, &camera);
+        let world_renderer = WorldRenderer::new(&gpu_context, &camera);
         let population_renderer = PopulationRenderer::new(&gpu_context, &camera);
         let debug_renderer = DebugRenderer::new(&gpu_context, &camera);
 
@@ -172,8 +172,8 @@ impl<'window> Interface<'window> {
             input,
             camera,
             gui,
-            world_renderer,
             object_renderer,
+            world_renderer,
             population_renderer,
             debug_renderer,
             gpu_context,
@@ -376,14 +376,14 @@ impl<'window> Interface<'window> {
         );
 
         WorldRenderer::apply_world_view(
-            &gpu_context.device,
+            gpu_context,
             camera,
             &view.world_view,
             &mut world_renderer.sector_mesh_cache,
             &mut world_renderer.gpu_mesh_cache,
             &mut world_renderer.active_sector_id_set,
             &mut world_renderer.active_gpu_mesh_vec,
-            &mut object_renderer.object_instance_data_group_vec,
+            object_renderer,
         );
 
         PopulationRenderer::apply_population_view(

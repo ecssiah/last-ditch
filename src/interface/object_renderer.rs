@@ -348,10 +348,11 @@ impl ObjectRenderer {
     }
 
     pub fn apply_object_view_vec(
-        object_view_vec: &Vec<ObjectView>,
-        object_instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>,
+        gpu_context: &GPUContext,
+        object_view_vec: &[ObjectView],
+        object_renderer: &mut ObjectRenderer,
     ) {
-        object_instance_data_group_vec.clear();
+        object_renderer.object_instance_data_group_vec.clear();
 
         let mut group_map: HashMap<String, Vec<ObjectInstanceData>> = HashMap::new();
 
@@ -361,7 +362,6 @@ impl ObjectRenderer {
             let rotation_xy = Direction::to_rotation(object_view.direction);
 
             let object_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-
             let object_model_name = object::Kind::to_string(object_view.object_kind);
 
             group_map
@@ -370,7 +370,39 @@ impl ObjectRenderer {
                 .push(object_instance_data);
         }
 
-        object_instance_data_group_vec.extend(group_map.into_iter());
+        object_renderer
+            .object_instance_data_group_vec
+            .extend(group_map.into_iter());
+
+        let total_instance_count: usize = object_renderer
+            .object_instance_data_group_vec
+            .iter()
+            .map(|(_, v)| v.len())
+            .sum();
+
+        let required_bytes = (total_instance_count * std::mem::size_of::<ObjectInstanceData>())
+            as wgpu::BufferAddress;
+
+        let current_capacity = object_renderer.object_instance_buffer.size();
+
+        if required_bytes > current_capacity {
+            let new_capacity = required_bytes.next_power_of_two();
+
+            object_renderer.object_instance_buffer = gpu_context.device.create_buffer(
+                &wgpu::BufferDescriptor {
+                    label: Some("Object Instance Buffer (resized)"),
+                    size: new_capacity,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                },
+            );
+
+            tracing::info!(
+                "Resized object instance buffer: {} -> {} bytes",
+                current_capacity,
+                new_capacity
+            );
+        }
     }
 
     pub fn render(

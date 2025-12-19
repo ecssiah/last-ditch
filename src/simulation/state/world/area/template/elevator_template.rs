@@ -18,14 +18,9 @@ impl Template for ElevatorTemplate {
     ) {
         let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
 
-        World::set_box(
-            area_ibox.min,
-            area_ibox.max,
-            block::Kind::Metal2,
-            &mut world.sector_vec,
-        );
+        World::set_block_box(area_ibox.min, area_ibox.max, block::Kind::Metal2, world);
 
-        World::set_cube(
+        World::set_block_cube(
             IVec3::new(
                 area_ibox.min.x + 2,
                 area_ibox.min.y + 0,
@@ -37,10 +32,10 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.z - 3,
             ),
             block::Kind::None,
-            &mut world.sector_vec,
+            world,
         );
 
-        World::set_cube(
+        World::set_block_cube(
             IVec3::new(
                 area_ibox.min.x + 0,
                 area_ibox.min.y + 2,
@@ -52,10 +47,10 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.z - 3,
             ),
             block::Kind::None,
-            &mut world.sector_vec,
+            world,
         );
 
-        World::set_cube(
+        World::set_block_cube(
             IVec3::new(
                 area_ibox.min.x + 2,
                 area_ibox.min.y + 2,
@@ -67,7 +62,7 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.z + 0,
             ),
             block::Kind::None,
-            &mut world.sector_vec,
+            world,
         );
 
         // Stairs

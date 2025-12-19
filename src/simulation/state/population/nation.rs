@@ -23,13 +23,23 @@ impl Nation {
         }
     }
 
-    pub fn get_block_kind(nation_kind: &Kind) -> block::Kind {
+    pub fn get_symbol_block_kind(nation_kind: &Kind) -> block::Kind {
         match nation_kind {
             Kind::None => block::Kind::None,
             Kind::Lion => block::Kind::Lion,
             Kind::Eagle => block::Kind::Eagle,
             Kind::Horse => block::Kind::Horse,
             Kind::Wolf => block::Kind::Wolf,
+        }
+    }
+
+    pub fn get_material_block_kind(nation_kind: &Kind) -> block::Kind {
+        match nation_kind {
+            Kind::None => block::Kind::None,
+            Kind::Lion => block::Kind::LionStone,
+            Kind::Eagle => block::Kind::EagleStone,
+            Kind::Horse => block::Kind::HorseStone,
+            Kind::Wolf => block::Kind::WolfStone,
         }
     }
 

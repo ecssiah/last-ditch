@@ -14,7 +14,7 @@ impl Template for TradingPlatformTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        template::set_cube(
+        template::set_block_cube(
             IVec3::new(0, 0, 0),
             IVec3::new(
                 2 * TRADING_PLATFORM_RADIUS_X as i32 + 1,
@@ -26,7 +26,7 @@ impl Template for TradingPlatformTemplate {
             world,
         );
 
-        template::set_cube(
+        template::set_block_cube(
             IVec3::new(1, 2, 1),
             IVec3::new(1, 1, 2),
             block::Kind::Server1,
@@ -34,7 +34,7 @@ impl Template for TradingPlatformTemplate {
             world,
         );
 
-        template::set_cube(
+        template::set_block_cube(
             IVec3::new(8, 4, 1),
             IVec3::new(2, 2, 2),
             block::Kind::Server2,
@@ -42,7 +42,7 @@ impl Template for TradingPlatformTemplate {
             world,
         );
 
-        template::set_cube(
+        template::set_block_cube(
             IVec3::new(1, 4, 1),
             IVec3::new(1, 2, 1),
             block::Kind::Server3,

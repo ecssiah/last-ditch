@@ -9,7 +9,7 @@ use crate::{
         camera::Camera,
         constants::WINDOW_CLEAR_COLOR,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        object_renderer::{object_instance_data::ObjectInstanceData, ObjectRenderer},
+        object_renderer::ObjectRenderer,
         world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
@@ -191,14 +191,14 @@ impl WorldRenderer {
     }
 
     pub fn apply_world_view(
-        device: &wgpu::Device,
+        gpu_context: &GPUContext,
         camera: &Camera,
         world_view: &WorldView,
         sector_mesh_cache: &mut HashMap<usize, SectorMesh>,
         gpu_mesh_cache: &mut HashMap<usize, GpuMesh>,
         active_sector_id_set: &mut HashSet<usize>,
         active_gpu_mesh_vec: &mut Vec<usize>,
-        object_instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>,
+        object_renderer: &mut ObjectRenderer,
     ) {
         let _ = tracing::info_span!("apply_world_view").entered();
 
@@ -225,13 +225,13 @@ impl WorldRenderer {
                 continue;
             }
 
-            Self::get_or_build_gpu_sector_mesh(sector_mesh, device, gpu_mesh_cache);
+            Self::get_or_build_gpu_sector_mesh(sector_mesh, &gpu_context.device, gpu_mesh_cache);
 
             active_sector_id_set.insert(*sector_id);
             active_gpu_mesh_vec.push(*sector_id);
         }
 
-        ObjectRenderer::apply_object_view_vec(&object_view_vec, object_instance_data_group_vec);
+        ObjectRenderer::apply_object_view_vec(gpu_context, &object_view_vec, object_renderer);
 
         sector_mesh_cache.retain(|sector_id, _| active_sector_id_set.contains(sector_id));
         gpu_mesh_cache.retain(|sector_id, _| active_gpu_mesh_vec.contains(sector_id));

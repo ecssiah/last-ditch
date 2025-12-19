@@ -68,11 +68,7 @@ impl State {
         {
             let placement_position = hit_position + normal;
 
-            World::set_block(
-                placement_position,
-                person.selected_block_kind,
-                &mut world.sector_vec,
-            );
+            World::set_block(placement_position, person.selected_block_kind, world);
         }
     }
 
@@ -82,7 +78,7 @@ impl State {
         let direction = Sight::get_forward(&person.sight);
 
         if let Some((hit_position, _)) = World::raycast_to_block(origin, direction, range, world) {
-            World::set_block(hit_position, block::Kind::None, &mut world.sector_vec);
+            World::set_block(hit_position, block::Kind::None, world);
         }
     }
 

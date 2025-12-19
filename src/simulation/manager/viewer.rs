@@ -15,7 +15,7 @@ use crate::simulation::{
     state::{
         world::{
             block,
-            grid::{self},
+            grid::{self, Direction},
             sector::Sector,
             Object,
         },
@@ -202,7 +202,8 @@ impl Viewer {
                     let mut face_mask = face_mask::EMPTY;
 
                     for direction in grid::Direction::ALL {
-                        let neighbor_cell_coordinate = cell_coordinate + direction.to_ivec3();
+                        let neighbor_cell_coordinate =
+                            cell_coordinate + Direction::to_ivec3(direction);
 
                         let neighbor_cell_clear =
                             if !grid::is_cell_coordinate_valid(neighbor_cell_coordinate) {
