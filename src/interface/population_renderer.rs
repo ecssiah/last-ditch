@@ -34,8 +34,7 @@ impl PopulationRenderer {
 
         let person_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Person Instance Buffer"),
-            size: (PERSON_MAX_COUNT * std::mem::size_of::<PersonInstanceData>())
-                as wgpu::BufferAddress,
+            size: std::mem::size_of::<PersonInstanceData>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -346,10 +345,11 @@ impl PopulationRenderer {
     }
 
     pub fn apply_population_view(
+        gpu_context: &GPUContext,
         population_view: &PopulationView,
-        person_instance_data_group_vec: &mut Vec<(String, Vec<PersonInstanceData>)>,
+        population_renderer: &mut PopulationRenderer,
     ) {
-        person_instance_data_group_vec.clear();
+        population_renderer.person_instance_data_group_vec.clear();
 
         let mut group_map: HashMap<String, Vec<PersonInstanceData>> = HashMap::new();
 
@@ -363,7 +363,6 @@ impl PopulationRenderer {
             let rotation_xy = person_view.transform.rotation_xy;
 
             let person_instance_data = PersonInstanceData::new(world_position, scale, rotation_xy);
-
             let person_model_name = identity::Sex::to_string(person_view.identity.sex);
 
             group_map
@@ -372,7 +371,40 @@ impl PopulationRenderer {
                 .push(person_instance_data);
         }
 
-        person_instance_data_group_vec.extend(group_map.into_iter());
+        population_renderer
+            .person_instance_data_group_vec
+            .extend(group_map.into_iter());
+
+        let total_instance_count: usize = population_renderer
+            .person_instance_data_group_vec
+            .iter()
+            .map(|(_, v)| v.len())
+            .sum();
+
+        let byte_count_required = (total_instance_count * std::mem::size_of::<PersonInstanceData>())
+            as wgpu::BufferAddress;
+
+        let byte_count_current = population_renderer.person_instance_buffer.size();
+
+        if byte_count_required > byte_count_current {
+            let byte_count_updated = byte_count_required
+                .next_power_of_two()
+                .max(byte_count_current);
+
+            population_renderer.person_instance_buffer =
+                gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("Person Instance Buffer (resized)"),
+                    size: byte_count_updated,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+
+            tracing::info!(
+                "Resized person instance buffer: {} -> {} bytes",
+                byte_count_current,
+                byte_count_updated
+            );
+        }
     }
 
     pub fn render(

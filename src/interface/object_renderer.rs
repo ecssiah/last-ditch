@@ -13,7 +13,6 @@ use crate::{
         },
     },
     simulation::{
-        constants::*,
         manager::viewer::view::ObjectView,
         state::world::{
             grid::{self, Direction},
@@ -39,8 +38,7 @@ impl ObjectRenderer {
 
         let object_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Object Instance Buffer"),
-            size: (OBJECT_MAX_COUNT * std::mem::size_of::<ObjectInstanceData>())
-                as wgpu::BufferAddress,
+            size: std::mem::size_of::<ObjectInstanceData>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -388,14 +386,13 @@ impl ObjectRenderer {
         if required_bytes > current_capacity {
             let new_capacity = required_bytes.next_power_of_two();
 
-            object_renderer.object_instance_buffer = gpu_context.device.create_buffer(
-                &wgpu::BufferDescriptor {
+            object_renderer.object_instance_buffer =
+                gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
                     label: Some("Object Instance Buffer (resized)"),
                     size: new_capacity,
                     usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,
-                },
-            );
+                });
 
             tracing::info!(
                 "Resized object instance buffer: {} -> {} bytes",

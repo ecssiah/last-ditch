@@ -194,16 +194,13 @@ impl WorldRenderer {
         gpu_context: &GPUContext,
         camera: &Camera,
         world_view: &WorldView,
-        sector_mesh_cache: &mut HashMap<usize, SectorMesh>,
-        gpu_mesh_cache: &mut HashMap<usize, GpuMesh>,
-        active_sector_id_set: &mut HashSet<usize>,
-        active_gpu_mesh_vec: &mut Vec<usize>,
         object_renderer: &mut ObjectRenderer,
+        world_renderer: &mut WorldRenderer,
     ) {
         let _ = tracing::info_span!("apply_world_view").entered();
 
-        active_sector_id_set.clear();
-        active_gpu_mesh_vec.clear();
+        world_renderer.active_sector_id_set.clear();
+        world_renderer.active_gpu_mesh_vec.clear();
 
         let mut object_view_vec = Vec::new();
 
@@ -217,7 +214,8 @@ impl WorldRenderer {
                 continue;
             }
 
-            let sector_mesh = Self::get_or_build_sector_mesh(sector_view, sector_mesh_cache);
+            let sector_mesh =
+                Self::get_or_build_sector_mesh(sector_view, &mut world_renderer.sector_mesh_cache);
 
             object_view_vec.extend(&sector_view.object_view_vec);
 
@@ -225,18 +223,27 @@ impl WorldRenderer {
                 continue;
             }
 
-            Self::get_or_build_gpu_sector_mesh(sector_mesh, &gpu_context.device, gpu_mesh_cache);
+            Self::get_or_build_gpu_sector_mesh(
+                sector_mesh,
+                &gpu_context.device,
+                &mut world_renderer.gpu_mesh_cache,
+            );
 
-            active_sector_id_set.insert(*sector_id);
-            active_gpu_mesh_vec.push(*sector_id);
+            world_renderer.active_sector_id_set.insert(*sector_id);
+            world_renderer.active_gpu_mesh_vec.push(*sector_id);
         }
 
         ObjectRenderer::apply_object_view_vec(gpu_context, &object_view_vec, object_renderer);
 
-        sector_mesh_cache.retain(|sector_id, _| active_sector_id_set.contains(sector_id));
-        gpu_mesh_cache.retain(|sector_id, _| active_gpu_mesh_vec.contains(sector_id));
+        world_renderer
+            .sector_mesh_cache
+            .retain(|sector_id, _| world_renderer.active_sector_id_set.contains(sector_id));
+        
+        world_renderer
+            .gpu_mesh_cache
+            .retain(|sector_id, _| world_renderer.active_gpu_mesh_vec.contains(sector_id));
 
-        active_gpu_mesh_vec.sort_unstable();
+        world_renderer.active_gpu_mesh_vec.sort_unstable();
     }
 
     fn get_or_build_sector_mesh<'a>(

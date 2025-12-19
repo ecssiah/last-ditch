@@ -379,16 +379,14 @@ impl<'window> Interface<'window> {
             gpu_context,
             camera,
             &view.world_view,
-            &mut world_renderer.sector_mesh_cache,
-            &mut world_renderer.gpu_mesh_cache,
-            &mut world_renderer.active_sector_id_set,
-            &mut world_renderer.active_gpu_mesh_vec,
             object_renderer,
+            world_renderer,
         );
 
         PopulationRenderer::apply_population_view(
+            gpu_context,
             &view.population_view,
-            &mut population_renderer.person_instance_data_group_vec,
+            population_renderer,
         );
 
         DebugRenderer::apply_debug_view(view, debug_renderer);
