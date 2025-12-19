@@ -113,15 +113,65 @@ impl GenerateData {
         let nation_map = population.nation_map.clone();
 
         for (_, nation) in nation_map {
-            for _ in 1..=NATION_INITIAL_POPULATION {
+            for _ in 1..=NATION_INITIAL_POPULATION / 2 {
                 let mut person = Person::new(IDGenerator::allocate(&mut population.id_generator));
+                person.identity.sex = identity::Sex::Male;
 
-                let sex = match gen_range_i32(0, 1, &mut population.rng) {
-                    0 => identity::Sex::Male,
-                    _ => identity::Sex::Female,
+                let temple_radius_x = TEMPLE_RADIUS_X as i32;
+                let temple_radius_y = TEMPLE_RADIUS_Y as i32;
+
+                let home_offset = IVec3::new(
+                    gen_range_i32(
+                        -temple_radius_x + 2,
+                        temple_radius_x - 2,
+                        &mut population.rng,
+                    ),
+                    gen_range_i32(
+                        -temple_radius_y + 2,
+                        temple_radius_y - 2,
+                        &mut population.rng,
+                    ),
+                    2,
+                );
+
+                let grid_position = nation.home_grid_position + home_offset;
+                let world_position = grid::grid_position_to_world_position(grid_position);
+
+                Person::set_world_position(world_position, &mut person);
+
+                Person::set_size(
+                    Vec3::new(
+                        PERSON_DEFAULT_SIZE_X,
+                        PERSON_DEFAULT_SIZE_Y,
+                        rand_chacha_ext::gen_range_f32(
+                            PERSON_DEFAULT_SIZE_Z - 0.2,
+                            PERSON_DEFAULT_SIZE_Z + 0.2,
+                            &mut population.rng,
+                        ),
+                    ),
+                    &mut person,
+                );
+
+                let direction = match nation.nation_kind {
+                    nation::Kind::Lion => Direction::South,
+                    nation::Kind::Eagle => Direction::East,
+                    nation::Kind::Horse => Direction::North,
+                    nation::Kind::Wolf => Direction::West,
                 };
 
-                person.identity.sex = sex;
+                let rotation_xy = Direction::to_rotation(direction);
+
+                Person::set_rotation(rotation_xy, 0.0, &mut person);
+
+                person.kinematic.speed = PERSON_DEFAULT_SPEED;
+                person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
+
+                population.person_map.insert(person.person_id, person);
+            }
+
+            for _ in 1..=NATION_INITIAL_POPULATION / 2 {
+                let mut person = Person::new(IDGenerator::allocate(&mut population.id_generator));
+                person.identity.sex = identity::Sex::Female;
 
                 let temple_radius_x = TEMPLE_RADIUS_X as i32;
                 let temple_radius_y = TEMPLE_RADIUS_Y as i32;

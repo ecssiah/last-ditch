@@ -107,4 +107,4 @@ pub const TRADING_PLATFORM_RADIUS_Y: usize = 4;
 
 pub const TEMPLE_RADIUS_X: usize = 6;
 pub const TEMPLE_RADIUS_Y: usize = 5;
-pub const TEMPLE_SIZE_Z: usize = 8;
+pub const TEMPLE_SIZE_Z: usize = 9;
