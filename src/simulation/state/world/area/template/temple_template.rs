@@ -114,10 +114,9 @@ impl Template for TempleTemplate {
                 world,
             );
 
-            template::set_block_cube(
+            template::remove_block_cube(
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 2, 1),
                 IVec3::new(3, 1, 1),
-                block::Kind::None,
                 area,
                 world,
             );
@@ -131,14 +130,13 @@ impl Template for TempleTemplate {
                 world,
             );
 
-            template::set_block_cube(
+            template::remove_block_cube(
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
                 IVec3::new(3, 1, 1),
-                block::Kind::None,
                 area,
                 world,
             );
-            
+
             template::set_object_cube(
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
                 IVec3::new(3, 1, 1),

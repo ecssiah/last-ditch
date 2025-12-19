@@ -25,7 +25,6 @@ impl Nation {
 
     pub fn get_symbol_block_kind(nation_kind: &Kind) -> block::Kind {
         match nation_kind {
-            Kind::None => block::Kind::None,
             Kind::Lion => block::Kind::Lion,
             Kind::Eagle => block::Kind::Eagle,
             Kind::Horse => block::Kind::Horse,
@@ -35,7 +34,6 @@ impl Nation {
 
     pub fn get_material_block_kind(nation_kind: &Kind) -> block::Kind {
         match nation_kind {
-            Kind::None => block::Kind::None,
             Kind::Lion => block::Kind::LionStone,
             Kind::Eagle => block::Kind::EagleStone,
             Kind::Horse => block::Kind::HorseStone,
@@ -45,7 +43,6 @@ impl Nation {
 
     pub fn get_color(nation_kind: &Kind) -> [f32; 4] {
         match nation_kind {
-            Kind::None => [0.0, 0.0, 0.0, 1.0],
             Kind::Lion => [0.70, 0.55, 0.85, 1.0],
             Kind::Eagle => [0.65, 0.70, 0.80, 1.0],
             Kind::Horse => [0.988, 0.863, 0.592, 1.0],

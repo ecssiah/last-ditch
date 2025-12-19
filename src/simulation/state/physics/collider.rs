@@ -21,7 +21,7 @@ pub struct Collider {
 impl Collider {
     pub fn new(world_position: Vec3, size: Vec3) -> Self {
         let relative_position = Vec3::new(0.0, 0.0, 0.9);
-        let kind = collider::Kind::Physics;
+        let kind = collider::Kind::Solid;
         let owner = collider::Owner::None;
 
         Self {

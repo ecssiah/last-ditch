@@ -58,21 +58,20 @@ impl Template for GenericRoomTemplate {
                 Axis::Z => Direction::Up,
             };
 
-            World::set_block_cube(
+            World::remove_block_cube(
                 connection.entrance_vec[0] + 0 * IVec3::unit_z(),
                 connection.entrance_vec[0] + 1 * IVec3::unit_z(),
-                block::Kind::None,
                 world,
             );
 
             World::set_object(
                 connection.entrance_vec[0] + 0 * IVec3::unit_z(),
-                direction,
                 if gen_bool(&mut world.rng) {
                     object::Kind::DoorOpen
                 } else {
                     object::Kind::DoorClosed
                 },
+                direction,
                 world,
             );
         }

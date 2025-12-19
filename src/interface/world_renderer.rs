@@ -202,7 +202,7 @@ impl WorldRenderer {
         world_renderer.active_sector_id_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
 
-        let mut object_view_vec = Vec::new();
+        let mut cell_view_vec = Vec::new();
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
             let _ = tracing::info_span!("sector", id = sector_view.sector_id).entered();
@@ -217,11 +217,11 @@ impl WorldRenderer {
             let sector_mesh =
                 Self::get_or_build_sector_mesh(sector_view, &mut world_renderer.sector_mesh_cache);
 
-            object_view_vec.extend(&sector_view.object_view_vec);
-
             if sector_mesh.vertex_vec.is_empty() {
                 continue;
             }
+
+            cell_view_vec.extend(sector_view.cell_view_vec.clone());
 
             Self::get_or_build_gpu_sector_mesh(
                 sector_mesh,
@@ -233,12 +233,12 @@ impl WorldRenderer {
             world_renderer.active_gpu_mesh_vec.push(*sector_id);
         }
 
-        ObjectRenderer::apply_object_view_vec(gpu_context, &object_view_vec, object_renderer);
+        ObjectRenderer::apply_cell_view_vec(gpu_context, &cell_view_vec, object_renderer);
 
         world_renderer
             .sector_mesh_cache
             .retain(|sector_id, _| world_renderer.active_sector_id_set.contains(sector_id));
-        
+
         world_renderer
             .gpu_mesh_cache
             .retain(|sector_id, _| world_renderer.active_gpu_mesh_vec.contains(sector_id));

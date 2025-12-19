@@ -1,3 +1,4 @@
+pub mod cell_view;
 pub mod block_view;
 pub mod face_view;
 pub mod leadership_view;
@@ -9,6 +10,7 @@ pub mod sector_view;
 pub mod time_view;
 pub mod world_view;
 
+pub use cell_view::CellView;
 pub use block_view::BlockView;
 pub use face_view::FaceView;
 pub use leadership_view::LeadershipView;

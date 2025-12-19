@@ -9,8 +9,12 @@ pub struct Face {
 impl Face {
     pub fn new() -> Self {
         Self {
-            block_kind: block::Kind::None,
+            block_kind: block::Kind::Caution,
             direction: grid::Direction::East,
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new()
     }
 }

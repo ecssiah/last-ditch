@@ -18,26 +18,23 @@ impl Template for ElevatorCapTemplate {
     ) {
         template::set_block_box(IVec3::zero(), area.size, block::Kind::Metal2, area, world);
 
-        template::set_block_cube(
+        template::remove_block_cube(
             IVec3::new(2, 0, 1),
             IVec3::new(3, area.size.y, 4),
-            block::Kind::None,
             area,
             world,
         );
 
-        template::set_block_cube(
+        template::remove_block_cube(
             IVec3::new(0, 2, 1),
             IVec3::new(area.size.x, 3, 4),
-            block::Kind::None,
             area,
             world,
         );
 
-        template::set_block_cube(
+        template::remove_block_cube(
             IVec3::new(2, 2, 0),
             IVec3::new(3, 3, area.size.z),
-            block::Kind::None,
             area,
             world,
         );
@@ -62,8 +59,8 @@ impl Template for ElevatorCapTemplate {
 
         World::set_object(
             IVec3::new(area_ibox.min.x + 2, area_ibox.min.y + 2, area_ibox.min.z),
-            Direction::South,
             object::Kind::Platform,
+            Direction::South,
             world,
         );
     }

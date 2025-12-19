@@ -163,7 +163,6 @@ impl GenerateData {
                     nation::Kind::Eagle => Direction::East,
                     nation::Kind::Horse => Direction::North,
                     nation::Kind::Wolf => Direction::West,
-                    _ => Direction::North,
                 };
 
                 let rotation_xy = Direction::to_rotation(direction);
@@ -568,7 +567,6 @@ impl GenerateData {
                     nation::Kind::Eagle => IVec3::new(-temple_radius_y, temple_radius_x, 0),
                     nation::Kind::Horse => IVec3::new(-temple_radius_x, -temple_radius_y, 0),
                     nation::Kind::Wolf => IVec3::new(temple_radius_y, -temple_radius_x, 0),
-                    nation::Kind::None => panic!("No temple for None nation"),
                 };
 
             let temple_direction = match nation_kind {
@@ -576,7 +574,6 @@ impl GenerateData {
                 nation::Kind::Eagle => Direction::East,
                 nation::Kind::Horse => Direction::North,
                 nation::Kind::Wolf => Direction::West,
-                nation::Kind::None => panic!("No temple for None nation"),
             };
 
             temple_area.grid_position = temple_grid_position;

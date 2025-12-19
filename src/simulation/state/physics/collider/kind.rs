@@ -1,5 +1,5 @@
 #[derive(Clone, Copy, Debug)]
 pub enum Kind {
-    Physics,
+    Solid,
     Trigger,
 }

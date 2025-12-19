@@ -19,7 +19,6 @@ use crate::simulation::state::{
     navigation::Navigation,
     population::{person::Person, sight::Sight},
     work::Work,
-    world::block,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -77,8 +76,10 @@ impl State {
         let origin = person.sight.world_position;
         let direction = Sight::get_forward(&person.sight);
 
-        if let Some((hit_position, _)) = World::raycast_to_block(origin, direction, range, world) {
-            World::set_block(hit_position, block::Kind::None, world);
+        if let Some((hit_grid_position, _)) =
+            World::raycast_to_block(origin, direction, range, world)
+        {
+            World::remove_block(hit_grid_position, world);
         }
     }
 

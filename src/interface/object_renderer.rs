@@ -13,7 +13,7 @@ use crate::{
         },
     },
     simulation::{
-        manager::viewer::view::ObjectView,
+        manager::viewer::view::CellView,
         state::world::{
             grid::{self, Direction},
             object,
@@ -345,27 +345,29 @@ impl ObjectRenderer {
             })
     }
 
-    pub fn apply_object_view_vec(
+    pub fn apply_cell_view_vec(
         gpu_context: &GPUContext,
-        object_view_vec: &[ObjectView],
+        cell_view_vec: &[CellView],
         object_renderer: &mut ObjectRenderer,
     ) {
         object_renderer.object_instance_data_group_vec.clear();
 
         let mut group_map: HashMap<String, Vec<ObjectInstanceData>> = HashMap::new();
 
-        for object_view in object_view_vec {
-            let world_position =
-                *(grid::grid_position_to_world_position(object_view.grid_position)).as_array();
-            let rotation_xy = Direction::to_rotation(object_view.direction);
+        for cell_view in cell_view_vec {
+            if let Some(object_view) = cell_view.object_view.as_ref() {
+                let world_position =
+                    *(grid::grid_position_to_world_position(cell_view.grid_position)).as_array();
+                let rotation_xy = Direction::to_rotation(object_view.direction);
 
-            let object_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-            let object_model_name = object::Kind::to_string(object_view.object_kind);
+                let object_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
+                let object_model_name = object::Kind::to_string(object_view.object_kind);
 
-            group_map
-                .entry(object_model_name)
-                .or_default()
-                .push(object_instance_data);
+                group_map
+                    .entry(object_model_name)
+                    .or_default()
+                    .push(object_instance_data);
+            }
         }
 
         object_renderer

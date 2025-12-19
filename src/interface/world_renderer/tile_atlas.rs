@@ -109,9 +109,6 @@ pub fn get_gpu_texture_data(
 #[rustfmt::skip]
     pub fn get_tile_coordinate(block_kind: block::Kind, direction: grid::Direction) -> [u32; 2] {
         match block_kind {
-            block::Kind::None => {
-                panic!("None block has no tile data!")
-            }
             block::Kind::Engraved1 => {
                 let tile_coordinate_array = [
                     [0, 0], [0, 0],

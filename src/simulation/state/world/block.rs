@@ -6,9 +6,23 @@ pub use kind::Kind;
 
 use crate::simulation::state::world::block;
 
-pub fn get_info(block_kind: block::Kind) -> block::Info {
+#[derive(Clone, Debug)]
+pub struct Block {
+    pub block_kind: self::Kind,
+    pub solid: bool,
+}
+
+impl Block {
+    pub fn new(block_kind: self::Kind) -> Self {
+        Self {
+            block_kind,
+            solid: self::get_block_info(block_kind).solid,
+        }
+    }
+}
+
+pub fn get_block_info(block_kind: block::Kind) -> block::Info {
     match block_kind {
-        Kind::None => Info { solid: false },
         Kind::Engraved1 => Info { solid: true },
         Kind::Engraved2 => Info { solid: true },
         Kind::Engraved3 => Info { solid: true },

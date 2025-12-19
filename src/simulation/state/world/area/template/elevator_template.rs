@@ -20,7 +20,7 @@ impl Template for ElevatorTemplate {
 
         World::set_block_box(area_ibox.min, area_ibox.max, block::Kind::Metal2, world);
 
-        World::set_block_cube(
+        World::remove_block_cube(
             IVec3::new(
                 area_ibox.min.x + 2,
                 area_ibox.min.y + 0,
@@ -31,11 +31,10 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.y + 0,
                 area_ibox.max.z - 3,
             ),
-            block::Kind::None,
             world,
         );
 
-        World::set_block_cube(
+        World::remove_block_cube(
             IVec3::new(
                 area_ibox.min.x + 0,
                 area_ibox.min.y + 2,
@@ -46,11 +45,10 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.y - 2,
                 area_ibox.max.z - 3,
             ),
-            block::Kind::None,
             world,
         );
 
-        World::set_block_cube(
+        World::remove_block_cube(
             IVec3::new(
                 area_ibox.min.x + 2,
                 area_ibox.min.y + 2,
@@ -61,7 +59,6 @@ impl Template for ElevatorTemplate {
                 area_ibox.max.y - 2,
                 area_ibox.max.z + 0,
             ),
-            block::Kind::None,
             world,
         );
 
@@ -73,8 +70,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 0,
             ),
-            Direction::South,
             object::Kind::Platform,
+            Direction::South,
             world,
         );
 
@@ -84,8 +81,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 3,
                 area_ibox.min.z + 1,
             ),
-            Direction::South,
             object::Kind::Stairs,
+            Direction::South,
             world,
         );
 
@@ -95,8 +92,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 1,
             ),
-            Direction::South,
             object::Kind::Platform,
+            Direction::South,
             world,
         );
 
@@ -106,8 +103,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 2,
             ),
-            Direction::West,
             object::Kind::Stairs,
+            Direction::West,
             world,
         );
 
@@ -117,8 +114,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 2,
             ),
-            Direction::West,
             object::Kind::Platform,
+            Direction::West,
             world,
         );
 
@@ -128,8 +125,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 3,
                 area_ibox.min.z + 3,
             ),
-            Direction::North,
             object::Kind::Stairs,
+            Direction::North,
             world,
         );
 
@@ -139,8 +136,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 3,
             ),
-            Direction::North,
             object::Kind::Platform,
+            Direction::North,
             world,
         );
 
@@ -150,8 +147,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 4,
             ),
-            Direction::East,
             object::Kind::Stairs,
+            Direction::East,
             world,
         );
 
@@ -161,8 +158,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 4,
             ),
-            Direction::East,
             object::Kind::Platform,
+            Direction::East,
             world,
         );
 
@@ -172,8 +169,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 3,
                 area_ibox.min.z + 5,
             ),
-            Direction::South,
             object::Kind::Stairs,
+            Direction::South,
             world,
         );
 
@@ -183,8 +180,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 5,
             ),
-            Direction::South,
             object::Kind::Platform,
+            Direction::South,
             world,
         );
 
@@ -194,8 +191,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 6,
             ),
-            Direction::West,
             object::Kind::Stairs,
+            Direction::West,
             world,
         );
 
@@ -205,8 +202,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 4,
                 area_ibox.min.z + 6,
             ),
-            Direction::West,
             object::Kind::Platform,
+            Direction::West,
             world,
         );
 
@@ -216,8 +213,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 3,
                 area_ibox.min.z + 7,
             ),
-            Direction::North,
             object::Kind::Stairs,
+            Direction::North,
             world,
         );
 
@@ -227,8 +224,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 7,
             ),
-            Direction::North,
             object::Kind::Platform,
+            Direction::North,
             world,
         );
 
@@ -238,8 +235,8 @@ impl Template for ElevatorTemplate {
                 area_ibox.min.y + 2,
                 area_ibox.min.z + 8,
             ),
-            Direction::East,
             object::Kind::Stairs,
+            Direction::East,
             world,
         );
     }

@@ -52,9 +52,10 @@ impl Navigation {
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
-                    let cell = World::get_cell_at(IVec3::new(x, y, z), &world.sector_vec);
+                    let grid_position = IVec3::new(x, y, z);
+                    let solid = World::is_block_solid_at(grid_position, world);
 
-                    Graph::set_solid(cell.grid_position, cell.solid, graph);
+                    Graph::set_solid(grid_position, solid, graph);
                 }
             }
         }

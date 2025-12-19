@@ -9,8 +9,8 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::{constants::*, state::world::grid},
-    utils::ldmath::{indexing, FBox, IBox},
+    simulation::constants::*,
+    utils::ldmath::{ivec3_ext, FBox, IBox},
 };
 use ultraviolet::{IVec3, Vec3};
 
@@ -98,28 +98,28 @@ pub fn is_world_position_valid(world_position: Vec3) -> bool {
 
 #[inline]
 pub fn cell_id_to_cell_coordinate(id: usize) -> IVec3 {
-    let cell_coordinate = indexing::to_ivec3(id, SECTOR_RADIUS_IN_CELLS);
+    let cell_coordinate = ivec3_ext::index_to_ivec3(id, SECTOR_RADIUS_IN_CELLS);
 
     cell_coordinate
 }
 
 #[inline]
 pub fn cell_coordinate_to_cell_id(coordinate: IVec3) -> usize {
-    let cell_id = indexing::from_ivec3(coordinate, SECTOR_RADIUS_IN_CELLS);
+    let cell_id = ivec3_ext::ivec3_to_index(coordinate, SECTOR_RADIUS_IN_CELLS);
 
     cell_id
 }
 
 #[inline]
-pub fn sector_id_to_sector_coordinate(id: usize) -> IVec3 {
-    let sector_coordinate = indexing::to_ivec3(id, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_id_to_sector_coordinate(sector_id: usize) -> IVec3 {
+    let sector_coordinate = ivec3_ext::index_to_ivec3(sector_id, WORLD_RADIUS_IN_SECTORS);
 
     sector_coordinate
 }
 
 #[inline]
-pub fn sector_coordinate_to_sector_id(coordinate: IVec3) -> usize {
-    let sector_id = indexing::from_ivec3(coordinate, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_coordinate_to_sector_id(sector_coordinate: IVec3) -> usize {
+    let sector_id = ivec3_ext::ivec3_to_index(sector_coordinate, WORLD_RADIUS_IN_SECTORS);
 
     sector_id
 }

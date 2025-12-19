@@ -173,9 +173,9 @@ impl Physics {
             .into_iter()
             .any(|cell_grid_position| {
                 if grid::is_grid_position_valid(cell_grid_position) {
-                    let cell = World::get_cell_at(cell_grid_position, &world.sector_vec);
-
-                    cell.solid
+                    World::get_block_at(cell_grid_position, &world.sector_vec)
+                        .map(|block| block.solid)
+                        .unwrap_or(false)
                 } else {
                     true
                 }

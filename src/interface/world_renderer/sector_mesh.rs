@@ -6,10 +6,7 @@ use crate::{
     simulation::{
         constants::*,
         manager::viewer::{face_mask, view::SectorView},
-        state::world::{
-            block,
-            grid::{self, axis::Axis, Direction},
-        },
+        state::world::grid::{self, axis::Axis, Direction},
     },
 };
 use ultraviolet::IVec3;
@@ -35,17 +32,17 @@ impl SectorMesh {
         sector_mesh
     }
 
-    fn generate_mask_vec(sector_view: &SectorView) -> Vec<Vec<Vec<Face>>> {
+    fn generate_mask_vec(sector_view: &SectorView) -> Vec<Vec<Vec<Option<Face>>>> {
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
         let sector_area_in_cells = SECTOR_AREA_IN_CELLS as i32;
 
         let slice_count = (sector_size_in_cells + 1) as usize;
 
-        let mut mask_vec: Vec<Vec<Vec<Face>>> = vec![
-            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
-            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
-            vec![vec![Face::new(); sector_area_in_cells as usize]; slice_count],
+        let mut mask_vec = vec![
+            vec![vec![None; sector_area_in_cells as usize]; slice_count],
+            vec![vec![None; sector_area_in_cells as usize]; slice_count],
+            vec![vec![None; sector_area_in_cells as usize]; slice_count],
         ];
 
         for z in -sector_radius_in_cells..=sector_radius_in_cells {
@@ -54,9 +51,9 @@ impl SectorMesh {
                     let cell_coordinate = IVec3::new(x, y, z);
                     let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
 
-                    let block_view_option = &sector_view.block_view_vec[cell_id];
+                    let cell_view = &sector_view.cell_view_vec[cell_id];
 
-                    if let Some(block_view) = block_view_option {
+                    if let Some(block_view) = cell_view.block_view.as_ref() {
                         if face_mask::has(face_mask::EAST, &block_view.face_mask) {
                             let slice_index = (x + sector_radius_in_cells + 1) as usize;
 
@@ -70,7 +67,7 @@ impl SectorMesh {
                                 direction: grid::Direction::East,
                             };
 
-                            mask_vec[Axis::X as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(face);
                         }
 
                         if face_mask::has(face_mask::WEST, &block_view.face_mask) {
@@ -86,7 +83,7 @@ impl SectorMesh {
                                 direction: grid::Direction::West,
                             };
 
-                            mask_vec[Axis::X as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(face);
                         }
 
                         if face_mask::has(face_mask::NORTH, &block_view.face_mask) {
@@ -102,7 +99,7 @@ impl SectorMesh {
                                 direction: grid::Direction::North,
                             };
 
-                            mask_vec[Axis::Y as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(face);
                         }
 
                         if face_mask::has(face_mask::SOUTH, &block_view.face_mask) {
@@ -118,7 +115,7 @@ impl SectorMesh {
                                 direction: grid::Direction::South,
                             };
 
-                            mask_vec[Axis::Y as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(face);
                         }
 
                         if face_mask::has(face_mask::UP, &block_view.face_mask) {
@@ -134,7 +131,7 @@ impl SectorMesh {
                                 direction: grid::Direction::Up,
                             };
 
-                            mask_vec[Axis::Z as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(face);
                         }
 
                         if face_mask::has(face_mask::DOWN, &block_view.face_mask) {
@@ -150,7 +147,7 @@ impl SectorMesh {
                                 direction: grid::Direction::Down,
                             };
 
-                            mask_vec[Axis::Z as usize][slice_index][mask_index] = face;
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(face);
                         }
                     }
                 }
@@ -160,7 +157,7 @@ impl SectorMesh {
         mask_vec
     }
 
-    fn merge_geometry(sector_view: &SectorView, mask_vec: Vec<Vec<Vec<Face>>>) -> Self {
+    fn merge_geometry(sector_view: &SectorView, mask_vec: Vec<Vec<Vec<Option<Face>>>>) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
@@ -193,7 +190,7 @@ impl SectorMesh {
     fn merge_slice(
         axis: Axis,
         slice_index: usize,
-        slice: &[Face],
+        slice: &[Option<Face>],
         sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
@@ -205,9 +202,13 @@ impl SectorMesh {
         for y in 0..sector_size_in_cells {
             for x in 0..sector_size_in_cells {
                 let mask_index = y * sector_size_in_cells + x;
-                let face = slice[mask_index];
 
-                if face.block_kind == block::Kind::None || visited[mask_index] {
+                let face = match slice[mask_index] {
+                    Some(face) => face,
+                    None => continue,
+                };
+
+                if visited[mask_index] {
                     continue;
                 }
 
@@ -215,7 +216,11 @@ impl SectorMesh {
 
                 while x_max < sector_size_in_cells {
                     let test_mask_index = y * sector_size_in_cells + x_max;
-                    let test_face = slice[test_mask_index];
+
+                    let test_face = match slice[test_mask_index] {
+                        Some(face) => face,
+                        None => break,
+                    };
 
                     if test_face != face || visited[test_mask_index] {
                         break;
@@ -229,7 +234,11 @@ impl SectorMesh {
                 'outer: while y_max < sector_size_in_cells {
                     for xx in x..x_max {
                         let test_mask_index = y_max * sector_size_in_cells + xx;
-                        let test_face = slice[test_mask_index];
+
+                        let test_face = match slice[test_mask_index] {
+                            Some(face) => face,
+                            None => break 'outer,
+                        };
 
                         if test_face != face || visited[test_mask_index] {
                             break 'outer;

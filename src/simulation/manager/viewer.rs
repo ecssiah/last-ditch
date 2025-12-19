@@ -7,19 +7,17 @@ use crate::simulation::{
     constants::*,
     manager::{
         viewer::view::{
-            BlockView, ManagerView, ObjectView, PersonView, PopulationView, SectorView, View,
-            WorldView,
+            BlockView, CellView, ManagerView, ObjectView, PersonView, PopulationView, SectorView,
+            View, WorldView,
         },
         Manager,
     },
     state::{
         world::{
-            block,
             grid::{self, Direction},
             sector::Sector,
-            Object,
         },
-        State,
+        State, World,
     },
 };
 use std::collections::HashMap;
@@ -28,7 +26,7 @@ use ultraviolet::IVec3;
 pub struct Viewer {
     pub view_input: triple_buffer::Input<View>,
     pub sector_version_map: HashMap<usize, u64>,
-    pub block_view_cache: HashMap<usize, Vec<Option<BlockView>>>,
+    pub cell_view_cache: HashMap<usize, Vec<CellView>>,
 }
 
 impl Viewer {
@@ -36,7 +34,7 @@ impl Viewer {
         Self {
             view_input,
             sector_version_map: HashMap::new(),
-            block_view_cache: HashMap::new(),
+            cell_view_cache: HashMap::new(),
         }
     }
 
@@ -50,7 +48,7 @@ impl Viewer {
         let world_view = Self::update_world_view(
             state,
             &mut manager.viewer.sector_version_map,
-            &mut manager.viewer.block_view_cache,
+            &mut manager.viewer.cell_view_cache,
         );
 
         let view = manager.viewer.view_input.input_buffer_mut();
@@ -110,7 +108,7 @@ impl Viewer {
     fn update_world_view(
         state: &State,
         sector_version_map: &mut HashMap<usize, u64>,
-        block_view_cache: &mut HashMap<usize, Vec<Option<BlockView>>>,
+        cell_view_cache: &mut HashMap<usize, Vec<CellView>>,
     ) -> WorldView {
         let mut world_view = WorldView::new();
 
@@ -132,11 +130,12 @@ impl Viewer {
                         let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
                         let sector = &state.world.sector_vec[sector_id];
 
-                        let block_view_vec =
-                            Self::get_block_view_vec(sector, sector_version_map, block_view_cache);
-
-                        let object_view_vec =
-                            Self::get_object_view_vec(sector.sector_id, &state.world.object_map);
+                        let cell_view_vec = Self::get_cell_view_vec(
+                            sector,
+                            &state.world,
+                            sector_version_map,
+                            cell_view_cache,
+                        );
 
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
@@ -144,8 +143,7 @@ impl Viewer {
                             world_position: grid::grid_position_to_world_position(
                                 sector.grid_position,
                             ),
-                            block_view_vec,
-                            object_view_vec,
+                            cell_view_vec,
                         };
 
                         world_view
@@ -159,32 +157,33 @@ impl Viewer {
         world_view
     }
 
-    fn get_block_view_vec(
+    fn get_cell_view_vec(
         sector: &Sector,
+        world: &World,
         sector_version_map: &mut HashMap<usize, u64>,
-        block_view_cache: &mut HashMap<usize, Vec<Option<BlockView>>>,
-    ) -> Vec<Option<BlockView>> {
+        cell_view_cache: &mut HashMap<usize, Vec<CellView>>,
+    ) -> Vec<CellView> {
         let needs_rebuild = match sector_version_map.get(&sector.sector_id) {
             Some(current_version) => *current_version != sector.version,
             None => true,
         };
 
-        let block_view_vec = if needs_rebuild {
-            let block_view_vec = Self::build_block_view_vec(sector);
+        let cell_view_vec = if needs_rebuild {
+            let cell_view_vec = Self::build_cell_view_vec(sector, world);
 
-            block_view_cache.insert(sector.sector_id, block_view_vec.clone());
+            cell_view_cache.insert(sector.sector_id, cell_view_vec.clone());
             sector_version_map.insert(sector.sector_id, sector.version);
 
-            block_view_vec
+            cell_view_vec
         } else {
-            block_view_cache[&sector.sector_id].clone()
+            cell_view_cache[&sector.sector_id].clone()
         };
 
-        block_view_vec
+        cell_view_vec
     }
 
-    fn build_block_view_vec(sector: &Sector) -> Vec<Option<BlockView>> {
-        let mut block_view_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
+    fn build_cell_view_vec(sector: &Sector, world: &World) -> Vec<CellView> {
+        let mut cell_view_vec = vec![CellView::default(); SECTOR_VOLUME_IN_CELLS];
 
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
@@ -193,63 +192,59 @@ impl Viewer {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinate = IVec3::new(x, y, z);
 
-                    let cell = Sector::get_cell_at(cell_coordinate, sector);
+                    let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
+                    let grid_position = grid::ids_to_grid_position(sector.sector_id, cell_id);
 
-                    if cell.block_kind == block::Kind::None {
-                        continue;
-                    }
+                    let cell = World::get_cell_at(grid_position, &world.sector_vec);
 
-                    let mut face_mask = face_mask::EMPTY;
+                    let block_view = if let Some(block) = cell.block.as_ref() {
+                        let mut face_mask = face_mask::EMPTY;
 
-                    for direction in grid::Direction::ALL {
-                        let neighbor_cell_coordinate =
-                            cell_coordinate + Direction::to_ivec3(direction);
+                        for direction in grid::Direction::ALL {
+                            let neighbor_grid_position =
+                                grid_position + Direction::to_ivec3(direction);
 
-                        let neighbor_cell_clear =
-                            if !grid::is_cell_coordinate_valid(neighbor_cell_coordinate) {
-                                true
-                            } else {
-                                let neighbor_cell_id =
-                                    grid::cell_coordinate_to_cell_id(neighbor_cell_coordinate);
-
-                                sector.cell_vec[neighbor_cell_id].block_kind == block::Kind::None
-                            };
-
-                        if neighbor_cell_clear {
-                            face_mask::set(face_mask::from_direction(direction), &mut face_mask);
+                            if !World::is_block_solid_at(neighbor_grid_position, world) {
+                                face_mask::set(
+                                    face_mask::from_direction(direction),
+                                    &mut face_mask,
+                                );
+                            }
                         }
-                    }
 
-                    let block_view = BlockView {
-                        cell_id: cell.cell_id,
-                        block_kind: cell.block_kind,
-                        face_mask,
+                        let block_view = BlockView {
+                            block_kind: block.block_kind,
+                            face_mask,
+                        };
+
+                        Some(block_view)
+                    } else {
+                        None
                     };
 
-                    block_view_vec[cell.cell_id] = Some(block_view);
+                    let object_view = if let Some(object) = cell.object.as_ref() {
+                        let object_view = ObjectView {
+                            object_kind: object.object_kind,
+                            direction: object.direction,
+                        };
+
+                        Some(object_view)
+                    } else {
+                        None
+                    };
+
+                    let cell_view = CellView {
+                        cell_id,
+                        grid_position,
+                        block_view,
+                        object_view,
+                    };
+
+                    cell_view_vec[cell.cell_id] = cell_view;
                 }
             }
         }
 
-        block_view_vec
-    }
-
-    fn get_object_view_vec(
-        sector_id: usize,
-        object_map: &HashMap<usize, Vec<Object>>,
-    ) -> Vec<ObjectView> {
-        if let Some(object_vec) = object_map.get(&sector_id) {
-            object_vec
-                .iter()
-                .map(|object| ObjectView {
-                    object_id: object.object_id,
-                    object_kind: object.kind,
-                    grid_position: object.grid_position,
-                    direction: object.direction,
-                })
-                .collect()
-        } else {
-            Vec::new()
-        }
+        cell_view_vec
     }
 }
