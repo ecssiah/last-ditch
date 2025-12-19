@@ -7,14 +7,14 @@ pub mod person;
 pub mod sight;
 pub mod transform;
 
-use crate::simulation::{
-    constants::TOWER_RADIUS,
+use crate::{simulation::{
+    constants::{PERSON_DEFAULT_JUMP_SPEED, PERSON_DEFAULT_SIZE_X, PERSON_DEFAULT_SIZE_Y, PERSON_DEFAULT_SIZE_Z, PERSON_DEFAULT_SPEED, TOWER_RADIUS},
     state::population::{nation::Nation, person::Person},
     utils::IDGenerator,
-};
+}, utils::ldmath::rand_chacha_ext::{self, gen_bool}};
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
-use ultraviolet::IVec3;
+use ultraviolet::{IVec3, Vec3};
 
 pub struct Population {
     pub active: bool,
@@ -72,6 +72,35 @@ impl Population {
         ]);
 
         nation_map
+    }
+
+    pub fn generate_person(population: &mut Self) -> Person {
+        let person_id = IDGenerator::allocate(&mut population.id_generator);
+
+        let mut person = Person::new(person_id);
+
+        person.identity.sex = match gen_bool(&mut population.rng) {
+            true => identity::Sex::Female,
+            false => identity::Sex::Male,
+        };
+
+        Person::set_size(
+            Vec3::new(
+                PERSON_DEFAULT_SIZE_X,
+                PERSON_DEFAULT_SIZE_Y,
+                rand_chacha_ext::gen_range_f32(
+                    PERSON_DEFAULT_SIZE_Z - 0.2,
+                    PERSON_DEFAULT_SIZE_Z + 0.2,
+                    &mut population.rng,
+                ),
+            ),
+            &mut person,
+        );
+
+        person.kinematic.speed = PERSON_DEFAULT_SPEED;
+        person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
+
+        person
     }
 
     pub fn tick(population: &mut Self) {
