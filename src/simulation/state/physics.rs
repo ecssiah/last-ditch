@@ -171,15 +171,7 @@ impl Physics {
     fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
         grid::get_cell_overlap_vec(&SimpleBody::get_fbox(body))
             .into_iter()
-            .any(|cell_grid_position| {
-                if grid::is_grid_position_valid(cell_grid_position) {
-                    World::get_block_at(cell_grid_position, &world.sector_vec)
-                        .map(|block| block.solid)
-                        .unwrap_or(false)
-                } else {
-                    true
-                }
-            })
+            .any(|cell_grid_position| World::is_block_solid_at(cell_grid_position, world))
     }
 
     fn sync_simple_body(body: &SimpleBody, transform: &mut Transform, sight: &mut Sight) {

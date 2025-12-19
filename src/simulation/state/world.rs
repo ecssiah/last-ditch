@@ -494,7 +494,7 @@ impl World {
     ) -> Option<(IVec3, IVec3)> {
         let direction = direction.normalized();
 
-        let mut cell_position = grid::world_position_to_grid_position(origin);
+        let mut cell_grid_position = grid::world_position_to_grid_position(origin);
 
         let step = IVec3::new(
             if direction.x > 0.0 { 1 } else { -1 },
@@ -505,9 +505,9 @@ impl World {
         let t_max = Vec3 {
             x: if direction.x != 0.0 {
                 let boundary = if direction.x > 0.0 {
-                    cell_position.x as f32 + CELL_RADIUS_IN_METERS
+                    cell_grid_position.x as f32 + CELL_RADIUS_IN_METERS
                 } else {
-                    cell_position.x as f32 - CELL_RADIUS_IN_METERS
+                    cell_grid_position.x as f32 - CELL_RADIUS_IN_METERS
                 };
 
                 (boundary - origin.x) / direction.x
@@ -516,9 +516,9 @@ impl World {
             },
             y: if direction.y != 0.0 {
                 let boundary = if direction.y > 0.0 {
-                    cell_position.y as f32 + CELL_RADIUS_IN_METERS
+                    cell_grid_position.y as f32 + CELL_RADIUS_IN_METERS
                 } else {
-                    cell_position.y as f32 - CELL_RADIUS_IN_METERS
+                    cell_grid_position.y as f32 - CELL_RADIUS_IN_METERS
                 };
 
                 (boundary - origin.y) / direction.y
@@ -527,9 +527,9 @@ impl World {
             },
             z: if direction.z != 0.0 {
                 let boundary = if direction.z > 0.0 {
-                    cell_position.z as f32 + CELL_RADIUS_IN_METERS
+                    cell_grid_position.z as f32 + CELL_RADIUS_IN_METERS
                 } else {
-                    cell_position.z as f32 - CELL_RADIUS_IN_METERS
+                    cell_grid_position.z as f32 - CELL_RADIUS_IN_METERS
                 };
 
                 (boundary - origin.z) / direction.z
@@ -563,7 +563,7 @@ impl World {
             let hit_normal;
 
             if t_max.x < t_max.y && t_max.x < t_max.z {
-                cell_position.x += step.x;
+                cell_grid_position.x += step.x;
                 distance_traveled = t_max.x;
                 t_max.x += t_delta.x;
 
@@ -573,7 +573,7 @@ impl World {
 
                 hit_normal = -step.x * IVec3::unit_x();
             } else if t_max.y < t_max.z {
-                cell_position.y += step.y;
+                cell_grid_position.y += step.y;
                 distance_traveled = t_max.y;
                 t_max.y += t_delta.y;
 
@@ -583,7 +583,7 @@ impl World {
 
                 hit_normal = -step.y * IVec3::unit_y();
             } else {
-                cell_position.z += step.z;
+                cell_grid_position.z += step.z;
                 distance_traveled = t_max.z;
                 t_max.z += t_delta.z;
 
@@ -594,11 +594,8 @@ impl World {
                 hit_normal = -step.z * IVec3::unit_z();
             }
 
-            if Self::get_block_at(cell_position, &world.sector_vec)
-                .map(|block| block.solid)
-                .unwrap_or(false)
-            {
-                return Some((cell_position, hit_normal));
+            if Self::is_block_solid_at(cell_grid_position, world) {
+                return Some((cell_grid_position, hit_normal));
             }
         }
 
