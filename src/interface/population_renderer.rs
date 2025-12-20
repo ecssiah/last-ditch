@@ -15,7 +15,13 @@ use crate::{
     simulation::{
         constants::*,
         manager::viewer::view::PopulationView,
-        state::{physics::body::Body, population::identity},
+        state::{
+            physics::{
+                body::Body,
+                collider::{self, Collider},
+            },
+            population::identity,
+        },
     },
 };
 use obj::{load_obj, TexturedVertex};
@@ -361,7 +367,12 @@ impl PopulationRenderer {
             }
 
             let world_position = *(person_view.transform.world_position).as_array();
-            let scale = Body::get_size(&person_view.body).z / PERSON_DEFAULT_SIZE_Z;
+
+            let core_collider = Body::get_collider(collider::Label::Core, &person_view.body)
+                .expect("Body has no core");
+
+            let scale = Collider::get_size(core_collider).z / PERSON_DEFAULT_SIZE_Z;
+
             let rotation_xy = person_view.transform.rotation_xy;
 
             let person_instance_data = PersonInstanceData::new(world_position, scale, rotation_xy);

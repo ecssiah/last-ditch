@@ -7,8 +7,11 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::body::Body,
-            population::{kinematic::Kinematic, sight::Sight, transform::Transform, Population},
+            physics::{body::Body, collider::Collider},
+            population::{
+                kinematic::Kinematic, person::Person, sight::Sight, transform::Transform,
+                Population,
+            },
             world::grid::{self, axis::Axis},
             World,
         },
@@ -44,18 +47,10 @@ impl Physics {
             return;
         }
 
-        if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
+        if let Some(mut judge) = population.person_map.get_mut(&ID_JUDGE_1) {
             let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 
-            Self::resolve_body(
-                world,
-                &velocity,
-                &delta,
-                &mut judge.body,
-                &mut judge.kinematic,
-            );
-
-            Self::synchronize_with_body(&judge.body, &mut judge.transform, &mut judge.sight);
+            Self::resolve_person(world, &velocity, &delta, &mut judge);
         }
     }
 
@@ -84,17 +79,14 @@ impl Physics {
         (velocity, delta)
     }
 
-    fn resolve_body(
-        world: &World,
-        velocity: &Vec3,
-        delta: &Vec3,
-        body: &mut Body,
-        kinematic: &mut Kinematic,
-    ) {
-        let mut world_position = Body::get_world_position(body);
-        let mut velocity = *velocity;
+    fn resolve_person(world: &World, velocity: &Vec3, delta: &Vec3, person: &mut Person) {
+        let core_collider =
+            Body::get_collider(collider::Label::Core, &person.body).expect("Body is missing core");
 
-        let mut float_box = Body::get_float_box(body);
+        let mut core_world_position = Collider::get_world_position(core_collider);
+        let mut core_float_box = core_collider.float_box.clone();
+
+        let mut velocity = *velocity;
 
         for axis in [Axis::Z, Axis::Y, Axis::X] {
             let delta_along_axis = match axis {
@@ -104,16 +96,13 @@ impl Physics {
             };
 
             let resolution_delta =
-                Self::compute_resolution_along_axis(&float_box, world, axis, delta_along_axis);
+                Self::compute_resolution_along_axis(&core_float_box, world, axis, delta_along_axis);
 
             let displacement = Axis::unit(axis) * resolution_delta;
 
-            if axis == Axis::Z {
-                println!("{:?}", displacement);
-            }
+            core_world_position += displacement;
 
-            world_position += displacement;
-            float_box = FloatBox::translated(displacement, &float_box);
+            core_float_box = FloatBox::translated(displacement, &core_float_box);
 
             let movement_blocked = (resolution_delta - delta_along_axis).abs() > EPSILON_COLLISION;
 
@@ -126,9 +115,23 @@ impl Physics {
             }
         }
 
-        Body::set_world_position(world_position, body);
-        
-        kinematic.velocity = velocity;
+        person.kinematic.velocity = velocity;
+
+        let core_collider = Body::get_collider_mut(collider::Label::Core, &mut person.body)
+            .expect("Body has no core");
+
+        Collider::set_world_position(core_world_position, core_collider);
+
+        let core_collider_radius = Collider::get_size(&core_collider) / 2.0;
+
+        let person_world_position = Vec3::new(
+            core_world_position.x,
+            core_world_position.y,
+            core_world_position.z - core_collider_radius.z + CELL_RADIUS_IN_METERS,
+        );
+
+        Transform::set_world_position(person_world_position, &mut person.transform);
+        Sight::apply_world_position(person_world_position, &mut person.sight);
     }
 
     fn compute_resolution_along_axis(
@@ -169,12 +172,5 @@ impl Physics {
         grid::get_cell_overlap_vec(float_box)
             .into_iter()
             .any(|cell_grid_position| World::is_block_solid_at(cell_grid_position, world))
-    }
-
-    fn synchronize_with_body(body: &Body, transform: &mut Transform, sight: &mut Sight) {
-        let body_world_position = Body::get_world_position(body);
-
-        Transform::set_world_position(body_world_position, transform);
-        Sight::set_world_position(body_world_position + sight.local_position, sight);
     }
 }

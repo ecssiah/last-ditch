@@ -39,23 +39,8 @@ impl Person {
     pub fn set_world_position(world_position: Vec3, person: &mut Self) {
         Transform::set_world_position(world_position, &mut person.transform);
 
-        Body::set_world_position(
-            world_position + person.body.local_position,
-            &mut person.body,
-        );
-
-        Sight::set_world_position(
-            world_position + person.sight.local_position,
-            &mut person.sight,
-        );
-    }
-
-    pub fn get_size(person: &Self) -> Vec3 {
-        Body::get_size(&person.body)
-    }
-
-    pub fn set_size(size: Vec3, person: &mut Self) {
-        Body::set_size(size, &mut person.body);
+        Body::apply_world_position(world_position, &mut person.body);
+        Sight::apply_world_position(world_position, &mut person.sight);
     }
 
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, person: &mut Self) {

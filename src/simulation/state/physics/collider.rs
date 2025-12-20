@@ -40,11 +40,22 @@ impl Collider {
         Self::new(Vec3::zero(), Vec3::broadcast(CELL_RADIUS_IN_METERS))
     }
 
+    pub fn set_local_position(local_position: Vec3, collider: &mut Self) {
+        collider.local_position = local_position;
+    }
+
     pub fn get_world_position(collider: &Self) -> Vec3 {
         (collider.float_box.min + collider.float_box.max) * 0.5
     }
 
-    pub fn set_world_position(parent_world_position: Vec3, collider: &mut Self) {
+    pub fn set_world_position(world_position: Vec3, collider: &mut Self) {
+        let collider_radius = FloatBox::get_radius(&collider.float_box);
+
+        collider.float_box.min = world_position - collider_radius;
+        collider.float_box.max = world_position + collider_radius;
+    }
+
+    pub fn update_world_position(parent_world_position: Vec3, collider: &mut Self) {
         let collider_world_position = parent_world_position + collider.local_position;
         let collider_radius = FloatBox::get_radius(&collider.float_box);
 

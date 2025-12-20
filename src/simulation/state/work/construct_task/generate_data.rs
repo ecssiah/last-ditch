@@ -2,6 +2,10 @@ use crate::{
     simulation::{
         constants::*,
         state::{
+            physics::{
+                body::Body,
+                collider::{self, Collider},
+            },
             population::{
                 identity,
                 nation::{self},
@@ -58,7 +62,8 @@ impl GenerateData {
                 World::reset(&mut state.world);
             }
             1 => {
-                Self::generate_population(&state.world, &mut state.population);
+                Self::generate_judge(&mut state.population);
+                Self::generate_nations(&mut state.population);
             }
             2 => {
                 Self::construct_floor_map(&mut state.world);
@@ -89,7 +94,7 @@ impl GenerateData {
         generate_world_data.stage_index >= generate_world_data.stage_cost_map.len()
     }
 
-    fn generate_population(_world: &World, population: &mut Population) {
+    fn generate_judge(population: &mut Population) {
         tracing::info!("Generating Judge 1");
 
         let mut judge = Person::new(ID_JUDGE_1);
@@ -102,18 +107,22 @@ impl GenerateData {
             JUDGE_DEFAULT_SIZE_Z,
         );
 
-        judge.body.local_position = Vec3::new(
-            0.0,
-            0.0,
-            (CELL_SIZE_IN_METERS * judge_size.z) / 2.0 - CELL_RADIUS_IN_METERS,
-        );
+        let judge_core = Body::get_collider_mut(collider::Label::Core, &mut judge.body)
+            .expect("Body is missing core");
+
+        Collider::set_size(judge_size, judge_core);
+
+        let core_local_position = Vec3::new(0.0, 0.0, judge_size.z / 2.0 - CELL_RADIUS_IN_METERS);
+
+        Collider::set_local_position(core_local_position, judge_core);
 
         Person::set_world_position(world_position, &mut judge);
-        Person::set_size(judge_size, &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);
 
         population.person_map.insert(judge.person_id, judge);
+    }
 
+    fn generate_nations(population: &mut Population) {
         tracing::info!("Generating Nations");
 
         let nation_map = population.nation_map.clone();
