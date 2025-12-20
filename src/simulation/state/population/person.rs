@@ -1,14 +1,7 @@
-use crate::simulation::{
-    constants::{
-        JUDGE_DEFAULT_SIZE_X, PERSON_DEFAULT_SIZE_X, PERSON_DEFAULT_SIZE_Y, PERSON_DEFAULT_SIZE_Z,
-    },
-    state::{
-        physics::body::Body,
-        population::{
-            identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform,
-        },
-        world::block,
-    },
+use crate::simulation::state::{
+    physics::body::Body,
+    population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform},
+    world::block,
 };
 use ultraviolet::Vec3;
 
@@ -27,14 +20,10 @@ impl Person {
         let identity = Identity::default();
         let transform = Transform::default();
         let kinematic = Kinematic::default();
-        let body = Body::new(Vec3::new(
-            PERSON_DEFAULT_SIZE_X,
-            PERSON_DEFAULT_SIZE_Y,
-            PERSON_DEFAULT_SIZE_Z,
-        ));
+        let body = Body::default();
         let sight = Sight::default();
 
-        let selected_block_kind = block::Kind::Engraved1;
+        let selected_block_kind = block::Kind::CarvedStone1;
 
         Self {
             person_id,

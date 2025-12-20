@@ -13,13 +13,6 @@ impl FloatBox {
         Self { min, max }
     }
 
-    pub fn default() -> Self {
-        Self::new(
-            Vec3::broadcast(-CELL_RADIUS_IN_METERS),
-            Vec3::broadcast(CELL_RADIUS_IN_METERS),
-        )
-    }
-
     pub fn translated(displacement: Vec3, float_box: &Self) -> Self {
         Self::new(float_box.min + displacement, float_box.max + displacement)
     }
@@ -51,5 +44,14 @@ impl FloatBox {
             && float_box1.max.y > float_box2.min.y
             && float_box1.min.z < float_box2.max.z
             && float_box1.max.z > float_box2.min.z
+    }
+}
+
+impl Default for FloatBox {
+    fn default() -> Self {
+        Self::new(
+            Vec3::broadcast(-CELL_RADIUS_IN_METERS),
+            Vec3::broadcast(CELL_RADIUS_IN_METERS),
+        )
     }
 }

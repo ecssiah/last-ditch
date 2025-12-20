@@ -96,42 +96,38 @@ impl Physics {
 
         let mut float_box = Body::get_float_box(body);
 
-        for axis in [ Axis::Z, Axis::Y, Axis::X] {
-            let delta_axis = match axis {
+        for axis in [Axis::Z, Axis::Y, Axis::X] {
+            let delta_along_axis = match axis {
                 Axis::X => delta.x,
                 Axis::Y => delta.y,
                 Axis::Z => delta.z,
             };
 
             let resolution_delta =
-                Self::compute_resolution_along_axis(&float_box, world, axis, delta_axis);
+                Self::compute_resolution_along_axis(&float_box, world, axis, delta_along_axis);
 
-            world_position += Axis::unit(axis) * resolution_delta;
+            let displacement = Axis::unit(axis) * resolution_delta;
 
-            float_box = FloatBox::translated(Axis::unit(axis) * resolution_delta, &float_box);
+            if axis == Axis::Z {
+                println!("{:?}", displacement);
+            }
 
-            let movement_blocked = (resolution_delta - delta_axis).abs() > EPSILON_COLLISION;
+            world_position += displacement;
+            float_box = FloatBox::translated(displacement, &float_box);
 
-            match axis {
-                Axis::X => {
-                    if movement_blocked {
-                        velocity.x = 0.0;
-                    }
-                }
-                Axis::Y => {
-                    if movement_blocked {
-                        velocity.y = 0.0;
-                    }
-                }
-                Axis::Z => {
-                    if movement_blocked {
-                        velocity.z = 0.0;
-                    }
+            let movement_blocked = (resolution_delta - delta_along_axis).abs() > EPSILON_COLLISION;
+
+            if movement_blocked {
+                match axis {
+                    Axis::X => velocity.x = 0.0,
+                    Axis::Y => velocity.y = 0.0,
+                    Axis::Z => velocity.z = 0.0,
                 }
             }
         }
 
         Body::set_world_position(world_position, body);
+        
         kinematic.velocity = velocity;
     }
 
@@ -155,7 +151,8 @@ impl Physics {
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
 
-            let float_box_test = FloatBox::translated(Axis::unit(axis) * (sign * mid), float_box);
+            let displacement = Axis::unit(axis) * (sign * mid);
+            let float_box_test = FloatBox::translated(displacement, float_box);
 
             if Self::is_float_box_colliding(&float_box_test, world) {
                 max = mid;

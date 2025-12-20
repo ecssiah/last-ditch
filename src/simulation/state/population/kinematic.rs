@@ -13,13 +13,9 @@ impl Kinematic {
         Self {
             speed: 6.0,
             jump_speed: 16.0,
-            velocity: Vec3::broadcast(0.0),
+            velocity: Vec3::zero(),
             flying: false,
         }
-    }
-
-    pub fn default() -> Self {
-        Self::new()
     }
 
     pub fn set_flying(flying: bool, kinematic: &mut Self) {
@@ -34,5 +30,11 @@ impl Kinematic {
 
     pub fn toggle_flying(kinematic: &mut Self) {
         Self::set_flying(!kinematic.flying, kinematic);
+    }
+}
+
+impl Default for Kinematic {
+    fn default() -> Self {
+        Self::new()
     }
 }

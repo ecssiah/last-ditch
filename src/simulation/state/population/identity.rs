@@ -29,8 +29,10 @@ impl Identity {
 
         identity
     }
+}
 
-    pub fn default() -> Self {
+impl Default for Identity {
+    fn default() -> Self {
         Self::new()
     }
 }

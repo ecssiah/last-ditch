@@ -1,20 +1,23 @@
 pub mod kind;
 
 pub use kind::Kind;
-use ultraviolet::Vec3;
 
 use crate::simulation::{
     constants::*,
     state::{
         physics::collider::Collider,
-        world::{grid, object},
+        world::{
+            grid::{self, Direction},
+            object,
+        },
     },
 };
+use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct Object {
     pub object_kind: object::Kind,
-    pub direction: grid::Direction,
+    pub direction: Direction,
     pub collider: Collider,
 }
 

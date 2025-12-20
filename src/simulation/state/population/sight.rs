@@ -4,10 +4,10 @@ use crate::{
 };
 use ultraviolet::{Rotor3, Vec3};
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Sight {
-    pub world_position: Vec3,
     pub local_position: Vec3,
+    pub world_position: Vec3,
     pub rotation_xy: f32,
     pub rotation_yz: f32,
     pub rotor: Rotor3,
@@ -19,8 +19,8 @@ pub struct Sight {
 
 impl Sight {
     pub fn new() -> Self {
-        let world_position = Vec3::zero();
         let local_position = Vec3::new(0.0, 0.0, 0.9 * JUDGE_DEFAULT_SIZE_Z);
+        let world_position = Vec3::zero();
         let rotation_xy = 0.0;
         let rotation_yz = 0.0;
         let rotor = Rotor3::identity();
@@ -40,10 +40,6 @@ impl Sight {
             range_in_meters,
             range_in_sectors,
         }
-    }
-
-    pub fn default() -> Self {
-        Self::new()
     }
 
     pub fn get_forward(sight: &Self) -> Vec3 {
@@ -90,5 +86,11 @@ impl Sight {
         let angle = dot.acos();
 
         angle <= (sight.horizontal_fov * 0.5).to_radians()
+    }
+}
+
+impl Default for Sight {
+    fn default() -> Self {
+        Self::new()
     }
 }
