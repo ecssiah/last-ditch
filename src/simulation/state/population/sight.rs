@@ -7,7 +7,7 @@ use ultraviolet::{Rotor3, Vec3};
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sight {
     pub world_position: Vec3,
-    pub relative_position: Vec3,
+    pub local_position: Vec3,
     pub rotation_xy: f32,
     pub rotation_yz: f32,
     pub rotor: Rotor3,
@@ -20,7 +20,7 @@ pub struct Sight {
 impl Sight {
     pub fn new() -> Self {
         let world_position = Vec3::zero();
-        let relative_position = Vec3::new(0.0, 0.0, 0.9 * JUDGE_DEFAULT_SIZE_Z);
+        let local_position = Vec3::new(0.0, 0.0, 0.9 * JUDGE_DEFAULT_SIZE_Z);
         let rotation_xy = 0.0;
         let rotation_yz = 0.0;
         let rotor = Rotor3::identity();
@@ -31,7 +31,7 @@ impl Sight {
 
         Self {
             world_position,
-            relative_position,
+            local_position,
             rotation_xy,
             rotation_yz,
             rotor,
@@ -50,8 +50,8 @@ impl Sight {
         sight.rotor * Vec3::unit_y()
     }
 
-    pub fn set_relative_position(relative_position: Vec3, sight: &mut Self) {
-        sight.relative_position = relative_position;
+    pub fn set_local_position(local_position: Vec3, sight: &mut Self) {
+        sight.local_position = local_position;
     }
 
     pub fn set_world_position(world_position: Vec3, sight: &mut Self) {

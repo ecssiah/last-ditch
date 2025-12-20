@@ -13,7 +13,9 @@ use crate::{
         },
     },
     simulation::{
-        constants::*, manager::viewer::view::PopulationView, state::population::identity,
+        constants::*,
+        manager::viewer::view::PopulationView,
+        state::{physics::body::Body, population::identity},
     },
 };
 use obj::{load_obj, TexturedVertex};
@@ -359,7 +361,7 @@ impl PopulationRenderer {
             }
 
             let world_position = *(person_view.transform.world_position).as_array();
-            let scale = person_view.transform.size.z / PERSON_DEFAULT_SIZE_Z;
+            let scale = Body::get_size(&person_view.body).z / PERSON_DEFAULT_SIZE_Z;
             let rotation_xy = person_view.transform.rotation_xy;
 
             let person_instance_data = PersonInstanceData::new(world_position, scale, rotation_xy);

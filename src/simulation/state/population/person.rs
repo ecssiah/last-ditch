@@ -1,7 +1,14 @@
-use crate::simulation::state::{
-    body::SimpleBody,
-    population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform},
-    world::block,
+use crate::simulation::{
+    constants::{
+        JUDGE_DEFAULT_SIZE_X, PERSON_DEFAULT_SIZE_X, PERSON_DEFAULT_SIZE_Y, PERSON_DEFAULT_SIZE_Z,
+    },
+    state::{
+        physics::body::Body,
+        population::{
+            identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform,
+        },
+        world::block,
+    },
 };
 use ultraviolet::Vec3;
 
@@ -10,7 +17,7 @@ pub struct Person {
     pub identity: Identity,
     pub transform: Transform,
     pub kinematic: Kinematic,
-    pub body: SimpleBody,
+    pub body: Body,
     pub sight: Sight,
     pub selected_block_kind: block::Kind,
 }
@@ -20,7 +27,11 @@ impl Person {
         let identity = Identity::default();
         let transform = Transform::default();
         let kinematic = Kinematic::default();
-        let body = SimpleBody::default();
+        let body = Body::new(Vec3::new(
+            PERSON_DEFAULT_SIZE_X,
+            PERSON_DEFAULT_SIZE_Y,
+            PERSON_DEFAULT_SIZE_Z,
+        ));
         let sight = Sight::default();
 
         let selected_block_kind = block::Kind::Engraved1;
@@ -38,17 +49,24 @@ impl Person {
 
     pub fn set_world_position(world_position: Vec3, person: &mut Self) {
         Transform::set_world_position(world_position, &mut person.transform);
-        SimpleBody::set_world_position(world_position, &mut person.body);
+
+        Body::set_world_position(
+            world_position + person.body.local_position,
+            &mut person.body,
+        );
 
         Sight::set_world_position(
-            world_position + person.sight.relative_position,
+            world_position + person.sight.local_position,
             &mut person.sight,
         );
     }
 
+    pub fn get_size(person: &Self) -> Vec3 {
+        Body::get_size(&person.body)
+    }
+
     pub fn set_size(size: Vec3, person: &mut Self) {
-        Transform::set_size(size, &mut person.transform);
-        SimpleBody::set_size(size, &mut person.body);
+        Body::set_size(size, &mut person.body);
     }
 
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, person: &mut Self) {

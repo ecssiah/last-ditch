@@ -1,7 +1,6 @@
 //! Current state of the simulation
 
 pub mod action;
-pub mod body;
 pub mod navigation;
 pub mod physics;
 pub mod population;

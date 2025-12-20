@@ -1,15 +1,19 @@
 //! Forces affecting Population
 
+pub mod body;
 pub mod collider;
 
-use crate::simulation::{
-    constants::*,
-    state::{
-        body::SimpleBody,
-        population::{kinematic::Kinematic, sight::Sight, transform::Transform, Population},
-        world::grid::{self, axis::Axis},
-        World,
+use crate::{
+    simulation::{
+        constants::*,
+        state::{
+            physics::body::Body,
+            population::{kinematic::Kinematic, sight::Sight, transform::Transform, Population},
+            world::grid::{self, axis::Axis},
+            World,
+        },
     },
+    utils::ldmath::FloatBox,
 };
 use ultraviolet::Vec3;
 
@@ -43,7 +47,7 @@ impl Physics {
         if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
             let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
 
-            Self::resolve_simple_body(
+            Self::resolve_body(
                 world,
                 &velocity,
                 &delta,
@@ -51,7 +55,7 @@ impl Physics {
                 &mut judge.kinematic,
             );
 
-            Self::sync_simple_body(&judge.body, &mut judge.transform, &mut judge.sight);
+            Self::synchronize_with_body(&judge.body, &mut judge.transform, &mut judge.sight);
         }
     }
 
@@ -80,102 +84,100 @@ impl Physics {
         (velocity, delta)
     }
 
-    fn resolve_simple_body(
+    fn resolve_body(
         world: &World,
         velocity: &Vec3,
         delta: &Vec3,
-        body: &mut SimpleBody,
+        body: &mut Body,
         kinematic: &mut Kinematic,
     ) {
+        let mut world_position = Body::get_world_position(body);
         let mut velocity = *velocity;
-        let mut body_working = body.clone();
 
-        for axis in [Axis::Y, Axis::X, Axis::Z] {
+        let mut float_box = Body::get_float_box(body);
+
+        for axis in [ Axis::Z, Axis::Y, Axis::X] {
             let delta_axis = match axis {
                 Axis::X => delta.x,
                 Axis::Y => delta.y,
                 Axis::Z => delta.z,
             };
 
-            let (body_resolved, delta_resolved) =
-                Self::resolve_axis_simple_body(body_working, world, axis, delta_axis);
+            let resolution_delta =
+                Self::compute_resolution_along_axis(&float_box, world, axis, delta_axis);
 
-            body_working = body_resolved;
+            world_position += Axis::unit(axis) * resolution_delta;
 
-            let blocked = (delta_resolved - delta_axis).abs() > EPSILON_COLLISION;
+            float_box = FloatBox::translated(Axis::unit(axis) * resolution_delta, &float_box);
+
+            let movement_blocked = (resolution_delta - delta_axis).abs() > EPSILON_COLLISION;
 
             match axis {
                 Axis::X => {
-                    if blocked {
+                    if movement_blocked {
                         velocity.x = 0.0;
                     }
                 }
                 Axis::Y => {
-                    if blocked {
+                    if movement_blocked {
                         velocity.y = 0.0;
                     }
                 }
                 Axis::Z => {
-                    if blocked {
+                    if movement_blocked {
                         velocity.z = 0.0;
                     }
                 }
             }
         }
 
-        *body = body_working;
+        Body::set_world_position(world_position, body);
         kinematic.velocity = velocity;
     }
 
-    fn resolve_axis_simple_body(
-        body: SimpleBody,
+    fn compute_resolution_along_axis(
+        float_box: &FloatBox,
         world: &World,
         axis: Axis,
         delta: f32,
-    ) -> (SimpleBody, f32) {
+    ) -> f32 {
         if delta.abs() < EPSILON_COLLISION {
-            return (body, 0.0);
+            return delta;
         }
 
-        let mut min = 0.0;
-        let mut max = delta;
+        let sign = if delta >= 0.0 { 1.0 } else { -1.0 };
+        let delta_abs = delta.abs();
 
-        let mut final_delta = 0.0;
+        let mut min = 0.0;
+        let mut max = delta_abs;
+        let mut final_abs = 0.0;
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
             let mid = (min + max) * 0.5;
 
-            let test_body = SimpleBody {
-                active: true,
-                world_position: body.world_position + Axis::unit(axis) * mid,
-                collider: body.collider,
-            };
+            let float_box_test = FloatBox::translated(Axis::unit(axis) * (sign * mid), float_box);
 
-            if Self::is_simple_body_colliding(&test_body, world) {
+            if Self::is_float_box_colliding(&float_box_test, world) {
                 max = mid;
             } else {
-                final_delta = mid;
+                final_abs = mid;
                 min = mid;
             }
         }
 
-        let body_resolved = SimpleBody {
-            active: true,
-            world_position: body.world_position + Axis::unit(axis) * final_delta,
-            collider: body.collider,
-        };
-
-        (body_resolved, final_delta)
+        sign * final_abs
     }
 
-    fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
-        grid::get_cell_overlap_vec(&SimpleBody::get_fbox(body))
+    fn is_float_box_colliding(float_box: &FloatBox, world: &World) -> bool {
+        grid::get_cell_overlap_vec(float_box)
             .into_iter()
             .any(|cell_grid_position| World::is_block_solid_at(cell_grid_position, world))
     }
 
-    fn sync_simple_body(body: &SimpleBody, transform: &mut Transform, sight: &mut Sight) {
-        Transform::set_world_position(body.world_position, transform);
-        Sight::set_world_position(body.world_position + sight.relative_position, sight);
+    fn synchronize_with_body(body: &Body, transform: &mut Transform, sight: &mut Sight) {
+        let body_world_position = Body::get_world_position(body);
+
+        Transform::set_world_position(body_world_position, transform);
+        Sight::set_world_position(body_world_position + sight.local_position, sight);
     }
 }

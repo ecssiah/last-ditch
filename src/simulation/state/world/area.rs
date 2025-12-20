@@ -11,7 +11,7 @@ pub use style::Style;
 
 use crate::{
     simulation::state::world::grid::{self, Direction, Line},
-    utils::ldmath::{ivec3_ext::rotate_by_direction, IBox},
+    utils::ldmath::{ivec3_ext::rotate_by_direction, IntBox},
 };
 use ultraviolet::IVec3;
 
@@ -41,14 +41,14 @@ impl Area {
         }
     }
 
-    pub fn set_local(origin: IVec3, size: IVec3, area: &Self) -> IBox {
-        let local_ibox = IBox::new(origin, origin + size - IVec3::one());
+    pub fn set_local(origin: IVec3, size: IVec3, area: &Self) -> IntBox {
+        let local_ibox = IntBox::new(origin, origin + size - IVec3::one());
         let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
 
         let a = area_ibox.min + rotate_by_direction(local_ibox.min, area.direction);
         let b = area_ibox.min + rotate_by_direction(local_ibox.max, area.direction);
 
-        IBox::new(
+        IntBox::new(
             IVec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z)),
             IVec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z)),
         )

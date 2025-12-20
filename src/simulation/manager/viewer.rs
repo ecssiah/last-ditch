@@ -89,10 +89,11 @@ impl Viewer {
                 if person_to_judge_distance_squared <= judge_sight_range_squared {
                     let person_view = PersonView {
                         identity: person.identity.clone(),
-                        transform: person.transform,
-                        kinematic: person.kinematic,
-                        sight: person.sight,
-                        selected_block_kind: person.selected_block_kind,
+                        transform: person.transform.clone(),
+                        kinematic: person.kinematic.clone(),
+                        body: person.body.clone(),
+                        sight: person.sight.clone(),
+                        selected_block_kind: person.selected_block_kind.clone(),
                     };
 
                     population_view
@@ -129,6 +130,9 @@ impl Viewer {
 
                         let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
                         let sector = &state.world.sector_vec[sector_id];
+                        let world_position = grid::grid_position_to_world_position(
+                            sector.grid_position,
+                        );
 
                         let cell_view_vec = Self::get_cell_view_vec(
                             sector,
@@ -140,9 +144,7 @@ impl Viewer {
                         let sector_view = SectorView {
                             sector_id: sector.sector_id,
                             version: sector.version,
-                            world_position: grid::grid_position_to_world_position(
-                                sector.grid_position,
-                            ),
+                            world_position,
                             cell_view_vec,
                         };
 

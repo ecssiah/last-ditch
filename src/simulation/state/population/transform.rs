@@ -7,7 +7,6 @@ pub struct Transform {
     pub world_position: Vec3,
     pub rotation_xy: f32,
     pub rotor: Rotor3,
-    pub size: Vec3,
 }
 
 impl Transform {
@@ -15,7 +14,6 @@ impl Transform {
         Self {
             world_position: Vec3::default(),
             rotation_xy: 0.0,
-            size: Vec3::default(),
             rotor: rotor3_ext::from_rotation_xy_deg(0.0),
         }
     }
@@ -26,10 +24,6 @@ impl Transform {
 
     pub fn set_world_position(world_position: Vec3, transform: &mut Self) {
         transform.world_position = world_position;
-    }
-
-    pub fn set_size(size: Vec3, transform: &mut Self) {
-        transform.size = size;
     }
 
     pub fn set_rotation(rotation_xy: f32, transform: &mut Self) {

@@ -1,51 +1,66 @@
 pub mod info;
 pub mod kind;
+pub mod label;
 pub mod owner;
 
 pub use info::Info;
 pub use kind::Kind;
+pub use label::Label;
 pub use owner::Owner;
 
-use crate::simulation::state::physics::collider;
+use crate::{
+    simulation::{constants::CELL_RADIUS_IN_METERS, state::physics::collider},
+    utils::ldmath::FloatBox,
+};
 use ultraviolet::Vec3;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Collider {
-    pub relative_position: Vec3,
-    pub world_position: Vec3,
-    pub size: Vec3,
-    pub kind: collider::Kind,
-    pub owner: collider::Owner,
+    pub active: bool,
+    pub collider_kind: collider::Kind,
+    pub local_position: Vec3,
+    pub float_box: FloatBox,
 }
 
 impl Collider {
-    pub fn new(world_position: Vec3, size: Vec3) -> Self {
-        let relative_position = Vec3::new(0.0, 0.0, 0.9);
-        let kind = collider::Kind::Solid;
-        let owner = collider::Owner::None;
+    pub fn new(local_position: Vec3, size: Vec3) -> Self {
+        let active = true;
+        let collider_kind = collider::Kind::Solid;
+        let float_box = FloatBox::new(-size * 0.5, size * 0.5);
 
         Self {
-            relative_position,
-            world_position,
-            size,
-            kind,
-            owner,
+            active,
+            local_position,
+            collider_kind,
+            float_box,
         }
     }
 
     pub fn default() -> Self {
-        Self::new(Vec3::zero(), Vec3::one())
+        Self::new(Vec3::zero(), Vec3::broadcast(CELL_RADIUS_IN_METERS))
     }
 
-    pub fn set_relative_position(relative_position: Vec3, collider: &mut Self) {
-        collider.relative_position = relative_position;
+    pub fn get_world_position(collider: &Self) -> Vec3 {
+        (collider.float_box.min + collider.float_box.max) * 0.5
     }
 
-    pub fn set_world_position(world_position: Vec3, collider: &mut Self) {
-        collider.world_position = world_position;
+    pub fn set_world_position(parent_world_position: Vec3, collider: &mut Self) {
+        let collider_world_position = parent_world_position + collider.local_position;
+        let collider_radius = FloatBox::get_radius(&collider.float_box);
+
+        collider.float_box.min = collider_world_position - collider_radius;
+        collider.float_box.max = collider_world_position + collider_radius;
+    }
+
+    pub fn get_size(collider: &Self) -> Vec3 {
+        collider.float_box.max - collider.float_box.min
     }
 
     pub fn set_size(size: Vec3, collider: &mut Self) {
-        collider.size = size;
+        let collider_world_position = Self::get_world_position(collider);
+        let collider_radius = size * 0.5;
+
+        collider.float_box.min = collider_world_position - collider_radius;
+        collider.float_box.max = collider_world_position + collider_radius;
     }
 }

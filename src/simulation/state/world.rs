@@ -118,10 +118,8 @@ impl World {
 
         let cell = World::get_cell_at_mut(grid_position, &mut world.sector_vec);
 
-        let object = Object {
-            object_kind,
-            direction,
-        };
+        let mut object = Object::new(object_kind);
+        object.direction = direction;
 
         cell.object = Some(object);
     }

@@ -10,7 +10,7 @@ pub use quadrant::Quadrant;
 
 use crate::{
     simulation::constants::*,
-    utils::ldmath::{ivec3_ext, FBox, IBox},
+    utils::ldmath::{ivec3_ext, FloatBox, IntBox},
 };
 use ultraviolet::{IVec3, Vec3};
 
@@ -268,34 +268,34 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn get_cell_fbox(grid_position: IVec3) -> FBox {
+pub fn get_cell_fbox(grid_position: IVec3) -> FloatBox {
     let world_position = grid_position_to_world_position(grid_position);
     let radius = Vec3::broadcast(CELL_SIZE_IN_METERS as f32);
 
-    FBox {
+    FloatBox {
         min: world_position - radius,
         max: world_position + radius,
     }
 }
 
-pub fn get_grid_ibox(grid_position: IVec3, size: IVec3) -> IBox {
-    IBox::new(grid_position, grid_position + size - IVec3::one())
+pub fn get_grid_ibox(grid_position: IVec3, size: IVec3) -> IntBox {
+    IntBox::new(grid_position, grid_position + size - IVec3::one())
 }
 
 #[inline]
-pub fn get_cell_overlap_vec(fbox: &FBox) -> Vec<IVec3> {
+pub fn get_cell_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
     let mut grid_position_vec = Vec::new();
 
-    let grid_ibox = IBox::new(
+    let grid_ibox = IntBox::new(
         IVec3::new(
-            (fbox.min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
-            (fbox.min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
-            (fbox.min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
+            (float_box.min.x - CELL_RADIUS_IN_METERS).ceil() as i32,
+            (float_box.min.y - CELL_RADIUS_IN_METERS).ceil() as i32,
+            (float_box.min.z - CELL_RADIUS_IN_METERS).ceil() as i32,
         ),
         IVec3::new(
-            (fbox.max.x + CELL_RADIUS_IN_METERS).floor() as i32,
-            (fbox.max.y + CELL_RADIUS_IN_METERS).floor() as i32,
-            (fbox.max.z + CELL_RADIUS_IN_METERS).floor() as i32,
+            (float_box.max.x + CELL_RADIUS_IN_METERS).floor() as i32,
+            (float_box.max.y + CELL_RADIUS_IN_METERS).floor() as i32,
+            (float_box.max.z + CELL_RADIUS_IN_METERS).floor() as i32,
         ),
     );
 
@@ -304,7 +304,7 @@ pub fn get_cell_overlap_vec(fbox: &FBox) -> Vec<IVec3> {
             for x in grid_ibox.min.x..=grid_ibox.max.x {
                 let grid_position = IVec3::new(x, y, z);
 
-                if FBox::overlaps(fbox, &self::get_cell_fbox(grid_position)) {
+                if FloatBox::overlaps(float_box, &self::get_cell_fbox(grid_position)) {
                     grid_position_vec.push(grid_position);
                 }
             }
