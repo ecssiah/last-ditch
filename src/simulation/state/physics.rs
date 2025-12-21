@@ -3,8 +3,6 @@
 pub mod body;
 pub mod collider;
 
-use std::f32;
-
 use crate::{
     simulation::{
         constants::*,
@@ -17,6 +15,7 @@ use crate::{
     },
     utils::ldmath::{vec3_ext, FloatBounds, FloatBox},
 };
+use std::f32;
 use ultraviolet::Vec3;
 
 #[derive(Default)]
@@ -145,7 +144,7 @@ impl Physics {
     }
 
     fn is_float_box_colliding(float_box: &FloatBox, world: &World) -> bool {
-        grid::get_cell_overlap_vec(float_box)
+        grid::get_grid_overlap_vec(float_box)
             .into_iter()
             .any(|cell_grid_position| World::is_block_solid_at(cell_grid_position, world))
     }

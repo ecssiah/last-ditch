@@ -169,7 +169,7 @@ impl Physics {
     }
 
     fn is_simple_body_colliding(body: &SimpleBody, world: &World) -> bool {
-        grid::get_cell_overlap_vec(&SimpleBody::get_fbox(body))
+        grid::get_grid_overlap_vec(&SimpleBody::get_fbox(body))
             .into_iter()
             .any(|cell_grid_position| {
                 if grid::is_grid_position_valid(cell_grid_position) {

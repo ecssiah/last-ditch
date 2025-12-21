@@ -55,7 +55,7 @@ impl Template for ElevatorCapTemplate {
             world,
         );
 
-        let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
+        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
 
         World::set_object(
             IVec3::new(area_ibox.min.x + 2, area_ibox.min.y + 2, area_ibox.min.z),

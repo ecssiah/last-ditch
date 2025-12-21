@@ -78,7 +78,7 @@ impl Template for GenericRoomTemplate {
 
         let resource_count = gen_i32(8, 16, &mut world.rng);
 
-        let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
+        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
 
         for _ in 0..resource_count {
             let x = gen_i32(area_ibox.min.x + 1, area_ibox.max.x - 1, &mut world.rng);

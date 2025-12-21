@@ -26,7 +26,9 @@ impl Collider {
     pub fn new(local_position: Vec3, size: Vec3) -> Self {
         let active = true;
         let collider_kind = collider::Kind::Solid;
-        let float_box = FloatBox::new(-size * 0.5, size * 0.5);
+
+        let radius = size * 0.5;
+        let float_box = FloatBox::new(Vec3::zero(), radius);
 
         Self {
             active,
@@ -45,33 +47,28 @@ impl Collider {
     }
 
     pub fn get_world_position(collider: &Self) -> Vec3 {
-        (collider.float_box.min + collider.float_box.max) * 0.5
+        FloatBox::get_world_position(&collider.float_box)
     }
 
     pub fn set_world_position(world_position: Vec3, collider: &mut Self) {
-        let collider_radius = FloatBox::get_radius(&collider.float_box);
-
-        collider.float_box.min = world_position - collider_radius;
-        collider.float_box.max = world_position + collider_radius;
+        FloatBox::set_world_position(world_position, &mut collider.float_box);
     }
 
-    pub fn update_world_position(parent_world_position: Vec3, collider: &mut Self) {
-        let collider_world_position = parent_world_position + collider.local_position;
-        let collider_radius = FloatBox::get_radius(&collider.float_box);
+    pub fn get_radius(collider: &Self) -> Vec3 {
+        FloatBox::get_radius(&collider.float_box)
+    }
 
-        collider.float_box.min = collider_world_position - collider_radius;
-        collider.float_box.max = collider_world_position + collider_radius;
+    pub fn set_radius(radius: Vec3, collider: &mut Self) {
+        FloatBox::set_radius(radius, &mut collider.float_box);
     }
 
     pub fn get_size(collider: &Self) -> Vec3 {
-        collider.float_box.max - collider.float_box.min
+        FloatBox::get_size(&collider.float_box)
     }
 
     pub fn set_size(size: Vec3, collider: &mut Self) {
-        let collider_world_position = Self::get_world_position(collider);
-        let collider_radius = size * 0.5;
+        let radius = size * 0.5;
 
-        collider.float_box.min = collider_world_position - collider_radius;
-        collider.float_box.max = collider_world_position + collider_radius;
+        FloatBox::set_radius(radius, &mut collider.float_box);
     }
 }

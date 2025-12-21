@@ -38,9 +38,11 @@ impl Body {
         body.collider_vec.get_mut(*collider_index)
     }
 
-    pub fn apply_world_position(parent_world_position: Vec3, body: &mut Self) {
+    pub fn set_world_position(world_position: Vec3, body: &mut Self) {
         for collider in &mut body.collider_vec {
-            Collider::update_world_position(parent_world_position, collider);
+            let collider_world_position = world_position + collider.local_position;
+
+            Collider::set_world_position(collider_world_position, collider);
         }
     }
 }

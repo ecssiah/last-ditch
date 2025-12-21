@@ -1,63 +1,79 @@
-use ultraviolet::Vec3;
 use crate::simulation::constants::CELL_RADIUS_IN_METERS;
+use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct FloatBox {
-    pub min: Vec3,
-    pub max: Vec3,
+    pub center_position: Vec3,
+    pub radius: Vec3,
 }
 
 impl FloatBox {
-    pub fn new(min: Vec3, max: Vec3) -> Self {
-        Self { min, max }
+    pub fn new(center_position: Vec3, radius: Vec3) -> Self {
+        Self {
+            center_position,
+            radius,
+        }
     }
 
     pub fn translated(displacement: Vec3, float_box: &Self) -> Self {
-        Self::new(float_box.min + displacement, float_box.max + displacement)
+        Self::new(float_box.center_position + displacement, float_box.radius)
     }
 
-    pub fn contracted(width: f32, float_box: &Self) -> Self {
+    pub fn scaled(delta_radius: f32, float_box: &Self) -> Self {
         Self::new(
-            float_box.min + Vec3::broadcast(width / 2.0),
-            float_box.max - Vec3::broadcast(width / 2.0),
+            float_box.center_position,
+            float_box.radius + Vec3::broadcast(delta_radius),
         )
     }
 
     pub fn get_world_position(float_box: &Self) -> Vec3 {
-        (float_box.min + float_box.max) / 2.0
+        float_box.center_position
+    }
+
+    pub fn set_world_position(world_position: Vec3, float_box: &mut Self) {
+        float_box.center_position = world_position
     }
 
     pub fn get_radius(float_box: &Self) -> Vec3 {
-        Self::get_size(float_box) / 2.0
+        float_box.radius
+    }
+
+    pub fn set_radius(radius: Vec3, float_box: &mut Self) {
+        float_box.radius = radius;
     }
 
     pub fn get_size(float_box: &Self) -> Vec3 {
-        float_box.max - float_box.min
+        float_box.radius * 2.0
     }
 
-    pub fn set_size(size: Vec3, float_box: &mut Self) {
-        let world_position = Self::get_world_position(float_box);
-        let radius = size / 2.0;
-
-        float_box.min = world_position - radius;
-        float_box.max = world_position + radius;
+    pub fn get_min(float_box: &Self) -> Vec3 {
+        float_box.center_position - float_box.radius
     }
 
-    pub fn overlaps(float_box1: &Self, float_box2: &Self) -> bool {
-        float_box1.min.x < float_box2.max.x
-            && float_box1.max.x > float_box2.min.x
-            && float_box1.min.y < float_box2.max.y
-            && float_box1.max.y > float_box2.min.y
-            && float_box1.min.z < float_box2.max.z
-            && float_box1.max.z > float_box2.min.z
+    pub fn get_max(float_box: &Self) -> Vec3 {
+        float_box.center_position + float_box.radius
+    }
+
+    pub fn overlap(left: &Self, right: &Self) -> bool {
+        if ((left.center_position.x - right.center_position.x).abs()
+            > (left.radius.x + right.radius.x))
+            || ((left.center_position.y - right.center_position.y).abs()
+                > (left.radius.y + right.radius.y))
+            || ((left.center_position.z - right.center_position.z).abs()
+                > (left.radius.z + right.radius.z))
+        {
+            false
+        } else {
+            true
+        }
     }
 }
 
 impl Default for FloatBox {
     fn default() -> Self {
-        Self::new(
-            Vec3::broadcast(-CELL_RADIUS_IN_METERS),
-            Vec3::broadcast(CELL_RADIUS_IN_METERS),
-        )
+        let center_position = Vec3::zero();
+        let radius = Vec3::broadcast(CELL_RADIUS_IN_METERS);
+
+        Self::new(center_position, radius)
     }
 }

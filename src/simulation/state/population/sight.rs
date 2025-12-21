@@ -50,8 +50,8 @@ impl Sight {
         sight.local_position = local_position;
     }
 
-    pub fn apply_world_position(parent_world_position: Vec3, sight: &mut Self) {
-        sight.world_position = parent_world_position + sight.local_position;
+    pub fn set_world_position(world_position: Vec3, sight: &mut Self) {
+        sight.world_position = world_position;
     }
 
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, sight: &mut Self) {

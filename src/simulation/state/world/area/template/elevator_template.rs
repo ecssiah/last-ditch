@@ -16,7 +16,7 @@ impl Template for ElevatorTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
+        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
 
         World::set_block_box(area_ibox.min, area_ibox.max, block::Kind::Metal2, world);
 

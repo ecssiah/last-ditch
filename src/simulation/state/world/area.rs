@@ -43,7 +43,7 @@ impl Area {
 
     pub fn set_local(origin: IVec3, size: IVec3, area: &Self) -> IntBox {
         let local_ibox = IntBox::new(origin, origin + size - IVec3::one());
-        let area_ibox = grid::get_grid_ibox(area.grid_position, area.size);
+        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
 
         let a = area_ibox.min + rotate_by_direction(local_ibox.min, area.direction);
         let b = area_ibox.min + rotate_by_direction(local_ibox.max, area.direction);
@@ -55,8 +55,8 @@ impl Area {
     }
 
     pub fn find_contact(area1: &Self, area2: &Self) -> Option<Contact> {
-        let area1_ibox = grid::get_grid_ibox(area1.grid_position, area1.size);
-        let area2_ibox = grid::get_grid_ibox(area2.grid_position, area2.size);
+        let area1_ibox = grid::get_grid_int_box(area1.grid_position, area1.size);
+        let area2_ibox = grid::get_grid_int_box(area2.grid_position, area2.size);
 
         if area1_ibox.max.x == area2_ibox.min.x || area2_ibox.max.x == area1_ibox.min.x {
             let x = if area1_ibox.max.x == area2_ibox.min.x {

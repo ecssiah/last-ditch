@@ -193,7 +193,7 @@ impl GenerateData {
 
         let floor_size = Tower::get_floor_size();
 
-        let base_ibox = grid::get_grid_ibox(
+        let base_ibox = grid::get_grid_int_box(
             Tower::get_floor_grid_position(-tower_floor_count) + IVec3::new(0, 0, -1),
             floor_size,
         );
@@ -212,7 +212,7 @@ impl GenerateData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
-            let floor_ibox = grid::get_grid_ibox(floor.grid_position, floor_size);
+            let floor_ibox = grid::get_grid_int_box(floor.grid_position, floor_size);
 
             tracing::info!("Constructing Frame, Floor: {:?}", floor.floor_number);
 
@@ -247,7 +247,7 @@ impl GenerateData {
 
             let floor_size = Tower::get_floor_size();
 
-            let floor_ibox = grid::get_grid_ibox(floor.grid_position, floor_size);
+            let floor_ibox = grid::get_grid_int_box(floor.grid_position, floor_size);
 
             tracing::info!("Constructing Exterior, Floor: {:?}", floor.floor_number);
 
@@ -338,7 +338,7 @@ impl GenerateData {
 
         let floor_size = Tower::get_floor_size();
 
-        let roof_ibox = grid::get_grid_ibox(Tower::get_floor_grid_position(0), floor_size);
+        let roof_ibox = grid::get_grid_int_box(Tower::get_floor_grid_position(0), floor_size);
 
         World::set_block_cube(
             roof_ibox.min,
