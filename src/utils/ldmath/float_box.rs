@@ -1,5 +1,4 @@
 use ultraviolet::Vec3;
-
 use crate::simulation::constants::CELL_RADIUS_IN_METERS;
 
 #[derive(Clone, Debug)]
