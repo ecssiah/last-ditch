@@ -130,9 +130,8 @@ impl Viewer {
 
                         let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
                         let sector = &state.world.sector_vec[sector_id];
-                        let world_position = grid::grid_position_to_world_position(
-                            sector.grid_position,
-                        );
+                        let world_position =
+                            grid::grid_position_to_world_position(sector.grid_position);
 
                         let cell_view_vec = Self::get_cell_view_vec(
                             sector,

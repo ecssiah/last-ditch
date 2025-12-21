@@ -23,7 +23,7 @@ impl Identity {
             age: 28,
             sex: Sex::Male,
             role: Role::None,
-            ethnicity: Ethnicity::new(),
+            ethnicity: Ethnicity::default(),
             nation_kind: nation::Kind::Eagle,
         };
 

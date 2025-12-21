@@ -22,4 +22,3 @@ pub fn ivec2_to_index(ivec2: IVec2, radius: usize) -> usize {
 
     (ivec2_indexable.x + ivec2_indexable.y * size) as usize
 }
-

@@ -1,5 +1,7 @@
 use crate::simulation::state::{
-    physics::body::Body, population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform}, world::block
+    physics::body::Body,
+    population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform},
+    world::block,
 };
 
 #[derive(Clone, Debug)]

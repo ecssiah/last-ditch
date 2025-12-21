@@ -17,6 +17,13 @@ impl FloatBox {
         Self::new(float_box.min + displacement, float_box.max + displacement)
     }
 
+    pub fn contracted(width: f32, float_box: &Self) -> Self {
+        Self::new(
+            float_box.min + Vec3::broadcast(width / 2.0),
+            float_box.max - Vec3::broadcast(width / 2.0),
+        )
+    }
+
     pub fn get_world_position(float_box: &Self) -> Vec3 {
         (float_box.min + float_box.max) / 2.0
     }

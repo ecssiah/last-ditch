@@ -18,3 +18,9 @@ impl Ethnicity {
         Self { ethnicity_map }
     }
 }
+
+impl Default for Ethnicity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
