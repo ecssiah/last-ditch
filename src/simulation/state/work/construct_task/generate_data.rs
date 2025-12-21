@@ -7,7 +7,7 @@ use crate::{
                 collider::{self, Collider},
             },
             population::{
-                identity,
+                identity, motion,
                 nation::{self},
                 person::Person,
             },
@@ -117,6 +117,10 @@ impl GenerateData {
 
         Person::set_world_position(world_position, &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);
+
+        judge.motion.mode = motion::Mode::Ground;
+        judge.motion.speed = JUDGE_DEFAULT_GROUND_SPEED;
+        judge.motion.jump_speed = JUDGE_DEFAULT_JUMP_SPEED;
 
         population.person_map.insert(judge.person_id, judge);
     }

@@ -90,7 +90,7 @@ impl Viewer {
                     let person_view = PersonView {
                         identity: person.identity.clone(),
                         transform: person.transform.clone(),
-                        kinematic: person.kinematic.clone(),
+                        motion: person.motion.clone(),
                         body: person.body.clone(),
                         sight: person.sight.clone(),
                         selected_block_kind: person.selected_block_kind.clone(),

@@ -8,12 +8,12 @@ use crate::{
         constants::*,
         state::{
             physics::body::Body,
-            population::{kinematic::Kinematic, person::Person, Population},
+            population::{person::Person, Population},
             world::grid::{self, axis::Axis},
             World,
         },
     },
-    utils::ldmath::{vec3_ext, FloatBounds, FloatBox},
+    utils::ldmath::{FloatBounds, FloatBox},
 };
 use std::f32;
 use ultraviolet::Vec3;
@@ -35,40 +35,26 @@ impl Physics {
     pub fn tick(world: &World, population: &mut Population, physics: &mut Self) {
         let _ = tracing::info_span!("physics_tick").entered();
 
-        if !physics.active {
-            return;
-        }
+        if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
+            let (velocity, delta) = Self::integrate_person(physics, judge);
+            let (resolved_delta, axis_mask) = Self::resolve_person(world, &delta, judge);
 
-        if let Some(mut judge) = population.person_map.get_mut(&ID_JUDGE_1) {
-            let (velocity, delta) = Self::integrate(physics, &mut judge.kinematic);
+            let world_position = judge.transform.world_position + resolved_delta;
+            let velocity = axis_mask * velocity;
 
-            let (resolved_delta, axis_mask) = Self::resolve_person(world, &delta, &mut judge);
-
-            Person::set_world_position(judge.transform.world_position + resolved_delta, judge);
-
-            judge.kinematic.velocity = axis_mask * velocity;
+            Person::set_world_position(world_position, judge);
+            Person::set_velocity(velocity, judge);
         }
     }
 
-    pub fn set_gravity_active(active: bool, physics: &mut Self) {
-        physics.gravity = if active {
-            Vec3::new(0.0, 0.0, -GRAVITY_ACCELERATION)
+    fn integrate_person(physics: &Self, judge: &mut Person) -> (Vec3, Vec3) {
+        let initial_velocity = judge.motion.velocity;
+
+        let acceleration = if judge.body.is_massive {
+            physics.gravity
         } else {
             Vec3::zero()
-        }
-    }
-
-    pub fn toggle_gravity_active(physics: &mut Self) {
-        if vec3_ext::approx_eq(physics.gravity, Vec3::zero(), f32::EPSILON) {
-            Self::set_gravity_active(true, physics);
-        } else {
-            Self::set_gravity_active(false, physics);
-        }
-    }
-
-    fn integrate(physics: &Self, kinematic: &mut Kinematic) -> (Vec3, Vec3) {
-        let initial_velocity = kinematic.velocity;
-        let acceleration = physics.gravity;
+        };
 
         let velocity = initial_velocity + acceleration * SIMULATION_TICK_IN_SECONDS;
 

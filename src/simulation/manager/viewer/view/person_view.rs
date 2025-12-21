@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform},
+    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
     world::block,
 };
 
@@ -8,7 +8,7 @@ use crate::simulation::state::{
 pub struct PersonView {
     pub identity: Identity,
     pub transform: Transform,
-    pub kinematic: Kinematic,
+    pub motion: Motion,
     pub body: Body,
     pub sight: Sight,
     pub selected_block_kind: block::Kind,
@@ -19,7 +19,7 @@ impl PersonView {
         Self {
             identity: Identity::default(),
             transform: Transform::default(),
-            kinematic: Kinematic::default(),
+            motion: Motion::default(),
             sight: Sight::default(),
             body: Body::default(),
             selected_block_kind: block::Kind::Engraved1,

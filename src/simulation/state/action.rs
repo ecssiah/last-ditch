@@ -6,7 +6,7 @@ use crate::simulation::{
     constants::PITCH_LIMIT,
     state::{
         action::act::{move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData},
-        population::person::Person,
+        population::{motion, person::Person},
         Population, State, World,
     },
 };
@@ -28,10 +28,6 @@ impl Action {
 
     pub fn tick(state: &mut State) {
         let _ = tracing::info_span!("action_tick").entered();
-
-        if !state.action.active {
-            return;
-        }
 
         let act_deque = std::mem::take(&mut state.action.act_deque);
 
@@ -75,34 +71,42 @@ impl Action {
             const MOVEMENT_EPSILON: f32 = 1e-6;
 
             if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
-                if person.kinematic.flying {
-                    let local_horizontal_move_direction =
-                        Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+                match person.motion.mode {
+                    motion::Mode::Ground => {
+                        let local_velocity = person.motion.speed * move_data.move_direction;
 
-                    let horizontal_move_direction =
-                        person.sight.rotor * local_horizontal_move_direction;
-                    let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
+                        let velocity = person.transform.rotor * local_velocity;
 
-                    let move_direction =
-                        (horizontal_move_direction + vertical_move_direction).normalized();
+                        person.motion.velocity.x = velocity.x;
+                        person.motion.velocity.y = velocity.y;
 
-                    let velocity = person.kinematic.speed * move_direction;
+                    }
+                    motion::Mode::Flying => {
+                        let local_horizontal_move_direction =
+                            Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
 
-                    person.kinematic.velocity = velocity;
-                } else {
-                    let local_velocity = person.kinematic.speed * move_data.move_direction;
+                        let horizontal_move_direction =
+                            person.sight.rotor * local_horizontal_move_direction;
+                        let vertical_move_direction =
+                            Vec3::new(0.0, 0.0, move_data.move_direction.z);
 
-                    let velocity = person.transform.rotor * local_velocity;
+                        let move_direction =
+                            (horizontal_move_direction + vertical_move_direction).normalized();
 
-                    person.kinematic.velocity.x = velocity.x;
-                    person.kinematic.velocity.y = velocity.y;
-                };
+                        let velocity = person.motion.speed * move_direction;
+
+                        person.motion.velocity = velocity;
+                    }
+                }
             } else {
-                if person.kinematic.flying {
-                    person.kinematic.velocity = Vec3::zero();
-                } else {
-                    person.kinematic.velocity.x = 0.0;
-                    person.kinematic.velocity.y = 0.0;
+                match person.motion.mode {
+                    motion::Mode::Ground => {
+                        person.motion.velocity.x = 0.0;
+                        person.motion.velocity.y = 0.0;
+                    }
+                    motion::Mode::Flying => {
+                        person.motion.velocity = Vec3::zero();
+                    }
                 }
             }
         }
@@ -110,8 +114,9 @@ impl Action {
 
     pub fn apply_jump(jump_data: &JumpData, population: &mut Population) {
         if let Some(person) = population.person_map.get_mut(&jump_data.person_id) {
-            if !person.kinematic.flying {
-                person.kinematic.velocity.z = person.kinematic.jump_speed;
+            match person.motion.mode {
+                motion::Mode::Ground => person.motion.velocity.z = person.motion.jump_speed,
+                motion::Mode::Flying => (),
             }
         }
     }

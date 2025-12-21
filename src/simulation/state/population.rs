@@ -1,7 +1,7 @@
 //! Entities acting in the simulated environment
 
 pub mod identity;
-pub mod kinematic;
+pub mod motion;
 pub mod nation;
 pub mod person;
 pub mod sight;
@@ -104,17 +104,13 @@ impl Population {
 
         Collider::set_size(core_collider_size, core_collider);
 
-        person.kinematic.speed = PERSON_DEFAULT_SPEED;
-        person.kinematic.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
+        person.motion.speed = PERSON_DEFAULT_SPEED;
+        person.motion.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
 
         person
     }
 
-    pub fn tick(population: &mut Self) {
+    pub fn tick(_population: &mut Self) {
         let _ = tracing::info_span!("population_tick").entered();
-
-        if !population.active {
-            return;
-        }
     }
 }

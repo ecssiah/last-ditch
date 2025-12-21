@@ -1,6 +1,6 @@
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::Identity, kinematic::Kinematic, sight::Sight, transform::Transform},
+    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
     world::block,
 };
 use ultraviolet::Vec3;
@@ -9,7 +9,7 @@ pub struct Person {
     pub person_id: u64,
     pub identity: Identity,
     pub transform: Transform,
-    pub kinematic: Kinematic,
+    pub motion: Motion,
     pub body: Body,
     pub sight: Sight,
     pub selected_block_kind: block::Kind,
@@ -19,7 +19,7 @@ impl Person {
     pub fn new(person_id: u64) -> Self {
         let identity = Identity::default();
         let transform = Transform::default();
-        let kinematic = Kinematic::default();
+        let motion = Motion::default();
         let body = Body::default();
         let sight = Sight::default();
 
@@ -29,7 +29,7 @@ impl Person {
             person_id,
             identity,
             transform,
-            kinematic,
+            motion,
             body,
             sight,
             selected_block_kind,
@@ -48,6 +48,10 @@ impl Person {
     pub fn set_rotation(rotation_xy: f32, rotation_yz: f32, person: &mut Self) {
         Transform::set_rotation(rotation_xy, &mut person.transform);
         Sight::set_rotation(rotation_xy, rotation_yz, &mut person.sight);
+    }
+
+    pub fn set_velocity(velocity: Vec3, person: &mut Self) {
+        person.motion.velocity = velocity;
     }
 }
 

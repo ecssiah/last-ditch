@@ -67,10 +67,6 @@ impl World {
     pub fn tick(world: &mut Self) {
         let _ = tracing::info_span!("world_tick").entered();
 
-        if !world.active {
-            return;
-        }
-
         Time::tick(&mut world.time);
     }
 

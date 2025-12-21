@@ -25,6 +25,7 @@ use rand_chacha::{
 };
 
 pub struct State {
+    pub active: bool,
     pub rng: ChaCha8Rng,
     pub action: Action,
     pub world: World,
@@ -36,8 +37,8 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
+        let active = false;
         let mut rng = ChaCha8Rng::seed_from_u64(1);
-
         let action = Action::new();
         let world = World::new(rng.next_u64());
         let population = Population::new(rng.next_u64());
@@ -46,6 +47,7 @@ impl State {
         let work = Work::new();
 
         Self {
+            active,
             rng,
             action,
             physics,
@@ -92,11 +94,13 @@ impl State {
     pub fn tick(state: &mut Self) {
         let _ = tracing::info_span!("state_tick").entered();
 
-        Action::tick(state);
-        World::tick(&mut state.world);
-        Population::tick(&mut state.population);
-        Physics::tick(&state.world, &mut state.population, &mut state.physics);
-        Navigation::tick(&state.world, &mut state.navigation);
-        Work::tick(state);
+        if state.active {
+            Action::tick(state);
+            World::tick(&mut state.world);
+            Population::tick(&mut state.population);
+            Physics::tick(&state.world, &mut state.population, &mut state.physics);
+            Navigation::tick(&state.world, &mut state.navigation);
+            Work::tick(state);
+        }
     }
 }

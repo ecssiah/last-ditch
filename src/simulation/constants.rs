@@ -81,7 +81,8 @@ pub const ID_JUDGE_4: u64 = 4;
 
 pub const ID_START: u64 = 100;
 
-pub const JUDGE_DEFAULT_SPEED: f32 = 8.0;
+pub const JUDGE_DEFAULT_GROUND_SPEED: f32 = 8.0;
+pub const JUDGE_DEFAULT_FLYING_SPEED: f32 = 16.0;
 pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
 
 pub const JUDGE_DEFAULT_SIZE_X: f32 = 0.6;

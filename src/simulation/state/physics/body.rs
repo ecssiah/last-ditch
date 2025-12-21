@@ -1,20 +1,25 @@
-use ultraviolet::Vec3;
-
-use crate::simulation::state::physics::collider::{self, Collider};
+use crate::simulation::{
+    constants::CELL_RADIUS_IN_METERS,
+    state::physics::collider::{self, Collider},
+};
 use std::collections::HashMap;
+use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct Body {
+    pub is_massive: bool,
     pub collider_vec: Vec<Collider>,
     pub collider_index_map: HashMap<collider::Label, usize>,
 }
 
 impl Body {
-    pub fn new() -> Self {
-        let collider_vec = vec![Collider::default()];
+    pub fn new(size: Vec3) -> Self {
+        let is_massive = true;
+        let collider_vec = vec![Collider::new(Vec3::zero(), size)];
         let collider_index_map = HashMap::from([(collider::Label::Core, collider_vec.len() - 1)]);
 
         Self {
+            is_massive,
             collider_vec,
             collider_index_map,
         }
@@ -38,6 +43,10 @@ impl Body {
         body.collider_vec.get_mut(*collider_index)
     }
 
+    pub fn set_is_massive(is_massive: bool, body: &mut Self) {
+        body.is_massive = is_massive;
+    }
+
     pub fn set_world_position(world_position: Vec3, body: &mut Self) {
         for collider in &mut body.collider_vec {
             let collider_world_position = world_position + collider.local_position;
@@ -49,6 +58,6 @@ impl Body {
 
 impl Default for Body {
     fn default() -> Self {
-        Self::new()
+        Self::new(Vec3::broadcast(CELL_RADIUS_IN_METERS))
     }
 }

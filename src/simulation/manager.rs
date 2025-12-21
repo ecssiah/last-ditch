@@ -15,13 +15,13 @@ use crate::simulation::{
             act::{self, JumpData, PlaceBlockData, RemoveBlockData},
             Act,
         },
-        population::kinematic::Kinematic,
+        population::motion::{self},
         work::{
             construct_task::{generate_data::GenerateData, ConstructTask},
             construct_worker::ConstructWorker,
         },
         world::block::Kind,
-        Physics, State,
+        State,
     },
 };
 use std::time::{Duration, Instant};
@@ -177,11 +177,7 @@ impl Manager {
 
         ConstructWorker::enqueue(construct_task, &mut state.work.construct_worker.task_deque);
 
-        state.action.active = true;
-        state.world.active = true;
-        state.population.active = true;
-        state.physics.active = true;
-        state.navigation.active = true;
+        state.active = true;
     }
 
     fn handle_quit_message(_state: &mut State, manager: &mut Self) {
@@ -192,8 +188,18 @@ impl Manager {
 
     fn handle_debug_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
-            Physics::toggle_gravity_active(&mut state.physics);
-            Kinematic::toggle_flying(&mut judge.kinematic);
+            match judge.motion.mode {
+                motion::Mode::Ground => {
+                    judge.motion.mode = motion::Mode::Flying;
+                    judge.motion.speed = JUDGE_DEFAULT_FLYING_SPEED;
+                    judge.body.is_massive = false;
+                }
+                motion::Mode::Flying => {
+                    judge.motion.mode = motion::Mode::Ground;
+                    judge.motion.speed = JUDGE_DEFAULT_GROUND_SPEED;
+                    judge.body.is_massive = true;
+                }
+            }
         }
     }
 

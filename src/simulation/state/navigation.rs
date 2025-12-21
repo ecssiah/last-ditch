@@ -91,11 +91,7 @@ impl Navigation {
         index.map(|index| navigation.path_result_vec.remove(index))
     }
 
-    pub fn tick(_world: &World, navigation: &mut Self) {
+    pub fn tick(_world: &World, _navigation: &mut Self) {
         let _ = tracing::info_span!("navigation_tick").entered();
-
-        if !navigation.active {
-            return;
-        }
     }
 }
