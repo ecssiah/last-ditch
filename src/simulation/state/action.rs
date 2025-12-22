@@ -73,8 +73,17 @@ impl Action {
             if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
                 match person.motion.mode {
                     motion::Mode::Ground => {
-                        let local_velocity = person.motion.speed * move_data.move_direction;
+                        let ground_movement_direction =
+                            Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
 
+                        let ground_movement_direction =
+                            if ground_movement_direction.mag_sq() > MOVEMENT_EPSILON {
+                                ground_movement_direction.normalized()
+                            } else {
+                                Vec3::zero()
+                            };
+
+                        let local_velocity = person.motion.speed * ground_movement_direction;
                         let velocity = person.transform.rotor * local_velocity;
 
                         person.motion.velocity.x = velocity.x;
