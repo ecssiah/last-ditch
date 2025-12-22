@@ -86,7 +86,7 @@ impl Physics {
             let axis_index = Axis::index(delta_axis);
 
             let core_float_box_query = if delta_axis != Axis::Z && person.body.is_grounded {
-                let vertical_offset = Vec3::new(0.0, 0.0, EPSILON_COLLISION);
+                let vertical_offset = Vec3::new(0.0, 0.0, COLLISION_EPSILON);
 
                 FloatBox::translated(vertical_offset, &core_float_box)
             } else {
@@ -121,7 +121,7 @@ impl Physics {
         delta_position_intent: f32,
         world: &World,
     ) -> (f32, f32) {
-        if delta_axis != Axis::Z && delta_position_intent.abs() < EPSILON_COLLISION {
+        if delta_axis != Axis::Z && delta_position_intent.abs() < COLLISION_EPSILON {
             return (0.0, 1.0);
         }
 
@@ -130,7 +130,7 @@ impl Physics {
         let mut t_min = 0.0;
         let mut t_max = 1.0;
 
-        for _ in 0..MAX_RESOLVE_ITERATIONS {
+        for _ in 0..COLLISION_RESOLVE_ITERATIONS {
             let t_mid = (t_min + t_max) * 0.5;
             let delta = delta_position_intent * t_mid;
 
@@ -145,7 +145,7 @@ impl Physics {
         }
 
         let collision_occurred =
-            (delta_position_resolved - delta_position_intent).abs() > EPSILON_COLLISION;
+            (delta_position_resolved - delta_position_intent).abs() > COLLISION_EPSILON;
 
         let velocity_mask = if collision_occurred { 0.0 } else { 1.0 };
 

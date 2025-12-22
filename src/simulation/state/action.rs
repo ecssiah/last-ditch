@@ -3,7 +3,7 @@ pub mod act;
 pub use act::Act;
 
 use crate::simulation::{
-    constants::PITCH_LIMIT,
+    constants::{MOVEMENT_EPSILON, PITCH_LIMIT},
     state::{
         action::act::{move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData},
         population::{motion, person::Person},
@@ -68,22 +68,20 @@ impl Action {
 
     pub fn apply_move(move_data: &MoveData, population: &mut Population) {
         if let Some(person) = population.person_map.get_mut(&move_data.person_id) {
-            const MOVEMENT_EPSILON: f32 = 1e-6;
-
             if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
                 match person.motion.mode {
                     motion::Mode::Ground => {
-                        let ground_movement_direction =
+                        let horizontal_movement_direction =
                             Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
 
-                        let ground_movement_direction =
-                            if ground_movement_direction.mag_sq() > MOVEMENT_EPSILON {
-                                ground_movement_direction.normalized()
+                        let horizontal_movement_direction =
+                            if horizontal_movement_direction.mag_sq() > MOVEMENT_EPSILON {
+                                horizontal_movement_direction.normalized()
                             } else {
                                 Vec3::zero()
                             };
 
-                        let local_velocity = person.motion.speed * ground_movement_direction;
+                        let local_velocity = person.motion.speed * horizontal_movement_direction;
                         let velocity = person.transform.rotor * local_velocity;
 
                         person.motion.velocity.x = velocity.x;
@@ -95,6 +93,7 @@ impl Action {
 
                         let horizontal_move_direction =
                             person.sight.rotor * local_horizontal_move_direction;
+
                         let vertical_move_direction =
                             Vec3::new(0.0, 0.0, move_data.move_direction.z);
 

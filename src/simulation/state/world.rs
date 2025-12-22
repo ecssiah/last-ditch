@@ -318,9 +318,10 @@ impl World {
         let is_ground_solid = Self::is_block_solid_at(grid_position + -1 * IVec3::unit_z(), world);
 
         let mut clearance = 0;
+        let max_clearance_check = 5;
 
         if is_ground_solid {
-            for level in 0..MAXIMUM_CLEARANCE {
+            for level in 0..max_clearance_check {
                 let level_grid_position = grid_position + IVec3::new(0, 0, level as i32);
 
                 if Self::is_block_solid_at(level_grid_position, world) {

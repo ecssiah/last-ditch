@@ -63,22 +63,20 @@ pub const PERSON_MAX_COUNT: usize = 500;
 pub const MOVEMENT_COST_STRAIGHT: u32 = 100;
 pub const MOVEMENT_COST_DIAGONAL: u32 = 141;
 pub const MOVEMENT_COST_CORNER: u32 = 173;
+pub const MOVEMENT_EPSILON: f32 = 1e-6;
 
 pub const GRAVITY_ACCELERATION: f32 = 36.0;
-pub const EPSILON_COLLISION: f32 = 0.001;
-pub const MAX_RESOLVE_ITERATIONS: usize = 40;
-pub const MAXIMUM_CLEARANCE: u32 = 5;
-pub const MINIMUM_CLEARANCE: u32 = 3;
-pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
+
+pub const COLLISION_EPSILON: f32 = 0.001;
+pub const COLLISION_RESOLVE_ITERATIONS: usize = 40;
 
 pub const ID_NULL: u64 = 0;
+pub const ID_START: u64 = 100;
 
 pub const ID_JUDGE_1: u64 = 1;
 pub const ID_JUDGE_2: u64 = 2;
 pub const ID_JUDGE_3: u64 = 3;
 pub const ID_JUDGE_4: u64 = 4;
-
-pub const ID_START: u64 = 100;
 
 pub const JUDGE_DEFAULT_GROUND_SPEED: f32 = 8.0;
 pub const JUDGE_DEFAULT_FLYING_SPEED: f32 = 16.0;
