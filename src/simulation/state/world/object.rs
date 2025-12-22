@@ -5,7 +5,7 @@ pub use kind::Kind;
 use crate::simulation::{
     constants::*,
     state::{
-        physics::collider::Collider,
+        physics::collider::{self, Collider},
         world::{
             grid::{self, Direction},
             object,
@@ -41,7 +41,7 @@ impl Object {
                     2.00 * CELL_SIZE_IN_METERS,
                 );
 
-                let mut collider = Collider::new(local_position, size);
+                let mut collider = Collider::new(&collider::Kind::Solid, local_position, size);
                 collider.active = false;
 
                 collider
@@ -55,7 +55,7 @@ impl Object {
                     2.00 * CELL_SIZE_IN_METERS,
                 );
 
-                let collider = Collider::new(local_position, size);
+                let collider = Collider::new(&collider::Kind::Solid, local_position, size);
 
                 collider
             }
@@ -68,7 +68,7 @@ impl Object {
                     1.00 * CELL_SIZE_IN_METERS,
                 );
 
-                let collider = Collider::new(local_position, size);
+                let collider = Collider::new(&collider::Kind::Solid, local_position, size);
 
                 collider
             }
@@ -81,7 +81,7 @@ impl Object {
                     0.25 * CELL_SIZE_IN_METERS,
                 );
 
-                let collider = Collider::new(local_position, size);
+                let collider = Collider::new(&collider::Kind::Solid, local_position, size);
 
                 collider
             }
@@ -94,7 +94,7 @@ impl Object {
                     1.00 * CELL_SIZE_IN_METERS,
                 );
 
-                let collider = Collider::new(local_position, size);
+                let collider = Collider::new(&collider::Kind::Solid, local_position, size);
 
                 collider
             }

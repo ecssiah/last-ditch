@@ -17,7 +17,7 @@ impl Body {
     pub fn new(size: Vec3) -> Self {
         let is_grounded = false;
         let is_massive = true;
-        let collider_vec = vec![Collider::new(Vec3::zero(), size)];
+        let collider_vec = vec![Collider::new(&collider::Kind::Solid, Vec3::zero(), size)];
         let collider_index_map = HashMap::from([(collider::Label::Core, collider_vec.len() - 1)]);
 
         Self {
@@ -26,6 +26,13 @@ impl Body {
             collider_vec,
             collider_index_map,
         }
+    }
+
+    pub fn add_collider(collider_label: &collider::Label, collider: Collider, body: &mut Self) {
+        body.collider_vec.push(collider);
+
+        body.collider_index_map
+            .insert(collider_label.clone(), body.collider_vec.len() - 1);
     }
 
     pub fn get_collider<'a>(

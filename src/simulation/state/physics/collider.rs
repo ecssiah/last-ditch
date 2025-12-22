@@ -23,11 +23,9 @@ pub struct Collider {
 }
 
 impl Collider {
-    pub fn new(local_position: Vec3, size: Vec3) -> Self {
+    pub fn new(collider_kind: &collider::Kind, local_position: Vec3, radius: Vec3) -> Self {
         let active = true;
-        let collider_kind = collider::Kind::Solid;
-
-        let radius = size * 0.5;
+        let collider_kind = collider_kind.clone();
         let float_box = FloatBox::new(Vec3::zero(), radius);
 
         Self {
@@ -36,10 +34,6 @@ impl Collider {
             collider_kind,
             float_box,
         }
-    }
-
-    pub fn default() -> Self {
-        Self::new(Vec3::zero(), Vec3::broadcast(CELL_RADIUS_IN_METERS))
     }
 
     pub fn set_local_position(local_position: Vec3, collider: &mut Self) {
@@ -70,5 +64,15 @@ impl Collider {
         let radius = size * 0.5;
 
         FloatBox::set_radius(radius, &mut collider.float_box);
+    }
+}
+
+impl Default for Collider {
+    fn default() -> Self {
+        Self::new(
+            &collider::Kind::Solid,
+            Vec3::zero(),
+            Vec3::broadcast(CELL_RADIUS_IN_METERS),
+        )
     }
 }

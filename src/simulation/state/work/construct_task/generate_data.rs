@@ -101,19 +101,36 @@ impl GenerateData {
 
         let world_position = Vec3::new(0.0, -8.0, 2.0);
 
-        let judge_radius = Vec3::new(
+        let core_collider_radius = Vec3::new(
             JUDGE_DEFAULT_RADIUS_X,
             JUDGE_DEFAULT_RADIUS_Y,
             JUDGE_DEFAULT_RADIUS_Z,
         );
 
-        let judge_core = Body::get_collider_mut(collider::Label::Core, &mut judge.body)
+        let core_collider = Body::get_collider_mut(collider::Label::Core, &mut judge.body)
             .expect("Body is missing core");
 
-        let core_local_position = Vec3::new(0.0, 0.0, judge_radius.z - CELL_RADIUS_IN_METERS);
+        let core_local_position =
+            Vec3::new(0.0, 0.0, core_collider_radius.z - CELL_RADIUS_IN_METERS);
 
-        Collider::set_radius(judge_radius, judge_core);
-        Collider::set_local_position(core_local_position, judge_core);
+        Collider::set_radius(core_collider_radius, core_collider);
+        Collider::set_local_position(core_local_position, core_collider);
+
+        let ground_collider_radius = Vec3::new(
+            JUDGE_DEFAULT_RADIUS_X,
+            JUDGE_DEFAULT_RADIUS_Y,
+            0.1 * JUDGE_DEFAULT_RADIUS_Z,
+        );
+
+        let ground_local_position = Vec3::new(0.0, 0.0, ground_collider_radius.z - CELL_RADIUS_IN_METERS);
+
+        let ground_collider = Collider::new(
+            &collider::Kind::Trigger,
+            ground_local_position,
+            ground_collider_radius,
+        );
+
+        Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
 
         Person::set_world_position(world_position, &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);
