@@ -7,13 +7,13 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::body::Body,
+            physics::{body::Body, collider::Collider},
             population::{person::Person, Population},
             world::grid::{self, axis::Axis},
             World,
         },
     },
-    utils::ldmath::{FloatBounds, FloatBox},
+    utils::ldmath::FloatBox,
 };
 use std::f32;
 use ultraviolet::Vec3;
@@ -52,7 +52,7 @@ impl Physics {
     fn integrate_person(physics: &Self, judge: &mut Person) -> (Vec3, Vec3) {
         let initial_velocity = judge.motion.velocity;
 
-        let acceleration = if judge.body.is_massive {
+        let acceleration = if judge.body.is_massive && !judge.body.is_grounded {
             physics.gravity
         } else {
             Vec3::zero()
@@ -79,15 +79,19 @@ impl Physics {
         let mut delta_position_resolved = Vec3::zero();
         let mut velocity_mask = Vec3::one();
 
-        for delta_axis in [Axis::Z, Axis::Y, Axis::X] {
+        let mut grounded_this_tick = false;
+        let mut z_blocked_downward = false;
+
+        for delta_axis in [Axis::Z, Axis::X, Axis::Y] {
             let axis_index = Axis::index(delta_axis);
 
-            let (delta_position_resolved_axis, velocity_mask_axis) = Self::compute_resolution_axis(
-                &core_float_box,
-                delta_axis,
-                delta_position_intent[axis_index],
-                world,
-            );
+            let (delta_position_resolved_axis, velocity_mask_axis) =
+                Self::compute_resolution_along_axis(
+                    core_float_box.clone(),
+                    delta_axis,
+                    delta_position_intent[axis_index],
+                    world,
+                );
 
             delta_position_resolved[axis_index] = delta_position_resolved_axis;
             velocity_mask[axis_index] = velocity_mask_axis;
@@ -96,36 +100,65 @@ impl Physics {
                 Axis::unit(delta_axis) * delta_position_resolved,
                 &core_float_box,
             );
+
+            if delta_axis == Axis::Z {
+                if delta_position_intent.z > 0.0 {
+                    person.body.is_grounded = false;
+                } else if delta_position_intent.z < 0.0 && velocity_mask[axis_index] == 0.0 {
+                    person.body.is_grounded = true;
+                    grounded_this_tick = true;
+                }
+
+                if grounded_this_tick {
+                    let skin = EPSILON_COLLISION;
+
+                    delta_position_resolved.z += skin;
+                    core_float_box =
+                        FloatBox::translated(Vec3::new(0.0, 0.0, skin), &core_float_box);
+
+                    grounded_this_tick = false;
+                }
+
+                if delta_position_intent.z < 0.0 && velocity_mask[axis_index] == 0.0 {
+                    z_blocked_downward = true;
+                    person.body.is_grounded = true;
+                }
+            }
+        }
+
+        if !z_blocked_downward && delta_position_intent.z <= 0.0 {
+            person.body.is_grounded = false;
         }
 
         (delta_position_resolved, velocity_mask)
     }
 
-    fn compute_resolution_axis(
-        float_box: &FloatBox,
+    fn compute_resolution_along_axis(
+        float_box: FloatBox,
         delta_axis: Axis,
         delta_position_intent: f32,
         world: &World,
     ) -> (f32, f32) {
-        if delta_position_intent.abs() < EPSILON_COLLISION {
-            return (delta_position_intent, 1.0);
+        if delta_axis != Axis::Z && delta_position_intent.abs() < EPSILON_COLLISION {
+            return (0.0, 1.0);
         }
 
         let mut delta_position_resolved = 0.0;
 
-        let mut float_bounds = FloatBounds::new(0.0, delta_position_intent);
+        let mut t_min = 0.0;
+        let mut t_max = 1.0;
 
         for _ in 0..MAX_RESOLVE_ITERATIONS {
-            let midpoint = FloatBounds::get_midpoint(&float_bounds);
+            let t_mid = (t_min + t_max) * 0.5;
+            let delta = delta_position_intent * t_mid;
 
-            let float_box_test = FloatBox::translated(Axis::unit(delta_axis) * midpoint, float_box);
+            let float_box_test = FloatBox::translated(Axis::unit(delta_axis) * delta, &float_box);
 
             if Self::is_float_box_colliding(&float_box_test, world) {
-                float_bounds.max = midpoint;
+                t_max = t_mid;
             } else {
-                float_bounds.min = midpoint;
-
-                delta_position_resolved = midpoint;
+                t_min = t_mid;
+                delta_position_resolved = delta;
             }
         }
 

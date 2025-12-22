@@ -15,8 +15,8 @@ impl FloatBox {
         }
     }
 
-    pub fn translated(displacement: Vec3, float_box: &Self) -> Self {
-        Self::new(float_box.center_position + displacement, float_box.radius)
+    pub fn translated(delta_position: Vec3, float_box: &Self) -> Self {
+        Self::new(float_box.center_position + delta_position, float_box.radius)
     }
 
     pub fn scaled(delta_radius: f32, float_box: &Self) -> Self {
@@ -55,12 +55,16 @@ impl FloatBox {
     }
 
     pub fn overlap(left: &Self, right: &Self) -> bool {
-        if ((left.center_position.x - right.center_position.x).abs()
-            > (left.radius.x + right.radius.x))
-            || ((left.center_position.y - right.center_position.y).abs()
-                > (left.radius.y + right.radius.y))
-            || ((left.center_position.z - right.center_position.z).abs()
-                > (left.radius.z + right.radius.z))
+        if (left.center_position.x - right.center_position.x).abs()
+            > (left.radius.x + right.radius.x)
+        {
+            false
+        } else if (left.center_position.y - right.center_position.y).abs()
+            > (left.radius.y + right.radius.y)
+        {
+            false
+        } else if (left.center_position.z - right.center_position.z).abs()
+            > (left.radius.z + right.radius.z)
         {
             false
         } else {

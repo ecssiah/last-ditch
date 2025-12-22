@@ -7,6 +7,7 @@ use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct Body {
+    pub is_grounded: bool,
     pub is_massive: bool,
     pub collider_vec: Vec<Collider>,
     pub collider_index_map: HashMap<collider::Label, usize>,
@@ -14,11 +15,13 @@ pub struct Body {
 
 impl Body {
     pub fn new(size: Vec3) -> Self {
+        let is_grounded = false;
         let is_massive = true;
         let collider_vec = vec![Collider::new(Vec3::zero(), size)];
         let collider_index_map = HashMap::from([(collider::Label::Core, collider_vec.len() - 1)]);
 
         Self {
+            is_grounded,
             is_massive,
             collider_vec,
             collider_index_map,
@@ -41,10 +44,6 @@ impl Body {
         let collider_index = body.collider_index_map.get(&collider_label)?;
 
         body.collider_vec.get_mut(*collider_index)
-    }
-
-    pub fn set_is_massive(is_massive: bool, body: &mut Self) {
-        body.is_massive = is_massive;
     }
 
     pub fn set_world_position(world_position: Vec3, body: &mut Self) {

@@ -69,7 +69,6 @@ pub const EPSILON_COLLISION: f32 = 0.001;
 pub const MAX_RESOLVE_ITERATIONS: usize = 40;
 pub const MAXIMUM_CLEARANCE: u32 = 5;
 pub const MINIMUM_CLEARANCE: u32 = 3;
-pub const CONTACT_OFFSET: f32 = 0.001;
 pub const MINIMUM_APPROACH_DISTANCE: f32 = f32::EPSILON * f32::EPSILON;
 
 pub const ID_NULL: u64 = 0;
@@ -85,9 +84,9 @@ pub const JUDGE_DEFAULT_GROUND_SPEED: f32 = 8.0;
 pub const JUDGE_DEFAULT_FLYING_SPEED: f32 = 16.0;
 pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
 
-pub const JUDGE_DEFAULT_SIZE_X: f32 = 0.6;
-pub const JUDGE_DEFAULT_SIZE_Y: f32 = 0.6;
-pub const JUDGE_DEFAULT_SIZE_Z: f32 = 1.9;
+pub const JUDGE_DEFAULT_RADIUS_X: f32 = 0.3;
+pub const JUDGE_DEFAULT_RADIUS_Y: f32 = 0.3;
+pub const JUDGE_DEFAULT_RADIUS_Z: f32 = 0.95;
 
 pub const PITCH_LIMIT: f32 = 89.99;
 
@@ -96,9 +95,9 @@ pub const NATION_INITIAL_POPULATION: i32 = 4;
 pub const PERSON_DEFAULT_SPEED: f32 = 6.0;
 pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;
 
-pub const PERSON_DEFAULT_SIZE_X: f32 = 0.6;
-pub const PERSON_DEFAULT_SIZE_Y: f32 = 0.6;
-pub const PERSON_DEFAULT_SIZE_Z: f32 = 1.6;
+pub const PERSON_DEFAULT_RADIUS_X: f32 = 0.3;
+pub const PERSON_DEFAULT_RADIUS_Y: f32 = 0.3;
+pub const PERSON_DEFAULT_RADIUS_Z: f32 = 0.8;
 
 pub const TOWER_FLOOR_HEIGHT: usize = 8;
 pub const TOWER_FLOOR_COUNT: usize = 4;

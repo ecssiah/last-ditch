@@ -93,16 +93,16 @@ impl Population {
             false => identity::Sex::Male,
         };
 
-        let core_collider_size = Vec3::new(
-            PERSON_DEFAULT_SIZE_X,
-            PERSON_DEFAULT_SIZE_Y,
-            PERSON_DEFAULT_SIZE_Z,
+        let person_radius = Vec3::new(
+            PERSON_DEFAULT_RADIUS_X,
+            PERSON_DEFAULT_RADIUS_Y,
+            PERSON_DEFAULT_RADIUS_Z,
         );
 
         let core_collider = Body::get_collider_mut(collider::Label::Core, &mut person.body)
             .expect("Body has no core");
 
-        Collider::set_size(core_collider_size, core_collider);
+        Collider::set_radius(person_radius, core_collider);
 
         person.motion.speed = PERSON_DEFAULT_SPEED;
         person.motion.jump_speed = PERSON_DEFAULT_JUMP_SPEED;

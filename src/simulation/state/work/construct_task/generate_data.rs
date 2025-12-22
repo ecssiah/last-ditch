@@ -101,18 +101,18 @@ impl GenerateData {
 
         let world_position = Vec3::new(0.0, -8.0, 2.0);
 
-        let judge_size = Vec3::new(
-            JUDGE_DEFAULT_SIZE_X,
-            JUDGE_DEFAULT_SIZE_Y,
-            JUDGE_DEFAULT_SIZE_Z,
+        let judge_radius = Vec3::new(
+            JUDGE_DEFAULT_RADIUS_X,
+            JUDGE_DEFAULT_RADIUS_Y,
+            JUDGE_DEFAULT_RADIUS_Z,
         );
 
         let judge_core = Body::get_collider_mut(collider::Label::Core, &mut judge.body)
             .expect("Body is missing core");
 
-        let core_local_position = Vec3::new(0.0, 0.0, judge_size.z / 2.0 - CELL_RADIUS_IN_METERS);
+        let core_local_position = Vec3::new(0.0, 0.0, judge_radius.z - CELL_RADIUS_IN_METERS);
 
-        Collider::set_size(judge_size, judge_core);
+        Collider::set_radius(judge_radius, judge_core);
         Collider::set_local_position(core_local_position, judge_core);
 
         Person::set_world_position(world_position, &mut judge);
