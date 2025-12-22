@@ -10,6 +10,7 @@ use crate::{
                 identity, motion,
                 nation::{self},
                 person::Person,
+                sight::Sight,
             },
             world::{
                 area::{
@@ -122,15 +123,27 @@ impl GenerateData {
             0.1 * JUDGE_DEFAULT_RADIUS_Z,
         );
 
-        let ground_local_position = Vec3::new(0.0, 0.0, ground_collider_radius.z - CELL_RADIUS_IN_METERS);
+        let ground_collider_local_position = Vec3::new(
+            0.0,
+            0.0,
+            ground_collider_radius.z - CELL_RADIUS_IN_METERS - (ground_collider_radius.z * 0.5),
+        );
 
         let ground_collider = Collider::new(
             &collider::Kind::Trigger,
-            ground_local_position,
+            ground_collider_local_position,
             ground_collider_radius,
         );
 
         Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
+
+        let sight_local_position = Vec3::new(
+            0.0,
+            0.0,
+            ((0.9 * core_collider_radius.z) - CELL_RADIUS_IN_METERS) + (0.9 * core_collider_radius.z),
+        );
+
+        Sight::set_local_position(sight_local_position, &mut judge.sight);
 
         Person::set_world_position(world_position, &mut judge);
         Person::set_rotation(0.0, 0.0, &mut judge);

@@ -7,7 +7,7 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::{body::Body, collider::Collider},
+            physics::body::Body,
             population::{person::Person, Population},
             world::grid::{self, axis::Axis},
             World,
@@ -74,20 +74,28 @@ impl Physics {
         let core_collider =
             Body::get_collider(collider::Label::Core, &person.body).expect("Body is missing core");
 
+        let ground_collider = Body::get_collider(collider::Label::Ground, &person.body)
+            .expect("Body is missing ground");
+
         let mut core_float_box = core_collider.float_box.clone();
 
         let mut delta_position_resolved = Vec3::zero();
         let mut velocity_mask = Vec3::one();
 
-        let mut grounded_this_tick = false;
-        let mut z_blocked_downward = false;
-
         for delta_axis in [Axis::Z, Axis::X, Axis::Y] {
             let axis_index = Axis::index(delta_axis);
 
+            let core_float_box_query = if delta_axis != Axis::Z && person.body.is_grounded {
+                let vertical_offset = Vec3::new(0.0, 0.0, EPSILON_COLLISION);
+
+                FloatBox::translated(vertical_offset, &core_float_box)
+            } else {
+                core_float_box.clone()
+            };
+
             let (delta_position_resolved_axis, velocity_mask_axis) =
                 Self::compute_resolution_along_axis(
-                    core_float_box.clone(),
+                    core_float_box_query,
                     delta_axis,
                     delta_position_intent[axis_index],
                     world,
@@ -100,35 +108,9 @@ impl Physics {
                 Axis::unit(delta_axis) * delta_position_resolved,
                 &core_float_box,
             );
-
-            if delta_axis == Axis::Z {
-                if delta_position_intent.z > 0.0 {
-                    person.body.is_grounded = false;
-                } else if delta_position_intent.z < 0.0 && velocity_mask[axis_index] == 0.0 {
-                    person.body.is_grounded = true;
-                    grounded_this_tick = true;
-                }
-
-                if grounded_this_tick {
-                    let skin = EPSILON_COLLISION;
-
-                    delta_position_resolved.z += skin;
-                    core_float_box =
-                        FloatBox::translated(Vec3::new(0.0, 0.0, skin), &core_float_box);
-
-                    grounded_this_tick = false;
-                }
-
-                if delta_position_intent.z < 0.0 && velocity_mask[axis_index] == 0.0 {
-                    z_blocked_downward = true;
-                    person.body.is_grounded = true;
-                }
-            }
         }
 
-        if !z_blocked_downward && delta_position_intent.z <= 0.0 {
-            person.body.is_grounded = false;
-        }
+        person.body.is_grounded = Self::is_float_box_colliding(&ground_collider.float_box, world);
 
         (delta_position_resolved, velocity_mask)
     }

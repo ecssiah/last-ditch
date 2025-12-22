@@ -79,7 +79,6 @@ impl Action {
 
                         person.motion.velocity.x = velocity.x;
                         person.motion.velocity.y = velocity.y;
-
                     }
                     motion::Mode::Flying => {
                         let local_horizontal_move_direction =
@@ -115,7 +114,11 @@ impl Action {
     pub fn apply_jump(jump_data: &JumpData, population: &mut Population) {
         if let Some(person) = population.person_map.get_mut(&jump_data.person_id) {
             match person.motion.mode {
-                motion::Mode::Ground => person.motion.velocity.z = person.motion.jump_speed,
+                motion::Mode::Ground => {
+                    if person.body.is_grounded {
+                        person.motion.velocity.z = person.motion.jump_speed
+                    }
+                }
                 motion::Mode::Flying => (),
             }
         }

@@ -1,7 +1,5 @@
 use crate::{
-    simulation::constants::{
-        JUDGE_DEFAULT_RADIUS_Z, SECTOR_RADIUS_IN_METERS, SECTOR_SIZE_IN_METERS,
-    },
+    simulation::constants::{SECTOR_RADIUS_IN_METERS, SECTOR_SIZE_IN_METERS},
     utils::ldmath::rotor3_ext,
 };
 use ultraviolet::{Rotor3, Vec3};
@@ -21,7 +19,7 @@ pub struct Sight {
 
 impl Sight {
     pub fn new() -> Self {
-        let local_position = Vec3::new(0.0, 0.0, 0.9 * (2.0 * JUDGE_DEFAULT_RADIUS_Z));
+        let local_position = Vec3::zero();
         let world_position = Vec3::zero();
         let rotation_xy = 0.0;
         let rotation_yz = 0.0;
