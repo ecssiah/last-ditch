@@ -85,17 +85,9 @@ impl Physics {
         for delta_axis in [Axis::Z, Axis::X, Axis::Y] {
             let axis_index = Axis::index(delta_axis);
 
-            let core_float_box_query = if delta_axis != Axis::Z && person.body.is_grounded {
-                let vertical_offset = Vec3::new(0.0, 0.0, COLLISION_EPSILON);
-
-                FloatBox::translated(vertical_offset, &core_float_box)
-            } else {
-                core_float_box.clone()
-            };
-
             let (delta_position_resolved_axis, velocity_mask_axis) =
                 Self::compute_resolution_along_axis(
-                    core_float_box_query,
+                    &core_float_box,
                     delta_axis,
                     delta_position_intent[axis_index],
                     world,
@@ -116,15 +108,11 @@ impl Physics {
     }
 
     fn compute_resolution_along_axis(
-        float_box: FloatBox,
+        float_box: &FloatBox,
         delta_axis: Axis,
         delta_position_intent: f32,
         world: &World,
     ) -> (f32, f32) {
-        if delta_axis != Axis::Z && delta_position_intent.abs() < COLLISION_EPSILON {
-            return (0.0, 1.0);
-        }
-
         let mut delta_position_resolved = 0.0;
 
         let mut t_min = 0.0;
@@ -134,7 +122,7 @@ impl Physics {
             let t_mid = (t_min + t_max) * 0.5;
             let delta = delta_position_intent * t_mid;
 
-            let float_box_test = FloatBox::translated(Axis::unit(delta_axis) * delta, &float_box);
+            let float_box_test = FloatBox::translated(Axis::unit(delta_axis) * delta, float_box);
 
             if Self::is_float_box_colliding(&float_box_test, world) {
                 t_max = t_mid;
@@ -147,7 +135,15 @@ impl Physics {
         let collision_occurred =
             (delta_position_resolved - delta_position_intent).abs() > COLLISION_EPSILON;
 
-        let velocity_mask = if collision_occurred { 0.0 } else { 1.0 };
+        let mut velocity_mask = 1.0;
+
+        if collision_occurred {
+            velocity_mask = 0.0;
+
+            let separation_bias = COLLISION_EPSILON * delta_position_intent.signum();
+
+            delta_position_resolved -= separation_bias;
+        }
 
         (delta_position_resolved, velocity_mask)
     }
