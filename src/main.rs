@@ -15,5 +15,7 @@ fn main() {
     event_loop.run_app(&mut app).unwrap();
 
     #[cfg(feature = "profile")]
-    Tracer::export(&tracer.flamegraph_name);
+    if let Some(tracer) = TRACER.get() {
+        Tracer::export(&tracer.flamegraph_name);
+    }
 }
