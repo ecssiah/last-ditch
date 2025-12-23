@@ -92,6 +92,6 @@ impl Navigation {
     }
 
     pub fn tick(_world: &World, _navigation: &mut Self) {
-        let _ = tracing::info_span!("navigation_tick").entered();
+        let _span = tracing::info_span!("navigation_tick").entered();
     }
 }

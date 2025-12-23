@@ -16,7 +16,7 @@ impl Time {
     }
 
     pub fn tick(time: &mut Self) {
-        let _ = tracing::info_span!("time_tick").entered();
+        let _span = tracing::info_span!("time_tick").entered();
 
         time.tick += 1;
     }

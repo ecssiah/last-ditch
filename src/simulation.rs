@@ -28,7 +28,7 @@ impl Simulation {
 
     pub fn run(manager: &mut Manager, state: &mut State) {
         loop {
-            let _ = tracing::info_span!("simulation_loop").entered();
+            let _span = tracing::info_span!("simulation_loop").entered();
 
             Manager::start(manager);
 

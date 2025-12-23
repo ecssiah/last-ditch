@@ -111,6 +111,6 @@ impl Population {
     }
 
     pub fn tick(_population: &mut Self) {
-        let _ = tracing::info_span!("population_tick").entered();
+        let _span = tracing::info_span!("population_tick").entered();
     }
 }

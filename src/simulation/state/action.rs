@@ -27,7 +27,7 @@ impl Action {
     }
 
     pub fn tick(state: &mut State) {
-        let _ = tracing::info_span!("action_tick").entered();
+        let _span = tracing::info_span!("action_tick").entered();
 
         let act_deque = std::mem::take(&mut state.action.act_deque);
 

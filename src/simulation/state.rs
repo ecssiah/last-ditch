@@ -92,7 +92,7 @@ impl State {
     }
 
     pub fn tick(state: &mut Self) {
-        let _ = tracing::info_span!("state_tick").entered();
+        let _span = tracing::info_span!("state_tick").entered();
 
         if state.active {
             Action::tick(state);

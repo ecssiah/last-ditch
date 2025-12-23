@@ -24,7 +24,7 @@ impl Work {
     }
 
     pub fn tick(state: &mut State) {
-        let _ = tracing::info_span!("work_tick").entered();
+        let _span = tracing::info_span!("work_tick").entered();
 
         Self::perform_world_work(state);
         Self::perform_navigation_work(state);

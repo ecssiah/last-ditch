@@ -183,7 +183,7 @@ impl<'window> Interface<'window> {
 
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
-            let _ = tracing::info_span!("window_event").entered();
+            let _span = tracing::info_span!("window_event").entered();
 
             match event {
                 WindowEvent::RedrawRequested => Self::render(
@@ -234,7 +234,7 @@ impl<'window> Interface<'window> {
         population_renderer: &mut PopulationRenderer,
         debug_renderer: &mut DebugRenderer,
     ) {
-        let _ = tracing::info_span!("redraw").entered();
+        let _span = tracing::info_span!("redraw").entered();
 
         let mut encoder = gpu_context
             .device
@@ -313,7 +313,7 @@ impl<'window> Interface<'window> {
     }
 
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
-        let _ = tracing::info_span!("interface update").entered();
+        let _span = tracing::info_span!("interface update").entered();
 
         if let Some(interface) = interface.as_mut() {
             let instant = Instant::now();

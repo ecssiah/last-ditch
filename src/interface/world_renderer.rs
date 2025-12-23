@@ -197,7 +197,7 @@ impl WorldRenderer {
         object_renderer: &mut ObjectRenderer,
         world_renderer: &mut WorldRenderer,
     ) {
-        let _ = tracing::info_span!("apply_world_view").entered();
+        let _span = tracing::info_span!("apply_world_view").entered();
 
         world_renderer.active_sector_id_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
@@ -205,7 +205,7 @@ impl WorldRenderer {
         let mut cell_view_vec = Vec::new();
 
         for (sector_id, sector_view) in &world_view.sector_view_map {
-            let _ = tracing::info_span!("sector", id = sector_view.sector_id).entered();
+            let _span = tracing::info_span!("sector", id = sector_view.sector_id).entered();
 
             if !camera
                 .frustum

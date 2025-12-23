@@ -39,7 +39,7 @@ impl Viewer {
     }
 
     pub fn tick(state: &State, manager: &mut Manager) {
-        let _ = tracing::info_span!("viewer_tick").entered();
+        let _span = tracing::info_span!("viewer_tick").entered();
 
         let manager_view = Self::update_manager_view(manager);
 
