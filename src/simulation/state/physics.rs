@@ -9,7 +9,7 @@ use crate::{
         state::{
             physics::body::Body,
             population::{person::Person, Population},
-            world::grid::{self, axis::Axis},
+            world::grid::{self, axis::Axis, Direction},
             World,
         },
     },
@@ -120,30 +120,40 @@ impl Physics {
 
         for _ in 0..COLLISION_RESOLVE_ITERATIONS {
             let t_mid = (t_min + t_max) * 0.5;
-            let delta = delta_position_intent * t_mid;
 
-            let float_box_test = FloatBox::translated(Axis::unit(delta_axis) * delta, float_box);
+            let delta_position_test = delta_position_intent * t_mid;
+
+            let float_box_test =
+                FloatBox::translated(Axis::unit(delta_axis) * delta_position_test, float_box);
+
+            let normal = match delta_axis {
+                Axis::X => Vec3::new(-delta_position_intent.signum(), 0.0, 0.0),
+                Axis::Y => Vec3::new(0.0, -delta_position_intent.signum(), 0.0),
+                Axis::Z => Vec3::new(0.0, 0.0, -delta_position_intent.signum()),
+            };
+
+            let hit_vec = Self::get_float_box_collision_hit_vec(float_box, &normal, world);
 
             if Self::is_float_box_colliding(&float_box_test, world) {
                 t_max = t_mid;
             } else {
                 t_min = t_mid;
-                delta_position_resolved = delta;
+                delta_position_resolved = delta_position_test;
             }
         }
 
         let collision_occurred =
             (delta_position_resolved - delta_position_intent).abs() > COLLISION_EPSILON;
 
-        let mut velocity_mask = 1.0;
-
-        if collision_occurred {
-            velocity_mask = 0.0;
-
+        let velocity_mask = if collision_occurred {
             let separation_bias = COLLISION_EPSILON * delta_position_intent.signum();
 
             delta_position_resolved -= separation_bias;
-        }
+
+            0.0
+        } else {
+            1.0
+        };
 
         (delta_position_resolved, velocity_mask)
     }
@@ -151,6 +161,38 @@ impl Physics {
     fn is_float_box_colliding(float_box: &FloatBox, world: &World) -> bool {
         grid::get_grid_overlap_vec(float_box)
             .into_iter()
-            .any(|cell_grid_position| World::is_block_solid_at(cell_grid_position, world))
+            .any(|grid_position| World::is_block_solid_at(grid_position, world))
+    }
+
+    fn get_float_box_collision_hit_vec(
+        float_box: &FloatBox,
+        normal: &Vec3,
+        world: &World,
+    ) -> Vec<collider::Hit> {
+        let mut hit_vec = Vec::new();
+
+        for grid_position in grid::get_grid_overlap_vec(float_box) {
+            let cell = World::get_cell_at(grid_position, &world.sector_vec);
+
+            if cell.block.clone().is_some_and(|block| block.solid) {
+                let cell_hit = collider::Hit {
+                    collider_kind: collider::Kind::Solid,
+                    normal: *normal,
+                };
+
+                hit_vec.push(cell_hit);
+            }
+
+            if let Some(object) = &cell.object {
+                let object_hit = collider::Hit {
+                    collider_kind: object.collider.collider_kind,
+                    normal: *normal,
+                };
+
+                hit_vec.push(object_hit);
+            }
+        }
+
+        hit_vec
     }
 }

@@ -1,8 +1,10 @@
+pub mod hit;
 pub mod info;
 pub mod kind;
 pub mod label;
 pub mod owner;
 
+pub use hit::Hit;
 pub use info::Info;
 pub use kind::Kind;
 pub use label::Label;
