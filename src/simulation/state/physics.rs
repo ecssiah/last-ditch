@@ -46,6 +46,28 @@ impl Physics {
 
             Person::set_world_position(world_position, judge);
             Person::set_velocity(velocity, judge);
+
+            let ground_collider = Body::get_collider(collider::Label::Ground, &judge.body)
+                .expect("Body is missing ground");
+
+            let ground_hit_vec = Self::get_collision_hit_vec(
+                &ground_collider.float_box,
+                Vec3::new(0.0, 0.0, 1.0),
+                world,
+            );
+
+            if ground_hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::Solid)
+            {
+                ContactSet::insert(body::Contact::Ground, &mut judge.body.contact_set);
+            }
+
+            if judge.motion.mode == motion::Mode::Climb
+                && !ContactSet::contains(body::Contact::Ladder, &judge.body.contact_set)
+            {
+                judge.motion.mode = motion::Mode::Ground;
+            }
         }
     }
 
@@ -100,28 +122,6 @@ impl Physics {
                 Axis::unit(delta_axis) * delta_position_resolved,
                 &core_float_box,
             );
-        }
-
-        let ground_collider = Body::get_collider(collider::Label::Ground, &person.body)
-            .expect("Body is missing ground");
-
-        let ground_hit_vec = Self::get_collision_hit_vec(
-            &ground_collider.float_box,
-            Vec3::new(0.0, 0.0, 1.0),
-            world,
-        );
-
-        if ground_hit_vec
-            .iter()
-            .any(|hit| hit.collider_kind == collider::Kind::Solid)
-        {
-            ContactSet::insert(body::Contact::Ground, &mut person.body.contact_set);
-        }
-
-        if person.motion.mode == motion::Mode::Climb
-            && !ContactSet::contains(body::Contact::Ladder, &person.body.contact_set)
-        {
-            person.motion.mode = motion::Mode::Ground;
         }
 
         (delta_position_resolved, velocity_mask)
