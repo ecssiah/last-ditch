@@ -1,4 +1,4 @@
-//! Forces affecting Population
+//! Physics responses
 
 pub mod body;
 pub mod collider;
@@ -9,7 +9,7 @@ use crate::{
         state::{
             physics::body::Body,
             population::{person::Person, Population},
-            world::grid::{self, axis::Axis, Direction},
+            world::grid::{self, axis::Axis},
             World,
         },
     },
@@ -74,9 +74,6 @@ impl Physics {
         let core_collider =
             Body::get_collider(collider::Label::Core, &person.body).expect("Body is missing core");
 
-        let ground_collider = Body::get_collider(collider::Label::Ground, &person.body)
-            .expect("Body is missing ground");
-
         let mut core_float_box = core_collider.float_box.clone();
 
         let mut delta_position_resolved = Vec3::zero();
@@ -102,7 +99,18 @@ impl Physics {
             );
         }
 
-        person.body.is_grounded = Self::is_float_box_colliding(&ground_collider.float_box, world);
+        let ground_collider = Body::get_collider(collider::Label::Ground, &person.body)
+            .expect("Body is missing ground");
+
+        let ground_hit_vec = Self::get_float_box_collision_hit_vec(
+            &ground_collider.float_box,
+            Vec3::new(0.0, 0.0, 1.0),
+            world,
+        );
+
+        person.body.is_grounded = ground_hit_vec
+            .iter()
+            .any(|hit| hit.collider_kind == collider::Kind::Solid);
 
         (delta_position_resolved, velocity_mask)
     }
@@ -118,23 +126,25 @@ impl Physics {
         let mut t_min = 0.0;
         let mut t_max = 1.0;
 
+        let delta_axis_unit = Axis::unit(delta_axis);
+        let delta_position_intent_sign = delta_position_intent.signum();
+
+        let normal = delta_axis_unit * -delta_position_intent_sign;
+
         for _ in 0..COLLISION_RESOLVE_ITERATIONS {
             let t_mid = (t_min + t_max) * 0.5;
 
             let delta_position_test = delta_position_intent * t_mid;
 
             let float_box_test =
-                FloatBox::translated(Axis::unit(delta_axis) * delta_position_test, float_box);
+                FloatBox::translated(delta_axis_unit * delta_position_test, float_box);
 
-            let normal = match delta_axis {
-                Axis::X => Vec3::new(-delta_position_intent.signum(), 0.0, 0.0),
-                Axis::Y => Vec3::new(0.0, -delta_position_intent.signum(), 0.0),
-                Axis::Z => Vec3::new(0.0, 0.0, -delta_position_intent.signum()),
-            };
+            let hit_vec = Self::get_float_box_collision_hit_vec(&float_box_test, normal, world);
 
-            let hit_vec = Self::get_float_box_collision_hit_vec(float_box, &normal, world);
-
-            if Self::is_float_box_colliding(&float_box_test, world) {
+            if hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::Solid)
+            {
                 t_max = t_mid;
             } else {
                 t_min = t_mid;
@@ -146,7 +156,7 @@ impl Physics {
             (delta_position_resolved - delta_position_intent).abs() > COLLISION_EPSILON;
 
         let velocity_mask = if collision_occurred {
-            let separation_bias = COLLISION_EPSILON * delta_position_intent.signum();
+            let separation_bias = COLLISION_EPSILON * delta_position_intent_sign;
 
             delta_position_resolved -= separation_bias;
 
@@ -158,38 +168,38 @@ impl Physics {
         (delta_position_resolved, velocity_mask)
     }
 
-    fn is_float_box_colliding(float_box: &FloatBox, world: &World) -> bool {
-        grid::get_grid_overlap_vec(float_box)
-            .into_iter()
-            .any(|grid_position| World::is_block_solid_at(grid_position, world))
-    }
-
     fn get_float_box_collision_hit_vec(
         float_box: &FloatBox,
-        normal: &Vec3,
+        normal: Vec3,
         world: &World,
     ) -> Vec<collider::Hit> {
-        let mut hit_vec = Vec::new();
+        let overlap_grid_positions = grid::get_grid_overlap_vec(float_box);
 
-        for grid_position in grid::get_grid_overlap_vec(float_box) {
+        let mut hit_vec = Vec::with_capacity(overlap_grid_positions.len());
+
+        for grid_position in overlap_grid_positions {
             let cell = World::get_cell_at(grid_position, &world.sector_vec);
 
-            if cell.block.clone().is_some_and(|block| block.solid) {
-                let cell_hit = collider::Hit {
-                    collider_kind: collider::Kind::Solid,
-                    normal: *normal,
-                };
+            if let Some(block) = &cell.block {
+                if block.solid {
+                    let cell_hit = collider::Hit {
+                        collider_kind: collider::Kind::Solid,
+                        normal,
+                    };
 
-                hit_vec.push(cell_hit);
+                    hit_vec.push(cell_hit);
+                }
             }
 
             if let Some(object) = &cell.object {
-                let object_hit = collider::Hit {
-                    collider_kind: object.collider.collider_kind,
-                    normal: *normal,
-                };
+                if object.collider.active {
+                    let object_hit = collider::Hit {
+                        collider_kind: object.collider.collider_kind,
+                        normal,
+                    };
 
-                hit_vec.push(object_hit);
+                    hit_vec.push(object_hit);
+                }
             }
         }
 

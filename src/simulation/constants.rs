@@ -70,7 +70,9 @@ pub const GRAVITY_ACCELERATION: f32 = 36.0;
 pub const COLLISION_EPSILON: f32 = 0.001;
 pub const COLLISION_RESOLVE_ITERATIONS: usize = 40;
 
-pub const ID_NULL: u64 = 0;
+pub const INDEX_NULL: usize = usize::MAX;
+
+pub const ID_NULL: u64 = u64::MAX;
 pub const ID_START: u64 = 100;
 
 pub const ID_JUDGE_1: u64 = 1;

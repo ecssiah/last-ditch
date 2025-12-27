@@ -9,28 +9,31 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::{constants::*, state::world::cell},
+    simulation::{
+        constants::*,
+        state::world::{cell::Cell, grid},
+    },
     utils::ldmath::{ivec3_ext, FloatBox, IntBox},
 };
 use ultraviolet::{IVec3, Vec3};
 
 #[inline]
-pub fn cell_id_vec() -> Vec<usize> {
+pub fn cell_index_vec() -> Vec<usize> {
     (0usize..SECTOR_VOLUME_IN_CELLS).collect()
 }
 
 #[inline]
-pub fn sector_id_vec() -> Vec<usize> {
+pub fn sector_index_vec() -> Vec<usize> {
     (0usize..WORLD_VOLUME_IN_SECTORS).collect()
 }
 
 #[inline]
-pub fn is_cell_id_valid(id: usize) -> bool {
+pub fn is_cell_index_valid(id: usize) -> bool {
     (0usize..SECTOR_VOLUME_IN_CELLS).contains(&id)
 }
 
 #[inline]
-pub fn is_sector_id_valid(id: usize) -> bool {
+pub fn is_sector_index_valid(id: usize) -> bool {
     (0usize..WORLD_VOLUME_IN_SECTORS).contains(&id)
 }
 
@@ -97,31 +100,31 @@ pub fn is_world_position_valid(world_position: Vec3) -> bool {
 }
 
 #[inline]
-pub fn cell_id_to_cell_coordinate(id: usize) -> IVec3 {
+pub fn cell_index_to_cell_coordinate(id: usize) -> IVec3 {
     let cell_coordinate = ivec3_ext::index_to_ivec3(id, SECTOR_RADIUS_IN_CELLS);
 
     cell_coordinate
 }
 
 #[inline]
-pub fn cell_coordinate_to_cell_id(coordinate: IVec3) -> usize {
-    let cell_id = ivec3_ext::ivec3_to_index(coordinate, SECTOR_RADIUS_IN_CELLS);
+pub fn cell_coordinate_to_cell_index(coordinate: IVec3) -> usize {
+    let cell_index = ivec3_ext::ivec3_to_index(coordinate, SECTOR_RADIUS_IN_CELLS);
 
-    cell_id
+    cell_index
 }
 
 #[inline]
-pub fn sector_id_to_sector_coordinate(sector_id: usize) -> IVec3 {
-    let sector_coordinate = ivec3_ext::index_to_ivec3(sector_id, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_index_to_sector_coordinate(sector_index: usize) -> IVec3 {
+    let sector_coordinate = ivec3_ext::index_to_ivec3(sector_index, WORLD_RADIUS_IN_SECTORS);
 
     sector_coordinate
 }
 
 #[inline]
-pub fn sector_coordinate_to_sector_id(sector_coordinate: IVec3) -> usize {
-    let sector_id = ivec3_ext::ivec3_to_index(sector_coordinate, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_coordinate_to_sector_index(sector_coordinate: IVec3) -> usize {
+    let sector_index = ivec3_ext::ivec3_to_index(sector_coordinate, WORLD_RADIUS_IN_SECTORS);
 
-    sector_id
+    sector_index
 }
 
 #[inline]
@@ -132,8 +135,8 @@ pub fn sector_coordinate_to_grid_position(sector_coordinate: IVec3) -> IVec3 {
 }
 
 #[inline]
-pub fn sector_id_to_grid_position(sector_id: usize) -> IVec3 {
-    let sector_coordinate = sector_id_to_sector_coordinate(sector_id);
+pub fn sector_index_to_grid_position(sector_index: usize) -> IVec3 {
+    let sector_coordinate = sector_index_to_sector_coordinate(sector_index);
 
     let grid_position = sector_coordinate_to_grid_position(sector_coordinate);
 
@@ -185,35 +188,35 @@ pub fn grid_position_to_cell_coordinate(grid_position: IVec3) -> IVec3 {
 }
 
 #[inline]
-pub fn grid_position_to_sector_id(grid_position: IVec3) -> usize {
+pub fn grid_position_to_sector_index(grid_position: IVec3) -> usize {
     let sector_coordinate = grid_position_to_sector_coordinate(grid_position);
 
-    let sector_id = sector_coordinate_to_sector_id(sector_coordinate);
+    let sector_index = sector_coordinate_to_sector_index(sector_coordinate);
 
-    sector_id
+    sector_index
 }
 
 #[inline]
-pub fn grid_position_to_cell_id(grid_position: IVec3) -> usize {
+pub fn grid_position_to_cell_index(grid_position: IVec3) -> usize {
     let cell_coordinate = grid_position_to_cell_coordinate(grid_position);
 
-    let cell_id = cell_coordinate_to_cell_id(cell_coordinate);
+    let cell_index = cell_coordinate_to_cell_index(cell_coordinate);
 
-    cell_id
+    cell_index
 }
 
 #[inline]
 pub fn grid_position_to_ids(grid_position: IVec3) -> (usize, usize) {
-    let sector_id = grid_position_to_sector_id(grid_position);
-    let cell_id = grid_position_to_cell_id(grid_position);
+    let sector_index = grid_position_to_sector_index(grid_position);
+    let cell_index = grid_position_to_cell_index(grid_position);
 
-    (sector_id, cell_id)
+    (sector_index, cell_index)
 }
 
 #[inline]
-pub fn ids_to_grid_position(sector_id: usize, cell_id: usize) -> IVec3 {
-    let sector_coordinate = sector_id_to_sector_coordinate(sector_id);
-    let cell_coordinate = cell_id_to_cell_coordinate(cell_id);
+pub fn ids_to_grid_position(sector_index: usize, cell_index: usize) -> IVec3 {
+    let sector_coordinate = sector_index_to_sector_coordinate(sector_index);
+    let cell_coordinate = cell_index_to_cell_coordinate(cell_index);
 
     let grid_position = SECTOR_SIZE_IN_CELLS as i32 * sector_coordinate + cell_coordinate;
 
@@ -232,12 +235,12 @@ pub fn world_position_to_grid_position(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn world_position_to_sector_id(world_position: Vec3) -> usize {
+pub fn world_position_to_sector_index(world_position: Vec3) -> usize {
     let grid_position = world_position_to_grid_position(world_position);
 
-    let sector_id = grid_position_to_sector_id(grid_position);
+    let sector_index = grid_position_to_sector_index(grid_position);
 
-    sector_id
+    sector_index
 }
 
 #[inline]
@@ -250,12 +253,12 @@ pub fn world_position_to_sector_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn world_position_to_cell_id(world_position: Vec3) -> usize {
+pub fn world_position_to_cell_index(world_position: Vec3) -> usize {
     let grid_position = world_position_to_grid_position(world_position);
 
-    let cell_id = grid_position_to_cell_id(grid_position);
+    let cell_index = grid_position_to_cell_index(grid_position);
 
-    cell_id
+    cell_index
 }
 
 #[inline]
@@ -295,10 +298,13 @@ pub fn get_grid_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
         for y in grid_int_box.min.y..=grid_int_box.max.y {
             for x in grid_int_box.min.x..=grid_int_box.max.x {
                 let grid_position = IVec3::new(x, y, z);
-                let cell_float_box = cell::get_float_box(grid_position);
 
-                if FloatBox::overlap(float_box, &cell_float_box) {
-                    grid_position_vec.push(grid_position);
+                if grid::is_grid_position_valid(grid_position) {
+                    let cell_float_box = Cell::get_float_box(grid_position);
+
+                    if FloatBox::overlap(float_box, &cell_float_box) {
+                        grid_position_vec.push(grid_position);
+                    }
                 }
             }
         }

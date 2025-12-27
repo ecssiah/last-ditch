@@ -12,7 +12,7 @@ use crate::{
 use ultraviolet::IVec3;
 
 pub struct SectorMesh {
-    pub sector_id: usize,
+    pub sector_index: usize,
     pub version: u64,
     pub vertex_vec: Vec<SectorVertex>,
     pub index_vec: Vec<u32>,
@@ -49,9 +49,9 @@ impl SectorMesh {
             for y in -sector_radius_in_cells..=sector_radius_in_cells {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinate = IVec3::new(x, y, z);
-                    let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
+                    let cell_index = grid::cell_coordinate_to_cell_index(cell_coordinate);
 
-                    let cell_view = &sector_view.cell_view_vec[cell_id];
+                    let cell_view = &sector_view.cell_view_vec[cell_index];
 
                     if let Some(block_view) = cell_view.block_view.as_ref() {
                         if face_mask::has(face_mask::EAST, &block_view.face_mask) {
@@ -180,7 +180,7 @@ impl SectorMesh {
         }
 
         Self {
-            sector_id: sector_view.sector_id,
+            sector_index: sector_view.sector_index,
             version: sector_view.version,
             vertex_vec,
             index_vec,

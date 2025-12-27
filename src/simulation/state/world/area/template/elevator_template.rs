@@ -16,48 +16,48 @@ impl Template for ElevatorTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
+        let area_int_box = grid::get_grid_int_box(area.grid_position, area.size);
 
-        World::set_block_box(area_ibox.min, area_ibox.max, block::Kind::Metal2, world);
+        World::set_block_box(area_int_box.min, area_int_box.max, block::Kind::Metal2, world);
 
         World::remove_block_cube(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 0,
-                area_ibox.min.z + 1,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 0,
+                area_int_box.min.z + 1,
             ),
             IVec3::new(
-                area_ibox.max.x - 2,
-                area_ibox.max.y + 0,
-                area_ibox.max.z - 3,
+                area_int_box.max.x - 2,
+                area_int_box.max.y + 0,
+                area_int_box.max.z - 3,
             ),
             world,
         );
 
         World::remove_block_cube(
             IVec3::new(
-                area_ibox.min.x + 0,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 1,
+                area_int_box.min.x + 0,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 1,
             ),
             IVec3::new(
-                area_ibox.max.x + 0,
-                area_ibox.max.y - 2,
-                area_ibox.max.z - 3,
+                area_int_box.max.x + 0,
+                area_int_box.max.y - 2,
+                area_int_box.max.z - 3,
             ),
             world,
         );
 
         World::remove_block_cube(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 0,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 0,
             ),
             IVec3::new(
-                area_ibox.max.x - 2,
-                area_ibox.max.y - 2,
-                area_ibox.max.z + 0,
+                area_int_box.max.x - 2,
+                area_int_box.max.y - 2,
+                area_int_box.max.z + 0,
             ),
             world,
         );
@@ -66,9 +66,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 0,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 0,
             ),
             object::Kind::Platform,
             Direction::South,
@@ -77,9 +77,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 3,
-                area_ibox.min.z + 1,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 3,
+                area_int_box.min.z + 1,
             ),
             object::Kind::Stairs,
             Direction::South,
@@ -88,9 +88,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 1,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 1,
             ),
             object::Kind::Platform,
             Direction::South,
@@ -99,9 +99,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 3,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 2,
+                area_int_box.min.x + 3,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 2,
             ),
             object::Kind::Stairs,
             Direction::West,
@@ -110,9 +110,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 2,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 2,
             ),
             object::Kind::Platform,
             Direction::West,
@@ -121,9 +121,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 3,
-                area_ibox.min.z + 3,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 3,
+                area_int_box.min.z + 3,
             ),
             object::Kind::Stairs,
             Direction::North,
@@ -132,9 +132,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 3,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 3,
             ),
             object::Kind::Platform,
             Direction::North,
@@ -143,9 +143,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 3,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 4,
+                area_int_box.min.x + 3,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 4,
             ),
             object::Kind::Stairs,
             Direction::East,
@@ -154,9 +154,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 4,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 4,
             ),
             object::Kind::Platform,
             Direction::East,
@@ -165,9 +165,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 3,
-                area_ibox.min.z + 5,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 3,
+                area_int_box.min.z + 5,
             ),
             object::Kind::Stairs,
             Direction::South,
@@ -176,9 +176,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 2,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 5,
+                area_int_box.min.x + 2,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 5,
             ),
             object::Kind::Platform,
             Direction::South,
@@ -187,9 +187,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 3,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 6,
+                area_int_box.min.x + 3,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 6,
             ),
             object::Kind::Stairs,
             Direction::West,
@@ -198,9 +198,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 4,
-                area_ibox.min.z + 6,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 4,
+                area_int_box.min.z + 6,
             ),
             object::Kind::Platform,
             Direction::West,
@@ -209,9 +209,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 3,
-                area_ibox.min.z + 7,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 3,
+                area_int_box.min.z + 7,
             ),
             object::Kind::Stairs,
             Direction::North,
@@ -220,9 +220,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 4,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 7,
+                area_int_box.min.x + 4,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 7,
             ),
             object::Kind::Platform,
             Direction::North,
@@ -231,9 +231,9 @@ impl Template for ElevatorTemplate {
 
         World::set_object(
             IVec3::new(
-                area_ibox.min.x + 3,
-                area_ibox.min.y + 2,
-                area_ibox.min.z + 8,
+                area_int_box.min.x + 3,
+                area_int_box.min.y + 2,
+                area_int_box.min.z + 8,
             ),
             object::Kind::Stairs,
             Direction::East,

@@ -24,7 +24,7 @@ pub struct WorldRenderer {
     pub tile_atlas_bind_group_layout: wgpu::BindGroupLayout,
     pub sector_mesh_cache: HashMap<usize, SectorMesh>,
     pub gpu_mesh_cache: HashMap<usize, GpuMesh>,
-    pub active_sector_id_set: HashSet<usize>,
+    pub active_sector_index_set: HashSet<usize>,
     pub active_gpu_mesh_vec: Vec<usize>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
@@ -95,7 +95,7 @@ impl WorldRenderer {
         let sector_mesh_cache = HashMap::new();
         let gpu_mesh_cache = HashMap::new();
 
-        let active_sector_id_set = HashSet::new();
+        let active_sector_index_set = HashSet::new();
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
@@ -103,7 +103,7 @@ impl WorldRenderer {
             tile_atlas_bind_group_layout,
             sector_mesh_cache,
             gpu_mesh_cache,
-            active_sector_id_set,
+            active_sector_index_set,
             active_gpu_mesh_vec,
             render_pipeline,
         }
@@ -199,13 +199,15 @@ impl WorldRenderer {
     ) {
         let _span = tracing::info_span!("apply_world_view").entered();
 
-        world_renderer.active_sector_id_set.clear();
+        world_renderer.active_sector_index_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
 
         let mut cell_view_vec = Vec::new();
 
-        for (sector_id, sector_view) in &world_view.sector_view_map {
-            let _span = tracing::info_span!("sector", id = sector_view.sector_id).entered();
+        // TODO: Block modification causes edge of sector to be invalid mesh
+
+        for (sector_index, sector_view) in &world_view.sector_view_map {
+            let _span = tracing::info_span!("sector", id = sector_view.sector_index).entered();
 
             if !camera
                 .frustum
@@ -229,19 +231,19 @@ impl WorldRenderer {
                 &mut world_renderer.gpu_mesh_cache,
             );
 
-            world_renderer.active_sector_id_set.insert(*sector_id);
-            world_renderer.active_gpu_mesh_vec.push(*sector_id);
+            world_renderer.active_sector_index_set.insert(*sector_index);
+            world_renderer.active_gpu_mesh_vec.push(*sector_index);
         }
 
         ObjectRenderer::apply_cell_view_vec(gpu_context, &cell_view_vec, object_renderer);
 
         world_renderer
             .sector_mesh_cache
-            .retain(|sector_id, _| world_renderer.active_sector_id_set.contains(sector_id));
+            .retain(|sector_index, _| world_renderer.active_sector_index_set.contains(sector_index));
 
         world_renderer
             .gpu_mesh_cache
-            .retain(|sector_id, _| world_renderer.active_gpu_mesh_vec.contains(sector_id));
+            .retain(|sector_index, _| world_renderer.active_gpu_mesh_vec.contains(sector_index));
 
         world_renderer.active_gpu_mesh_vec.sort_unstable();
     }
@@ -250,7 +252,7 @@ impl WorldRenderer {
         sector_view: &SectorView,
         sector_mesh_cache: &'a mut HashMap<usize, SectorMesh>,
     ) -> &'a SectorMesh {
-        match sector_mesh_cache.entry(sector_view.sector_id) {
+        match sector_mesh_cache.entry(sector_view.sector_index) {
             Entry::Vacant(vacant_entry) => {
                 let sector_mesh = SectorMesh::from_sector_view(sector_view);
 
@@ -273,7 +275,7 @@ impl WorldRenderer {
         device: &wgpu::Device,
         gpu_mesh_cache: &'a mut HashMap<usize, GpuMesh>,
     ) -> &'a GpuMesh {
-        match gpu_mesh_cache.entry(sector_mesh.sector_id) {
+        match gpu_mesh_cache.entry(sector_mesh.sector_index) {
             Entry::Vacant(vacant_entry) => {
                 let gpu_mesh = SectorMesh::to_gpu_mesh(sector_mesh, device);
 
@@ -333,8 +335,8 @@ impl WorldRenderer {
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
         render_pass.set_bind_group(1, &world_renderer.tile_atlas_bind_group, &[]);
 
-        for sector_id in &world_renderer.active_gpu_mesh_vec {
-            let gpu_mesh = &world_renderer.gpu_mesh_cache[sector_id];
+        for sector_index in &world_renderer.active_gpu_mesh_vec {
+            let gpu_mesh = &world_renderer.gpu_mesh_cache[sector_index];
 
             render_pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
 

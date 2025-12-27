@@ -219,14 +219,25 @@ impl GUI {
                 Direction::from_rotation(person_view.transform.rotation_xy)
             );
 
+            let is_grounded_string = format!(
+                "Grounded: {}\n",
+                if person_view.body.is_grounded {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
+
             let selected_block_kind_string =
                 format!("Selected Block: {:?}\n", person_view.selected_block_kind);
 
             let mut info_message = String::new();
+
             info_message.push_str(&position_string);
             info_message.push_str(&world_position_string);
             info_message.push_str(&sector_string);
             info_message.push_str(&direction_string);
+            info_message.push_str(&is_grounded_string);
             info_message.push_str(&selected_block_kind_string);
 
             gui.model.info_message_vec.clear();

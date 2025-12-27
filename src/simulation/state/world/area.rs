@@ -42,11 +42,11 @@ impl Area {
     }
 
     pub fn set_local(origin: IVec3, size: IVec3, area: &Self) -> IntBox {
-        let local_ibox = IntBox::new(origin, origin + size - IVec3::one());
-        let area_ibox = grid::get_grid_int_box(area.grid_position, area.size);
+        let local_int_box = IntBox::new(origin, origin + size - IVec3::one());
+        let area_int_box = grid::get_grid_int_box(area.grid_position, area.size);
 
-        let a = area_ibox.min + rotate_by_direction(local_ibox.min, area.direction);
-        let b = area_ibox.min + rotate_by_direction(local_ibox.max, area.direction);
+        let a = area_int_box.min + rotate_by_direction(local_int_box.min, area.direction);
+        let b = area_int_box.min + rotate_by_direction(local_int_box.max, area.direction);
 
         IntBox::new(
             IVec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z)),
@@ -55,28 +55,28 @@ impl Area {
     }
 
     pub fn find_contact(area1: &Self, area2: &Self) -> Option<Contact> {
-        let area1_ibox = grid::get_grid_int_box(area1.grid_position, area1.size);
-        let area2_ibox = grid::get_grid_int_box(area2.grid_position, area2.size);
+        let area1_int_box = grid::get_grid_int_box(area1.grid_position, area1.size);
+        let area2_int_box = grid::get_grid_int_box(area2.grid_position, area2.size);
 
-        if area1_ibox.max.x == area2_ibox.min.x || area2_ibox.max.x == area1_ibox.min.x {
-            let x = if area1_ibox.max.x == area2_ibox.min.x {
-                area1_ibox.max.x
+        if area1_int_box.max.x == area2_int_box.min.x || area2_int_box.max.x == area1_int_box.min.x {
+            let x = if area1_int_box.max.x == area2_int_box.min.x {
+                area1_int_box.max.x
             } else {
-                area2_ibox.max.x
+                area2_int_box.max.x
             };
 
             let y_overlap = Self::interval_overlap(
-                area1_ibox.min.y,
-                area1_ibox.max.y,
-                area2_ibox.min.y,
-                area2_ibox.max.y,
+                area1_int_box.min.y,
+                area1_int_box.max.y,
+                area2_int_box.min.y,
+                area2_int_box.max.y,
             )?;
 
             let z_overlap = Self::interval_overlap(
-                area1_ibox.min.z,
-                area1_ibox.max.z,
-                area2_ibox.min.z,
-                area2_ibox.max.z,
+                area1_int_box.min.z,
+                area1_int_box.max.z,
+                area2_int_box.min.z,
+                area2_int_box.max.z,
             )?;
 
             let contact = Contact::X {
@@ -88,25 +88,25 @@ impl Area {
             return Some(contact);
         }
 
-        if area1_ibox.max.y == area2_ibox.min.y || area2_ibox.max.y == area1_ibox.min.y {
-            let y = if area1_ibox.max.y == area2_ibox.min.y {
-                area1_ibox.max.y
+        if area1_int_box.max.y == area2_int_box.min.y || area2_int_box.max.y == area1_int_box.min.y {
+            let y = if area1_int_box.max.y == area2_int_box.min.y {
+                area1_int_box.max.y
             } else {
-                area2_ibox.max.y
+                area2_int_box.max.y
             };
 
             let x_overlap = Self::interval_overlap(
-                area1_ibox.min.x,
-                area1_ibox.max.x,
-                area2_ibox.min.x,
-                area2_ibox.max.x,
+                area1_int_box.min.x,
+                area1_int_box.max.x,
+                area2_int_box.min.x,
+                area2_int_box.max.x,
             )?;
 
             let z_overlap = Self::interval_overlap(
-                area1_ibox.min.z,
-                area1_ibox.max.z,
-                area2_ibox.min.z,
-                area2_ibox.max.z,
+                area1_int_box.min.z,
+                area1_int_box.max.z,
+                area2_int_box.min.z,
+                area2_int_box.max.z,
             )?;
 
             let contact = Contact::Y {
@@ -118,25 +118,25 @@ impl Area {
             return Some(contact);
         }
 
-        if area1_ibox.max.z == area2_ibox.min.z || area2_ibox.max.z == area1_ibox.min.z {
-            let z = if area1_ibox.max.z == area2_ibox.min.z {
-                area1_ibox.max.z
+        if area1_int_box.max.z == area2_int_box.min.z || area2_int_box.max.z == area1_int_box.min.z {
+            let z = if area1_int_box.max.z == area2_int_box.min.z {
+                area1_int_box.max.z
             } else {
-                area2_ibox.max.z
+                area2_int_box.max.z
             };
 
             let x_overlap = Self::interval_overlap(
-                area1_ibox.min.x,
-                area1_ibox.max.x,
-                area2_ibox.min.x,
-                area2_ibox.max.x,
+                area1_int_box.min.x,
+                area1_int_box.max.x,
+                area2_int_box.min.x,
+                area2_int_box.max.x,
             )?;
 
             let y_overlap = Self::interval_overlap(
-                area1_ibox.min.y,
-                area1_ibox.max.y,
-                area2_ibox.min.y,
-                area2_ibox.max.y,
+                area1_int_box.min.y,
+                area1_int_box.max.y,
+                area2_int_box.min.y,
+                area2_int_box.max.y,
             )?;
 
             let contact = Contact::Z {

@@ -1,6 +1,7 @@
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Kind {
+    Boundary,
     Engraved1,
     Engraved2,
     Engraved3,
@@ -48,7 +49,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub const CYCLE: &'static [Self] = &[
+    pub const SELECTABLE: &'static [Self] = &[
         Self::Engraved1,
         Self::Engraved2,
         Self::Engraved3,
@@ -96,31 +97,31 @@ impl Kind {
     ];
 
     pub fn next_block_kind(current_block_kind: &Self) -> Self {
-        let current_block_kind_index = Self::CYCLE
+        let current_block_kind_index = Self::SELECTABLE
             .iter()
             .position(|block_kind| block_kind == current_block_kind);
 
         match current_block_kind_index {
             Some(index) => {
-                if index + 1 < Self::CYCLE.len() {
-                    Self::CYCLE[index + 1]
+                if index + 1 < Self::SELECTABLE.len() {
+                    Self::SELECTABLE[index + 1]
                 } else {
-                    Self::CYCLE[0]
+                    Self::SELECTABLE[0]
                 }
             }
-            None => Self::CYCLE[0],
+            None => Self::SELECTABLE[0],
         }
     }
 
     pub fn previous_block_kind(current_block_kind: &Self) -> Self {
-        let current_block_kind_index = Self::CYCLE
+        let current_block_kind_index = Self::SELECTABLE
             .iter()
             .position(|block_kind| block_kind == current_block_kind);
 
         match current_block_kind_index {
-            Some(0) => Self::CYCLE[Self::CYCLE.len() - 1],
-            Some(index) => Self::CYCLE[index - 1],
-            None => Self::CYCLE[Self::CYCLE.len() - 1],
+            Some(0) => Self::SELECTABLE[Self::SELECTABLE.len() - 1],
+            Some(index) => Self::SELECTABLE[index - 1],
+            None => Self::SELECTABLE[Self::SELECTABLE.len() - 1],
         }
     }
 }

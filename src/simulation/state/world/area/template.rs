@@ -23,9 +23,9 @@ pub trait Template {
 }
 
 pub fn set_block(min_offset: IVec3, block_kind: block::Kind, area: &Area, world: &mut World) {
-    let local_ibox = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
+    let local_int_box = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
 
-    World::set_block(local_ibox.min, block_kind, world);
+    World::set_block(local_int_box.min, block_kind, world);
 }
 
 pub fn set_block_cube(
@@ -35,15 +35,15 @@ pub fn set_block_cube(
     area: &Area,
     world: &mut World,
 ) {
-    let local_ibox = Area::set_local(min_offset, size, area);
+    let local_int_box = Area::set_local(min_offset, size, area);
 
-    World::set_block_cube(local_ibox.min, local_ibox.max, block_kind, world);
+    World::set_block_cube(local_int_box.min, local_int_box.max, block_kind, world);
 }
 
 pub fn remove_block_cube(min_offset: IVec3, size: IVec3, area: &Area, world: &mut World) {
-    let local_ibox = Area::set_local(min_offset, size, area);
+    let local_int_box = Area::set_local(min_offset, size, area);
 
-    World::remove_block_cube(local_ibox.min, local_ibox.max, world);
+    World::remove_block_cube(local_int_box.min, local_int_box.max, world);
 }
 
 pub fn set_block_box(
@@ -53,9 +53,9 @@ pub fn set_block_box(
     area: &Area,
     world: &mut World,
 ) {
-    let local_ibox = Area::set_local(min_offset, size, area);
+    let local_int_box = Area::set_local(min_offset, size, area);
 
-    World::set_block_box(local_ibox.min, local_ibox.max, block_kind, world);
+    World::set_block_box(local_int_box.min, local_int_box.max, block_kind, world);
 }
 
 pub fn set_block_wireframe(
@@ -65,9 +65,9 @@ pub fn set_block_wireframe(
     area: &Area,
     world: &mut World,
 ) {
-    let local_ibox = Area::set_local(min_offset, size, area);
+    let local_int_box = Area::set_local(min_offset, size, area);
 
-    World::set_block_wireframe(local_ibox.min, local_ibox.max, block_kind, world);
+    World::set_block_wireframe(local_int_box.min, local_int_box.max, block_kind, world);
 }
 
 pub fn set_object(
@@ -77,9 +77,9 @@ pub fn set_object(
     area: &Area,
     world: &mut World,
 ) {
-    let local_ibox = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
+    let local_int_box = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
 
-    World::set_object(local_ibox.min, object_kind, direction, world);
+    World::set_object(local_int_box.min, object_kind, direction, world);
 }
 
 pub fn set_object_cube(
@@ -90,11 +90,11 @@ pub fn set_object_cube(
     area: &Area,
     world: &mut World,
 ) {
-    let local_ibox = Area::set_local(min_offset, size, area);
+    let local_int_box = Area::set_local(min_offset, size, area);
 
     World::set_object_cube(
-        local_ibox.min,
-        local_ibox.max,
+        local_int_box.min,
+        local_int_box.max,
         direction,
         object_kind,
         world,

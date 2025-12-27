@@ -2,35 +2,29 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::{
+            Population, State, World, physics::{
                 body::Body,
                 collider::{self, Collider},
-            },
-            population::{
+            }, population::{
                 identity, motion,
                 nation::{self},
                 person::Person,
                 sight::Sight,
-            },
-            world::{
+            }, world::{
                 area::{
-                    self,
-                    template::{
+                    self, Area, Connection, template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
-                    },
-                    Connection,
+                    }
                 },
                 block,
                 grid::{self, Direction, Line},
                 tower::{self, Tower},
-                Area,
-            },
-            Population, State, World,
+            }
         },
         utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::{self, gen_bool, gen_range_i32},
+    utils::ldmath::rand_chacha_ext::{gen_bool, gen_f32, gen_range_i32},
 };
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
@@ -227,14 +221,14 @@ impl GenerateData {
 
         let floor_size = Tower::get_floor_size();
 
-        let base_ibox = grid::get_grid_int_box(
+        let base_int_box = grid::get_grid_int_box(
             Tower::get_floor_grid_position(-tower_floor_count) + IVec3::new(0, 0, -1),
             floor_size,
         );
 
         World::set_block_cube(
-            base_ibox.min,
-            IVec3::new(base_ibox.max.x, base_ibox.max.y, base_ibox.min.z),
+            base_int_box.min,
+            IVec3::new(base_int_box.max.x, base_int_box.max.y, base_int_box.min.z),
             block::Kind::Stone3,
             world,
         );
@@ -246,25 +240,25 @@ impl GenerateData {
                 .get_mut(&floor_number)
                 .expect("Floors should exist!");
 
-            let floor_ibox = grid::get_grid_int_box(floor.grid_position, floor_size);
+            let floor_int_box = grid::get_grid_int_box(floor.grid_position, floor_size);
 
             tracing::info!("Constructing Frame, Floor: {:?}", floor.floor_number);
 
             World::set_block_cube(
-                floor_ibox.min,
-                IVec3::new(floor_ibox.max.x, floor_ibox.max.y, floor_ibox.min.z),
+                floor_int_box.min,
+                IVec3::new(floor_int_box.max.x, floor_int_box.max.y, floor_int_box.min.z),
                 block::Kind::Panel2,
                 world,
             );
 
             World::set_block_cube(
-                IVec3::new(floor_ibox.min.x, floor_ibox.min.y, floor_ibox.max.z),
-                floor_ibox.max,
+                IVec3::new(floor_int_box.min.x, floor_int_box.min.y, floor_int_box.max.z),
+                floor_int_box.max,
                 block::Kind::Panel2,
                 world,
             );
 
-            World::set_block_wireframe(floor_ibox.min, floor_ibox.max, block::Kind::Caution, world);
+            World::set_block_wireframe(floor_int_box.min, floor_int_box.max, block::Kind::Caution, world);
         }
     }
 
@@ -281,17 +275,17 @@ impl GenerateData {
 
             let floor_size = Tower::get_floor_size();
 
-            let floor_ibox = grid::get_grid_int_box(floor.grid_position, floor_size);
+            let floor_int_box = grid::get_grid_int_box(floor.grid_position, floor_size);
 
             tracing::info!("Constructing Exterior, Floor: {:?}", floor.floor_number);
 
             for y in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor_ibox.min.z + 1, floor_ibox.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
-                        IVec3::new(-tower_radius, y, floor_ibox.min.z + 1),
+                        IVec3::new(-tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         world,
@@ -299,18 +293,18 @@ impl GenerateData {
                 } else {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
-                        IVec3::new(-tower_radius, y, floor_ibox.max.z - 1),
+                        IVec3::new(-tower_radius, y, floor_int_box.max.z - 1),
                         block::Kind::Metal3,
                         world,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor_ibox.min.z + 1, floor_ibox.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
-                        IVec3::new(tower_radius, y, floor_ibox.min.z + 1),
+                        IVec3::new(tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
                         block::Kind::Metal3,
                         world,
@@ -318,7 +312,7 @@ impl GenerateData {
                 } else {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
-                        IVec3::new(tower_radius, y, floor_ibox.max.z - 1),
+                        IVec3::new(tower_radius, y, floor_int_box.max.z - 1),
                         block::Kind::Metal3,
                         world,
                     );
@@ -327,11 +321,11 @@ impl GenerateData {
 
             for x in -tower_radius + 1..=tower_radius - 1 {
                 let floor_z_random =
-                    gen_range_i32(floor_ibox.min.z + 1, floor_ibox.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
-                        IVec3::new(x, -tower_radius, floor_ibox.min.z + 1),
+                        IVec3::new(x, -tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         world,
@@ -339,18 +333,18 @@ impl GenerateData {
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
-                        IVec3::new(x, -tower_radius, floor_ibox.max.z - 1),
+                        IVec3::new(x, -tower_radius, floor_int_box.max.z - 1),
                         block::Kind::Metal3,
                         world,
                     );
                 }
 
                 let floor_z_random =
-                    gen_range_i32(floor_ibox.min.z + 1, floor_ibox.max.z - 1, &mut world.rng);
+                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
-                        IVec3::new(x, tower_radius, floor_ibox.min.z + 1),
+                        IVec3::new(x, tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
                         block::Kind::Metal3,
                         world,
@@ -358,7 +352,7 @@ impl GenerateData {
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
-                        IVec3::new(x, tower_radius, floor_ibox.max.z - 1),
+                        IVec3::new(x, tower_radius, floor_int_box.max.z - 1),
                         block::Kind::Metal3,
                         world,
                     );
@@ -372,11 +366,11 @@ impl GenerateData {
 
         let floor_size = Tower::get_floor_size();
 
-        let roof_ibox = grid::get_grid_int_box(Tower::get_floor_grid_position(0), floor_size);
+        let roof_int_box = grid::get_grid_int_box(Tower::get_floor_grid_position(0), floor_size);
 
         World::set_block_cube(
-            roof_ibox.min,
-            IVec3::new(roof_ibox.max.x, roof_ibox.max.y, roof_ibox.min.z),
+            roof_int_box.min,
+            IVec3::new(roof_int_box.max.x, roof_int_box.max.y, roof_int_box.min.z),
             block::Kind::Stone3,
             world,
         );
@@ -520,7 +514,7 @@ impl GenerateData {
                             Area::find_ground_line(floor.grid_position.z + 1, 3, contact)
                         {
                             let entrance_vec = vec![Line::midpoint(&line)];
-                            let cost = rand_chacha_ext::gen_f32(&mut world.rng);
+                            let cost = gen_f32(&mut world.rng);
 
                             let connection_candidate = Connection {
                                 area_id1: *area1_id,

@@ -4,8 +4,6 @@ pub mod kind;
 pub use info::Info;
 pub use kind::Kind;
 
-use crate::simulation::state::world::block;
-
 #[derive(Clone, Debug)]
 pub struct Block {
     pub block_kind: self::Kind,
@@ -14,58 +12,68 @@ pub struct Block {
 
 impl Block {
     pub fn new(block_kind: self::Kind) -> Self {
+        let block_info = Self::get_block_info(block_kind);
+
         Self {
             block_kind,
-            solid: self::get_block_info(block_kind).solid,
+            solid: block_info.solid,
         }
     }
-}
 
-pub fn get_block_info(block_kind: block::Kind) -> block::Info {
-    match block_kind {
-        Kind::Engraved1 => Info { solid: true },
-        Kind::Engraved2 => Info { solid: true },
-        Kind::Engraved3 => Info { solid: true },
-        Kind::Engraved4 => Info { solid: true },
-        Kind::Ornate1 => Info { solid: true },
-        Kind::Ornate2 => Info { solid: true },
-        Kind::Ornate3 => Info { solid: true },
-        Kind::Ornate4 => Info { solid: true },
-        Kind::CarvedStone1 => Info { solid: true },
-        Kind::CarvedStone2 => Info { solid: true },
-        Kind::CarvedStone3 => Info { solid: true },
-        Kind::CarvedStone4 => Info { solid: true },
-        Kind::Stone1 => Info { solid: true },
-        Kind::Stone2 => Info { solid: true },
-        Kind::Stone3 => Info { solid: true },
-        Kind::Stone4 => Info { solid: true },
-        Kind::Lion => Info { solid: true },
-        Kind::Eagle => Info { solid: true },
-        Kind::Wolf => Info { solid: true },
-        Kind::Horse => Info { solid: true },
-        Kind::LionStone => Info { solid: true },
-        Kind::EagleStone => Info { solid: true },
-        Kind::WolfStone => Info { solid: true },
-        Kind::HorseStone => Info { solid: true },
-        Kind::EastBlock => Info { solid: true },
-        Kind::WestBlock => Info { solid: true },
-        Kind::NorthBlock => Info { solid: true },
-        Kind::SouthBlock => Info { solid: true },
-        Kind::Server1 => Info { solid: true },
-        Kind::Server2 => Info { solid: true },
-        Kind::Server3 => Info { solid: true },
-        Kind::Server4 => Info { solid: true },
-        Kind::Metal1 => Info { solid: true },
-        Kind::Metal2 => Info { solid: true },
-        Kind::Metal3 => Info { solid: true },
-        Kind::Metal4 => Info { solid: true },
-        Kind::Panel1 => Info { solid: true },
-        Kind::Panel2 => Info { solid: true },
-        Kind::Panel3 => Info { solid: true },
-        Kind::Vent1 => Info { solid: true },
-        Kind::Vent2 => Info { solid: true },
-        Kind::Vent3 => Info { solid: true },
-        Kind::Vent4 => Info { solid: true },
-        Kind::Caution => Info { solid: true },
+    pub const fn get_boundary_block() -> Self {
+        Self {
+            block_kind: self::Kind::Boundary,
+            solid: true,
+        }
+    }
+
+    pub const fn get_block_info(block_kind: self::Kind) -> self::Info {
+        match block_kind {
+            self::Kind::Boundary => self::Info { solid: true },
+            self::Kind::Engraved1 => self::Info { solid: true },
+            self::Kind::Engraved2 => self::Info { solid: true },
+            self::Kind::Engraved3 => self::Info { solid: true },
+            self::Kind::Engraved4 => self::Info { solid: true },
+            self::Kind::Ornate1 => self::Info { solid: true },
+            self::Kind::Ornate2 => self::Info { solid: true },
+            self::Kind::Ornate3 => self::Info { solid: true },
+            self::Kind::Ornate4 => self::Info { solid: true },
+            self::Kind::CarvedStone1 => self::Info { solid: true },
+            self::Kind::CarvedStone2 => self::Info { solid: true },
+            self::Kind::CarvedStone3 => self::Info { solid: true },
+            self::Kind::CarvedStone4 => self::Info { solid: true },
+            self::Kind::Stone1 => self::Info { solid: true },
+            self::Kind::Stone2 => self::Info { solid: true },
+            self::Kind::Stone3 => self::Info { solid: true },
+            self::Kind::Stone4 => self::Info { solid: true },
+            self::Kind::Lion => self::Info { solid: true },
+            self::Kind::Eagle => self::Info { solid: true },
+            self::Kind::Wolf => self::Info { solid: true },
+            self::Kind::Horse => self::Info { solid: true },
+            self::Kind::LionStone => self::Info { solid: true },
+            self::Kind::EagleStone => self::Info { solid: true },
+            self::Kind::WolfStone => self::Info { solid: true },
+            self::Kind::HorseStone => self::Info { solid: true },
+            self::Kind::EastBlock => self::Info { solid: true },
+            self::Kind::WestBlock => self::Info { solid: true },
+            self::Kind::NorthBlock => self::Info { solid: true },
+            self::Kind::SouthBlock => self::Info { solid: true },
+            self::Kind::Server1 => self::Info { solid: true },
+            self::Kind::Server2 => self::Info { solid: true },
+            self::Kind::Server3 => self::Info { solid: true },
+            self::Kind::Server4 => self::Info { solid: true },
+            self::Kind::Metal1 => self::Info { solid: true },
+            self::Kind::Metal2 => self::Info { solid: true },
+            self::Kind::Metal3 => self::Info { solid: true },
+            self::Kind::Metal4 => self::Info { solid: true },
+            self::Kind::Panel1 => self::Info { solid: true },
+            self::Kind::Panel2 => self::Info { solid: true },
+            self::Kind::Panel3 => self::Info { solid: true },
+            self::Kind::Vent1 => self::Info { solid: true },
+            self::Kind::Vent2 => self::Info { solid: true },
+            self::Kind::Vent3 => self::Info { solid: true },
+            self::Kind::Vent4 => self::Info { solid: true },
+            self::Kind::Caution => self::Info { solid: true },
+        }
     }
 }

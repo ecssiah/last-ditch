@@ -8,18 +8,14 @@ pub mod object;
 pub mod sector;
 pub mod tower;
 
-pub use area::Area;
-pub use block::Block;
-pub use cell::Cell;
-pub use object::Object;
-pub use sector::Sector;
-
 use crate::{
     simulation::{
         constants::*,
         state::{
-            population::nation,
-            world::{grid::Direction, tower::Tower},
+            world::{
+                area::Area, block::Block, cell::Cell, grid::Direction, object::Object,
+                sector::Sector, tower::Tower,
+            },
             Time,
         },
         utils::IDGenerator,
@@ -30,7 +26,6 @@ use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
     ChaCha8Rng,
 };
-use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
@@ -76,24 +71,17 @@ impl World {
         Tower::reset(&mut world.tower);
     }
 
-    pub fn get_flag(
-        nation_kind: nation::Kind,
-        home_position_map: HashMap<nation::Kind, IVec3>,
-    ) -> Option<IVec3> {
-        home_position_map.get(&nation_kind).cloned()
-    }
-
     fn setup_sector_vec() -> Vec<Sector> {
-        grid::sector_id_vec()
+        grid::sector_index_vec()
             .into_iter()
-            .map(|sector_id| {
-                let grid_position = grid::sector_id_to_grid_position(sector_id);
+            .map(|sector_index| {
+                let grid_position = grid::sector_index_to_grid_position(sector_index);
                 let version = 0;
 
-                let cell_vec = Self::setup_cell_vec(sector_id);
+                let cell_vec = Self::setup_cell_vec(sector_index);
 
                 Sector {
-                    sector_id,
+                    sector_index,
                     version,
                     grid_position,
                     cell_vec,
@@ -102,51 +90,15 @@ impl World {
             .collect()
     }
 
-    pub fn set_object(
-        grid_position: IVec3,
-        object_kind: object::Kind,
-        direction: grid::Direction,
-        world: &mut Self,
-    ) {
-        if !grid::is_grid_position_valid(grid_position) {
-            return;
-        }
-
-        let cell = World::get_cell_at_mut(grid_position, &mut world.sector_vec);
-
-        let mut object = Object::new(object_kind);
-        object.direction = direction;
-
-        cell.object = Some(object);
-    }
-
-    pub fn set_object_cube(
-        min: IVec3,
-        max: IVec3,
-        direction: Direction,
-        object_kind: object::Kind,
-        world: &mut Self,
-    ) {
-        for z in min.z..=max.z {
-            for y in min.y..=max.y {
-                for x in min.x..=max.x {
-                    let grid_position = IVec3::new(x, y, z);
-
-                    Self::set_object(grid_position, object_kind, direction, world);
-                }
-            }
-        }
-    }
-
-    fn setup_cell_vec(sector_id: usize) -> Vec<Cell> {
-        grid::cell_id_vec()
+    fn setup_cell_vec(sector_index: usize) -> Vec<Cell> {
+        grid::cell_index_vec()
             .into_iter()
-            .map(|cell_id| {
-                let grid_position = grid::ids_to_grid_position(sector_id, cell_id);
+            .map(|cell_index| {
+                let grid_position = grid::ids_to_grid_position(sector_index, cell_index);
 
                 Cell {
-                    cell_id,
-                    sector_id,
+                    cell_index,
+                    sector_index,
                     grid_position,
                     block: None,
                     object: None,
@@ -155,235 +107,114 @@ impl World {
             .collect()
     }
 
-    pub fn get_sector<'a>(sector_id: usize, sector_vec_slice: &'a [Sector]) -> &'a sector::Sector {
-        let sector = &sector_vec_slice[sector_id];
+    pub fn get_sector(sector_index: usize, sector_vec_slice: &[Sector]) -> &Sector {
+        let sector = &sector_vec_slice[sector_index];
 
         sector
     }
 
-    pub fn get_sector_mut<'a>(
-        sector_id: usize,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> &'a mut sector::Sector {
-        let sector = &mut sector_vec_slice[sector_id];
+    pub fn get_sector_mut(sector_index: usize, sector_vec_slice: &mut [Sector]) -> &mut Sector {
+        let sector = &mut sector_vec_slice[sector_index];
 
         sector
     }
 
-    pub fn get_sector_at<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a [Sector],
-    ) -> &'a sector::Sector {
-        let sector_id = grid::grid_position_to_sector_id(grid_position);
+    pub fn get_sector_at(grid_position: IVec3, sector_vec_slice: &[Sector]) -> &Sector {
+        let sector_index = grid::grid_position_to_sector_index(grid_position);
 
-        let sector = &sector_vec_slice[sector_id];
+        let sector = &sector_vec_slice[sector_index];
 
         sector
     }
 
-    pub fn get_sector_at_mut<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> &'a mut sector::Sector {
-        let sector_id = grid::grid_position_to_sector_id(grid_position);
+    pub fn get_sector_at_mut(grid_position: IVec3, sector_vec_slice: &mut [Sector]) -> &mut Sector {
+        let sector_index = grid::grid_position_to_sector_index(grid_position);
 
-        let sector = &mut sector_vec_slice[sector_id];
+        let sector = &mut sector_vec_slice[sector_index];
 
         sector
     }
 
-    pub fn get_cell(sector_id: usize, cell_id: usize, sector_vec_slice: &[Sector]) -> &Cell {
-        let sector = &sector_vec_slice[sector_id];
-        let cell = &sector.cell_vec[cell_id];
+    pub fn get_cell(sector_index: usize, cell_index: usize, sector_vec_slice: &[Sector]) -> &Cell {
+        let sector = &sector_vec_slice[sector_index];
+        let cell = &sector.cell_vec[cell_index];
 
         cell
     }
 
     pub fn get_cell_mut(
-        sector_id: usize,
-        cell_id: usize,
+        sector_index: usize,
+        cell_index: usize,
         sector_vec_slice: &mut [Sector],
     ) -> &mut Cell {
-        let sector = &mut sector_vec_slice[sector_id];
-
-        let cell = &mut sector.cell_vec[cell_id];
-
-        cell
-    }
-
-    pub fn get_cell_at<'a>(grid_position: IVec3, sector_vec_slice: &'a [Sector]) -> &'a Cell {
-        let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
-
-        let cell = Self::get_cell(sector_id, cell_id, sector_vec_slice);
+        let sector = &mut sector_vec_slice[sector_index];
+        let cell = &mut sector.cell_vec[cell_index];
 
         cell
     }
 
-    pub fn get_cell_at_mut<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> &'a mut Cell {
-        let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
+    pub fn get_cell_at(grid_position: IVec3, sector_vec_slice: &[Sector]) -> &Cell {
+        let (sector_index, cell_index) = grid::grid_position_to_ids(grid_position);
 
-        let cell = Self::get_cell_mut(sector_id, cell_id, sector_vec_slice);
+        let cell = Self::get_cell(sector_index, cell_index, sector_vec_slice);
 
         cell
     }
 
-    pub fn get_block<'a>(
-        sector_id: usize,
-        cell_id: usize,
-        sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a Block> {
-        let cell = World::get_cell(sector_id, cell_id, sector_vec_slice);
+    pub fn get_cell_at_mut(grid_position: IVec3, sector_vec_slice: &mut [Sector]) -> &mut Cell {
+        let (sector_index, cell_index) = grid::grid_position_to_ids(grid_position);
+
+        let cell = Self::get_cell_mut(sector_index, cell_index, sector_vec_slice);
+
+        cell
+    }
+
+    pub fn get_block(
+        sector_index: usize,
+        cell_index: usize,
+        sector_vec_slice: &[Sector],
+    ) -> Option<&Block> {
+        let cell = World::get_cell(sector_index, cell_index, sector_vec_slice);
 
         cell.block.as_ref()
     }
 
-    pub fn get_block_at<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a Block> {
+    pub fn get_block_at(grid_position: IVec3, sector_vec_slice: &[Sector]) -> Option<&Block> {
         let cell = World::get_cell_at(grid_position, sector_vec_slice);
 
         cell.block.as_ref()
     }
 
-    pub fn get_block_mut<'a>(
-        sector_id: usize,
-        cell_id: usize,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut Block> {
-        let cell = World::get_cell_mut(sector_id, cell_id, sector_vec_slice);
+    pub fn get_block_mut(
+        sector_index: usize,
+        cell_index: usize,
+        sector_vec_slice: &mut [Sector],
+    ) -> Option<&mut Block> {
+        let cell = World::get_cell_mut(sector_index, cell_index, sector_vec_slice);
 
         cell.block.as_mut()
     }
 
-    pub fn get_block_at_mut<'a>(
+    pub fn get_block_at_mut(
         grid_position: IVec3,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut Block> {
+        sector_vec_slice: &mut [Sector],
+    ) -> Option<&mut Block> {
         let cell = World::get_cell_at_mut(grid_position, sector_vec_slice);
 
         cell.block.as_mut()
-    }
-
-    pub fn get_object<'a>(
-        sector_id: usize,
-        cell_id: usize,
-        sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a Object> {
-        let cell = World::get_cell(sector_id, cell_id, sector_vec_slice);
-
-        cell.object.as_ref()
-    }
-
-    pub fn get_object_at<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a [Sector],
-    ) -> Option<&'a Object> {
-        let cell = World::get_cell_at(grid_position, sector_vec_slice);
-
-        cell.object.as_ref()
-    }
-
-    pub fn get_object_mut<'a>(
-        sector_id: usize,
-        cell_id: usize,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut Object> {
-        let cell = World::get_cell_mut(sector_id, cell_id, sector_vec_slice);
-
-        cell.object.as_mut()
-    }
-
-    pub fn get_object_at_mut<'a>(
-        grid_position: IVec3,
-        sector_vec_slice: &'a mut [Sector],
-    ) -> Option<&'a mut Object> {
-        let cell = World::get_cell_at_mut(grid_position, sector_vec_slice);
-
-        cell.object.as_mut()
-    }
-
-    pub fn is_block_solid_at(grid_position: IVec3, world: &World) -> bool {
-        if grid::is_grid_position_valid(grid_position) {
-            Self::get_block_at(grid_position, &world.sector_vec).is_some_and(|block| block.solid)
-        } else {
-            true
-        }
-    }
-
-    pub fn get_clearance(grid_position: IVec3, world: &Self) -> u32 {
-        let is_ground_solid = Self::is_block_solid_at(grid_position + -1 * IVec3::unit_z(), world);
-
-        let mut clearance = 0;
-        let max_clearance_check = 5;
-
-        if is_ground_solid {
-            for level in 0..max_clearance_check {
-                let level_grid_position = grid_position + IVec3::new(0, 0, level as i32);
-
-                if Self::is_block_solid_at(level_grid_position, world) {
-                    clearance += 1;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        clearance
     }
 
     pub fn set_block(grid_position: IVec3, block_kind: block::Kind, world: &mut Self) {
         if grid::is_grid_position_valid(grid_position) {
-            let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
+            let (sector_index, cell_index) = grid::grid_position_to_ids(grid_position);
 
-            let cell = World::get_cell_mut(sector_id, cell_id, &mut world.sector_vec);
+            let cell = World::get_cell_mut(sector_index, cell_index, &mut world.sector_vec);
 
             let block = Block::new(block_kind);
 
             cell.block = Some(block);
 
-            let sector = Self::get_sector_mut(sector_id, &mut world.sector_vec);
-            sector.version += 1;
-        }
-    }
-
-    pub fn remove_block(grid_position: IVec3, world: &mut Self) {
-        if grid::is_grid_position_valid(grid_position) {
-            let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
-
-            let cell = World::get_cell_mut(sector_id, cell_id, &mut world.sector_vec);
-
-            cell.block = None;
-
-            let sector = Self::get_sector_mut(sector_id, &mut world.sector_vec);
-            sector.version += 1;
-        }
-    }
-
-    pub fn remove_block_cube(min: IVec3, max: IVec3, world: &mut Self) {
-        for z in min.z..=max.z {
-            for y in min.y..=max.y {
-                for x in min.x..=max.x {
-                    let grid_position = IVec3::new(x, y, z);
-
-                    Self::remove_block(grid_position, world);
-                }
-            }
-        }
-    }
-
-    pub fn remove_object(grid_position: IVec3, world: &mut Self) {
-        if grid::is_grid_position_valid(grid_position) {
-            let (sector_id, cell_id) = grid::grid_position_to_ids(grid_position);
-
-            let cell = World::get_cell_mut(sector_id, cell_id, &mut world.sector_vec);
-
-            cell.object = None;
-
-            let sector = Self::get_sector_mut(sector_id, &mut world.sector_vec);
+            let sector = Self::get_sector_mut(sector_index, &mut world.sector_vec);
             sector.version += 1;
         }
     }
@@ -478,6 +309,121 @@ impl World {
                     Self::set_block(position, block_kind, world);
                 }
             }
+        }
+    }
+
+    pub fn remove_block(grid_position: IVec3, world: &mut Self) {
+        if grid::is_grid_position_valid(grid_position) {
+            let (sector_index, cell_index) = grid::grid_position_to_ids(grid_position);
+
+            let cell = World::get_cell_mut(sector_index, cell_index, &mut world.sector_vec);
+
+            cell.block = None;
+
+            let sector = Self::get_sector_mut(sector_index, &mut world.sector_vec);
+            sector.version += 1;
+        }
+    }
+
+    pub fn remove_block_cube(min: IVec3, max: IVec3, world: &mut Self) {
+        for z in min.z..=max.z {
+            for y in min.y..=max.y {
+                for x in min.x..=max.x {
+                    let grid_position = IVec3::new(x, y, z);
+
+                    Self::remove_block(grid_position, world);
+                }
+            }
+        }
+    }
+
+    pub fn get_object(
+        sector_index: usize,
+        cell_index: usize,
+        sector_vec_slice: &[Sector],
+    ) -> Option<&Object> {
+        let cell = World::get_cell(sector_index, cell_index, sector_vec_slice);
+
+        cell.object.as_ref()
+    }
+
+    pub fn get_object_at(grid_position: IVec3, sector_vec_slice: &[Sector]) -> Option<&Object> {
+        let cell = World::get_cell_at(grid_position, sector_vec_slice);
+
+        cell.object.as_ref()
+    }
+
+    pub fn get_object_mut(
+        sector_index: usize,
+        cell_index: usize,
+        sector_vec_slice: &mut [Sector],
+    ) -> Option<&mut Object> {
+        let cell = World::get_cell_mut(sector_index, cell_index, sector_vec_slice);
+
+        cell.object.as_mut()
+    }
+
+    pub fn get_object_at_mut(
+        grid_position: IVec3,
+        sector_vec_slice: &mut [Sector],
+    ) -> Option<&mut Object> {
+        let cell = World::get_cell_at_mut(grid_position, sector_vec_slice);
+
+        cell.object.as_mut()
+    }
+
+    pub fn set_object(
+        grid_position: IVec3,
+        object_kind: object::Kind,
+        direction: grid::Direction,
+        world: &mut Self,
+    ) {
+        if grid::is_grid_position_valid(grid_position) {
+            let cell = World::get_cell_at_mut(grid_position, &mut world.sector_vec);
+
+            let mut object = Object::new(object_kind);
+            object.direction = direction;
+
+            cell.object = Some(object);
+        }
+    }
+
+    pub fn set_object_cube(
+        min: IVec3,
+        max: IVec3,
+        direction: Direction,
+        object_kind: object::Kind,
+        world: &mut Self,
+    ) {
+        for z in min.z..=max.z {
+            for y in min.y..=max.y {
+                for x in min.x..=max.x {
+                    let grid_position = IVec3::new(x, y, z);
+
+                    Self::set_object(grid_position, object_kind, direction, world);
+                }
+            }
+        }
+    }
+
+    pub fn remove_object(grid_position: IVec3, world: &mut Self) {
+        if grid::is_grid_position_valid(grid_position) {
+            let (sector_index, cell_index) = grid::grid_position_to_ids(grid_position);
+
+            let cell = World::get_cell_mut(sector_index, cell_index, &mut world.sector_vec);
+
+            cell.object = None;
+
+            let sector = Self::get_sector_mut(sector_index, &mut world.sector_vec);
+            sector.version += 1;
+        }
+    }
+
+    pub fn is_block_solid_at(grid_position: IVec3, world: &World) -> bool {
+        if grid::is_grid_position_valid(grid_position) {
+            Self::get_block_at(grid_position, &world.sector_vec).is_some_and(|block| block.solid)
+        } else {
+            true
         }
     }
 

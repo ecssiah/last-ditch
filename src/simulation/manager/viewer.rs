@@ -6,18 +6,15 @@ pub mod view;
 use crate::simulation::{
     constants::*,
     manager::{
-        viewer::view::{
+        Manager, viewer::view::{
             BlockView, CellView, ManagerView, ObjectView, PersonView, PopulationView, SectorView,
             View, WorldView,
-        },
-        Manager,
+        }
     },
     state::{
-        world::{
-            grid::{self, Direction},
-            sector::Sector,
-        },
-        State, World,
+        State, World, world::{
+            grid::{self, Direction}, sector::Sector,
+        }
     },
 };
 use std::collections::HashMap;
@@ -128,8 +125,8 @@ impl Viewer {
                             continue;
                         }
 
-                        let sector_id = grid::sector_coordinate_to_sector_id(sector_coordinate);
-                        let sector = &state.world.sector_vec[sector_id];
+                        let sector_index = grid::sector_coordinate_to_sector_index(sector_coordinate);
+                        let sector = &state.world.sector_vec[sector_index];
                         let world_position =
                             grid::grid_position_to_world_position(sector.grid_position);
 
@@ -141,7 +138,7 @@ impl Viewer {
                         );
 
                         let sector_view = SectorView {
-                            sector_id: sector.sector_id,
+                            sector_index: sector.sector_index,
                             version: sector.version,
                             world_position,
                             cell_view_vec,
@@ -149,7 +146,7 @@ impl Viewer {
 
                         world_view
                             .sector_view_map
-                            .insert(sector.sector_id, sector_view);
+                            .insert(sector.sector_index, sector_view);
                     }
                 }
             }
@@ -164,7 +161,7 @@ impl Viewer {
         sector_version_map: &mut HashMap<usize, u64>,
         cell_view_cache: &mut HashMap<usize, Vec<CellView>>,
     ) -> Vec<CellView> {
-        let needs_rebuild = match sector_version_map.get(&sector.sector_id) {
+        let needs_rebuild = match sector_version_map.get(&sector.sector_index) {
             Some(current_version) => *current_version != sector.version,
             None => true,
         };
@@ -172,12 +169,12 @@ impl Viewer {
         let cell_view_vec = if needs_rebuild {
             let cell_view_vec = Self::build_cell_view_vec(sector, world);
 
-            cell_view_cache.insert(sector.sector_id, cell_view_vec.clone());
-            sector_version_map.insert(sector.sector_id, sector.version);
+            cell_view_cache.insert(sector.sector_index, cell_view_vec.clone());
+            sector_version_map.insert(sector.sector_index, sector.version);
 
             cell_view_vec
         } else {
-            cell_view_cache[&sector.sector_id].clone()
+            cell_view_cache[&sector.sector_index].clone()
         };
 
         cell_view_vec
@@ -193,8 +190,8 @@ impl Viewer {
                 for x in -sector_radius_in_cells..=sector_radius_in_cells {
                     let cell_coordinate = IVec3::new(x, y, z);
 
-                    let cell_id = grid::cell_coordinate_to_cell_id(cell_coordinate);
-                    let grid_position = grid::ids_to_grid_position(sector.sector_id, cell_id);
+                    let cell_index = grid::cell_coordinate_to_cell_index(cell_coordinate);
+                    let grid_position = grid::ids_to_grid_position(sector.sector_index, cell_index);
 
                     let cell = World::get_cell_at(grid_position, &world.sector_vec);
 
@@ -235,13 +232,13 @@ impl Viewer {
                     };
 
                     let cell_view = CellView {
-                        cell_id,
+                        cell_index,
                         grid_position,
                         block_view,
                         object_view,
                     };
 
-                    cell_view_vec[cell.cell_id] = cell_view;
+                    cell_view_vec[cell.cell_index] = cell_view;
                 }
             }
         }
