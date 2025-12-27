@@ -1,3 +1,9 @@
+pub mod contact;
+pub mod contact_set;
+
+pub use contact::Contact;
+pub use contact_set::ContactSet;
+
 use crate::simulation::{
     constants::CELL_RADIUS_IN_METERS,
     state::physics::collider::{self, Collider},
@@ -7,22 +13,22 @@ use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct Body {
-    pub is_grounded: bool,
     pub is_massive: bool,
+    pub contact_set: ContactSet,
     pub collider_vec: Vec<Collider>,
     pub collider_index_map: HashMap<collider::Label, usize>,
 }
 
 impl Body {
     pub fn new(size: Vec3) -> Self {
-        let is_grounded = false;
         let is_massive = true;
+        let contact_set = ContactSet::EMPTY;
         let collider_vec = vec![Collider::new(&collider::Kind::Solid, Vec3::zero(), size)];
         let collider_index_map = HashMap::from([(collider::Label::Core, collider_vec.len() - 1)]);
 
         Self {
-            is_grounded,
             is_massive,
+            contact_set,
             collider_vec,
             collider_index_map,
         }

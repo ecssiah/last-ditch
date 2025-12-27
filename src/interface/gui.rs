@@ -9,7 +9,9 @@ use crate::{
     simulation::{
         constants::ID_JUDGE_1,
         manager::{message::SeedData, viewer::view::View, Message},
-        state::world::grid::{self, Direction},
+        state::{
+            world::grid::{self, Direction},
+        },
     },
 };
 use egui::{FontId, FullOutput, Id, Ui};
@@ -219,14 +221,13 @@ impl GUI {
                 Direction::from_rotation(person_view.transform.rotation_xy)
             );
 
-            let is_grounded_string = format!(
-                "Grounded: {}\n",
-                if person_view.body.is_grounded {
-                    "true"
-                } else {
-                    "false"
-                },
+            let contact_set_string = format!(
+                "Contact Set: {}\n",
+                person_view.body.contact_set.to_string()
             );
+
+            let motion_mode_string =
+                format!("Motion Mode: {}\n", person_view.motion.mode.to_string());
 
             let selected_block_kind_string =
                 format!("Selected Block: {:?}\n", person_view.selected_block_kind);
@@ -237,7 +238,8 @@ impl GUI {
             info_message.push_str(&world_position_string);
             info_message.push_str(&sector_string);
             info_message.push_str(&direction_string);
-            info_message.push_str(&is_grounded_string);
+            info_message.push_str(&contact_set_string);
+            info_message.push_str(&motion_mode_string);
             info_message.push_str(&selected_block_kind_string);
 
             gui.model.info_message_vec.clear();

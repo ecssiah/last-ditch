@@ -6,6 +6,7 @@ use crate::simulation::{
     constants::{MOVEMENT_EPSILON, PITCH_LIMIT},
     state::{
         action::act::{move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData},
+        physics::body::{self, ContactSet},
         population::{motion, person::Person},
         Population, State, World,
     },
@@ -87,7 +88,8 @@ impl Action {
                         person.motion.velocity.x = velocity.x;
                         person.motion.velocity.y = velocity.y;
                     }
-                    motion::Mode::Flying => {
+                    motion::Mode::Climb => (),
+                    motion::Mode::Fly => {
                         let local_horizontal_move_direction =
                             Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
 
@@ -111,7 +113,8 @@ impl Action {
                         person.motion.velocity.x = 0.0;
                         person.motion.velocity.y = 0.0;
                     }
-                    motion::Mode::Flying => {
+                    motion::Mode::Climb => (),
+                    motion::Mode::Fly => {
                         person.motion.velocity = Vec3::zero();
                     }
                 }
@@ -123,11 +126,12 @@ impl Action {
         if let Some(person) = population.person_map.get_mut(&jump_data.person_id) {
             match person.motion.mode {
                 motion::Mode::Ground => {
-                    if person.body.is_grounded {
+                    if ContactSet::contains(body::Contact::Ground, &person.body.contact_set) {
                         person.motion.velocity.z = person.motion.jump_speed
                     }
                 }
-                motion::Mode::Flying => (),
+                motion::Mode::Climb => (),
+                motion::Mode::Fly => (),
             }
         }
     }

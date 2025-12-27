@@ -189,12 +189,12 @@ impl Manager {
     fn handle_debug_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             match judge.motion.mode {
-                motion::Mode::Ground => {
-                    judge.motion.mode = motion::Mode::Flying;
+                motion::Mode::Ground | motion::Mode::Climb => {
+                    judge.motion.mode = motion::Mode::Fly;
                     judge.motion.speed = JUDGE_DEFAULT_FLYING_SPEED;
                     judge.body.is_massive = false;
                 }
-                motion::Mode::Flying => {
+                motion::Mode::Fly => {
                     judge.motion.mode = motion::Mode::Ground;
                     judge.motion.speed = JUDGE_DEFAULT_GROUND_SPEED;
                     judge.body.is_massive = true;

@@ -7,7 +7,7 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::body::Body,
+            physics::body::{contact_set::ContactSet, Body},
             population::{person::Person, Population},
             world::grid::{self, axis::Axis},
             World,
@@ -52,7 +52,9 @@ impl Physics {
     fn integrate_person(physics: &Self, judge: &mut Person) -> (Vec3, Vec3) {
         let initial_velocity = judge.motion.velocity;
 
-        let acceleration = if judge.body.is_massive && !judge.body.is_grounded {
+        let acceleration = if judge.body.is_massive
+            && !ContactSet::contains(body::Contact::Ground, &mut judge.body.contact_set)
+        {
             physics.gravity
         } else {
             Vec3::zero()
@@ -71,6 +73,8 @@ impl Physics {
         world: &World,
         person: &mut Person,
     ) -> (Vec3, Vec3) {
+        ContactSet::clear(&mut person.body.contact_set);
+
         let core_collider =
             Body::get_collider(collider::Label::Core, &person.body).expect("Body is missing core");
 
@@ -88,6 +92,7 @@ impl Physics {
                     delta_axis,
                     delta_position_intent[axis_index],
                     world,
+                    person,
                 );
 
             delta_position_resolved[axis_index] = delta_position_resolved_axis;
@@ -108,9 +113,12 @@ impl Physics {
             world,
         );
 
-        person.body.is_grounded = ground_hit_vec
+        if ground_hit_vec
             .iter()
-            .any(|hit| hit.collider_kind == collider::Kind::Solid);
+            .any(|hit| hit.collider_kind == collider::Kind::Solid)
+        {
+            ContactSet::insert(body::Contact::Ground, &mut person.body.contact_set);
+        }
 
         (delta_position_resolved, velocity_mask)
     }
@@ -120,6 +128,7 @@ impl Physics {
         delta_axis: Axis,
         delta_position_intent: f32,
         world: &World,
+        person: &mut Person,
     ) -> (f32, f32) {
         let mut delta_position_resolved = 0.0;
 
@@ -149,6 +158,13 @@ impl Physics {
             } else {
                 t_min = t_mid;
                 delta_position_resolved = delta_position_test;
+            }
+
+            if hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::Ladder)
+            {
+                ContactSet::insert(body::Contact::Ladder, &mut person.body.contact_set);
             }
         }
 
