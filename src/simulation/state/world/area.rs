@@ -54,11 +54,12 @@ impl Area {
         )
     }
 
-    pub fn find_contact(area1: &Self, area2: &Self) -> Option<Contact> {
+    pub fn find_contact(area1: &Self, area2: &Self) -> Option<self::Contact> {
         let area1_int_box = grid::get_grid_int_box(area1.grid_position, area1.size);
         let area2_int_box = grid::get_grid_int_box(area2.grid_position, area2.size);
 
-        if area1_int_box.max.x == area2_int_box.min.x || area2_int_box.max.x == area1_int_box.min.x {
+        if area1_int_box.max.x == area2_int_box.min.x || area2_int_box.max.x == area1_int_box.min.x
+        {
             let x = if area1_int_box.max.x == area2_int_box.min.x {
                 area1_int_box.max.x
             } else {
@@ -79,7 +80,7 @@ impl Area {
                 area2_int_box.max.z,
             )?;
 
-            let contact = Contact::X {
+            let contact = self::Contact::X {
                 x,
                 y_range: y_overlap,
                 z_range: z_overlap,
@@ -88,7 +89,8 @@ impl Area {
             return Some(contact);
         }
 
-        if area1_int_box.max.y == area2_int_box.min.y || area2_int_box.max.y == area1_int_box.min.y {
+        if area1_int_box.max.y == area2_int_box.min.y || area2_int_box.max.y == area1_int_box.min.y
+        {
             let y = if area1_int_box.max.y == area2_int_box.min.y {
                 area1_int_box.max.y
             } else {
@@ -109,7 +111,7 @@ impl Area {
                 area2_int_box.max.z,
             )?;
 
-            let contact = Contact::Y {
+            let contact = self::Contact::Y {
                 y,
                 x_range: x_overlap,
                 z_range: z_overlap,
@@ -118,7 +120,8 @@ impl Area {
             return Some(contact);
         }
 
-        if area1_int_box.max.z == area2_int_box.min.z || area2_int_box.max.z == area1_int_box.min.z {
+        if area1_int_box.max.z == area2_int_box.min.z || area2_int_box.max.z == area1_int_box.min.z
+        {
             let z = if area1_int_box.max.z == area2_int_box.min.z {
                 area1_int_box.max.z
             } else {
@@ -139,7 +142,7 @@ impl Area {
                 area2_int_box.max.y,
             )?;
 
-            let contact = Contact::Z {
+            let contact = self::Contact::Z {
                 z,
                 x_range: x_overlap,
                 y_range: y_overlap,
@@ -151,9 +154,13 @@ impl Area {
         None
     }
 
-    pub fn find_ground_line(ground_level: i32, length_min: i32, contact: Contact) -> Option<Line> {
+    pub fn find_ground_line(
+        ground_level: i32,
+        length_min: i32,
+        contact: self::Contact,
+    ) -> Option<Line> {
         match contact {
-            Contact::X {
+            self::Contact::X {
                 x,
                 y_range,
                 z_range,
@@ -171,7 +178,7 @@ impl Area {
                     IVec3::new(x, y_range.1, ground_level),
                 ))
             }
-            Contact::Y {
+            self::Contact::Y {
                 y,
                 x_range,
                 z_range,
@@ -189,7 +196,7 @@ impl Area {
                     IVec3::new(x_range.1, y, ground_level),
                 ))
             }
-            Contact::Z { .. } => None,
+            self::Contact::Z { .. } => None,
         }
     }
 
