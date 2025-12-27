@@ -190,14 +190,10 @@ impl Manager {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             match judge.motion.mode {
                 motion::Mode::Ground | motion::Mode::Climb => {
-                    judge.motion.mode = motion::Mode::Fly;
-                    judge.motion.speed = JUDGE_DEFAULT_FLYING_SPEED;
-                    judge.body.is_massive = false;
+                    judge.motion.mode = motion::Mode::Air;
                 }
-                motion::Mode::Fly => {
+                motion::Mode::Air => {
                     judge.motion.mode = motion::Mode::Ground;
-                    judge.motion.speed = JUDGE_DEFAULT_GROUND_SPEED;
-                    judge.body.is_massive = true;
                 }
             }
         }

@@ -104,9 +104,6 @@ impl Population {
 
         Collider::set_radius(person_radius, core_collider);
 
-        person.motion.speed = PERSON_DEFAULT_SPEED;
-        person.motion.jump_speed = PERSON_DEFAULT_JUMP_SPEED;
-
         person
     }
 

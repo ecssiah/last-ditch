@@ -2,16 +2,21 @@ pub mod act;
 
 pub use act::Act;
 
-use crate::simulation::{
-    constants::{MOVEMENT_EPSILON, PITCH_LIMIT},
-    state::{
-        action::act::{move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData},
-        physics::body::{self, ContactSet},
-        population::{motion, person::Person},
-        Population, State, World,
+use crate::{
+    simulation::{
+        constants::{MOVEMENT_EPSILON, PITCH_LIMIT},
+        state::{
+            action::act::{
+                move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData,
+            },
+            physics::body::{self, ContactSet},
+            population::{motion, person::Person},
+            Population, State, World,
+        },
     },
+    utils::ldmath::float_ext,
 };
-use std::collections::VecDeque;
+use std::{collections::VecDeque, f32::EPSILON};
 use ultraviolet::Vec3;
 
 pub struct Action {
@@ -69,56 +74,80 @@ impl Action {
 
     pub fn apply_move(move_data: &MoveData, population: &mut Population) {
         if let Some(person) = population.person_map.get_mut(&move_data.person_id) {
-            if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
-                match person.motion.mode {
-                    motion::Mode::Ground => {
-                        let horizontal_movement_direction =
-                            Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+            match person.motion.mode {
+                motion::Mode::Ground => Self::apply_ground_move(move_data, person),
+                motion::Mode::Climb => Self::apply_climb_move(move_data, person),
+                motion::Mode::Air => Self::apply_air_move(move_data, person),
+            }
+        }
+    }
 
-                        let horizontal_movement_direction =
-                            if horizontal_movement_direction.mag_sq() > MOVEMENT_EPSILON {
-                                horizontal_movement_direction.normalized()
-                            } else {
-                                Vec3::zero()
-                            };
+    fn apply_ground_move(move_data: &MoveData, person: &mut Person) {
+        if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
+            if ContactSet::contains(body::Contact::Ladder, &person.body.contact_set) {
+                if float_ext::not_equal(move_data.move_direction.z, 0.0, EPSILON) {
+                    person.motion.mode = motion::Mode::Climb;
 
-                        let local_velocity = person.motion.speed * horizontal_movement_direction;
-                        let velocity = person.transform.rotor * local_velocity;
-
-                        person.motion.velocity.x = velocity.x;
-                        person.motion.velocity.y = velocity.y;
-                    }
-                    motion::Mode::Climb => (),
-                    motion::Mode::Fly => {
-                        let local_horizontal_move_direction =
-                            Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
-
-                        let horizontal_move_direction =
-                            person.sight.rotor * local_horizontal_move_direction;
-
-                        let vertical_move_direction =
-                            Vec3::new(0.0, 0.0, move_data.move_direction.z);
-
-                        let move_direction =
-                            (horizontal_move_direction + vertical_move_direction).normalized();
-
-                        let velocity = person.motion.speed * move_direction;
-
-                        person.motion.velocity = velocity;
-                    }
-                }
-            } else {
-                match person.motion.mode {
-                    motion::Mode::Ground => {
-                        person.motion.velocity.x = 0.0;
-                        person.motion.velocity.y = 0.0;
-                    }
-                    motion::Mode::Climb => (),
-                    motion::Mode::Fly => {
-                        person.motion.velocity = Vec3::zero();
-                    }
+                    return;
                 }
             }
+
+            let horizontal_movement_direction =
+                Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+
+            let horizontal_movement_direction =
+                if horizontal_movement_direction.mag_sq() > MOVEMENT_EPSILON {
+                    horizontal_movement_direction.normalized()
+                } else {
+                    Vec3::zero()
+                };
+
+            let local_velocity = person.motion.ground_speed * horizontal_movement_direction;
+            let velocity = person.transform.rotor * local_velocity;
+
+            person.motion.velocity.x = velocity.x;
+            person.motion.velocity.y = velocity.y;
+        } else {
+            person.motion.velocity.x = 0.0;
+            person.motion.velocity.y = 0.0;
+        }
+    }
+
+    fn apply_climb_move(move_data: &MoveData, person: &mut Person) {
+        if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
+            let local_horizontal_movement_direction =
+                Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+
+            let horizontal_move_direction =
+                person.sight.rotor * local_horizontal_movement_direction;
+                
+            let horizontal_ground_velocity =
+                horizontal_move_direction * 0.6 * person.motion.climb_speed;
+
+            let vertical_movement_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
+            let vertical_climb_velocity = vertical_movement_direction * person.motion.climb_speed;
+
+            person.motion.velocity = horizontal_ground_velocity + vertical_climb_velocity;
+        } else {
+            person.motion.velocity = Vec3::zero();
+        }
+    }
+
+    fn apply_air_move(move_data: &MoveData, person: &mut Person) {
+        if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
+            let local_horizontal_move_direction =
+                Vec3::new(move_data.move_direction.x, move_data.move_direction.y, 0.0);
+
+            let horizontal_move_direction = person.sight.rotor * local_horizontal_move_direction;
+            let vertical_move_direction = Vec3::new(0.0, 0.0, move_data.move_direction.z);
+
+            let move_direction = (horizontal_move_direction + vertical_move_direction).normalized();
+
+            let velocity = move_direction * person.motion.air_speed;
+
+            person.motion.velocity = velocity;
+        } else {
+            person.motion.velocity = Vec3::zero();
         }
     }
 
@@ -131,7 +160,7 @@ impl Action {
                     }
                 }
                 motion::Mode::Climb => (),
-                motion::Mode::Fly => (),
+                motion::Mode::Air => (),
             }
         }
     }

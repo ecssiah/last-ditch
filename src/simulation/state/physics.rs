@@ -8,7 +8,7 @@ use crate::{
         constants::*,
         state::{
             physics::body::{contact_set::ContactSet, Body},
-            population::{person::Person, Population},
+            population::{motion, person::Person, Population},
             world::grid::{self, axis::Axis},
             World,
         },
@@ -52,9 +52,7 @@ impl Physics {
     fn integrate_person(physics: &Self, judge: &mut Person) -> (Vec3, Vec3) {
         let initial_velocity = judge.motion.velocity;
 
-        let acceleration = if judge.body.is_massive
-            && !ContactSet::contains(body::Contact::Ground, &mut judge.body.contact_set)
-        {
+        let acceleration = if judge.motion.mode == motion::Mode::Ground {
             physics.gravity
         } else {
             Vec3::zero()
@@ -107,7 +105,7 @@ impl Physics {
         let ground_collider = Body::get_collider(collider::Label::Ground, &person.body)
             .expect("Body is missing ground");
 
-        let ground_hit_vec = Self::get_float_box_collision_hit_vec(
+        let ground_hit_vec = Self::get_collision_hit_vec(
             &ground_collider.float_box,
             Vec3::new(0.0, 0.0, 1.0),
             world,
@@ -118,6 +116,12 @@ impl Physics {
             .any(|hit| hit.collider_kind == collider::Kind::Solid)
         {
             ContactSet::insert(body::Contact::Ground, &mut person.body.contact_set);
+        }
+
+        if person.motion.mode == motion::Mode::Climb
+            && !ContactSet::contains(body::Contact::Ladder, &person.body.contact_set)
+        {
+            person.motion.mode = motion::Mode::Ground;
         }
 
         (delta_position_resolved, velocity_mask)
@@ -148,7 +152,7 @@ impl Physics {
             let float_box_test =
                 FloatBox::translated(delta_axis_unit * delta_position_test, float_box);
 
-            let hit_vec = Self::get_float_box_collision_hit_vec(&float_box_test, normal, world);
+            let hit_vec = Self::get_collision_hit_vec(&float_box_test, normal, world);
 
             if hit_vec
                 .iter()
@@ -184,7 +188,7 @@ impl Physics {
         (delta_position_resolved, velocity_mask)
     }
 
-    fn get_float_box_collision_hit_vec(
+    fn get_collision_hit_vec(
         float_box: &FloatBox,
         normal: Vec3,
         world: &World,
@@ -198,8 +202,11 @@ impl Physics {
 
             if let Some(block) = &cell.block {
                 if block.solid {
+                    let contact_point = Vec3::from(grid_position);
+
                     let cell_hit = collider::Hit {
                         collider_kind: collider::Kind::Solid,
+                        contact_point,
                         normal,
                     };
 
@@ -209,8 +216,11 @@ impl Physics {
 
             if let Some(object) = &cell.object {
                 if object.collider.active {
+                    let contact_point = Vec3::from(grid_position);
+
                     let object_hit = collider::Hit {
                         collider_kind: object.collider.collider_kind,
+                        contact_point,
                         normal,
                     };
 

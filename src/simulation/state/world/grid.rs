@@ -145,11 +145,7 @@ pub fn sector_index_to_grid_position(sector_index: usize) -> IVec3 {
 
 #[inline]
 pub fn grid_position_to_world_position(grid_position: IVec3) -> Vec3 {
-    let world_position = Vec3::new(
-        grid_position.x as f32,
-        grid_position.y as f32,
-        grid_position.z as f32,
-    );
+    let world_position = Vec3::from(grid_position);
 
     world_position
 }

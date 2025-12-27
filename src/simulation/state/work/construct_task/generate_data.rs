@@ -2,25 +2,30 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            Population, State, World, physics::{
+            physics::{
                 body::Body,
                 collider::{self, Collider},
-            }, population::{
+            },
+            population::{
                 identity, motion,
                 nation::{self},
                 person::Person,
                 sight::Sight,
-            }, world::{
+            },
+            world::{
                 area::{
-                    self, Area, Connection, template::{
+                    self,
+                    template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
-                    }
+                    },
+                    Area, Connection,
                 },
                 block,
                 grid::{self, Direction, Line},
                 tower::{self, Tower},
-            }
+            },
+            Population, State, World,
         },
         utils::IDGenerator,
     },
@@ -134,7 +139,8 @@ impl GenerateData {
         let sight_local_position = Vec3::new(
             0.0,
             0.0,
-            ((0.9 * core_collider_radius.z) - CELL_RADIUS_IN_METERS) + (0.9 * core_collider_radius.z),
+            ((0.9 * core_collider_radius.z) - CELL_RADIUS_IN_METERS)
+                + (0.9 * core_collider_radius.z),
         );
 
         Sight::set_local_position(sight_local_position, &mut judge.sight);
@@ -143,7 +149,9 @@ impl GenerateData {
         Person::set_rotation(0.0, 0.0, &mut judge);
 
         judge.motion.mode = motion::Mode::Ground;
-        judge.motion.speed = JUDGE_DEFAULT_GROUND_SPEED;
+        judge.motion.ground_speed = JUDGE_DEFAULT_GROUND_SPEED;
+        judge.motion.climb_speed = JUDGE_DEFAULT_CLIMB_SPEED;
+        judge.motion.air_speed = JUDGE_DEFAULT_AIR_SPEED;
         judge.motion.jump_speed = JUDGE_DEFAULT_JUMP_SPEED;
 
         population.person_map.insert(judge.person_id, judge);
@@ -246,19 +254,32 @@ impl GenerateData {
 
             World::set_block_cube(
                 floor_int_box.min,
-                IVec3::new(floor_int_box.max.x, floor_int_box.max.y, floor_int_box.min.z),
+                IVec3::new(
+                    floor_int_box.max.x,
+                    floor_int_box.max.y,
+                    floor_int_box.min.z,
+                ),
                 block::Kind::Panel2,
                 world,
             );
 
             World::set_block_cube(
-                IVec3::new(floor_int_box.min.x, floor_int_box.min.y, floor_int_box.max.z),
+                IVec3::new(
+                    floor_int_box.min.x,
+                    floor_int_box.min.y,
+                    floor_int_box.max.z,
+                ),
                 floor_int_box.max,
                 block::Kind::Panel2,
                 world,
             );
 
-            World::set_block_wireframe(floor_int_box.min, floor_int_box.max, block::Kind::Caution, world);
+            World::set_block_wireframe(
+                floor_int_box.min,
+                floor_int_box.max,
+                block::Kind::Caution,
+                world,
+            );
         }
     }
 
@@ -280,8 +301,11 @@ impl GenerateData {
             tracing::info!("Constructing Exterior, Floor: {:?}", floor.floor_number);
 
             for y in -tower_radius + 1..=tower_radius - 1 {
-                let floor_z_random =
-                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
+                let floor_z_random = gen_range_i32(
+                    floor_int_box.min.z + 1,
+                    floor_int_box.max.z - 1,
+                    &mut world.rng,
+                );
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
@@ -299,8 +323,11 @@ impl GenerateData {
                     );
                 }
 
-                let floor_z_random =
-                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
+                let floor_z_random = gen_range_i32(
+                    floor_int_box.min.z + 1,
+                    floor_int_box.max.z - 1,
+                    &mut world.rng,
+                );
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
@@ -320,8 +347,11 @@ impl GenerateData {
             }
 
             for x in -tower_radius + 1..=tower_radius - 1 {
-                let floor_z_random =
-                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
+                let floor_z_random = gen_range_i32(
+                    floor_int_box.min.z + 1,
+                    floor_int_box.max.z - 1,
+                    &mut world.rng,
+                );
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(
@@ -339,8 +369,11 @@ impl GenerateData {
                     );
                 }
 
-                let floor_z_random =
-                    gen_range_i32(floor_int_box.min.z + 1, floor_int_box.max.z - 1, &mut world.rng);
+                let floor_z_random = gen_range_i32(
+                    floor_int_box.min.z + 1,
+                    floor_int_box.max.z - 1,
+                    &mut world.rng,
+                );
 
                 if gen_bool(&mut world.rng) {
                     World::set_block_cube(

@@ -81,7 +81,8 @@ pub const ID_JUDGE_3: u64 = 3;
 pub const ID_JUDGE_4: u64 = 4;
 
 pub const JUDGE_DEFAULT_GROUND_SPEED: f32 = 8.0;
-pub const JUDGE_DEFAULT_FLYING_SPEED: f32 = 16.0;
+pub const JUDGE_DEFAULT_CLIMB_SPEED: f32 = 12.0;
+pub const JUDGE_DEFAULT_AIR_SPEED: f32 = 16.0;
 pub const JUDGE_DEFAULT_JUMP_SPEED: f32 = 16.0;
 
 pub const JUDGE_DEFAULT_RADIUS_X: f32 = 0.3;
@@ -92,7 +93,9 @@ pub const PITCH_LIMIT: f32 = 89.99;
 
 pub const NATION_INITIAL_POPULATION: i32 = 4;
 
-pub const PERSON_DEFAULT_SPEED: f32 = 6.0;
+pub const PERSON_DEFAULT_GROUND_SPEED: f32 = 6.0;
+pub const PERSON_DEFAULT_CLIMB_SPEED: f32 = 8.0;
+pub const PERSON_DEFAULT_AIR_SPEED: f32 = 12.0;
 pub const PERSON_DEFAULT_JUMP_SPEED: f32 = 8.0;
 
 pub const PERSON_DEFAULT_RADIUS_X: f32 = 0.3;

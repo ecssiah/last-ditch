@@ -1,10 +1,10 @@
 use std::fmt;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Mode {
     Ground,
     Climb,
-    Fly,
+    Air,
 }
 
 impl Mode {
@@ -12,7 +12,7 @@ impl Mode {
         match self {
             Mode::Ground => "ground",
             Mode::Climb => "climb",
-            Mode::Fly => "fly",
+            Mode::Air => "air",
         }
     }
 }
