@@ -136,6 +136,23 @@ impl GenerateData {
 
         Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
 
+        let base_collider_radius = Vec3::new(
+            JUDGE_DEFAULT_RADIUS_X,
+            JUDGE_DEFAULT_RADIUS_Y,
+            0.2 * JUDGE_DEFAULT_RADIUS_Z,
+        );
+
+        let base_collider_local_position =
+            Vec3::new(0.0, 0.0, base_collider_radius.z - CELL_RADIUS_IN_METERS);
+
+        let base_collider = Collider::new(
+            &collider::Kind::Trigger,
+            base_collider_local_position,
+            base_collider_radius,
+        );
+
+        Body::add_collider(&collider::Label::Base, base_collider, &mut judge.body);
+
         let sight_local_position = Vec3::new(
             0.0,
             0.0,

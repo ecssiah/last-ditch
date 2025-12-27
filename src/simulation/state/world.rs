@@ -381,8 +381,7 @@ impl World {
         if grid::is_grid_position_valid(grid_position) {
             let cell = World::get_cell_at_mut(grid_position, &mut world.sector_vec);
 
-            let mut object = Object::new(object_kind);
-            object.direction = direction;
+            let object = Object::new(object_kind, direction);
 
             cell.object = Some(object);
         }

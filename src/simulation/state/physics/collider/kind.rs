@@ -2,6 +2,9 @@
 pub enum Kind {
     Solid,
     Trigger,
-    Stairs,
+    StairsNorth,
+    StairsWest,
+    StairsSouth,
+    StairsEast,
     Ladder,
 }

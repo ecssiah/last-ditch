@@ -50,17 +50,42 @@ impl Physics {
             let ground_collider = Body::get_collider(collider::Label::Ground, &judge.body)
                 .expect("Body is missing ground");
 
-            let ground_hit_vec = Self::get_collision_hit_vec(
-                &ground_collider.float_box,
-                Vec3::new(0.0, 0.0, 1.0),
-                world,
-            );
+            let ground_hit_vec =
+                Self::get_hit_vec(&ground_collider.float_box, Vec3::new(0.0, 0.0, 1.0), world);
 
             if ground_hit_vec
                 .iter()
                 .any(|hit| hit.collider_kind == collider::Kind::Solid)
             {
                 ContactSet::insert(body::Contact::Ground, &mut judge.body.contact_set);
+            }
+
+            let base_collider = Body::get_collider(collider::Label::Base, &judge.body)
+                .expect("Base is missing ground");
+
+            let base_hit_vec =
+                Self::get_hit_vec(&base_collider.float_box, Vec3::new(0.0, 0.0, 1.0), world);
+
+            if base_hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::StairsNorth)
+            {
+                ContactSet::insert(body::Contact::StairsNorth, &mut judge.body.contact_set);
+            } else if base_hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::StairsWest)
+            {
+                ContactSet::insert(body::Contact::StairsWest, &mut judge.body.contact_set);
+            } else if base_hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::StairsSouth)
+            {
+                ContactSet::insert(body::Contact::StairsSouth, &mut judge.body.contact_set);
+            } else if base_hit_vec
+                .iter()
+                .any(|hit| hit.collider_kind == collider::Kind::StairsEast)
+            {
+                ContactSet::insert(body::Contact::StairsEast, &mut judge.body.contact_set);
             }
 
             if judge.motion.mode == motion::Mode::Climb
@@ -152,7 +177,7 @@ impl Physics {
             let float_box_test =
                 FloatBox::translated(delta_axis_unit * delta_position_test, float_box);
 
-            let hit_vec = Self::get_collision_hit_vec(&float_box_test, normal, world);
+            let hit_vec = Self::get_hit_vec(&float_box_test, normal, world);
 
             if hit_vec
                 .iter()
@@ -188,11 +213,7 @@ impl Physics {
         (delta_position_resolved, velocity_mask)
     }
 
-    fn get_collision_hit_vec(
-        float_box: &FloatBox,
-        normal: Vec3,
-        world: &World,
-    ) -> Vec<collider::Hit> {
+    fn get_hit_vec(float_box: &FloatBox, normal: Vec3, world: &World) -> Vec<collider::Hit> {
         let overlap_grid_positions = grid::get_grid_overlap_vec(float_box);
 
         let mut hit_vec = Vec::with_capacity(overlap_grid_positions.len());

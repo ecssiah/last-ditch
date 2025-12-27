@@ -6,10 +6,7 @@ use crate::simulation::{
     constants::*,
     state::{
         physics::collider::{self, Collider},
-        world::{
-            grid::{self, Direction},
-            object,
-        },
+        world::{grid::Direction, object},
     },
 };
 use ultraviolet::Vec3;
@@ -22,15 +19,15 @@ pub struct Object {
 }
 
 impl Object {
-    pub fn new(object_kind: self::Kind) -> Self {
+    pub fn new(object_kind: self::Kind, direction: Direction) -> Self {
         Self {
             object_kind,
-            direction: grid::Direction::North,
-            collider: Self::setup_collider(object_kind),
+            direction,
+            collider: Self::setup_collider(object_kind, direction),
         }
     }
 
-    fn setup_collider(object_kind: self::Kind) -> Collider {
+    fn setup_collider(object_kind: self::Kind, direction: Direction) -> Collider {
         match object_kind {
             Kind::DoorOpen => {
                 let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
@@ -53,7 +50,19 @@ impl Object {
                 let local_position = Vec3::new(0.0, 0.0, 0.0);
                 let radius = Vec3::new(1.00, 1.00, 1.00) * CELL_RADIUS_IN_METERS;
 
-                let collider = Collider::new(&collider::Kind::Stairs, local_position, radius);
+                let collider_kind = if direction == Direction::North {
+                    collider::Kind::StairsNorth
+                } else if direction == Direction::West {
+                    collider::Kind::StairsWest
+                } else if direction == Direction::South {
+                    collider::Kind::StairsSouth
+                } else if direction == Direction::East {
+                    collider::Kind::StairsEast
+                } else {
+                    panic!("Stairs cannot face up or down")
+                };
+
+                let collider = Collider::new(&collider_kind, local_position, radius);
 
                 collider
             }
