@@ -92,7 +92,7 @@ impl State {
         state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(state: &mut Self) {
         if state.active {
             Action::tick(state);

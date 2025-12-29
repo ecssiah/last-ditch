@@ -27,7 +27,7 @@ impl Simulation {
         Self { manager, state }
     }
 
-    #[instrument(skip_all, name = "run")]
+    #[instrument(skip_all)]
     pub fn run(manager: &mut Manager, state: &mut State) {
         loop {
             Manager::start(manager);

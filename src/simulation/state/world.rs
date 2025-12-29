@@ -63,7 +63,7 @@ impl World {
         }
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(world: &mut Self) {
         Time::tick(&mut world.time);
     }

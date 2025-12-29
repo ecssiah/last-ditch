@@ -61,7 +61,7 @@ impl Manager {
             && manager.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(state: &mut State, manager: &mut Self) -> bool {
         Self::handle_messages(state, manager);
         Self::update_timestep(manager);

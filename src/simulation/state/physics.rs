@@ -33,7 +33,7 @@ impl Physics {
         Self { active, gravity }
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(world: &World, population: &mut Population, physics: &mut Self) {
         if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
             let (velocity, delta_position_intent) = Self::integrate_person(physics, judge);

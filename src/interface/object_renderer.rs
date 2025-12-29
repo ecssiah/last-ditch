@@ -350,7 +350,7 @@ impl ObjectRenderer {
             })
     }
 
-    #[instrument(skip_all, name = "apply_sector_view")]
+    #[instrument(skip_all)]
     pub fn apply_sector_view(sector_view: &SectorView, object_renderer: &mut ObjectRenderer) {
         for cell_index in grid::cell_index_vec() {
             let grid_position =
@@ -467,7 +467,7 @@ impl ObjectRenderer {
         }
     }
 
-    #[instrument(skip_all, name = "render")]
+    #[instrument(skip_all)]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

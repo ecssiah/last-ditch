@@ -353,7 +353,7 @@ impl PopulationRenderer {
             })
     }
 
-    #[instrument(skip_all, name = "apply_population_view")]
+    #[instrument(skip_all)]
     pub fn apply_population_view(
         gpu_context: &GPUContext,
         population_view: &PopulationView,
@@ -423,7 +423,7 @@ impl PopulationRenderer {
         }
     }
 
-    #[instrument(skip_all, name = "render")]
+    #[instrument(skip_all)]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

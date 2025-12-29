@@ -192,7 +192,7 @@ impl WorldRenderer {
             })
     }
 
-    #[instrument(skip_all, name = "apply_world_view")]
+    #[instrument(skip_all)]
     pub fn apply_world_view(
         gpu_context: &GPUContext,
         camera: &Camera,
@@ -249,7 +249,7 @@ impl WorldRenderer {
         world_renderer.active_gpu_mesh_vec.sort_unstable();
     }
 
-    #[instrument(skip_all, name = "get_or_build_sector_mesh")]
+    #[instrument(skip_all)]
     fn get_or_build_sector_mesh<'a>(
         sector_view: &SectorView,
         sector_mesh_cache: &'a mut HashMap<usize, SectorMesh>,
@@ -272,7 +272,7 @@ impl WorldRenderer {
         }
     }
 
-    #[instrument(skip_all, name = "get_or_build_gpu_sector_mesh")]
+    #[instrument(skip_all)]
     fn get_or_build_gpu_sector_mesh<'a>(
         sector_mesh: &SectorMesh,
         device: &wgpu::Device,
@@ -296,7 +296,7 @@ impl WorldRenderer {
         }
     }
 
-    #[instrument(skip_all, name = "render")]
+    #[instrument(skip_all)]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

@@ -182,7 +182,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    #[instrument(skip_all, name = "handle_window_event")]
+    #[instrument(skip_all)]
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             match event {
@@ -215,7 +215,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    #[instrument(skip_all, name = "handle_device_event")]
+    #[instrument(skip_all)]
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
@@ -226,7 +226,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    #[instrument(skip_all, name = "render")]
+    #[instrument(skip_all)]
     fn render(
         camera: &Camera,
         gpu_context: &mut GPUContext,
@@ -312,7 +312,7 @@ impl<'window> Interface<'window> {
             .configure(&gpu_context.device, &gpu_context.surface_config);
     }
 
-    #[instrument(skip_all, name = "update")]
+    #[instrument(skip_all)]
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             let instant = Instant::now();
@@ -349,7 +349,7 @@ impl<'window> Interface<'window> {
         }
     }
 
-    #[instrument(skip_all, name = "apply_view")]
+    #[instrument(skip_all)]
     fn apply_view(
         event_loop: &ActiveEventLoop,
         view: &View,

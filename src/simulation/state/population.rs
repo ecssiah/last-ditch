@@ -108,6 +108,6 @@ impl Population {
         person
     }
 
-    #[instrument(level = "trace", skip_all, name = "population::tick")]
+    #[instrument(skip_all)]
     pub fn tick(_population: &mut Self) {}
 }

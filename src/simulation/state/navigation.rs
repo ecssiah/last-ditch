@@ -92,6 +92,6 @@ impl Navigation {
         index.map(|index| navigation.path_result_vec.remove(index))
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(_world: &World, _navigation: &mut Self) {}
 }

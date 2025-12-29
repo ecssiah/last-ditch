@@ -36,7 +36,7 @@ impl Viewer {
         }
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(state: &State, manager: &mut Manager) {
         let manager_view = Self::update_manager_view(manager);
         let population_view = Self::update_population_view(state);
@@ -56,7 +56,7 @@ impl Viewer {
         manager.viewer.view_input.publish();
     }
 
-    #[instrument(skip_all, name = "get_view")]
+    #[instrument(skip_all)]
     pub fn get_view(view_output: &mut triple_buffer::Output<View>) -> &View {
         view_output.update();
 
@@ -65,7 +65,7 @@ impl Viewer {
         &view
     }
 
-    #[instrument(skip_all, name = "update_manager_view")]
+    #[instrument(skip_all)]
     fn update_manager_view(manager: &Manager) -> ManagerView {
         let manager_view = ManagerView {
             status: manager.status,
@@ -74,7 +74,7 @@ impl Viewer {
         manager_view
     }
 
-    #[instrument(skip_all, name = "update_population_view")]
+    #[instrument(skip_all)]
     fn update_population_view(state: &State) -> PopulationView {
         let mut population_view = PopulationView::new();
 
@@ -105,7 +105,7 @@ impl Viewer {
         population_view
     }
 
-    #[instrument(skip_all, name = "update_world_view")]
+    #[instrument(skip_all)]
     fn update_world_view(
         state: &State,
         sector_version_map: &mut HashMap<usize, u64>,
@@ -148,7 +148,7 @@ impl Viewer {
         world_view
     }
 
-    #[instrument(skip_all, name = "get_sector_view")]
+    #[instrument(skip_all)]
     fn get_sector_view(
         sector: &Sector,
         sector_version_map: &mut HashMap<usize, u64>,

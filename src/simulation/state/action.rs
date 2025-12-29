@@ -33,7 +33,7 @@ impl Action {
         Self { active, act_deque }
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(state: &mut State) {
         let act_deque = std::mem::take(&mut state.action.act_deque);
 

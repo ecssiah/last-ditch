@@ -17,7 +17,7 @@ impl Time {
         }
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(time: &mut Self) {
         time.tick += 1;
     }

@@ -190,7 +190,7 @@ impl GUI {
         );
     }
 
-    #[instrument(skip_all, name = "apply_view")]
+    #[instrument(skip_all)]
     pub fn apply_view(view: &View, gui: &mut Self) {
         if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
             let grid_position =
@@ -247,7 +247,7 @@ impl GUI {
         }
     }
 
-    #[instrument(skip_all, name = "render")]
+    #[instrument(skip_all)]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         window_arc: Arc<winit::window::Window>,

@@ -25,13 +25,13 @@ impl Work {
         work
     }
 
-    #[instrument(skip_all, name = "tick")]
+    #[instrument(skip_all)]
     pub fn tick(state: &mut State) {
         Self::perform_world_work(state);
         Self::perform_navigation_work(state);
     }
 
-    #[instrument(skip_all, name = "perform_world_work")]
+    #[instrument(skip_all)]
     fn perform_world_work(state: &mut State) {
         let mut current_budget = ConstructWorker::budget(&state.work.construct_worker);
 
@@ -47,7 +47,7 @@ impl Work {
         }
     }
 
-    #[instrument(skip_all, name = "perform_navigation_work")]
+    #[instrument(skip_all)]
     fn perform_navigation_work(state: &mut State) {
         let mut current_budget = NavigationWorker::budget(&state.work.navigation_worker);
 
