@@ -2,30 +2,22 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::{
+            Population, State, World, physics::{
                 body::Body,
                 collider::{self, box_collider::BoxCollider},
-            },
-            population::{
+            }, population::{
                 identity, motion,
                 nation::{self},
                 person::Person,
                 sight::Sight,
-            },
-            world::{
+            }, world::{
                 area::{
-                    self,
-                    template::{
+                    self, Area, Connection, template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
-                    },
-                    Area, Connection,
-                },
-                grid::{self, Direction, Line},
-                object::block,
-                tower::{self, Tower},
-            },
-            Population, State, World,
+                    }
+                }, block, grid::{self, Direction, Line}, tower::{self, Tower}
+            }
         },
         utils::IDGenerator,
     },
@@ -73,14 +65,14 @@ impl GenerateData {
                 Self::construct_nation_temples(&state.population, &mut state.world);
             }
             3 => {
-                Self::subdivide_room_areas(&mut state.world);
-                Self::subdivide_room_areas(&mut state.world);
-                Self::subdivide_room_areas(&mut state.world);
+                // Self::subdivide_room_areas(&mut state.world);
+                // Self::subdivide_room_areas(&mut state.world);
+                // Self::subdivide_room_areas(&mut state.world);
 
-                Self::layout_connections(&mut state.world);
+                // Self::layout_connections(&mut state.world);
             }
             4 => {
-                Self::construct_areas(&mut state.world);
+                // Self::construct_areas(&mut state.world);
             }
             _ => unreachable!(),
         }

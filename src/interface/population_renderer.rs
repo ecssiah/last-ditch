@@ -407,7 +407,7 @@ impl PopulationRenderer {
 
             population_renderer.person_instance_buffer =
                 gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some("Person Instance Buffer (resized)"),
+                    label: Some("Person Instance Buffer"),
                     size: byte_count_updated,
                     usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,

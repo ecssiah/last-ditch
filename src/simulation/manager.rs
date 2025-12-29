@@ -11,17 +11,12 @@ use crate::simulation::{
     constants::*,
     manager::{status::Status, viewer::view::View},
     state::{
-        action::{
-            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
-            Act,
-        },
-        population::motion::{self},
-        work::{
-            construct_task::{generate_data::GenerateData, ConstructTask},
+        State, action::{
+            Act, act::{self, JumpData, PlaceBlockData, RemoveBlockData}
+        }, population::motion::{self}, work::{
+            construct_task::{ConstructTask, generate_data::GenerateData},
             construct_worker::ConstructWorker,
-        },
-        world::object::block,
-        State,
+        }, world::block
     },
 };
 use std::time::{Duration, Instant};

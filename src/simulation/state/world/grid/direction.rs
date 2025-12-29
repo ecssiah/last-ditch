@@ -4,12 +4,12 @@ use ultraviolet::{IVec3, Vec3};
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum Direction {
-    North,
-    West,
-    South,
-    East,
-    Up,
-    Down,
+    North = 1 << 0,
+    West = 1 << 1,
+    South = 1 << 2,
+    East = 1 << 3,
+    Up = 1 << 4,
+    Down = 1 << 5,
 }
 
 impl Direction {
@@ -21,6 +21,17 @@ impl Direction {
         Self::Up,
         Self::Down,
     ];
+
+    pub fn to_index(direction: &Self) -> usize {
+        match direction {
+            Direction::North => 0,
+            Direction::West => 1,
+            Direction::South => 2,
+            Direction::East => 3,
+            Direction::Up => 4,
+            Direction::Down => 5,
+        }
+    }
 
     pub fn to_ivec3(direction: &Self) -> IVec3 {
         match direction {

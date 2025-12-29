@@ -4,7 +4,7 @@ use crate::{
             area::template::{self, Template},
             block,
             grid::{self, Axis, Direction},
-            object::door,
+            object::{door, ObjectManager},
             Area,
         },
         World,
@@ -65,7 +65,7 @@ impl Template for GenericRoomTemplate {
                 world,
             );
 
-            World::set_door(
+            ObjectManager::set_door(
                 connection.entrance_vec[0] + 0 * IVec3::unit_z(),
                 &door::Kind::Door1,
                 &direction,

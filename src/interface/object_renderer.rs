@@ -356,7 +356,7 @@ impl ObjectRenderer {
 
             let world_position = *(grid::grid_position_to_world_position(grid_position)).as_array();
 
-            if let Some(door) = Sector::get_door(cell_index, &sector_view.door_vec) {
+            if let Some(door) = Sector::get_door(cell_index, &sector_view.object_manager.door_vec) {
                 let rotation_xy = Direction::to_rotation(&door.direction);
 
                 let door_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
@@ -411,7 +411,7 @@ impl ObjectRenderer {
 
             object_renderer.instance_buffer =
                 gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some("Object Instance Buffer (resized)"),
+                    label: Some("Object Instance Buffer"),
                     size: new_capacity,
                     usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,
@@ -477,8 +477,6 @@ impl ObjectRenderer {
                 offset_bytes,
                 bytemuck::cast_slice(&object_instance_data_vec),
             );
-
-            tracing::info!("{:?}", object_model_name);
 
             let gpu_mesh_arc =
                 Arc::clone(object_renderer.gpu_mesh_map.get(object_model_name).unwrap());

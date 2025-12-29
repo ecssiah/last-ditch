@@ -1,6 +1,7 @@
 //! The simulated environment
 
 pub mod area;
+pub mod block;
 pub mod grid;
 pub mod object;
 pub mod sector;
@@ -12,8 +13,9 @@ use crate::{
         state::{
             world::{
                 area::Area,
+                block::Block,
                 grid::{direction_set::DirectionSet, Direction},
-                object::{block, door, Block, Door},
+                object::ObjectManager,
                 sector::Sector,
                 tower::Tower,
             },
@@ -78,20 +80,15 @@ impl World {
             .map(|sector_index| {
                 let version = 0;
                 let grid_position = grid::sector_index_to_grid_position(sector_index);
-
                 let block_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
-                let door_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
-                let ladder_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
-                let stairs_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
+                let object_manager = ObjectManager::new();
 
                 Sector {
                     version,
                     sector_index,
                     grid_position,
                     block_vec,
-                    door_vec,
-                    ladder_vec,
-                    stairs_vec,
+                    object_manager,
                 }
             })
             .collect()
@@ -151,23 +148,6 @@ impl World {
             sector.version += 1;
 
             Self::update_block_exposure(grid_position, world);
-        }
-    }
-
-    pub fn set_door(
-        grid_position: IVec3,
-        door_kind: &door::Kind,
-        direction: &Direction,
-        world: &mut Self,
-    ) {
-        if grid::grid_position_is_valid(grid_position) {
-            let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
-
-            let door = Door::new(door_kind, direction);
-
-            let sector = &mut world.sector_vec[sector_index];
-            sector.door_vec[cell_index] = Some(door);
-            sector.version += 1;
         }
     }
 
@@ -231,7 +211,7 @@ impl World {
                 if block_is_solid {
                     if let Some(block) = World::get_block_mut(grid_position, &mut world.sector_vec)
                     {
-                        DirectionSet::remove(*direction, &mut block.exposure_set);
+                        DirectionSet::add(*direction, &mut block.exposure_set);
                     }
                 }
             }

@@ -5,7 +5,8 @@ pub use kind::Kind;
 pub use leadership::Leadership;
 
 use ultraviolet::IVec3;
-use crate::simulation::state::world::object::block;
+
+use crate::simulation::state::world::block;
 
 #[derive(Clone)]
 pub struct Nation {

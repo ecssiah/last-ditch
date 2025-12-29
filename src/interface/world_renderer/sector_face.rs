@@ -1,4 +1,4 @@
-use crate::simulation::state::world::{grid, object::block};
+use crate::simulation::state::world::{block, grid};
 
 #[derive(Clone, PartialEq)]
 pub struct SectorFace {

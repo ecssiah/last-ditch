@@ -65,7 +65,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::North,
+                                direction: Direction::North,
                             };
 
                             mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
@@ -81,7 +81,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::West,
+                                direction: Direction::West,
                             };
 
                             mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
@@ -97,7 +97,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::South,
+                                direction: Direction::South,
                             };
 
                             mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
@@ -113,7 +113,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::East,
+                                direction: Direction::East,
                             };
 
                             mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
@@ -129,7 +129,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::Up,
+                                direction: Direction::Up,
                             };
 
                             mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
@@ -145,7 +145,7 @@ impl SectorMesh {
 
                             let sector_face = SectorFace {
                                 block_kind: block.block_kind.clone(),
-                                direction: grid::Direction::Down,
+                                direction: Direction::Down,
                             };
 
                             mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
@@ -396,17 +396,17 @@ impl SectorMesh {
         let uv3 = [0.0, 0.0];
 
         let (uv0, uv1, uv2, uv3) = match sector_face.direction {
-            grid::Direction::East => (uv0, uv1, uv2, uv3),
-            grid::Direction::West => (uv1, uv0, uv3, uv2),
-            grid::Direction::North => (uv1, uv0, uv3, uv2),
-            grid::Direction::South => (uv0, uv1, uv2, uv3),
-            grid::Direction::Up => (uv0, uv1, uv2, uv3),
-            grid::Direction::Down => (uv3, uv2, uv1, uv0),
+            Direction::North => (uv1, uv0, uv3, uv2),
+            Direction::West => (uv1, uv0, uv3, uv2),
+            Direction::South => (uv0, uv1, uv2, uv3),
+            Direction::East => (uv0, uv1, uv2, uv3),
+            Direction::Up => (uv0, uv1, uv2, uv3),
+            Direction::Down => (uv3, uv2, uv1, uv0),
         };
 
         let base_index = vertex_vec.len() as u32;
 
-        let layer = tile_atlas::get_tile_layer(sector_face.block_kind, sector_face.direction);
+        let layer = tile_atlas::get_tile_layer(sector_face.block_kind, &sector_face.direction);
 
         vertex_vec.push(SectorVertex {
             position: [
@@ -453,12 +453,12 @@ impl SectorMesh {
         });
 
         let use_canonical = match sector_face.direction {
-            grid::Direction::East => true,
-            grid::Direction::West => false,
-            grid::Direction::North => false,
-            grid::Direction::South => true,
-            grid::Direction::Up => true,
-            grid::Direction::Down => false,
+            Direction::North => false,
+            Direction::West => false,
+            Direction::South => true,
+            Direction::East => true,
+            Direction::Up => true,
+            Direction::Down => false,
         };
 
         if use_canonical {
