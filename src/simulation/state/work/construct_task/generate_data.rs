@@ -2,22 +2,30 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            Population, State, World, physics::{
+            physics::{
                 body::Body,
                 collider::{self, box_collider::BoxCollider},
-            }, population::{
+            },
+            population::{
                 identity, motion,
                 nation::{self},
                 person::Person,
                 sight::Sight,
-            }, world::{
+            },
+            world::{
                 area::{
-                    self, Area, Connection, template::{
+                    self,
+                    template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
-                    }
-                }, block, grid::{self, Direction, Line}, tower::{self, Tower}
-            }
+                    },
+                    Area, Connection,
+                },
+                block,
+                grid::{self, Direction, Line},
+                tower::{self, Tower},
+            },
+            Population, State, World,
         },
         utils::IDGenerator,
     },
@@ -65,14 +73,14 @@ impl GenerateData {
                 Self::construct_nation_temples(&state.population, &mut state.world);
             }
             3 => {
-                // Self::subdivide_room_areas(&mut state.world);
-                // Self::subdivide_room_areas(&mut state.world);
-                // Self::subdivide_room_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
+                Self::subdivide_room_areas(&mut state.world);
 
-                // Self::layout_connections(&mut state.world);
+                Self::layout_connections(&mut state.world);
             }
             4 => {
-                // Self::construct_areas(&mut state.world);
+                Self::construct_areas(&mut state.world);
             }
             _ => unreachable!(),
         }
@@ -91,7 +99,7 @@ impl GenerateData {
 
         let mut judge = Person::new(ID_JUDGE_1);
 
-        let world_position = Vec3::new(0.0, -8.0, 2.0);
+        let world_position = Vec3::new(0.0, -32.0, 2.0);
 
         let core_collider_radius = Vec3::new(
             JUDGE_DEFAULT_RADIUS_X,
@@ -615,7 +623,8 @@ impl GenerateData {
         for (nation_kind, nation) in &population.nation_map {
             tracing::info!("Constructing {:?} Temple", nation.nation_kind);
 
-            let mut temple_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+            let temple_area_id = IDGenerator::allocate(&mut world.area_id_generator);
+            let mut temple_area = Area::new(temple_area_id);
 
             let temple_radius_x = TEMPLE_RADIUS_X as i32;
             let temple_radius_y = TEMPLE_RADIUS_Y as i32;
@@ -637,12 +646,15 @@ impl GenerateData {
             };
 
             temple_area.grid_position = temple_grid_position;
+
             temple_area.size = IVec3::new(
                 2 * temple_radius_x + 1,
                 2 * temple_radius_y + 1,
                 temple_size_z,
             );
+
             temple_area.direction = temple_direction;
+
             temple_area.style = area::Style::Temple {
                 nation_kind: *nation_kind,
             };

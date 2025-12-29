@@ -317,8 +317,10 @@ impl World {
 
             let sector = &mut world.sector_vec[sector_index];
 
-            sector.block_vec.insert(cell_index, None);
+            sector.block_vec[cell_index] = None;
             sector.version += 1;
+
+            Self::update_block_exposure(grid_position, world);
         }
     }
 
