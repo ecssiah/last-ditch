@@ -26,6 +26,7 @@ use crate::{
 };
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
+use tracing::instrument;
 
 pub struct PopulationRenderer {
     pub person_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
@@ -352,6 +353,7 @@ impl PopulationRenderer {
             })
     }
 
+    #[instrument(skip_all, name = "apply_population_view")]
     pub fn apply_population_view(
         gpu_context: &GPUContext,
         population_view: &PopulationView,
@@ -421,6 +423,7 @@ impl PopulationRenderer {
         }
     }
 
+    #[instrument(skip_all, name = "render")]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

@@ -4,7 +4,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 #[cfg(feature = "profile")]
 use {
     chrono::Local,
-    inferno::flamegraph::{from_reader, Options},
+    inferno::flamegraph::{color::BasicPalette, from_reader, Options},
     std::fs::{self, File},
     tracing_flame::{FlameLayer, FlushGuard},
 };
@@ -106,6 +106,10 @@ impl Tracer {
     #[cfg(feature = "profile")]
     pub fn export(flamegraph_name: &str) {
         let mut options = Options::default();
+        options.title = String::from("Last Ditch");
+        options.colors = inferno::flamegraph::Palette::Basic(BasicPalette::Blue);
+        // options.hash = true;
+        // options.deterministic = true;
 
         let folded_path = format!("logs/traces/{}.folded", flamegraph_name);
         let svg_path = format!("logs/traces/{}.svg", flamegraph_name);

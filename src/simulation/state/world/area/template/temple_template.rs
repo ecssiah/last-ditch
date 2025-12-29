@@ -6,6 +6,7 @@ use crate::simulation::state::{
             template::{self, Template},
         },
         block,
+        object::{ladder, stairs},
     },
 };
 use ultraviolet::IVec3;
@@ -121,15 +122,6 @@ impl Template for TempleTemplate {
                 world,
             );
 
-            // template::set_object_cube(
-            //     IVec3::new(area.size.x / 2 - 1, area.size.y - 2, 1),
-            //     IVec3::new(3, 1, 1),
-            //     area.direction,
-            //     object::Kind::Stairs,
-            //     area,
-            //     world,
-            // );
-
             template::remove_block_cube(
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
                 IVec3::new(3, 1, 1),
@@ -137,32 +129,41 @@ impl Template for TempleTemplate {
                 world,
             );
 
-            // template::set_object_cube(
-            //     IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
-            //     IVec3::new(3, 1, 1),
-            //     area.direction,
-            //     object::Kind::Stairs,
-            //     area,
-            //     world,
-            // );
+            template::set_stairs_cube(
+                IVec3::new(area.size.x / 2 - 1, area.size.y - 2, 1),
+                IVec3::new(3, 1, 1),
+                &stairs::Kind::Stairs1,
+                &area.direction,
+                area,
+                world,
+            );
 
-            // template::set_object_cube(
-            //     IVec3::new(1, -1, 0),
-            //     IVec3::new(1, 1, area.size.z + 1),
-            //     area.direction,
-            //     object::Kind::Ladder,
-            //     area,
-            //     world,
-            // );
+            template::set_stairs_cube(
+                IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
+                IVec3::new(3, 1, 1),
+                &stairs::Kind::Stairs1,
+                &area.direction,
+                area,
+                world,
+            );
 
-            // template::set_object_cube(
-            //     IVec3::new(area.size.x - 2, -1, 0),
-            //     IVec3::new(1, 1, area.size.z + 1),
-            //     area.direction,
-            //     object::Kind::Ladder,
-            //     area,
-            //     world,
-            // );
+            template::set_ladder_cube(
+                IVec3::new(1, -1, 0),
+                IVec3::new(1, 1, area.size.z + 1),
+                &ladder::Kind::Ladder1,
+                &area.direction,
+                area,
+                world,
+            );
+
+            template::set_ladder_cube(
+                IVec3::new(area.size.x - 2, -1, 0),
+                IVec3::new(1, 1, area.size.z + 1),
+                &ladder::Kind::Ladder1,
+                &area.direction,
+                area,
+                world,
+            );
         }
     }
 }

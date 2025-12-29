@@ -11,6 +11,7 @@ use crate::{
     simulation::{constants::*, manager::viewer::view::View},
 };
 use std::collections::{HashMap, HashSet};
+use tracing::instrument;
 use ultraviolet::Vec3;
 
 pub struct DebugRenderer {
@@ -255,6 +256,7 @@ impl DebugRenderer {
         }
     }
 
+    #[instrument(skip_all, name = "apply_debug_view")]
     pub fn apply_debug_view(_view: &View, debug_renderer: &mut Self) {
         if !debug_renderer.debug_active {
             return;
@@ -318,6 +320,7 @@ impl DebugRenderer {
         if debug_renderer.channel_set.contains(&DebugChannel::Custom) {}
     }
 
+    #[instrument(skip_all, name = "render")]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

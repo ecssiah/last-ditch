@@ -29,6 +29,7 @@ use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
     ChaCha8Rng,
 };
+use tracing::instrument;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct World {
@@ -62,9 +63,8 @@ impl World {
         }
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(world: &mut Self) {
-        let _span = tracing::info_span!("world_tick").entered();
-
         Time::tick(&mut world.time);
     }
 

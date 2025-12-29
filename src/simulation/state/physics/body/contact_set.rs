@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::simulation::state::physics::body::contact::Contact;
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ContactSet(u32);

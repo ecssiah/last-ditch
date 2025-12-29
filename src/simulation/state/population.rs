@@ -23,6 +23,7 @@ use crate::{
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
+use tracing::instrument;
 use ultraviolet::{IVec3, Vec3};
 
 pub struct Population {
@@ -107,7 +108,6 @@ impl Population {
         person
     }
 
-    pub fn tick(_population: &mut Self) {
-        let _span = tracing::info_span!("population_tick").entered();
-    }
+    #[instrument(level = "trace", skip_all, name = "population::tick")]
+    pub fn tick(_population: &mut Self) {}
 }

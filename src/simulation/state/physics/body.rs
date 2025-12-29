@@ -22,7 +22,8 @@ impl Body {
     pub fn new(radius: Vec3) -> Self {
         let contact_set = ContactSet::EMPTY;
         let box_collider_vec = vec![BoxCollider::new(Vec3::zero(), radius)];
-        let box_collider_index_map = HashMap::from([(collider::Label::Core, box_collider_vec.len() - 1)]);
+        let box_collider_index_map =
+            HashMap::from([(collider::Label::Core, box_collider_vec.len() - 1)]);
 
         Self {
             contact_set,
@@ -31,17 +32,18 @@ impl Body {
         }
     }
 
-    pub fn add_collider(collider_label: &collider::Label, box_collider: BoxCollider, body: &mut Self) {
+    pub fn add_collider(
+        collider_label: &collider::Label,
+        box_collider: BoxCollider,
+        body: &mut Self,
+    ) {
         body.box_collider_vec.push(box_collider);
 
         body.box_collider_index_map
             .insert(collider_label.clone(), body.box_collider_vec.len() - 1);
     }
 
-    pub fn get_collider(
-        collider_label: collider::Label,
-        body: &Self,
-    ) -> Option<&BoxCollider> {
+    pub fn get_collider(collider_label: collider::Label, body: &Self) -> Option<&BoxCollider> {
         let collider_index = body.box_collider_index_map.get(&collider_label)?;
 
         body.box_collider_vec.get(*collider_index)

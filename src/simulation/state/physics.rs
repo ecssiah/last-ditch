@@ -16,6 +16,7 @@ use crate::{
     utils::ldmath::FloatBox,
 };
 use std::f32;
+use tracing::instrument;
 use ultraviolet::Vec3;
 
 #[derive(Default)]
@@ -32,9 +33,8 @@ impl Physics {
         Self { active, gravity }
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(world: &World, population: &mut Population, physics: &mut Self) {
-        let _span = tracing::info_span!("physics_tick").entered();
-
         if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
             let (velocity, delta_position_intent) = Self::integrate_person(physics, judge);
 

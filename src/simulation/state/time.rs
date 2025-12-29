@@ -2,6 +2,8 @@
 
 use std::time::Instant;
 
+use tracing::instrument;
+
 pub struct Time {
     pub tick: u64,
     pub instant: Instant,
@@ -15,9 +17,8 @@ impl Time {
         }
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(time: &mut Self) {
-        let _span = tracing::info_span!("time_tick").entered();
-
         time.tick += 1;
     }
 }

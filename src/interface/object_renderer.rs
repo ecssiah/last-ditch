@@ -23,6 +23,7 @@ use crate::{
 use convert_case::Casing;
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, sync::Arc};
+use tracing::instrument;
 
 pub struct ObjectRenderer {
     pub gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
@@ -349,6 +350,7 @@ impl ObjectRenderer {
             })
     }
 
+    #[instrument(skip_all, name = "apply_sector_view")]
     pub fn apply_sector_view(sector_view: &SectorView, object_renderer: &mut ObjectRenderer) {
         for cell_index in grid::cell_index_vec() {
             let grid_position =
@@ -369,6 +371,46 @@ impl ObjectRenderer {
                 Self::update_instance_group(
                     &model_name,
                     door_instance_data,
+                    &mut object_renderer.instance_data_group_vec,
+                    &mut object_renderer.instance_group_index_map,
+                );
+            }
+
+            if let Some(stairs) =
+                Sector::get_stairs(cell_index, &sector_view.object_manager.stairs_vec)
+            {
+                let rotation_xy = Direction::to_rotation(&stairs.direction);
+
+                let stairs_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
+
+                let model_name = stairs
+                    .stairs_kind
+                    .to_string()
+                    .to_case(convert_case::Case::Snake);
+
+                Self::update_instance_group(
+                    &model_name,
+                    stairs_instance_data,
+                    &mut object_renderer.instance_data_group_vec,
+                    &mut object_renderer.instance_group_index_map,
+                );
+            }
+
+            if let Some(ladder) =
+                Sector::get_ladder(cell_index, &sector_view.object_manager.ladder_vec)
+            {
+                let rotation_xy = Direction::to_rotation(&ladder.direction);
+
+                let ladder_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
+
+                let model_name = ladder
+                    .ladder_kind
+                    .to_string()
+                    .to_case(convert_case::Case::Snake);
+
+                Self::update_instance_group(
+                    &model_name,
+                    ladder_instance_data,
                     &mut object_renderer.instance_data_group_vec,
                     &mut object_renderer.instance_group_index_map,
                 );
@@ -425,6 +467,7 @@ impl ObjectRenderer {
         }
     }
 
+    #[instrument(skip_all, name = "render")]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

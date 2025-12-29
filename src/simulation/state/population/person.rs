@@ -1,6 +1,7 @@
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform}, world::block,
+    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
+    world::block,
 };
 use ultraviolet::Vec3;
 

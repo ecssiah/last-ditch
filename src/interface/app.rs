@@ -26,6 +26,7 @@ impl<'window> App<'window> {
         let (view_input, view_output) = triple_buffer::triple_buffer(&View::new());
 
         let mut simulation = Box::new(Simulation::new(message_rx, view_input));
+        
         *interface = Some(Interface::new(message_tx, view_output, event_loop));
 
         *simulation_handle = Some(std::thread::spawn(move || {

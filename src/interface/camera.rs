@@ -14,6 +14,7 @@ use crate::{
         manager::viewer::view::{PersonView, View},
     },
 };
+use tracing::instrument;
 use ultraviolet::{Mat4, Vec3, Vec4};
 
 pub struct Camera {
@@ -90,6 +91,7 @@ impl Camera {
         }
     }
 
+    #[instrument(skip_all, name = "apply_view")]
     pub fn apply_view(view: &View, camera: &mut Self) {
         if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
             Self::update_camera(&person_view, camera);

@@ -5,18 +5,24 @@ pub mod viewer;
 
 pub use message::Message;
 pub use timestep::Timestep;
+use tracing::instrument;
 pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::*,
     manager::{status::Status, viewer::view::View},
     state::{
-        State, action::{
-            Act, act::{self, JumpData, PlaceBlockData, RemoveBlockData}
-        }, population::motion::{self}, work::{
-            construct_task::{ConstructTask, generate_data::GenerateData},
+        action::{
+            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
+            Act,
+        },
+        population::motion::{self},
+        work::{
+            construct_task::{generate_data::GenerateData, ConstructTask},
             construct_worker::ConstructWorker,
-        }, world::block
+        },
+        world::block,
+        State,
     },
 };
 use std::time::{Duration, Instant};
@@ -55,6 +61,7 @@ impl Manager {
             && manager.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(state: &mut State, manager: &mut Self) -> bool {
         Self::handle_messages(state, manager);
         Self::update_timestep(manager);

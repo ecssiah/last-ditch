@@ -2,6 +2,7 @@ pub mod graph;
 pub mod path;
 
 pub use graph::Graph;
+use tracing::instrument;
 
 use crate::simulation::{constants::*, state::World};
 use std::collections::{HashMap, VecDeque};
@@ -91,7 +92,6 @@ impl Navigation {
         index.map(|index| navigation.path_result_vec.remove(index))
     }
 
-    pub fn tick(_world: &World, _navigation: &mut Self) {
-        let _span = tracing::info_span!("navigation_tick").entered();
-    }
+    #[instrument(skip_all, name = "tick")]
+    pub fn tick(_world: &World, _navigation: &mut Self) {}
 }

@@ -1,4 +1,7 @@
-use crate::simulation::state::world::{block::Block, object::{Door, Ladder, ObjectManager, Stairs}};
+use crate::simulation::state::world::{
+    block::Block,
+    object::{Door, Ladder, ObjectManager, Stairs},
+};
 use ultraviolet::IVec3;
 
 pub struct Sector {

@@ -1,5 +1,5 @@
-use ultraviolet::Vec3;
 use crate::{simulation::constants::CELL_RADIUS_IN_METERS, utils::ldmath::FloatBox};
+use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct BoxCollider {
@@ -53,9 +53,6 @@ impl BoxCollider {
 
 impl Default for BoxCollider {
     fn default() -> Self {
-        Self::new(
-            Vec3::zero(),
-            Vec3::broadcast(CELL_RADIUS_IN_METERS),
-        )
+        Self::new(Vec3::zero(), Vec3::broadcast(CELL_RADIUS_IN_METERS))
     }
 }

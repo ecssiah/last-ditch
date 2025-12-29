@@ -23,6 +23,7 @@ use crate::{
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
+use tracing::instrument;
 use winit::{
     dpi::PhysicalSize,
     event::{DeviceEvent, WindowEvent},
@@ -181,10 +182,9 @@ impl<'window> Interface<'window> {
         }
     }
 
+    #[instrument(skip_all, name = "handle_window_event")]
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
-            let _span = tracing::info_span!("window_event").entered();
-
             match event {
                 WindowEvent::RedrawRequested => Self::render(
                     &interface.camera,
@@ -215,6 +215,7 @@ impl<'window> Interface<'window> {
         }
     }
 
+    #[instrument(skip_all, name = "handle_device_event")]
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
@@ -225,6 +226,7 @@ impl<'window> Interface<'window> {
         }
     }
 
+    #[instrument(skip_all, name = "render")]
     fn render(
         camera: &Camera,
         gpu_context: &mut GPUContext,
@@ -234,8 +236,6 @@ impl<'window> Interface<'window> {
         population_renderer: &mut PopulationRenderer,
         debug_renderer: &mut DebugRenderer,
     ) {
-        let _span = tracing::info_span!("redraw").entered();
-
         let mut encoder = gpu_context
             .device
             .create_command_encoder(&Default::default());
@@ -312,9 +312,8 @@ impl<'window> Interface<'window> {
             .configure(&gpu_context.device, &gpu_context.surface_config);
     }
 
+    #[instrument(skip_all, name = "update")]
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
-        let _span = tracing::info_span!("interface update").entered();
-
         if let Some(interface) = interface.as_mut() {
             let instant = Instant::now();
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
@@ -350,6 +349,7 @@ impl<'window> Interface<'window> {
         }
     }
 
+    #[instrument(skip_all, name = "apply_view")]
     fn apply_view(
         event_loop: &ActiveEventLoop,
         view: &View,

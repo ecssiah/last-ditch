@@ -1,3 +1,5 @@
+use tracing::instrument;
+
 use crate::simulation::state::{
     work::{construct_worker::ConstructWorker, navigation_worker::NavigationWorker},
     State,
@@ -23,13 +25,13 @@ impl Work {
         work
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(state: &mut State) {
-        let _span = tracing::info_span!("work_tick").entered();
-
         Self::perform_world_work(state);
         Self::perform_navigation_work(state);
     }
 
+    #[instrument(skip_all, name = "perform_world_work")]
     fn perform_world_work(state: &mut State) {
         let mut current_budget = ConstructWorker::budget(&state.work.construct_worker);
 
@@ -45,6 +47,7 @@ impl Work {
         }
     }
 
+    #[instrument(skip_all, name = "perform_navigation_work")]
     fn perform_navigation_work(state: &mut State) {
         let mut current_budget = NavigationWorker::budget(&state.work.navigation_worker);
 

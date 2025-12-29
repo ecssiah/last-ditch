@@ -9,6 +9,7 @@ use crate::simulation::{
     manager::{viewer::view::View, Manager, Message},
     state::State,
 };
+use tracing::instrument;
 
 pub struct Simulation {
     pub manager: Manager,
@@ -26,10 +27,9 @@ impl Simulation {
         Self { manager, state }
     }
 
+    #[instrument(skip_all, name = "run")]
     pub fn run(manager: &mut Manager, state: &mut State) {
         loop {
-            let _span = tracing::info_span!("simulation_loop").entered();
-
             Manager::start(manager);
 
             while Manager::has_work(&manager) {

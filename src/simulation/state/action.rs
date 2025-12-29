@@ -1,6 +1,7 @@
 pub mod act;
 
 pub use act::Act;
+use tracing::instrument;
 
 use crate::{
     simulation::{
@@ -32,9 +33,8 @@ impl Action {
         Self { active, act_deque }
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(state: &mut State) {
-        let _span = tracing::info_span!("action_tick").entered();
-
         let act_deque = std::mem::take(&mut state.action.act_deque);
 
         for act in act_deque {
@@ -120,7 +120,7 @@ impl Action {
 
             let horizontal_move_direction =
                 person.sight.rotor * local_horizontal_movement_direction;
-                
+
             let horizontal_ground_velocity =
                 horizontal_move_direction * 0.6 * person.motion.climb_speed;
 

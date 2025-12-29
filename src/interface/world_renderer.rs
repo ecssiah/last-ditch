@@ -3,6 +3,8 @@ pub mod sector_mesh;
 pub mod sector_vertex;
 pub mod tile_atlas;
 
+use tracing::instrument;
+
 use crate::{
     include_assets,
     interface::{
@@ -190,6 +192,7 @@ impl WorldRenderer {
             })
     }
 
+    #[instrument(skip_all, name = "apply_world_view")]
     pub fn apply_world_view(
         gpu_context: &GPUContext,
         camera: &Camera,
@@ -197,8 +200,6 @@ impl WorldRenderer {
         object_renderer: &mut ObjectRenderer,
         world_renderer: &mut WorldRenderer,
     ) {
-        let _span = tracing::info_span!("apply_world_view").entered();
-
         world_renderer.active_sector_index_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
 
@@ -207,8 +208,6 @@ impl WorldRenderer {
 
         // TODO: Block modification causes edge of sector to be invalid mesh
         for (sector_index, sector_view) in &world_view.sector_view_map {
-            let _span = tracing::info_span!("sector", id = sector_view.sector_index).entered();
-
             if !camera
                 .frustum
                 .sphere_in_frustum(sector_view.world_position, SECTOR_RADIUS_IN_METERS * 1.5)
@@ -250,6 +249,7 @@ impl WorldRenderer {
         world_renderer.active_gpu_mesh_vec.sort_unstable();
     }
 
+    #[instrument(skip_all, name = "get_or_build_sector_mesh")]
     fn get_or_build_sector_mesh<'a>(
         sector_view: &SectorView,
         sector_mesh_cache: &'a mut HashMap<usize, SectorMesh>,
@@ -272,6 +272,7 @@ impl WorldRenderer {
         }
     }
 
+    #[instrument(skip_all, name = "get_or_build_gpu_sector_mesh")]
     fn get_or_build_gpu_sector_mesh<'a>(
         sector_mesh: &SectorMesh,
         device: &wgpu::Device,
@@ -295,6 +296,7 @@ impl WorldRenderer {
         }
     }
 
+    #[instrument(skip_all, name = "render")]
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,

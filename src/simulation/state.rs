@@ -12,6 +12,7 @@ pub use action::Action;
 pub use physics::Physics;
 pub use population::Population;
 pub use time::Time;
+use tracing::instrument;
 pub use world::World;
 
 use crate::simulation::state::{
@@ -91,9 +92,8 @@ impl State {
         state.population.rng = ChaCha8Rng::seed_from_u64(state.rng.next_u64());
     }
 
+    #[instrument(skip_all, name = "tick")]
     pub fn tick(state: &mut Self) {
-        let _span = tracing::info_span!("state_tick").entered();
-
         if state.active {
             Action::tick(state);
             World::tick(&mut state.world);
