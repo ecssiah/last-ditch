@@ -58,9 +58,9 @@ impl Direction {
     pub fn to_rotation(direction: &Self) -> f32 {
         match direction {
             Self::North => 0.0f32.to_radians(),
-            Self::East => 270.0f32.to_radians(),
-            Self::South => 180.0f32.to_radians(),
             Self::West => 90.0f32.to_radians(),
+            Self::South => 180.0f32.to_radians(),
+            Self::East => 270.0f32.to_radians(),
             _ => 0.0,
         }
     }
