@@ -43,13 +43,13 @@ impl Body {
             .insert(collider_label.clone(), body.box_collider_vec.len() - 1);
     }
 
-    pub fn get_collider(collider_label: collider::Label, body: &Self) -> Option<&BoxCollider> {
+    pub fn get_box_collider(collider_label: collider::Label, body: &Self) -> Option<&BoxCollider> {
         let collider_index = body.box_collider_index_map.get(&collider_label)?;
 
         body.box_collider_vec.get(*collider_index)
     }
 
-    pub fn get_collider_mut(
+    pub fn get_box_collider_mut(
         collider_label: collider::Label,
         body: &mut Self,
     ) -> Option<&mut BoxCollider> {

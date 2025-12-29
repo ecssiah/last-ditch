@@ -23,6 +23,7 @@ use crate::{
                 },
                 block,
                 grid::{self, Direction, Line},
+                object::{stairs, ObjectManager},
                 tower::{self, Tower},
             },
             Population, State, World,
@@ -64,6 +65,13 @@ impl GenerateData {
             1 => {
                 Self::generate_judge(&mut state.population);
                 Self::generate_nations(&mut state.population);
+
+                ObjectManager::set_stairs(
+                    IVec3::new(0, 6, 1),
+                    &stairs::Kind::Stairs1,
+                    &Direction::North,
+                    &mut state.world,
+                );
             }
             2 => {
                 Self::construct_floor_map(&mut state.world);
@@ -107,7 +115,7 @@ impl GenerateData {
             JUDGE_DEFAULT_RADIUS_Z,
         );
 
-        let core_collider = Body::get_collider_mut(collider::Label::Core, &mut judge.body)
+        let core_collider = Body::get_box_collider_mut(collider::Label::Core, &mut judge.body)
             .expect("Body is missing core");
 
         let core_local_position =
@@ -132,19 +140,6 @@ impl GenerateData {
             BoxCollider::new(ground_collider_local_position, ground_collider_radius);
 
         Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
-
-        let base_collider_radius = Vec3::new(
-            JUDGE_DEFAULT_RADIUS_X,
-            JUDGE_DEFAULT_RADIUS_Y,
-            0.2 * JUDGE_DEFAULT_RADIUS_Z,
-        );
-
-        let base_collider_local_position =
-            Vec3::new(0.0, 0.0, base_collider_radius.z - CELL_RADIUS_IN_METERS);
-
-        let base_collider = BoxCollider::new(base_collider_local_position, base_collider_radius);
-
-        Body::add_collider(&collider::Label::Base, base_collider, &mut judge.body);
 
         let sight_local_position = Vec3::new(
             0.0,

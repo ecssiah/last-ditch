@@ -370,7 +370,7 @@ impl PopulationRenderer {
 
             let world_position = *(person_view.transform.world_position).as_array();
 
-            let core_collider = Body::get_collider(collider::Label::Core, &person_view.body)
+            let core_collider = Body::get_box_collider(collider::Label::Core, &person_view.body)
                 .expect("Body has no core");
 
             let person_scale = BoxCollider::get_radius(core_collider).z / PERSON_DEFAULT_RADIUS_Z;

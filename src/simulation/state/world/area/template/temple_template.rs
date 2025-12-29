@@ -6,6 +6,7 @@ use crate::simulation::state::{
             template::{self, Template},
         },
         block,
+        grid::Direction,
         object::{ladder, stairs},
     },
 };
@@ -133,7 +134,7 @@ impl Template for TempleTemplate {
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 2, 1),
                 IVec3::new(3, 1, 1),
                 &stairs::Kind::Stairs1,
-                &area.direction,
+                &Direction::to_opposing(&area.direction),
                 area,
                 world,
             );
@@ -142,7 +143,7 @@ impl Template for TempleTemplate {
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
                 IVec3::new(3, 1, 1),
                 &stairs::Kind::Stairs1,
-                &area.direction,
+                &Direction::to_opposing(&area.direction),
                 area,
                 world,
             );

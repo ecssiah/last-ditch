@@ -100,7 +100,7 @@ impl Population {
             PERSON_DEFAULT_RADIUS_Z,
         );
 
-        let core_collider = Body::get_collider_mut(collider::Label::Core, &mut person.body)
+        let core_collider = Body::get_box_collider_mut(collider::Label::Core, &mut person.body)
             .expect("Body has no core");
 
         BoxCollider::set_radius(person_radius, core_collider);

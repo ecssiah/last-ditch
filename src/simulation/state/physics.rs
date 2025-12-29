@@ -9,7 +9,10 @@ use crate::{
         state::{
             physics::body::{contact_set::ContactSet, Body},
             population::{motion, person::Person, Population},
-            world::grid::{self, axis::Axis},
+            world::{
+                grid::{self, axis::Axis, Direction},
+                object::ObjectManager,
+            },
             World,
         },
     },
@@ -47,7 +50,7 @@ impl Physics {
             Person::set_world_position(world_position, judge);
             Person::set_velocity(velocity, judge);
 
-            let ground_collider = Body::get_collider(collider::Label::Ground, &judge.body)
+            let ground_collider = Body::get_box_collider(collider::Label::Ground, &judge.body)
                 .expect("Body is missing ground");
 
             let ground_hit_vec =
@@ -59,12 +62,6 @@ impl Physics {
             {
                 ContactSet::add(body::Contact::Ground, &mut judge.body.contact_set);
             }
-
-            let base_collider = Body::get_collider(collider::Label::Base, &judge.body)
-                .expect("Base is missing ground");
-
-            let _base_hit_vec =
-                Self::get_hit_vec(&base_collider.float_box, Vec3::new(0.0, 0.0, 1.0), world);
 
             if judge.motion.mode == motion::Mode::Climb
                 && !ContactSet::has(body::Contact::Ladder, &judge.body.contact_set)
@@ -98,8 +95,8 @@ impl Physics {
     ) -> (Vec3, Vec3) {
         ContactSet::clear(&mut person.body.contact_set);
 
-        let core_collider =
-            Body::get_collider(collider::Label::Core, &person.body).expect("Body is missing core");
+        let core_collider = Body::get_box_collider(collider::Label::Core, &person.body)
+            .expect("Body is missing core");
 
         let mut core_float_box = core_collider.float_box.clone();
 
@@ -200,13 +197,72 @@ impl Physics {
             if World::get_block(grid_position, &world.sector_vec).is_some_and(|block| block.solid) {
                 let contact_point = Vec3::from(grid_position);
 
-                let cell_hit = collider::Hit {
+                let hit = collider::Hit {
                     collider_kind: collider::Kind::Solid,
                     contact_point,
                     normal,
                 };
 
-                hit_vec.push(cell_hit);
+                hit_vec.push(hit);
+            }
+
+            if ObjectManager::get_ladder(grid_position, world).is_some() {
+                let contact_point = Vec3::from(grid_position);
+
+                let hit = collider::Hit {
+                    collider_kind: collider::Kind::Ladder,
+                    contact_point,
+                    normal,
+                };
+
+                hit_vec.push(hit);
+            }
+
+            if let Some(stairs) = ObjectManager::get_stairs(grid_position, world) {
+                let stairs_center = Vec3::from(grid_position);
+
+                let local_min = FloatBox::get_min(float_box) - stairs_center;
+                let local_max = FloatBox::get_max(float_box) - stairs_center;
+
+                let is_overlapping = match stairs.direction {
+                    Direction::North => {
+                        let z = local_min.z;
+                        let y = local_max.y;
+
+                        z <= y + CELL_RADIUS_IN_METERS
+                    }
+                    Direction::West => {
+                        let z = local_min.z;
+                        let x = local_min.x;
+
+                        z <= CELL_RADIUS_IN_METERS - x
+                    }
+                    Direction::South => {
+                        let z = local_min.z;
+                        let y = local_min.y;
+
+                        z <= CELL_RADIUS_IN_METERS - y
+                    }
+                    Direction::East => {
+                        let z = local_min.z;
+                        let x = local_max.x;
+
+                        z <= x + CELL_RADIUS_IN_METERS
+                    }
+                    Direction::Up | Direction::Down => panic!("Stairs should not face up or down"),
+                };
+
+                if is_overlapping {
+                    let contact_point = Vec3::from(grid_position);
+
+                    let hit = collider::Hit {
+                        collider_kind: collider::Kind::Solid,
+                        contact_point,
+                        normal,
+                    };
+
+                    hit_vec.push(hit);
+                }
             }
         }
 

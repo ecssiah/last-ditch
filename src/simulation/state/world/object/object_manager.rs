@@ -27,6 +27,18 @@ impl ObjectManager {
         }
     }
 
+    pub fn get_door(grid_position: IVec3, world: &World) -> Option<&Door> {
+        if grid::grid_position_is_valid(grid_position) {
+            let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
+
+            let sector = &world.sector_vec[sector_index];
+
+            sector.object_manager.door_vec[cell_index].as_ref()
+        } else {
+            None
+        }
+    }
+
     pub fn set_door(
         grid_position: IVec3,
         door_kind: &door::Kind,
@@ -41,6 +53,18 @@ impl ObjectManager {
             let sector = &mut world.sector_vec[sector_index];
             sector.object_manager.door_vec[cell_index] = Some(door);
             sector.version += 1;
+        }
+    }
+
+    pub fn get_stairs(grid_position: IVec3, world: &World) -> Option<&Stairs> {
+        if grid::grid_position_is_valid(grid_position) {
+            let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
+
+            let sector = &world.sector_vec[sector_index];
+
+            sector.object_manager.stairs_vec[cell_index].as_ref()
+        } else {
+            None
         }
     }
 
@@ -76,6 +100,18 @@ impl ObjectManager {
                     Self::set_stairs(position, stairs_kind, direction, world);
                 }
             }
+        }
+    }
+
+    pub fn get_ladder(grid_position: IVec3, world: &World) -> Option<&Ladder> {
+        if grid::grid_position_is_valid(grid_position) {
+            let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
+
+            let sector = &world.sector_vec[sector_index];
+
+            sector.object_manager.ladder_vec[cell_index].as_ref()
+        } else {
+            None
         }
     }
 
