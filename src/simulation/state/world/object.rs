@@ -1,87 +1,57 @@
-pub mod kind;
+pub mod block;
+pub mod door;
+pub mod info;
+pub mod ladder;
+pub mod stairs;
 
-pub use kind::Kind;
+pub use block::Block;
+pub use door::Door;
+pub use info::Info;
+pub use ladder::Ladder;
+pub use stairs::Stairs;
 
-use crate::simulation::{
-    constants::*,
-    state::{
-        physics::collider::{self, Collider},
-        world::{grid::Direction, object},
-    },
-};
-use ultraviolet::Vec3;
+// fn setup_collider(object_kind: self::Kind) -> BoxCollider {
+//     match object_kind {
+//         Kind::DoorOpen => {
+//             let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
+//             let radius = Vec3::new(1.00, 0.25, 2.00) * CELL_SIZE_IN_METERS;
 
-#[derive(Clone, Debug)]
-pub struct Object {
-    pub object_kind: object::Kind,
-    pub direction: Direction,
-    pub collider: Collider,
-}
+//             let mut box_collider = BoxCollider::new(local_position, radius);
+//             box_collider.active = false;
 
-impl Object {
-    pub fn new(object_kind: self::Kind, direction: Direction) -> Self {
-        Self {
-            object_kind,
-            direction,
-            collider: Self::setup_collider(object_kind, direction),
-        }
-    }
+//             box_collider
+//         }
+//         Kind::DoorClosed => {
+//             let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
+//             let radius = Vec3::new(1.00, 0.25, 2.00) * CELL_RADIUS_IN_METERS;
 
-    fn setup_collider(object_kind: self::Kind, direction: Direction) -> Collider {
-        match object_kind {
-            Kind::DoorOpen => {
-                let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
-                let radius = Vec3::new(1.00, 0.25, 2.00) * CELL_SIZE_IN_METERS;
+//             let box_collider = BoxCollider::new(local_position, radius);
 
-                let mut collider = Collider::new(&collider::Kind::Solid, local_position, radius);
-                collider.active = false;
+//             box_collider
+//         }
+//         Kind::Stairs => {
+//             let local_position = Vec3::new(0.0, 0.0, 0.0);
+//             let radius = Vec3::new(1.00, 1.00, 1.00) * CELL_RADIUS_IN_METERS;
 
-                collider
-            }
-            Kind::DoorClosed => {
-                let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS);
-                let radius = Vec3::new(1.00, 0.25, 2.00) * CELL_RADIUS_IN_METERS;
+//             let box_collider = BoxCollider::new(local_position, radius);
 
-                let collider = Collider::new(&collider::Kind::Solid, local_position, radius);
+//             box_collider
+//         }
+//         Kind::Platform => {
+//             let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS - CELL_UNIT_EIGHTH);
+//             let radius = Vec3::new(1.00, 1.00, 0.25) * CELL_RADIUS_IN_METERS;
 
-                collider
-            }
-            Kind::Stairs => {
-                let local_position = Vec3::new(0.0, 0.0, 0.0);
-                let radius = Vec3::new(1.00, 1.00, 1.00) * CELL_RADIUS_IN_METERS;
+//             let box_collider = BoxCollider::new(local_position, radius);
 
-                let collider_kind = if direction == Direction::North {
-                    collider::Kind::StairsNorth
-                } else if direction == Direction::West {
-                    collider::Kind::StairsWest
-                } else if direction == Direction::South {
-                    collider::Kind::StairsSouth
-                } else if direction == Direction::East {
-                    collider::Kind::StairsEast
-                } else {
-                    panic!("Stairs cannot face up or down")
-                };
+//             box_collider
+//         }
+//         Kind::Ladder => {
+//             let local_position = Vec3::new(0.0, CELL_RADIUS_IN_METERS - CELL_UNIT_EIGHTH, 0.0);
+//             let radius = Vec3::new(1.00, 0.25, 1.00) * CELL_RADIUS_IN_METERS;
 
-                let collider = Collider::new(&collider_kind, local_position, radius);
+//             let box_collider = BoxCollider::new(local_position, radius);
 
-                collider
-            }
-            Kind::Platform => {
-                let local_position = Vec3::new(0.0, 0.0, CELL_RADIUS_IN_METERS - CELL_UNIT_EIGHTH);
-                let radius = Vec3::new(1.00, 1.00, 0.25) * CELL_RADIUS_IN_METERS;
-
-                let collider = Collider::new(&collider::Kind::Solid, local_position, radius);
-
-                collider
-            }
-            Kind::Ladder => {
-                let local_position = Vec3::new(0.0, CELL_RADIUS_IN_METERS - CELL_UNIT_EIGHTH, 0.0);
-                let radius = Vec3::new(1.00, 0.25, 1.00) * CELL_RADIUS_IN_METERS;
-
-                let collider = Collider::new(&collider::Kind::Ladder, local_position, radius);
-
-                collider
-            }
-        }
-    }
-}
+//             box_collider
+//         }
+//     }
+// }

@@ -1,4 +1,4 @@
-use crate::simulation::state::world::{block, grid};
+use crate::simulation::state::world::{grid, object::block};
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]

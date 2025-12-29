@@ -84,7 +84,7 @@ impl Action {
 
     fn apply_ground_move(move_data: &MoveData, person: &mut Person) {
         if move_data.move_direction.mag_sq() > MOVEMENT_EPSILON {
-            if ContactSet::contains(body::Contact::Ladder, &person.body.contact_set) {
+            if ContactSet::has(body::Contact::Ladder, &person.body.contact_set) {
                 if float_ext::not_equal(move_data.move_direction.z, 0.0, EPSILON) {
                     person.motion.mode = motion::Mode::Climb;
 
@@ -155,7 +155,7 @@ impl Action {
         if let Some(person) = population.person_map.get_mut(&jump_data.person_id) {
             match person.motion.mode {
                 motion::Mode::Ground => {
-                    if ContactSet::contains(body::Contact::Ground, &person.body.contact_set) {
+                    if ContactSet::has(body::Contact::Ground, &person.body.contact_set) {
                         person.motion.velocity.z = person.motion.jump_speed
                     }
                 }

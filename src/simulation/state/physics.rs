@@ -57,39 +57,17 @@ impl Physics {
                 .iter()
                 .any(|hit| hit.collider_kind == collider::Kind::Solid)
             {
-                ContactSet::insert(body::Contact::Ground, &mut judge.body.contact_set);
+                ContactSet::add(body::Contact::Ground, &mut judge.body.contact_set);
             }
 
             let base_collider = Body::get_collider(collider::Label::Base, &judge.body)
                 .expect("Base is missing ground");
 
-            let base_hit_vec =
+            let _base_hit_vec =
                 Self::get_hit_vec(&base_collider.float_box, Vec3::new(0.0, 0.0, 1.0), world);
 
-            if base_hit_vec
-                .iter()
-                .any(|hit| hit.collider_kind == collider::Kind::StairsNorth)
-            {
-                ContactSet::insert(body::Contact::StairsNorth, &mut judge.body.contact_set);
-            } else if base_hit_vec
-                .iter()
-                .any(|hit| hit.collider_kind == collider::Kind::StairsWest)
-            {
-                ContactSet::insert(body::Contact::StairsWest, &mut judge.body.contact_set);
-            } else if base_hit_vec
-                .iter()
-                .any(|hit| hit.collider_kind == collider::Kind::StairsSouth)
-            {
-                ContactSet::insert(body::Contact::StairsSouth, &mut judge.body.contact_set);
-            } else if base_hit_vec
-                .iter()
-                .any(|hit| hit.collider_kind == collider::Kind::StairsEast)
-            {
-                ContactSet::insert(body::Contact::StairsEast, &mut judge.body.contact_set);
-            }
-
             if judge.motion.mode == motion::Mode::Climb
-                && !ContactSet::contains(body::Contact::Ladder, &judge.body.contact_set)
+                && !ContactSet::has(body::Contact::Ladder, &judge.body.contact_set)
             {
                 judge.motion.mode = motion::Mode::Ground;
             }
@@ -193,7 +171,7 @@ impl Physics {
                 .iter()
                 .any(|hit| hit.collider_kind == collider::Kind::Ladder)
             {
-                ContactSet::insert(body::Contact::Ladder, &mut person.body.contact_set);
+                ContactSet::add(body::Contact::Ladder, &mut person.body.contact_set);
             }
         }
 
@@ -214,39 +192,21 @@ impl Physics {
     }
 
     fn get_hit_vec(float_box: &FloatBox, normal: Vec3, world: &World) -> Vec<collider::Hit> {
-        let overlap_grid_positions = grid::get_grid_overlap_vec(float_box);
+        let overlap_grid_positions = grid::get_float_box_grid_overlap_vec(float_box);
 
         let mut hit_vec = Vec::with_capacity(overlap_grid_positions.len());
 
         for grid_position in overlap_grid_positions {
-            let cell = World::get_cell_at(grid_position, &world.sector_vec);
+            if World::get_block(grid_position, &world.sector_vec).is_some_and(|block| block.solid) {
+                let contact_point = Vec3::from(grid_position);
 
-            if let Some(block) = &cell.block {
-                if block.solid {
-                    let contact_point = Vec3::from(grid_position);
+                let cell_hit = collider::Hit {
+                    collider_kind: collider::Kind::Solid,
+                    contact_point,
+                    normal,
+                };
 
-                    let cell_hit = collider::Hit {
-                        collider_kind: collider::Kind::Solid,
-                        contact_point,
-                        normal,
-                    };
-
-                    hit_vec.push(cell_hit);
-                }
-            }
-
-            if let Some(object) = &cell.object {
-                if object.collider.active {
-                    let contact_point = Vec3::from(grid_position);
-
-                    let object_hit = collider::Hit {
-                        collider_kind: object.collider.collider_kind,
-                        contact_point,
-                        normal,
-                    };
-
-                    hit_vec.push(object_hit);
-                }
+                hit_vec.push(cell_hit);
             }
         }
 

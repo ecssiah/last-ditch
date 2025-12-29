@@ -1,12 +1,15 @@
 use crate::{
     interface::{
         gpu::gpu_mesh::GpuMesh,
-        world_renderer::{face::Face, sector_vertex::SectorVertex, tile_atlas},
+        world_renderer::{sector_face::SectorFace, sector_vertex::SectorVertex, tile_atlas},
     },
     simulation::{
         constants::*,
-        manager::viewer::{face_mask, view::SectorView},
-        state::world::grid::{self, axis::Axis, Direction},
+        manager::viewer::view::SectorView,
+        state::world::{
+            grid::{self, axis::Axis, direction_set::DirectionSet, Direction},
+            sector::Sector,
+        },
     },
 };
 use ultraviolet::IVec3;
@@ -32,7 +35,7 @@ impl SectorMesh {
         sector_mesh
     }
 
-    fn generate_mask_vec(sector_view: &SectorView) -> Vec<Vec<Vec<Option<Face>>>> {
+    fn generate_mask_vec(sector_view: &SectorView) -> Vec<Vec<Vec<Option<SectorFace>>>> {
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
         let sector_area_in_cells = SECTOR_AREA_IN_CELLS as i32;
@@ -51,42 +54,8 @@ impl SectorMesh {
                     let cell_coordinate = IVec3::new(x, y, z);
                     let cell_index = grid::cell_coordinate_to_cell_index(cell_coordinate);
 
-                    let cell_view = &sector_view.cell_view_vec[cell_index];
-
-                    if let Some(block_view) = cell_view.block_view.as_ref() {
-                        if face_mask::has(face_mask::EAST, &block_view.face_mask) {
-                            let slice_index = (x + sector_radius_in_cells + 1) as usize;
-
-                            let local_y = (y + sector_radius_in_cells) as usize;
-                            let local_z = (z + sector_radius_in_cells) as usize;
-
-                            let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
-
-                            let face = Face {
-                                block_kind: block_view.block_kind,
-                                direction: grid::Direction::East,
-                            };
-
-                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(face);
-                        }
-
-                        if face_mask::has(face_mask::WEST, &block_view.face_mask) {
-                            let slice_index = (x + sector_radius_in_cells) as usize;
-
-                            let local_y = (y + sector_radius_in_cells) as usize;
-                            let local_z = (z + sector_radius_in_cells) as usize;
-
-                            let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
-
-                            let face = Face {
-                                block_kind: block_view.block_kind,
-                                direction: grid::Direction::West,
-                            };
-
-                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(face);
-                        }
-
-                        if face_mask::has(face_mask::NORTH, &block_view.face_mask) {
+                    if let Some(block) = Sector::get_block(cell_index, &sector_view.block_vec) {
+                        if DirectionSet::has(Direction::North, &block.exposure_set) {
                             let slice_index = (y + sector_radius_in_cells + 1) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -94,15 +63,31 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let face = Face {
-                                block_kind: block_view.block_kind,
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
                                 direction: grid::Direction::North,
                             };
 
-                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(face);
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if face_mask::has(face_mask::SOUTH, &block_view.face_mask) {
+                        if DirectionSet::has(Direction::West, &block.exposure_set) {
+                            let slice_index = (x + sector_radius_in_cells) as usize;
+
+                            let local_y = (y + sector_radius_in_cells) as usize;
+                            let local_z = (z + sector_radius_in_cells) as usize;
+
+                            let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
+
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
+                                direction: grid::Direction::West,
+                            };
+
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
+                        }
+
+                        if DirectionSet::has(Direction::South, &block.exposure_set) {
                             let slice_index = (y + sector_radius_in_cells) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -110,15 +95,31 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let face = Face {
-                                block_kind: block_view.block_kind,
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
                                 direction: grid::Direction::South,
                             };
 
-                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(face);
+                            mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if face_mask::has(face_mask::UP, &block_view.face_mask) {
+                        if DirectionSet::has(Direction::East, &block.exposure_set) {
+                            let slice_index = (x + sector_radius_in_cells + 1) as usize;
+
+                            let local_y = (y + sector_radius_in_cells) as usize;
+                            let local_z = (z + sector_radius_in_cells) as usize;
+
+                            let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
+
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
+                                direction: grid::Direction::East,
+                            };
+
+                            mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
+                        }
+
+                        if DirectionSet::has(Direction::Up, &block.exposure_set) {
                             let slice_index = (z + sector_radius_in_cells + 1) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -126,15 +127,15 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let face = Face {
-                                block_kind: block_view.block_kind,
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
                                 direction: grid::Direction::Up,
                             };
 
-                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(face);
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if face_mask::has(face_mask::DOWN, &block_view.face_mask) {
+                        if DirectionSet::has(Direction::Down, &block.exposure_set) {
                             let slice_index = (z + sector_radius_in_cells) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -142,12 +143,12 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let face = Face {
-                                block_kind: block_view.block_kind,
+                            let sector_face = SectorFace {
+                                block_kind: block.block_kind.clone(),
                                 direction: grid::Direction::Down,
                             };
 
-                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(face);
+                            mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
                         }
                     }
                 }
@@ -157,7 +158,10 @@ impl SectorMesh {
         mask_vec
     }
 
-    fn merge_geometry(sector_view: &SectorView, mask_vec: Vec<Vec<Vec<Option<Face>>>>) -> Self {
+    fn merge_geometry(
+        sector_view: &SectorView,
+        mask_vec: Vec<Vec<Vec<Option<SectorFace>>>>,
+    ) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
 
@@ -166,12 +170,12 @@ impl SectorMesh {
             let slice_count = axis_vec.len();
 
             for slice_index in 0..slice_count {
-                let slice = &axis_vec[slice_index];
+                let sector_face_slice = &axis_vec[slice_index];
 
                 Self::merge_slice(
                     axis,
                     slice_index,
-                    slice,
+                    sector_face_slice,
                     sector_view.world_position.as_array(),
                     &mut vertex_vec,
                     &mut index_vec,
@@ -190,20 +194,20 @@ impl SectorMesh {
     fn merge_slice(
         axis: Axis,
         slice_index: usize,
-        slice: &[Option<Face>],
+        sector_face_slice: &[Option<SectorFace>],
         sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as usize;
 
-        let mut visited = vec![false; slice.len()];
+        let mut visited = vec![false; sector_face_slice.len()];
 
         for y in 0..sector_size_in_cells {
             for x in 0..sector_size_in_cells {
                 let mask_index = y * sector_size_in_cells + x;
 
-                let face = match slice[mask_index] {
+                let face = match sector_face_slice[mask_index].clone() {
                     Some(face) => face,
                     None => continue,
                 };
@@ -217,7 +221,7 @@ impl SectorMesh {
                 while x_max < sector_size_in_cells {
                     let test_mask_index = y * sector_size_in_cells + x_max;
 
-                    let test_face = match slice[test_mask_index] {
+                    let test_face = match sector_face_slice[test_mask_index].clone() {
                         Some(face) => face,
                         None => break,
                     };
@@ -235,7 +239,7 @@ impl SectorMesh {
                     for xx in x..x_max {
                         let test_mask_index = y_max * sector_size_in_cells + xx;
 
-                        let test_face = match slice[test_mask_index] {
+                        let test_face = match sector_face_slice[test_mask_index].clone() {
                             Some(face) => face,
                             None => break 'outer,
                         };
@@ -278,7 +282,7 @@ impl SectorMesh {
         y0: usize,
         x1: usize,
         y1: usize,
-        face: Face,
+        sector_face: SectorFace,
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
@@ -366,7 +370,7 @@ impl SectorMesh {
                 )
             };
 
-        let normal: [f32; 3] = *Direction::to_vec3(face.direction).as_array();
+        let normal: [f32; 3] = *Direction::to_vec3(&sector_face.direction).as_array();
 
         let (width_blocks, height_blocks) = match axis {
             Axis::X => {
@@ -391,7 +395,7 @@ impl SectorMesh {
         let uv2 = [width_blocks, 0.0];
         let uv3 = [0.0, 0.0];
 
-        let (uv0, uv1, uv2, uv3) = match face.direction {
+        let (uv0, uv1, uv2, uv3) = match sector_face.direction {
             grid::Direction::East => (uv0, uv1, uv2, uv3),
             grid::Direction::West => (uv1, uv0, uv3, uv2),
             grid::Direction::North => (uv1, uv0, uv3, uv2),
@@ -402,7 +406,7 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let layer = tile_atlas::get_tile_layer(face.block_kind, face.direction);
+        let layer = tile_atlas::get_tile_layer(sector_face.block_kind, sector_face.direction);
 
         vertex_vec.push(SectorVertex {
             position: [
@@ -448,7 +452,7 @@ impl SectorMesh {
             layer,
         });
 
-        let use_canonical = match face.direction {
+        let use_canonical = match sector_face.direction {
             grid::Direction::East => true,
             grid::Direction::West => false,
             grid::Direction::North => false,

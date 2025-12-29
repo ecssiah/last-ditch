@@ -4,9 +4,9 @@ pub type FaceMask = u8;
 
 pub const EMPTY: FaceMask = 0;
 
+pub const NORTH: FaceMask = 1 << 2;
 pub const EAST: FaceMask = 1 << 0;
 pub const WEST: FaceMask = 1 << 1;
-pub const NORTH: FaceMask = 1 << 2;
 pub const SOUTH: FaceMask = 1 << 3;
 pub const UP: FaceMask = 1 << 4;
 pub const DOWN: FaceMask = 1 << 5;

@@ -1,4 +1,4 @@
-pub mod face;
+pub mod sector_face;
 pub mod sector_mesh;
 pub mod sector_vertex;
 pub mod tile_atlas;
@@ -202,10 +202,10 @@ impl WorldRenderer {
         world_renderer.active_sector_index_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
 
-        let mut cell_view_vec = Vec::new();
+        object_renderer.instance_data_group_vec.clear();
+        object_renderer.instance_group_index_map.clear();
 
         // TODO: Block modification causes edge of sector to be invalid mesh
-
         for (sector_index, sector_view) in &world_view.sector_view_map {
             let _span = tracing::info_span!("sector", id = sector_view.sector_index).entered();
 
@@ -216,14 +216,14 @@ impl WorldRenderer {
                 continue;
             }
 
+            ObjectRenderer::apply_sector_view(sector_view, object_renderer);
+
             let sector_mesh =
                 Self::get_or_build_sector_mesh(sector_view, &mut world_renderer.sector_mesh_cache);
 
             if sector_mesh.vertex_vec.is_empty() {
                 continue;
             }
-
-            cell_view_vec.extend(sector_view.cell_view_vec.clone());
 
             Self::get_or_build_gpu_sector_mesh(
                 sector_mesh,
@@ -235,11 +235,13 @@ impl WorldRenderer {
             world_renderer.active_gpu_mesh_vec.push(*sector_index);
         }
 
-        ObjectRenderer::apply_cell_view_vec(gpu_context, &cell_view_vec, object_renderer);
+        ObjectRenderer::update_instance_data(gpu_context, object_renderer);
 
-        world_renderer
-            .sector_mesh_cache
-            .retain(|sector_index, _| world_renderer.active_sector_index_set.contains(sector_index));
+        world_renderer.sector_mesh_cache.retain(|sector_index, _| {
+            world_renderer
+                .active_sector_index_set
+                .contains(sector_index)
+        });
 
         world_renderer
             .gpu_mesh_cache

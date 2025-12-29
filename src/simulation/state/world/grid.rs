@@ -1,5 +1,6 @@
 pub mod axis;
 pub mod direction;
+pub mod direction_set;
 pub mod line;
 pub mod quadrant;
 
@@ -9,10 +10,7 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::{
-        constants::*,
-        state::world::{cell::Cell, grid},
-    },
+    simulation::constants::*,
     utils::ldmath::{ivec3_ext, FloatBox, IntBox},
 };
 use ultraviolet::{IVec3, Vec3};
@@ -28,17 +26,17 @@ pub fn sector_index_vec() -> Vec<usize> {
 }
 
 #[inline]
-pub fn is_cell_index_valid(id: usize) -> bool {
+pub fn cell_index_is_valid(id: usize) -> bool {
     (0usize..SECTOR_VOLUME_IN_CELLS).contains(&id)
 }
 
 #[inline]
-pub fn is_sector_index_valid(id: usize) -> bool {
+pub fn sector_index_is_valid(id: usize) -> bool {
     (0usize..WORLD_VOLUME_IN_SECTORS).contains(&id)
 }
 
 #[inline]
-pub fn is_cell_coordinate_valid(coordinate: IVec3) -> bool {
+pub fn cell_coordinate_is_valid(coordinate: IVec3) -> bool {
     let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let in_x_range =
@@ -54,7 +52,7 @@ pub fn is_cell_coordinate_valid(coordinate: IVec3) -> bool {
 }
 
 #[inline]
-pub fn is_sector_coordinate_valid(coordinate: IVec3) -> bool {
+pub fn sector_coordinate_is_valid(coordinate: IVec3) -> bool {
     let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
 
     let in_x_range =
@@ -70,7 +68,7 @@ pub fn is_sector_coordinate_valid(coordinate: IVec3) -> bool {
 }
 
 #[inline]
-pub fn is_grid_position_valid(grid_position: IVec3) -> bool {
+pub fn grid_position_is_valid(grid_position: IVec3) -> bool {
     let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     let in_x_range =
@@ -86,7 +84,7 @@ pub fn is_grid_position_valid(grid_position: IVec3) -> bool {
 }
 
 #[inline]
-pub fn is_world_position_valid(world_position: Vec3) -> bool {
+pub fn world_position_is_valid(world_position: Vec3) -> bool {
     let in_x_range =
         world_position.x >= -WORLD_RADIUS_IN_METERS && world_position.x <= WORLD_RADIUS_IN_METERS;
 
@@ -202,7 +200,7 @@ pub fn grid_position_to_cell_index(grid_position: IVec3) -> usize {
 }
 
 #[inline]
-pub fn grid_position_to_ids(grid_position: IVec3) -> (usize, usize) {
+pub fn grid_position_to_indices(grid_position: IVec3) -> (usize, usize) {
     let sector_index = grid_position_to_sector_index(grid_position);
     let cell_index = grid_position_to_cell_index(grid_position);
 
@@ -210,7 +208,7 @@ pub fn grid_position_to_ids(grid_position: IVec3) -> (usize, usize) {
 }
 
 #[inline]
-pub fn ids_to_grid_position(sector_index: usize, cell_index: usize) -> IVec3 {
+pub fn indices_to_grid_position(sector_index: usize, cell_index: usize) -> IVec3 {
     let sector_coordinate = sector_index_to_sector_coordinate(sector_index);
     let cell_coordinate = cell_index_to_cell_coordinate(cell_index);
 
@@ -266,12 +264,24 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
     cell_coordinate
 }
 
-pub fn get_grid_int_box(grid_position: IVec3, size: IVec3) -> IntBox {
-    IntBox::new(grid_position, grid_position + size - IVec3::one())
+#[inline]
+pub fn get_cell_float_box(grid_position: IVec3) -> FloatBox {
+    let world_position = grid_position_to_world_position(grid_position);
+    let radius = Vec3::broadcast(CELL_RADIUS_IN_METERS as f32);
+
+    FloatBox::new(world_position, radius)
 }
 
 #[inline]
-pub fn get_grid_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
+pub fn get_grid_int_box(grid_position: IVec3, size: IVec3) -> IntBox {
+    let min = grid_position;
+    let max = grid_position + size - IVec3::one();
+
+    IntBox::new(min, max)
+}
+
+#[inline]
+pub fn get_float_box_grid_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
     let mut grid_position_vec = Vec::new();
 
     let min = FloatBox::get_min(float_box);
@@ -295,8 +305,8 @@ pub fn get_grid_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
             for x in grid_int_box.min.x..=grid_int_box.max.x {
                 let grid_position = IVec3::new(x, y, z);
 
-                if grid::is_grid_position_valid(grid_position) {
-                    let cell_float_box = Cell::get_float_box(grid_position);
+                if grid_position_is_valid(grid_position) {
+                    let cell_float_box = get_cell_float_box(grid_position);
 
                     if FloatBox::overlap(float_box, &cell_float_box) {
                         grid_position_vec.push(grid_position);
@@ -309,11 +319,57 @@ pub fn get_grid_overlap_vec(float_box: &FloatBox) -> Vec<IVec3> {
     grid_position_vec
 }
 
+pub const FACE_OFFSET_ARRAY: [IVec3; 6] = [
+    IVec3::new(1, 0, 0),
+    IVec3::new(-1, 0, 0),
+    IVec3::new(0, 1, 0),
+    IVec3::new(0, -1, 0),
+    IVec3::new(0, 0, 1),
+    IVec3::new(0, 0, -1),
+];
+
+pub const NEIGHBOR_OFFSET_ARRAY: [IVec3; 26] = [
+    IVec3::new(-1, -1, -1),
+    IVec3::new(0, -1, -1),
+    IVec3::new(1, -1, -1),
+    IVec3::new(-1, 0, -1),
+    IVec3::new(0, 0, -1),
+    IVec3::new(1, 0, -1),
+    IVec3::new(-1, 1, -1),
+    IVec3::new(0, 1, -1),
+    IVec3::new(1, 1, -1),
+    IVec3::new(-1, -1, 0),
+    IVec3::new(0, -1, 0),
+    IVec3::new(1, -1, 0),
+    IVec3::new(-1, 0, 0),
+    IVec3::new(1, 0, 0),
+    IVec3::new(-1, 1, 0),
+    IVec3::new(0, 1, 0),
+    IVec3::new(1, 1, 0),
+    IVec3::new(-1, -1, 1),
+    IVec3::new(0, -1, 1),
+    IVec3::new(1, -1, 1),
+    IVec3::new(-1, 0, 1),
+    IVec3::new(0, 0, 1),
+    IVec3::new(1, 0, 1),
+    IVec3::new(-1, 1, 1),
+    IVec3::new(0, 1, 1),
+    IVec3::new(1, 1, 1),
+];
+
+#[inline]
+pub fn get_face_offset_vec() -> &'static [IVec3] {
+    &FACE_OFFSET_ARRAY
+}
+
+#[inline]
+pub fn get_neighbor_offset_vec() -> &'static [IVec3] {
+    &NEIGHBOR_OFFSET_ARRAY
+}
+
 #[inline]
 pub fn on_sector_boundary(grid_position: IVec3) -> bool {
-    if !is_grid_position_valid(grid_position) {
-        true
-    } else {
+    if grid_position_is_valid(grid_position) {
         let cell_coordinate = grid_position_to_cell_coordinate(grid_position);
 
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
@@ -321,21 +377,16 @@ pub fn on_sector_boundary(grid_position: IVec3) -> bool {
         cell_coordinate.x.abs() == sector_radius_in_cells
             || cell_coordinate.y.abs() == sector_radius_in_cells
             || cell_coordinate.z.abs() == sector_radius_in_cells
+    } else {
+        false
     }
 }
 
 #[inline]
-pub fn on_world_radius(grid_position: IVec3) -> bool {
+pub fn on_world_boundary(grid_position: IVec3) -> bool {
     let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
     grid_position.x.abs() == world_radius_in_cells
         || grid_position.y.abs() == world_radius_in_cells
         || grid_position.z.abs() == world_radius_in_cells
-}
-
-#[inline]
-pub fn offsets_in(radius: i32) -> impl Iterator<Item = IVec3> {
-    (-radius..=radius).flat_map(move |x| {
-        (-radius..=radius).flat_map(move |y| (-radius..=radius).map(move |z| IVec3::new(x, y, z)))
-    })
 }

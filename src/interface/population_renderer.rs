@@ -18,7 +18,7 @@ use crate::{
         state::{
             physics::{
                 body::Body,
-                collider::{self, Collider},
+                collider::{self, box_collider::BoxCollider},
             },
             population::identity,
         },
@@ -371,7 +371,7 @@ impl PopulationRenderer {
             let core_collider = Body::get_collider(collider::Label::Core, &person_view.body)
                 .expect("Body has no core");
 
-            let person_scale = Collider::get_radius(core_collider).z / PERSON_DEFAULT_RADIUS_Z;
+            let person_scale = BoxCollider::get_radius(core_collider).z / PERSON_DEFAULT_RADIUS_Z;
 
             let rotation_xy = person_view.transform.rotation_xy;
 

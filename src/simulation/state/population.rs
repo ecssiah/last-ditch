@@ -13,7 +13,7 @@ use crate::{
         state::{
             physics::{
                 body::Body,
-                collider::{self, Collider},
+                collider::{self, box_collider::BoxCollider},
             },
             population::{nation::Nation, person::Person},
         },
@@ -102,7 +102,7 @@ impl Population {
         let core_collider = Body::get_collider_mut(collider::Label::Core, &mut person.body)
             .expect("Body has no core");
 
-        Collider::set_radius(person_radius, core_collider);
+        BoxCollider::set_radius(person_radius, core_collider);
 
         person
     }

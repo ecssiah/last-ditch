@@ -13,39 +13,42 @@ use crate::{
         },
     },
     simulation::{
-        manager::viewer::view::CellView,
+        manager::viewer::view::SectorView,
         state::world::{
             grid::{self, Direction},
-            object,
+            sector::Sector,
         },
     },
 };
+use convert_case::Casing;
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, sync::Arc};
 
 pub struct ObjectRenderer {
-    pub object_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
-    pub object_instance_buffer: wgpu::Buffer,
-    pub object_instance_data_group_vec: Vec<(String, Vec<ObjectInstanceData>)>,
-    pub object_texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub object_atlas_bind_group: Arc<wgpu::BindGroup>,
+    pub gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
+    pub instance_buffer: wgpu::Buffer,
+    pub instance_data_group_vec: Vec<(String, Vec<ObjectInstanceData>)>,
+    pub instance_group_index_map: HashMap<String, usize>,
+    pub texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub atlas_bind_group: Arc<wgpu::BindGroup>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl ObjectRenderer {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let object_gpu_mesh_map = Self::load_object_gpu_mesh_map(&gpu_context.device);
+        let gpu_mesh_map = Self::load_object_gpu_mesh_map(&gpu_context.device);
 
-        let object_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
+        let instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Object Instance Buffer"),
             size: std::mem::size_of::<ObjectInstanceData>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
-        let object_instance_data_group_vec = Vec::new();
+        let instance_data_group_vec = Vec::new();
+        let instance_group_index_map = HashMap::new();
 
-        let object_texture_bind_group_layout =
+        let texture_bind_group_layout =
             Self::create_object_texture_bind_group_layout(&gpu_context.device);
 
         let gpu_texture_data = pollster::block_on(Self::load_texture_data(
@@ -55,7 +58,7 @@ impl ObjectRenderer {
             "object_atlas_0",
         ));
 
-        let object_atlas_bind_group = Arc::new(Self::create_texture_bind_group(
+        let atlas_bind_group = Arc::new(Self::create_texture_bind_group(
             &gpu_context.device,
             &gpu_texture_data,
         ));
@@ -63,15 +66,16 @@ impl ObjectRenderer {
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &object_texture_bind_group_layout,
+            &texture_bind_group_layout,
         );
 
         Self {
-            object_gpu_mesh_map,
-            object_instance_buffer,
-            object_instance_data_group_vec,
-            object_texture_bind_group_layout,
-            object_atlas_bind_group,
+            gpu_mesh_map,
+            instance_buffer,
+            instance_data_group_vec,
+            instance_group_index_map,
+            texture_bind_group_layout,
+            atlas_bind_group,
             render_pipeline,
         }
     }
@@ -345,37 +349,54 @@ impl ObjectRenderer {
             })
     }
 
-    pub fn apply_cell_view_vec(
-        gpu_context: &GPUContext,
-        cell_view_vec: &[CellView],
-        object_renderer: &mut ObjectRenderer,
-    ) {
-        object_renderer.object_instance_data_group_vec.clear();
+    pub fn apply_sector_view(sector_view: &SectorView, object_renderer: &mut ObjectRenderer) {
+        for cell_index in grid::cell_index_vec() {
+            let grid_position =
+                grid::indices_to_grid_position(sector_view.sector_index, cell_index);
 
-        let mut group_map: HashMap<String, Vec<ObjectInstanceData>> = HashMap::new();
+            let world_position = *(grid::grid_position_to_world_position(grid_position)).as_array();
 
-        for cell_view in cell_view_vec {
-            if let Some(object_view) = cell_view.object_view.as_ref() {
-                let world_position =
-                    *(grid::grid_position_to_world_position(cell_view.grid_position)).as_array();
-                let rotation_xy = Direction::to_rotation(object_view.direction);
+            if let Some(door) = Sector::get_door(cell_index, &sector_view.door_vec) {
+                let rotation_xy = Direction::to_rotation(&door.direction);
 
-                let object_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-                let object_model_name = object::Kind::to_string(object_view.object_kind);
+                let door_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
 
-                group_map
-                    .entry(object_model_name)
-                    .or_default()
-                    .push(object_instance_data);
+                let model_name = door
+                    .door_kind
+                    .to_string()
+                    .to_case(convert_case::Case::Snake);
+
+                Self::update_instance_group(
+                    &model_name,
+                    door_instance_data,
+                    &mut object_renderer.instance_data_group_vec,
+                    &mut object_renderer.instance_group_index_map,
+                );
             }
         }
+    }
 
-        object_renderer
-            .object_instance_data_group_vec
-            .extend(group_map.into_iter());
+    pub fn update_instance_group(
+        model_name: &str,
+        instance_data: ObjectInstanceData,
+        instance_data_group_vec: &mut Vec<(String, Vec<ObjectInstanceData>)>,
+        instance_group_index_map: &mut HashMap<String, usize>,
+    ) {
+        if let Some(&model_group_index) = instance_group_index_map.get(&model_name.to_string()) {
+            instance_data_group_vec[model_group_index]
+                .1
+                .push(instance_data);
+        } else {
+            let model_group_index = instance_data_group_vec.len();
 
+            instance_data_group_vec.push((model_name.to_string(), vec![instance_data]));
+            instance_group_index_map.insert(model_name.to_string(), model_group_index);
+        }
+    }
+
+    pub fn update_instance_data(gpu_context: &GPUContext, object_renderer: &mut ObjectRenderer) {
         let total_instance_count: usize = object_renderer
-            .object_instance_data_group_vec
+            .instance_data_group_vec
             .iter()
             .map(|(_, v)| v.len())
             .sum();
@@ -383,12 +404,12 @@ impl ObjectRenderer {
         let required_bytes = (total_instance_count * std::mem::size_of::<ObjectInstanceData>())
             as wgpu::BufferAddress;
 
-        let current_capacity = object_renderer.object_instance_buffer.size();
+        let current_capacity = object_renderer.instance_buffer.size();
 
         if required_bytes > current_capacity {
             let new_capacity = required_bytes.next_power_of_two();
 
-            object_renderer.object_instance_buffer =
+            object_renderer.instance_buffer =
                 gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
                     label: Some("Object Instance Buffer (resized)"),
                     size: new_capacity,
@@ -440,46 +461,44 @@ impl ObjectRenderer {
 
         render_pass.set_pipeline(&object_renderer.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-        render_pass.set_bind_group(1, object_renderer.object_atlas_bind_group.as_ref(), &[]);
+        render_pass.set_bind_group(1, object_renderer.atlas_bind_group.as_ref(), &[]);
 
         let mut offset_bytes = 0;
 
         for (object_model_name, object_instance_data_vec) in
-            &object_renderer.object_instance_data_group_vec
+            &object_renderer.instance_data_group_vec
         {
             let byte_len = (object_instance_data_vec.len()
                 * std::mem::size_of::<ObjectInstanceData>())
                 as wgpu::BufferAddress;
 
             gpu_context.queue.write_buffer(
-                &object_renderer.object_instance_buffer,
+                &object_renderer.instance_buffer,
                 offset_bytes,
                 bytemuck::cast_slice(&object_instance_data_vec),
             );
 
-            let object_gpu_mesh_arc = Arc::clone(
-                object_renderer
-                    .object_gpu_mesh_map
-                    .get(object_model_name)
-                    .unwrap(),
-            );
+            tracing::info!("{:?}", object_model_name);
+
+            let gpu_mesh_arc =
+                Arc::clone(object_renderer.gpu_mesh_map.get(object_model_name).unwrap());
 
             render_pass.set_vertex_buffer(
                 1,
                 object_renderer
-                    .object_instance_buffer
+                    .instance_buffer
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
 
-            render_pass.set_vertex_buffer(0, object_gpu_mesh_arc.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(0, gpu_mesh_arc.vertex_buffer.slice(..));
 
             render_pass.set_index_buffer(
-                object_gpu_mesh_arc.index_buffer.slice(..),
+                gpu_mesh_arc.index_buffer.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
 
             let instance_count = object_instance_data_vec.len() as u32;
-            render_pass.draw_indexed(0..object_gpu_mesh_arc.index_count, 0, 0..instance_count);
+            render_pass.draw_indexed(0..gpu_mesh_arc.index_count, 0, 0..instance_count);
 
             offset_bytes += byte_len;
         }

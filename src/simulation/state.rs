@@ -68,7 +68,7 @@ impl State {
         {
             let placement_position = hit_position + normal;
 
-            World::set_block(placement_position, person.selected_block_kind, world);
+            World::set_block(placement_position, &person.selected_block_kind, world);
         }
     }
 

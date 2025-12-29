@@ -4,11 +4,12 @@ use crate::{
             area::template::{self, Template},
             block,
             grid::{self, Axis, Direction},
-            object, Area,
+            object::door,
+            Area,
         },
         World,
     },
-    utils::ldmath::rand_chacha_ext::{gen_bool, gen_i32},
+    utils::ldmath::rand_chacha_ext::gen_i32,
 };
 use ultraviolet::IVec3;
 
@@ -46,7 +47,7 @@ impl Template for GenericRoomTemplate {
         template::set_block_box(
             IVec3::new(0, 0, 0),
             area.size,
-            block::Kind::Metal1,
+            &block::Kind::Metal1,
             area,
             world,
         );
@@ -64,14 +65,10 @@ impl Template for GenericRoomTemplate {
                 world,
             );
 
-            World::set_object(
+            World::set_door(
                 connection.entrance_vec[0] + 0 * IVec3::unit_z(),
-                if gen_bool(&mut world.rng) {
-                    object::Kind::DoorOpen
-                } else {
-                    object::Kind::DoorClosed
-                },
-                direction,
+                &door::Kind::Door1,
+                &direction,
                 world,
             );
         }
@@ -81,9 +78,21 @@ impl Template for GenericRoomTemplate {
         let area_int_box = grid::get_grid_int_box(area.grid_position, area.size);
 
         for _ in 0..resource_count {
-            let x = gen_i32(area_int_box.min.x + 1, area_int_box.max.x - 1, &mut world.rng);
-            let y = gen_i32(area_int_box.min.y + 1, area_int_box.max.y - 1, &mut world.rng);
-            let z = gen_i32(area_int_box.min.z + 2, area_int_box.max.z - 2, &mut world.rng);
+            let x = gen_i32(
+                area_int_box.min.x + 1,
+                area_int_box.max.x - 1,
+                &mut world.rng,
+            );
+            let y = gen_i32(
+                area_int_box.min.y + 1,
+                area_int_box.max.y - 1,
+                &mut world.rng,
+            );
+            let z = gen_i32(
+                area_int_box.min.z + 2,
+                area_int_box.max.z - 2,
+                &mut world.rng,
+            );
 
             let resource_block_kind_vec = GenericRoomTemplate::resource_map(area.floor_number);
 
@@ -93,7 +102,7 @@ impl Template for GenericRoomTemplate {
                 &mut world.rng,
             ) as usize;
 
-            let resource_block_kind = resource_block_kind_vec[resource_block_kind_index];
+            let resource_block_kind = &resource_block_kind_vec[resource_block_kind_index];
 
             World::set_block_cube(
                 IVec3::new(x, y, area_int_box.min.z + 1),

@@ -4,7 +4,7 @@ use crate::{
         state::{
             physics::{
                 body::Body,
-                collider::{self, Collider},
+                collider::{self, box_collider::BoxCollider},
             },
             population::{
                 identity, motion,
@@ -21,8 +21,8 @@ use crate::{
                     },
                     Area, Connection,
                 },
-                block,
                 grid::{self, Direction, Line},
+                object::block,
                 tower::{self, Tower},
             },
             Population, State, World,
@@ -113,8 +113,8 @@ impl GenerateData {
         let core_local_position =
             Vec3::new(0.0, 0.0, core_collider_radius.z - CELL_RADIUS_IN_METERS);
 
-        Collider::set_radius(core_collider_radius, core_collider);
-        Collider::set_local_position(core_local_position, core_collider);
+        BoxCollider::set_radius(core_collider_radius, core_collider);
+        BoxCollider::set_local_position(core_local_position, core_collider);
 
         let ground_collider_radius = Vec3::new(
             JUDGE_DEFAULT_RADIUS_X,
@@ -128,11 +128,8 @@ impl GenerateData {
             ground_collider_radius.z - CELL_RADIUS_IN_METERS - (ground_collider_radius.z * 0.5),
         );
 
-        let ground_collider = Collider::new(
-            &collider::Kind::Trigger,
-            ground_collider_local_position,
-            ground_collider_radius,
-        );
+        let ground_collider =
+            BoxCollider::new(ground_collider_local_position, ground_collider_radius);
 
         Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
 
@@ -145,11 +142,7 @@ impl GenerateData {
         let base_collider_local_position =
             Vec3::new(0.0, 0.0, base_collider_radius.z - CELL_RADIUS_IN_METERS);
 
-        let base_collider = Collider::new(
-            &collider::Kind::Trigger,
-            base_collider_local_position,
-            base_collider_radius,
-        );
+        let base_collider = BoxCollider::new(base_collider_local_position, base_collider_radius);
 
         Body::add_collider(&collider::Label::Base, base_collider, &mut judge.body);
 
@@ -218,7 +211,7 @@ impl GenerateData {
                     nation::Kind::Wolf => Direction::West,
                 };
 
-                let rotation_xy = Direction::to_rotation(direction);
+                let rotation_xy = Direction::to_rotation(&direction);
 
                 Person::set_rotation(rotation_xy, 0.0, &mut person);
 
@@ -254,7 +247,7 @@ impl GenerateData {
         World::set_block_cube(
             base_int_box.min,
             IVec3::new(base_int_box.max.x, base_int_box.max.y, base_int_box.min.z),
-            block::Kind::Stone3,
+            &block::Kind::Stone3,
             world,
         );
 
@@ -276,7 +269,7 @@ impl GenerateData {
                     floor_int_box.max.y,
                     floor_int_box.min.z,
                 ),
-                block::Kind::Panel2,
+                &block::Kind::Panel2,
                 world,
             );
 
@@ -287,14 +280,14 @@ impl GenerateData {
                     floor_int_box.max.z,
                 ),
                 floor_int_box.max,
-                block::Kind::Panel2,
+                &block::Kind::Panel2,
                 world,
             );
 
             World::set_block_wireframe(
                 floor_int_box.min,
                 floor_int_box.max,
-                block::Kind::Caution,
+                &block::Kind::Caution,
                 world,
             );
         }
@@ -328,14 +321,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
                         IVec3::new(-tower_radius, y, floor_int_box.max.z - 1),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 }
@@ -350,14 +343,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
                         IVec3::new(tower_radius, y, floor_int_box.max.z - 1),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 }
@@ -374,14 +367,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
                         IVec3::new(x, -tower_radius, floor_int_box.max.z - 1),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 }
@@ -396,14 +389,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
                         IVec3::new(x, tower_radius, floor_int_box.max.z - 1),
-                        block::Kind::Metal3,
+                        &block::Kind::Metal3,
                         world,
                     );
                 }
@@ -421,7 +414,7 @@ impl GenerateData {
         World::set_block_cube(
             roof_int_box.min,
             IVec3::new(roof_int_box.max.x, roof_int_box.max.y, roof_int_box.min.z),
-            block::Kind::Stone3,
+            &block::Kind::Stone3,
             world,
         );
 

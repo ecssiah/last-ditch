@@ -1,3 +1,4 @@
+use std::fmt;
 use ultraviolet::{IVec3, Vec3};
 
 #[repr(u8)]
@@ -12,7 +13,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: &'static [Self] = &[
         Self::North,
         Self::West,
         Self::South,
@@ -21,7 +22,7 @@ impl Direction {
         Self::Down,
     ];
 
-    pub fn to_ivec3(direction: Self) -> IVec3 {
+    pub fn to_ivec3(direction: &Self) -> IVec3 {
         match direction {
             Self::North => IVec3::new(0, 1, 0),
             Self::West => IVec3::new(-1, 0, 0),
@@ -32,7 +33,7 @@ impl Direction {
         }
     }
 
-    pub fn to_vec3(direction: Self) -> Vec3 {
+    pub fn to_vec3(direction: &Self) -> Vec3 {
         match direction {
             Self::North => Vec3::new(0.0, 1.0, 0.0),
             Self::West => Vec3::new(-1.0, 0.0, 0.0),
@@ -43,7 +44,7 @@ impl Direction {
         }
     }
 
-    pub fn to_rotation(direction: Direction) -> f32 {
+    pub fn to_rotation(direction: &Self) -> f32 {
         match direction {
             Self::North => 0.0f32.to_radians(),
             Self::East => 270.0f32.to_radians(),
@@ -69,7 +70,7 @@ impl Direction {
         }
     }
 
-    pub fn to_opposing(direction: Self) -> Self {
+    pub fn to_opposing(direction: &Self) -> Self {
         match direction {
             Self::North => Self::South,
             Self::West => Self::East,
@@ -80,14 +81,20 @@ impl Direction {
         }
     }
 
-    pub fn to_string(direction: Self) -> String {
-        match direction {
-            Self::North => String::from("North"),
-            Self::West => String::from("West"),
-            Self::South => String::from("South"),
-            Self::East => String::from("East"),
-            Self::Up => String::from("Up"),
-            Self::Down => String::from("Down"),
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Direction::North => "north",
+            Direction::West => "west",
+            Direction::South => "south",
+            Direction::East => "east",
+            Direction::Up => "up",
+            Direction::Down => "down",
         }
+    }
+}
+
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }

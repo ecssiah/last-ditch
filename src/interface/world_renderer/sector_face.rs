@@ -1,20 +1,22 @@
-use crate::simulation::state::world::{block, grid};
+use crate::simulation::state::world::{grid, object::block};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub struct Face {
+#[derive(Clone, PartialEq)]
+pub struct SectorFace {
     pub block_kind: block::Kind,
     pub direction: grid::Direction,
 }
 
-impl Face {
+impl SectorFace {
     pub fn new() -> Self {
         Self {
             block_kind: block::Kind::Caution,
             direction: grid::Direction::East,
         }
     }
+}
 
-    pub fn default() -> Self {
+impl Default for SectorFace {
+    fn default() -> Self {
         Self::new()
     }
 }

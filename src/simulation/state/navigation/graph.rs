@@ -57,7 +57,7 @@ impl Graph {
             + position_indexable.x as usize) as usize
     }
 
-    pub fn is_grid_position_valid(position: IVec3) -> bool {
+    pub fn grid_position_is_valid(position: IVec3) -> bool {
         let world_radius_in_cells = WORLD_RADIUS_IN_CELLS as i32;
 
         position.x >= -world_radius_in_cells
@@ -70,7 +70,7 @@ impl Graph {
 
     #[inline]
     pub fn is_walkable(position: IVec3, graph: &Self) -> bool {
-        if !Self::is_grid_position_valid(position) {
+        if !Self::grid_position_is_valid(position) {
             return false;
         }
 
@@ -82,7 +82,7 @@ impl Graph {
 
         let position_below = position - IVec3::unit_z();
 
-        if !Self::is_grid_position_valid(position_below) {
+        if !Self::grid_position_is_valid(position_below) {
             return false;
         }
 
@@ -94,7 +94,7 @@ impl Graph {
     }
 
     pub fn set_solid(position: IVec3, is_solid: bool, graph: &mut Self) {
-        if Self::is_grid_position_valid(position) {
+        if Self::grid_position_is_valid(position) {
             let index = Self::get_index(position);
 
             graph.solid_vec[index] = is_solid;
@@ -118,7 +118,7 @@ impl Graph {
         for neighbor_offset in Self::NEIGHBOR_OFFSETS.iter() {
             let neighbor_position = position + *neighbor_offset;
 
-            if Self::is_grid_position_valid(neighbor_position)
+            if Self::grid_position_is_valid(neighbor_position)
                 && Self::is_walkable(neighbor_position, graph)
             {
                 open_neighbor_position_vec.push(neighbor_position);

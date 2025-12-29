@@ -7,11 +7,11 @@ pub struct ContactSet(u32);
 impl ContactSet {
     pub const EMPTY: Self = Self(0);
 
-    pub fn contains(contact: Contact, contact_set: &ContactSet) -> bool {
+    pub fn has(contact: Contact, contact_set: &ContactSet) -> bool {
         (contact_set.0 & contact as u32) != 0
     }
 
-    pub fn insert(contact: Contact, contact_set: &mut ContactSet) {
+    pub fn add(contact: Contact, contact_set: &mut ContactSet) {
         contact_set.0 |= contact as u32;
     }
 
@@ -25,7 +25,7 @@ impl fmt::Display for ContactSet {
         let mut first = true;
 
         for contact in Contact::ALL {
-            if Self::contains(*contact, self) {
+            if Self::has(*contact, self) {
                 if !first {
                     f.write_str(", ")?;
                 }
