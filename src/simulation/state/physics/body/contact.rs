@@ -5,17 +5,15 @@ use std::fmt;
 pub enum Contact {
     Ground = 1 << 0,
     Ladder = 1 << 1,
-    Stairs = 1 << 2,
 }
 
 impl Contact {
-    pub const ALL: &'static [Self] = &[Self::Ground, Self::Ladder, Self::Stairs];
+    pub const ALL: &'static [Self] = &[Self::Ground, Self::Ladder];
 
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Ground => "ground",
             Self::Ladder => "ladder",
-            Self::Stairs => "stairs",
         }
     }
 }

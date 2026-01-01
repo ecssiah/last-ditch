@@ -3,7 +3,6 @@
 pub mod area;
 pub mod block;
 pub mod grid;
-pub mod object;
 pub mod sector;
 pub mod tower;
 
@@ -11,15 +10,13 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            world::{
-                area::Area,
-                block::Block,
-                grid::{direction_set::DirectionSet, Direction},
-                object::ObjectManager,
+            Time, world::{
+                area::{Area, AreaKind},
+                block::{Block, BlockKind},
+                grid::{Direction, direction_set::DirectionSet},
                 sector::Sector,
                 tower::Tower,
-            },
-            Time,
+            }
         },
         utils::IDGenerator,
     },
@@ -81,14 +78,12 @@ impl World {
                 let version = 0;
                 let grid_position = grid::sector_index_to_grid_position(sector_index);
                 let block_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
-                let object_manager = ObjectManager::new();
 
                 Sector {
                     version,
                     sector_index,
                     grid_position,
                     block_vec,
-                    object_manager,
                 }
             })
             .collect()
@@ -137,7 +132,7 @@ impl World {
         }
     }
 
-    pub fn set_block(grid_position: IVec3, block_kind: &block::Kind, world: &mut Self) {
+    pub fn set_block(grid_position: IVec3, block_kind: &BlockKind, world: &mut Self) {
         if grid::grid_position_is_valid(grid_position) {
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
@@ -218,7 +213,7 @@ impl World {
         }
     }
 
-    pub fn set_block_wireframe(min: IVec3, max: IVec3, block_kind: &block::Kind, world: &mut Self) {
+    pub fn set_block_wireframe(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
         for x in min.x..=max.x {
             Self::set_block(IVec3::new(x, min.y, min.z), block_kind, world);
             Self::set_block(IVec3::new(x, max.y, min.z), block_kind, world);
@@ -241,7 +236,7 @@ impl World {
         }
     }
 
-    pub fn set_block_box(min: IVec3, max: IVec3, block_kind: &block::Kind, world: &mut Self) {
+    pub fn set_block_box(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -271,7 +266,7 @@ impl World {
         }
     }
 
-    pub fn set_block_shell(min: IVec3, max: IVec3, block_kind: &block::Kind, world: &mut Self) {
+    pub fn set_block_shell(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -299,7 +294,7 @@ impl World {
         }
     }
 
-    pub fn set_block_cube(min: IVec3, max: IVec3, block_kind: &block::Kind, world: &mut Self) {
+    pub fn set_block_cube(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -480,8 +475,8 @@ impl World {
             if west_size >= tower_area_size_min && east_size >= tower_area_size_min {
                 let west_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
-                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
                     size: IVec3::new(west_size, area.size.y, area.size.z),
@@ -491,8 +486,8 @@ impl World {
 
                 let east_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
-                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position + IVec3::new(split_position - 1, 0, 0),
                     size: IVec3::new(east_size, area.size.y, area.size.z),
@@ -513,8 +508,8 @@ impl World {
             if south_size >= tower_area_size_min && north_size >= tower_area_size_min {
                 let south_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
-                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position,
                     size: IVec3::new(area.size.x, south_size, area.size.z),
@@ -524,8 +519,8 @@ impl World {
 
                 let north_area = Area {
                     area_id: IDGenerator::allocate(area_id_generator),
+                    area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
-                    kind: area::Kind::LowerRoom,
                     style: area::Style::GenericRoom,
                     grid_position: area.grid_position + IVec3::new(0, split_position - 1, 0),
                     size: IVec3::new(area.size.x, north_size, area.size.z),

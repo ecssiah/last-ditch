@@ -12,17 +12,12 @@ use crate::simulation::{
     constants::*,
     manager::{status::Status, viewer::view::View},
     state::{
-        action::{
-            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
-            Act,
-        },
-        population::motion::{self},
-        work::{
-            construct_task::{generate_data::GenerateData, ConstructTask},
+        State, action::{
+            Act, act::{self, JumpData, PlaceBlockData, RemoveBlockData}
+        }, population::motion::{self}, work::{
+            construct_task::{ConstructTask, generate_data::GenerateData},
             construct_worker::ConstructWorker,
-        },
-        world::block,
-        State,
+        }, world::block::BlockKind
     },
 };
 use std::time::{Duration, Instant};
@@ -204,13 +199,13 @@ impl Manager {
     fn handle_option1_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
             judge.selected_block_kind =
-                block::Kind::previous_block_kind(&judge.selected_block_kind);
+                BlockKind::previous_block_kind(&judge.selected_block_kind);
         }
     }
 
     fn handle_option2_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
-            judge.selected_block_kind = block::Kind::next_block_kind(&judge.selected_block_kind);
+            judge.selected_block_kind = BlockKind::next_block_kind(&judge.selected_block_kind);
         }
     }
 

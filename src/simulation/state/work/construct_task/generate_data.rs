@@ -2,13 +2,10 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::{
-                body::Body,
-                collider::{self, box_collider::BoxCollider},
-            },
+            physics::body::Body,
             population::{
                 identity, motion,
-                nation::{self},
+                nation::{nation_kind::NationKind},
                 person::Person,
                 sight::Sight,
             },
@@ -19,11 +16,10 @@ use crate::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
                     },
-                    Area, Connection,
+                    Area, AreaKind, Connection,
                 },
-                block,
+                block::BlockKind,
                 grid::{self, Direction, Line},
-                object::{stairs, ObjectManager},
                 tower::{self, Tower},
             },
             Population, State, World,
@@ -65,13 +61,6 @@ impl GenerateData {
             1 => {
                 Self::generate_judge(&mut state.population);
                 Self::generate_nations(&mut state.population);
-
-                ObjectManager::set_stairs(
-                    IVec3::new(0, 6, 1),
-                    &stairs::Kind::Stairs1,
-                    &Direction::North,
-                    &mut state.world,
-                );
             }
             2 => {
                 Self::construct_floor_map(&mut state.world);
@@ -200,10 +189,10 @@ impl GenerateData {
                 Person::set_world_position(world_position, &mut person);
 
                 let direction = match nation.nation_kind {
-                    nation::Kind::Lion => Direction::South,
-                    nation::Kind::Eagle => Direction::East,
-                    nation::Kind::Horse => Direction::North,
-                    nation::Kind::Wolf => Direction::West,
+                    NationKind::Lion => Direction::South,
+                    NationKind::Eagle => Direction::East,
+                    NationKind::Horse => Direction::North,
+                    NationKind::Wolf => Direction::West,
                 };
 
                 let rotation_xy = Direction::to_rotation(&direction);
@@ -242,7 +231,7 @@ impl GenerateData {
         World::set_block_cube(
             base_int_box.min,
             IVec3::new(base_int_box.max.x, base_int_box.max.y, base_int_box.min.z),
-            &block::Kind::Stone3,
+            &BlockKind::Stone3,
             world,
         );
 
@@ -264,7 +253,7 @@ impl GenerateData {
                     floor_int_box.max.y,
                     floor_int_box.min.z,
                 ),
-                &block::Kind::Panel2,
+                &BlockKind::Panel2,
                 world,
             );
 
@@ -275,14 +264,14 @@ impl GenerateData {
                     floor_int_box.max.z,
                 ),
                 floor_int_box.max,
-                &block::Kind::Panel2,
+                &BlockKind::Panel2,
                 world,
             );
 
             World::set_block_wireframe(
                 floor_int_box.min,
                 floor_int_box.max,
-                &block::Kind::Caution,
+                &BlockKind::Caution1,
                 world,
             );
         }
@@ -316,14 +305,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
                         IVec3::new(-tower_radius, y, floor_int_box.max.z - 1),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 }
@@ -338,14 +327,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
                         IVec3::new(tower_radius, y, floor_int_box.max.z - 1),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 }
@@ -362,14 +351,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
                         IVec3::new(x, -tower_radius, floor_int_box.max.z - 1),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 }
@@ -384,14 +373,14 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 } else {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
                         IVec3::new(x, tower_radius, floor_int_box.max.z - 1),
-                        &block::Kind::Metal3,
+                        &BlockKind::Metal3,
                         world,
                     );
                 }
@@ -409,14 +398,14 @@ impl GenerateData {
         World::set_block_cube(
             roof_int_box.min,
             IVec3::new(roof_int_box.max.x, roof_int_box.max.y, roof_int_box.min.z),
-            &block::Kind::Stone3,
+            &BlockKind::Stone3,
             world,
         );
 
         let roof_elevator_area = Area {
             area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_kind: AreaKind::UpperRoom,
             floor_number: 0,
-            kind: area::Kind::UpperRoom,
             style: area::Style::ElevatorCap,
             grid_position: Tower::get_center_grid_position(0),
             size: Tower::get_center_size(),
@@ -504,7 +493,7 @@ impl GenerateData {
             let lower_room_id_vec: Vec<u64> = floor
                 .area_id_map
                 .iter()
-                .filter(|(_, area)| area.kind == area::Kind::LowerRoom)
+                .filter(|(_, area)| area.area_kind == AreaKind::LowerRoom)
                 .map(|(area_id, _)| *area_id)
                 .collect();
 
@@ -596,7 +585,7 @@ impl GenerateData {
 
             let (center_area_id_map, other_area_id_map): (Vec<_>, Vec<_>) = area_id_map
                 .iter()
-                .partition(|(_, area)| area.kind == area::Kind::Center);
+                .partition(|(_, area)| area.area_kind == AreaKind::Center);
 
             for (_, area) in other_area_id_map {
                 Self::construct_area(area, world);
@@ -627,17 +616,17 @@ impl GenerateData {
 
             let temple_grid_position = nation.home_grid_position
                 + match nation_kind {
-                    nation::Kind::Lion => IVec3::new(temple_radius_x, temple_radius_y, 0),
-                    nation::Kind::Eagle => IVec3::new(-temple_radius_y, temple_radius_x, 0),
-                    nation::Kind::Horse => IVec3::new(-temple_radius_x, -temple_radius_y, 0),
-                    nation::Kind::Wolf => IVec3::new(temple_radius_y, -temple_radius_x, 0),
+                    NationKind::Lion => IVec3::new(temple_radius_x, temple_radius_y, 0),
+                    NationKind::Eagle => IVec3::new(-temple_radius_y, temple_radius_x, 0),
+                    NationKind::Horse => IVec3::new(-temple_radius_x, -temple_radius_y, 0),
+                    NationKind::Wolf => IVec3::new(temple_radius_y, -temple_radius_x, 0),
                 };
 
             let temple_direction = match nation_kind {
-                nation::Kind::Lion => Direction::South,
-                nation::Kind::Eagle => Direction::East,
-                nation::Kind::Horse => Direction::North,
-                nation::Kind::Wolf => Direction::West,
+                NationKind::Lion => Direction::South,
+                NationKind::Eagle => Direction::East,
+                NationKind::Horse => Direction::North,
+                NationKind::Wolf => Direction::West,
             };
 
             temple_area.grid_position = temple_grid_position;

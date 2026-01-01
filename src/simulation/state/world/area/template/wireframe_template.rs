@@ -14,7 +14,7 @@ impl Template for WireframeTemplate {
         template::set_block_wireframe(
             IVec3::new(0, 0, 0),
             area.size,
-            &block::Kind::Caution,
+            &BlockKind::Caution,
             area,
             world,
         );

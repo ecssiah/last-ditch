@@ -1,9 +1,3 @@
-pub mod box_collider;
-pub mod hit;
-pub mod kind;
-pub mod label;
-pub mod wedge_collider;
+pub mod collider_kind;
 
-pub use hit::Hit;
-pub use kind::Kind;
-pub use label::Label;
+pub use collider_kind::ColliderKind;

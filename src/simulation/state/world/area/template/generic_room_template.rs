@@ -16,25 +16,25 @@ use ultraviolet::IVec3;
 pub struct GenericRoomTemplate {}
 
 impl GenericRoomTemplate {
-    pub fn resource_map(floor_number: i32) -> Vec<block::Kind> {
+    pub fn resource_map(floor_number: i32) -> Vec<BlockKind> {
         if floor_number >= -1 {
-            vec![block::Kind::Vent1, block::Kind::Vent2, block::Kind::Vent3]
+            vec![BlockKind::Vent1, BlockKind::Vent2, BlockKind::Vent3]
         } else if floor_number >= -2 {
-            vec![block::Kind::Vent2, block::Kind::Vent3, block::Kind::Vent4]
+            vec![BlockKind::Vent2, BlockKind::Vent3, BlockKind::Vent4]
         } else if floor_number >= -3 {
             vec![
-                block::Kind::Vent2,
-                block::Kind::Vent3,
-                block::Kind::Vent4,
-                block::Kind::Server1,
-                block::Kind::Server2,
+                BlockKind::Vent2,
+                BlockKind::Vent3,
+                BlockKind::Vent4,
+                BlockKind::Server1,
+                BlockKind::Server2,
             ]
         } else if floor_number >= -4 {
             vec![
-                block::Kind::Server2,
-                block::Kind::Server3,
-                block::Kind::Server4,
-                block::Kind::Ornate3,
+                BlockKind::Server2,
+                BlockKind::Server3,
+                BlockKind::Server4,
+                BlockKind::Ornate3,
             ]
         } else {
             vec![]
@@ -47,7 +47,7 @@ impl Template for GenericRoomTemplate {
         template::set_block_box(
             IVec3::new(0, 0, 0),
             area.size,
-            &block::Kind::Metal1,
+            &BlockKind::Metal1,
             area,
             world,
         );

@@ -1,9 +1,9 @@
+pub mod block_model;
+pub mod block_quad;
 pub mod sector_face;
 pub mod sector_mesh;
 pub mod sector_vertex;
 pub mod tile_atlas;
-
-use tracing::instrument;
 
 use crate::{
     include_assets,
@@ -20,6 +20,7 @@ use crate::{
     },
 };
 use std::collections::{hash_map::Entry, HashMap, HashSet};
+use tracing::instrument;
 
 pub struct WorldRenderer {
     pub tile_atlas_bind_group: wgpu::BindGroup,
@@ -34,6 +35,7 @@ pub struct WorldRenderer {
 impl WorldRenderer {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
+        let 
 
         let tile_atlas_gpu_texture_data = tile_atlas::get_gpu_texture_data(
             tile_atlas_texture_path,

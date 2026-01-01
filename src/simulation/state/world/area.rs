@@ -1,12 +1,12 @@
 pub mod connection;
 pub mod contact;
-pub mod kind;
+pub mod area_kind;
 pub mod style;
 pub mod template;
 
 pub use connection::Connection;
 pub use contact::Contact;
-pub use kind::Kind;
+pub use area_kind::AreaKind;
 pub use style::Style;
 
 use crate::{
@@ -18,8 +18,8 @@ use ultraviolet::IVec3;
 #[derive(Clone, Debug)]
 pub struct Area {
     pub area_id: u64,
+    pub area_kind: AreaKind,
     pub floor_number: i32,
-    pub kind: Kind,
     pub style: Style,
     pub grid_position: IVec3,
     pub size: IVec3,
@@ -31,8 +31,8 @@ impl Area {
     pub fn new(area_id: u64) -> Self {
         Self {
             area_id,
+            area_kind: AreaKind::UpperArea,
             floor_number: 0,
-            kind: Kind::UpperArea,
             style: Style::None,
             grid_position: IVec3::zero(),
             size: IVec3::one(),

@@ -1,4 +1,4 @@
-use crate::simulation::state::world::{block::Block, grid, object::ObjectManager, sector::Sector};
+use crate::simulation::state::world::{block::Block, grid, sector::Sector};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
@@ -7,7 +7,6 @@ pub struct SectorView {
     pub version: u64,
     pub world_position: Vec3,
     pub block_vec: Vec<Option<Block>>,
-    pub object_manager: ObjectManager,
 }
 
 impl SectorView {
@@ -17,7 +16,6 @@ impl SectorView {
             version: sector.version,
             world_position: grid::grid_position_to_world_position(sector.grid_position),
             block_vec: sector.block_vec.clone(),
-            object_manager: sector.object_manager.clone(),
         }
     }
 }

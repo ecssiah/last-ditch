@@ -11,7 +11,7 @@ impl Template for ElevatorCapTemplate {
         area: &crate::simulation::state::world::Area,
         world: &mut crate::simulation::state::World,
     ) {
-        template::set_block_box(IVec3::zero(), area.size, &block::Kind::Metal2, area, world);
+        template::set_block_box(IVec3::zero(), area.size, &BlockKind::Metal2, area, world);
 
         template::remove_block_cube(
             IVec3::new(2, 0, 1),
@@ -37,7 +37,7 @@ impl Template for ElevatorCapTemplate {
         template::set_block_wireframe(
             IVec3::new(1, 1, area.size.z),
             IVec3::new(area.size.x - 2, area.size.y - 2, 1),
-            &block::Kind::Metal2,
+            &BlockKind::Metal2,
             area,
             world,
         );
@@ -45,7 +45,7 @@ impl Template for ElevatorCapTemplate {
         template::set_block_wireframe(
             IVec3::new(2, 2, area.size.z + 1),
             IVec3::new(area.size.x - 4, area.size.y - 4, 1),
-            &block::Kind::Metal2,
+            &BlockKind::Metal2,
             area,
             world,
         );

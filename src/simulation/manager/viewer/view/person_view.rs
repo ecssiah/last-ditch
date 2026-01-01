@@ -1,7 +1,7 @@
 use crate::simulation::state::{
     physics::body::Body,
     population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
-    world::block,
+    world::block::BlockKind,
 };
 
 #[derive(Clone, Debug)]
@@ -11,7 +11,7 @@ pub struct PersonView {
     pub motion: Motion,
     pub body: Body,
     pub sight: Sight,
-    pub selected_block_kind: block::Kind,
+    pub selected_block_kind: BlockKind,
 }
 
 impl PersonView {
@@ -22,7 +22,7 @@ impl PersonView {
             motion: Motion::default(),
             sight: Sight::default(),
             body: Body::default(),
-            selected_block_kind: block::Kind::Engraved1,
+            selected_block_kind: BlockKind::Engraved1,
         }
     }
 

@@ -1,15 +1,18 @@
-use crate::simulation::state::world::{block, grid};
+use crate::simulation::state::world::{
+    block::BlockKind,
+    grid::{self, Direction},
+};
 
 #[derive(Clone, PartialEq)]
 pub struct SectorFace {
-    pub block_kind: block::Kind,
-    pub direction: grid::Direction,
+    pub block_kind: BlockKind,
+    pub direction: Direction,
 }
 
 impl SectorFace {
     pub fn new() -> Self {
         Self {
-            block_kind: block::Kind::Caution,
+            block_kind: BlockKind::Caution,
             direction: grid::Direction::East,
         }
     }

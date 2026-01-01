@@ -1,4 +1,4 @@
-use crate::simulation::state::population::nation;
+use crate::simulation::state::population::nation::nation_kind::NationKind;
 
 #[derive(Clone, Debug)]
 pub enum Style {
@@ -8,5 +8,5 @@ pub enum Style {
     Elevator,
     ElevatorCap,
     TradingPlatform,
-    Temple { nation_kind: nation::Kind },
+    Temple { nation_kind: NationKind },
 }

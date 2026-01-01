@@ -15,15 +15,12 @@ impl FloatBox {
         }
     }
 
-    pub fn translated(delta_position: Vec3, float_box: &Self) -> Self {
-        Self::new(float_box.center_position + delta_position, float_box.radius)
+    pub fn translate(delta: Vec3, float_box: &mut Self) {
+        float_box.center_position += delta;
     }
 
-    pub fn scaled(delta_radius: f32, float_box: &Self) -> Self {
-        Self::new(
-            float_box.center_position,
-            float_box.radius + Vec3::broadcast(delta_radius),
-        )
+    pub fn translated(delta: Vec3, float_box: &Self) -> Self {
+        Self::new(float_box.center_position + delta, float_box.radius)
     }
 
     pub fn get_world_position(float_box: &Self) -> Vec3 {

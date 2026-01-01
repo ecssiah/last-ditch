@@ -20,7 +20,7 @@ impl Template for ElevatorTemplate {
         World::set_block_box(
             area_int_box.min,
             area_int_box.max,
-            &block::Kind::Metal2,
+            &BlockKind::Metal2,
             world,
         );
 

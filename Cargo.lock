@@ -1539,7 +1539,9 @@ dependencies = [
  "rand_chacha 0.9.0",
  "rand_pcg",
  "rayon",
+ "rectangle-pack",
  "slotmap",
+ "smallvec",
  "specs",
  "tracing",
  "tracing-appender",
@@ -2662,6 +2664,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rectangle-pack"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0d463f2884048e7153449a55166f91028d5b0ea53c79377099ce4e8cf0cf9bb"
+
+[[package]]
 name = "redox_syscall"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2891,9 +2899,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.14.0"
+version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fcf8323ef1faaee30a44a340193b1ac6814fd9b7b4e88e9d4519a3e4abe1cfd"
+checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "smithay-client-toolkit"

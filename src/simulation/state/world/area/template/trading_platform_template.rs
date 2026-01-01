@@ -21,7 +21,7 @@ impl Template for TradingPlatformTemplate {
                 2 * TRADING_PLATFORM_RADIUS_Y as i32 + 1,
                 1,
             ),
-            &block::Kind::Metal2,
+            &BlockKind::Metal2,
             area,
             world,
         );
@@ -29,7 +29,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(1, 2, 1),
             IVec3::new(1, 1, 2),
-            &block::Kind::Server1,
+            &BlockKind::Server1,
             area,
             world,
         );
@@ -37,7 +37,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(8, 4, 1),
             IVec3::new(2, 2, 2),
-            &block::Kind::Server2,
+            &BlockKind::Server2,
             area,
             world,
         );
@@ -45,7 +45,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(1, 4, 1),
             IVec3::new(1, 2, 1),
-            &block::Kind::Server3,
+            &BlockKind::Server3,
             area,
             world,
         );

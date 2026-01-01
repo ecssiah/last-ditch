@@ -11,15 +11,12 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::{
-                body::Body,
-                collider::{self, box_collider::BoxCollider},
-            },
-            population::{nation::Nation, person::Person},
+            physics::body::{Body, body_label::BodyLabel},
+            population::{nation::{Nation, nation_kind::NationKind}, person::Person},
         },
         utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::gen_bool,
+    utils::ldmath::{FloatBox, rand_chacha_ext::gen_bool},
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -30,7 +27,7 @@ pub struct Population {
     pub active: bool,
     pub rng: ChaCha8Rng,
     pub id_generator: IDGenerator,
-    pub nation_map: HashMap<nation::Kind, Nation>,
+    pub nation_map: HashMap<NationKind, Nation>,
     pub person_map: HashMap<u64, Person>,
 }
 
@@ -56,29 +53,29 @@ impl Population {
         population.person_map = HashMap::new();
     }
 
-    fn setup_nation_map() -> HashMap<nation::Kind, Nation> {
+    fn setup_nation_map() -> HashMap<NationKind, Nation> {
         let tower_radius = TOWER_RADIUS as i32;
 
         let home_radius = tower_radius - 10;
         let home_height = 1;
 
-        let mut lion_nation = Nation::new(nation::Kind::Lion);
+        let mut lion_nation = Nation::new(NationKind::Lion);
         lion_nation.home_grid_position = IVec3::new(0, home_radius, home_height);
 
-        let mut eagle_nation = Nation::new(nation::Kind::Eagle);
+        let mut eagle_nation = Nation::new(NationKind::Eagle);
         eagle_nation.home_grid_position = IVec3::new(-home_radius, 0, home_height);
 
-        let mut horse_nation = Nation::new(nation::Kind::Horse);
+        let mut horse_nation = Nation::new(NationKind::Horse);
         horse_nation.home_grid_position = IVec3::new(0, -home_radius, home_height);
 
-        let mut wolf_nation = Nation::new(nation::Kind::Wolf);
+        let mut wolf_nation = Nation::new(NationKind::Wolf);
         wolf_nation.home_grid_position = IVec3::new(home_radius, 0, home_height);
 
         let nation_map = HashMap::from([
-            (nation::Kind::Lion, lion_nation),
-            (nation::Kind::Eagle, eagle_nation),
-            (nation::Kind::Horse, horse_nation),
-            (nation::Kind::Wolf, wolf_nation),
+            (NationKind::Lion, lion_nation),
+            (NationKind::Eagle, eagle_nation),
+            (NationKind::Horse, horse_nation),
+            (NationKind::Wolf, wolf_nation),
         ]);
 
         nation_map
@@ -100,10 +97,10 @@ impl Population {
             PERSON_DEFAULT_RADIUS_Z,
         );
 
-        let core_collider = Body::get_box_collider_mut(collider::Label::Core, &mut person.body)
-            .expect("Body has no core");
+        let core_float_box =
+            Body::get_float_box_mut(BodyLabel::Core, &mut person.body).expect("Body has no core");
 
-        BoxCollider::set_radius(person_radius, core_collider);
+        FloatBox::set_radius(person_radius, core_float_box);
 
         person
     }

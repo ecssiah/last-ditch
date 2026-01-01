@@ -13,12 +13,7 @@ pub use trading_platform_template::TradingPlatformTemplate;
 pub use wireframe_template::WireframeTemplate;
 
 use crate::simulation::state::{
-    world::{
-        block,
-        grid::Direction,
-        object::{ladder, stairs, ObjectManager},
-        Area,
-    },
+    world::{block::BlockKind, grid::Direction, Area},
     World,
 };
 use ultraviolet::IVec3;
@@ -27,7 +22,7 @@ pub trait Template {
     fn construct(area: &Area, world: &mut World);
 }
 
-pub fn set_block(min_offset: IVec3, block_kind: &block::Kind, area: &Area, world: &mut World) {
+pub fn set_block(min_offset: IVec3, block_kind: &BlockKind, area: &Area, world: &mut World) {
     let local_int_box = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
 
     World::set_block(local_int_box.min, block_kind, world);
@@ -36,7 +31,7 @@ pub fn set_block(min_offset: IVec3, block_kind: &block::Kind, area: &Area, world
 pub fn set_block_cube(
     min_offset: IVec3,
     size: IVec3,
-    block_kind: &block::Kind,
+    block_kind: &BlockKind,
     area: &Area,
     world: &mut World,
 ) {
@@ -54,7 +49,7 @@ pub fn remove_block_cube(min_offset: IVec3, size: IVec3, area: &Area, world: &mu
 pub fn set_block_box(
     min_offset: IVec3,
     size: IVec3,
-    block_kind: &block::Kind,
+    block_kind: &BlockKind,
     area: &Area,
     world: &mut World,
 ) {
@@ -66,7 +61,7 @@ pub fn set_block_box(
 pub fn set_block_wireframe(
     min_offset: IVec3,
     size: IVec3,
-    block_kind: &block::Kind,
+    block_kind: &BlockKind,
     area: &Area,
     world: &mut World,
 ) {

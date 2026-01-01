@@ -1,7 +1,7 @@
 use crate::simulation::state::{
     physics::body::Body,
     population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
-    world::block,
+    world::block::BlockKind,
 };
 use ultraviolet::Vec3;
 
@@ -12,7 +12,7 @@ pub struct Person {
     pub motion: Motion,
     pub body: Body,
     pub sight: Sight,
-    pub selected_block_kind: block::Kind,
+    pub selected_block_kind: BlockKind,
 }
 
 impl Person {
@@ -23,7 +23,7 @@ impl Person {
         let body = Body::default();
         let sight = Sight::default();
 
-        let selected_block_kind = block::Kind::CarvedStone1;
+        let selected_block_kind = BlockKind::Carved1;
 
         Self {
             person_id,
@@ -37,8 +37,10 @@ impl Person {
     }
 
     pub fn set_world_position(world_position: Vec3, person: &mut Self) {
+        let translation = world_position - person.transform.world_position;
+
         Transform::set_world_position(world_position, &mut person.transform);
-        Body::set_world_position(world_position, &mut person.body);
+        Body::translate(translation, &mut person.body);
         Sight::set_world_position(
             world_position + person.sight.local_position,
             &mut person.sight,

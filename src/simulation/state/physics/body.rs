@@ -1,12 +1,13 @@
+pub mod body_label;
 pub mod contact;
 pub mod contact_set;
 
 pub use contact::Contact;
 pub use contact_set::ContactSet;
 
-use crate::simulation::{
-    constants::CELL_RADIUS_IN_METERS,
-    state::physics::collider::{self, box_collider::BoxCollider},
+use crate::{
+    simulation::{constants::CELL_RADIUS_IN_METERS, state::physics::body::body_label::BodyLabel},
+    utils::ldmath::FloatBox,
 };
 use std::collections::HashMap;
 use ultraviolet::Vec3;
@@ -14,55 +15,45 @@ use ultraviolet::Vec3;
 #[derive(Clone, Debug)]
 pub struct Body {
     pub contact_set: ContactSet,
-    pub box_collider_vec: Vec<BoxCollider>,
-    pub box_collider_index_map: HashMap<collider::Label, usize>,
+    pub float_box_vec: Vec<FloatBox>,
+    pub float_box_index_map: HashMap<BodyLabel, usize>,
 }
 
 impl Body {
     pub fn new(radius: Vec3) -> Self {
         let contact_set = ContactSet::EMPTY;
-        let box_collider_vec = vec![BoxCollider::new(Vec3::zero(), radius)];
-        let box_collider_index_map =
-            HashMap::from([(collider::Label::Core, box_collider_vec.len() - 1)]);
+        let float_box_vec = vec![FloatBox::new(Vec3::zero(), radius)];
+        let float_box_index_map = HashMap::from([(BodyLabel::Core, float_box_vec.len() - 1)]);
 
         Self {
             contact_set,
-            box_collider_vec,
-            box_collider_index_map,
+            float_box_vec,
+            float_box_index_map,
         }
     }
 
-    pub fn add_collider(
-        collider_label: &collider::Label,
-        box_collider: BoxCollider,
-        body: &mut Self,
-    ) {
-        body.box_collider_vec.push(box_collider);
+    pub fn add_float_box(float_box: FloatBox, body_label: &BodyLabel, body: &mut Self) {
+        body.float_box_vec.push(float_box);
 
-        body.box_collider_index_map
-            .insert(collider_label.clone(), body.box_collider_vec.len() - 1);
+        body.float_box_index_map
+            .insert(body_label.clone(), body.float_box_vec.len() - 1);
     }
 
-    pub fn get_box_collider(collider_label: collider::Label, body: &Self) -> Option<&BoxCollider> {
-        let collider_index = body.box_collider_index_map.get(&collider_label)?;
+    pub fn get_float_box(body_label: BodyLabel, body: &Self) -> Option<&FloatBox> {
+        let &index = body.float_box_index_map.get(&body_label)?;
 
-        body.box_collider_vec.get(*collider_index)
+        body.float_box_vec.get(index)
     }
 
-    pub fn get_box_collider_mut(
-        collider_label: collider::Label,
-        body: &mut Self,
-    ) -> Option<&mut BoxCollider> {
-        let collider_index = body.box_collider_index_map.get(&collider_label)?;
+    pub fn get_float_box_mut(body_label: BodyLabel, body: &mut Self) -> Option<&mut FloatBox> {
+        let &index = body.float_box_index_map.get(&body_label)?;
 
-        body.box_collider_vec.get_mut(*collider_index)
+        body.float_box_vec.get_mut(index)
     }
 
-    pub fn set_world_position(world_position: Vec3, body: &mut Self) {
-        for box_collider in &mut body.box_collider_vec {
-            let collider_world_position = world_position + box_collider.local_position;
-
-            BoxCollider::set_world_position(collider_world_position, box_collider);
+    pub fn translate(delta: Vec3, body: &mut Self) {
+        for float_box in &mut body.float_box_vec {
+            FloatBox::translate(delta, float_box);
         }
     }
 }
