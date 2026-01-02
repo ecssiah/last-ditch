@@ -35,7 +35,6 @@ pub struct WorldRenderer {
 impl WorldRenderer {
     pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
-        let 
 
         let tile_atlas_gpu_texture_data = tile_atlas::get_gpu_texture_data(
             tile_atlas_texture_path,

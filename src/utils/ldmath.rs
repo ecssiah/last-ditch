@@ -11,7 +11,7 @@ pub mod union_find;
 pub mod vec2_ext;
 pub mod vec3_ext;
 
-pub use float_bounds::FloatBounds;
+pub use float_bounds::FloatInterval;
 pub use float_box::FloatBox;
 pub use int_bounds::IntBounds;
 pub use int_box::IntBox;

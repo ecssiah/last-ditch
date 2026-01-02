@@ -4,10 +4,7 @@ use crate::simulation::state::{
         area::{
             self,
             template::{self, Template},
-        },
-        block,
-        grid::Direction,
-        object::{ladder, stairs},
+        }, block::BlockKind,
     },
 };
 use ultraviolet::IVec3;
@@ -23,63 +20,63 @@ impl Template for TempleTemplate {
             template::set_block_wireframe(
                 IVec3::new(1, 1, 1),
                 area.size - IVec3::new(2, 2, 2),
-                &Nation::get_material_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(1, 1, area.size.z - 3),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(area.size.x - 2, 1, area.size.z - 3),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(1, area.size.y - 2, area.size.z - 3),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(area.size.x - 2, area.size.y - 2, area.size.z - 3),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(1, 1, 2),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(area.size.x - 2, 1, 2),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(1, area.size.y - 2, 2),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
 
             template::set_block(
                 IVec3::new(area.size.x - 2, area.size.y - 2, 2),
-                &Nation::get_symbol_block_kind(&nation_kind),
+                Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
             );
@@ -126,42 +123,6 @@ impl Template for TempleTemplate {
             template::remove_block_cube(
                 IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
                 IVec3::new(3, 1, 1),
-                area,
-                world,
-            );
-
-            template::set_stairs_cube(
-                IVec3::new(area.size.x / 2 - 1, area.size.y - 2, 1),
-                IVec3::new(3, 1, 1),
-                &stairs::Kind::Stairs1,
-                &Direction::to_opposing(&area.direction),
-                area,
-                world,
-            );
-
-            template::set_stairs_cube(
-                IVec3::new(area.size.x / 2 - 1, area.size.y - 1, 0),
-                IVec3::new(3, 1, 1),
-                &stairs::Kind::Stairs1,
-                &Direction::to_opposing(&area.direction),
-                area,
-                world,
-            );
-
-            template::set_ladder_cube(
-                IVec3::new(1, -1, 0),
-                IVec3::new(1, 1, area.size.z + 1),
-                &ladder::Kind::Ladder1,
-                &area.direction,
-                area,
-                world,
-            );
-
-            template::set_ladder_cube(
-                IVec3::new(area.size.x - 2, -1, 0),
-                IVec3::new(1, 1, area.size.z + 1),
-                &ladder::Kind::Ladder1,
-                &area.direction,
                 area,
                 world,
             );

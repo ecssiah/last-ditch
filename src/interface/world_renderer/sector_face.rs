@@ -12,7 +12,7 @@ pub struct SectorFace {
 impl SectorFace {
     pub fn new() -> Self {
         Self {
-            block_kind: BlockKind::Caution,
+            block_kind: BlockKind::Caution1,
             direction: grid::Direction::East,
         }
     }

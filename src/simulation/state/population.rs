@@ -11,12 +11,15 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::body::{Body, body_label::BodyLabel},
-            population::{nation::{Nation, nation_kind::NationKind}, person::Person},
+            physics::body::{body_label::BodyLabel, Body},
+            population::{
+                nation::{nation_kind::NationKind, Nation},
+                person::Person,
+            },
         },
         utils::IDGenerator,
     },
-    utils::ldmath::{FloatBox, rand_chacha_ext::gen_bool},
+    utils::ldmath::rand_chacha_ext::gen_bool,
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -97,10 +100,12 @@ impl Population {
             PERSON_DEFAULT_RADIUS_Z,
         );
 
-        let core_float_box =
-            Body::get_float_box_mut(BodyLabel::Core, &mut person.body).expect("Body has no core");
-
-        FloatBox::set_radius(person_radius, core_float_box);
+        Body::add_collider(
+            &BodyLabel::Core,
+            Vec3::zero(),
+            person_radius,
+            &mut person.body,
+        );
 
         person
     }

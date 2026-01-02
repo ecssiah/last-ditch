@@ -2,12 +2,9 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            physics::body::Body,
+            physics::body::{body_label::BodyLabel, Body},
             population::{
-                identity, motion,
-                nation::{nation_kind::NationKind},
-                person::Person,
-                sight::Sight,
+                identity, motion, nation::nation_kind::NationKind, person::Person, sight::Sight,
             },
             world::{
                 area::{
@@ -104,15 +101,6 @@ impl GenerateData {
             JUDGE_DEFAULT_RADIUS_Z,
         );
 
-        let core_collider = Body::get_box_collider_mut(collider::Label::Core, &mut judge.body)
-            .expect("Body is missing core");
-
-        let core_local_position =
-            Vec3::new(0.0, 0.0, core_collider_radius.z - CELL_RADIUS_IN_METERS);
-
-        BoxCollider::set_radius(core_collider_radius, core_collider);
-        BoxCollider::set_local_position(core_local_position, core_collider);
-
         let ground_collider_radius = Vec3::new(
             JUDGE_DEFAULT_RADIUS_X,
             JUDGE_DEFAULT_RADIUS_Y,
@@ -125,10 +113,18 @@ impl GenerateData {
             ground_collider_radius.z - CELL_RADIUS_IN_METERS - (ground_collider_radius.z * 0.5),
         );
 
-        let ground_collider =
-            BoxCollider::new(ground_collider_local_position, ground_collider_radius);
-
-        Body::add_collider(&collider::Label::Ground, ground_collider, &mut judge.body);
+        Body::add_collider(
+            &BodyLabel::Core,
+            Vec3::zero(),
+            core_collider_radius,
+            &mut judge.body,
+        );
+        Body::add_collider(
+            &BodyLabel::Ground,
+            ground_collider_local_position,
+            ground_collider_radius,
+            &mut judge.body,
+        );
 
         let sight_local_position = Vec3::new(
             0.0,

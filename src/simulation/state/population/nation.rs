@@ -1,12 +1,9 @@
 pub mod leadership;
 pub mod nation_kind;
 
-pub use leadership::Leadership;
-
 use ultraviolet::IVec3;
-
 use crate::simulation::state::{
-    population::nation::nation_kind::NationKind, world::block::BlockKind,
+    population::nation::{leadership::Leadership, nation_kind::NationKind}, world::block::BlockKind,
 };
 
 #[derive(Clone)]
@@ -25,21 +22,21 @@ impl Nation {
         }
     }
 
-    pub fn get_nation_symbol(nation_kind: &NationKind) -> BlockKind {
+    pub fn get_nation_symbol(nation_kind: &NationKind) -> &BlockKind {
         match nation_kind {
-            NationKind::Lion => BlockKind::LionSymbol,
-            NationKind::Eagle => BlockKind::EagleSymbol,
-            NationKind::Horse => BlockKind::HorseSymbol,
-            NationKind::Wolf => BlockKind::WolfSymbol,
+            NationKind::Lion => &BlockKind::LionSymbol,
+            NationKind::Eagle => &BlockKind::EagleSymbol,
+            NationKind::Horse => &BlockKind::HorseSymbol,
+            NationKind::Wolf => &BlockKind::WolfSymbol,
         }
     }
 
-    pub fn get_nation_stone(nation_kind: &NationKind) -> BlockKind {
+    pub fn get_nation_stone(nation_kind: &NationKind) -> &BlockKind {
         match nation_kind {
-            NationKind::Lion => BlockKind::LionStone,
-            NationKind::Eagle => BlockKind::EagleStone,
-            NationKind::Horse => BlockKind::HorseStone,
-            NationKind::Wolf => BlockKind::WolfStone,
+            NationKind::Lion => &BlockKind::LionStone,
+            NationKind::Eagle => &BlockKind::EagleStone,
+            NationKind::Horse => &BlockKind::HorseStone,
+            NationKind::Wolf => &BlockKind::WolfStone,
         }
     }
 

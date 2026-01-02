@@ -5,22 +5,27 @@ pub mod viewer;
 
 pub use message::Message;
 pub use timestep::Timestep;
-use tracing::instrument;
 pub use viewer::Viewer;
 
 use crate::simulation::{
     constants::*,
     manager::{status::Status, viewer::view::View},
     state::{
-        State, action::{
-            Act, act::{self, JumpData, PlaceBlockData, RemoveBlockData}
-        }, population::motion::{self}, work::{
-            construct_task::{ConstructTask, generate_data::GenerateData},
+        action::{
+            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
+            Act,
+        },
+        population::motion::{self},
+        work::{
+            construct_task::{generate_data::GenerateData, ConstructTask},
             construct_worker::ConstructWorker,
-        }, world::block::BlockKind
+        },
+        world::block::BlockKind,
+        State,
     },
 };
 use std::time::{Duration, Instant};
+use tracing::instrument;
 use ultraviolet::Vec3;
 
 pub struct Manager {
@@ -198,8 +203,7 @@ impl Manager {
 
     fn handle_option1_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
-            judge.selected_block_kind =
-                BlockKind::previous_block_kind(&judge.selected_block_kind);
+            judge.selected_block_kind = BlockKind::previous_block_kind(&judge.selected_block_kind);
         }
     }
 

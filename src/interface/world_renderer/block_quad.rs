@@ -1,3 +1,5 @@
+use ultraviolet::{Vec2, Vec3};
+
 #[derive(Clone, Debug)]
 pub struct BlockQuad {
     pub vertex_array: [Vec3; 4],

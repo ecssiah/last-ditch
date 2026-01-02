@@ -37,10 +37,10 @@ impl Person {
     }
 
     pub fn set_world_position(world_position: Vec3, person: &mut Self) {
-        let translation = world_position - person.transform.world_position;
-
         Transform::set_world_position(world_position, &mut person.transform);
-        Body::translate(translation, &mut person.body);
+
+        Body::set_world_position(world_position, &mut person.body);
+
         Sight::set_world_position(
             world_position + person.sight.local_position,
             &mut person.sight,

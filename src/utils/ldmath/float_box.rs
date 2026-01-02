@@ -15,6 +15,13 @@ impl FloatBox {
         }
     }
 
+    pub fn from_bounds(min: Vec3, max: Vec3) -> Self {
+        let center_position = (min + max) * 0.5;
+        let radius = (max - min) * 0.5;
+
+        Self::new(center_position, radius)
+    }
+
     pub fn translate(delta: Vec3, float_box: &mut Self) {
         float_box.center_position += delta;
     }

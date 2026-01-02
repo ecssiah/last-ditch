@@ -14,13 +14,9 @@ use crate::{
     },
     simulation::{
         manager::viewer::view::SectorView,
-        state::world::{
-            grid::{self, Direction},
-            sector::Sector,
-        },
+        state::world::grid::{self},
     },
 };
-use convert_case::Casing;
 use obj::{load_obj, TexturedVertex};
 use std::{collections::HashMap, fs::File, io::BufReader, sync::Arc};
 use tracing::instrument;
@@ -357,64 +353,6 @@ impl ObjectRenderer {
                 grid::indices_to_grid_position(sector_view.sector_index, cell_index);
 
             let world_position = *(grid::grid_position_to_world_position(grid_position)).as_array();
-
-            if let Some(door) = Sector::get_door(cell_index, &sector_view.object_manager.door_vec) {
-                let rotation_xy = Direction::to_rotation(&door.direction);
-
-                let door_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-
-                let model_name = door
-                    .door_kind
-                    .to_string()
-                    .to_case(convert_case::Case::Snake);
-
-                Self::update_instance_group(
-                    &model_name,
-                    door_instance_data,
-                    &mut object_renderer.instance_data_group_vec,
-                    &mut object_renderer.instance_group_index_map,
-                );
-            }
-
-            if let Some(stairs) =
-                Sector::get_stairs(cell_index, &sector_view.object_manager.stairs_vec)
-            {
-                let rotation_xy = Direction::to_rotation(&stairs.direction);
-
-                let stairs_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-
-                let model_name = stairs
-                    .stairs_kind
-                    .to_string()
-                    .to_case(convert_case::Case::Snake);
-
-                Self::update_instance_group(
-                    &model_name,
-                    stairs_instance_data,
-                    &mut object_renderer.instance_data_group_vec,
-                    &mut object_renderer.instance_group_index_map,
-                );
-            }
-
-            if let Some(ladder) =
-                Sector::get_ladder(cell_index, &sector_view.object_manager.ladder_vec)
-            {
-                let rotation_xy = Direction::to_rotation(&ladder.direction);
-
-                let ladder_instance_data = ObjectInstanceData::new(world_position, rotation_xy);
-
-                let model_name = ladder
-                    .ladder_kind
-                    .to_string()
-                    .to_case(convert_case::Case::Snake);
-
-                Self::update_instance_group(
-                    &model_name,
-                    ladder_instance_data,
-                    &mut object_renderer.instance_data_group_vec,
-                    &mut object_renderer.instance_group_index_map,
-                );
-            }
         }
     }
 
