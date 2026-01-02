@@ -1,6 +1,6 @@
 use crate::simulation::state::world::{
     area::template::{self, Template},
-    block,
+    block::BlockKind,
 };
 use ultraviolet::IVec3;
 

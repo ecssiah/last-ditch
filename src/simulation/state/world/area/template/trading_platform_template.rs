@@ -2,7 +2,7 @@ use crate::simulation::{
     constants::{TRADING_PLATFORM_RADIUS_X, TRADING_PLATFORM_RADIUS_Y},
     state::world::{
         area::template::{self, Template},
-        block,
+        block::BlockKind,
     },
 };
 use ultraviolet::IVec3;

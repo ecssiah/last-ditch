@@ -10,13 +10,14 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            Time, world::{
+            world::{
                 area::{Area, AreaKind},
                 block::{Block, BlockKind},
-                grid::{Direction, direction_set::DirectionSet},
+                grid::{direction_set::DirectionSet, Direction},
                 sector::Sector,
                 tower::Tower,
-            }
+            },
+            Time,
         },
         utils::IDGenerator,
     },

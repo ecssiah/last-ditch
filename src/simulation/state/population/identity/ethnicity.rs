@@ -1,4 +1,4 @@
-use crate::simulation::state::population::nation::{nation_kind::NationKind};
+use crate::simulation::state::population::nation::nation_kind::NationKind;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

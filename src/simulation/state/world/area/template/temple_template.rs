@@ -4,7 +4,8 @@ use crate::simulation::state::{
         area::{
             self,
             template::{self, Template},
-        }, block::BlockKind,
+        },
+        block::BlockKind,
     },
 };
 use ultraviolet::IVec3;

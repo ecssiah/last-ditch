@@ -1,11 +1,14 @@
-use ultraviolet::IVec3;
 use crate::simulation::{
     state::world::{
-        Area, area::{self, AreaKind}, grid::{Direction, Quadrant}, tower::Tower
+        area::{self, AreaKind},
+        grid::{Direction, Quadrant},
+        tower::Tower,
+        Area,
     },
     utils::IDGenerator,
 };
 use std::collections::HashMap;
+use ultraviolet::IVec3;
 
 pub struct Floor {
     pub floor_number: i32,

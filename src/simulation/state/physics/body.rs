@@ -67,6 +67,12 @@ impl Body {
         body.radius = radius;
     }
 
+    pub fn get_collider<'a>(body_label: &BodyLabel, body: &'a Self) -> Option<&'a Collider> {
+        let &collider_index = body.collider_map.get(body_label)?;
+
+        body.collider_vec.get(collider_index)
+    }
+
     pub fn set_collider_local_position(
         body_label: &BodyLabel,
         local_position: Vec3,
@@ -95,6 +101,10 @@ impl Body {
                 body.radius = radius;
             }
         }
+    }
+
+    pub fn get_size(body: &Self) -> Vec3 {
+        body.radius * 2.0
     }
 
     fn calculate_radius(body: &Self) -> Vec3 {

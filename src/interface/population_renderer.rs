@@ -6,39 +6,39 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
+        constants::TEXTURE_ATLAS_MAX,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
         population_renderer::{
             person_instance_data::PersonInstanceData, person_mesh::PersonMesh,
             person_vertex::PersonVertex,
         },
+        texture::texture_manager::TextureManager,
     },
     simulation::{
         constants::*,
         manager::viewer::view::PopulationView,
-        state::{
-            physics::{
-                body::Body,
-                collider::{self, box_collider::BoxCollider},
-            },
-            population::identity,
-        },
+        state::{physics::body::Body, population::identity},
     },
 };
 use obj::{load_obj, TexturedVertex};
-use std::{collections::HashMap, fs::File, io::BufReader, ops::Deref, sync::Arc};
+use std::{collections::HashMap, fs::File, io::BufReader, num::NonZeroU32, sync::Arc};
 use tracing::instrument;
 
 pub struct PopulationRenderer {
+    pub bind_group: wgpu::BindGroup,
+    pub bind_group_layout: wgpu::BindGroupLayout,
     pub person_gpu_mesh_map: HashMap<String, Arc<GpuMesh>>,
     pub person_instance_buffer: wgpu::Buffer,
     pub person_instance_data_group_vec: Vec<(String, Vec<PersonInstanceData>)>,
-    pub person_texture_bind_group_layout: wgpu::BindGroupLayout,
-    pub population_atlas_bind_group: Arc<wgpu::BindGroup>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
 impl PopulationRenderer {
-    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(
+        gpu_context: &GPUContext,
+        camera: &Camera,
+        texture_manager: &TextureManager,
+    ) -> Self {
         let person_gpu_mesh_map = Self::load_person_gpu_mesh_map(&gpu_context.device);
 
         let person_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
@@ -50,26 +50,68 @@ impl PopulationRenderer {
 
         let person_instance_data_group_vec = Vec::new();
 
-        let person_texture_bind_group_layout =
-            Self::create_person_texture_bind_group_layout(&gpu_context.device);
+        let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
+            .texture_atlas_vec
+            .iter()
+            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
+            .collect();
 
-        let population_atlas_bind_group = Arc::new(Self::load_population_atlas_bind_group(
-            &gpu_context.device,
-            &gpu_context.queue,
-        ));
+        let bind_group_layout =
+            gpu_context
+                .device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("Population Renderer Bind Group Layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                multisampled: false,
+                                view_dimension: wgpu::TextureViewDimension::D2Array,
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            },
+                            count: Some(NonZeroU32::new(TEXTURE_ATLAS_MAX).unwrap()),
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
+                    ],
+                });
+
+        let bind_group = gpu_context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Population Renderer Texture Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(
+                            &texture_manager.texture_atlas_vec[0].sampler,
+                        ),
+                    },
+                ],
+            });
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &person_texture_bind_group_layout,
+            &bind_group_layout,
         );
 
         Self {
+            bind_group,
+            bind_group_layout,
             person_gpu_mesh_map,
             person_instance_buffer,
             person_instance_data_group_vec,
-            person_texture_bind_group_layout,
-            population_atlas_bind_group,
             render_pipeline,
         }
     }
@@ -122,151 +164,6 @@ impl PopulationRenderer {
         }
 
         person_gpu_mesh_map
-    }
-
-    fn create_person_texture_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-        })
-    }
-
-    fn load_population_atlas_bind_group(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-    ) -> wgpu::BindGroup {
-        let gpu_texture_data = pollster::block_on(Self::load_texture_data(
-            device,
-            queue,
-            "assets/textures/population/population_atlas_0.png",
-            "population_atlas_0",
-        ));
-
-        Self::create_texture_bind_group(device, &gpu_texture_data)
-    }
-
-    pub fn create_texture_bind_group(
-        device: &wgpu::Device,
-        gpu_texture_data: &GpuTextureData,
-    ) -> wgpu::BindGroup {
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-        });
-
-        device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Population Texture and Sampler Bind Group"),
-            layout: &bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&gpu_texture_data.texture_view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
-                },
-            ],
-        })
-    }
-
-    pub async fn load_texture_data(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        path: &str,
-        label: &str,
-    ) -> GpuTextureData {
-        let img = image::open(path)
-            .expect("Failed to open Population texture data")
-            .into_rgba8();
-
-        let (width, height) = img.dimensions();
-
-        let texture_size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        };
-
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some(label),
-            size: texture_size,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-            view_formats: &[],
-        });
-
-        queue.write_texture(
-            wgpu::TexelCopyTextureInfo {
-                texture: &texture,
-                mip_level: 0,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-            },
-            &img,
-            wgpu::TexelCopyBufferLayout {
-                offset: 0,
-                bytes_per_row: Some(4 * width),
-                rows_per_image: Some(height),
-            },
-            texture_size,
-        );
-
-        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: None,
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Nearest,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            ..Default::default()
-        });
-
-        GpuTextureData {
-            texture,
-            texture_view,
-            sampler,
-        }
     }
 
     fn create_render_pipeline(
@@ -370,10 +267,7 @@ impl PopulationRenderer {
 
             let world_position = *(person_view.transform.world_position).as_array();
 
-            let core_collider = Body::get_box_collider(collider::Label::Core, &person_view.body)
-                .expect("Body has no core");
-
-            let person_scale = BoxCollider::get_radius(core_collider).z / PERSON_DEFAULT_RADIUS_Z;
+            let person_scale = Body::get_size(&person_view.body).z / PERSON_DEFAULT_RADIUS_Z;
 
             let rotation_xy = person_view.transform.rotation_xy;
 
@@ -483,9 +377,6 @@ impl PopulationRenderer {
                     .unwrap(),
             );
 
-            let texture_bind_group_arc =
-                Arc::clone(&population_renderer.population_atlas_bind_group);
-
             render_pass.set_vertex_buffer(
                 1,
                 population_renderer
@@ -493,7 +384,7 @@ impl PopulationRenderer {
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
 
-            render_pass.set_bind_group(1, texture_bind_group_arc.deref(), &[]);
+            render_pass.set_bind_group(1, &population_renderer.bind_group, &[]);
 
             render_pass.set_vertex_buffer(0, person_gpu_mesh_arc.vertex_buffer.slice(..));
 

@@ -1,4 +1,4 @@
-use crate::simulation::state::physics::collider::{ColliderKind};
+use crate::simulation::state::physics::collider::ColliderKind;
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]

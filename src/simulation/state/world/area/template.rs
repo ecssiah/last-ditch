@@ -13,7 +13,7 @@ pub use trading_platform_template::TradingPlatformTemplate;
 pub use wireframe_template::WireframeTemplate;
 
 use crate::simulation::state::{
-    world::{block::BlockKind, grid::Direction, Area},
+    world::{block::BlockKind, Area},
     World,
 };
 use ultraviolet::IVec3;
@@ -68,66 +68,4 @@ pub fn set_block_wireframe(
     let local_int_box = Area::set_local(min_offset, size, area);
 
     World::set_block_wireframe(local_int_box.min, local_int_box.max, block_kind, world);
-}
-
-pub fn set_stairs(
-    min_offset: IVec3,
-    stairs_kind: &stairs::Kind,
-    direction: &Direction,
-    area: &Area,
-    world: &mut World,
-) {
-    let local_int_box = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
-
-    ObjectManager::set_stairs(local_int_box.min, stairs_kind, direction, world);
-}
-
-pub fn set_stairs_cube(
-    min_offset: IVec3,
-    size: IVec3,
-    stairs_kind: &stairs::Kind,
-    direction: &Direction,
-    area: &Area,
-    world: &mut World,
-) {
-    let local_int_box = Area::set_local(min_offset, size, area);
-
-    ObjectManager::set_stairs_cube(
-        local_int_box.min,
-        local_int_box.max,
-        stairs_kind,
-        direction,
-        world,
-    );
-}
-
-pub fn set_ladder(
-    min_offset: IVec3,
-    ladder_kind: &ladder::Kind,
-    direction: &Direction,
-    area: &Area,
-    world: &mut World,
-) {
-    let local_int_box = Area::set_local(min_offset, IVec3::new(1, 1, 1), area);
-
-    ObjectManager::set_ladder(local_int_box.min, ladder_kind, direction, world);
-}
-
-pub fn set_ladder_cube(
-    min_offset: IVec3,
-    size: IVec3,
-    ladder_kind: &ladder::Kind,
-    direction: &Direction,
-    area: &Area,
-    world: &mut World,
-) {
-    let local_int_box = Area::set_local(min_offset, size, area);
-
-    ObjectManager::set_ladder_cube(
-        local_int_box.min,
-        local_int_box.max,
-        ladder_kind,
-        direction,
-        world,
-    );
 }

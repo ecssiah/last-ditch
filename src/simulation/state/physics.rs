@@ -11,14 +11,20 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            World, physics::{
-                axis_resolution::AxisResolution, body::{Body, body_label::BodyLabel, contact_set::ContactSet}, collider::ColliderKind, hit::Hit, integration_result::IntegrationResult, resolution_result::ResolutionResult
-            }, population::{Population, motion, person::Person}, world::{
-                grid::{self, Direction, axis::Axis},
-            }
+            physics::{
+                axis_resolution::AxisResolution,
+                body::{body_label::BodyLabel, contact_set::ContactSet, Body},
+                collider::ColliderKind,
+                hit::Hit,
+                integration_result::IntegrationResult,
+                resolution_result::ResolutionResult,
+            },
+            population::{motion, person::Person, Population},
+            world::grid::{self, axis::Axis},
+            World,
         },
     },
-    utils::ldmath::{FloatBox, float_ext},
+    utils::ldmath::{float_ext, FloatBox},
 };
 use std::f32;
 use tracing::instrument;
@@ -83,9 +89,10 @@ impl Physics {
     ) -> ResolutionResult {
         ContactSet::clear(&mut person.body.contact_set);
 
-        let mut core_float_box = Body::get_float_box(BodyLabel::Core, &person.body)
+        let mut core_float_box = Body::get_collider(&BodyLabel::Core, &person.body)
             .expect("Body is missing core")
-            .clone();
+            .clone()
+            .float_box;
 
         let mut resolution_result = ResolutionResult::new();
 
@@ -167,10 +174,12 @@ impl Physics {
     }
 
     fn update_contact(world: &World, judge: &mut Person) {
-        let ground_float_box =
-            Body::get_float_box(BodyLabel::Ground, &judge.body).expect("Body is missing ground");
+        let ground_float_box = Body::get_collider(&BodyLabel::Ground, &judge.body)
+            .expect("Body is missing ground")
+            .clone()
+            .float_box;
 
-        let ground_hit_vec = Self::get_hit_vec(ground_float_box, world);
+        let ground_hit_vec = Self::get_hit_vec(&ground_float_box, world);
 
         if ground_hit_vec
             .iter()
@@ -192,7 +201,7 @@ impl Physics {
         let mut hit_vec = Vec::with_capacity(overlap_grid_positions.len());
 
         for grid_position in overlap_grid_positions {
-            if World::get_block(grid_position, &world.sector_vec).is_some_and(|block| block.solid) {
+            if World::is_block_solid_at(grid_position, world) {
                 let contact_point = Vec3::from(grid_position);
 
                 let hit = Hit {

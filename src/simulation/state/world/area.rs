@@ -1,12 +1,12 @@
+pub mod area_kind;
 pub mod connection;
 pub mod contact;
-pub mod area_kind;
 pub mod style;
 pub mod template;
 
+pub use area_kind::AreaKind;
 pub use connection::Connection;
 pub use contact::Contact;
-pub use area_kind::AreaKind;
 pub use style::Style;
 
 use crate::{

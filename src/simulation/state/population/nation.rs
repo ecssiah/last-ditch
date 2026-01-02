@@ -1,10 +1,11 @@
 pub mod leadership;
 pub mod nation_kind;
 
-use ultraviolet::IVec3;
 use crate::simulation::state::{
-    population::nation::{leadership::Leadership, nation_kind::NationKind}, world::block::BlockKind,
+    population::nation::{leadership::Leadership, nation_kind::NationKind},
+    world::block::BlockKind,
 };
+use ultraviolet::IVec3;
 
 #[derive(Clone)]
 pub struct Nation {

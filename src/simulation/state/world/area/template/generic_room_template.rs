@@ -2,9 +2,8 @@ use crate::{
     simulation::state::{
         world::{
             area::template::{self, Template},
-            block,
+            block::BlockKind,
             grid::{self, Axis, Direction},
-            object::{door, ObjectManager},
             Area,
         },
         World,
@@ -65,12 +64,12 @@ impl Template for GenericRoomTemplate {
                 world,
             );
 
-            ObjectManager::set_door(
-                connection.entrance_vec[0] + 0 * IVec3::unit_z(),
-                &door::Kind::Door1,
-                &direction,
-                world,
-            );
+            // ObjectManager::set_door(
+            //     connection.entrance_vec[0] + 0 * IVec3::unit_z(),
+            //     &door::Kind::Door1,
+            //     &direction,
+            //     world,
+            // );
         }
 
         let resource_count = gen_i32(8, 16, &mut world.rng);

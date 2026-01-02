@@ -1,6 +1,6 @@
 use crate::simulation::state::world::{
     area::template::{self, Template},
-    block,
+    block::BlockKind,
 };
 use ultraviolet::IVec3;
 
@@ -14,7 +14,7 @@ impl Template for WireframeTemplate {
         template::set_block_wireframe(
             IVec3::new(0, 0, 0),
             area.size,
-            &BlockKind::Caution,
+            &BlockKind::Caution1,
             area,
             world,
         );

@@ -3,15 +3,14 @@ pub mod block_quad;
 pub mod sector_face;
 pub mod sector_mesh;
 pub mod sector_vertex;
-pub mod tile_atlas;
 
 use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        constants::WINDOW_CLEAR_COLOR,
+        constants::{TEXTURE_ATLAS_MAX, WINDOW_CLEAR_COLOR},
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        object_renderer::ObjectRenderer,
+        texture::texture_manager::TextureManager,
         world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
     },
     simulation::{
@@ -19,12 +18,15 @@ use crate::{
         manager::viewer::view::{SectorView, WorldView},
     },
 };
-use std::collections::{hash_map::Entry, HashMap, HashSet};
+use std::{
+    collections::{hash_map::Entry, HashMap, HashSet},
+    num::NonZeroU32,
+};
 use tracing::instrument;
 
 pub struct WorldRenderer {
-    pub tile_atlas_bind_group: wgpu::BindGroup,
-    pub tile_atlas_bind_group_layout: wgpu::BindGroupLayout,
+    pub bind_group: wgpu::BindGroup,
+    pub bind_group_layout: wgpu::BindGroupLayout,
     pub sector_mesh_cache: HashMap<usize, SectorMesh>,
     pub gpu_mesh_cache: HashMap<usize, GpuMesh>,
     pub active_sector_index_set: HashSet<usize>,
@@ -33,20 +35,22 @@ pub struct WorldRenderer {
 }
 
 impl WorldRenderer {
-    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let tile_atlas_texture_path = "assets/textures/tile/tile_atlas_0.png";
+    pub fn new(
+        gpu_context: &GPUContext,
+        camera: &Camera,
+        texture_manager: &TextureManager,
+    ) -> Self {
+        let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
+            .texture_atlas_vec
+            .iter()
+            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
+            .collect();
 
-        let tile_atlas_gpu_texture_data = tile_atlas::get_gpu_texture_data(
-            tile_atlas_texture_path,
-            &gpu_context.device,
-            &gpu_context.queue,
-        );
-
-        let tile_atlas_bind_group_layout =
+        let bind_group_layout =
             gpu_context
                 .device
                 .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                    label: Some("Tile Atlas Bind Group Layout"),
+                    label: Some("World Renderer Bind Group Layout"),
                     entries: &[
                         wgpu::BindGroupLayoutEntry {
                             binding: 0,
@@ -56,7 +60,7 @@ impl WorldRenderer {
                                 view_dimension: wgpu::TextureViewDimension::D2Array,
                                 sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             },
-                            count: None,
+                            count: Some(NonZeroU32::new(TEXTURE_ATLAS_MAX).unwrap()),
                         },
                         wgpu::BindGroupLayoutEntry {
                             binding: 1,
@@ -67,32 +71,29 @@ impl WorldRenderer {
                     ],
                 });
 
-        let tile_atlas_bind_group =
-            gpu_context
-                .device
-                .create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("Tile Atlas Bind Group"),
-                    layout: &tile_atlas_bind_group_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(
-                                &tile_atlas_gpu_texture_data.texture_view,
-                            ),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(
-                                &tile_atlas_gpu_texture_data.sampler,
-                            ),
-                        },
-                    ],
-                });
+        let bind_group = gpu_context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("World Renderer Texture Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(
+                            &texture_manager.texture_atlas_vec[0].sampler,
+                        ),
+                    },
+                ],
+            });
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
             &camera.uniform_bind_group_layout,
-            &tile_atlas_bind_group_layout,
+            &bind_group_layout,
         );
 
         let sector_mesh_cache = HashMap::new();
@@ -102,8 +103,8 @@ impl WorldRenderer {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            tile_atlas_bind_group,
-            tile_atlas_bind_group_layout,
+            bind_group,
+            bind_group_layout,
             sector_mesh_cache,
             gpu_mesh_cache,
             active_sector_index_set,
@@ -198,14 +199,10 @@ impl WorldRenderer {
         gpu_context: &GPUContext,
         camera: &Camera,
         world_view: &WorldView,
-        object_renderer: &mut ObjectRenderer,
         world_renderer: &mut WorldRenderer,
     ) {
         world_renderer.active_sector_index_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
-
-        object_renderer.instance_data_group_vec.clear();
-        object_renderer.instance_group_index_map.clear();
 
         // TODO: Block modification causes edge of sector to be invalid mesh
         for (sector_index, sector_view) in &world_view.sector_view_map {
@@ -215,8 +212,6 @@ impl WorldRenderer {
             {
                 continue;
             }
-
-            ObjectRenderer::apply_sector_view(sector_view, object_renderer);
 
             let sector_mesh =
                 Self::get_or_build_sector_mesh(sector_view, &mut world_renderer.sector_mesh_cache);
@@ -234,8 +229,6 @@ impl WorldRenderer {
             world_renderer.active_sector_index_set.insert(*sector_index);
             world_renderer.active_gpu_mesh_vec.push(*sector_index);
         }
-
-        ObjectRenderer::update_instance_data(gpu_context, object_renderer);
 
         world_renderer.sector_mesh_cache.retain(|sector_index, _| {
             world_renderer
@@ -338,7 +331,7 @@ impl WorldRenderer {
 
         render_pass.set_pipeline(&world_renderer.render_pipeline);
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-        render_pass.set_bind_group(1, &world_renderer.tile_atlas_bind_group, &[]);
+        render_pass.set_bind_group(1, &world_renderer.bind_group, &[]);
 
         for sector_index in &world_renderer.active_gpu_mesh_vec {
             let gpu_mesh = &world_renderer.gpu_mesh_cache[sector_index];

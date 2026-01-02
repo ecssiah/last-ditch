@@ -9,13 +9,14 @@ pub mod gui;
 pub mod input;
 pub mod object_renderer;
 pub mod population_renderer;
+pub mod texture;
 pub mod world_renderer;
 
 use crate::{
     interface::{
         camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext,
-        gui::GUI, input::Input, object_renderer::ObjectRenderer,
-        population_renderer::PopulationRenderer, world_renderer::WorldRenderer,
+        gui::GUI, input::Input, population_renderer::PopulationRenderer,
+        texture::texture_manager::TextureManager, world_renderer::WorldRenderer,
     },
     simulation::{
         self,
@@ -36,8 +37,8 @@ pub struct Interface<'window> {
     pub message_tx: crossbeam::channel::Sender<Message>,
     pub input: Input,
     pub camera: Camera,
+    pub texture_manager: TextureManager,
     pub gui: GUI,
-    pub object_renderer: ObjectRenderer,
     pub world_renderer: WorldRenderer,
     pub population_renderer: PopulationRenderer,
     pub debug_renderer: DebugRenderer,
@@ -159,11 +160,14 @@ impl<'window> Interface<'window> {
 
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
-        let gui = GUI::new();
-        let object_renderer = ObjectRenderer::new(&gpu_context, &camera);
-        let world_renderer = WorldRenderer::new(&gpu_context, &camera);
-        let population_renderer = PopulationRenderer::new(&gpu_context, &camera);
+
+        let texture_manager = TextureManager::new(&gpu_context);
+
+        let world_renderer = WorldRenderer::new(&gpu_context, &camera, &texture_manager);
+        let population_renderer = PopulationRenderer::new(&gpu_context, &camera, &texture_manager);
         let debug_renderer = DebugRenderer::new(&gpu_context, &camera);
+        
+        let gui = GUI::new();
 
         gpu_context.window_arc.request_redraw();
 
@@ -172,11 +176,11 @@ impl<'window> Interface<'window> {
             message_tx,
             input,
             camera,
-            gui,
-            object_renderer,
+            texture_manager,
             world_renderer,
             population_renderer,
             debug_renderer,
+            gui,
             gpu_context,
             view_output,
         }
@@ -188,12 +192,12 @@ impl<'window> Interface<'window> {
             match event {
                 WindowEvent::RedrawRequested => Self::render(
                     &interface.camera,
+                    &interface.texture_manager,
                     &mut interface.gpu_context,
-                    &mut interface.gui,
                     &mut interface.world_renderer,
-                    &mut interface.object_renderer,
                     &mut interface.population_renderer,
                     &mut interface.debug_renderer,
+                    &mut interface.gui,
                 ),
                 WindowEvent::Resized(size) => {
                     Self::handle_resized(*size, &mut interface.gpu_context)
@@ -229,49 +233,34 @@ impl<'window> Interface<'window> {
     #[instrument(skip_all)]
     fn render(
         camera: &Camera,
+        texture_manager: &TextureManager,
         gpu_context: &mut GPUContext,
-        gui: &mut GUI,
         world_renderer: &mut WorldRenderer,
-        object_renderer: &mut ObjectRenderer,
         population_renderer: &mut PopulationRenderer,
         debug_renderer: &mut DebugRenderer,
+        gui: &mut GUI,
     ) {
         let mut encoder = gpu_context
             .device
             .create_command_encoder(&Default::default());
 
-        let surface_texture = gpu_context
-            .surface
-            .get_current_texture()
-            .expect("failed to acquire next swapchain texture");
+        let surface_texture = TextureManager::get_surface_texture(gpu_context);
 
         let surface_texture_view = surface_texture
             .texture
             .create_view(&gpu_context.texture_view_descriptor);
 
-        let depth_texture_view =
-            Self::create_depth_texture(&gpu_context.device, &gpu_context.surface_config);
-
         WorldRenderer::render(
             &surface_texture_view,
-            &depth_texture_view,
+            &texture_manager.depth_texture_view,
             &camera.uniform_bind_group,
             world_renderer,
             &mut encoder,
         );
 
-        ObjectRenderer::render(
-            &surface_texture_view,
-            &depth_texture_view,
-            gpu_context,
-            &camera.uniform_bind_group,
-            object_renderer,
-            &mut encoder,
-        );
-
         PopulationRenderer::render(
             &surface_texture_view,
-            &depth_texture_view,
+            &texture_manager.depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
             population_renderer,
@@ -280,7 +269,7 @@ impl<'window> Interface<'window> {
 
         DebugRenderer::render(
             &surface_texture_view,
-            &depth_texture_view,
+            &texture_manager.depth_texture_view,
             gpu_context,
             debug_renderer,
             &mut encoder,
@@ -332,11 +321,10 @@ impl<'window> Interface<'window> {
                 view,
                 &interface.gpu_context,
                 &mut interface.camera,
-                &mut interface.gui,
                 &mut interface.world_renderer,
-                &mut interface.object_renderer,
                 &mut interface.population_renderer,
                 &mut interface.debug_renderer,
+                &mut interface.gui,
             );
 
             let instant = Instant::now();
@@ -355,11 +343,10 @@ impl<'window> Interface<'window> {
         view: &View,
         gpu_context: &GPUContext,
         camera: &mut Camera,
-        gui: &mut GUI,
         world_renderer: &mut WorldRenderer,
-        object_renderer: &mut ObjectRenderer,
         population_renderer: &mut PopulationRenderer,
         debug_renderer: &mut DebugRenderer,
+        gui: &mut GUI,
     ) {
         if view.manager_view.status == Status::Done {
             event_loop.exit();
@@ -375,13 +362,7 @@ impl<'window> Interface<'window> {
             bytemuck::cast_slice(&[camera.uniform_data]),
         );
 
-        WorldRenderer::apply_world_view(
-            gpu_context,
-            camera,
-            &view.world_view,
-            object_renderer,
-            world_renderer,
-        );
+        WorldRenderer::apply_world_view(gpu_context, camera, &view.world_view, world_renderer);
 
         PopulationRenderer::apply_population_view(
             gpu_context,
@@ -416,29 +397,5 @@ impl<'window> Interface<'window> {
                 Err(_) => tracing::error!("Message Send Failed"),
             }
         }
-    }
-
-    fn create_depth_texture(
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
-    ) -> wgpu::TextureView {
-        let depth_texture_descriptor = wgpu::TextureDescriptor {
-            label: None,
-            size: wgpu::Extent3d {
-                width: config.width,
-                height: config.height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        };
-
-        let depth_texture = device.create_texture(&depth_texture_descriptor);
-
-        depth_texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
 }
