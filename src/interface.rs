@@ -191,6 +191,104 @@ impl<'window> Interface<'window> {
         }
     }
 
+
+    #[instrument(skip_all)]
+    fn update(event_loop: &ActiveEventLoop, interface: &mut Self) {
+        let instant = Instant::now();
+
+        let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
+        interface.last_instant = instant;
+
+        Self::send_message_deque(
+            &mut interface.gui,
+            &mut interface.input,
+            &interface.message_tx,
+        );
+
+        let view = Viewer::get_view(&mut interface.view_output);
+
+        if view.overseer_view.overseer_status == OverseerStatus::Done {
+            event_loop.exit();
+
+            return;
+        }
+
+        match interface.interface_mode {
+            InterfaceMode::Setup => Self::update_setup_mode(view, &mut interface.gui),
+            InterfaceMode::Run => Self::update_run_mode(
+                view,
+                &interface.gpu_context,
+                &mut interface.camera,
+                &mut interface.world_renderer,
+                &mut interface.population_renderer,
+                &mut interface.debug_renderer,
+                &mut interface.gui,
+            ),
+        }
+
+        let instant = Instant::now();
+
+        if next_instant > instant {
+            event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
+        };
+
+        interface.gpu_context.window_arc.request_redraw();
+    }
+
+    fn send_message_deque(
+        gui: &mut GUI,
+        input: &mut Input,
+        message_tx: &crossbeam::channel::Sender<Message>,
+    ) {
+        let mut message_deque = VecDeque::new();
+
+        let gui_message_deque = GUI::get_message_deque(&mut gui.message_deque);
+
+        let input_message_deque = Input::get_message_deque(
+            &input.key_inputs,
+            &mut input.mouse_inputs,
+            &mut input.message_deque,
+        );
+
+        message_deque.extend(gui_message_deque);
+        message_deque.extend(input_message_deque);
+
+        for message in message_deque {
+            match message_tx.send(message) {
+                Ok(()) => (),
+                Err(_) => tracing::error!("Message Send Failed"),
+            }
+        }
+    }
+
+    #[instrument(skip_all)]
+    fn update_setup_mode(view: &View, gui: &mut GUI) {
+        GUI::apply_view(view, gui);
+    }
+
+    #[instrument(skip_all)]
+    fn update_run_mode(
+        view: &View,
+        gpu_context: &GPUContext,
+        camera: &mut Camera,
+        world_renderer: &mut WorldRenderer,
+        population_renderer: &mut PopulationRenderer,
+        debug_renderer: &mut DebugRenderer,
+        gui: &mut GUI,
+    ) {
+        GUI::apply_view(view, gui);
+        Camera::apply_view(gpu_context, view, camera);
+
+        WorldRenderer::apply_world_view(gpu_context, camera, &view.world_view, world_renderer);
+        PopulationRenderer::apply_population_view(
+            gpu_context,
+            &view.population_view,
+            population_renderer,
+        );
+
+        DebugRenderer::apply_debug_view(gpu_context, view, debug_renderer);
+    }
+
     #[instrument(skip_all)]
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Self) {
         match event {
@@ -347,102 +445,5 @@ impl<'window> Interface<'window> {
         gpu_context
             .surface
             .configure(&gpu_context.device, &gpu_context.surface_config);
-    }
-
-    #[instrument(skip_all)]
-    fn update(event_loop: &ActiveEventLoop, interface: &mut Self) {
-        let instant = Instant::now();
-
-        let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
-        interface.last_instant = instant;
-
-        Self::send_message_deque(
-            &mut interface.gui,
-            &mut interface.input,
-            &interface.message_tx,
-        );
-
-        let view = Viewer::get_view(&mut interface.view_output);
-
-        if view.overseer_view.overseer_status == OverseerStatus::Done {
-            event_loop.exit();
-
-            return;
-        }
-
-        match interface.interface_mode {
-            InterfaceMode::Setup => Self::update_setup_mode(view, &mut interface.gui),
-            InterfaceMode::Run => Self::update_run_mode(
-                view,
-                &interface.gpu_context,
-                &mut interface.camera,
-                &mut interface.world_renderer,
-                &mut interface.population_renderer,
-                &mut interface.debug_renderer,
-                &mut interface.gui,
-            ),
-        }
-
-        let instant = Instant::now();
-
-        if next_instant > instant {
-            event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
-        };
-
-        interface.gpu_context.window_arc.request_redraw();
-    }
-
-    fn send_message_deque(
-        gui: &mut GUI,
-        input: &mut Input,
-        message_tx: &crossbeam::channel::Sender<Message>,
-    ) {
-        let mut message_deque = VecDeque::new();
-
-        let gui_message_deque = GUI::get_message_deque(&mut gui.message_deque);
-
-        let input_message_deque = Input::get_message_deque(
-            &input.key_inputs,
-            &mut input.mouse_inputs,
-            &mut input.message_deque,
-        );
-
-        message_deque.extend(gui_message_deque);
-        message_deque.extend(input_message_deque);
-
-        for message in message_deque {
-            match message_tx.send(message) {
-                Ok(()) => (),
-                Err(_) => tracing::error!("Message Send Failed"),
-            }
-        }
-    }
-
-    #[instrument(skip_all)]
-    fn update_setup_mode(view: &View, gui: &mut GUI) {
-        GUI::apply_view(view, gui);
-    }
-
-    #[instrument(skip_all)]
-    fn update_run_mode(
-        view: &View,
-        gpu_context: &GPUContext,
-        camera: &mut Camera,
-        world_renderer: &mut WorldRenderer,
-        population_renderer: &mut PopulationRenderer,
-        debug_renderer: &mut DebugRenderer,
-        gui: &mut GUI,
-    ) {
-        GUI::apply_view(view, gui);
-        Camera::apply_view(gpu_context, view, camera);
-
-        WorldRenderer::apply_world_view(gpu_context, camera, &view.world_view, world_renderer);
-        PopulationRenderer::apply_population_view(
-            gpu_context,
-            &view.population_view,
-            population_renderer,
-        );
-
-        DebugRenderer::apply_debug_view(gpu_context, view, debug_renderer);
     }
 }
