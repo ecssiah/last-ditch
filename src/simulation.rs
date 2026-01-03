@@ -1,18 +1,18 @@
 //! Simulation evolution
 
 pub mod constants;
-pub mod manager;
+pub mod overseer;
 pub mod state;
 pub mod utils;
 
 use crate::simulation::{
-    manager::{viewer::view::View, Manager, Message},
+    overseer::{viewer::view::View, Overseer, Message},
     state::State,
 };
 use tracing::instrument;
 
 pub struct Simulation {
-    pub manager: Manager,
+    pub overseer: Overseer,
     pub state: State,
 }
 
@@ -21,24 +21,24 @@ impl Simulation {
         message_rx: crossbeam::channel::Receiver<Message>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
-        let manager = Manager::new(message_rx, view_input);
+        let overseer = Overseer::new(message_rx, view_input);
         let state = State::new();
 
-        Self { manager, state }
+        Self { overseer, state }
     }
 
     #[instrument(skip_all)]
-    pub fn run(manager: &mut Manager, state: &mut State) {
+    pub fn run(overseer: &mut Overseer, state: &mut State) {
         loop {
-            Manager::start(manager);
+            Overseer::start(overseer);
 
-            while Manager::has_work(&manager) {
-                if !Manager::tick(state, manager) {
+            while Overseer::has_work(&overseer) {
+                if Overseer::tick(state, overseer) == false {
                     return;
                 }
             }
 
-            Manager::fix_timestep(manager);
+            Overseer::fix_timestep(overseer);
         }
     }
 }

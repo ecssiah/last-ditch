@@ -11,7 +11,7 @@ use crate::{
         gui::GUI,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
-    simulation::manager::{
+    simulation::overseer::{
         self,
         message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData},
         Message,
@@ -30,7 +30,7 @@ use winit::{
 pub struct Input {
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
-    pub message_deque: VecDeque<manager::Message>,
+    pub message_deque: VecDeque<overseer::Message>,
 }
 
 impl Input {

@@ -16,7 +16,7 @@ use crate::{
     },
     simulation::{
         constants::*,
-        manager::viewer::view::PopulationView,
+        overseer::viewer::view::PopulationView,
         state::{physics::body::Body, population::identity},
     },
 };
@@ -51,7 +51,8 @@ impl PopulationRenderer {
         let person_instance_data_group_vec = Vec::new();
 
         let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
-            .texture_atlas_vec
+            .population_atlas_set
+            .texture_data_vec
             .iter()
             .map(|gpu_texture_data| &gpu_texture_data.texture_view)
             .collect();
@@ -94,7 +95,7 @@ impl PopulationRenderer {
                     wgpu::BindGroupEntry {
                         binding: 1,
                         resource: wgpu::BindingResource::Sampler(
-                            &texture_manager.texture_atlas_vec[0].sampler,
+                            &texture_manager.population_atlas_set.texture_data_vec[0].sampler,
                         ),
                     },
                 ],

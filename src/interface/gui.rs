@@ -9,7 +9,7 @@ use crate::{
     interface::gpu::gpu_context::GPUContext,
     simulation::{
         constants::ID_JUDGE_1,
-        manager::{message::SeedData, viewer::view::View, Message},
+        overseer::{message::SeedData, viewer::view::View, Message},
         state::world::grid::{self, Direction},
     },
 };

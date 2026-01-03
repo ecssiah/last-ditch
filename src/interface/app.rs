@@ -1,7 +1,7 @@
 use crate::{
     interface::Interface,
     simulation::{
-        manager::{viewer::view::View, Message},
+        overseer::{viewer::view::View, Message},
         Simulation,
     },
 };
@@ -30,7 +30,7 @@ impl<'window> App<'window> {
         *interface = Some(Interface::new(message_tx, view_output, event_loop));
 
         *simulation_handle = Some(std::thread::spawn(move || {
-            Simulation::run(&mut simulation.manager, &mut simulation.state)
+            Simulation::run(&mut simulation.overseer, &mut simulation.state)
         }));
     }
 }

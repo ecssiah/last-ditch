@@ -13,7 +13,7 @@
 //         },
 //     },
 //     simulation::{
-//         manager::viewer::view::SectorView,
+//         overseer::viewer::view::SectorView,
 //         state::world::grid::{self},
 //     },
 // };

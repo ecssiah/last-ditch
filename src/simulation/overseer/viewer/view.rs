@@ -1,5 +1,5 @@
 pub mod leadership_view;
-pub mod manager_view;
+pub mod overseer_view;
 pub mod person_view;
 pub mod population_view;
 pub mod sector_view;
@@ -7,7 +7,7 @@ pub mod time_view;
 pub mod world_view;
 
 pub use leadership_view::LeadershipView;
-pub use manager_view::ManagerView;
+pub use overseer_view::OverseerView;
 pub use person_view::PersonView;
 pub use population_view::PopulationView;
 pub use sector_view::SectorView;
@@ -16,7 +16,7 @@ pub use world_view::WorldView;
 
 #[derive(Clone)]
 pub struct View {
-    pub manager_view: ManagerView,
+    pub overseer_view: OverseerView,
     pub population_view: PopulationView,
     pub world_view: WorldView,
 }
@@ -24,7 +24,7 @@ pub struct View {
 impl View {
     pub fn new() -> Self {
         Self {
-            manager_view: ManagerView::default(),
+            overseer_view: OverseerView::default(),
             population_view: PopulationView::default(),
             world_view: WorldView::default(),
         }

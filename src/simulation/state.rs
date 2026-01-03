@@ -93,7 +93,7 @@ impl State {
     }
 
     #[instrument(skip_all)]
-    pub fn tick(state: &mut Self) {
+    pub fn tick(state: &mut Self) -> bool {
         if state.active {
             Action::tick(state);
             World::tick(&mut state.world);
@@ -102,5 +102,7 @@ impl State {
             Navigation::tick(&state.world, &mut state.navigation);
             Work::tick(state);
         }
+
+        true
     }
 }

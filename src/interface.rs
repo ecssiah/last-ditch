@@ -20,7 +20,7 @@ use crate::{
     },
     simulation::{
         self,
-        manager::{status::Status, viewer::view::View, Message, Viewer},
+        overseer::{overseer_status::OverseerStatus, viewer::view::View, Message, Viewer},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
@@ -38,10 +38,10 @@ pub struct Interface<'window> {
     pub input: Input,
     pub camera: Camera,
     pub texture_manager: TextureManager,
-    pub gui: GUI,
     pub world_renderer: WorldRenderer,
     pub population_renderer: PopulationRenderer,
     pub debug_renderer: DebugRenderer,
+    pub gui: GUI,
     pub gpu_context: GPUContext<'window>,
     pub view_output: triple_buffer::Output<View>,
 }
@@ -166,7 +166,7 @@ impl<'window> Interface<'window> {
         let world_renderer = WorldRenderer::new(&gpu_context, &camera, &texture_manager);
         let population_renderer = PopulationRenderer::new(&gpu_context, &camera, &texture_manager);
         let debug_renderer = DebugRenderer::new(&gpu_context, &camera);
-        
+
         let gui = GUI::new();
 
         gpu_context.window_arc.request_redraw();
@@ -305,16 +305,17 @@ impl<'window> Interface<'window> {
     fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
         if let Some(interface) = interface.as_mut() {
             let instant = Instant::now();
+
             let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
             interface.last_instant = instant;
-
-            let view = Viewer::get_view(&mut interface.view_output);
 
             Self::send_message_deque(
                 &mut interface.gui,
                 &mut interface.input,
                 &interface.message_tx,
             );
+
+            let view = Viewer::get_view(&mut interface.view_output);
 
             Self::apply_view(
                 event_loop,
@@ -348,8 +349,9 @@ impl<'window> Interface<'window> {
         debug_renderer: &mut DebugRenderer,
         gui: &mut GUI,
     ) {
-        if view.manager_view.status == Status::Done {
+        if view.overseer_view.overseer_status == OverseerStatus::Done {
             event_loop.exit();
+
             return;
         }
 

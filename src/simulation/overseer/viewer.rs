@@ -5,9 +5,9 @@ pub mod view;
 
 use crate::simulation::{
     constants::*,
-    manager::{
-        viewer::view::{ManagerView, PersonView, PopulationView, SectorView, View, WorldView},
-        Manager,
+    overseer::{
+        viewer::view::{OverseerView, PersonView, PopulationView, SectorView, View, WorldView},
+        Overseer,
     },
     state::{
         world::{
@@ -37,23 +37,23 @@ impl Viewer {
     }
 
     #[instrument(skip_all)]
-    pub fn tick(state: &State, manager: &mut Manager) {
-        let manager_view = Self::update_manager_view(manager);
+    pub fn tick(state: &State, overseer: &mut Overseer) {
+        let overseer_view = Self::update_overseer_view(overseer);
         let population_view = Self::update_population_view(state);
 
         let world_view = Self::update_world_view(
             state,
-            &mut manager.viewer.sector_version_map,
-            &mut manager.viewer.sector_view_cache,
+            &mut overseer.viewer.sector_version_map,
+            &mut overseer.viewer.sector_view_cache,
         );
 
-        let view = manager.viewer.view_input.input_buffer_mut();
+        let view = overseer.viewer.view_input.input_buffer_mut();
 
-        view.manager_view = manager_view;
+        view.overseer_view = overseer_view;
         view.population_view = population_view;
         view.world_view = world_view;
 
-        manager.viewer.view_input.publish();
+        overseer.viewer.view_input.publish();
     }
 
     #[instrument(skip_all)]
@@ -66,12 +66,12 @@ impl Viewer {
     }
 
     #[instrument(skip_all)]
-    fn update_manager_view(manager: &Manager) -> ManagerView {
-        let manager_view = ManagerView {
-            status: manager.status,
+    fn update_overseer_view(overseer: &Overseer) -> OverseerView {
+        let overseer_view = OverseerView {
+            overseer_status: overseer.overseer_status,
         };
 
-        manager_view
+        overseer_view
     }
 
     #[instrument(skip_all)]

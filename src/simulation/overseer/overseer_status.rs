@@ -1,5 +1,6 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Status {
+pub enum OverseerStatus {
+    Start,
     Run,
     Done,
 }

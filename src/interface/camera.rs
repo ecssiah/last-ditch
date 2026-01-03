@@ -11,7 +11,7 @@ use crate::{
     },
     simulation::{
         constants::ID_JUDGE_1,
-        manager::viewer::view::{PersonView, View},
+        overseer::viewer::view::{PersonView, View},
     },
 };
 use tracing::instrument;
