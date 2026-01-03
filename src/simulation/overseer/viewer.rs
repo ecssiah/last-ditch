@@ -76,7 +76,7 @@ impl Viewer {
 
     #[instrument(skip_all)]
     fn update_population_view(state: &State) -> PopulationView {
-        let mut population_view = PopulationView::new();
+        let mut population_view = PopulationView::default();
 
         if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
             let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
@@ -111,7 +111,7 @@ impl Viewer {
         sector_version_map: &mut HashMap<usize, u64>,
         sector_view_cache: &mut HashMap<usize, SectorView>,
     ) -> WorldView {
-        let mut world_view = WorldView::new();
+        let mut world_view = WorldView::default();
 
         if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
             let judge_sector_coordinate =

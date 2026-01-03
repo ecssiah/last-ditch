@@ -7,7 +7,7 @@ pub mod plane;
 use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
-        constants::*,
+        constants::*, gpu::gpu_context::GPUContext,
     },
     simulation::{
         constants::ID_JUDGE_1,
@@ -92,7 +92,7 @@ impl Camera {
     }
 
     #[instrument(skip_all)]
-    pub fn apply_view(view: &View, camera: &mut Self) {
+    pub fn apply_view(gpu_context: &GPUContext, view: &View, camera: &mut Self) {
         if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
             Self::update_camera(&person_view, camera);
         }
@@ -125,6 +125,12 @@ impl Camera {
             camera_position: *camera.position.as_array(),
             _padding: 0.0,
         };
+
+        gpu_context.queue.write_buffer(
+            &camera.uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[camera.uniform_data]),
+        );
     }
 
     fn update_camera(person_view: &PersonView, camera: &mut Self) {

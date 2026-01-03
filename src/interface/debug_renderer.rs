@@ -257,7 +257,7 @@ impl DebugRenderer {
     }
 
     #[instrument(skip_all)]
-    pub fn apply_debug_view(_view: &View, debug_renderer: &mut Self) {
+    pub fn apply_debug_view(gpu_context: &GPUContext, _view: &View, debug_renderer: &mut Self) {
         if !debug_renderer.debug_active {
             return;
         }
@@ -318,19 +318,6 @@ impl DebugRenderer {
         }
 
         if debug_renderer.channel_set.contains(&DebugChannel::Custom) {}
-    }
-
-    #[instrument(skip_all)]
-    pub fn render(
-        surface_texture_view: &wgpu::TextureView,
-        depth_texture_view: &wgpu::TextureView,
-        gpu_context: &GPUContext,
-        debug_renderer: &mut Self,
-        encoder: &mut wgpu::CommandEncoder,
-    ) {
-        if !debug_renderer.debug_active || debug_renderer.channel_set.is_empty() {
-            return;
-        }
 
         debug_renderer.vertex_vec.clear();
 
@@ -338,10 +325,6 @@ impl DebugRenderer {
             if let Some(vertex_vec) = debug_renderer.channel_vertex_map.get_mut(&debug_channel) {
                 debug_renderer.vertex_vec.append(vertex_vec);
             }
-        }
-
-        if debug_renderer.vertex_vec.is_empty() {
-            return;
         }
 
         if debug_renderer.vertex_capacity < debug_renderer.vertex_vec.len() {
@@ -362,6 +345,18 @@ impl DebugRenderer {
             0,
             bytemuck::cast_slice(&debug_renderer.vertex_vec),
         );
+    }
+
+    #[instrument(skip_all)]
+    pub fn render(
+        surface_texture_view: &wgpu::TextureView,
+        depth_texture_view: &wgpu::TextureView,
+        debug_renderer: &mut Self,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        if !debug_renderer.debug_active || debug_renderer.vertex_vec.is_empty() {
+            return;
+        }
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Debug Render Pass"),
