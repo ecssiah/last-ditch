@@ -1,6 +1,6 @@
 use crate::simulation::overseer::overseer_status::OverseerStatus;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct OverseerView {
     pub overseer_status: OverseerStatus,
 }
@@ -8,11 +8,13 @@ pub struct OverseerView {
 impl OverseerView {
     pub fn new() -> Self {
         Self {
-            overseer_status: OverseerStatus::Run,
+            overseer_status: OverseerStatus::Start,
         }
     }
+}
 
-    pub fn default() -> Self {
+impl Default for OverseerView {
+    fn default() -> Self {
         Self::new()
     }
 }

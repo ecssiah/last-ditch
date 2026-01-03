@@ -24,3 +24,5 @@ pub const NEAR_PLANE: f32 = 0.1;
 pub const FAR_PLANE: f32 = 200.0;
 
 pub const MOUSE_SENSITIVITY: f32 = 0.2;
+
+pub const OVERSEER_MESSAGE_LIMIT: usize = 500;

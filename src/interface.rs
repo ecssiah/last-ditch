@@ -84,11 +84,10 @@ impl<'window> Interface<'window> {
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
 
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
+        let instance = wgpu::Instance::new(&Default::default());
 
-        let adapter =
-            pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))
-                .expect("Failed to find GPU adapter");
+        let adapter = pollster::block_on(instance.request_adapter(&Default::default()))
+            .expect("Failed to find GPU adapter");
 
         let (device, queue) = pollster::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
@@ -187,47 +186,41 @@ impl<'window> Interface<'window> {
     }
 
     #[instrument(skip_all)]
-    pub fn handle_window_event(event: &WindowEvent, interface: &mut Option<Self>) {
-        if let Some(interface) = interface.as_mut() {
-            match event {
-                WindowEvent::RedrawRequested => Self::render(
-                    &interface.camera,
-                    &interface.texture_manager,
-                    &mut interface.gpu_context,
-                    &mut interface.world_renderer,
-                    &mut interface.population_renderer,
-                    &mut interface.debug_renderer,
+    pub fn handle_window_event(event: &WindowEvent, interface: &mut Self) {
+        match event {
+            WindowEvent::RedrawRequested => Self::render(
+                &interface.camera,
+                &interface.texture_manager,
+                &mut interface.gpu_context,
+                &mut interface.world_renderer,
+                &mut interface.population_renderer,
+                &mut interface.debug_renderer,
+                &mut interface.gui,
+            ),
+            WindowEvent::Resized(size) => Self::handle_resized(*size, &mut interface.gpu_context),
+            _ => {
+                if Input::handle_window_event(
+                    event,
                     &mut interface.gui,
-                ),
-                WindowEvent::Resized(size) => {
-                    Self::handle_resized(*size, &mut interface.gpu_context)
-                }
-                _ => {
-                    if Input::handle_window_event(
-                        event,
-                        &mut interface.gui,
-                        &mut interface.debug_renderer,
-                        &mut interface.gpu_context,
-                        &mut interface.input,
-                    ) {
-                        return;
-                    };
+                    &mut interface.debug_renderer,
+                    &mut interface.gpu_context,
+                    &mut interface.input,
+                ) {
+                    return;
+                };
 
-                    GUI::handle_window_event(event, &mut interface.gpu_context);
-                }
+                GUI::handle_window_event(event, &mut interface.gpu_context);
             }
         }
     }
 
     #[instrument(skip_all)]
-    pub fn handle_device_event(event: &DeviceEvent, interface: &mut Option<Self>) {
-        if let Some(interface) = interface.as_mut() {
-            if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
-                return;
-            }
-
-            GUI::handle_device_event(event, &mut interface.gpu_context);
+    pub fn handle_device_event(event: &DeviceEvent, interface: &mut Self) {
+        if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
+            return;
         }
+
+        GUI::handle_device_event(event, &mut interface.gpu_context);
     }
 
     #[instrument(skip_all)]
@@ -302,40 +295,38 @@ impl<'window> Interface<'window> {
     }
 
     #[instrument(skip_all)]
-    fn update(event_loop: &ActiveEventLoop, interface: &mut Option<Self>) {
-        if let Some(interface) = interface.as_mut() {
-            let instant = Instant::now();
+    fn update(event_loop: &ActiveEventLoop, interface: &mut Self) {
+        let instant = Instant::now();
 
-            let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
-            interface.last_instant = instant;
+        let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
+        interface.last_instant = instant;
 
-            Self::send_message_deque(
-                &mut interface.gui,
-                &mut interface.input,
-                &interface.message_tx,
-            );
+        Self::send_message_deque(
+            &mut interface.gui,
+            &mut interface.input,
+            &interface.message_tx,
+        );
 
-            let view = Viewer::get_view(&mut interface.view_output);
+        let view = Viewer::get_view(&mut interface.view_output);
 
-            Self::apply_view(
-                event_loop,
-                view,
-                &interface.gpu_context,
-                &mut interface.camera,
-                &mut interface.world_renderer,
-                &mut interface.population_renderer,
-                &mut interface.debug_renderer,
-                &mut interface.gui,
-            );
+        Self::apply_view(
+            event_loop,
+            view,
+            &interface.gpu_context,
+            &mut interface.camera,
+            &mut interface.world_renderer,
+            &mut interface.population_renderer,
+            &mut interface.debug_renderer,
+            &mut interface.gui,
+        );
 
-            let instant = Instant::now();
+        let instant = Instant::now();
 
-            if next_instant > instant {
-                event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
-            };
+        if next_instant > instant {
+            event_loop.set_control_flow(ControlFlow::WaitUntil(next_instant));
+        };
 
-            interface.gpu_context.window_arc.request_redraw();
-        }
+        interface.gpu_context.window_arc.request_redraw();
     }
 
     #[instrument(skip_all)]

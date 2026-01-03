@@ -1,21 +1,8 @@
 use crate::simulation::overseer::viewer::{view::LeadershipView, PersonView};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Default)]
 pub struct PopulationView {
     pub leadership_view: LeadershipView,
     pub person_view_map: HashMap<u64, PersonView>,
-}
-
-impl PopulationView {
-    pub fn new() -> Self {
-        Self {
-            leadership_view: LeadershipView::default(),
-            person_view_map: HashMap::default(),
-        }
-    }
-
-    pub fn default() -> Self {
-        Self::new()
-    }
 }

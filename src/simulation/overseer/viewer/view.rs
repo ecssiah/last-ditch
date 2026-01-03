@@ -14,19 +14,9 @@ pub use sector_view::SectorView;
 pub use time_view::TimeView;
 pub use world_view::WorldView;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct View {
     pub overseer_view: OverseerView,
     pub population_view: PopulationView,
     pub world_view: WorldView,
-}
-
-impl View {
-    pub fn new() -> Self {
-        Self {
-            overseer_view: OverseerView::default(),
-            population_view: PopulationView::default(),
-            world_view: WorldView::default(),
-        }
-    }
 }

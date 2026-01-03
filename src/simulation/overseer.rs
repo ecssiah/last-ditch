@@ -7,21 +7,24 @@ pub use message::Message;
 pub use timestep::Timestep;
 pub use viewer::Viewer;
 
-use crate::simulation::{
-    constants::*,
-    overseer::{overseer_status::OverseerStatus, viewer::view::View},
-    state::{
-        action::{
-            act::{self, JumpData, PlaceBlockData, RemoveBlockData},
-            Act,
+use crate::{
+    interface::constants::OVERSEER_MESSAGE_LIMIT,
+    simulation::{
+        constants::*,
+        overseer::{overseer_status::OverseerStatus, viewer::view::View},
+        state::{
+            action::{
+                act::{self, JumpData, PlaceBlockData, RemoveBlockData},
+                Act,
+            },
+            population::motion::{self},
+            work::{
+                construct_task::{generate_data::GenerateData, ConstructTask},
+                construct_worker::ConstructWorker,
+            },
+            world::block::BlockKind,
+            State,
         },
-        population::motion::{self},
-        work::{
-            construct_task::{generate_data::GenerateData, ConstructTask},
-            construct_worker::ConstructWorker,
-        },
-        world::block::BlockKind,
-        State,
     },
 };
 use std::time::{Duration, Instant};
@@ -32,6 +35,7 @@ pub struct Overseer {
     pub overseer_status: OverseerStatus,
     pub timestep: Timestep,
     pub viewer: Viewer,
+    pub message_limit: usize,
     pub message_rx: crossbeam::channel::Receiver<Message>,
 }
 
@@ -41,13 +45,16 @@ impl Overseer {
         view_input: triple_buffer::Input<View>,
     ) -> Self {
         let overseer_status = OverseerStatus::Start;
+
         let timestep = Timestep::new();
         let viewer = Viewer::new(view_input);
+        let message_limit = OVERSEER_MESSAGE_LIMIT;
 
         Self {
             overseer_status,
             timestep,
             viewer,
+            message_limit,
             message_rx,
         }
     }
@@ -76,11 +83,17 @@ impl Overseer {
     }
 
     fn receive_messages(state: &mut State, overseer: &mut Self) {
+        let mut message_limit = overseer.message_limit;
+
         while let Ok(message) = overseer.message_rx.try_recv() {
-            match overseer.overseer_status {
-                OverseerStatus::Start => Self::handle_start_message(&message, state, overseer),
-                OverseerStatus::Run => Self::handle_run_message(&message, state, overseer),
-                OverseerStatus::Done => Self::handle_done_message(&message, state, overseer),
+            message_limit -= 1;
+
+            if message_limit > 0 {
+                match overseer.overseer_status {
+                    OverseerStatus::Start => Self::handle_start_message(&message, state, overseer),
+                    OverseerStatus::Run => Self::handle_run_message(&message, state, overseer),
+                    OverseerStatus::Done => Self::handle_done_message(&message, state, overseer),
+                }
             }
         }
     }

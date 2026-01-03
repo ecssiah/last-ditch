@@ -11,8 +11,10 @@ impl LeadershipView {
 
         Self { judge_id }
     }
+}
 
-    pub fn default() -> Self {
+impl Default for LeadershipView {
+    fn default() -> Self {
         Self::new()
     }
 }
