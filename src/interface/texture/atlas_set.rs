@@ -1,5 +1,8 @@
+use crate::interface::{
+    gpu::gpu_texture_data::GpuTextureData,
+    texture::{texture_id::TextureID, texture_location::TextureLocation},
+};
 use std::collections::HashMap;
-use crate::interface::{gpu::gpu_texture_data::GpuTextureData, texture::{texture_id::TextureID, texture_location::TextureLocation}};
 
 pub struct AtlasSet {
     pub texture_size: f32,

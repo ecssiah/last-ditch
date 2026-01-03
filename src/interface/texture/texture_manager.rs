@@ -114,9 +114,7 @@ impl TextureManager {
     //     }
     // }
 
-    pub fn load_atlas_set(atlas_set: &AtlasSet) {
-
-    }
+    pub fn load_atlas_set(atlas_set: &AtlasSet) {}
 
     pub fn get_surface_texture(gpu_context: &GPUContext) -> wgpu::SurfaceTexture {
         let surface_texture = gpu_context

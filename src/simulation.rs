@@ -6,7 +6,7 @@ pub mod state;
 pub mod utils;
 
 use crate::simulation::{
-    overseer::{viewer::view::View, Overseer, Message},
+    overseer::{viewer::view::View, Message, Overseer},
     state::State,
 };
 use tracing::instrument;
