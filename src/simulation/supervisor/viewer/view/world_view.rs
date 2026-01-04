@@ -1,4 +1,4 @@
-use crate::simulation::overseer::viewer::SectorView;
+use crate::simulation::supervisor::viewer::SectorView;
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]

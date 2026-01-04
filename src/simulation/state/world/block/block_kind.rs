@@ -1,7 +1,8 @@
 use std::fmt;
+use strum_macros::{EnumCount, EnumIter};
 
 #[repr(u16)]
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, EnumCount, EnumIter, Hash, PartialEq, Eq, PartialOrd)]
 pub enum BlockKind {
     Engraved1,
     Engraved2,
@@ -55,14 +56,9 @@ pub enum BlockKind {
     Stairs1,
     Ladder1,
     Door1,
-    COUNT,
 }
 
 impl BlockKind {
-    pub const fn count() -> usize {
-        Self::COUNT as usize
-    }
-
     pub fn to_index(block_kind: &BlockKind) -> usize {
         block_kind.clone() as usize
     }
@@ -204,7 +200,6 @@ impl BlockKind {
             Self::Stairs1 => "stairs1",
             Self::Ladder1 => "ladder1",
             Self::Door1 => "door1",
-            Self::COUNT => panic!("String requested for COUNT"),
         }
     }
 }

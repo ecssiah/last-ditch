@@ -1,6 +1,6 @@
 use crate::{
     interface::Interface,
-    simulation::{overseer::Message, Simulation},
+    simulation::{supervisor::Message, Simulation},
 };
 use winit::{
     application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,
@@ -27,7 +27,7 @@ impl<'window> App<'window> {
         *interface_option = Some(Interface::new(message_tx, view_output, event_loop));
 
         *simulation_handle = Some(std::thread::spawn(move || {
-            Simulation::run(&mut simulation.overseer, &mut simulation.state)
+            Simulation::run(&mut simulation.supervisor, &mut simulation.state)
         }));
     }
 }

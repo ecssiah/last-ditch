@@ -1,17 +1,17 @@
-pub mod movement_input_data;
-pub mod rotation_input_data;
+pub mod move_input_data;
+pub mod rotate_input_data;
 pub mod seed_data;
 
-pub use movement_input_data::MovementInputData;
-pub use rotation_input_data::RotationInputData;
+pub use move_input_data::MoveInputData;
+pub use rotate_input_data::RotateInputData;
 pub use seed_data::SeedData;
 
 #[derive(Debug)]
 pub enum Message {
     Interact1,
     Interact2,
-    MovementInput(MovementInputData),
-    RotatationInput(RotationInputData),
+    MoveInput(MoveInputData),
+    RotateInput(RotateInputData),
     JumpInput,
     SetSeed(SeedData),
     Generate,

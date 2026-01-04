@@ -16,8 +16,8 @@ use crate::{
     },
     simulation::{
         constants::*,
-        overseer::viewer::view::PopulationView,
         state::{physics::body::Body, population::identity},
+        supervisor::viewer::view::PopulationView,
     },
 };
 use obj::{load_obj, TexturedVertex};
@@ -51,8 +51,8 @@ impl PopulationRenderer {
         let person_instance_data_group_vec = Vec::new();
 
         let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
-            .population_atlas_set
-            .texture_data_vec
+            .population_texture_atlas_set
+            .gpu_texture_data_vec
             .iter()
             .map(|gpu_texture_data| &gpu_texture_data.texture_view)
             .collect();
@@ -95,7 +95,10 @@ impl PopulationRenderer {
                     wgpu::BindGroupEntry {
                         binding: 1,
                         resource: wgpu::BindingResource::Sampler(
-                            &texture_manager.population_atlas_set.texture_data_vec[0].sampler,
+                            &texture_manager
+                                .population_texture_atlas_set
+                                .gpu_texture_data_vec[0]
+                                .sampler,
                         ),
                     },
                 ],

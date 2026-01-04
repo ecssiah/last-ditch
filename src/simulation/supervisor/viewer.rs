@@ -5,16 +5,16 @@ pub mod view;
 
 use crate::simulation::{
     constants::*,
-    overseer::{
-        viewer::view::{OverseerView, PersonView, PopulationView, SectorView, View, WorldView},
-        Overseer,
-    },
     state::{
         world::{
             grid::{self},
             sector::Sector,
         },
         State,
+    },
+    supervisor::{
+        viewer::view::{PersonView, PopulationView, SectorView, SupervisorView, View, WorldView},
+        Supervisor,
     },
 };
 use std::collections::HashMap;
@@ -37,23 +37,24 @@ impl Viewer {
     }
 
     #[instrument(skip_all)]
-    pub fn tick(state: &State, overseer: &mut Overseer) {
-        let overseer_view = Self::update_overseer_view(overseer);
+    pub fn tick(state: &State, supervisor: &mut Supervisor) {
+        let supervisor_view = Self::update_supervisor_view(supervisor);
+
         let population_view = Self::update_population_view(state);
 
         let world_view = Self::update_world_view(
             state,
-            &mut overseer.viewer.sector_version_map,
-            &mut overseer.viewer.sector_view_cache,
+            &mut supervisor.viewer.sector_version_map,
+            &mut supervisor.viewer.sector_view_cache,
         );
 
-        let view = overseer.viewer.view_input.input_buffer_mut();
+        let view = supervisor.viewer.view_input.input_buffer_mut();
 
-        view.overseer_view = overseer_view;
+        view.supervisor_view = supervisor_view;
         view.population_view = population_view;
         view.world_view = world_view;
 
-        overseer.viewer.view_input.publish();
+        supervisor.viewer.view_input.publish();
     }
 
     #[instrument(skip_all)]
@@ -66,12 +67,12 @@ impl Viewer {
     }
 
     #[instrument(skip_all)]
-    fn update_overseer_view(overseer: &Overseer) -> OverseerView {
-        let overseer_view = OverseerView {
-            overseer_status: overseer.overseer_status,
+    fn update_supervisor_view(supervisor: &Supervisor) -> SupervisorView {
+        let supervisor_view = SupervisorView {
+            supervisor_status: supervisor.supervisor_status,
         };
 
-        overseer_view
+        supervisor_view
     }
 
     #[instrument(skip_all)]

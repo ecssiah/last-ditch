@@ -15,9 +15,9 @@ profile = []
 
 [dependencies]
 approx = "0.5"
-bitflags = "2.9.4"
 bytemuck = { version = "1.14", features = ["derive"] }
 chrono = "0.4.42"
+convert_case = "0.10.0"
 crossbeam = "0.8.4"
 egui = "0.31.1"
 egui-winit = "0.31.1"
@@ -34,6 +34,8 @@ rand = "0.8"
 rand_pcg = "0.3"
 rayon = "1.10.0"
 specs = "0.20.0"
+strum = "0.27"
+strum_macros = "0.27"
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-flame = "0.2"
@@ -43,7 +45,3 @@ wgpu = "24.0.0"
 winit = "0.30.8"
 ultraviolet = { version = "0.10.0", features = ["int"] }
 rand_chacha = "0.9.0"
-slotmap = "1.1.1"
-convert_case = "0.10.0"
-smallvec = "1.15.1"
-rectangle-pack = "0.4.2"

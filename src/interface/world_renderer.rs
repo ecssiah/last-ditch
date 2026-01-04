@@ -15,7 +15,7 @@ use crate::{
     },
     simulation::{
         constants::SECTOR_RADIUS_IN_METERS,
-        overseer::viewer::view::{SectorView, WorldView},
+        supervisor::viewer::view::{SectorView, WorldView},
     },
 };
 use std::{
@@ -41,8 +41,8 @@ impl WorldRenderer {
         texture_manager: &TextureManager,
     ) -> Self {
         let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
-            .world_atlas_set
-            .texture_data_vec
+            .world_texture_atlas_set
+            .gpu_texture_data_vec
             .iter()
             .map(|gpu_texture_data| &gpu_texture_data.texture_view)
             .collect();
@@ -85,7 +85,7 @@ impl WorldRenderer {
                     wgpu::BindGroupEntry {
                         binding: 1,
                         resource: wgpu::BindingResource::Sampler(
-                            &texture_manager.world_atlas_set.texture_data_vec[0].sampler,
+                            &texture_manager.world_texture_atlas_set.gpu_texture_data_vec[0].sampler,
                         ),
                     },
                 ],

@@ -12,17 +12,15 @@ pub mod object_renderer;
 pub mod population_renderer;
 pub mod texture;
 pub mod world_renderer;
+pub mod render_catalog;
 
 use crate::{
     interface::{
-        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext,
-        gui::GUI, input::Input, interface_mode::InterfaceMode,
-        population_renderer::PopulationRenderer, texture::texture_manager::TextureManager,
-        world_renderer::WorldRenderer,
+        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::Input, interface_mode::InterfaceMode, population_renderer::PopulationRenderer, render_catalog::RenderCatalog, texture::texture_manager::TextureManager, world_renderer::WorldRenderer
     },
     simulation::{
         self,
-        overseer::{overseer_status::OverseerStatus, viewer::view::View, Message, Viewer},
+        supervisor::{Message, Viewer, supervisor_status::SupervisorStatus, viewer::view::View},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
@@ -41,6 +39,7 @@ pub struct Interface<'window> {
     pub input: Input,
     pub camera: Camera,
     pub texture_manager: TextureManager,
+    pub render_catalog: RenderCatalog,
     pub world_renderer: WorldRenderer,
     pub population_renderer: PopulationRenderer,
     pub debug_renderer: DebugRenderer,
@@ -166,6 +165,7 @@ impl<'window> Interface<'window> {
         let camera = Camera::new(&gpu_context.device);
 
         let texture_manager = TextureManager::new(&gpu_context);
+        let render_catalog = RenderCatalog::new();
 
         let world_renderer = WorldRenderer::new(&gpu_context, &camera, &texture_manager);
         let population_renderer = PopulationRenderer::new(&gpu_context, &camera, &texture_manager);
@@ -182,6 +182,7 @@ impl<'window> Interface<'window> {
             input,
             camera,
             texture_manager,
+            render_catalog,
             world_renderer,
             population_renderer,
             debug_renderer,
@@ -191,7 +192,6 @@ impl<'window> Interface<'window> {
         }
     }
 
-
     #[instrument(skip_all)]
     fn update(event_loop: &ActiveEventLoop, interface: &mut Self) {
         let instant = Instant::now();
@@ -199,22 +199,22 @@ impl<'window> Interface<'window> {
         let next_instant = interface.last_instant + INTERFACE_FRAME_DURATION;
         interface.last_instant = instant;
 
-        Self::send_message_deque(
-            &mut interface.gui,
-            &mut interface.input,
-            &interface.message_tx,
-        );
-
         let view = Viewer::get_view(&mut interface.view_output);
 
-        if view.overseer_view.overseer_status == OverseerStatus::Done {
+        if view.supervisor_view.supervisor_status == SupervisorStatus::Done {
             event_loop.exit();
 
             return;
         }
 
+        GUI::apply_view(&interface.interface_mode, view, &mut interface.gui);
+
         match interface.interface_mode {
-            InterfaceMode::Setup => Self::update_setup_mode(view, &mut interface.gui),
+            InterfaceMode::Setup => Self::update_setup_mode(
+                &mut interface.gpu_context,
+                &mut interface.interface_mode,
+                &mut interface.texture_manager,
+            ),
             InterfaceMode::Run => Self::update_run_mode(
                 view,
                 &interface.gpu_context,
@@ -222,9 +222,14 @@ impl<'window> Interface<'window> {
                 &mut interface.world_renderer,
                 &mut interface.population_renderer,
                 &mut interface.debug_renderer,
-                &mut interface.gui,
             ),
         }
+
+        Self::send_message_deque(
+            &mut interface.gui,
+            &mut interface.input,
+            &interface.message_tx,
+        );
 
         let instant = Instant::now();
 
@@ -262,8 +267,22 @@ impl<'window> Interface<'window> {
     }
 
     #[instrument(skip_all)]
-    fn update_setup_mode(view: &View, gui: &mut GUI) {
-        GUI::apply_view(view, gui);
+    fn update_setup_mode(
+        gpu_context: &mut GPUContext,
+        interface_mode: &mut InterfaceMode,
+        texture_manager: &mut TextureManager,
+    ) {
+        match &texture_manager.texture_load_status {
+            texture::texture_load_status::TextureLoadStatus::Idle => {
+                TextureManager::load(texture_manager);
+            }
+            texture::texture_load_status::TextureLoadStatus::Loading => {
+                TextureManager::update(gpu_context, texture_manager);
+            }
+            texture::texture_load_status::TextureLoadStatus::Complete => {
+                *interface_mode = InterfaceMode::Run
+            }
+        }
     }
 
     #[instrument(skip_all)]
@@ -274,9 +293,7 @@ impl<'window> Interface<'window> {
         world_renderer: &mut WorldRenderer,
         population_renderer: &mut PopulationRenderer,
         debug_renderer: &mut DebugRenderer,
-        gui: &mut GUI,
     ) {
-        GUI::apply_view(view, gui);
         Camera::apply_view(gpu_context, view, camera);
 
         WorldRenderer::apply_world_view(gpu_context, camera, &view.world_view, world_renderer);

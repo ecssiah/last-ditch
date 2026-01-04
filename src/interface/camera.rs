@@ -7,11 +7,12 @@ pub mod plane;
 use crate::{
     interface::{
         camera::{camera_uniform_data::CameraUniformData, frustum::Frustum},
-        constants::*, gpu::gpu_context::GPUContext,
+        constants::*,
+        gpu::gpu_context::GPUContext,
     },
     simulation::{
         constants::ID_JUDGE_1,
-        overseer::viewer::view::{PersonView, View},
+        supervisor::viewer::view::{PersonView, View},
     },
 };
 use tracing::instrument;

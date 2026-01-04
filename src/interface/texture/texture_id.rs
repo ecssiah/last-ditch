@@ -1,1 +1,4 @@
-pub struct TextureID {}
+#[derive(Clone)]
+pub struct TextureID {
+    
+}

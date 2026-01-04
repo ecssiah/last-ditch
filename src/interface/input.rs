@@ -11,9 +11,9 @@ use crate::{
         gui::GUI,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
     },
-    simulation::overseer::{
+    simulation::supervisor::{
         self,
-        message::{movement_input_data::MovementInputData, rotation_input_data::RotationInputData},
+        message::{move_input_data::MoveInputData, rotate_input_data::RotateInputData},
         Message,
     },
 };
@@ -30,7 +30,7 @@ use winit::{
 pub struct Input {
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
-    pub message_deque: VecDeque<overseer::Message>,
+    pub message_deque: VecDeque<supervisor::Message>,
 }
 
 impl Input {
@@ -62,27 +62,27 @@ impl Input {
         mouse_inputs: &mut MouseInputs,
         message_deque: &mut VecDeque<Message>,
     ) -> VecDeque<Message> {
-        let movement_input_message = Self::get_movement_input_message(key_inputs);
-        let rotation_input_message = Self::get_rotation_input_message(mouse_inputs);
+        let move_input_message = Self::get_move_input_message(key_inputs);
+        let rotate_input_message = Self::get_rotate_input_message(mouse_inputs);
 
-        message_deque.push_back(movement_input_message);
-        message_deque.push_back(rotation_input_message);
+        message_deque.push_back(move_input_message);
+        message_deque.push_back(rotate_input_message);
 
         std::mem::take(message_deque)
     }
 
-    pub fn get_movement_input_message(key_inputs: &KeyInputs) -> Message {
-        let movement_input_data = MovementInputData {
+    pub fn get_move_input_message(key_inputs: &KeyInputs) -> Message {
+        let move_input_data = MoveInputData {
             input_x: key_inputs.key_a + key_inputs.key_d,
             input_y: key_inputs.key_w + key_inputs.key_s,
             input_z: key_inputs.key_q + key_inputs.key_e,
         };
 
-        Message::MovementInput(movement_input_data)
+        Message::MoveInput(move_input_data)
     }
 
-    fn get_rotation_input_message(mouse_inputs: &mut MouseInputs) -> Message {
-        let rotation_input_data = RotationInputData {
+    fn get_rotate_input_message(mouse_inputs: &mut MouseInputs) -> Message {
+        let rotate_input_data = RotateInputData {
             input_x: MOUSE_SENSITIVITY * -mouse_inputs.delta.y,
             input_y: 0.0,
             input_z: MOUSE_SENSITIVITY * -mouse_inputs.delta.x,
@@ -90,7 +90,7 @@ impl Input {
 
         mouse_inputs.delta = Vec2::zero();
 
-        Message::RotatationInput(rotation_input_data)
+        Message::RotateInput(rotate_input_data)
     }
 
     pub fn handle_window_event(

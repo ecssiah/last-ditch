@@ -1,15 +1,16 @@
 use crate::{
     interface::{
         gpu::gpu_mesh::GpuMesh,
+        texture::texture_atlas_set::TextureAtlasSet,
         world_renderer::{sector_face::SectorFace, sector_vertex::SectorVertex},
     },
     simulation::{
         constants::*,
-        overseer::viewer::view::SectorView,
         state::world::{
             grid::{self, axis::Axis, direction_set::DirectionSet, Direction},
             sector::Sector,
         },
+        supervisor::viewer::view::SectorView,
     },
 };
 use ultraviolet::IVec3;
@@ -406,7 +407,10 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let layer = tile_atlas::get_tile_layer(sector_face.block_kind, &sector_face.direction);
+        let (atlas_index, layer_index) = TextureAtlasSet::get_tile_indices();
+
+        let layer_index =
+            tile_atlas::get_tile_layer(sector_face.block_kind, &sector_face.direction);
 
         vertex_vec.push(SectorVertex {
             position: [
@@ -416,7 +420,7 @@ impl SectorMesh {
             ],
             normal,
             uv: uv0,
-            layer,
+            layer_index,
         });
 
         vertex_vec.push(SectorVertex {

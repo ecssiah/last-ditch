@@ -8,7 +8,7 @@ use crate::{
         debug_renderer::{debug_channel::DebugChannel, debug_vertex::DebugVertex},
         gpu::gpu_context::GPUContext,
     },
-    simulation::{constants::*, overseer::viewer::view::View},
+    simulation::{constants::*, supervisor::viewer::view::View},
 };
 use std::collections::{HashMap, HashSet};
 use tracing::instrument;

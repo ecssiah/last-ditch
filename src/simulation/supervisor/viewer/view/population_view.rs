@@ -1,4 +1,4 @@
-use crate::simulation::overseer::viewer::{view::LeadershipView, PersonView};
+use crate::simulation::supervisor::viewer::{view::LeadershipView, PersonView};
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]

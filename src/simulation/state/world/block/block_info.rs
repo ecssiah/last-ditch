@@ -7,6 +7,7 @@ use crate::{
     },
     utils::ldmath::FloatBox,
 };
+use strum::EnumCount;
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug)]
@@ -46,7 +47,7 @@ const STAIRS_SHAPE: [FloatBox; 2] = [
     },
 ];
 
-pub static BLOCK_INFO_ARRAY: [BlockInfo; BlockKind::count()] = [
+pub static BLOCK_INFO_ARRAY: [BlockInfo; BlockKind::COUNT] = [
     BlockInfo {
         block_kind: BlockKind::Engraved1,
         solid: true,

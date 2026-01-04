@@ -6,7 +6,7 @@ pub struct SectorVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
     pub uv: [f32; 2],
-    pub layer: u32,
+    pub tile_indices: [u32; 2],
 }
 
 impl SectorVertex {
@@ -14,7 +14,7 @@ impl SectorVertex {
         0 => Float32x3,
         1 => Float32x3,
         2 => Float32x2,
-        3 => Uint32,
+        3 => Uint32x2,
     ];
 
     pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {

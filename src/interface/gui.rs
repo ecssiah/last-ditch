@@ -6,11 +6,11 @@ pub use model::Model;
 use tracing::instrument;
 
 use crate::{
-    interface::gpu::gpu_context::GPUContext,
+    interface::{gpu::gpu_context::GPUContext, interface_mode::InterfaceMode},
     simulation::{
         constants::ID_JUDGE_1,
-        overseer::{message::SeedData, viewer::view::View, Message},
         state::world::grid::{self, Direction},
+        supervisor::{message::SeedData, viewer::view::View, Message},
     },
 };
 use egui::{FontId, FullOutput, Id, Ui};
@@ -191,60 +191,77 @@ impl GUI {
     }
 
     #[instrument(skip_all)]
-    pub fn apply_view(view: &View, gui: &mut Self) {
-        if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
-            let grid_position =
-                grid::world_position_to_grid_position(person_view.transform.world_position);
-
-            let position_string = format!(
-                "Cell: ({:.0}, {:.0}, {:.0})\n",
-                grid_position.x, grid_position.y, grid_position.z,
-            );
-
-            let world_position_string = format!(
-                "World: ({:.2}, {:.2}, {:.2})\n",
-                person_view.transform.world_position.x,
-                person_view.transform.world_position.y,
-                person_view.transform.world_position.z,
-            );
-
-            let sector_coordinate =
-                grid::world_position_to_sector_coordinate(person_view.transform.world_position);
-
-            let sector_string = format!(
-                "Sector: ({:.0}, {:.0}, {:.0})\n",
-                sector_coordinate.x, sector_coordinate.y, sector_coordinate.z,
-            );
-
-            let direction_string = format!(
-                "Direction: {:?}\n",
-                Direction::from_rotation(person_view.transform.rotation_xy)
-            );
-
-            let contact_set_string = format!(
-                "Contact Set: {}\n",
-                person_view.body.contact_set.to_string()
-            );
-
-            let motion_mode_string =
-                format!("Motion Mode: {}\n", person_view.motion.mode.to_string());
-
-            let selected_block_kind_string =
-                format!("Selected Block: {:?}\n", person_view.selected_block_kind);
-
-            let mut info_message = String::new();
-
-            info_message.push_str(&position_string);
-            info_message.push_str(&world_position_string);
-            info_message.push_str(&sector_string);
-            info_message.push_str(&direction_string);
-            info_message.push_str(&contact_set_string);
-            info_message.push_str(&motion_mode_string);
-            info_message.push_str(&selected_block_kind_string);
-
-            gui.model.info_message_vec.clear();
-            gui.model.info_message_vec.push(info_message);
+    pub fn apply_view(interface_mode: &InterfaceMode, view: &View, gui: &mut Self) {
+        match interface_mode {
+            InterfaceMode::Setup => Self::apply_view_setup_mode(view, gui),
+            InterfaceMode::Run => Self::apply_view_run_mode(view, gui),
         }
+    }
+
+    fn apply_view_setup_mode(_view: &View, _gui: &mut Self) {}
+
+    fn apply_view_run_mode(view: &View, gui: &mut Self) {
+        let judge_person_view = view
+            .population_view
+            .person_view_map
+            .get(&ID_JUDGE_1)
+            .expect("Judge 1 does not exist in Run Mode");
+
+        let grid_position =
+            grid::world_position_to_grid_position(judge_person_view.transform.world_position);
+
+        let position_string = format!(
+            "Cell: ({:.0}, {:.0}, {:.0})\n",
+            grid_position.x, grid_position.y, grid_position.z,
+        );
+
+        let world_position_string = format!(
+            "World: ({:.2}, {:.2}, {:.2})\n",
+            judge_person_view.transform.world_position.x,
+            judge_person_view.transform.world_position.y,
+            judge_person_view.transform.world_position.z,
+        );
+
+        let sector_coordinate =
+            grid::world_position_to_sector_coordinate(judge_person_view.transform.world_position);
+
+        let sector_string = format!(
+            "Sector: ({:.0}, {:.0}, {:.0})\n",
+            sector_coordinate.x, sector_coordinate.y, sector_coordinate.z,
+        );
+
+        let direction_string = format!(
+            "Direction: {:?}\n",
+            Direction::from_rotation(judge_person_view.transform.rotation_xy)
+        );
+
+        let contact_set_string = format!(
+            "Contact Set: {}\n",
+            judge_person_view.body.contact_set.to_string()
+        );
+
+        let motion_mode_string = format!(
+            "Motion Mode: {}\n",
+            judge_person_view.motion.mode.to_string()
+        );
+
+        let selected_block_kind_string = format!(
+            "Selected Block: {:?}\n",
+            judge_person_view.selected_block_kind
+        );
+
+        let mut info_message = String::new();
+
+        info_message.push_str(&position_string);
+        info_message.push_str(&world_position_string);
+        info_message.push_str(&sector_string);
+        info_message.push_str(&direction_string);
+        info_message.push_str(&contact_set_string);
+        info_message.push_str(&motion_mode_string);
+        info_message.push_str(&selected_block_kind_string);
+
+        gui.model.info_message_vec.clear();
+        gui.model.info_message_vec.push(info_message);
     }
 
     #[instrument(skip_all)]

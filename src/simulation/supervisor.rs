@@ -1,5 +1,5 @@
 pub mod message;
-pub mod overseer_status;
+pub mod supervisor_status;
 pub mod timestep;
 pub mod viewer;
 
@@ -11,7 +11,6 @@ use crate::{
     interface::constants::OVERSEER_MESSAGE_LIMIT,
     simulation::{
         constants::*,
-        overseer::{overseer_status::OverseerStatus, viewer::view::View},
         state::{
             action::{
                 act::{self, JumpData, PlaceBlockData, RemoveBlockData},
@@ -25,33 +24,34 @@ use crate::{
             world::block::BlockKind,
             State,
         },
+        supervisor::{supervisor_status::SupervisorStatus, viewer::view::View},
     },
 };
 use std::time::{Duration, Instant};
 use tracing::instrument;
 use ultraviolet::Vec3;
 
-pub struct Overseer {
-    pub overseer_status: OverseerStatus,
+pub struct Supervisor {
+    pub supervisor_status: SupervisorStatus,
     pub timestep: Timestep,
     pub viewer: Viewer,
     pub message_limit: usize,
     pub message_rx: crossbeam::channel::Receiver<Message>,
 }
 
-impl Overseer {
+impl Supervisor {
     pub fn new(
         message_rx: crossbeam::channel::Receiver<Message>,
         view_input: triple_buffer::Input<View>,
     ) -> Self {
-        let overseer_status = OverseerStatus::Start;
+        let supervisor_status = SupervisorStatus::Start;
 
         let timestep = Timestep::new();
         let viewer = Viewer::new(view_input);
         let message_limit = OVERSEER_MESSAGE_LIMIT;
 
         Self {
-            overseer_status,
+            supervisor_status,
             timestep,
             viewer,
             message_limit,
@@ -59,61 +59,63 @@ impl Overseer {
         }
     }
 
-    pub fn start(overseer: &mut Self) {
-        overseer.timestep.ticks_frame = 0;
+    pub fn start(supervisor: &mut Self) {
+        supervisor.timestep.ticks_frame = 0;
     }
 
-    pub fn has_work(overseer: &Self) -> bool {
-        Instant::now() >= overseer.timestep.next_instant
-            && overseer.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
+    pub fn has_work(supervisor: &Self) -> bool {
+        Instant::now() >= supervisor.timestep.next_instant
+            && supervisor.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
     }
 
     #[instrument(skip_all)]
-    pub fn tick(state: &mut State, overseer: &mut Self) -> bool {
-        Self::receive_messages(state, overseer);
-        Self::update_timestep(overseer);
+    pub fn tick(state: &mut State, supervisor: &mut Self) -> bool {
+        Self::receive_messages(state, supervisor);
+        Self::update_timestep(supervisor);
 
-        Viewer::tick(state, overseer);
+        Viewer::tick(state, supervisor);
 
-        match overseer.overseer_status {
-            OverseerStatus::Start => true,
-            OverseerStatus::Run => State::tick(state),
-            OverseerStatus::Done => false,
+        match supervisor.supervisor_status {
+            SupervisorStatus::Start => true,
+            SupervisorStatus::Run => State::tick(state),
+            SupervisorStatus::Done => false,
         }
     }
 
-    fn receive_messages(state: &mut State, overseer: &mut Self) {
-        let mut message_limit = overseer.message_limit;
+    fn receive_messages(state: &mut State, supervisor: &mut Self) {
+        let mut message_limit = supervisor.message_limit;
 
-        while let Ok(message) = overseer.message_rx.try_recv() {
+        while let Ok(message) = supervisor.message_rx.try_recv() {
             message_limit -= 1;
 
             if message_limit > 0 {
-                match overseer.overseer_status {
-                    OverseerStatus::Start => Self::handle_start_message(&message, state, overseer),
-                    OverseerStatus::Run => Self::handle_run_message(&message, state, overseer),
-                    OverseerStatus::Done => Self::handle_done_message(&message, state, overseer),
+                match supervisor.supervisor_status {
+                    SupervisorStatus::Start => {
+                        Self::handle_start_message(&message, state, supervisor)
+                    }
+                    SupervisorStatus::Run => Self::handle_run_message(&message, state, supervisor),
+                    SupervisorStatus::Done => {
+                        Self::handle_done_message(&message, state, supervisor)
+                    }
                 }
             }
         }
     }
 
-    fn handle_start_message(message: &Message, state: &mut State, overseer: &mut Self) {}
+    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
 
-    fn handle_run_message(message: &Message, state: &mut State, overseer: &mut Self) {
+    fn handle_run_message(message: &Message, state: &mut State, supervisor: &mut Self) {
         match message {
             Message::Interact1 => Self::handle_interact1(state),
             Message::Interact2 => Self::handle_interact2(state),
-            Message::RotatationInput(rotate_data) => {
-                Self::handle_rotation_input_message(rotate_data, state)
+            Message::RotateInput(rotate_data) => {
+                Self::handle_rotate_input_message(rotate_data, state)
             }
-            Message::MovementInput(move_data) => {
-                Self::handle_movement_input_message(move_data, state)
-            }
+            Message::MoveInput(move_data) => Self::handle_move_input_message(move_data, state),
             Message::JumpInput => Self::handle_jump_input_message(state),
             Message::SetSeed(seed_data) => Self::handle_set_seed_message(seed_data, state),
             Message::Generate => Self::handle_generate_message(state),
-            Message::Quit => Self::handle_quit_message(state, overseer),
+            Message::Quit => Self::handle_quit_message(state, supervisor),
             Message::Debug => Self::handle_debug_message(state),
             Message::Option1 => Self::handle_option1_message(state),
             Message::Option2 => Self::handle_option2_message(state),
@@ -122,7 +124,7 @@ impl Overseer {
         }
     }
 
-    fn handle_done_message(message: &Message, state: &mut State, overseer: &mut Self) {}
+    fn handle_done_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {
@@ -146,30 +148,27 @@ impl Overseer {
             .push_back(Act::RemoveBlock(remove_block_data));
     }
 
-    fn handle_rotation_input_message(
-        rotation_input_data: &message::RotationInputData,
+    fn handle_rotate_input_message(
+        rotate_input_data: &message::RotateInputData,
         state: &mut State,
     ) {
         let rotate_data = act::RotateData {
             person_id: ID_JUDGE_1,
             rotation_angles: Vec3::new(
-                rotation_input_data.input_x,
-                rotation_input_data.input_y,
-                rotation_input_data.input_z,
+                rotate_input_data.input_x,
+                rotate_input_data.input_y,
+                rotate_input_data.input_z,
             ),
         };
 
         state.action.act_deque.push_back(Act::Rotate(rotate_data));
     }
 
-    fn handle_movement_input_message(
-        movement_input_data: &message::MovementInputData,
-        state: &mut State,
-    ) {
+    fn handle_move_input_message(move_input_data: &message::MoveInputData, state: &mut State) {
         let move_direction = Vec3::new(
-            movement_input_data.input_x,
-            movement_input_data.input_y,
-            movement_input_data.input_z,
+            move_input_data.input_x,
+            move_input_data.input_y,
+            move_input_data.input_z,
         )
         .normalized();
 
@@ -202,10 +201,10 @@ impl Overseer {
         state.active = true;
     }
 
-    fn handle_quit_message(_state: &mut State, overseer: &mut Self) {
+    fn handle_quit_message(_state: &mut State, supervisor: &mut Self) {
         // TODO: Save Simulation State!
 
-        overseer.overseer_status = OverseerStatus::Done;
+        supervisor.supervisor_status = SupervisorStatus::Done;
     }
 
     fn handle_debug_message(state: &mut State) {
@@ -241,25 +240,25 @@ impl Overseer {
         tracing::info!("Option 4 Message");
     }
 
-    pub fn update_timestep(overseer: &mut Self) {
-        overseer.timestep.ticks_total += 1;
-        overseer.timestep.ticks_frame += 1;
+    pub fn update_timestep(supervisor: &mut Self) {
+        supervisor.timestep.ticks_total += 1;
+        supervisor.timestep.ticks_frame += 1;
 
-        overseer.timestep.next_instant = overseer.timestep.start_instant
-            + overseer.timestep.ticks_total * SIMULATION_TICK_DURATION;
+        supervisor.timestep.next_instant = supervisor.timestep.start_instant
+            + supervisor.timestep.ticks_total * SIMULATION_TICK_DURATION;
     }
 
-    pub fn fix_timestep(overseer: &mut Self) {
+    pub fn fix_timestep(supervisor: &mut Self) {
         let current_instant = Instant::now();
 
-        if current_instant < overseer.timestep.next_instant {
-            let remaining_duration = overseer.timestep.next_instant - current_instant;
+        if current_instant < supervisor.timestep.next_instant {
+            let remaining_duration = supervisor.timestep.next_instant - current_instant;
 
             if remaining_duration > Duration::from_millis(2) {
                 std::thread::sleep(remaining_duration - Duration::from_millis(1));
             }
 
-            while Instant::now() < overseer.timestep.next_instant {
+            while Instant::now() < supervisor.timestep.next_instant {
                 std::hint::spin_loop();
             }
         }
