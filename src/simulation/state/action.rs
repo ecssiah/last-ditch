@@ -1,14 +1,11 @@
 pub mod act;
 
-pub use act::Act;
-use tracing::instrument;
-
 use crate::{
     simulation::{
         constants::{MOVEMENT_EPSILON, PITCH_LIMIT},
         state::{
             action::act::{
-                move_data::MoveData, JumpData, PlaceBlockData, RemoveBlockData, RotateData,
+                move_data::MoveData, Act, JumpData, PlaceBlockData, RemoveBlockData, RotateData,
             },
             physics::body::{self, ContactSet},
             population::{motion, person::Person},
@@ -18,6 +15,7 @@ use crate::{
     utils::ldmath::float_ext,
 };
 use std::{collections::VecDeque, f32::EPSILON};
+use tracing::instrument;
 use ultraviolet::Vec3;
 
 pub struct Action {

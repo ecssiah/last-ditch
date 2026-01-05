@@ -12,11 +12,11 @@ use crate::{
     simulation::{
         constants::*,
         state::{
-            action::{
-                act::{self, JumpData, PlaceBlockData, RemoveBlockData},
-                Act,
+            action::act::{self, Act, JumpData, PlaceBlockData, RemoveBlockData},
+            population::{
+                motion::{self},
+                person::person_id::PersonID,
             },
-            population::motion::{self},
             work::{
                 construct_task::{generate_data::GenerateData, ConstructTask},
                 construct_worker::ConstructWorker,
@@ -128,7 +128,7 @@ impl Supervisor {
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {
-            person_id: ID_JUDGE_1,
+            person_id: PersonID::JUDGE_ID_1,
         };
 
         state
@@ -139,7 +139,7 @@ impl Supervisor {
 
     fn handle_interact2(state: &mut State) {
         let remove_block_data = RemoveBlockData {
-            person_id: ID_JUDGE_1,
+            person_id: PersonID::JUDGE_ID_1,
         };
 
         state
@@ -153,7 +153,7 @@ impl Supervisor {
         state: &mut State,
     ) {
         let rotate_data = act::RotateData {
-            person_id: ID_JUDGE_1,
+            person_id: PersonID::JUDGE_ID_1,
             rotation_angles: Vec3::new(
                 rotate_input_data.input_x,
                 rotate_input_data.input_y,
@@ -173,7 +173,7 @@ impl Supervisor {
         .normalized();
 
         let move_data = act::MoveData {
-            person_id: ID_JUDGE_1,
+            person_id: PersonID::JUDGE_ID_1,
             move_direction,
         };
 
@@ -182,7 +182,7 @@ impl Supervisor {
 
     fn handle_jump_input_message(state: &mut State) {
         let jump_data = JumpData {
-            person_id: ID_JUDGE_1,
+            person_id: PersonID::JUDGE_ID_1,
         };
 
         state.action.act_deque.push_back(Act::Jump(jump_data));
@@ -208,7 +208,7 @@ impl Supervisor {
     }
 
     fn handle_debug_message(state: &mut State) {
-        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
+        if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
             match judge.motion.mode {
                 motion::Mode::Ground | motion::Mode::Climb => {
                     judge.motion.mode = motion::Mode::Air;
@@ -221,13 +221,13 @@ impl Supervisor {
     }
 
     fn handle_option1_message(state: &mut State) {
-        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
+        if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
             judge.selected_block_kind = BlockKind::previous_block_kind(&judge.selected_block_kind);
         }
     }
 
     fn handle_option2_message(state: &mut State) {
-        if let Some(judge) = state.population.person_map.get_mut(&ID_JUDGE_1) {
+        if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
             judge.selected_block_kind = BlockKind::next_block_kind(&judge.selected_block_kind);
         }
     }

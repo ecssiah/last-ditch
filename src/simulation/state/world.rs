@@ -4,24 +4,30 @@ pub mod area;
 pub mod block;
 pub mod grid;
 pub mod sector;
+pub mod structure;
 pub mod tower;
+
+use std::collections::HashMap;
 
 use crate::{
     simulation::{
         constants::*,
         state::{
             world::{
-                area::{Area, AreaKind},
+                area::{area_id::AreaID, Area, AreaKind},
                 block::{Block, BlockKind},
                 grid::{direction_set::DirectionSet, Direction},
                 sector::Sector,
+                structure::{structure_kind::StructureKind, Structure},
                 tower::Tower,
             },
             Time,
         },
-        utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},
+    utils::{
+        id_generator::IDGenerator,
+        ldmath::rand_chacha_ext::{gen_bool, gen_range_i32},
+    },
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -37,7 +43,7 @@ pub struct World {
     pub sector_vec: Vec<Sector>,
     pub tower: Tower,
     pub area_id_generator: IDGenerator,
-    pub object_id_generator: IDGenerator,
+    pub structure_id_generator: IDGenerator,
 }
 
 impl World {
@@ -48,7 +54,7 @@ impl World {
         let sector_vec = Self::setup_sector_vec();
         let tower = Tower::new();
         let area_id_generator = IDGenerator::new();
-        let object_id_generator = IDGenerator::new();
+        let structure_id_generator = IDGenerator::new();
 
         Self {
             active,
@@ -57,7 +63,7 @@ impl World {
             sector_vec,
             tower,
             area_id_generator,
-            object_id_generator,
+            structure_id_generator,
         }
     }
 
@@ -79,12 +85,16 @@ impl World {
                 let version = 0;
                 let grid_position = grid::sector_index_to_grid_position(sector_index);
                 let block_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
+                let structure_vec = Vec::new();
+                let structure_position_index_map = HashMap::new();
 
                 Sector {
                     version,
                     sector_index,
                     grid_position,
                     block_vec,
+                    structure_vec,
+                    structure_position_index_map,
                 }
             })
             .collect()
@@ -144,6 +154,40 @@ impl World {
             sector.version += 1;
 
             Self::update_block_exposure(grid_position, world);
+        }
+    }
+
+    pub fn get_structure(grid_position: IVec3, world: &World) -> Option<&Structure> {
+        if grid::grid_position_is_valid(grid_position) {
+            let sector_index = grid::grid_position_to_sector_index(grid_position);
+            let sector = &world.sector_vec[sector_index];
+
+            let structure_index = *sector.structure_position_index_map.get(&grid_position)?;
+
+            sector.structure_vec.get(structure_index)
+        } else {
+            None
+        }
+    }
+
+    pub fn set_structure(
+        grid_position: IVec3,
+        structure_kind: &StructureKind,
+        direction: &Direction,
+        world: &mut Self,
+    ) {
+        if grid::grid_position_is_valid(grid_position) {
+            let sector_index = grid::grid_position_to_sector_index(grid_position);
+
+            let structure = Structure::new(structure_kind, grid_position, direction);
+
+            let sector = &mut world.sector_vec[sector_index];
+
+            sector.structure_vec.push(structure);
+
+            sector
+                .structure_position_index_map
+                .insert(grid_position, sector.structure_vec.len() - 1);
         }
     }
 
@@ -475,7 +519,7 @@ impl World {
 
             if west_size >= tower_area_size_min && east_size >= tower_area_size_min {
                 let west_area = Area {
-                    area_id: IDGenerator::allocate(area_id_generator),
+                    area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
                     area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
                     style: area::Style::GenericRoom,
@@ -486,7 +530,7 @@ impl World {
                 };
 
                 let east_area = Area {
-                    area_id: IDGenerator::allocate(area_id_generator),
+                    area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
                     area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
                     style: area::Style::GenericRoom,
@@ -508,7 +552,7 @@ impl World {
 
             if south_size >= tower_area_size_min && north_size >= tower_area_size_min {
                 let south_area = Area {
-                    area_id: IDGenerator::allocate(area_id_generator),
+                    area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
                     area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
                     style: area::Style::GenericRoom,
@@ -519,7 +563,7 @@ impl World {
                 };
 
                 let north_area = Area {
-                    area_id: IDGenerator::allocate(area_id_generator),
+                    area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
                     area_kind: AreaKind::LowerRoom,
                     floor_number: area.floor_number,
                     style: area::Style::GenericRoom,

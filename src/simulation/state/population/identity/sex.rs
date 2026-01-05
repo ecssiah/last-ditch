@@ -1,14 +1,16 @@
-#[derive(Clone, Copy, Debug)]
+use std::fmt;
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Sex {
     Male,
     Female,
 }
 
-impl Sex {
-    pub fn to_string(sex: Self) -> String {
-        match sex {
-            Self::Male => String::from("man"),
-            Self::Female => String::from("woman"),
+impl fmt::Display for Sex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Sex::Male => write!(f, "man"),
+            Sex::Female => write!(f, "woman"),
         }
     }
 }

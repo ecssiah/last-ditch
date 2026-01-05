@@ -19,7 +19,11 @@ use crate::{
                 integration_result::IntegrationResult,
                 resolution_result::ResolutionResult,
             },
-            population::{motion, person::Person, Population},
+            population::{
+                motion,
+                person::{person_id::PersonID, Person},
+                Population,
+            },
             world::grid::{self, axis::Axis},
             World,
         },
@@ -46,7 +50,7 @@ impl Physics {
 
     #[instrument(skip_all)]
     pub fn tick(world: &World, population: &mut Population, physics: &mut Self) {
-        if let Some(judge) = population.person_map.get_mut(&ID_JUDGE_1) {
+        if let Some(judge) = population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
             let integration_result = Self::integrate_person(physics, judge);
 
             let resolution_result =

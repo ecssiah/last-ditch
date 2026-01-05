@@ -4,8 +4,8 @@ pub mod face_mask;
 pub mod view;
 
 use crate::simulation::{
-    constants::*,
     state::{
+        population::person::person_id::PersonID,
         world::{
             grid::{self},
             sector::Sector,
@@ -79,7 +79,7 @@ impl Viewer {
     fn update_population_view(state: &State) -> PopulationView {
         let mut population_view = PopulationView::default();
 
-        if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
+        if let Some(judge) = state.population.person_map.get(&PersonID::JUDGE_ID_1) {
             let judge_sight_range_squared = judge.sight.range_in_meters.powi(2);
 
             for person in state.population.person_map.values() {
@@ -114,7 +114,7 @@ impl Viewer {
     ) -> WorldView {
         let mut world_view = WorldView::default();
 
-        if let Some(judge) = state.population.person_map.get(&ID_JUDGE_1) {
+        if let Some(judge) = state.population.person_map.get(&PersonID::JUDGE_ID_1) {
             let judge_sector_coordinate =
                 grid::world_position_to_sector_coordinate(judge.transform.world_position);
 

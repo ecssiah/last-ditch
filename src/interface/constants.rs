@@ -4,8 +4,7 @@ use std::{f32::consts::PI, time::Duration};
 
 pub const FULLSCREEN: bool = false;
 
-pub const WORLD_TEXTURE_SIZE: usize = 64;
-pub const POPULATION_TEXTURE_SIZE: usize = 128;
+pub const TEXTURE_SIZE: usize = 64;
 
 pub const INTERFACE_FRAME_FREQUENCY: u64 = 60;
 pub const INTERFACE_FRAME_DURATION: Duration =

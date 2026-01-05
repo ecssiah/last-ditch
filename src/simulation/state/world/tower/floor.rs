@@ -1,11 +1,11 @@
-use crate::simulation::{
-    state::world::{
-        area::{self, AreaKind},
+use crate::{
+    simulation::state::world::{
+        area::{self, area_id::AreaID, AreaKind},
         grid::{Direction, Quadrant},
         tower::Tower,
         Area,
     },
-    utils::IDGenerator,
+    utils::id_generator::IDGenerator,
 };
 use std::collections::HashMap;
 use ultraviolet::IVec3;
@@ -13,14 +13,14 @@ use ultraviolet::IVec3;
 pub struct Floor {
     pub floor_number: i32,
     pub grid_position: IVec3,
-    pub area_kind_map: HashMap<AreaKind, u64>,
-    pub area_id_map: HashMap<u64, Area>,
+    pub id_area_map: HashMap<AreaID, Area>,
+    pub kind_id_map: HashMap<AreaKind, AreaID>,
 }
 
 impl Floor {
     pub fn new(floor_number: i32, area_id_generator: &mut IDGenerator) -> Self {
         let center_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::Center,
             floor_number: floor_number,
             style: area::Style::Elevator,
@@ -31,7 +31,7 @@ impl Floor {
         };
 
         let center_hall_north_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CenterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -42,7 +42,7 @@ impl Floor {
         };
 
         let center_hall_west_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CenterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -53,7 +53,7 @@ impl Floor {
         };
 
         let center_hall_south_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CenterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -64,7 +64,7 @@ impl Floor {
         };
 
         let center_hall_east_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CenterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -75,7 +75,7 @@ impl Floor {
         };
 
         let outer_hall_north_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::OuterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -86,7 +86,7 @@ impl Floor {
         };
 
         let outer_hall_west_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::OuterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -97,7 +97,7 @@ impl Floor {
         };
 
         let outer_hall_south_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::OuterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -108,7 +108,7 @@ impl Floor {
         };
 
         let outer_hall_east_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::OuterHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -119,7 +119,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_ne_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CornerHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -130,7 +130,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_nw_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CornerHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -141,7 +141,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_sw_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CornerHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -152,7 +152,7 @@ impl Floor {
         };
 
         let corner_hall_quadrant_se_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::CornerHall,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -163,7 +163,7 @@ impl Floor {
         };
 
         let ne_room_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::LowerRoom,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -174,7 +174,7 @@ impl Floor {
         };
 
         let nw_room_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::LowerRoom,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -185,7 +185,7 @@ impl Floor {
         };
 
         let sw_room_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::LowerRoom,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -196,7 +196,7 @@ impl Floor {
         };
 
         let se_room_area = Area {
-            area_id: IDGenerator::allocate(area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(area_id_generator)),
             area_kind: AreaKind::LowerRoom,
             floor_number: floor_number,
             style: area::Style::Wireframe,
@@ -206,7 +206,7 @@ impl Floor {
             connection_vec: Vec::new(),
         };
 
-        let area_kind_map = HashMap::from([
+        let kind_id_map = HashMap::from([
             (AreaKind::Center, center_area.area_id),
             (AreaKind::CenterHall, center_hall_north_area.area_id),
             (AreaKind::CenterHall, center_hall_west_area.area_id),
@@ -222,7 +222,7 @@ impl Floor {
             (AreaKind::CornerHall, corner_hall_quadrant_ne_area.area_id),
         ]);
 
-        let area_id_map = HashMap::from([
+        let id_area_map = HashMap::from([
             (center_area.area_id, center_area),
             (center_hall_north_area.area_id, center_hall_north_area),
             (center_hall_west_area.area_id, center_hall_west_area),
@@ -257,8 +257,8 @@ impl Floor {
         Self {
             floor_number,
             grid_position: Tower::get_floor_grid_position(floor_number),
-            area_kind_map,
-            area_id_map,
+            kind_id_map,
+            id_area_map,
         }
     }
 }

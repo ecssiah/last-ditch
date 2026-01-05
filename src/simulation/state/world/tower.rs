@@ -5,6 +5,7 @@ pub use floor::Floor;
 use crate::simulation::{
     constants::*,
     state::world::{
+        area::area_id::AreaID,
         grid::{Direction, Quadrant},
         Area,
     },
@@ -13,7 +14,7 @@ use std::collections::HashMap;
 use ultraviolet::IVec3;
 
 pub struct Tower {
-    pub area_map: HashMap<u64, Area>,
+    pub area_map: HashMap<AreaID, Area>,
     pub floor_map: HashMap<i32, Floor>,
 }
 

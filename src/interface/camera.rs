@@ -11,7 +11,7 @@ use crate::{
         gpu::gpu_context::GPUContext,
     },
     simulation::{
-        constants::ID_JUDGE_1,
+        state::population::person::person_id::PersonID,
         supervisor::viewer::view::{PersonView, View},
     },
 };
@@ -94,7 +94,11 @@ impl Camera {
 
     #[instrument(skip_all)]
     pub fn apply_view(gpu_context: &GPUContext, view: &View, camera: &mut Self) {
-        if let Some(person_view) = view.population_view.person_view_map.get(&ID_JUDGE_1) {
+        if let Some(person_view) = view
+            .population_view
+            .person_view_map
+            .get(&PersonID::JUDGE_ID_1)
+        {
             Self::update_camera(&person_view, camera);
         }
 

@@ -1,3 +1,4 @@
+pub mod area_id;
 pub mod area_kind;
 pub mod connection;
 pub mod contact;
@@ -10,14 +11,17 @@ pub use contact::Contact;
 pub use style::Style;
 
 use crate::{
-    simulation::state::world::grid::{self, Direction, Line},
+    simulation::state::world::{
+        area::area_id::AreaID,
+        grid::{self, Direction, Line},
+    },
     utils::ldmath::{ivec3_ext::rotate_by_direction, IntBox},
 };
 use ultraviolet::IVec3;
 
 #[derive(Clone, Debug)]
 pub struct Area {
-    pub area_id: u64,
+    pub area_id: AreaID,
     pub area_kind: AreaKind,
     pub floor_number: i32,
     pub style: Style,
@@ -28,7 +32,7 @@ pub struct Area {
 }
 
 impl Area {
-    pub fn new(area_id: u64) -> Self {
+    pub fn new(area_id: AreaID) -> Self {
         Self {
             area_id,
             area_kind: AreaKind::UpperArea,

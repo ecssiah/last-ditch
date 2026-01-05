@@ -1,13 +1,13 @@
-use crate::simulation::constants::ID_NULL;
+use crate::simulation::state::population::person::person_id::PersonID;
 
 #[derive(Clone, Debug)]
 pub struct LeadershipView {
-    pub judge_id: u64,
+    pub judge_id: PersonID,
 }
 
 impl LeadershipView {
     pub fn new() -> Self {
-        let judge_id = ID_NULL;
+        let judge_id = PersonID::JUDGE_ID_1;
 
         Self { judge_id }
     }

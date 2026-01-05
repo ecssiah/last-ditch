@@ -1,12 +1,17 @@
+pub mod person_id;
+
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
+    population::{
+        identity::Identity, motion::Motion, person::person_id::PersonID, sight::Sight,
+        transform::Transform,
+    },
     world::block::BlockKind,
 };
 use ultraviolet::Vec3;
 
 pub struct Person {
-    pub person_id: u64,
+    pub person_id: PersonID,
     pub identity: Identity,
     pub transform: Transform,
     pub motion: Motion,
@@ -16,7 +21,7 @@ pub struct Person {
 }
 
 impl Person {
-    pub fn new(person_id: u64) -> Self {
+    pub fn new(person_id: PersonID) -> Self {
         let identity = Identity::default();
         let transform = Transform::default();
         let motion = Motion::default();
@@ -54,11 +59,5 @@ impl Person {
 
     pub fn set_velocity(velocity: Vec3, person: &mut Self) {
         person.motion.velocity = velocity;
-    }
-}
-
-impl std::fmt::Display for Person {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "Person ID: {}", self.person_id)
     }
 }

@@ -4,11 +4,15 @@ use crate::{
         state::{
             physics::body::{body_label::BodyLabel, Body},
             population::{
-                identity, motion, nation::nation_kind::NationKind, person::Person, sight::Sight,
+                identity, motion,
+                nation::nation_kind::NationKind,
+                person::{person_id::PersonID, Person},
+                sight::Sight,
             },
             world::{
                 area::{
                     self,
+                    area_id::AreaID,
                     template::{
                         ElevatorCapTemplate, ElevatorTemplate, GenericRoomTemplate, Template,
                         TempleTemplate, TradingPlatformTemplate, WireframeTemplate,
@@ -21,9 +25,11 @@ use crate::{
             },
             Population, State, World,
         },
-        utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::{gen_bool, gen_f32, gen_range_i32},
+    utils::{
+        id_generator::IDGenerator,
+        ldmath::rand_chacha_ext::{gen_bool, gen_f32, gen_range_i32},
+    },
 };
 use std::collections::HashMap;
 use ultraviolet::{IVec3, Vec3};
@@ -91,7 +97,7 @@ impl GenerateData {
     fn generate_judge(population: &mut Population) {
         tracing::info!("Generating Judge 1");
 
-        let mut judge = Person::new(ID_JUDGE_1);
+        let mut judge = Person::new(PersonID::JUDGE_ID_1);
 
         let world_position = Vec3::new(0.0, -32.0, 2.0);
 
@@ -399,7 +405,7 @@ impl GenerateData {
         );
 
         let roof_elevator_area = Area {
-            area_id: IDGenerator::allocate(&mut world.area_id_generator),
+            area_id: AreaID::new(IDGenerator::allocate(&mut world.area_id_generator)),
             area_kind: AreaKind::UpperRoom,
             floor_number: 0,
             style: area::Style::ElevatorCap,
@@ -425,28 +431,36 @@ impl GenerateData {
             1,
         );
 
-        let mut lion_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        let mut lion_trading_area = Area::new(AreaID::new(IDGenerator::allocate(
+            &mut world.area_id_generator,
+        )));
         lion_trading_area.style = area::Style::TradingPlatform;
         lion_trading_area.direction = Direction::North;
         lion_trading_area.grid_position =
             IVec3::new(-trading_platform_radius_x, tower_radius + 1, 0);
         lion_trading_area.size = trading_platform_size;
 
-        let mut eagle_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        let mut eagle_trading_area = Area::new(AreaID::new(IDGenerator::allocate(
+            &mut world.area_id_generator,
+        )));
         eagle_trading_area.style = area::Style::TradingPlatform;
         eagle_trading_area.direction = Direction::West;
         eagle_trading_area.grid_position =
             IVec3::new(-tower_radius - 1, -trading_platform_radius_x, 0);
         eagle_trading_area.size = trading_platform_size;
 
-        let mut horse_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        let mut horse_trading_area = Area::new(AreaID::new(IDGenerator::allocate(
+            &mut world.area_id_generator,
+        )));
         horse_trading_area.style = area::Style::TradingPlatform;
         horse_trading_area.direction = Direction::South;
         horse_trading_area.grid_position =
             IVec3::new(trading_platform_radius_x, -tower_radius - 1, 0);
         horse_trading_area.size = trading_platform_size;
 
-        let mut wolf_trading_area = Area::new(IDGenerator::allocate(&mut world.area_id_generator));
+        let mut wolf_trading_area = Area::new(AreaID::new(IDGenerator::allocate(
+            &mut world.area_id_generator,
+        )));
         wolf_trading_area.style = area::Style::TradingPlatform;
         wolf_trading_area.direction = Direction::East;
         wolf_trading_area.grid_position =
@@ -486,17 +500,17 @@ impl GenerateData {
 
             tracing::info!("Subdividing Rooms, Floor {:?}", floor.floor_number);
 
-            let lower_room_id_vec: Vec<u64> = floor
-                .area_id_map
+            let lower_room_id_vec: Vec<AreaID> = floor
+                .id_area_map
                 .iter()
                 .filter(|(_, area)| area.area_kind == AreaKind::LowerRoom)
                 .map(|(area_id, _)| *area_id)
                 .collect();
 
-            let mut new_room_area_map: HashMap<u64, Area> = HashMap::new();
+            let mut new_room_area_map: HashMap<AreaID, Area> = HashMap::new();
 
             for area_id in lower_room_id_vec {
-                let area = floor.area_id_map.remove(&area_id).unwrap();
+                let area = floor.id_area_map.remove(&area_id).unwrap();
 
                 if let Some((area1, area2)) =
                     World::subdivide_area(&area, &mut world.area_id_generator, &mut world.rng)
@@ -508,7 +522,7 @@ impl GenerateData {
                 }
             }
 
-            floor.area_id_map.extend(new_room_area_map);
+            floor.id_area_map.extend(new_room_area_map);
         }
     }
 
@@ -526,8 +540,8 @@ impl GenerateData {
 
             let mut candidate_connection_vec = Vec::new();
 
-            for (area1_id, area1) in &floor.area_id_map {
-                for (area2_id, area2) in &floor.area_id_map {
+            for (area1_id, area1) in &floor.id_area_map {
+                for (area2_id, area2) in &floor.id_area_map {
                     if area1_id >= area2_id {
                         continue;
                     }
@@ -540,8 +554,8 @@ impl GenerateData {
                             let cost = gen_f32(&mut world.rng);
 
                             let connection_candidate = Connection {
-                                area_id1: *area1_id,
-                                area_id2: *area2_id,
+                                area_id1: area1_id.clone(),
+                                area_id2: area2_id.clone(),
                                 entrance_vec,
                                 line,
                                 cost,
@@ -554,11 +568,11 @@ impl GenerateData {
             }
 
             for connection in candidate_connection_vec {
-                if let Some(area1) = floor.area_id_map.get_mut(&connection.area_id1) {
+                if let Some(area1) = floor.id_area_map.get_mut(&connection.area_id1) {
                     area1.connection_vec.push(connection.clone());
                 }
 
-                if let Some(area2) = floor.area_id_map.get_mut(&connection.area_id2) {
+                if let Some(area2) = floor.id_area_map.get_mut(&connection.area_id2) {
                     area2.connection_vec.push(connection.clone());
                 }
             }
@@ -577,17 +591,17 @@ impl GenerateData {
 
             tracing::info!("Constructing Areas, Floor {:?}", floor_number);
 
-            let area_id_map = floor.area_id_map.clone();
+            let id_area_map = floor.id_area_map.clone();
 
-            let (center_area_id_map, other_area_id_map): (Vec<_>, Vec<_>) = area_id_map
+            let (center_id_area_map, other_id_area_map): (Vec<_>, Vec<_>) = id_area_map
                 .iter()
                 .partition(|(_, area)| area.area_kind == AreaKind::Center);
 
-            for (_, area) in other_area_id_map {
+            for (_, area) in other_id_area_map {
                 Self::construct_area(area, world);
             }
 
-            for (_, area) in center_area_id_map {
+            for (_, area) in center_id_area_map {
                 Self::construct_area(area, world);
             }
         }
@@ -603,7 +617,7 @@ impl GenerateData {
         for (nation_kind, nation) in &population.nation_map {
             tracing::info!("Constructing {:?} Temple", nation.nation_kind);
 
-            let temple_area_id = IDGenerator::allocate(&mut world.area_id_generator);
+            let temple_area_id = AreaID::new(IDGenerator::allocate(&mut world.area_id_generator));
             let mut temple_area = Area::new(temple_area_id);
 
             let temple_radius_x = TEMPLE_RADIUS_X as i32;

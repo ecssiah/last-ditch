@@ -14,12 +14,11 @@ use crate::{
             physics::body::{body_label::BodyLabel, Body},
             population::{
                 nation::{nation_kind::NationKind, Nation},
-                person::Person,
+                person::{person_id::PersonID, Person},
             },
         },
-        utils::IDGenerator,
     },
-    utils::ldmath::rand_chacha_ext::gen_bool,
+    utils::{id_generator::IDGenerator, ldmath::rand_chacha_ext::gen_bool},
 };
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use std::collections::HashMap;
@@ -31,7 +30,7 @@ pub struct Population {
     pub rng: ChaCha8Rng,
     pub id_generator: IDGenerator,
     pub nation_map: HashMap<NationKind, Nation>,
-    pub person_map: HashMap<u64, Person>,
+    pub person_map: HashMap<PersonID, Person>,
 }
 
 impl Population {
@@ -85,7 +84,7 @@ impl Population {
     }
 
     pub fn generate_person(population: &mut Self) -> Person {
-        let person_id = IDGenerator::allocate(&mut population.id_generator);
+        let person_id = PersonID::new(IDGenerator::allocate(&mut population.id_generator));
 
         let mut person = Person::new(person_id);
 

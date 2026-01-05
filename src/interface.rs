@@ -3,24 +3,33 @@
 pub mod app;
 pub mod camera;
 pub mod constants;
-pub mod debug_renderer;
 pub mod gpu;
 pub mod gui;
 pub mod input;
 pub mod interface_mode;
-pub mod object_renderer;
-pub mod population_renderer;
-pub mod texture;
-pub mod world_renderer;
-pub mod render_catalog;
+pub mod renderer;
 
 use crate::{
     interface::{
-        camera::Camera, constants::*, debug_renderer::DebugRenderer, gpu::gpu_context::GPUContext, gui::GUI, input::Input, interface_mode::InterfaceMode, population_renderer::PopulationRenderer, render_catalog::RenderCatalog, texture::texture_manager::TextureManager, world_renderer::WorldRenderer
+        camera::Camera,
+        constants::*,
+        gpu::gpu_context::GPUContext,
+        gui::GUI,
+        input::Input,
+        interface_mode::InterfaceMode,
+        renderer::{
+            debug_renderer::DebugRenderer,
+            population_renderer::PopulationRenderer,
+            render_catalog::RenderCatalog,
+            render_context::RenderContext,
+            texture::{texture_load_status::TextureLoadStatus, texture_manager::TextureManager},
+            world_renderer::WorldRenderer,
+            Renderer,
+        },
     },
     simulation::{
         self,
-        supervisor::{Message, Viewer, supervisor_status::SupervisorStatus, viewer::view::View},
+        supervisor::{supervisor_status::SupervisorStatus, viewer::view::View, Message, Viewer},
     },
 };
 use std::{collections::VecDeque, sync::Arc, time::Instant};
@@ -38,12 +47,10 @@ pub struct Interface<'window> {
     pub message_tx: crossbeam::channel::Sender<Message>,
     pub input: Input,
     pub camera: Camera,
-    pub texture_manager: TextureManager,
     pub render_catalog: RenderCatalog,
-    pub world_renderer: WorldRenderer,
-    pub population_renderer: PopulationRenderer,
-    pub debug_renderer: DebugRenderer,
+    pub texture_manager: TextureManager,
     pub gui: GUI,
+    pub renderer: Renderer,
     pub gpu_context: GPUContext<'window>,
     pub view_output: triple_buffer::Output<View>,
 }
@@ -167,11 +174,14 @@ impl<'window> Interface<'window> {
         let texture_manager = TextureManager::new(&gpu_context);
         let render_catalog = RenderCatalog::new();
 
-        let world_renderer = WorldRenderer::new(&gpu_context, &camera, &texture_manager);
-        let population_renderer = PopulationRenderer::new(&gpu_context, &camera, &texture_manager);
-        let debug_renderer = DebugRenderer::new(&gpu_context, &camera);
-
         let gui = GUI::new();
+
+        let render_context = &RenderContext {
+            render_catalog: &render_catalog,
+            texture_manager: &texture_manager,
+        };
+
+        let renderer = Renderer::new(&gpu_context, render_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -183,10 +193,8 @@ impl<'window> Interface<'window> {
             camera,
             texture_manager,
             render_catalog,
-            world_renderer,
-            population_renderer,
-            debug_renderer,
             gui,
+            renderer,
             gpu_context,
             view_output,
         }
@@ -207,6 +215,11 @@ impl<'window> Interface<'window> {
             return;
         }
 
+        let render_context = &RenderContext {
+            render_catalog: &interface.render_catalog,
+            texture_manager: &interface.texture_manager,
+        };
+
         GUI::apply_view(&interface.interface_mode, view, &mut interface.gui);
 
         match interface.interface_mode {
@@ -218,10 +231,9 @@ impl<'window> Interface<'window> {
             InterfaceMode::Run => Self::update_run_mode(
                 view,
                 &interface.gpu_context,
+                render_context,
                 &mut interface.camera,
-                &mut interface.world_renderer,
-                &mut interface.population_renderer,
-                &mut interface.debug_renderer,
+                &mut interface.renderer,
             ),
         }
 
@@ -273,15 +285,13 @@ impl<'window> Interface<'window> {
         texture_manager: &mut TextureManager,
     ) {
         match &texture_manager.texture_load_status {
-            texture::texture_load_status::TextureLoadStatus::Idle => {
+            TextureLoadStatus::Idle => {
                 TextureManager::load(texture_manager);
             }
-            texture::texture_load_status::TextureLoadStatus::Loading => {
+            TextureLoadStatus::Loading => {
                 TextureManager::update(gpu_context, texture_manager);
             }
-            texture::texture_load_status::TextureLoadStatus::Complete => {
-                *interface_mode = InterfaceMode::Run
-            }
+            TextureLoadStatus::Complete => *interface_mode = InterfaceMode::Run,
         }
     }
 
@@ -289,42 +299,52 @@ impl<'window> Interface<'window> {
     fn update_run_mode(
         view: &View,
         gpu_context: &GPUContext,
+        render_context: &RenderContext,
         camera: &mut Camera,
-        world_renderer: &mut WorldRenderer,
-        population_renderer: &mut PopulationRenderer,
-        debug_renderer: &mut DebugRenderer,
+        renderer: &mut Renderer,
     ) {
         Camera::apply_view(gpu_context, view, camera);
 
-        WorldRenderer::apply_world_view(gpu_context, camera, &view.world_view, world_renderer);
-        PopulationRenderer::apply_population_view(
+        WorldRenderer::apply_world_view(
             gpu_context,
-            &view.population_view,
-            population_renderer,
+            render_context,
+            camera,
+            &view.world_view,
+            &mut renderer.world_renderer,
         );
 
-        DebugRenderer::apply_debug_view(gpu_context, view, debug_renderer);
+        PopulationRenderer::apply_population_view(
+            gpu_context,
+            render_context,
+            &view.population_view,
+            &mut renderer.population_renderer,
+        );
+
+        DebugRenderer::apply_debug_view(gpu_context, view, &mut renderer.debug_renderer);
     }
 
     #[instrument(skip_all)]
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Self) {
+        let render_context = &RenderContext {
+            render_catalog: &interface.render_catalog,
+            texture_manager: &interface.texture_manager,
+        };
+
         match event {
             WindowEvent::RedrawRequested => Self::render(
                 &interface.interface_mode,
                 &interface.camera,
-                &interface.texture_manager,
+                render_context,
                 &mut interface.gpu_context,
-                &mut interface.world_renderer,
-                &mut interface.population_renderer,
-                &mut interface.debug_renderer,
                 &mut interface.gui,
+                &mut interface.renderer,
             ),
             WindowEvent::Resized(size) => Self::handle_resized(*size, &mut interface.gpu_context),
             _ => {
                 if Input::handle_window_event(
                     event,
+                    &mut interface.renderer.debug_renderer,
                     &mut interface.gui,
-                    &mut interface.debug_renderer,
                     &mut interface.gpu_context,
                     &mut interface.input,
                 ) {
@@ -349,12 +369,10 @@ impl<'window> Interface<'window> {
     fn render(
         interface_mode: &InterfaceMode,
         camera: &Camera,
-        texture_manager: &TextureManager,
+        render_context: &RenderContext,
         gpu_context: &mut GPUContext,
-        world_renderer: &mut WorldRenderer,
-        population_renderer: &mut PopulationRenderer,
-        debug_renderer: &mut DebugRenderer,
         gui: &mut GUI,
+        renderer: &mut Renderer,
     ) {
         let mut encoder = gpu_context
             .device
@@ -373,11 +391,9 @@ impl<'window> Interface<'window> {
             InterfaceMode::Run => Self::render_run_mode(
                 &surface_texture_view,
                 camera,
-                texture_manager,
-                world_renderer,
-                population_renderer,
-                debug_renderer,
                 gpu_context,
+                render_context,
+                renderer,
                 gui,
                 &mut encoder,
             ),
@@ -411,35 +427,33 @@ impl<'window> Interface<'window> {
     fn render_run_mode(
         surface_texture_view: &wgpu::TextureView,
         camera: &Camera,
-        texture_manager: &TextureManager,
-        world_renderer: &WorldRenderer,
-        population_renderer: &PopulationRenderer,
-        debug_renderer: &mut DebugRenderer,
         gpu_context: &mut GPUContext,
+        render_context: &RenderContext,
+        renderer: &mut Renderer,
         gui: &mut GUI,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         WorldRenderer::render(
             &surface_texture_view,
-            &texture_manager.depth_texture_view,
+            &render_context.texture_manager.depth_texture_view,
             &camera.uniform_bind_group,
-            world_renderer,
+            &renderer.world_renderer,
             encoder,
         );
 
         PopulationRenderer::render(
             &surface_texture_view,
-            &texture_manager.depth_texture_view,
+            &render_context.texture_manager.depth_texture_view,
             gpu_context,
             &camera.uniform_bind_group,
-            population_renderer,
+            &renderer.population_renderer,
             encoder,
         );
 
         DebugRenderer::render(
             &surface_texture_view,
-            &texture_manager.depth_texture_view,
-            debug_renderer,
+            &render_context.texture_manager.depth_texture_view,
+            &mut renderer.debug_renderer,
             encoder,
         );
 

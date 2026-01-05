@@ -13,9 +13,11 @@ pub const CELL_AREA_IN_METERS: f32 = CELL_SIZE_IN_METERS * CELL_SIZE_IN_METERS;
 pub const CELL_VOLUME_IN_METERS: f32 =
     CELL_SIZE_IN_METERS * CELL_SIZE_IN_METERS * CELL_SIZE_IN_METERS;
 
-pub const CELL_UNIT_HALF: f32 = CELL_SIZE_IN_METERS / 2.0;
-pub const CELL_UNIT_QUARTER: f32 = CELL_SIZE_IN_METERS / 4.0;
-pub const CELL_UNIT_EIGHTH: f32 = CELL_SIZE_IN_METERS / 8.0;
+pub const CELL_UNIT_01: f32 = CELL_SIZE_IN_METERS * 1.0000;
+pub const CELL_UNIT_02: f32 = CELL_SIZE_IN_METERS * 0.5000;
+pub const CELL_UNIT_04: f32 = CELL_SIZE_IN_METERS * 0.2500;
+pub const CELL_UNIT_08: f32 = CELL_SIZE_IN_METERS * 0.1250;
+pub const CELL_UNIT_16: f32 = CELL_SIZE_IN_METERS * 0.0625;
 
 pub const SECTOR_RADIUS_IN_CELLS: usize = 8;
 pub const SECTOR_SIZE_IN_CELLS: usize = 2 * SECTOR_RADIUS_IN_CELLS + 1;
@@ -69,16 +71,6 @@ pub const GRAVITY_ACCELERATION: f32 = 36.0;
 
 pub const COLLISION_EPSILON: f32 = 0.001;
 pub const COLLISION_RESOLVE_ITERATIONS: usize = 40;
-
-pub const INDEX_NULL: usize = usize::MAX;
-
-pub const ID_NULL: u64 = u64::MAX;
-pub const ID_START: u64 = 100;
-
-pub const ID_JUDGE_1: u64 = 1;
-pub const ID_JUDGE_2: u64 = 2;
-pub const ID_JUDGE_3: u64 = 3;
-pub const ID_JUDGE_4: u64 = 4;
 
 pub const JUDGE_DEFAULT_GROUND_SPEED: f32 = 8.0;
 pub const JUDGE_DEFAULT_CLIMB_SPEED: f32 = 12.0;

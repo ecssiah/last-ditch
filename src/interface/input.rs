@@ -6,10 +6,10 @@ pub mod mouse_inputs;
 use crate::{
     interface::{
         constants::*,
-        debug_renderer::DebugRenderer,
         gpu::gpu_context::GPUContext,
         gui::GUI,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
+        renderer::debug_renderer::DebugRenderer,
     },
     simulation::supervisor::{
         self,
@@ -95,8 +95,8 @@ impl Input {
 
     pub fn handle_window_event(
         event: &WindowEvent,
-        gui: &mut GUI,
         debug_renderer: &mut DebugRenderer,
+        gui: &mut GUI,
         gpu_context: &mut GPUContext,
         input: &mut Self,
     ) -> bool {

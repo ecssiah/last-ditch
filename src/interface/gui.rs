@@ -1,15 +1,16 @@
 //! Information displayed over World rendering
 
-pub mod model;
-
-pub use model::Model;
-use tracing::instrument;
+pub mod gui_model;
 
 use crate::{
-    interface::{gpu::gpu_context::GPUContext, interface_mode::InterfaceMode},
+    interface::{
+        gpu::gpu_context::GPUContext, gui::gui_model::GUIModel, interface_mode::InterfaceMode,
+    },
     simulation::{
-        constants::ID_JUDGE_1,
-        state::world::grid::{self, Direction},
+        state::{
+            population::person::person_id::PersonID,
+            world::grid::{self, Direction},
+        },
         supervisor::{message::SeedData, viewer::view::View, Message},
     },
 };
@@ -19,25 +20,26 @@ use std::{
     hash::{DefaultHasher, Hash, Hasher},
     sync::Arc,
 };
+use tracing::instrument;
 use ultraviolet::Vec2;
 use winit::event::{DeviceEvent, WindowEvent};
 
 #[derive(Default)]
 pub struct GUI {
     pub menu_active: bool,
-    pub model: Model,
+    pub gui_model: GUIModel,
     pub message_deque: VecDeque<Message>,
 }
 
 impl GUI {
     pub fn new() -> Self {
         let menu_active = true;
-        let model = Model::new();
+        let gui_model = GUIModel::new();
         let message_deque = VecDeque::new();
 
         Self {
             menu_active,
-            model,
+            gui_model,
             message_deque,
         }
     }
@@ -90,7 +92,7 @@ impl GUI {
                             ui.label("Seed:");
 
                             ui.add(
-                                egui::TextEdit::singleline(&mut gui.model.seed_input_string)
+                                egui::TextEdit::singleline(&mut gui.gui_model.seed_input_string)
                                     .desired_width(120.0)
                                     .horizontal_align(egui::Align::Center),
                             );
@@ -103,7 +105,7 @@ impl GUI {
 
                             if generate_clicked {
                                 let seed_data = SeedData {
-                                    seed: Self::parse_seed(&gui.model.seed_input_string),
+                                    seed: Self::parse_seed(&gui.gui_model.seed_input_string),
                                 };
 
                                 gui.message_deque.push_back(Message::SetSeed(seed_data));
@@ -135,8 +137,8 @@ impl GUI {
                 Self::show_crosshair(ui);
             });
 
-        if gui.model.info_message_vec.len() > 0 {
-            let info_message = &gui.model.info_message_vec[0];
+        if gui.gui_model.info_message_vec.len() > 0 {
+            let info_message = &gui.gui_model.info_message_vec[0];
 
             egui::Area::new(Id::new(1))
                 .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
@@ -204,7 +206,7 @@ impl GUI {
         let judge_person_view = view
             .population_view
             .person_view_map
-            .get(&ID_JUDGE_1)
+            .get(&PersonID::JUDGE_ID_1)
             .expect("Judge 1 does not exist in Run Mode");
 
         let grid_position =
@@ -260,8 +262,8 @@ impl GUI {
         info_message.push_str(&motion_mode_string);
         info_message.push_str(&selected_block_kind_string);
 
-        gui.model.info_message_vec.clear();
-        gui.model.info_message_vec.push(info_message);
+        gui.gui_model.info_message_vec.clear();
+        gui.gui_model.info_message_vec.push(info_message);
     }
 
     #[instrument(skip_all)]

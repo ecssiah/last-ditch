@@ -1,3 +1,5 @@
+pub mod skin_tone;
+
 use crate::simulation::state::population::nation::nation_kind::NationKind;
 use std::collections::HashMap;
 
