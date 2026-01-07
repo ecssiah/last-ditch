@@ -61,9 +61,10 @@ impl GenerateData {
             0 => {
                 Population::reset(&mut state.population);
                 World::reset(&mut state.world);
+
+                Self::generate_judge(&mut state.population);
             }
             1 => {
-                Self::generate_judge(&mut state.population);
                 Self::generate_nations(&mut state.population);
             }
             2 => {
@@ -126,6 +127,7 @@ impl GenerateData {
             core_collider_radius,
             &mut judge.body,
         );
+        
         Body::add_collider(
             &BodyLabel::Ground,
             ground_collider_local_position,

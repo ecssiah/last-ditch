@@ -203,6 +203,10 @@ impl GUI {
     fn apply_view_setup_mode(_view: &View, _gui: &mut Self) {}
 
     fn apply_view_run_mode(view: &View, gui: &mut Self) {
+        if view.population_view.person_view_map.get(&PersonID::JUDGE_ID_1).is_none() {
+            return;
+        }
+
         let judge_person_view = view
             .population_view
             .person_view_map
