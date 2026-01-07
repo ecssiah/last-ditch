@@ -1,7 +1,6 @@
-pub mod block_model;
-pub mod block_quad;
-pub mod sector_face;
+pub mod cell_rect;
 pub mod sector_mesh;
+pub mod sector_quad;
 pub mod sector_vertex;
 
 use crate::{
@@ -12,6 +11,7 @@ use crate::{
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
         renderer::{
             render_context::RenderContext,
+            texture::texture_manager::TextureManager,
             world_renderer::{sector_mesh::SectorMesh, sector_vertex::SectorVertex},
         },
     },
@@ -27,8 +27,8 @@ use std::{
 use tracing::instrument;
 
 pub struct WorldRenderer {
-    pub bind_group: wgpu::BindGroup,
     pub bind_group_layout: wgpu::BindGroupLayout,
+    pub bind_group: Option<wgpu::BindGroup>,
     pub sector_mesh_cache: HashMap<usize, SectorMesh>,
     pub gpu_mesh_cache: HashMap<usize, GpuMesh>,
     pub active_sector_index_set: HashSet<usize>,
@@ -37,15 +37,7 @@ pub struct WorldRenderer {
 }
 
 impl WorldRenderer {
-    pub fn new(gpu_context: &GPUContext, render_context: &RenderContext, camera: &Camera) -> Self {
-        let texture_view_vec: Vec<&wgpu::TextureView> = render_context
-            .texture_manager
-            .texture_atlas_set
-            .gpu_texture_data_vec
-            .iter()
-            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
-            .collect();
-
+    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let bind_group_layout =
             gpu_context
                 .device
@@ -71,28 +63,7 @@ impl WorldRenderer {
                     ],
                 });
 
-        let bind_group = gpu_context
-            .device
-            .create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("World Renderer Texture Bind Group"),
-                layout: &bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(
-                            &render_context
-                                .texture_manager
-                                .texture_atlas_set
-                                .gpu_texture_data_vec[0]
-                                .sampler,
-                        ),
-                    },
-                ],
-            });
+        let bind_group = None;
 
         let render_pipeline = Self::create_render_pipeline(
             gpu_context,
@@ -107,14 +78,48 @@ impl WorldRenderer {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            bind_group,
             bind_group_layout,
+            bind_group,
             sector_mesh_cache,
             gpu_mesh_cache,
             active_sector_index_set,
             active_gpu_mesh_vec,
             render_pipeline,
         }
+    }
+
+    pub fn setup_bind_group(
+        gpu_context: &GPUContext,
+        texture_manager: &TextureManager,
+        bind_group_layout: &wgpu::BindGroupLayout,
+    ) -> wgpu::BindGroup {
+        let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
+            .texture_atlas_set
+            .gpu_texture_data_vec
+            .iter()
+            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
+            .collect();
+
+        let bind_group = gpu_context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("World Renderer Texture Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(
+                            &texture_manager.texture_atlas_set.gpu_texture_data_vec[0].sampler,
+                        ),
+                    },
+                ],
+            });
+
+        bind_group
     }
 
     fn create_render_pipeline(
@@ -307,6 +312,10 @@ impl WorldRenderer {
         world_renderer: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
+        if world_renderer.bind_group.is_none() {
+            return;
+        }
+
         let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: surface_texture_view,
             resolve_target: None,
@@ -338,9 +347,15 @@ impl WorldRenderer {
             occlusion_query_set: None,
         });
 
+        let bind_group = world_renderer
+            .bind_group
+            .as_ref()
+            .expect("population bind group must exist at this point");
+
         render_pass.set_pipeline(&world_renderer.render_pipeline);
+
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
-        render_pass.set_bind_group(1, &world_renderer.bind_group, &[]);
+        render_pass.set_bind_group(1, bind_group, &[]);
 
         for sector_index in &world_renderer.active_gpu_mesh_vec {
             let gpu_mesh = &world_renderer.gpu_mesh_cache[sector_index];

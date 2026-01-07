@@ -1,29 +1,24 @@
-pub mod block_info;
+pub mod block_shape;
 pub mod block_kind;
+pub mod block_state;
 
-pub use block_kind::BlockKind;
+use crate::{
+    simulation::{
+        state::world::block::{block_kind::BlockKind, block_state::BlockState},
+    },
+};
 
-use crate::{simulation::state::world::grid::direction_set::DirectionSet, utils::ldmath::FloatBox};
-
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Block {
     pub block_kind: BlockKind,
-    pub solid: bool,
-    pub float_box_vec: Vec<FloatBox>,
-    pub exposure_set: DirectionSet,
+    pub block_state: BlockState,
 }
 
 impl Block {
-    pub fn new(block_kind: &BlockKind) -> Self {
-        let solid = true;
-        let float_box_vec = Vec::new();
-        let exposure_set = DirectionSet::EMPTY;
-
+    pub fn new(block_kind: &BlockKind, block_state: &BlockState) -> Self {
         Self {
             block_kind: block_kind.clone(),
-            solid,
-            float_box_vec,
-            exposure_set,
+            block_state: block_state.clone(),
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::simulation::state::world::block::BlockKind;
+use crate::simulation::state::world::block::block_kind::BlockKind;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct BlockKey {

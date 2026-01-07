@@ -3,6 +3,7 @@
 pub mod axis_resolution;
 pub mod body;
 pub mod collider;
+pub mod collision_shape;
 pub mod hit;
 pub mod integration_result;
 pub mod resolution_result;

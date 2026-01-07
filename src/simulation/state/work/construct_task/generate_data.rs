@@ -19,7 +19,7 @@ use crate::{
                     },
                     Area, AreaKind, Connection,
                 },
-                block::BlockKind,
+                block::block_kind::BlockKind,
                 grid::{self, Direction, Line},
                 tower::{self, Tower},
             },

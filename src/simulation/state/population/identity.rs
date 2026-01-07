@@ -6,14 +6,17 @@ pub use ethnicity::Ethnicity;
 pub use role::Role;
 pub use sex::Sex;
 
-use crate::simulation::state::population::nation::nation_kind::NationKind;
+use crate::simulation::state::population::{
+    identity::ethnicity::skin_tone::SkinTone, nation::nation_kind::NationKind,
+};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Identity {
     pub age: u32,
     pub sex: Sex,
     pub role: Role,
     pub ethnicity: Ethnicity,
+    pub skin_tone: SkinTone,
     pub nation_kind: NationKind,
 }
 
@@ -24,6 +27,7 @@ impl Identity {
             sex: Sex::Male,
             role: Role::None,
             ethnicity: Ethnicity::default(),
+            skin_tone: SkinTone::Color1,
             nation_kind: NationKind::Eagle,
         };
 

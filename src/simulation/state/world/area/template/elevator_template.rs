@@ -1,7 +1,7 @@
 use crate::simulation::state::{
     world::{
         area::template::Template,
-        block::BlockKind,
+        block::block_kind::BlockKind,
         grid::{self},
     },
     World,

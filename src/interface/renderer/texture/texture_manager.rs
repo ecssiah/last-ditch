@@ -42,6 +42,14 @@ impl TextureManager {
         }
     }
 
+    pub fn get_texture_location(
+        texture_name: &'static str,
+        texture_manager: &Self,
+    ) -> Option<TextureLocation> {
+        TextureAtlasSet::get_texture_location(texture_name, &texture_manager.texture_atlas_set)
+            .cloned()
+    }
+
     pub fn load(texture_manager: &mut Self) {
         texture_manager.texture_load_status = TextureLoadStatus::Loading;
 
@@ -213,7 +221,7 @@ impl TextureManager {
                 );
 
                 let texture_id = TextureID::new(IDGenerator::allocate(texture_id_generator));
-                let texture_location = TextureLocation::new(atlas_index as u8, layer_index as u8);
+                let texture_location = TextureLocation::new(atlas_index, layer_index);
 
                 TextureAtlasSet::insert_texture_mapping(
                     &texture_id,

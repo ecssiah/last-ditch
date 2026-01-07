@@ -1,5 +1,4 @@
-use crate::simulation::state::world::{block::Block, structure::Structure};
-use std::collections::HashMap;
+use crate::simulation::state::world::block::Block;
 use ultraviolet::IVec3;
 
 pub struct Sector {
@@ -7,8 +6,6 @@ pub struct Sector {
     pub sector_index: usize,
     pub grid_position: IVec3,
     pub block_vec: Vec<Option<Block>>,
-    pub structure_vec: Vec<Structure>,
-    pub structure_position_index_map: HashMap<IVec3, usize>,
 }
 
 impl Sector {

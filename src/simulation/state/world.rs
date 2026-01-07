@@ -4,10 +4,7 @@ pub mod area;
 pub mod block;
 pub mod grid;
 pub mod sector;
-pub mod structure;
 pub mod tower;
-
-use std::collections::HashMap;
 
 use crate::{
     simulation::{
@@ -15,10 +12,9 @@ use crate::{
         state::{
             world::{
                 area::{area_id::AreaID, Area, AreaKind},
-                block::{Block, BlockKind},
+                block::{block_kind::BlockKind, Block},
                 grid::{direction_set::DirectionSet, Direction},
                 sector::Sector,
-                structure::{structure_kind::StructureKind, Structure},
                 tower::Tower,
             },
             Time,
@@ -85,16 +81,12 @@ impl World {
                 let version = 0;
                 let grid_position = grid::sector_index_to_grid_position(sector_index);
                 let block_vec = vec![None; SECTOR_VOLUME_IN_CELLS];
-                let structure_vec = Vec::new();
-                let structure_position_index_map = HashMap::new();
 
                 Sector {
                     version,
                     sector_index,
                     grid_position,
                     block_vec,
-                    structure_vec,
-                    structure_position_index_map,
                 }
             })
             .collect()
@@ -145,116 +137,40 @@ impl World {
 
     pub fn set_block(grid_position: IVec3, block_kind: &BlockKind, world: &mut Self) {
         if grid::grid_position_is_valid(grid_position) {
+            let mut block_state = BlockKind::get_default_block_state(block_kind);
+
+            for direction in Direction::ALL {
+                let neighbor_grid_position = grid_position + Direction::to_ivec3(direction);
+
+                if grid::grid_position_is_valid(neighbor_grid_position) {
+                    if let Some(neighbor_block) =
+                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
+                    {
+                        if BlockKind::is_direction_occluded(direction, &block_state, block_kind) {
+                            DirectionSet::remove(
+                                &Direction::to_opposing(direction),
+                                &mut neighbor_block.block_state.exposure_set,
+                            );
+                        }
+
+                        if BlockKind::is_direction_occluded(
+                            &Direction::to_opposing(direction),
+                            &neighbor_block.block_state,
+                            &neighbor_block.block_kind,
+                        ) {
+                            DirectionSet::remove(direction, &mut block_state.exposure_set);
+                        }
+                    }
+                }
+            }
+
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
-            let block = Block::new(block_kind);
+            let block = Block::new(block_kind, &block_state);
 
             let sector = &mut world.sector_vec[sector_index];
             sector.block_vec[cell_index] = Some(block);
             sector.version += 1;
-
-            Self::update_block_exposure(grid_position, world);
-        }
-    }
-
-    pub fn get_structure(grid_position: IVec3, world: &World) -> Option<&Structure> {
-        if grid::grid_position_is_valid(grid_position) {
-            let sector_index = grid::grid_position_to_sector_index(grid_position);
-            let sector = &world.sector_vec[sector_index];
-
-            let structure_index = *sector.structure_position_index_map.get(&grid_position)?;
-
-            sector.structure_vec.get(structure_index)
-        } else {
-            None
-        }
-    }
-
-    pub fn set_structure(
-        grid_position: IVec3,
-        structure_kind: &StructureKind,
-        direction: &Direction,
-        world: &mut Self,
-    ) {
-        if grid::grid_position_is_valid(grid_position) {
-            let sector_index = grid::grid_position_to_sector_index(grid_position);
-
-            let structure = Structure::new(structure_kind, grid_position, direction);
-
-            let sector = &mut world.sector_vec[sector_index];
-
-            sector.structure_vec.push(structure);
-
-            sector
-                .structure_position_index_map
-                .insert(grid_position, sector.structure_vec.len() - 1);
-        }
-    }
-
-    pub fn update_block_exposure(grid_position: IVec3, world: &mut Self) {
-        if !grid::grid_position_is_valid(grid_position) {
-            return;
-        }
-
-        let block_is_solid = World::is_block_solid_at(grid_position, world);
-
-        for direction in Direction::ALL {
-            let neighbor_grid_position = grid_position + Direction::to_ivec3(direction);
-
-            if grid::grid_position_is_valid(neighbor_grid_position) {
-                let neighbor_is_solid = World::is_block_solid_at(neighbor_grid_position, world);
-
-                if block_is_solid && !neighbor_is_solid {
-                    if let Some(block) = World::get_block_mut(grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::add(*direction, &mut block.exposure_set);
-                    }
-
-                    if let Some(neighbor_block) =
-                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::remove(
-                            Direction::to_opposing(direction),
-                            &mut neighbor_block.exposure_set,
-                        );
-                    }
-                } else if !block_is_solid && neighbor_is_solid {
-                    if let Some(block) = World::get_block_mut(grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::remove(*direction, &mut block.exposure_set);
-                    }
-
-                    if let Some(neighbor_block) =
-                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::add(
-                            Direction::to_opposing(direction),
-                            &mut neighbor_block.exposure_set,
-                        );
-                    }
-                } else {
-                    if let Some(block) = World::get_block_mut(grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::remove(*direction, &mut block.exposure_set);
-                    }
-
-                    if let Some(neighbor_block) =
-                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::remove(
-                            Direction::to_opposing(direction),
-                            &mut neighbor_block.exposure_set,
-                        );
-                    }
-                }
-            } else {
-                if block_is_solid {
-                    if let Some(block) = World::get_block_mut(grid_position, &mut world.sector_vec)
-                    {
-                        DirectionSet::add(*direction, &mut block.exposure_set);
-                    }
-                }
-            }
         }
     }
 
@@ -353,14 +269,27 @@ impl World {
 
     pub fn remove_block(grid_position: IVec3, world: &mut Self) {
         if grid::grid_position_is_valid(grid_position) {
+            for direction in Direction::ALL {
+                let neighbor_grid_position = grid_position + Direction::to_ivec3(direction);
+
+                if grid::grid_position_is_valid(neighbor_grid_position) {
+                    if let Some(block) =
+                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
+                    {
+                        DirectionSet::add(
+                            &Direction::to_opposing(&direction),
+                            &mut block.block_state.exposure_set,
+                        );
+                    }
+                }
+            }
+
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
             let sector = &mut world.sector_vec[sector_index];
 
             sector.block_vec[cell_index] = None;
             sector.version += 1;
-
-            Self::update_block_exposure(grid_position, world);
         }
     }
 
@@ -373,18 +302,6 @@ impl World {
                     Self::remove_block(grid_position, world);
                 }
             }
-        }
-    }
-
-    pub fn is_block_solid_at(grid_position: IVec3, world: &World) -> bool {
-        if grid::grid_position_is_valid(grid_position) {
-            let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
-
-            let sector = &world.sector_vec[sector_index];
-
-            Sector::get_block(cell_index, &sector.block_vec).is_some_and(|block| block.solid)
-        } else {
-            true
         }
     }
 
@@ -496,7 +413,7 @@ impl World {
                 hit_normal = -step.z * IVec3::unit_z();
             }
 
-            if Self::is_block_solid_at(cell_grid_position, world) {
+            if World::get_block(cell_grid_position, &world.sector_vec).is_some() {
                 return Some((cell_grid_position, hit_normal));
             }
         }

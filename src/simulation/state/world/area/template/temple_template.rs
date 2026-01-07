@@ -5,7 +5,7 @@ use crate::simulation::state::{
             self,
             template::{self, Template},
         },
-        block::BlockKind,
+        block::block_kind::BlockKind,
     },
 };
 use ultraviolet::IVec3;

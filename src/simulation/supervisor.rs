@@ -21,7 +21,7 @@ use crate::{
                 construct_task::{generate_data::GenerateData, ConstructTask},
                 construct_worker::ConstructWorker,
             },
-            world::block::BlockKind,
+            world::block::block_kind::BlockKind,
             State,
         },
         supervisor::{supervisor_status::SupervisorStatus, viewer::view::View},
@@ -222,13 +222,13 @@ impl Supervisor {
 
     fn handle_option1_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
-            judge.selected_block_kind = BlockKind::previous_block_kind(&judge.selected_block_kind);
+            judge.selected_block_kind = BlockKind::get_previous_block_kind(&judge.selected_block_kind);
         }
     }
 
     fn handle_option2_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
-            judge.selected_block_kind = BlockKind::next_block_kind(&judge.selected_block_kind);
+            judge.selected_block_kind = BlockKind::get_next_block_kind(&judge.selected_block_kind);
         }
     }
 

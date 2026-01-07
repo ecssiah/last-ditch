@@ -100,11 +100,14 @@ impl<'window> Interface<'window> {
         let adapter = pollster::block_on(instance.request_adapter(&Default::default()))
             .expect("Failed to find GPU adapter");
 
+        let required_features = wgpu::Features::TIMESTAMP_QUERY
+            | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS
+            | wgpu::Features::TEXTURE_BINDING_ARRAY;
+
         let (device, queue) = pollster::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                required_features: wgpu::Features::TIMESTAMP_QUERY
-                    | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS,
+                required_features,
                 required_limits: wgpu::Limits::default(),
                 memory_hints: wgpu::MemoryHints::Performance,
             },
@@ -176,12 +179,7 @@ impl<'window> Interface<'window> {
 
         let gui = GUI::new();
 
-        let render_context = &RenderContext {
-            render_catalog: &render_catalog,
-            texture_manager: &texture_manager,
-        };
-
-        let renderer = Renderer::new(&gpu_context, render_context, &camera);
+        let renderer = Renderer::new(&gpu_context, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -227,6 +225,7 @@ impl<'window> Interface<'window> {
                 &mut interface.gpu_context,
                 &mut interface.interface_mode,
                 &mut interface.texture_manager,
+                &mut interface.renderer,
             ),
             InterfaceMode::Run => Self::update_run_mode(
                 view,
@@ -283,6 +282,7 @@ impl<'window> Interface<'window> {
         gpu_context: &mut GPUContext,
         interface_mode: &mut InterfaceMode,
         texture_manager: &mut TextureManager,
+        renderer: &mut Renderer,
     ) {
         match &texture_manager.texture_load_status {
             TextureLoadStatus::Idle => {
@@ -291,7 +291,11 @@ impl<'window> Interface<'window> {
             TextureLoadStatus::Loading => {
                 TextureManager::update(gpu_context, texture_manager);
             }
-            TextureLoadStatus::Complete => *interface_mode = InterfaceMode::Run,
+            TextureLoadStatus::Complete => {
+                Renderer::setup_bind_groups(gpu_context, texture_manager, renderer);
+
+                *interface_mode = InterfaceMode::Run;
+            }
         }
     }
 

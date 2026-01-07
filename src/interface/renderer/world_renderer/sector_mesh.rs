@@ -5,7 +5,9 @@ use crate::{
             render_catalog::RenderCatalog,
             render_context::RenderContext,
             texture::texture_atlas_set::TextureAtlasSet,
-            world_renderer::{sector_face::SectorFace, sector_vertex::SectorVertex},
+            world_renderer::{
+                cell_rect::CellRect, sector_quad::SectorQuad, sector_vertex::SectorVertex,
+            },
         },
     },
     simulation::{
@@ -43,7 +45,7 @@ impl SectorMesh {
     fn generate_mask_vec(
         sector_view: &SectorView,
         render_context: &RenderContext,
-    ) -> Vec<Vec<Vec<Option<SectorFace>>>> {
+    ) -> Vec<Vec<Vec<Option<SectorQuad>>>> {
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
         let sector_area_in_cells = SECTOR_AREA_IN_CELLS as i32;
@@ -63,7 +65,19 @@ impl SectorMesh {
                     let cell_index = grid::cell_coordinate_to_cell_index(cell_coordinate);
 
                     if let Some(block) = Sector::get_block(cell_index, &sector_view.block_vec) {
-                        if DirectionSet::has(Direction::North, &block.exposure_set) {
+                        let block_texture_name = RenderCatalog::get_block_texture_name(
+                            &block.block_kind,
+                            render_context.render_catalog,
+                        );
+
+                        let texture_location = TextureAtlasSet::get_texture_location(
+                            block_texture_name,
+                            &render_context.texture_manager.texture_atlas_set,
+                        )
+                        .expect("all block textures should exist")
+                        .clone();
+
+                        if DirectionSet::has(&Direction::North, &block.block_state.exposure_set) {
                             let slice_index = (y + sector_radius_in_cells + 1) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -71,27 +85,17 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.north_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::North,
-                                texture_location,
+                                cell_rect: CellRect::NORTH_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if DirectionSet::has(Direction::West, &block.exposure_set) {
+                        if DirectionSet::has(&Direction::West, &block.block_state.exposure_set) {
                             let slice_index = (x + sector_radius_in_cells) as usize;
 
                             let local_y = (y + sector_radius_in_cells) as usize;
@@ -99,27 +103,17 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.west_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::West,
-                                texture_location,
+                                cell_rect: CellRect::WEST_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if DirectionSet::has(Direction::South, &block.exposure_set) {
+                        if DirectionSet::has(&Direction::South, &block.block_state.exposure_set) {
                             let slice_index = (y + sector_radius_in_cells) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -127,27 +121,17 @@ impl SectorMesh {
 
                             let mask_index = local_z * (sector_size_in_cells as usize) + local_x;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.south_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::South,
-                                texture_location,
+                                cell_rect: CellRect::SOUTH_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::Y as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if DirectionSet::has(Direction::East, &block.exposure_set) {
+                        if DirectionSet::has(&Direction::East, &block.block_state.exposure_set) {
                             let slice_index = (x + sector_radius_in_cells + 1) as usize;
 
                             let local_y = (y + sector_radius_in_cells) as usize;
@@ -155,27 +139,17 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_z;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.east_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::East,
-                                texture_location,
+                                cell_rect: CellRect::EAST_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::X as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if DirectionSet::has(Direction::Up, &block.exposure_set) {
+                        if DirectionSet::has(&Direction::Up, &block.block_state.exposure_set) {
                             let slice_index = (z + sector_radius_in_cells + 1) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -183,27 +157,17 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.up_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::Up,
-                                texture_location,
+                                cell_rect: CellRect::UP_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
                         }
 
-                        if DirectionSet::has(Direction::Down, &block.exposure_set) {
+                        if DirectionSet::has(&Direction::Down, &block.block_state.exposure_set) {
                             let slice_index = (z + sector_radius_in_cells) as usize;
 
                             let local_x = (x + sector_radius_in_cells) as usize;
@@ -211,21 +175,11 @@ impl SectorMesh {
 
                             let mask_index = local_y * (sector_size_in_cells as usize) + local_x;
 
-                            let block_entry = RenderCatalog::get_block_entry(
-                                &block.block_kind,
-                                render_context.render_catalog,
-                            );
-
-                            let texture_location = TextureAtlasSet::get_texture_location(
-                                block_entry.down_face,
-                                &render_context.texture_manager.texture_atlas_set,
-                            )
-                            .expect("all block textures should exist")
-                            .clone();
-
-                            let sector_face = SectorFace {
+                            let sector_face = SectorQuad {
                                 direction: Direction::Down,
-                                texture_location,
+                                cell_rect: CellRect::DOWN_CELL_RECT,
+                                texture_location: texture_location.clone(),
+                                uv_array: RenderCatalog::BLOCK_UV_ARRAY,
                             };
 
                             mask_vec[Axis::Z as usize][slice_index][mask_index] = Some(sector_face);
@@ -240,7 +194,7 @@ impl SectorMesh {
 
     fn merge_geometry(
         sector_view: &SectorView,
-        mask_vec: Vec<Vec<Vec<Option<SectorFace>>>>,
+        mask_vec: Vec<Vec<Vec<Option<SectorQuad>>>>,
     ) -> Self {
         let mut vertex_vec = Vec::new();
         let mut index_vec = Vec::new();
@@ -274,7 +228,7 @@ impl SectorMesh {
     fn merge_slice(
         axis: Axis,
         slice_index: usize,
-        sector_face_slice: &[Option<SectorFace>],
+        sector_face_slice: &[Option<SectorQuad>],
         sector_world_position: &[f32; 3],
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
@@ -362,7 +316,7 @@ impl SectorMesh {
         y0: usize,
         x1: usize,
         y1: usize,
-        sector_face: SectorFace,
+        sector_face: SectorQuad,
         vertex_vec: &mut Vec<SectorVertex>,
         index_vec: &mut Vec<u32>,
     ) {
@@ -486,8 +440,6 @@ impl SectorMesh {
 
         let base_index = vertex_vec.len() as u32;
 
-        let tile_indices = [0, 0];
-
         vertex_vec.push(SectorVertex {
             position: [
                 vertex_position0[0] + sector_world_position[0],
@@ -496,7 +448,8 @@ impl SectorMesh {
             ],
             normal,
             uv: uv0,
-            tile_indices,
+            atlas_index: sector_face.texture_location.atlas_index as u32,
+            layer_index: sector_face.texture_location.layer_index as u32,
         });
 
         vertex_vec.push(SectorVertex {
@@ -507,7 +460,8 @@ impl SectorMesh {
             ],
             normal,
             uv: uv1,
-            tile_indices,
+            atlas_index: sector_face.texture_location.atlas_index as u32,
+            layer_index: sector_face.texture_location.layer_index as u32,
         });
 
         vertex_vec.push(SectorVertex {
@@ -518,7 +472,8 @@ impl SectorMesh {
             ],
             normal,
             uv: uv2,
-            tile_indices,
+            atlas_index: sector_face.texture_location.atlas_index as u32,
+            layer_index: sector_face.texture_location.layer_index as u32,
         });
 
         vertex_vec.push(SectorVertex {
@@ -529,7 +484,8 @@ impl SectorMesh {
             ],
             normal,
             uv: uv3,
-            tile_indices,
+            atlas_index: sector_face.texture_location.atlas_index as u32,
+            layer_index: sector_face.texture_location.layer_index as u32,
         });
 
         let use_canonical = match sector_face.direction {

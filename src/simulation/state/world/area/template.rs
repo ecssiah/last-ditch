@@ -13,7 +13,7 @@ pub use trading_platform_template::TradingPlatformTemplate;
 pub use wireframe_template::WireframeTemplate;
 
 use crate::simulation::state::{
-    world::{block::BlockKind, Area},
+    world::{block::block_kind::BlockKind, Area},
     World,
 };
 use ultraviolet::IVec3;

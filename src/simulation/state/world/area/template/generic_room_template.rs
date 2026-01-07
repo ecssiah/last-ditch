@@ -2,7 +2,7 @@ use crate::{
     simulation::state::{
         world::{
             area::template::{self, Template},
-            block::BlockKind,
+            block::block_kind::BlockKind,
             grid::{self, Axis, Direction},
             Area,
         },

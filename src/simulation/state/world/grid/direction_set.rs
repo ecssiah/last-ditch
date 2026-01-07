@@ -16,16 +16,16 @@ impl DirectionSet {
             | Direction::Down as u8,
     );
 
-    pub fn has(direction: Direction, direction_set: &DirectionSet) -> bool {
-        (direction_set.0 & direction as u8) != 0
+    pub fn has(direction: &Direction, direction_set: &DirectionSet) -> bool {
+        (direction_set.0 & direction.clone() as u8) != 0
     }
 
-    pub fn add(direction: Direction, direction_set: &mut DirectionSet) {
-        direction_set.0 |= direction as u8;
+    pub fn add(direction: &Direction, direction_set: &mut DirectionSet) {
+        direction_set.0 |= direction.clone() as u8;
     }
 
-    pub fn remove(direction: Direction, direction_set: &mut DirectionSet) {
-        direction_set.0 &= !(direction as u8);
+    pub fn remove(direction: &Direction, direction_set: &mut DirectionSet) {
+        direction_set.0 &= !(direction.clone() as u8);
     }
 
     pub fn clear(direction_set: &mut DirectionSet) {
@@ -38,7 +38,7 @@ impl fmt::Display for DirectionSet {
         let mut first = true;
 
         for direction in Direction::ALL {
-            if Self::has(*direction, self) {
+            if Self::has(direction, self) {
                 if !first {
                     f.write_str(", ")?;
                 }

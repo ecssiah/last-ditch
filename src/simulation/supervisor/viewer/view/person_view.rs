@@ -1,10 +1,10 @@
 use crate::simulation::state::{
     physics::body::Body,
     population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
-    world::block::BlockKind,
+    world::block::block_kind::BlockKind,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PersonView {
     pub identity: Identity,
     pub transform: Transform,

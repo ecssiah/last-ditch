@@ -1,10 +1,10 @@
 #[derive(Clone)]
 pub struct PersonEntry {
-    pub model: &'static str,
+    pub texture_name: &'static str,
 }
 
 impl PersonEntry {
-    pub fn new(model: &'static str) -> Self {
-        Self { model }
+    pub fn new(texture_name: &'static str) -> Self {
+        Self { texture_name }
     }
 }

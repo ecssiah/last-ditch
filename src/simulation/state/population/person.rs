@@ -6,7 +6,7 @@ use crate::simulation::state::{
         identity::Identity, motion::Motion, person::person_id::PersonID, sight::Sight,
         transform::Transform,
     },
-    world::block::BlockKind,
+    world::block::block_kind::BlockKind,
 };
 use ultraviolet::Vec3;
 

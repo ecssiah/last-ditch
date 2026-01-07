@@ -3,7 +3,7 @@ pub mod nation_kind;
 
 use crate::simulation::state::{
     population::nation::{leadership::Leadership, nation_kind::NationKind},
-    world::block::BlockKind,
+    world::block::block_kind::BlockKind,
 };
 use ultraviolet::IVec3;
 
