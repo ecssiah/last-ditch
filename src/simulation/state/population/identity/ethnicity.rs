@@ -1,5 +1,3 @@
-pub mod skin_tone;
-
 use crate::simulation::state::population::nation::nation_kind::NationKind;
 use std::collections::HashMap;
 
@@ -11,11 +9,24 @@ pub struct Ethnicity {
 impl Ethnicity {
     pub fn new() -> Self {
         let ethnicity_map = HashMap::from([
-            (NationKind::Eagle, 1.0),
+            (NationKind::Eagle, 0.0),
             (NationKind::Lion, 0.0),
             (NationKind::Wolf, 0.0),
             (NationKind::Horse, 0.0),
         ]);
+
+        Self { ethnicity_map }
+    }
+
+    pub fn from_nation_kind(nation_kind: &NationKind) -> Self {
+        let mut ethnicity_map = HashMap::from([
+            (NationKind::Eagle, 0.0),
+            (NationKind::Lion, 0.0),
+            (NationKind::Wolf, 0.0),
+            (NationKind::Horse, 0.0),
+        ]);
+
+        ethnicity_map.insert(nation_kind.clone(), 1.0);
 
         Self { ethnicity_map }
     }

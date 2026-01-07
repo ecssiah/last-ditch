@@ -1,11 +1,12 @@
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::Identity, motion::Motion, sight::Sight, transform::Transform},
+    population::{identity::{Identity, appearance::Appearance}, motion::Motion, sight::Sight, transform::Transform},
     world::block::block_kind::BlockKind,
 };
 
 #[derive(Clone)]
 pub struct PersonView {
+    pub appearance: Appearance,
     pub identity: Identity,
     pub transform: Transform,
     pub motion: Motion,
@@ -17,6 +18,7 @@ pub struct PersonView {
 impl PersonView {
     pub fn new() -> Self {
         Self {
+            appearance: Appearance::default(),
             identity: Identity::default(),
             transform: Transform::default(),
             motion: Motion::default(),

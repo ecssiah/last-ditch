@@ -6,19 +6,19 @@ pub mod person_key;
 use crate::{
     interface::renderer::render_catalog::{block_key::BlockKey, person_key::PersonKey},
     simulation::state::{
-        population::identity::ethnicity::skin_tone::SkinTone, world::block::block_kind::BlockKind,
+        population::identity::appearance::skin_tone::SkinTone, world::block::block_kind::BlockKind,
     },
 };
 use std::collections::HashMap;
 
-pub struct RenderCatalog {
-    pub block_texture_map: HashMap<BlockKey, &'static str>,
-    pub block_model_map: HashMap<BlockKey, &'static str>,
-    pub person_texture_map: HashMap<PersonKey, &'static str>,
-    pub person_model_map: HashMap<PersonKey, &'static str>,
+pub struct RenderCatalog<'a> {
+    pub block_texture_map: HashMap<BlockKey<'a>, &'static str>,
+    pub block_model_map: HashMap<BlockKey<'a>, &'static str>,
+    pub person_texture_map: HashMap<PersonKey<'a>, &'static str>,
+    pub person_model_map: HashMap<PersonKey<'a>, &'static str>,
 }
 
-impl RenderCatalog {
+impl<'a> RenderCatalog<'a> {
     pub const BLOCK_UV_ARRAY: [[f32; 2]; 4] = [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]];
 
     pub fn new() -> Self {
@@ -36,7 +36,7 @@ impl RenderCatalog {
         }
     }
 
-    fn setup_block_texture_map() -> HashMap<BlockKey, &'static str> {
+    fn setup_block_texture_map() -> HashMap<BlockKey<'a>, &'static str> {
         let block_texture_map = HashMap::from([
             (BlockKey::new(&BlockKind::Engraved1), "engraved 1"),
             (BlockKey::new(&BlockKind::Engraved2), "engraved 2"),
@@ -51,11 +51,11 @@ impl RenderCatalog {
         render_catalog
             .block_texture_map
             .get(&BlockKey::new(block_kind))
-            .expect("All blocks should have a texture name")
             .clone()
+            .expect("All blocks should have a texture name")
     }
 
-    fn setup_block_model_map() -> HashMap<BlockKey, &'static str> {
+    fn setup_block_model_map() -> HashMap<BlockKey<'a>, &'static str> {
         let block_model_map = HashMap::from([
             (BlockKey::new(&BlockKind::Engraved1), "engraved 1"),
             (BlockKey::new(&BlockKind::Engraved2), "engraved 2"),
@@ -70,11 +70,11 @@ impl RenderCatalog {
         render_catalog
             .block_texture_map
             .get(&BlockKey::new(block_kind))
-            .expect("All blocks should have a texture name")
             .clone()
+            .expect("All blocks should have a texture name")
     }
 
-    fn setup_person_texture_map() -> HashMap<PersonKey, &'static str> {
+    fn setup_person_texture_map() -> HashMap<PersonKey<'a>, &'static str> {
         let person_texture_map = HashMap::from([
             (PersonKey::new(&SkinTone::Color1), "person 1"),
             (PersonKey::new(&SkinTone::Color2), "person 2"),
@@ -93,11 +93,11 @@ impl RenderCatalog {
         render_catalog
             .person_texture_map
             .get(&PersonKey::new(&skin_tone))
-            .expect("All person skin tones should have a texture")
             .clone()
+            .expect("All person skin tones should have a texture")
     }
 
-    pub fn setup_person_model_map() -> HashMap<PersonKey, &'static str> {
+    pub fn setup_person_model_map() -> HashMap<PersonKey<'a>, &'static str> {
         let person_model_map = HashMap::from([
             (PersonKey::new(&SkinTone::Color1), "person 1"),
             (PersonKey::new(&SkinTone::Color2), "person 2"),
@@ -116,7 +116,7 @@ impl RenderCatalog {
         render_catalog
             .person_model_map
             .get(&PersonKey::new(&skin_tone))
-            .expect("All person skin tones should have a texture")
             .clone()
+            .expect("All person skin tones should have a texture")
     }
 }

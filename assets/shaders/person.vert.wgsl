@@ -13,11 +13,13 @@ struct VertexInput {
     @location(3) instance_world_position: vec3<f32>,
     @location(4) instance_scale: f32,
     @location(5) instance_rotation_xy: f32,
+    @location(6) instance_layer_index: u32,
 };
 
 struct VertexOutput {
     @builtin(position) Position: vec4<f32>,
     @location(0) uv: vec2<f32>,
+    @location(1) layer_index: u32,
 };
 
 @vertex
@@ -34,6 +36,7 @@ fn main(input: VertexInput) -> VertexOutput {
 
     output.Position = mvp_matrix * vec4<f32>(input.position, 1.0);
     output.uv = input.uv;
+    output.layer_index = input.instance_layer_index;
 
     return output;
 }

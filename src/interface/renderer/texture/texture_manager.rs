@@ -1,22 +1,22 @@
 use crate::{
     interface::{
         constants::*,
-        gpu::gpu_context::GPUContext,
+        gpu::{gpu_context::GPUContext, gpu_texture_data::GpuTextureData},
         renderer::texture::{
-            texture_atlas_set::TextureAtlasSet, texture_data::TextureData, texture_id::TextureID,
-            texture_load_status::TextureLoadStatus, texture_location::TextureLocation,
+            texture_atlas::TextureAtlas, texture_data::TextureData,
+            texture_layer_index::TextureLayerIndex, texture_load_status::TextureLoadStatus,
         },
     },
     utils::id_generator::IDGenerator,
 };
 use itertools::Itertools;
-use std::{fs, thread::JoinHandle};
+use std::{collections::HashMap, fs, thread::JoinHandle};
 
 pub struct TextureManager {
     pub texture_id_generator: IDGenerator,
     pub texture_load_status: TextureLoadStatus,
     pub texture_load_handle: Option<JoinHandle<Vec<TextureData>>>,
-    pub texture_atlas_set: TextureAtlasSet,
+    pub texture_atlas: Option<TextureAtlas>,
     pub depth_texture: wgpu::Texture,
     pub depth_texture_view: wgpu::TextureView,
 }
@@ -27,7 +27,7 @@ impl TextureManager {
         let texture_load_status = TextureLoadStatus::Idle;
         let texture_load_handle = None;
 
-        let texture_atlas_set = TextureAtlasSet::new();
+        let texture_atlas = None;
 
         let depth_texture = Self::create_depth_texture(gpu_context);
         let depth_texture_view = depth_texture.create_view(&Default::default());
@@ -36,18 +36,10 @@ impl TextureManager {
             texture_id_generator,
             texture_load_status,
             texture_load_handle,
-            texture_atlas_set,
+            texture_atlas,
             depth_texture,
             depth_texture_view,
         }
-    }
-
-    pub fn get_texture_location(
-        texture_name: &'static str,
-        texture_manager: &Self,
-    ) -> Option<TextureLocation> {
-        TextureAtlasSet::get_texture_location(texture_name, &texture_manager.texture_atlas_set)
-            .cloned()
     }
 
     pub fn load(texture_manager: &mut Self) {
@@ -80,8 +72,7 @@ impl TextureManager {
         Self::commit_texture_data(
             gpu_context,
             std::mem::take(&mut texture_data_vec),
-            &mut texture_manager.texture_id_generator,
-            &mut texture_manager.texture_atlas_set,
+            texture_manager,
         );
 
         texture_manager.texture_load_status = TextureLoadStatus::Complete;
@@ -94,14 +85,9 @@ impl TextureManager {
         let person_texture_directory_path = "assets/textures/person/";
         let person_texture_data_vec = Self::load_texture_data_vec(person_texture_directory_path);
 
-        let structure_texture_directory_path = "assets/textures/structure/";
-        let structure_texture_data_vec =
-            Self::load_texture_data_vec(structure_texture_directory_path);
-
         let texture_data_vec = vec![
             block_texture_data_vec,
             person_texture_data_vec,
-            structure_texture_data_vec,
         ];
 
         texture_data_vec.into_iter().flatten().collect()
@@ -171,87 +157,82 @@ impl TextureManager {
     fn commit_texture_data(
         gpu_context: &GPUContext,
         texture_data_vec: Vec<TextureData>,
-        texture_id_generator: &mut IDGenerator,
-        texture_atlas_set: &mut TextureAtlasSet,
+        texture_manager: &mut TextureManager,
     ) {
         let texture_size = TEXTURE_SIZE as u32;
+        let layer_count = texture_data_vec.len() as u32;
         let max_layers = gpu_context.device.limits().max_texture_array_layers as usize;
 
-        for (atlas_index, atlas_chunk) in texture_data_vec.chunks(max_layers).enumerate() {
-            let layer_count = atlas_chunk.len() as u32;
+        assert!(texture_data_vec.len() < max_layers);
 
-            let atlas_texture = gpu_context.device.create_texture(&wgpu::TextureDescriptor {
-                label: Some("Texture Atlas"),
-                size: wgpu::Extent3d {
+        let atlas_texture = gpu_context.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Texture Atlas"),
+            size: wgpu::Extent3d {
+                width: texture_size,
+                height: texture_size,
+                depth_or_array_layers: layer_count,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+
+        let atlas_texture_view = atlas_texture.create_view(&wgpu::TextureViewDescriptor {
+            dimension: Some(wgpu::TextureViewDimension::D2Array),
+            ..Default::default()
+        });
+
+        let atlas_sampler = gpu_context.device.create_sampler(&wgpu::SamplerDescriptor {
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            address_mode_u: wgpu::AddressMode::Repeat,
+            address_mode_v: wgpu::AddressMode::Repeat,
+            ..Default::default()
+        });
+
+        let mut name_layer_index_map = HashMap::new();
+
+        for (layer_index, texture_data) in texture_data_vec.into_iter().enumerate() {
+            gpu_context.queue.write_texture(
+                wgpu::TexelCopyTextureInfo {
+                    texture: &atlas_texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d {
+                        x: 0,
+                        y: 0,
+                        z: layer_index as u32,
+                    },
+                    aspect: wgpu::TextureAspect::All,
+                },
+                &texture_data.pixel_vec,
+                wgpu::TexelCopyBufferLayout {
+                    offset: 0,
+                    bytes_per_row: Some(4 * texture_size),
+                    rows_per_image: Some(texture_size),
+                },
+                wgpu::Extent3d {
                     width: texture_size,
                     height: texture_size,
-                    depth_or_array_layers: layer_count,
+                    depth_or_array_layers: 1,
                 },
-                mip_level_count: 1,
-                sample_count: 1,
-                dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba8UnormSrgb,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-                view_formats: &[],
-            });
+            );
 
-            for (layer_index, texture_data) in atlas_chunk.iter().enumerate() {
-                gpu_context.queue.write_texture(
-                    wgpu::TexelCopyTextureInfo {
-                        texture: &atlas_texture,
-                        mip_level: 0,
-                        origin: wgpu::Origin3d {
-                            x: 0,
-                            y: 0,
-                            z: layer_index as u32,
-                        },
-                        aspect: wgpu::TextureAspect::All,
-                    },
-                    &texture_data.pixel_vec,
-                    wgpu::TexelCopyBufferLayout {
-                        offset: 0,
-                        bytes_per_row: Some(4 * texture_size),
-                        rows_per_image: Some(texture_size),
-                    },
-                    wgpu::Extent3d {
-                        width: texture_size,
-                        height: texture_size,
-                        depth_or_array_layers: 1,
-                    },
-                );
-
-                let texture_id = TextureID::new(IDGenerator::allocate(texture_id_generator));
-                let texture_location = TextureLocation::new(atlas_index, layer_index);
-
-                TextureAtlasSet::insert_texture_mapping(
-                    &texture_id,
-                    &texture_data.name,
-                    &texture_location,
-                    texture_atlas_set,
-                );
-            }
-
-            let atlas_texture_view = atlas_texture.create_view(&wgpu::TextureViewDescriptor {
-                dimension: Some(wgpu::TextureViewDimension::D2Array),
-                ..Default::default()
-            });
-
-            let atlas_sampler = gpu_context.device.create_sampler(&wgpu::SamplerDescriptor {
-                mag_filter: wgpu::FilterMode::Nearest,
-                min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                address_mode_u: wgpu::AddressMode::Repeat,
-                address_mode_v: wgpu::AddressMode::Repeat,
-                ..Default::default()
-            });
-
-            TextureAtlasSet::add_atlas_texture(
-                &atlas_texture,
-                &atlas_texture_view,
-                &atlas_sampler,
-                texture_atlas_set,
+            name_layer_index_map.insert(
+                texture_data.name,
+                TextureLayerIndex::new(layer_index as u32),
             );
         }
+
+        let gpu_texture_data =
+            GpuTextureData::new(atlas_texture, atlas_texture_view, atlas_sampler);
+
+        let texture_atlas = TextureAtlas::new(gpu_texture_data, name_layer_index_map);
+
+        texture_manager.texture_atlas = Some(texture_atlas);
     }
 
     pub fn get_surface_texture(gpu_context: &GPUContext) -> wgpu::SurfaceTexture {

@@ -47,7 +47,7 @@ pub struct Interface<'window> {
     pub message_tx: crossbeam::channel::Sender<Message>,
     pub input: Input,
     pub camera: Camera,
-    pub render_catalog: RenderCatalog,
+    pub render_catalog: RenderCatalog<'window>,
     pub texture_manager: TextureManager,
     pub gui: GUI,
     pub renderer: Renderer,
@@ -293,6 +293,8 @@ impl<'window> Interface<'window> {
             }
             TextureLoadStatus::Complete => {
                 Renderer::setup_bind_groups(gpu_context, texture_manager, renderer);
+
+                PopulationRenderer::load_person_gpu_mesh_map(&gpu_context.device, &mut renderer.population_renderer);
 
                 *interface_mode = InterfaceMode::Run;
             }

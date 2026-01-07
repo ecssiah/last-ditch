@@ -6,7 +6,6 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        constants::TEXTURE_ATLAS_MAX,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
         renderer::{
             population_renderer::{
@@ -25,7 +24,7 @@ use crate::{
     },
 };
 use obj::{load_obj, TexturedVertex};
-use std::{collections::HashMap, fs::File, io::BufReader, num::NonZeroU32, sync::Arc};
+use std::{collections::HashMap, fs::File, io::BufReader, sync::Arc};
 use tracing::instrument;
 
 pub struct PopulationRenderer {
@@ -64,7 +63,7 @@ impl PopulationRenderer {
                                 view_dimension: wgpu::TextureViewDimension::D2Array,
                                 sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             },
-                            count: Some(NonZeroU32::new(TEXTURE_ATLAS_MAX).unwrap()),
+                            count: None,
                         },
                         wgpu::BindGroupLayoutEntry {
                             binding: 1,
@@ -98,39 +97,36 @@ impl PopulationRenderer {
         texture_manager: &TextureManager,
         bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::BindGroup {
-        let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
-            .texture_atlas_set
-            .gpu_texture_data_vec
-            .iter()
-            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
-            .collect();
+        let gpu_texture_data = &texture_manager
+            .texture_atlas
+            .as_ref()
+            .expect("texture atlas must be uploaded before bind group creation")
+            .gpu_texture_data;
 
-        let bind_group = gpu_context
+        gpu_context
             .device
             .create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Population Renderer Texture Bind Group"),
-                layout: &bind_group_layout,
+                label: Some("World Renderer Texture Bind Group"),
+                layout: bind_group_layout,
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
+                        resource: wgpu::BindingResource::TextureView(
+                            &gpu_texture_data.texture_view,
+                        ),
                     },
                     wgpu::BindGroupEntry {
                         binding: 1,
-                        resource: wgpu::BindingResource::Sampler(
-                            &texture_manager.texture_atlas_set.gpu_texture_data_vec[0].sampler,
-                        ),
+                        resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
                     },
                 ],
-            });
-
-        bind_group
+            })
     }
 
-    fn load_person_gpu_mesh_map(device: &wgpu::Device) -> HashMap<String, Arc<GpuMesh>> {
+    pub fn load_person_gpu_mesh_map(device: &wgpu::Device, population_renderer: &mut PopulationRenderer) {
         let mut person_gpu_mesh_map = HashMap::new();
 
-        let person_models_path = std::path::Path::new("assets/models/population");
+        let person_models_path = std::path::Path::new("assets/models/person/");
 
         let mut person_models_directory_iterator = std::fs::read_dir(person_models_path)
             .expect("Failed to read Population models directory");
@@ -174,7 +170,7 @@ impl PopulationRenderer {
             }
         }
 
-        person_gpu_mesh_map
+        population_renderer.person_gpu_mesh_map = person_gpu_mesh_map;
     }
 
     fn create_render_pipeline(
@@ -186,9 +182,9 @@ impl PopulationRenderer {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Population Vertex Shader"),
+                    label: Some("Person Vertex Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/population.vert.wgsl").into(),
+                        include_assets!("shaders/person.vert.wgsl").into(),
                     ),
                 });
 
@@ -196,9 +192,9 @@ impl PopulationRenderer {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Population Fragment Shader"),
+                    label: Some("Person Fragment Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/population.frag.wgsl").into(),
+                        include_assets!("shaders/person.frag.wgsl").into(),
                     ),
                 });
 
@@ -206,7 +202,7 @@ impl PopulationRenderer {
             gpu_context
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Population Render Pipeline Layout"),
+                    label: Some("Person Render Pipeline Layout"),
                     bind_group_layouts: &[
                         camera_bind_group_layout,
                         person_texture_bind_group_layout,
@@ -217,7 +213,7 @@ impl PopulationRenderer {
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Population Render Pipeline"),
+                label: Some("Person Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
@@ -282,22 +278,27 @@ impl PopulationRenderer {
             let rotation_xy = person_view.transform.rotation_xy;
 
             let person_texture_name = RenderCatalog::get_person_texture_name(
-                &person_view.identity.skin_tone,
+                &person_view.appearance.skin_tone,
                 render_context.render_catalog,
             );
 
-            let texture_location = TextureManager::get_texture_location(
-                person_texture_name,
-                render_context.texture_manager,
-            )
-            .expect("failed to get texture location for person");
+            let texture_atlas = render_context
+                .texture_manager
+                .texture_atlas
+                .as_ref()
+                .expect("Texture atlas should be available during run");
+
+            let texture_layer_index = texture_atlas
+                .name_layer_index_map
+                .get(person_texture_name)
+                .expect("All blocks should have textures available")
+                .clone();
 
             let person_instance_data = PersonInstanceData::new(
                 world_position,
                 person_scale,
                 rotation_xy,
-                texture_location.atlas_index as u32,
-                texture_location.layer_index as u32,
+                texture_layer_index.into(),
             );
 
             let person_model_name = person_view.identity.sex.to_string();

@@ -13,6 +13,7 @@ use crate::{
         state::{
             physics::body::{body_label::BodyLabel, Body},
             population::{
+                identity::sex::Sex,
                 nation::{nation_kind::NationKind, Nation},
                 person::{person_id::PersonID, Person},
             },
@@ -89,8 +90,8 @@ impl Population {
         let mut person = Person::new(person_id);
 
         person.identity.sex = match gen_bool(&mut population.rng) {
-            true => identity::Sex::Female,
-            false => identity::Sex::Male,
+            true => Sex::Female,
+            false => Sex::Male,
         };
 
         let person_radius = Vec3::new(

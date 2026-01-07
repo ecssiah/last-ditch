@@ -7,7 +7,7 @@ use crate::{
     include_assets,
     interface::{
         camera::Camera,
-        constants::{TEXTURE_ATLAS_MAX, WINDOW_CLEAR_COLOR},
+        constants::*,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
         renderer::{
             render_context::RenderContext,
@@ -20,10 +20,7 @@ use crate::{
         supervisor::viewer::view::{SectorView, WorldView},
     },
 };
-use std::{
-    collections::{hash_map::Entry, HashMap, HashSet},
-    num::NonZeroU32,
-};
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::instrument;
 
 pub struct WorldRenderer {
@@ -52,7 +49,7 @@ impl WorldRenderer {
                                 view_dimension: wgpu::TextureViewDimension::D2Array,
                                 sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             },
-                            count: Some(NonZeroU32::new(TEXTURE_ATLAS_MAX).unwrap()),
+                            count: None,
                         },
                         wgpu::BindGroupLayoutEntry {
                             binding: 1,
@@ -93,33 +90,30 @@ impl WorldRenderer {
         texture_manager: &TextureManager,
         bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::BindGroup {
-        let texture_view_vec: Vec<&wgpu::TextureView> = texture_manager
-            .texture_atlas_set
-            .gpu_texture_data_vec
-            .iter()
-            .map(|gpu_texture_data| &gpu_texture_data.texture_view)
-            .collect();
+        let gpu_texture_data = &texture_manager
+            .texture_atlas
+            .as_ref()
+            .expect("texture atlas must be uploaded before bind group creation")
+            .gpu_texture_data;
 
-        let bind_group = gpu_context
+        gpu_context
             .device
             .create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("World Renderer Texture Bind Group"),
-                layout: &bind_group_layout,
+                layout: bind_group_layout,
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::TextureViewArray(&texture_view_vec),
+                        resource: wgpu::BindingResource::TextureView(
+                            &gpu_texture_data.texture_view,
+                        ),
                     },
                     wgpu::BindGroupEntry {
                         binding: 1,
-                        resource: wgpu::BindingResource::Sampler(
-                            &texture_manager.texture_atlas_set.gpu_texture_data_vec[0].sampler,
-                        ),
+                        resource: wgpu::BindingResource::Sampler(&gpu_texture_data.sampler),
                     },
                 ],
-            });
-
-        bind_group
+            })
     }
 
     fn create_render_pipeline(

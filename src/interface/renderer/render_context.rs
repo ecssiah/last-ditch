@@ -3,6 +3,6 @@ use crate::interface::renderer::{
 };
 
 pub struct RenderContext<'a> {
-    pub render_catalog: &'a RenderCatalog,
+    pub render_catalog: &'a RenderCatalog<'a>,
     pub texture_manager: &'a TextureManager,
 }

@@ -4,7 +4,8 @@ use crate::{
         state::{
             physics::body::{body_label::BodyLabel, Body},
             population::{
-                identity, motion,
+                identity::sex::Sex,
+                motion,
                 nation::nation_kind::NationKind,
                 person::{person_id::PersonID, Person},
                 sight::Sight,
@@ -163,9 +164,9 @@ impl GenerateData {
                 let mut person = Population::generate_person(population);
 
                 person.identity.sex = if index <= NATION_INITIAL_POPULATION / 2 {
-                    identity::Sex::Female
+                    Sex::Female
                 } else {
-                    identity::Sex::Male
+                    Sex::Male
                 };
 
                 let temple_radius_x = TEMPLE_RADIUS_X as i32;

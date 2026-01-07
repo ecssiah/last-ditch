@@ -25,7 +25,10 @@ use crate::{
                 person::{person_id::PersonID, Person},
                 Population,
             },
-            world::grid::{self, axis::Axis},
+            world::{
+                block::{block_kind::BlockKind, block_state::block_type::BlockType},
+                grid::{self, axis::Axis},
+            },
             World,
         },
     },
@@ -137,7 +140,7 @@ impl Physics {
         let delta_axis_unit = Axis::unit(delta_axis);
         let delta_intent_sign = delta_intent.signum();
 
-        let normal = delta_axis_unit * -delta_intent_sign;
+        // let normal = delta_axis_unit * -delta_intent_sign;
 
         for _ in 0..COLLISION_RESOLVE_ITERATIONS {
             let t_mid = 0.5 * (t_min + t_max);
@@ -206,15 +209,38 @@ impl Physics {
         let mut hit_vec = Vec::with_capacity(overlap_grid_positions.len());
 
         for grid_position in overlap_grid_positions {
-            if World::is_block_solid_at(grid_position, world) {
-                let contact_point = Vec3::from(grid_position);
+            if let Some(block) = World::get_block(grid_position, &world.sector_vec) {
+                match block.block_state.block_type {
+                    BlockType::Block => {
+                        let contact_point = Vec3::from(grid_position);
 
-                let hit = Hit {
-                    collider_kind: ColliderKind::Solid,
-                    contact_point,
-                };
+                        let hit = Hit {
+                            collider_kind: ColliderKind::Solid,
+                            contact_point,
+                        };
 
-                hit_vec.push(hit);
+                        hit_vec.push(hit);
+                    }
+                    _ => {
+                        let block_float_box_array = BlockKind::get_collider_shape_array(
+                            &block.block_state,
+                            &block.block_kind,
+                        );
+
+                        for block_float_box in block_float_box_array {
+                            if FloatBox::overlap(float_box, block_float_box) {
+                                let contact_point = Vec3::from(grid_position);
+
+                                let hit = Hit {
+                                    collider_kind: ColliderKind::Solid,
+                                    contact_point,
+                                };
+
+                                hit_vec.push(hit);
+                            }
+                        }
+                    }
+                }
             }
         }
 

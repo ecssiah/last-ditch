@@ -3,7 +3,10 @@ pub mod person_id;
 use crate::simulation::state::{
     physics::body::Body,
     population::{
-        identity::Identity, motion::Motion, person::person_id::PersonID, sight::Sight,
+        identity::{appearance::Appearance, Identity},
+        motion::Motion,
+        person::person_id::PersonID,
+        sight::Sight,
         transform::Transform,
     },
     world::block::block_kind::BlockKind,
@@ -13,6 +16,7 @@ use ultraviolet::Vec3;
 pub struct Person {
     pub person_id: PersonID,
     pub identity: Identity,
+    pub appearance: Appearance,
     pub transform: Transform,
     pub motion: Motion,
     pub body: Body,
@@ -23,6 +27,7 @@ pub struct Person {
 impl Person {
     pub fn new(person_id: PersonID) -> Self {
         let identity = Identity::default();
+        let appearance = Appearance::default();
         let transform = Transform::default();
         let motion = Motion::default();
         let body = Body::default();
@@ -33,6 +38,7 @@ impl Person {
         Self {
             person_id,
             identity,
+            appearance,
             transform,
             motion,
             body,

@@ -1,14 +1,12 @@
 use crate::simulation::state::world::block::block_kind::BlockKind;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct BlockKey {
-    block_kind: BlockKind,
+pub struct BlockKey<'a> {
+    block_kind: &'a BlockKind,
 }
 
-impl BlockKey {
-    pub fn new(block_kind: &BlockKind) -> Self {
-        Self {
-            block_kind: block_kind.clone(),
-        }
+impl<'a> BlockKey<'a> {
+    pub fn new(block_kind: &'a BlockKind) -> Self {
+        Self { block_kind }
     }
 }
