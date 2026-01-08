@@ -1,9 +1,9 @@
-use crate::simulation::state::world::{block::Block, grid, sector::Sector};
+use crate::simulation::state::world::{block::Block, grid, sector::{Sector, sector_index::SectorIndex}};
 use ultraviolet::Vec3;
 
 #[derive(Clone)]
 pub struct SectorView {
-    pub sector_index: usize,
+    pub sector_index: SectorIndex,
     pub version: u64,
     pub world_position: Vec3,
     pub block_vec: Vec<Option<Block>>,

@@ -1,6 +1,11 @@
 use crate::simulation::state::{
     physics::body::Body,
-    population::{identity::{Identity, appearance::Appearance}, motion::Motion, sight::Sight, transform::Transform},
+    population::{
+        identity::{appearance::Appearance, Identity},
+        motion::Motion,
+        sight::Sight,
+        transform::Transform,
+    },
     world::block::block_kind::BlockKind,
 };
 

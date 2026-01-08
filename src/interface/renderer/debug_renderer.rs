@@ -351,7 +351,7 @@ impl DebugRenderer {
     pub fn render(
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
-        debug_renderer: &mut Self,
+        debug_renderer: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         if !debug_renderer.debug_active || debug_renderer.vertex_vec.is_empty() {

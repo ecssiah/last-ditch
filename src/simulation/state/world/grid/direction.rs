@@ -33,6 +33,17 @@ impl Direction {
         }
     }
 
+    pub fn to_array(direction: &Self) -> [f32; 3] {
+        match direction {
+            Self::North => [0.0, 1.0, 0.0],
+            Self::West => [-1.0, 0.0, 0.0],
+            Self::South => [0.0, -1.0, 0.0],
+            Self::East => [1.0, 0.0, 0.0],
+            Self::Up => [0.0, 0.0, 1.0],
+            Self::Down => [0.0, 0.0, -1.0],
+        }
+    }
+
     pub fn to_ivec3(direction: &Self) -> IVec3 {
         match direction {
             Self::North => IVec3::new(0, 1, 0),

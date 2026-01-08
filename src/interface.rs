@@ -1,6 +1,7 @@
 //! User interaction
 
 pub mod app;
+pub mod asset_manager;
 pub mod camera;
 pub mod constants;
 pub mod gpu;
@@ -11,6 +12,7 @@ pub mod renderer;
 
 use crate::{
     interface::{
+        asset_manager::{asset_status::AssetStatus, AssetManager},
         camera::Camera,
         constants::*,
         gpu::gpu_context::GPUContext,
@@ -18,13 +20,8 @@ use crate::{
         input::Input,
         interface_mode::InterfaceMode,
         renderer::{
-            debug_renderer::DebugRenderer,
-            population_renderer::PopulationRenderer,
-            render_catalog::RenderCatalog,
-            render_context::RenderContext,
-            texture::{texture_load_status::TextureLoadStatus, texture_manager::TextureManager},
-            world_renderer::WorldRenderer,
-            Renderer,
+            debug_renderer::DebugRenderer, population_renderer::PopulationRenderer,
+            world_renderer::WorldRenderer, Renderer,
         },
     },
     simulation::{
@@ -45,10 +42,9 @@ pub struct Interface<'window> {
     pub interface_mode: InterfaceMode,
     pub last_instant: Instant,
     pub message_tx: crossbeam::channel::Sender<Message>,
+    pub asset_manager: AssetManager<'window>,
     pub input: Input,
     pub camera: Camera,
-    pub render_catalog: RenderCatalog<'window>,
-    pub texture_manager: TextureManager,
     pub gui: GUI,
     pub renderer: Renderer,
     pub gpu_context: GPUContext<'window>,
@@ -174,8 +170,7 @@ impl<'window> Interface<'window> {
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
 
-        let texture_manager = TextureManager::new(&gpu_context);
-        let render_catalog = RenderCatalog::new();
+        let asset_manager = AssetManager::new(&gpu_context);
 
         let gui = GUI::new();
 
@@ -187,10 +182,9 @@ impl<'window> Interface<'window> {
             interface_mode,
             last_instant,
             message_tx,
+            asset_manager,
             input,
             camera,
-            texture_manager,
-            render_catalog,
             gui,
             renderer,
             gpu_context,
@@ -213,25 +207,20 @@ impl<'window> Interface<'window> {
             return;
         }
 
-        let render_context = &RenderContext {
-            render_catalog: &interface.render_catalog,
-            texture_manager: &interface.texture_manager,
-        };
-
         GUI::apply_view(&interface.interface_mode, view, &mut interface.gui);
 
         match interface.interface_mode {
             InterfaceMode::Setup => Self::update_setup_mode(
                 &mut interface.gpu_context,
                 &mut interface.interface_mode,
-                &mut interface.texture_manager,
+                &mut interface.asset_manager,
                 &mut interface.renderer,
             ),
             InterfaceMode::Menu => Self::update_menu_mode(),
             InterfaceMode::Run => Self::update_run_mode(
                 view,
                 &interface.gpu_context,
-                render_context,
+                &interface.asset_manager,
                 &mut interface.camera,
                 &mut interface.renderer,
             ),
@@ -282,25 +271,23 @@ impl<'window> Interface<'window> {
     fn update_setup_mode(
         gpu_context: &mut GPUContext,
         interface_mode: &mut InterfaceMode,
-        texture_manager: &mut TextureManager,
+        asset_manager: &mut AssetManager,
         renderer: &mut Renderer,
     ) {
-        match &texture_manager.texture_load_status {
-            TextureLoadStatus::Idle => {
-                TextureManager::load(texture_manager);
+        match &asset_manager.asset_status {
+            AssetStatus::Init => {
+                AssetManager::init_texture_loading(asset_manager);
             }
-            TextureLoadStatus::Loading => {
-                TextureManager::update(gpu_context, texture_manager);
+            AssetStatus::LoadingTextures => {
+                AssetManager::update_texture_loading(gpu_context, asset_manager);
             }
-            TextureLoadStatus::Complete => {
-                Renderer::setup_bind_groups(gpu_context, texture_manager, renderer);
+            AssetStatus::LoadingModels => {
+                AssetManager::update_model_loading(gpu_context, asset_manager);
+            }
+            AssetStatus::Complete => {
+                Renderer::setup_bind_groups(gpu_context, asset_manager, renderer);
 
-                PopulationRenderer::load_person_gpu_mesh_map(
-                    &gpu_context.device,
-                    &mut renderer.population_renderer,
-                );
-
-                *interface_mode = InterfaceMode::Run;
+                *interface_mode = InterfaceMode::Menu;
             }
         }
     }
@@ -312,7 +299,7 @@ impl<'window> Interface<'window> {
     fn update_run_mode(
         view: &View,
         gpu_context: &GPUContext,
-        render_context: &RenderContext,
+        asset_manager: &AssetManager,
         camera: &mut Camera,
         renderer: &mut Renderer,
     ) {
@@ -320,15 +307,15 @@ impl<'window> Interface<'window> {
 
         WorldRenderer::apply_world_view(
             gpu_context,
-            render_context,
             camera,
+            asset_manager,
             &view.world_view,
             &mut renderer.world_renderer,
         );
 
         PopulationRenderer::apply_population_view(
             gpu_context,
-            render_context,
+            asset_manager,
             &view.population_view,
             &mut renderer.population_renderer,
         );
@@ -338,16 +325,11 @@ impl<'window> Interface<'window> {
 
     #[instrument(skip_all)]
     pub fn handle_window_event(event: &WindowEvent, interface: &mut Self) {
-        let render_context = &RenderContext {
-            render_catalog: &interface.render_catalog,
-            texture_manager: &interface.texture_manager,
-        };
-
         match event {
             WindowEvent::RedrawRequested => Self::render(
                 &interface.interface_mode,
                 &interface.camera,
-                render_context,
+                &interface.asset_manager,
                 &mut interface.gpu_context,
                 &mut interface.gui,
                 &mut interface.renderer,
@@ -382,7 +364,7 @@ impl<'window> Interface<'window> {
     fn render(
         interface_mode: &InterfaceMode,
         camera: &Camera,
-        render_context: &RenderContext,
+        asset_manager: &AssetManager,
         gpu_context: &mut GPUContext,
         gui: &mut GUI,
         renderer: &mut Renderer,
@@ -391,24 +373,20 @@ impl<'window> Interface<'window> {
             .device
             .create_command_encoder(&Default::default());
 
-        let surface_texture = TextureManager::get_surface_texture(gpu_context);
+        let surface_texture = AssetManager::get_surface_texture(gpu_context);
 
         let surface_texture_view = surface_texture
             .texture
             .create_view(&gpu_context.texture_view_descriptor);
 
-        match interface_mode {
-            InterfaceMode::Setup => (),
-            InterfaceMode::Menu => (),
-            InterfaceMode::Run => Self::render_run_mode(
-                &surface_texture_view,
-                camera,
-                gpu_context,
-                render_context,
-                renderer,
-                &mut encoder,
-            ),
-        }
+        Renderer::render(
+            interface_mode,
+            &surface_texture_view,
+            camera,
+            gpu_context,
+            asset_manager,
+            renderer, &mut encoder
+        );
 
         GUI::render(
             interface_mode,
@@ -427,39 +405,6 @@ impl<'window> Interface<'window> {
         gpu_context.window_arc.pre_present_notify();
 
         surface_texture.present();
-    }
-
-    fn render_run_mode(
-        surface_texture_view: &wgpu::TextureView,
-        camera: &Camera,
-        gpu_context: &mut GPUContext,
-        render_context: &RenderContext,
-        renderer: &mut Renderer,
-        encoder: &mut wgpu::CommandEncoder,
-    ) {
-        WorldRenderer::render(
-            &surface_texture_view,
-            &render_context.texture_manager.depth_texture_view,
-            &camera.uniform_bind_group,
-            &renderer.world_renderer,
-            encoder,
-        );
-
-        PopulationRenderer::render(
-            &surface_texture_view,
-            &render_context.texture_manager.depth_texture_view,
-            gpu_context,
-            &camera.uniform_bind_group,
-            &renderer.population_renderer,
-            encoder,
-        );
-
-        DebugRenderer::render(
-            &surface_texture_view,
-            &render_context.texture_manager.depth_texture_view,
-            &mut renderer.debug_renderer,
-            encoder,
-        );
     }
 
     fn handle_resized(size: winit::dpi::PhysicalSize<u32>, gpu_context: &mut GPUContext) {

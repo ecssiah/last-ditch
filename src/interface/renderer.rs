@@ -1,16 +1,16 @@
 pub mod debug_renderer;
 pub mod population_renderer;
-pub mod render_catalog;
-pub mod render_context;
-pub mod texture;
 pub mod world_renderer;
 
 use crate::interface::{
+    asset_manager::AssetManager,
     camera::Camera,
     gpu::gpu_context::GPUContext,
+    interface_mode::InterfaceMode,
     renderer::{
-        debug_renderer::DebugRenderer, population_renderer::PopulationRenderer,
-        texture::texture_manager::TextureManager, world_renderer::WorldRenderer,
+        debug_renderer::DebugRenderer,
+        population_renderer::{person_renderer::PersonRenderer, PopulationRenderer},
+        world_renderer::{sector_renderer::SectorRenderer, WorldRenderer},
     },
 };
 
@@ -35,23 +35,88 @@ impl Renderer {
 
     pub fn setup_bind_groups(
         gpu_context: &GPUContext,
-        texture_manager: &TextureManager,
+        asset_manager: &AssetManager,
         renderer: &mut Self,
     ) {
-        let world_renderer_bind_group = WorldRenderer::setup_bind_group(
+        let sector_renderer_bind_group = SectorRenderer::setup_bind_group(
             gpu_context,
-            texture_manager,
-            &renderer.world_renderer.bind_group_layout,
+            asset_manager,
+            &renderer.world_renderer.sector_renderer.bind_group_layout,
         );
 
-        renderer.world_renderer.bind_group = Some(world_renderer_bind_group);
+        renderer.world_renderer.sector_renderer.bind_group = Some(sector_renderer_bind_group);
 
-        let population_renderer_bind_group = PopulationRenderer::setup_bind_group(
+        let person_renderer_bind_group = PersonRenderer::setup_bind_group(
             gpu_context,
-            texture_manager,
-            &renderer.population_renderer.bind_group_layout,
+            asset_manager,
+            &renderer
+                .population_renderer
+                .person_renderer
+                .bind_group_layout,
         );
 
-        renderer.population_renderer.bind_group = Some(population_renderer_bind_group);
+        renderer.population_renderer.person_renderer.bind_group = Some(person_renderer_bind_group);
+    }
+
+    pub fn render(
+        interface_mode: &InterfaceMode,
+        surface_texture_view: &wgpu::TextureView,
+        camera: &Camera,
+        gpu_context: &mut GPUContext,
+        asset_manager: &AssetManager,
+        renderer: &Renderer,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        match interface_mode {
+            InterfaceMode::Setup => (),
+            InterfaceMode::Menu => (),
+            InterfaceMode::Run => Self::render_run_mode(
+                &surface_texture_view,
+                camera,
+                gpu_context,
+                asset_manager,
+                renderer,
+                encoder,
+            ),
+        }
+    }
+
+    fn render_setup_mode() {}
+
+    fn render_menu_mode() {}
+
+    fn render_run_mode(
+        surface_texture_view: &wgpu::TextureView,
+        camera: &Camera,
+        gpu_context: &mut GPUContext,
+        asset_manager: &AssetManager,
+        renderer: &Renderer,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        WorldRenderer::render(
+            &surface_texture_view,
+            &asset_manager.depth_texture_view,
+            &camera.uniform_bind_group,
+            asset_manager,
+            &renderer.world_renderer,
+            encoder,
+        );
+
+        PopulationRenderer::render(
+            &surface_texture_view,
+            &asset_manager.depth_texture_view,
+            gpu_context,
+            &camera.uniform_bind_group,
+            asset_manager,
+            &renderer.population_renderer,
+            encoder,
+        );
+
+        DebugRenderer::render(
+            &surface_texture_view,
+            &asset_manager.depth_texture_view,
+            &renderer.debug_renderer,
+            encoder,
+        );
     }
 }

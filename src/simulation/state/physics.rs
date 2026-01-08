@@ -222,7 +222,7 @@ impl Physics {
                         hit_vec.push(hit);
                     }
                     _ => {
-                        let block_float_box_array = BlockKind::get_collider_shape_array(
+                        let block_float_box_array = BlockKind::get_float_box_array(
                             &block.block_state,
                             &block.block_kind,
                         );

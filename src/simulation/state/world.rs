@@ -2,6 +2,7 @@
 
 pub mod area;
 pub mod block;
+pub mod cell;
 pub mod grid;
 pub mod sector;
 pub mod tower;
@@ -13,8 +14,9 @@ use crate::{
             world::{
                 area::{area_id::AreaID, Area, AreaKind},
                 block::{block_kind::BlockKind, Block},
+                cell::cell_index::CellIndex,
                 grid::{direction_set::DirectionSet, Direction},
-                sector::Sector,
+                sector::{sector_index::SectorIndex, Sector},
                 tower::Tower,
             },
             Time,
@@ -84,7 +86,7 @@ impl World {
 
                 Sector {
                     version,
-                    sector_index,
+                    sector_index: sector_index,
                     grid_position,
                     block_vec,
                 }
@@ -95,7 +97,7 @@ impl World {
     pub fn get_sector(grid_position: IVec3, sector_vec_slice: &[Sector]) -> &Sector {
         let sector_index = grid::grid_position_to_sector_index(grid_position);
 
-        let sector = &sector_vec_slice[sector_index];
+        let sector = Self::get_sector_by_index(&sector_index, sector_vec_slice);
 
         sector
     }
@@ -103,16 +105,30 @@ impl World {
     pub fn get_sector_mut(grid_position: IVec3, sector_vec_slice: &mut [Sector]) -> &mut Sector {
         let sector_index = grid::grid_position_to_sector_index(grid_position);
 
-        let sector = &mut sector_vec_slice[sector_index];
+        let sector = Self::get_sector_mut_by_index(&sector_index, sector_vec_slice);
 
         sector
+    }
+
+    pub fn get_sector_by_index<'a>(
+        sector_index: &SectorIndex,
+        sector_vec_slice: &'a [Sector],
+    ) -> &'a Sector {
+        &sector_vec_slice[SectorIndex::as_index(sector_index)]
+    }
+
+    pub fn get_sector_mut_by_index<'a>(
+        sector_index: &SectorIndex,
+        sector_vec_slice: &'a mut [Sector],
+    ) -> &'a mut Sector {
+        &mut sector_vec_slice[SectorIndex::as_index(sector_index)]
     }
 
     pub fn get_block(grid_position: IVec3, sector_vec_slice: &[Sector]) -> Option<&Block> {
         if grid::grid_position_is_valid(grid_position) {
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
-            let sector = &sector_vec_slice[sector_index];
+            let sector: &Sector = &sector_vec_slice[SectorIndex::as_index(&sector_index)];
 
             Sector::get_block(cell_index, &sector.block_vec)
         } else {
@@ -127,7 +143,7 @@ impl World {
         if grid::grid_position_is_valid(grid_position) {
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
-            let sector = &mut sector_vec_slice[sector_index];
+            let sector = &mut sector_vec_slice[SectorIndex::as_index(&sector_index)];
 
             Sector::get_block_mut(cell_index, &mut sector.block_vec)
         } else {
@@ -168,8 +184,8 @@ impl World {
 
             let block = Block::new(block_kind, &block_state);
 
-            let sector = &mut world.sector_vec[sector_index];
-            sector.block_vec[cell_index] = Some(block);
+            let sector = &mut world.sector_vec[SectorIndex::as_index(&sector_index)];
+            sector.block_vec[CellIndex::as_index(&cell_index)] = Some(block);
             sector.version += 1;
         }
     }
@@ -286,9 +302,9 @@ impl World {
 
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
 
-            let sector = &mut world.sector_vec[sector_index];
+            let sector = &mut world.sector_vec[SectorIndex::as_index(&sector_index)];
 
-            sector.block_vec[cell_index] = None;
+            sector.block_vec[CellIndex::as_index(&cell_index)] = None;
             sector.version += 1;
         }
     }

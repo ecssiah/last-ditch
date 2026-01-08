@@ -1,5 +1,5 @@
-use ultraviolet::Vec3;
 use crate::{simulation::constants::*, utils::ldmath::FloatBox};
+use ultraviolet::Vec3;
 
 pub const EMPTY_SHAPE_ARRAY: [FloatBox; 0] = [];
 

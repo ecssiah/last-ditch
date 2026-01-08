@@ -5,16 +5,13 @@ pub mod view;
 
 use crate::simulation::{
     state::{
-        population::person::person_id::PersonID,
-        world::{
+        State, World, population::person::person_id::PersonID, world::{
             grid::{self},
-            sector::Sector,
-        },
-        State,
+            sector::{Sector, sector_index::SectorIndex},
+        }
     },
     supervisor::{
-        viewer::view::{PersonView, PopulationView, SectorView, SupervisorView, View, WorldView},
-        Supervisor,
+        Supervisor, viewer::view::{PersonView, PopulationView, SectorView, SupervisorView, View, WorldView}
     },
 };
 use std::collections::HashMap;
@@ -23,8 +20,8 @@ use ultraviolet::IVec3;
 
 pub struct Viewer {
     pub view_input: triple_buffer::Input<View>,
-    pub sector_version_map: HashMap<usize, u64>,
-    pub sector_view_cache: HashMap<usize, SectorView>,
+    pub sector_version_map: HashMap<SectorIndex, u64>,
+    pub sector_view_cache: HashMap<SectorIndex, SectorView>,
 }
 
 impl Viewer {
@@ -110,8 +107,8 @@ impl Viewer {
     #[instrument(skip_all)]
     fn update_world_view(
         state: &State,
-        sector_version_map: &mut HashMap<usize, u64>,
-        sector_view_cache: &mut HashMap<usize, SectorView>,
+        sector_version_map: &mut HashMap<SectorIndex, u64>,
+        sector_view_cache: &mut HashMap<SectorIndex, SectorView>,
     ) -> WorldView {
         let mut world_view = WorldView::default();
 
@@ -130,7 +127,7 @@ impl Viewer {
                             let sector_index =
                                 grid::sector_coordinate_to_sector_index(sector_coordinate);
 
-                            let sector = &state.world.sector_vec[sector_index];
+                            let sector = World::get_sector_by_index(&sector_index, &state.world.sector_vec);
 
                             let sector_view = Self::get_sector_view(
                                 sector,
@@ -153,8 +150,8 @@ impl Viewer {
     #[instrument(skip_all)]
     fn get_sector_view(
         sector: &Sector,
-        sector_version_map: &mut HashMap<usize, u64>,
-        sector_view_cache: &mut HashMap<usize, SectorView>,
+        sector_version_map: &mut HashMap<SectorIndex, u64>,
+        sector_view_cache: &mut HashMap<SectorIndex, SectorView>,
     ) -> SectorView {
         let needs_rebuild = match sector_version_map.get(&sector.sector_index) {
             Some(current_version) => *current_version != sector.version,

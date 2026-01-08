@@ -33,6 +33,7 @@ use ultraviolet::Vec3;
 
 pub struct Supervisor {
     pub supervisor_status: SupervisorStatus,
+    pub evolution_rate: f32,
     pub timestep: Timestep,
     pub viewer: Viewer,
     pub message_limit: usize,
@@ -46,12 +47,15 @@ impl Supervisor {
     ) -> Self {
         let supervisor_status = SupervisorStatus::Start;
 
+        let evolution_rate = 1.0;
+
         let timestep = Timestep::new();
         let viewer = Viewer::new(view_input);
         let message_limit = OVERSEER_MESSAGE_LIMIT;
 
         Self {
             supervisor_status,
+            evolution_rate,
             timestep,
             viewer,
             message_limit,
@@ -102,9 +106,7 @@ impl Supervisor {
         }
     }
 
-    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {
-        
-    }
+    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
 
     fn handle_run_message(message: &Message, state: &mut State, supervisor: &mut Self) {
         match message {
@@ -224,7 +226,8 @@ impl Supervisor {
 
     fn handle_option1_message(state: &mut State) {
         if let Some(judge) = state.population.person_map.get_mut(&PersonID::JUDGE_ID_1) {
-            judge.selected_block_kind = BlockKind::get_previous_block_kind(&judge.selected_block_kind);
+            judge.selected_block_kind =
+                BlockKind::get_previous_block_kind(&judge.selected_block_kind);
         }
     }
 

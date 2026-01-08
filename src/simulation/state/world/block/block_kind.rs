@@ -247,7 +247,7 @@ impl BlockKind {
         }
     }
 
-    pub fn get_collider_shape_array(
+    pub fn get_float_box_array(
         block_state: &BlockState,
         block_kind: &Self,
     ) -> &'static [FloatBox] {

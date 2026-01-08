@@ -10,59 +10,66 @@ pub use line::Line;
 pub use quadrant::Quadrant;
 
 use crate::{
-    simulation::constants::*,
+    simulation::{
+        constants::*,
+        state::world::{cell::cell_index::CellIndex, sector::sector_index::SectorIndex},
+    },
     utils::ldmath::{ivec3_ext, FloatBox, IntBox},
 };
 use ultraviolet::{IVec3, Vec3};
 
 #[inline]
-pub fn cell_index_vec() -> Vec<usize> {
-    (0usize..SECTOR_VOLUME_IN_CELLS).collect()
+pub fn cell_index_vec() -> Vec<CellIndex> {
+    (0usize..SECTOR_VOLUME_IN_CELLS)
+        .map(|index| CellIndex::new(index))
+        .collect()
 }
 
 #[inline]
-pub fn sector_index_vec() -> Vec<usize> {
-    (0usize..WORLD_VOLUME_IN_SECTORS).collect()
+pub fn sector_index_vec() -> Vec<SectorIndex> {
+    (0usize..WORLD_VOLUME_IN_SECTORS)
+        .map(|index| SectorIndex::new(index))
+        .collect()
 }
 
 #[inline]
-pub fn cell_index_is_valid(id: usize) -> bool {
-    (0usize..SECTOR_VOLUME_IN_CELLS).contains(&id)
+pub fn cell_index_is_valid(cell_index: CellIndex) -> bool {
+    cell_index_vec().contains(&cell_index)
 }
 
 #[inline]
-pub fn sector_index_is_valid(id: usize) -> bool {
-    (0usize..WORLD_VOLUME_IN_SECTORS).contains(&id)
+pub fn sector_index_is_valid(sector_index: SectorIndex) -> bool {
+    sector_index_vec().contains(&sector_index)
 }
 
 #[inline]
-pub fn cell_coordinate_is_valid(coordinate: IVec3) -> bool {
+pub fn cell_coordinate_is_valid(cell_coordinate: IVec3) -> bool {
     let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
 
     let in_x_range =
-        coordinate.x >= -sector_radius_in_cells && coordinate.x <= sector_radius_in_cells;
+        cell_coordinate.x >= -sector_radius_in_cells && cell_coordinate.x <= sector_radius_in_cells;
 
     let in_y_range =
-        coordinate.y >= -sector_radius_in_cells && coordinate.y <= sector_radius_in_cells;
+        cell_coordinate.y >= -sector_radius_in_cells && cell_coordinate.y <= sector_radius_in_cells;
 
     let in_z_range =
-        coordinate.z >= -sector_radius_in_cells && coordinate.z <= sector_radius_in_cells;
+        cell_coordinate.z >= -sector_radius_in_cells && cell_coordinate.z <= sector_radius_in_cells;
 
     in_x_range && in_y_range && in_z_range
 }
 
 #[inline]
-pub fn sector_coordinate_is_valid(coordinate: IVec3) -> bool {
+pub fn sector_coordinate_is_valid(sector_coordinate: IVec3) -> bool {
     let world_radius_in_sectors = WORLD_RADIUS_IN_SECTORS as i32;
 
-    let in_x_range =
-        coordinate.x >= -world_radius_in_sectors && coordinate.x <= world_radius_in_sectors;
+    let in_x_range = sector_coordinate.x >= -world_radius_in_sectors
+        && sector_coordinate.x <= world_radius_in_sectors;
 
-    let in_y_range =
-        coordinate.y >= -world_radius_in_sectors && coordinate.y <= world_radius_in_sectors;
+    let in_y_range = sector_coordinate.y >= -world_radius_in_sectors
+        && sector_coordinate.y <= world_radius_in_sectors;
 
-    let in_z_range =
-        coordinate.z >= -world_radius_in_sectors && coordinate.z <= world_radius_in_sectors;
+    let in_z_range = sector_coordinate.z >= -world_radius_in_sectors
+        && sector_coordinate.z <= world_radius_in_sectors;
 
     in_x_range && in_y_range && in_z_range
 }
@@ -98,29 +105,37 @@ pub fn world_position_is_valid(world_position: Vec3) -> bool {
 }
 
 #[inline]
-pub fn cell_index_to_cell_coordinate(id: usize) -> IVec3 {
-    let cell_coordinate = ivec3_ext::index_to_ivec3(id, SECTOR_RADIUS_IN_CELLS);
+pub fn cell_index_to_cell_coordinate(cell_index: CellIndex) -> IVec3 {
+    let cell_coordinate =
+        ivec3_ext::index_to_ivec3(CellIndex::as_index(&cell_index), SECTOR_RADIUS_IN_CELLS);
 
     cell_coordinate
 }
 
 #[inline]
-pub fn cell_coordinate_to_cell_index(coordinate: IVec3) -> usize {
-    let cell_index = ivec3_ext::ivec3_to_index(coordinate, SECTOR_RADIUS_IN_CELLS);
+pub fn cell_coordinate_to_cell_index(coordinate: IVec3) -> CellIndex {
+    let index = ivec3_ext::ivec3_to_index(coordinate, SECTOR_RADIUS_IN_CELLS);
+
+    let cell_index = CellIndex::new(index);
 
     cell_index
 }
 
 #[inline]
-pub fn sector_index_to_sector_coordinate(sector_index: usize) -> IVec3 {
-    let sector_coordinate = ivec3_ext::index_to_ivec3(sector_index, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_index_to_sector_coordinate(sector_index: SectorIndex) -> IVec3 {
+    let sector_coordinate = ivec3_ext::index_to_ivec3(
+        SectorIndex::as_index(&sector_index),
+        WORLD_RADIUS_IN_SECTORS,
+    );
 
     sector_coordinate
 }
 
 #[inline]
-pub fn sector_coordinate_to_sector_index(sector_coordinate: IVec3) -> usize {
-    let sector_index = ivec3_ext::ivec3_to_index(sector_coordinate, WORLD_RADIUS_IN_SECTORS);
+pub fn sector_coordinate_to_sector_index(sector_coordinate: IVec3) -> SectorIndex {
+    let index = ivec3_ext::ivec3_to_index(sector_coordinate, WORLD_RADIUS_IN_SECTORS);
+
+    let sector_index = SectorIndex::new(index);
 
     sector_index
 }
@@ -133,7 +148,7 @@ pub fn sector_coordinate_to_grid_position(sector_coordinate: IVec3) -> IVec3 {
 }
 
 #[inline]
-pub fn sector_index_to_grid_position(sector_index: usize) -> IVec3 {
+pub fn sector_index_to_grid_position(sector_index: SectorIndex) -> IVec3 {
     let sector_coordinate = sector_index_to_sector_coordinate(sector_index);
 
     let grid_position = sector_coordinate_to_grid_position(sector_coordinate);
@@ -182,7 +197,7 @@ pub fn grid_position_to_cell_coordinate(grid_position: IVec3) -> IVec3 {
 }
 
 #[inline]
-pub fn grid_position_to_sector_index(grid_position: IVec3) -> usize {
+pub fn grid_position_to_sector_index(grid_position: IVec3) -> SectorIndex {
     let sector_coordinate = grid_position_to_sector_coordinate(grid_position);
 
     let sector_index = sector_coordinate_to_sector_index(sector_coordinate);
@@ -191,7 +206,7 @@ pub fn grid_position_to_sector_index(grid_position: IVec3) -> usize {
 }
 
 #[inline]
-pub fn grid_position_to_cell_index(grid_position: IVec3) -> usize {
+pub fn grid_position_to_cell_index(grid_position: IVec3) -> CellIndex {
     let cell_coordinate = grid_position_to_cell_coordinate(grid_position);
 
     let cell_index = cell_coordinate_to_cell_index(cell_coordinate);
@@ -200,7 +215,7 @@ pub fn grid_position_to_cell_index(grid_position: IVec3) -> usize {
 }
 
 #[inline]
-pub fn grid_position_to_indices(grid_position: IVec3) -> (usize, usize) {
+pub fn grid_position_to_indices(grid_position: IVec3) -> (SectorIndex, CellIndex) {
     let sector_index = grid_position_to_sector_index(grid_position);
     let cell_index = grid_position_to_cell_index(grid_position);
 
@@ -208,7 +223,7 @@ pub fn grid_position_to_indices(grid_position: IVec3) -> (usize, usize) {
 }
 
 #[inline]
-pub fn indices_to_grid_position(sector_index: usize, cell_index: usize) -> IVec3 {
+pub fn indices_to_grid_position(sector_index: SectorIndex, cell_index: CellIndex) -> IVec3 {
     let sector_coordinate = sector_index_to_sector_coordinate(sector_index);
     let cell_coordinate = cell_index_to_cell_coordinate(cell_index);
 
@@ -229,7 +244,7 @@ pub fn world_position_to_grid_position(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn world_position_to_sector_index(world_position: Vec3) -> usize {
+pub fn world_position_to_sector_index(world_position: Vec3) -> SectorIndex {
     let grid_position = world_position_to_grid_position(world_position);
 
     let sector_index = grid_position_to_sector_index(grid_position);
@@ -247,7 +262,7 @@ pub fn world_position_to_sector_coordinate(world_position: Vec3) -> IVec3 {
 }
 
 #[inline]
-pub fn world_position_to_cell_index(world_position: Vec3) -> usize {
+pub fn world_position_to_cell_index(world_position: Vec3) -> CellIndex {
     let grid_position = world_position_to_grid_position(world_position);
 
     let cell_index = grid_position_to_cell_index(grid_position);

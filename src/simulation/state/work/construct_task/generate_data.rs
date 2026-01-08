@@ -127,7 +127,7 @@ impl GenerateData {
             core_collider_radius,
             &mut judge.body,
         );
-        
+
         Body::add_collider(
             &BodyLabel::Ground,
             ground_collider_local_position,
