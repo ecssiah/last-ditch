@@ -102,7 +102,9 @@ impl Supervisor {
         }
     }
 
-    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
+    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {
+        
+    }
 
     fn handle_run_message(message: &Message, state: &mut State, supervisor: &mut Self) {
         match message {

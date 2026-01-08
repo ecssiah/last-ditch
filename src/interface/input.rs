@@ -162,13 +162,13 @@ impl Input {
     ) -> bool {
         if key_event.physical_key == PhysicalKey::Code(KeyCode::Tab) {
             if key_event.state == ElementState::Released {
-                GUI::toggle_menu_active(gui, gpu_context);
+                GUI::toggle_main_window_active(gui, gpu_context);
             }
 
             return true;
         }
 
-        if gui.menu_active {
+        if gui.run_model.main_window_active {
             return false;
         }
 
@@ -282,7 +282,7 @@ impl Input {
         gui: &GUI,
         message_deque: &mut VecDeque<Message>,
     ) -> bool {
-        if gui.menu_active {
+        if gui.run_model.main_window_active {
             return false;
         }
 
@@ -321,7 +321,7 @@ impl Input {
         mouse_inputs: &mut MouseInputs,
         _message_deque: &mut VecDeque<Message>,
     ) -> bool {
-        if gui.menu_active {
+        if gui.run_model.main_window_active {
             return false;
         }
 

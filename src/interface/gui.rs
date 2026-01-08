@@ -1,10 +1,14 @@
 //! Information displayed over World rendering
 
-pub mod gui_model;
+pub mod menu_model;
+pub mod run_model;
+pub mod setup_model;
 
 use crate::{
     interface::{
-        gpu::gpu_context::GPUContext, gui::gui_model::GUIModel, interface_mode::InterfaceMode,
+        gpu::gpu_context::GPUContext,
+        gui::{menu_model::MenuModel, run_model::RunModel, setup_model::SetupModel},
+        interface_mode::InterfaceMode,
     },
     simulation::{
         state::{
@@ -26,25 +30,30 @@ use winit::event::{DeviceEvent, WindowEvent};
 
 #[derive(Default)]
 pub struct GUI {
-    pub menu_active: bool,
-    pub gui_model: GUIModel,
+    pub setup_model: SetupModel,
+    pub menu_model: MenuModel,
+    pub run_model: RunModel,
     pub message_deque: VecDeque<Message>,
 }
 
 impl GUI {
     pub fn new() -> Self {
-        let menu_active = true;
-        let gui_model = GUIModel::new();
+        let setup_model = SetupModel::new();
+        let menu_model = MenuModel::new();
+        let run_model = RunModel::new();
+
         let message_deque = VecDeque::new();
 
         Self {
-            menu_active,
-            gui_model,
+            setup_model,
+            menu_model,
+            run_model,
             message_deque,
         }
     }
 
     fn get_full_output(
+        interface_mode: &InterfaceMode,
         window_arc: Arc<winit::window::Window>,
         egui_context: &egui::Context,
         egui_winit_state: &mut egui_winit::State,
@@ -55,7 +64,7 @@ impl GUI {
         let mut gui_work = std::mem::take(gui);
 
         let full_output: FullOutput = egui_context.run(raw_input, |context| {
-            Self::show(context, &mut gui_work);
+            Self::show(context, interface_mode, &mut gui_work);
         });
 
         *gui = gui_work;
@@ -63,21 +72,46 @@ impl GUI {
         full_output
     }
 
-    fn show(context: &egui::Context, gui: &mut Self) {
-        Self::show_hud(context, gui);
-        Self::show_menu(context, gui);
+    fn show(context: &egui::Context, interface_mode: &InterfaceMode, gui: &mut Self) {
+        match interface_mode {
+            InterfaceMode::Setup => Self::show_setup(context, gui),
+            InterfaceMode::Menu => {
+                Self::show_menu(context, gui);
+            }
+            InterfaceMode::Run => {
+                Self::show_hud(context, gui);
+                Self::show_main_window(context, gui);
+            }
+        }
+    }
+
+    fn show_setup(context: &egui::Context, gui: &mut Self) {
+        let screen_rect = context.available_rect();
+
+        let width = screen_rect.width() * 1.0;
+        let height = screen_rect.height() * 1.0;
+
+        egui::Area::new(egui::Id::new("setup_area"))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .show(context, |ui| {
+                egui::Frame::window(&context.style())
+                    .fill(egui::Color32::from_rgba_unmultiplied(20, 20, 20, 230))
+                    .corner_radius(5.0)
+                    .show(ui, |ui| {
+                        ui.set_min_size(egui::vec2(width, height));
+
+                        ui.add(egui::ProgressBar::new(gui.setup_model.progress));
+                    })
+            });
     }
 
     fn show_menu(context: &egui::Context, gui: &mut Self) {
-        if !gui.menu_active {
-            return;
-        }
-
         let screen_rect = context.available_rect();
+
         let width = screen_rect.width() * 0.9;
         let height = screen_rect.height() * 0.9;
 
-        egui::Area::new(egui::Id::new("main_menu_area"))
+        egui::Area::new(egui::Id::new("menu_area"))
             .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
             .show(context, |ui| {
                 egui::Frame::window(&context.style())
@@ -92,7 +126,7 @@ impl GUI {
                             ui.label("Seed:");
 
                             ui.add(
-                                egui::TextEdit::singleline(&mut gui.gui_model.seed_input_string)
+                                egui::TextEdit::singleline(&mut gui.menu_model.seed_input_string)
                                     .desired_width(120.0)
                                     .horizontal_align(egui::Align::Center),
                             );
@@ -105,7 +139,7 @@ impl GUI {
 
                             if generate_clicked {
                                 let seed_data = SeedData {
-                                    seed: Self::parse_seed(&gui.gui_model.seed_input_string),
+                                    seed: Self::parse_seed(&gui.menu_model.seed_input_string),
                                 };
 
                                 gui.message_deque.push_back(Message::SetSeed(seed_data));
@@ -126,8 +160,36 @@ impl GUI {
             });
     }
 
+    fn show_main_window(context: &egui::Context, gui: &mut Self) {
+        if !gui.run_model.main_window_active {
+            return;
+        }
+
+        let screen_rect = context.available_rect();
+
+        let width = screen_rect.width() * 0.9;
+        let height = screen_rect.height() * 0.9;
+
+        egui::Area::new(egui::Id::new("main_window_area"))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .show(context, |ui| {
+                egui::Frame::window(&context.style())
+                    .fill(egui::Color32::from_rgba_unmultiplied(20, 20, 20, 230))
+                    .corner_radius(5.0)
+                    .show(ui, |ui| {
+                        ui.set_min_size(egui::vec2(width, height));
+
+                        ui.vertical_centered(|ui| {
+                            ui.add_space(ui.available_height() * 0.3);
+
+                            ui.label("Rules");
+                        });
+                    });
+            });
+    }
+
     fn show_hud(context: &egui::Context, gui: &mut Self) {
-        if gui.menu_active {
+        if gui.run_model.main_window_active {
             return;
         }
 
@@ -137,8 +199,8 @@ impl GUI {
                 Self::show_crosshair(ui);
             });
 
-        if gui.gui_model.info_message_vec.len() > 0 {
-            let info_message = &gui.gui_model.info_message_vec[0];
+        if gui.run_model.info_message_vec.len() > 0 {
+            let info_message = &gui.run_model.info_message_vec[0];
 
             egui::Area::new(Id::new(1))
                 .anchor(egui::Align2::LEFT_TOP, egui::vec2(16.0, 16.0))
@@ -196,14 +258,22 @@ impl GUI {
     pub fn apply_view(interface_mode: &InterfaceMode, view: &View, gui: &mut Self) {
         match interface_mode {
             InterfaceMode::Setup => Self::apply_view_setup_mode(view, gui),
+            InterfaceMode::Menu => Self::apply_view_menu_mode(view, gui),
             InterfaceMode::Run => Self::apply_view_run_mode(view, gui),
         }
     }
 
     fn apply_view_setup_mode(_view: &View, _gui: &mut Self) {}
 
+    fn apply_view_menu_mode(_view: &View, _gui: &mut Self) {}
+
     fn apply_view_run_mode(view: &View, gui: &mut Self) {
-        if view.population_view.person_view_map.get(&PersonID::JUDGE_ID_1).is_none() {
+        if view
+            .population_view
+            .person_view_map
+            .get(&PersonID::JUDGE_ID_1)
+            .is_none()
+        {
             return;
         }
 
@@ -266,12 +336,13 @@ impl GUI {
         info_message.push_str(&motion_mode_string);
         info_message.push_str(&selected_block_kind_string);
 
-        gui.gui_model.info_message_vec.clear();
-        gui.gui_model.info_message_vec.push(info_message);
+        gui.run_model.info_message_vec.clear();
+        gui.run_model.info_message_vec.push(info_message);
     }
 
     #[instrument(skip_all)]
     pub fn render(
+        interface_mode: &InterfaceMode,
         surface_texture_view: &wgpu::TextureView,
         window_arc: Arc<winit::window::Window>,
         device: &wgpu::Device,
@@ -282,8 +353,13 @@ impl GUI {
         egui_renderer: &mut egui_wgpu::Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        let full_output =
-            Self::get_full_output(Arc::clone(&window_arc), egui_context, egui_winit_state, gui);
+        let full_output = Self::get_full_output(
+            interface_mode,
+            Arc::clone(&window_arc),
+            egui_context,
+            egui_winit_state,
+            gui,
+        );
 
         let paint_jobs = egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
@@ -334,10 +410,14 @@ impl GUI {
         event_response.consumed
     }
 
-    pub fn set_menu_active(menu_active: bool, gui: &mut Self, gpu_context: &mut GPUContext) {
-        gui.menu_active = menu_active;
+    pub fn set_main_window_active(
+        main_window_active: bool,
+        gpu_context: &mut GPUContext,
+        gui: &mut Self,
+    ) {
+        gui.run_model.main_window_active = main_window_active;
 
-        if menu_active {
+        if main_window_active {
             gpu_context.window_arc.set_cursor_visible(true);
 
             gpu_context
@@ -354,8 +434,8 @@ impl GUI {
         }
     }
 
-    pub fn toggle_menu_active(gui: &mut Self, gpu_context: &mut GPUContext) {
-        Self::set_menu_active(!gui.menu_active, gui, gpu_context);
+    pub fn toggle_main_window_active(gui: &mut Self, gpu_context: &mut GPUContext) {
+        Self::set_main_window_active(!gui.run_model.main_window_active, gpu_context, gui);
     }
 
     fn parse_seed(seed_string: &str) -> u64 {

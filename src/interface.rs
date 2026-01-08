@@ -227,6 +227,7 @@ impl<'window> Interface<'window> {
                 &mut interface.texture_manager,
                 &mut interface.renderer,
             ),
+            InterfaceMode::Menu => Self::update_menu_mode(),
             InterfaceMode::Run => Self::update_run_mode(
                 view,
                 &interface.gpu_context,
@@ -294,12 +295,18 @@ impl<'window> Interface<'window> {
             TextureLoadStatus::Complete => {
                 Renderer::setup_bind_groups(gpu_context, texture_manager, renderer);
 
-                PopulationRenderer::load_person_gpu_mesh_map(&gpu_context.device, &mut renderer.population_renderer);
+                PopulationRenderer::load_person_gpu_mesh_map(
+                    &gpu_context.device,
+                    &mut renderer.population_renderer,
+                );
 
                 *interface_mode = InterfaceMode::Run;
             }
         }
     }
+
+    #[instrument(skip_all)]
+    fn update_menu_mode() {}
 
     #[instrument(skip_all)]
     fn update_run_mode(
@@ -391,34 +398,21 @@ impl<'window> Interface<'window> {
             .create_view(&gpu_context.texture_view_descriptor);
 
         match interface_mode {
-            InterfaceMode::Setup => {
-                Self::render_setup_mode(&surface_texture_view, gpu_context, gui, &mut encoder)
-            }
+            InterfaceMode::Setup => (),
+            InterfaceMode::Menu => (),
             InterfaceMode::Run => Self::render_run_mode(
                 &surface_texture_view,
                 camera,
                 gpu_context,
                 render_context,
                 renderer,
-                gui,
                 &mut encoder,
             ),
         }
 
-        gpu_context.queue.submit([encoder.finish()]);
-        gpu_context.window_arc.pre_present_notify();
-
-        surface_texture.present();
-    }
-
-    fn render_setup_mode(
-        surface_texture_view: &wgpu::TextureView,
-        gpu_context: &mut GPUContext,
-        gui: &mut GUI,
-        encoder: &mut wgpu::CommandEncoder,
-    ) {
         GUI::render(
-            surface_texture_view,
+            interface_mode,
+            &surface_texture_view,
             Arc::clone(&gpu_context.window_arc),
             &gpu_context.device,
             &gpu_context.queue,
@@ -426,8 +420,13 @@ impl<'window> Interface<'window> {
             gui,
             &mut gpu_context.egui_winit_state,
             &mut gpu_context.egui_renderer,
-            encoder,
+            &mut encoder,
         );
+
+        gpu_context.queue.submit([encoder.finish()]);
+        gpu_context.window_arc.pre_present_notify();
+
+        surface_texture.present();
     }
 
     fn render_run_mode(
@@ -436,7 +435,6 @@ impl<'window> Interface<'window> {
         gpu_context: &mut GPUContext,
         render_context: &RenderContext,
         renderer: &mut Renderer,
-        gui: &mut GUI,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         WorldRenderer::render(
@@ -460,18 +458,6 @@ impl<'window> Interface<'window> {
             &surface_texture_view,
             &render_context.texture_manager.depth_texture_view,
             &mut renderer.debug_renderer,
-            encoder,
-        );
-
-        GUI::render(
-            &surface_texture_view,
-            Arc::clone(&gpu_context.window_arc),
-            &gpu_context.device,
-            &gpu_context.queue,
-            &gpu_context.egui_context,
-            gui,
-            &mut gpu_context.egui_winit_state,
-            &mut gpu_context.egui_renderer,
             encoder,
         );
     }
