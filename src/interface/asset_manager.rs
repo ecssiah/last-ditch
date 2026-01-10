@@ -21,12 +21,8 @@ use crate::{
         constants::*,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh, gpu_texture_data::GpuTextureData},
         renderer::{
-            population_renderer::person_renderer::{
-                person_model::PersonModel, person_vertex_data::PersonVertexData,
-            },
-            world_renderer::block_renderer::{
-                block_model::BlockModel, block_vertex_data::BlockVertexData,
-            },
+            block_renderer::{block_model::BlockModel, block_vertex_data::BlockVertexData},
+            person_renderer::{person_model::PersonModel, person_vertex_data::PersonVertexData},
         },
     },
     simulation::state::{
@@ -42,7 +38,8 @@ use std::{
     fs::{self, DirEntry, File},
     io::BufReader,
     str::FromStr,
-    thread::JoinHandle, time::Duration,
+    thread::JoinHandle,
+    time::Duration,
 };
 
 pub struct AssetManager {
@@ -65,7 +62,7 @@ pub struct AssetManager {
 
 impl AssetManager {
     pub fn new(gpu_context: &GPUContext) -> Self {
-        let asset_status = AssetStatus::InitTextures;
+        let asset_status = AssetStatus::Startup;
 
         let texture_id_generator = IDGenerator::new();
         let texture_work_handle = None;

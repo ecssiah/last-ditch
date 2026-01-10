@@ -1,52 +1,45 @@
-pub mod person_instance_data;
-pub mod person_model;
-pub mod person_vertex_data;
+pub mod sector_face;
+pub mod sector_model;
+pub mod sector_vertex;
 
 use crate::{
     include_assets,
     interface::{
-        asset_manager::{
-            person_model_key::PersonModelKey, person_texture_key::PersonTextureKey, AssetManager,
-        },
+        asset_manager::AssetManager,
         camera::Camera,
-        gpu::gpu_context::GPUContext,
-        renderer::population_renderer::person_renderer::{
-            person_instance_data::PersonInstanceData, person_vertex_data::PersonVertexData,
+        constants::*,
+        gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
+        renderer::{
+            sector_renderer::{sector_model::SectorModel, sector_vertex::SectorVertexData},
+            Renderer,
         },
     },
     simulation::{
-        constants::*,
-        state::{physics::body::Body, population::person::person_id::PersonID},
-        supervisor::viewer::view::PopulationView,
+        state::world::sector::sector_index::SectorIndex,
+        supervisor::viewer::view::{SectorView, WorldView},
     },
 };
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::instrument;
 
-pub struct PersonRenderer {
+pub struct SectorRenderer {
+    pub render_order: u32,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
-    pub person_instance_buffer: wgpu::Buffer,
-    pub person_instance_data_group_vec: Vec<(PersonModelKey, Vec<PersonInstanceData>)>,
+    pub sector_mesh_cache: HashMap<SectorIndex, SectorModel>,
+    pub gpu_mesh_cache: HashMap<SectorIndex, GpuMesh>,
+    pub active_sector_index_set: HashSet<SectorIndex>,
+    pub active_gpu_mesh_vec: Vec<SectorIndex>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
-impl PersonRenderer {
-    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let person_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Person Instance Buffer"),
-            size: std::mem::size_of::<PersonInstanceData>() as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
-        let person_instance_data_group_vec = Vec::new();
-
+impl SectorRenderer {
+    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
         let bind_group_layout =
             gpu_context
                 .device
                 .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                    label: Some("Population Renderer Bind Group Layout"),
+                    label: Some("World Renderer Bind Group Layout"),
                     entries: &[
                         wgpu::BindGroupLayoutEntry {
                             binding: 0,
@@ -75,11 +68,20 @@ impl PersonRenderer {
             &bind_group_layout,
         );
 
+        let sector_mesh_cache = HashMap::new();
+        let gpu_mesh_cache = HashMap::new();
+
+        let active_sector_index_set = HashSet::new();
+        let active_gpu_mesh_vec = Vec::new();
+
         Self {
+            render_order,
             bind_group_layout,
             bind_group,
-            person_instance_buffer,
-            person_instance_data_group_vec,
+            sector_mesh_cache,
+            gpu_mesh_cache,
+            active_sector_index_set,
+            active_gpu_mesh_vec,
             render_pipeline,
         }
     }
@@ -118,15 +120,15 @@ impl PersonRenderer {
     fn create_render_pipeline(
         gpu_context: &GPUContext,
         camera_bind_group_layout: &wgpu::BindGroupLayout,
-        person_texture_bind_group_layout: &wgpu::BindGroupLayout,
+        tile_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
         let vert_shader_module =
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Person Vertex Shader"),
+                    label: Some("World Vert Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/person.vert.wgsl").into(),
+                        include_assets!("shaders/world.vert.wgsl").into(),
                     ),
                 });
 
@@ -134,9 +136,9 @@ impl PersonRenderer {
             gpu_context
                 .device
                 .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Person Fragment Shader"),
+                    label: Some("World Frag Shader"),
                     source: wgpu::ShaderSource::Wgsl(
-                        include_assets!("shaders/person.frag.wgsl").into(),
+                        include_assets!("shaders/world.frag.wgsl").into(),
                     ),
                 });
 
@@ -144,23 +146,20 @@ impl PersonRenderer {
             gpu_context
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Person Render Pipeline Layout"),
-                    bind_group_layouts: &[
-                        camera_bind_group_layout,
-                        person_texture_bind_group_layout,
-                    ],
+                    label: Some("World Render Pipeline Layout"),
+                    bind_group_layouts: &[camera_bind_group_layout, tile_bind_group_layout],
                     push_constant_ranges: &[],
                 });
 
         gpu_context
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Person Render Pipeline"),
+                label: Some("World Render Pipeline"),
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &vert_shader_module,
                     entry_point: Some("main"),
-                    buffers: &[PersonVertexData::desc(), PersonInstanceData::desc()],
+                    buffers: &[SectorVertexData::desc()],
                     compilation_options: wgpu::PipelineCompilationOptions::default(),
                 },
                 fragment: Some(wgpu::FragmentState {
@@ -200,170 +199,155 @@ impl PersonRenderer {
     }
 
     #[instrument(skip_all)]
-    pub fn apply_population_view(
+    pub fn apply_world_view(
         gpu_context: &GPUContext,
         asset_manager: &AssetManager,
-        population_view: &PopulationView,
-        person_renderer: &mut Self,
+        world_view: &WorldView,
+        world_renderer: &mut Self,
     ) {
-        person_renderer.person_instance_data_group_vec.clear();
+        world_renderer.active_sector_index_set.clear();
+        world_renderer.active_gpu_mesh_vec.clear();
 
-        let mut person_model_instance_map: HashMap<PersonModelKey, Vec<PersonInstanceData>> =
-            HashMap::new();
+        for (sector_index, sector_view) in &world_view.sector_view_map {
+            let sector_model = Self::get_or_build_sector_model(
+                sector_view,
+                asset_manager,
+                &mut world_renderer.sector_mesh_cache,
+            );
 
-        for (person_id, person_view) in &population_view.person_view_map {
-            if person_id == &PersonID::JUDGE_ID_1 {
+            if sector_model.vertex_vec.is_empty() {
                 continue;
             }
 
-            let world_position = *(person_view.transform.world_position).as_array();
-            let person_scale = Body::get_size(&person_view.body).z / PERSON_DEFAULT_RADIUS_Z;
-            let rotation_xy = person_view.transform.rotation_xy;
-            let layer_index = AssetManager::get_person_layer_index(
-                &PersonTextureKey::from_skin_tone(&person_view.appearance.skin_tone),
-                asset_manager,
+            Self::get_or_build_gpu_sector_mesh(
+                sector_model,
+                &gpu_context.device,
+                &mut world_renderer.gpu_mesh_cache,
             );
 
-            let person_instance_data = PersonInstanceData::new(
-                world_position,
-                person_scale,
-                rotation_xy,
-                layer_index.into(),
-            );
-
-            let person_model_key = PersonModelKey::from_sex_and_age(
-                &person_view.identity.sex,
-                person_view.identity.age.period,
-            );
-
-            person_model_instance_map
-                .entry(person_model_key)
-                .or_default()
-                .push(person_instance_data);
+            world_renderer.active_sector_index_set.insert(*sector_index);
+            world_renderer.active_gpu_mesh_vec.push(*sector_index);
         }
 
-        person_renderer
-            .person_instance_data_group_vec
-            .extend(person_model_instance_map.into_iter());
+        world_renderer.sector_mesh_cache.retain(|sector_index, _| {
+            world_renderer
+                .active_sector_index_set
+                .contains(sector_index)
+        });
 
-        let total_instance_count: usize = person_renderer
-            .person_instance_data_group_vec
-            .iter()
-            .map(|(_, v)| v.len())
-            .sum();
+        world_renderer
+            .gpu_mesh_cache
+            .retain(|sector_index, _| world_renderer.active_gpu_mesh_vec.contains(sector_index));
 
-        let byte_count_required = (total_instance_count * std::mem::size_of::<PersonInstanceData>())
-            as wgpu::BufferAddress;
+        world_renderer.active_gpu_mesh_vec.sort_unstable();
+    }
 
-        let byte_count_current = person_renderer.person_instance_buffer.size();
+    #[instrument(skip_all)]
+    fn get_or_build_sector_model<'a>(
+        sector_view: &SectorView,
+        asset_manager: &AssetManager,
+        sector_mesh_cache: &'a mut HashMap<SectorIndex, SectorModel>,
+    ) -> &'a SectorModel {
+        match sector_mesh_cache.entry(sector_view.sector_index) {
+            Entry::Vacant(vacant_entry) => {
+                let sector_model = SectorModel::from_sector_view(sector_view, asset_manager);
 
-        if byte_count_required > byte_count_current {
-            let byte_count_updated = byte_count_required
-                .next_power_of_two()
-                .max(byte_count_current);
+                vacant_entry.insert(sector_model)
+            }
+            Entry::Occupied(mut occupied_entry) => {
+                if occupied_entry.get().version != sector_view.version {
+                    let sector_model = SectorModel::from_sector_view(sector_view, asset_manager);
 
-            person_renderer.person_instance_buffer =
-                gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some("Person Instance Buffer"),
-                    size: byte_count_updated,
-                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                    mapped_at_creation: false,
-                });
+                    *occupied_entry.get_mut() = sector_model;
+                }
 
-            tracing::info!(
-                "Resized person instance buffer: {} -> {} bytes",
-                byte_count_current,
-                byte_count_updated
-            );
+                occupied_entry.into_mut()
+            }
+        }
+    }
+
+    #[instrument(skip_all)]
+    fn get_or_build_gpu_sector_mesh<'a>(
+        sector_model: &SectorModel,
+        device: &wgpu::Device,
+        gpu_mesh_cache: &'a mut HashMap<SectorIndex, GpuMesh>,
+    ) -> &'a GpuMesh {
+        match gpu_mesh_cache.entry(sector_model.sector_index) {
+            Entry::Vacant(vacant_entry) => {
+                let gpu_mesh = SectorModel::to_gpu_mesh(sector_model, device);
+
+                vacant_entry.insert(gpu_mesh)
+            }
+            Entry::Occupied(mut occupied_entry) => {
+                if occupied_entry.get().version != sector_model.version {
+                    let gpu_mesh = SectorModel::to_gpu_mesh(sector_model, device);
+
+                    *occupied_entry.get_mut() = gpu_mesh;
+                }
+
+                occupied_entry.into_mut()
+            }
         }
     }
 
     #[instrument(skip_all)]
     pub fn render(
-        gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         camera_uniform_bind_group: &wgpu::BindGroup,
         asset_manager: &AssetManager,
-        person_renderer: &Self,
+        sector_renderer: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        if person_renderer.bind_group.is_none() {
+        if sector_renderer.bind_group.is_none() {
             return;
         }
 
-        let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+        let color_attachment = wgpu::RenderPassColorAttachment {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load: Renderer::get_load_op(sector_renderer.render_order),
                 store: wgpu::StoreOp::Store,
             },
-        });
+        };
 
-        let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
+        let depth_stencil_attachment = wgpu::RenderPassDepthStencilAttachment {
             view: depth_texture_view,
             depth_ops: Some(wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load: wgpu::LoadOp::Clear(1.0),
                 store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
-        });
+        };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[render_pass_color_attachment],
-            depth_stencil_attachment,
+            color_attachments: &[Some(color_attachment)],
+            depth_stencil_attachment: Some(depth_stencil_attachment),
             timestamp_writes: None,
             occlusion_query_set: None,
         });
 
-        let bind_group = person_renderer
+        let bind_group = sector_renderer
             .bind_group
             .as_ref()
             .expect("population bind group must exist at this point");
 
-        render_pass.set_pipeline(&person_renderer.render_pipeline);
+        render_pass.set_pipeline(&sector_renderer.render_pipeline);
 
         render_pass.set_bind_group(0, camera_uniform_bind_group, &[]);
         render_pass.set_bind_group(1, bind_group, &[]);
 
-        let mut offset_bytes = 0;
+        for sector_index in &sector_renderer.active_gpu_mesh_vec {
+            let gpu_mesh = &sector_renderer.gpu_mesh_cache[sector_index];
 
-        for (person_model_key, person_instance_data_vec) in
-            &person_renderer.person_instance_data_group_vec
-        {
-            let byte_len = (person_instance_data_vec.len()
-                * std::mem::size_of::<PersonInstanceData>())
-                as wgpu::BufferAddress;
+            render_pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
 
-            gpu_context.queue.write_buffer(
-                &person_renderer.person_instance_buffer,
-                offset_bytes,
-                bytemuck::cast_slice(&person_instance_data_vec),
-            );
+            render_pass
+                .set_index_buffer(gpu_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-            let person_gpu_mesh =
-                AssetManager::get_person_model_gpu_mesh(person_model_key, asset_manager);
-
-            render_pass.set_vertex_buffer(
-                1,
-                person_renderer
-                    .person_instance_buffer
-                    .slice(offset_bytes..offset_bytes + byte_len),
-            );
-
-            render_pass.set_vertex_buffer(0, person_gpu_mesh.vertex_buffer.slice(..));
-
-            render_pass.set_index_buffer(
-                person_gpu_mesh.index_buffer.slice(..),
-                wgpu::IndexFormat::Uint32,
-            );
-
-            let instance_count = person_instance_data_vec.len() as u32;
-            render_pass.draw_indexed(0..person_gpu_mesh.index_count, 0, 0..instance_count);
-
-            offset_bytes += byte_len;
+            render_pass.draw_indexed(0..gpu_mesh.index_count, 0, 0..1);
         }
 
         drop(render_pass);

@@ -7,9 +7,8 @@ use crate::{
     interface::{
         constants::*,
         gpu::gpu_context::GPUContext,
-        gui::GUI,
         input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
-        renderer::debug_renderer::DebugRenderer,
+        renderer::{debug_renderer::DebugRenderer, overlay_renderer::OverlayRenderer},
     },
     simulation::supervisor::{
         self,
@@ -96,7 +95,7 @@ impl Input {
     pub fn handle_window_event(
         event: &WindowEvent,
         debug_renderer: &mut DebugRenderer,
-        gui: &mut GUI,
+        overlay_renderer: &mut OverlayRenderer,
         gpu_context: &mut GPUContext,
         input: &mut Self,
     ) -> bool {
@@ -110,7 +109,7 @@ impl Input {
                 device_id,
                 event,
                 is_synthetic,
-                gui,
+                overlay_renderer,
                 debug_renderer,
                 gpu_context,
                 &mut input.key_inputs,
@@ -120,7 +119,13 @@ impl Input {
                 device_id,
                 state,
                 button,
-            } => Self::handle_mouse_input(device_id, state, button, gui, &mut input.message_deque),
+            } => Self::handle_mouse_input(
+                device_id,
+                state,
+                button,
+                overlay_renderer,
+                &mut input.message_deque,
+            ),
             WindowEvent::MouseWheel {
                 device_id,
                 delta,
@@ -130,12 +135,16 @@ impl Input {
         }
     }
 
-    pub fn handle_device_event(event: &DeviceEvent, gui: &GUI, input: &mut Self) -> bool {
+    pub fn handle_device_event(
+        event: &DeviceEvent,
+        overlay_renderer: &OverlayRenderer,
+        input: &mut Self,
+    ) -> bool {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             return Self::handle_mouse_motion(
                 *dx,
                 *dy,
-                gui,
+                overlay_renderer,
                 &mut input.mouse_inputs,
                 &mut input.message_deque,
             );
@@ -154,7 +163,7 @@ impl Input {
         _device_id: &DeviceId,
         key_event: &KeyEvent,
         _is_synthetic: &bool,
-        gui: &mut GUI,
+        overlay_renderer: &mut OverlayRenderer,
         debug_renderer: &mut DebugRenderer,
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
@@ -162,13 +171,13 @@ impl Input {
     ) -> bool {
         if key_event.physical_key == PhysicalKey::Code(KeyCode::Tab) {
             if key_event.state == ElementState::Released {
-                GUI::toggle_main_window_active(gui, gpu_context);
+                OverlayRenderer::toggle_main_window_active(overlay_renderer, gpu_context);
             }
 
             return true;
         }
 
-        if gui.run_model.main_window_active {
+        if overlay_renderer.content.run_content.main_window_active {
             return false;
         }
 
@@ -279,10 +288,10 @@ impl Input {
         _device_id: &DeviceId,
         state: &ElementState,
         button: &MouseButton,
-        gui: &GUI,
+        overlay_renderer: &OverlayRenderer,
         message_deque: &mut VecDeque<Message>,
     ) -> bool {
-        if gui.run_model.main_window_active {
+        if overlay_renderer.content.run_content.main_window_active {
             return false;
         }
 
@@ -317,11 +326,11 @@ impl Input {
     fn handle_mouse_motion(
         dx: f64,
         dy: f64,
-        gui: &GUI,
+        overlay_renderer: &OverlayRenderer,
         mouse_inputs: &mut MouseInputs,
         _message_deque: &mut VecDeque<Message>,
     ) -> bool {
-        if gui.run_model.main_window_active {
+        if overlay_renderer.content.run_content.main_window_active {
             return false;
         }
 

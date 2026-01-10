@@ -1,35 +1,61 @@
+pub mod block_renderer;
 pub mod debug_renderer;
-pub mod population_renderer;
-pub mod world_renderer;
+pub mod overlay_renderer;
+pub mod person_renderer;
+pub mod sector_renderer;
 
 use crate::interface::{
     asset_manager::AssetManager,
     camera::Camera,
+    constants::WINDOW_CLEAR_COLOR,
     gpu::gpu_context::GPUContext,
     interface_mode::InterfaceMode,
     renderer::{
-        debug_renderer::DebugRenderer,
-        population_renderer::{person_renderer::PersonRenderer, PopulationRenderer},
-        world_renderer::{sector_renderer::SectorRenderer, WorldRenderer},
+        block_renderer::BlockRenderer, debug_renderer::DebugRenderer,
+        overlay_renderer::OverlayRenderer, person_renderer::PersonRenderer,
+        sector_renderer::SectorRenderer,
     },
 };
 
 pub struct Renderer {
-    pub population_renderer: PopulationRenderer,
-    pub world_renderer: WorldRenderer,
+    pub block_renderer: BlockRenderer,
+    pub person_renderer: PersonRenderer,
+    pub sector_renderer: SectorRenderer,
+    pub overlay_renderer: OverlayRenderer,
     pub debug_renderer: DebugRenderer,
 }
 
 impl Renderer {
-    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
-        let world_renderer = WorldRenderer::new(gpu_context, camera);
-        let population_renderer = PopulationRenderer::new(gpu_context, camera);
-        let debug_renderer = DebugRenderer::new(gpu_context, camera);
+    pub fn new(
+        gpu_context: &GPUContext,
+        surface_format: &wgpu::TextureFormat,
+        camera: &Camera,
+    ) -> Self {
+        let overlay_renderer = OverlayRenderer::new(0, gpu_context, surface_format);
+        let sector_renderer = SectorRenderer::new(1, gpu_context, camera);
+        let block_renderer = BlockRenderer::new(2, gpu_context, camera);
+        let person_renderer = PersonRenderer::new(3, gpu_context, camera);
+        let debug_renderer = DebugRenderer::new(4, gpu_context, camera);
 
         Self {
-            world_renderer,
-            population_renderer,
+            overlay_renderer,
+            sector_renderer,
+            block_renderer,
+            person_renderer,
             debug_renderer,
+        }
+    }
+
+    pub fn get_load_op(render_order: u32) -> wgpu::LoadOp<wgpu::Color> {
+        if render_order == 0 {
+            wgpu::LoadOp::Clear(wgpu::Color {
+                r: WINDOW_CLEAR_COLOR[0],
+                g: WINDOW_CLEAR_COLOR[1],
+                b: WINDOW_CLEAR_COLOR[2],
+                a: WINDOW_CLEAR_COLOR[3],
+            })
+        } else {
+            wgpu::LoadOp::Load
         }
     }
 
@@ -41,21 +67,18 @@ impl Renderer {
         let sector_renderer_bind_group = SectorRenderer::setup_bind_group(
             gpu_context,
             asset_manager,
-            &renderer.world_renderer.sector_renderer.bind_group_layout,
+            &renderer.sector_renderer.bind_group_layout,
         );
 
-        renderer.world_renderer.sector_renderer.bind_group = Some(sector_renderer_bind_group);
+        renderer.sector_renderer.bind_group = Some(sector_renderer_bind_group);
 
         let person_renderer_bind_group = PersonRenderer::setup_bind_group(
             gpu_context,
             asset_manager,
-            &renderer
-                .population_renderer
-                .person_renderer
-                .bind_group_layout,
+            &renderer.person_renderer.bind_group_layout,
         );
 
-        renderer.population_renderer.person_renderer.bind_group = Some(person_renderer_bind_group);
+        renderer.person_renderer.bind_group = Some(person_renderer_bind_group);
     }
 
     pub fn render(
@@ -64,12 +87,24 @@ impl Renderer {
         camera: &Camera,
         gpu_context: &mut GPUContext,
         asset_manager: &AssetManager,
-        renderer: &Renderer,
+        renderer: &mut Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         match interface_mode {
-            InterfaceMode::Setup => (),
-            InterfaceMode::Menu => (),
+            InterfaceMode::Setup => Self::render_setup_mode(
+                &surface_texture_view,
+                gpu_context,
+                asset_manager,
+                renderer,
+                encoder,
+            ),
+            InterfaceMode::Menu => Self::render_menu_mode(
+                &surface_texture_view,
+                gpu_context,
+                asset_manager,
+                renderer,
+                encoder,
+            ),
             InterfaceMode::Run => Self::render_run_mode(
                 &surface_texture_view,
                 camera,
@@ -81,35 +116,67 @@ impl Renderer {
         }
     }
 
-    fn render_setup_mode() {}
+    fn render_setup_mode(
+        surface_texture_view: &wgpu::TextureView,
+        gpu_context: &mut GPUContext,
+        asset_manager: &AssetManager,
+        renderer: &mut Renderer,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        OverlayRenderer::render_setup_mode(
+            surface_texture_view,
+            gpu_context,
+            &mut renderer.overlay_renderer,
+            encoder,
+        );
+    }
 
-    fn render_menu_mode() {}
+    fn render_menu_mode(
+        surface_texture_view: &wgpu::TextureView,
+        gpu_context: &mut GPUContext,
+        asset_manager: &AssetManager,
+        renderer: &mut Renderer,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        OverlayRenderer::render_menu_mode(
+            surface_texture_view,
+            gpu_context,
+            &mut renderer.overlay_renderer,
+            encoder,
+        );
+    }
 
     fn render_run_mode(
         surface_texture_view: &wgpu::TextureView,
         camera: &Camera,
         gpu_context: &mut GPUContext,
         asset_manager: &AssetManager,
-        renderer: &Renderer,
+        renderer: &mut Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        WorldRenderer::render(
-            gpu_context,
+        OverlayRenderer::render_run_mode(
             &surface_texture_view,
-            &asset_manager.depth_texture_view,
-            &camera.uniform_bind_group,
-            asset_manager,
-            &renderer.world_renderer,
+            gpu_context,
+            &mut renderer.overlay_renderer,
             encoder,
         );
 
-        PopulationRenderer::render(
-            gpu_context,
-            &surface_texture_view,
+        SectorRenderer::render(
+            surface_texture_view,
             &asset_manager.depth_texture_view,
             &camera.uniform_bind_group,
             asset_manager,
-            &renderer.population_renderer,
+            &renderer.sector_renderer,
+            encoder,
+        );
+
+        PersonRenderer::render(
+            gpu_context,
+            surface_texture_view,
+            &asset_manager.depth_texture_view,
+            &camera.uniform_bind_group,
+            asset_manager,
+            &renderer.person_renderer,
             encoder,
         );
 

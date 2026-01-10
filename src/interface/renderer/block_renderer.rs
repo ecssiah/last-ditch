@@ -12,7 +12,7 @@ use crate::{
         },
         camera::Camera,
         gpu::gpu_context::GPUContext,
-        renderer::world_renderer::block_renderer::{
+        renderer::block_renderer::{
             block_instance_data::BlockInstanceData, block_vertex_data::BlockVertexData,
         },
     },
@@ -23,6 +23,7 @@ use crate::{
 };
 
 pub struct BlockRenderer {
+    pub render_order: u32,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
     pub block_instance_buffer: wgpu::Buffer,
@@ -31,7 +32,7 @@ pub struct BlockRenderer {
 }
 
 impl BlockRenderer {
-    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
         let block_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Block Instance Buffer"),
             size: std::mem::size_of::<BlockInstanceData>() as wgpu::BufferAddress,
@@ -75,6 +76,7 @@ impl BlockRenderer {
         );
 
         Self {
+            render_order,
             bind_group_layout,
             bind_group,
             block_instance_buffer,
@@ -250,28 +252,28 @@ impl BlockRenderer {
             return;
         }
 
-        let render_pass_color_attachment = Some(wgpu::RenderPassColorAttachment {
+        let color_attachment = wgpu::RenderPassColorAttachment {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: wgpu::StoreOp::Store,
             },
-        });
+        };
 
-        let depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
+        let depth_stencil_attachment = wgpu::RenderPassDepthStencilAttachment {
             view: depth_texture_view,
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
-        });
+        };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[render_pass_color_attachment],
-            depth_stencil_attachment,
+            color_attachments: &[Some(color_attachment)],
+            depth_stencil_attachment: Some(depth_stencil_attachment),
             timestamp_writes: None,
             occlusion_query_set: None,
         });

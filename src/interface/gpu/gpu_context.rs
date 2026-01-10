@@ -10,7 +10,4 @@ pub struct GPUContext<'window> {
     pub surface: wgpu::Surface<'window>,
     pub surface_config: wgpu::SurfaceConfiguration,
     pub texture_view_descriptor: wgpu::TextureViewDescriptor<'window>,
-    pub egui_context: egui::Context,
-    pub egui_winit_state: egui_winit::State,
-    pub egui_renderer: egui_wgpu::Renderer,
 }

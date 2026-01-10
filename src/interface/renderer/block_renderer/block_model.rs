@@ -1,6 +1,5 @@
 use crate::interface::{
-    gpu::gpu_mesh::GpuMesh,
-    renderer::world_renderer::block_renderer::block_vertex_data::BlockVertexData,
+    gpu::gpu_mesh::GpuMesh, renderer::block_renderer::block_vertex_data::BlockVertexData,
 };
 
 pub struct BlockModel {

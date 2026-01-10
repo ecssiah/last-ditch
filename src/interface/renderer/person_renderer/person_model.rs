@@ -1,6 +1,5 @@
 use crate::interface::{
-    gpu::gpu_mesh::GpuMesh,
-    renderer::population_renderer::person_renderer::person_vertex_data::PersonVertexData,
+    gpu::gpu_mesh::GpuMesh, renderer::person_renderer::person_vertex_data::PersonVertexData,
 };
 
 pub struct PersonModel {

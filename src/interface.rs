@@ -5,7 +5,6 @@ pub mod asset_manager;
 pub mod camera;
 pub mod constants;
 pub mod gpu;
-pub mod gui;
 pub mod input;
 pub mod interface_mode;
 pub mod renderer;
@@ -16,12 +15,12 @@ use crate::{
         camera::Camera,
         constants::*,
         gpu::gpu_context::GPUContext,
-        gui::GUI,
         input::Input,
         interface_mode::InterfaceMode,
         renderer::{
-            debug_renderer::DebugRenderer, population_renderer::PopulationRenderer,
-            world_renderer::WorldRenderer, Renderer,
+            block_renderer::BlockRenderer, debug_renderer::DebugRenderer,
+            overlay_renderer::OverlayRenderer, person_renderer::PersonRenderer,
+            sector_renderer::SectorRenderer, Renderer,
         },
     },
     simulation::{
@@ -45,7 +44,6 @@ pub struct Interface<'window> {
     pub asset_manager: AssetManager,
     pub input: Input,
     pub camera: Camera,
-    pub gui: GUI,
     pub renderer: Renderer,
     pub gpu_context: GPUContext<'window>,
     pub view_output: triple_buffer::Output<View>,
@@ -87,6 +85,7 @@ impl<'window> Interface<'window> {
         let window_arc = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
         window_arc.set_cursor_visible(true);
+
         window_arc
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .expect("Failed to grab cursor");
@@ -141,19 +140,6 @@ impl<'window> Interface<'window> {
 
         surface.configure(&device, &surface_config);
 
-        let egui_context = egui::Context::default();
-
-        let egui_winit_state = egui_winit::State::new(
-            egui_context.clone(),
-            egui::ViewportId::ROOT,
-            &window_arc,
-            None,
-            None,
-            None,
-        );
-
-        let egui_renderer = egui_wgpu::Renderer::new(&device, surface_format, None, 1, false);
-
         let gpu_context = GPUContext {
             window_arc,
             device,
@@ -162,19 +148,12 @@ impl<'window> Interface<'window> {
             surface,
             surface_config,
             texture_view_descriptor,
-            egui_context,
-            egui_winit_state,
-            egui_renderer,
         };
 
         let input = Input::new();
         let camera = Camera::new(&gpu_context.device);
-
         let asset_manager = AssetManager::new(&gpu_context);
-
-        let gui = GUI::new();
-
-        let renderer = Renderer::new(&gpu_context, &camera);
+        let renderer = Renderer::new(&gpu_context, &surface_format, &camera);
 
         gpu_context.window_arc.request_redraw();
 
@@ -185,7 +164,6 @@ impl<'window> Interface<'window> {
             asset_manager,
             input,
             camera,
-            gui,
             renderer,
             gpu_context,
             view_output,
@@ -207,14 +185,11 @@ impl<'window> Interface<'window> {
             return;
         }
 
-        GUI::apply_view(&interface.interface_mode, view, &mut interface.gui);
-
         match interface.interface_mode {
             InterfaceMode::Setup => Self::update_setup_mode(
                 &mut interface.gpu_context,
                 &mut interface.interface_mode,
                 &mut interface.asset_manager,
-                &mut interface.gui,
                 &mut interface.renderer,
             ),
             InterfaceMode::Menu => Self::update_menu_mode(),
@@ -228,8 +203,8 @@ impl<'window> Interface<'window> {
         }
 
         Self::send_message_deque(
-            &mut interface.gui,
             &mut interface.input,
+            &mut interface.renderer.overlay_renderer,
             &interface.message_tx,
         );
 
@@ -243,13 +218,16 @@ impl<'window> Interface<'window> {
     }
 
     fn send_message_deque(
-        gui: &mut GUI,
         input: &mut Input,
+        overlay_renderer: &mut OverlayRenderer,
         message_tx: &crossbeam::channel::Sender<Message>,
     ) {
         let mut message_deque = VecDeque::new();
 
-        let gui_message_deque = GUI::get_message_deque(&mut gui.message_deque);
+        let overlay_message_deque =
+            OverlayRenderer::get_message_deque(&mut overlay_renderer.message_deque);
+
+        message_deque.extend(overlay_message_deque);
 
         let input_message_deque = Input::get_message_deque(
             &input.key_inputs,
@@ -257,7 +235,6 @@ impl<'window> Interface<'window> {
             &mut input.message_deque,
         );
 
-        message_deque.extend(gui_message_deque);
         message_deque.extend(input_message_deque);
 
         for message in message_deque {
@@ -273,31 +250,70 @@ impl<'window> Interface<'window> {
         gpu_context: &mut GPUContext,
         interface_mode: &mut InterfaceMode,
         asset_manager: &mut AssetManager,
-        gui: &mut GUI,
         renderer: &mut Renderer,
     ) {
         match &asset_manager.asset_status {
+            AssetStatus::Startup => {
+                // Load Startup resources for splash screen, etc.
+
+                asset_manager.asset_status = AssetStatus::InitTextures;
+            }
             AssetStatus::InitTextures => {
+                renderer.overlay_renderer.content.setup_content.progress = 0.0;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Initializing textures...");
+
                 AssetManager::init_texture_loading(asset_manager);
             }
             AssetStatus::LoadingTextures => {
-                gui.setup_model.progress = 0.2;
+                renderer.overlay_renderer.content.setup_content.progress = 0.2;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Loading textures...");
+
                 AssetManager::update_texture_loading(gpu_context, asset_manager);
             }
             AssetStatus::InitModels => {
-                gui.setup_model.progress = 0.4;
+                renderer.overlay_renderer.content.setup_content.progress = 0.4;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Initializing models...");
+
                 AssetManager::init_model_loading(asset_manager);
             }
             AssetStatus::LoadingModels => {
-                gui.setup_model.progress = 0.6;
+                renderer.overlay_renderer.content.setup_content.progress = 0.6;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Loading models...");
+
                 AssetManager::update_model_loading(gpu_context, asset_manager);
             }
             AssetStatus::Complete => {
-                gui.setup_model.progress = 0.8;
+                renderer.overlay_renderer.content.setup_content.progress = 0.8;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Setting up bind groups...");
 
                 Renderer::setup_bind_groups(gpu_context, asset_manager, renderer);
 
-                gui.setup_model.progress = 1.0;
+                renderer.overlay_renderer.content.setup_content.progress = 1.0;
+                renderer
+                    .overlay_renderer
+                    .content
+                    .setup_content
+                    .loading_string = String::from("Complete!");
 
                 *interface_mode = InterfaceMode::Menu;
             }
@@ -317,19 +333,28 @@ impl<'window> Interface<'window> {
     ) {
         Camera::apply_view(gpu_context, view, camera);
 
-        WorldRenderer::apply_world_view(
+        BlockRenderer::apply_world_view(
             gpu_context,
             asset_manager,
             &view.world_view,
-            &mut renderer.world_renderer,
+            &mut renderer.block_renderer,
         );
 
-        PopulationRenderer::apply_population_view(
+        SectorRenderer::apply_world_view(
+            gpu_context,
+            asset_manager,
+            &view.world_view,
+            &mut renderer.sector_renderer,
+        );
+
+        PersonRenderer::apply_population_view(
             gpu_context,
             asset_manager,
             &view.population_view,
-            &mut renderer.population_renderer,
+            &mut renderer.person_renderer,
         );
+
+        OverlayRenderer::apply_view_run_mode(view, &mut renderer.overlay_renderer);
 
         DebugRenderer::apply_debug_view(gpu_context, view, &mut renderer.debug_renderer);
     }
@@ -342,7 +367,6 @@ impl<'window> Interface<'window> {
                 &interface.camera,
                 &interface.asset_manager,
                 &mut interface.gpu_context,
-                &mut interface.gui,
                 &mut interface.renderer,
             ),
             WindowEvent::Resized(size) => Self::handle_resized(*size, &mut interface.gpu_context),
@@ -350,25 +374,33 @@ impl<'window> Interface<'window> {
                 if Input::handle_window_event(
                     event,
                     &mut interface.renderer.debug_renderer,
-                    &mut interface.gui,
+                    &mut interface.renderer.overlay_renderer,
                     &mut interface.gpu_context,
                     &mut interface.input,
                 ) {
                     return;
                 };
 
-                GUI::handle_window_event(event, &mut interface.gpu_context);
+                OverlayRenderer::handle_window_event(
+                    event,
+                    &interface.gpu_context,
+                    &mut interface.renderer.overlay_renderer,
+                );
             }
         }
     }
 
     #[instrument(skip_all)]
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Self) {
-        if Input::handle_device_event(event, &interface.gui, &mut interface.input) {
+        if Input::handle_device_event(
+            event,
+            &interface.renderer.overlay_renderer,
+            &mut interface.input,
+        ) {
             return;
         }
 
-        GUI::handle_device_event(event, &mut interface.gpu_context);
+        OverlayRenderer::handle_device_event(event, &mut interface.renderer.overlay_renderer);
     }
 
     #[instrument(skip_all)]
@@ -377,7 +409,6 @@ impl<'window> Interface<'window> {
         camera: &Camera,
         asset_manager: &AssetManager,
         gpu_context: &mut GPUContext,
-        gui: &mut GUI,
         renderer: &mut Renderer,
     ) {
         let mut encoder = gpu_context
@@ -397,19 +428,6 @@ impl<'window> Interface<'window> {
             gpu_context,
             asset_manager,
             renderer,
-            &mut encoder,
-        );
-
-        GUI::render(
-            interface_mode,
-            &surface_texture_view,
-            Arc::clone(&gpu_context.window_arc),
-            &gpu_context.device,
-            &gpu_context.queue,
-            &gpu_context.egui_context,
-            gui,
-            &mut gpu_context.egui_winit_state,
-            &mut gpu_context.egui_renderer,
             &mut encoder,
         );
 
