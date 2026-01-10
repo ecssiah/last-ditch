@@ -9,7 +9,9 @@ use crate::{
         camera::Camera,
         constants::*,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
-        renderer::world_renderer::sector_renderer::{sector_model::SectorModel, sector_vertex::SectorVertexData},
+        renderer::world_renderer::sector_renderer::{
+            sector_model::SectorModel, sector_vertex::SectorVertexData,
+        },
     },
     simulation::{
         constants::*,

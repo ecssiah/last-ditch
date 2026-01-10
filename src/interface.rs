@@ -214,6 +214,7 @@ impl<'window> Interface<'window> {
                 &mut interface.gpu_context,
                 &mut interface.interface_mode,
                 &mut interface.asset_manager,
+                &mut interface.gui,
                 &mut interface.renderer,
             ),
             InterfaceMode::Menu => Self::update_menu_mode(),
@@ -272,6 +273,7 @@ impl<'window> Interface<'window> {
         gpu_context: &mut GPUContext,
         interface_mode: &mut InterfaceMode,
         asset_manager: &mut AssetManager,
+        gui: &mut GUI,
         renderer: &mut Renderer,
     ) {
         match &asset_manager.asset_status {
@@ -279,16 +281,23 @@ impl<'window> Interface<'window> {
                 AssetManager::init_texture_loading(asset_manager);
             }
             AssetStatus::LoadingTextures => {
+                gui.setup_model.progress = 0.2;
                 AssetManager::update_texture_loading(gpu_context, asset_manager);
             }
             AssetStatus::InitModels => {
+                gui.setup_model.progress = 0.4;
                 AssetManager::init_model_loading(asset_manager);
             }
             AssetStatus::LoadingModels => {
+                gui.setup_model.progress = 0.6;
                 AssetManager::update_model_loading(gpu_context, asset_manager);
             }
             AssetStatus::Complete => {
+                gui.setup_model.progress = 0.8;
+
                 Renderer::setup_bind_groups(gpu_context, asset_manager, renderer);
+
+                gui.setup_model.progress = 1.0;
 
                 *interface_mode = InterfaceMode::Menu;
             }

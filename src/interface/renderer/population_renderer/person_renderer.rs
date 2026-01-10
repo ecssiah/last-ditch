@@ -10,21 +10,17 @@ use crate::{
         },
         camera::Camera,
         gpu::gpu_context::GPUContext,
-        renderer::population_renderer::{
-            person_renderer::{
-                self, person_instance_data::PersonInstanceData,
-                person_vertex_data::PersonVertexData,
-            },
-            PopulationRenderer,
+        renderer::population_renderer::person_renderer::{
+            person_instance_data::PersonInstanceData, person_vertex_data::PersonVertexData,
         },
     },
     simulation::{
-        constants::PERSON_DEFAULT_RADIUS_Z,
+        constants::*,
         state::{physics::body::Body, population::person::person_id::PersonID},
         supervisor::viewer::view::PopulationView,
     },
 };
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 use tracing::instrument;
 
 pub struct PersonRenderer {

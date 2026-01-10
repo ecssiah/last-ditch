@@ -1,4 +1,8 @@
-use crate::simulation::state::world::{block::Block, grid, sector::{Sector, sector_index::SectorIndex}};
+use crate::simulation::state::world::{
+    block::Block,
+    grid,
+    sector::{sector_index::SectorIndex, Sector},
+};
 use ultraviolet::Vec3;
 
 #[derive(Clone)]

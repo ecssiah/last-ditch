@@ -7,6 +7,8 @@ pub struct PersonTextureKey {
 
 impl PersonTextureKey {
     pub fn from_skin_tone(skin_tone: &SkinTone) -> Self {
-        Self { skin_tone: skin_tone.clone() }
+        Self {
+            skin_tone: skin_tone.clone(),
+        }
     }
 }

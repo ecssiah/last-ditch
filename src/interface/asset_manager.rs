@@ -42,7 +42,7 @@ use std::{
     fs::{self, DirEntry, File},
     io::BufReader,
     str::FromStr,
-    thread::JoinHandle,
+    thread::JoinHandle, time::Duration,
 };
 
 pub struct AssetManager {
@@ -209,8 +209,12 @@ impl AssetManager {
     }
 
     fn load_texture_work() -> TextureWorkResult {
+        std::thread::sleep(Duration::from_secs(1));
+
         let block_texture_directory_path = "assets/textures/block/";
         let block_texture_data_vec = Self::load_texture_data_vec(block_texture_directory_path);
+
+        std::thread::sleep(Duration::from_secs(1));
 
         let person_texture_directory_path = "assets/textures/person/";
         let person_texture_data_vec = Self::load_texture_data_vec(person_texture_directory_path);
@@ -452,7 +456,12 @@ impl AssetManager {
 
     fn load_model_work() -> ModelWorkResult {
         let person_model_map = Self::load_person_model_map();
+
+        std::thread::sleep(Duration::from_secs(1));
+
         let block_model_map = Self::load_block_model_map();
+
+        std::thread::sleep(Duration::from_secs(1));
 
         ModelWorkResult {
             person_model_map,
@@ -586,25 +595,26 @@ impl AssetManager {
         for (block_model_key, block_model) in model_work_result.block_model_map {
             let block_gpu_mesh = BlockModel::to_gpu_mesh(&block_model, &gpu_context.device);
 
-            tracing::info!("Committed {} model", block_model_key.block_shape);
+            let block_model_name = format!("{}", block_model_key.block_shape);
 
             asset_manager
                 .block_model_gpu_mesh_map
                 .insert(block_model_key, block_gpu_mesh);
+
+            tracing::info!("Committed {} model", block_model_name);
         }
 
         for (person_model_key, person_model) in model_work_result.person_model_map {
             let person_gpu_mesh = PersonModel::to_gpu_mesh(&person_model, &gpu_context.device);
 
-            tracing::info!(
-                "Committed {} {} model",
-                person_model_key.sex,
-                person_model_key.age_period
-            );
+            let person_model_name =
+                format!("{}{}", person_model_key.sex, person_model_key.age_period);
 
             asset_manager
                 .person_model_gpu_mesh_map
                 .insert(person_model_key, person_gpu_mesh);
+
+            tracing::info!("Committed {}", person_model_name,);
         }
     }
 

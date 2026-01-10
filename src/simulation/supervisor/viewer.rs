@@ -5,13 +5,16 @@ pub mod view;
 
 use crate::simulation::{
     state::{
-        State, World, population::person::person_id::PersonID, world::{
+        population::person::person_id::PersonID,
+        world::{
             grid::{self},
-            sector::{Sector, sector_index::SectorIndex},
-        }
+            sector::{sector_index::SectorIndex, Sector},
+        },
+        State, World,
     },
     supervisor::{
-        Supervisor, viewer::view::{PersonView, PopulationView, SectorView, SupervisorView, View, WorldView}
+        viewer::view::{PersonView, PopulationView, SectorView, SupervisorView, View, WorldView},
+        Supervisor,
     },
 };
 use std::collections::HashMap;
@@ -127,7 +130,8 @@ impl Viewer {
                             let sector_index =
                                 grid::sector_coordinate_to_sector_index(sector_coordinate);
 
-                            let sector = World::get_sector_by_index(&sector_index, &state.world.sector_vec);
+                            let sector =
+                                World::get_sector_by_index(&sector_index, &state.world.sector_vec);
 
                             let sector_view = Self::get_sector_view(
                                 sector,

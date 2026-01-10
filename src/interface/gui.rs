@@ -94,14 +94,35 @@ impl GUI {
         egui::Area::new(egui::Id::new("setup_area"))
             .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
             .show(context, |ui| {
-                egui::Frame::window(&context.style())
-                    .fill(egui::Color32::from_rgba_unmultiplied(20, 20, 20, 230))
-                    .corner_radius(5.0)
-                    .show(ui, |ui| {
-                        ui.set_min_size(egui::vec2(width, height));
+                ui.set_min_size(egui::Vec2 {
+                    x: width * 0.6,
+                    y: height * 0.6,
+                });
 
-                        ui.add(egui::ProgressBar::new(gui.setup_model.progress));
-                    })
+                let bar_height = 48.0;
+
+                ui.vertical_centered(|ui| {
+                    ui.label(
+                        egui::RichText::new("Last Ditch")
+                            .size(64.0)
+                            .monospace()
+                            .strong(),
+                    );
+
+                    ui.label(
+                        egui::RichText::new("Just Sky")
+                            .size(24.0)
+                            .italics()
+                            .color(egui::Color32::GRAY),
+                    );
+
+                    ui.add_space(24.0);
+
+                    ui.add_sized(
+                        egui::vec2(width * 0.4, bar_height),
+                        egui::ProgressBar::new(gui.setup_model.progress),
+                    );
+                });
             });
     }
 
