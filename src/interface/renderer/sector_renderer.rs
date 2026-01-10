@@ -7,11 +7,10 @@ use crate::{
     interface::{
         asset_manager::AssetManager,
         camera::Camera,
-        constants::*,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
         renderer::{
+            render_mode::RenderMode,
             sector_renderer::{sector_model::SectorModel, sector_vertex::SectorVertexData},
-            Renderer,
         },
     },
     simulation::{
@@ -23,7 +22,6 @@ use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tracing::instrument;
 
 pub struct SectorRenderer {
-    pub render_order: u32,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
     pub sector_mesh_cache: HashMap<SectorIndex, SectorModel>,
@@ -34,7 +32,7 @@ pub struct SectorRenderer {
 }
 
 impl SectorRenderer {
-    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let bind_group_layout =
             gpu_context
                 .device
@@ -75,7 +73,6 @@ impl SectorRenderer {
         let active_gpu_mesh_vec = Vec::new();
 
         Self {
-            render_order,
             bind_group_layout,
             bind_group,
             sector_mesh_cache,
@@ -292,6 +289,7 @@ impl SectorRenderer {
 
     #[instrument(skip_all)]
     pub fn render(
+        render_mode: &RenderMode,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         camera_uniform_bind_group: &wgpu::BindGroup,
@@ -307,7 +305,7 @@ impl SectorRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: Renderer::get_load_op(sector_renderer.render_order),
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };

@@ -6,13 +6,16 @@ use crate::{
     include_assets,
     interface::{
         asset_manager::{
-            AssetManager, person_model_key::PersonModelKey, person_texture_key::PersonTextureKey
+            person_model_key::PersonModelKey, person_texture_key::PersonTextureKey, AssetManager,
         },
         camera::Camera,
         gpu::gpu_context::GPUContext,
-        renderer::{Renderer, person_renderer::{
-            person_instance_data::PersonInstanceData, person_vertex_data::PersonVertexData,
-        }},
+        renderer::{
+            person_renderer::{
+                person_instance_data::PersonInstanceData, person_vertex_data::PersonVertexData,
+            },
+            render_mode::RenderMode,
+        },
     },
     simulation::{
         constants::*,
@@ -24,7 +27,6 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 pub struct PersonRenderer {
-    pub render_order: u32,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
     pub person_instance_buffer: wgpu::Buffer,
@@ -33,7 +35,7 @@ pub struct PersonRenderer {
 }
 
 impl PersonRenderer {
-    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let person_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Person Instance Buffer"),
             size: std::mem::size_of::<PersonInstanceData>() as wgpu::BufferAddress,
@@ -77,7 +79,6 @@ impl PersonRenderer {
         );
 
         Self {
-            render_order,
             bind_group_layout,
             bind_group,
             person_instance_buffer,
@@ -282,6 +283,7 @@ impl PersonRenderer {
 
     #[instrument(skip_all)]
     pub fn render(
+        render_mode: &RenderMode,
         gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
@@ -298,7 +300,7 @@ impl PersonRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: Renderer::get_load_op(person_renderer.render_order),
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };

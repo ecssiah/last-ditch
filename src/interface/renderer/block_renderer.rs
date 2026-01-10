@@ -23,7 +23,6 @@ use crate::{
 };
 
 pub struct BlockRenderer {
-    pub render_order: u32,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
     pub block_instance_buffer: wgpu::Buffer,
@@ -32,7 +31,7 @@ pub struct BlockRenderer {
 }
 
 impl BlockRenderer {
-    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let block_instance_buffer = gpu_context.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Block Instance Buffer"),
             size: std::mem::size_of::<BlockInstanceData>() as wgpu::BufferAddress,
@@ -76,7 +75,6 @@ impl BlockRenderer {
         );
 
         Self {
-            render_order,
             bind_group_layout,
             bind_group,
             block_instance_buffer,

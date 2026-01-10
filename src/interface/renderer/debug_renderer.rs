@@ -6,7 +6,11 @@ use crate::{
     interface::{
         camera::Camera,
         gpu::gpu_context::GPUContext,
-        renderer::{Renderer, debug_renderer::{debug_channel::DebugChannel, debug_vertex::DebugVertex}},
+        renderer::{
+            debug_renderer::{debug_channel::DebugChannel, debug_vertex::DebugVertex},
+            render_mode::{self, RenderMode},
+            Renderer,
+        },
     },
     simulation::{constants::*, supervisor::viewer::view::View},
 };
@@ -15,7 +19,6 @@ use tracing::instrument;
 use ultraviolet::Vec3;
 
 pub struct DebugRenderer {
-    pub render_order: u32,
     pub debug_active: bool,
     pub camera_bind_group: wgpu::BindGroup,
     pub vertex_capacity: usize,
@@ -27,7 +30,7 @@ pub struct DebugRenderer {
 }
 
 impl DebugRenderer {
-    pub fn new(render_order: u32, gpu_context: &GPUContext, camera: &Camera) -> Self {
+    pub fn new(gpu_context: &GPUContext, camera: &Camera) -> Self {
         let debug_active = false;
 
         let vert_shader_module =
@@ -128,7 +131,6 @@ impl DebugRenderer {
                 });
 
         Self {
-            render_order,
             debug_active,
             camera_bind_group: camera.uniform_bind_group.clone(),
             vertex_vec,
@@ -351,6 +353,7 @@ impl DebugRenderer {
 
     #[instrument(skip_all)]
     pub fn render(
+        render_mode: &RenderMode,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         debug_renderer: &Self,
@@ -364,7 +367,7 @@ impl DebugRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: Renderer::get_load_op(debug_renderer.render_order),
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };

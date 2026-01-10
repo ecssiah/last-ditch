@@ -1,14 +1,15 @@
 use crate::{
     interface::{
-        asset_manager::{AssetManager, block_texture_key::BlockTextureKey},
-        gpu::gpu_mesh::GpuMesh, renderer::sector_renderer::{sector_face::SectorFace, sector_vertex::SectorVertexData},
+        asset_manager::{block_texture_key::BlockTextureKey, AssetManager},
+        gpu::gpu_mesh::GpuMesh,
+        renderer::sector_renderer::{sector_face::SectorFace, sector_vertex::SectorVertexData},
     },
     simulation::{
         constants::*,
         state::world::{
             block::{block_shape::BlockShape, block_state::BlockState},
-            grid::{self, Direction, axis::Axis, direction_set::DirectionSet},
-            sector::{Sector, sector_index::SectorIndex},
+            grid::{self, axis::Axis, direction_set::DirectionSet, Direction},
+            sector::{sector_index::SectorIndex, Sector},
         },
         supervisor::viewer::view::SectorView,
     },

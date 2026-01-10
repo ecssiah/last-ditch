@@ -2,18 +2,18 @@ pub mod block_renderer;
 pub mod debug_renderer;
 pub mod overlay_renderer;
 pub mod person_renderer;
+pub mod render_mode;
 pub mod sector_renderer;
 
 use crate::interface::{
     asset_manager::AssetManager,
     camera::Camera,
-    constants::WINDOW_CLEAR_COLOR,
     gpu::gpu_context::GPUContext,
     interface_mode::InterfaceMode,
     renderer::{
         block_renderer::BlockRenderer, debug_renderer::DebugRenderer,
         overlay_renderer::OverlayRenderer, person_renderer::PersonRenderer,
-        sector_renderer::SectorRenderer,
+        render_mode::RenderMode, sector_renderer::SectorRenderer,
     },
 };
 
@@ -31,11 +31,11 @@ impl Renderer {
         surface_format: &wgpu::TextureFormat,
         camera: &Camera,
     ) -> Self {
-        let overlay_renderer = OverlayRenderer::new(0, gpu_context, surface_format);
-        let sector_renderer = SectorRenderer::new(1, gpu_context, camera);
-        let block_renderer = BlockRenderer::new(2, gpu_context, camera);
-        let person_renderer = PersonRenderer::new(3, gpu_context, camera);
-        let debug_renderer = DebugRenderer::new(4, gpu_context, camera);
+        let overlay_renderer = OverlayRenderer::new(gpu_context, surface_format);
+        let sector_renderer = SectorRenderer::new(gpu_context, camera);
+        let block_renderer = BlockRenderer::new(gpu_context, camera);
+        let person_renderer = PersonRenderer::new(gpu_context, camera);
+        let debug_renderer = DebugRenderer::new(gpu_context, camera);
 
         Self {
             overlay_renderer,
@@ -43,19 +43,6 @@ impl Renderer {
             block_renderer,
             person_renderer,
             debug_renderer,
-        }
-    }
-
-    pub fn get_load_op(render_order: u32) -> wgpu::LoadOp<wgpu::Color> {
-        if render_order == 0 {
-            wgpu::LoadOp::Clear(wgpu::Color {
-                r: WINDOW_CLEAR_COLOR[0],
-                g: WINDOW_CLEAR_COLOR[1],
-                b: WINDOW_CLEAR_COLOR[2],
-                a: WINDOW_CLEAR_COLOR[3],
-            })
-        } else {
-            wgpu::LoadOp::Load
         }
     }
 
@@ -124,6 +111,7 @@ impl Renderer {
         encoder: &mut wgpu::CommandEncoder,
     ) {
         OverlayRenderer::render_setup_mode(
+            &RenderMode::Clear,
             surface_texture_view,
             gpu_context,
             &mut renderer.overlay_renderer,
@@ -139,6 +127,7 @@ impl Renderer {
         encoder: &mut wgpu::CommandEncoder,
     ) {
         OverlayRenderer::render_menu_mode(
+            &RenderMode::Clear,
             surface_texture_view,
             gpu_context,
             &mut renderer.overlay_renderer,
@@ -154,14 +143,8 @@ impl Renderer {
         renderer: &mut Renderer,
         encoder: &mut wgpu::CommandEncoder,
     ) {
-        OverlayRenderer::render_run_mode(
-            &surface_texture_view,
-            gpu_context,
-            &mut renderer.overlay_renderer,
-            encoder,
-        );
-
         SectorRenderer::render(
+            &RenderMode::Clear,
             surface_texture_view,
             &asset_manager.depth_texture_view,
             &camera.uniform_bind_group,
@@ -171,6 +154,7 @@ impl Renderer {
         );
 
         PersonRenderer::render(
+            &RenderMode::Load,
             gpu_context,
             surface_texture_view,
             &asset_manager.depth_texture_view,
@@ -180,7 +164,16 @@ impl Renderer {
             encoder,
         );
 
+        OverlayRenderer::render_run_mode(
+            &RenderMode::Load,
+            &surface_texture_view,
+            gpu_context,
+            &mut renderer.overlay_renderer,
+            encoder,
+        );
+
         DebugRenderer::render(
+            &RenderMode::Load,
             &surface_texture_view,
             &asset_manager.depth_texture_view,
             &renderer.debug_renderer,

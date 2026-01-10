@@ -4,15 +4,16 @@ pub mod content;
 
 use crate::{
     interface::{
-        gpu::gpu_context::GPUContext, interface_mode::InterfaceMode,
-        renderer::{Renderer, overlay_renderer::content::Content},
+        gpu::gpu_context::GPUContext,
+        interface_mode::InterfaceMode,
+        renderer::{overlay_renderer::content::Content, render_mode::RenderMode},
     },
     simulation::{
         state::{
             population::person::person_id::PersonID,
             world::grid::{self, Direction},
         },
-        supervisor::{Message, message::SeedData, viewer::view::View},
+        supervisor::{message::SeedData, viewer::view::View, Message},
     },
 };
 use egui::{FontId, FullOutput, Id, Ui};
@@ -26,7 +27,6 @@ use ultraviolet::Vec2;
 use winit::event::{DeviceEvent, WindowEvent};
 
 pub struct OverlayRenderer {
-    pub render_order: u32,
     pub content: Content,
     pub message_deque: VecDeque<Message>,
     pub egui_context: egui::Context,
@@ -35,11 +35,7 @@ pub struct OverlayRenderer {
 }
 
 impl OverlayRenderer {
-    pub fn new(
-        render_order: u32,
-        gpu_context: &GPUContext,
-        surface_format: &wgpu::TextureFormat,
-    ) -> Self {
+    pub fn new(gpu_context: &GPUContext, surface_format: &wgpu::TextureFormat) -> Self {
         let egui_context = egui::Context::default();
 
         let egui_winit_state = egui_winit::State::new(
@@ -58,7 +54,6 @@ impl OverlayRenderer {
         let message_deque = VecDeque::new();
 
         Self {
-            render_order,
             content,
             message_deque,
             egui_context,
@@ -393,6 +388,7 @@ impl OverlayRenderer {
 
     #[instrument(skip_all)]
     pub fn render_setup_mode(
+        render_mode: &RenderMode,
         surface_texture_view: &wgpu::TextureView,
         gpu_context: &mut GPUContext,
         overlay_renderer: &mut Self,
@@ -434,7 +430,7 @@ impl OverlayRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: Renderer::get_load_op(overlay_renderer.render_order),
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };
@@ -456,6 +452,7 @@ impl OverlayRenderer {
 
     #[instrument(skip_all)]
     pub fn render_menu_mode(
+        render_mode: &RenderMode,
         surface_texture_view: &wgpu::TextureView,
         gpu_context: &mut GPUContext,
         overlay_renderer: &mut Self,
@@ -497,7 +494,7 @@ impl OverlayRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };
@@ -519,6 +516,7 @@ impl OverlayRenderer {
 
     #[instrument(skip_all)]
     pub fn render_run_mode(
+        render_mode: &RenderMode,
         surface_texture_view: &wgpu::TextureView,
         gpu_context: &mut GPUContext,
         overlay_renderer: &mut Self,
@@ -560,7 +558,7 @@ impl OverlayRenderer {
             view: surface_texture_view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load: RenderMode::get_load_op(render_mode),
                 store: wgpu::StoreOp::Store,
             },
         };
