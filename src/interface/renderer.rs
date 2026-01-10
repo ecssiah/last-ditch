@@ -111,7 +111,7 @@ impl Renderer {
         encoder: &mut wgpu::CommandEncoder,
     ) {
         OverlayRenderer::render_setup_mode(
-            &RenderMode::Clear,
+            &RenderMode::Load,
             surface_texture_view,
             gpu_context,
             &mut renderer.overlay_renderer,
