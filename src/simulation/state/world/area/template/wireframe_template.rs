@@ -1,6 +1,7 @@
 use crate::simulation::state::world::{
     area::template::{self, Template},
     block::block_kind::BlockKind,
+    grid::Direction,
 };
 use ultraviolet::IVec3;
 
@@ -14,6 +15,7 @@ impl Template for WireframeTemplate {
         template::set_block_wireframe(
             IVec3::new(0, 0, 0),
             area.size,
+            &Direction::North,
             &BlockKind::Caution1,
             area,
             world,

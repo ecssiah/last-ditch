@@ -2,7 +2,7 @@ use crate::simulation::state::{
     world::{
         area::template::Template,
         block::block_kind::BlockKind,
-        grid::{self},
+        grid::{self, Direction},
     },
     World,
 };
@@ -20,6 +20,7 @@ impl Template for ElevatorTemplate {
         World::set_block_box(
             area_int_box.min,
             area_int_box.max,
+            &Direction::North,
             &BlockKind::Metal2,
             world,
         );

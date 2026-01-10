@@ -1,7 +1,7 @@
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub enum HairColor {
-    Color1,
-    Color2,
-    Color3,
-    Color4,
+    Person1,
+    Person2,
+    Person3,
+    Person4,
 }

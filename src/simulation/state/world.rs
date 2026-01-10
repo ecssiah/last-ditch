@@ -13,7 +13,12 @@ use crate::{
         state::{
             world::{
                 area::{area_id::AreaID, Area, AreaKind},
-                block::{block_kind::BlockKind, Block},
+                block::{
+                    block_kind::BlockKind,
+                    block_shape::BlockShape,
+                    block_state::{block_data::BlockData, BlockState},
+                    Block,
+                },
                 cell::cell_index::CellIndex,
                 grid::{direction_set::DirectionSet, Direction},
                 sector::{sector_index::SectorIndex, Sector},
@@ -151,38 +156,54 @@ impl World {
         }
     }
 
-    pub fn set_block(grid_position: IVec3, block_kind: &BlockKind, world: &mut Self) {
+    pub fn set_block(
+        grid_position: IVec3,
+        direction: &Direction,
+        block_kind: &BlockKind,
+        world: &mut Self,
+    ) {
         if grid::grid_position_is_valid(grid_position) {
-            let mut block_state = BlockKind::get_default_block_state(block_kind);
+            let block_shape = BlockKind::get_block_shape(block_kind);
 
-            for direction in Direction::ALL {
-                let neighbor_grid_position = grid_position + Direction::to_ivec3(direction);
+            let block = match block_shape {
+                BlockShape::Block => {
+                    let mut exposure_set = DirectionSet::ALL;
 
-                if grid::grid_position_is_valid(neighbor_grid_position) {
-                    if let Some(neighbor_block) =
-                        World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
-                    {
-                        if BlockKind::is_direction_occluded(direction, &block_state, block_kind) {
-                            DirectionSet::remove(
-                                &Direction::to_opposing(direction),
-                                &mut neighbor_block.block_state.exposure_set,
-                            );
-                        }
+                    for direction in Direction::ALL {
+                        let neighbor_grid_position = grid_position + Direction::to_ivec3(direction);
 
-                        if BlockKind::is_direction_occluded(
-                            &Direction::to_opposing(direction),
-                            &neighbor_block.block_state,
-                            &neighbor_block.block_kind,
-                        ) {
-                            DirectionSet::remove(direction, &mut block_state.exposure_set);
+                        if grid::grid_position_is_valid(neighbor_grid_position) {
+                            if let Some(neighbor_block) =
+                                World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
+                            {
+                                let BlockState::Block(neighbor_block_data) =
+                                    &mut neighbor_block.block_state
+                                else {
+                                    panic!("neighbor block is missing block state")
+                                };
+
+                                DirectionSet::remove(
+                                    &Direction::to_opposing(direction),
+                                    &mut neighbor_block_data.exposure_set,
+                                );
+
+                                DirectionSet::remove(direction, &mut exposure_set);
+                            }
                         }
                     }
+
+                    let mut block = Block::new(block_kind, grid_position, direction);
+                    block.block_state = BlockState::Block(BlockData { exposure_set });
+
+                    block
                 }
-            }
+                BlockShape::DoorLower => Block::new(block_kind, grid_position, direction),
+                BlockShape::DoorUpper => Block::new(block_kind, grid_position, direction),
+                BlockShape::Ladder => Block::new(block_kind, grid_position, direction),
+                BlockShape::Stairs => Block::new(block_kind, grid_position, direction),
+            };
 
             let (sector_index, cell_index) = grid::grid_position_to_indices(grid_position);
-
-            let block = Block::new(block_kind, &block_state);
 
             let sector = &mut world.sector_vec[SectorIndex::as_index(&sector_index)];
             sector.block_vec[CellIndex::as_index(&cell_index)] = Some(block);
@@ -190,30 +211,42 @@ impl World {
         }
     }
 
-    pub fn set_block_wireframe(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
+    pub fn set_block_wireframe(
+        min: IVec3,
+        max: IVec3,
+        direction: &Direction,
+        block_kind: &BlockKind,
+        world: &mut Self,
+    ) {
         for x in min.x..=max.x {
-            Self::set_block(IVec3::new(x, min.y, min.z), block_kind, world);
-            Self::set_block(IVec3::new(x, max.y, min.z), block_kind, world);
-            Self::set_block(IVec3::new(x, min.y, max.z), block_kind, world);
-            Self::set_block(IVec3::new(x, max.y, max.z), block_kind, world);
+            Self::set_block(IVec3::new(x, min.y, min.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(x, max.y, min.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(x, min.y, max.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(x, max.y, max.z), direction, block_kind, world);
         }
 
         for y in min.y..=max.y {
-            Self::set_block(IVec3::new(min.x, y, min.z), block_kind, world);
-            Self::set_block(IVec3::new(max.x, y, min.z), block_kind, world);
-            Self::set_block(IVec3::new(min.x, y, max.z), block_kind, world);
-            Self::set_block(IVec3::new(max.x, y, max.z), block_kind, world);
+            Self::set_block(IVec3::new(min.x, y, min.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(max.x, y, min.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(min.x, y, max.z), direction, block_kind, world);
+            Self::set_block(IVec3::new(max.x, y, max.z), direction, block_kind, world);
         }
 
         for z in min.z..=max.z {
-            Self::set_block(IVec3::new(min.x, min.y, z), block_kind, world);
-            Self::set_block(IVec3::new(min.x, max.y, z), block_kind, world);
-            Self::set_block(IVec3::new(max.x, min.y, z), block_kind, world);
-            Self::set_block(IVec3::new(max.x, max.y, z), block_kind, world);
+            Self::set_block(IVec3::new(min.x, min.y, z), direction, block_kind, world);
+            Self::set_block(IVec3::new(min.x, max.y, z), direction, block_kind, world);
+            Self::set_block(IVec3::new(max.x, min.y, z), direction, block_kind, world);
+            Self::set_block(IVec3::new(max.x, max.y, z), direction, block_kind, world);
         }
     }
 
-    pub fn set_block_box(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
+    pub fn set_block_box(
+        min: IVec3,
+        max: IVec3,
+        direction: &Direction,
+        block_kind: &BlockKind,
+        world: &mut Self,
+    ) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -234,7 +267,7 @@ impl World {
                     let grid_position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block(grid_position, block_kind, world);
+                        Self::set_block(grid_position, direction, block_kind, world);
                     } else {
                         Self::remove_block(grid_position, world);
                     }
@@ -243,7 +276,13 @@ impl World {
         }
     }
 
-    pub fn set_block_shell(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
+    pub fn set_block_shell(
+        min: IVec3,
+        max: IVec3,
+        direction: &Direction,
+        block_kind: &BlockKind,
+        world: &mut Self,
+    ) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
@@ -264,20 +303,26 @@ impl World {
                     let grid_position = IVec3::new(x, y, z);
 
                     if on_boundary {
-                        Self::set_block(grid_position, block_kind, world);
+                        Self::set_block(grid_position, direction, block_kind, world);
                     }
                 }
             }
         }
     }
 
-    pub fn set_block_cube(min: IVec3, max: IVec3, block_kind: &BlockKind, world: &mut Self) {
+    pub fn set_block_cube(
+        min: IVec3,
+        max: IVec3,
+        direction: &Direction,
+        block_kind: &BlockKind,
+        world: &mut Self,
+    ) {
         for z in min.z..=max.z {
             for y in min.y..=max.y {
                 for x in min.x..=max.x {
                     let position = IVec3::new(x, y, z);
 
-                    Self::set_block(position, block_kind, world);
+                    Self::set_block(position, direction, block_kind, world);
                 }
             }
         }
@@ -292,9 +337,13 @@ impl World {
                     if let Some(block) =
                         World::get_block_mut(neighbor_grid_position, &mut world.sector_vec)
                     {
+                        let BlockState::Block(block_data) = &mut block.block_state else {
+                            panic!("block should have block data")
+                        };
+
                         DirectionSet::add(
                             &Direction::to_opposing(&direction),
-                            &mut block.block_state.exposure_set,
+                            &mut block_data.exposure_set,
                         );
                     }
                 }
@@ -323,69 +372,69 @@ impl World {
 
     pub fn raycast_to_block(
         origin: Vec3,
-        direction: Vec3,
+        forward: Vec3,
         range: f32,
         world: &Self,
     ) -> Option<(IVec3, IVec3)> {
-        let direction = direction.normalized();
+        let forward = forward.normalized();
 
         let mut cell_grid_position = grid::world_position_to_grid_position(origin);
 
         let step = IVec3::new(
-            if direction.x > 0.0 { 1 } else { -1 },
-            if direction.y > 0.0 { 1 } else { -1 },
-            if direction.z > 0.0 { 1 } else { -1 },
+            if forward.x > 0.0 { 1 } else { -1 },
+            if forward.y > 0.0 { 1 } else { -1 },
+            if forward.z > 0.0 { 1 } else { -1 },
         );
 
         let t_max = Vec3 {
-            x: if direction.x != 0.0 {
-                let boundary = if direction.x > 0.0 {
+            x: if forward.x != 0.0 {
+                let boundary = if forward.x > 0.0 {
                     cell_grid_position.x as f32 + CELL_RADIUS_IN_METERS
                 } else {
                     cell_grid_position.x as f32 - CELL_RADIUS_IN_METERS
                 };
 
-                (boundary - origin.x) / direction.x
+                (boundary - origin.x) / forward.x
             } else {
                 f32::INFINITY
             },
-            y: if direction.y != 0.0 {
-                let boundary = if direction.y > 0.0 {
+            y: if forward.y != 0.0 {
+                let boundary = if forward.y > 0.0 {
                     cell_grid_position.y as f32 + CELL_RADIUS_IN_METERS
                 } else {
                     cell_grid_position.y as f32 - CELL_RADIUS_IN_METERS
                 };
 
-                (boundary - origin.y) / direction.y
+                (boundary - origin.y) / forward.y
             } else {
                 f32::INFINITY
             },
-            z: if direction.z != 0.0 {
-                let boundary = if direction.z > 0.0 {
+            z: if forward.z != 0.0 {
+                let boundary = if forward.z > 0.0 {
                     cell_grid_position.z as f32 + CELL_RADIUS_IN_METERS
                 } else {
                     cell_grid_position.z as f32 - CELL_RADIUS_IN_METERS
                 };
 
-                (boundary - origin.z) / direction.z
+                (boundary - origin.z) / forward.z
             } else {
                 f32::INFINITY
             },
         };
 
         let t_delta = Vec3::new(
-            if direction.x != 0.0 {
-                (1.0 / direction.x).abs()
+            if forward.x != 0.0 {
+                (1.0 / forward.x).abs()
             } else {
                 f32::INFINITY
             },
-            if direction.y != 0.0 {
-                (1.0 / direction.y).abs()
+            if forward.y != 0.0 {
+                (1.0 / forward.y).abs()
             } else {
                 f32::INFINITY
             },
-            if direction.z != 0.0 {
-                (1.0 / direction.z).abs()
+            if forward.z != 0.0 {
+                (1.0 / forward.z).abs()
             } else {
                 f32::INFINITY
             },

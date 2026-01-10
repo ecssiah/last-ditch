@@ -1,16 +1,17 @@
+pub mod age;
 pub mod appearance;
 pub mod ethnicity;
 pub mod role;
 pub mod sex;
 
 use crate::simulation::state::population::{
-    identity::{appearance::Appearance, ethnicity::Ethnicity, role::Role, sex::Sex},
+    identity::{age::Age, ethnicity::Ethnicity, role::Role, sex::Sex},
     nation::nation_kind::NationKind,
 };
 
 #[derive(Clone)]
 pub struct Identity {
-    pub age: u32,
+    pub age: Age,
     pub sex: Sex,
     pub role: Role,
     pub ethnicity: Ethnicity,
@@ -20,7 +21,7 @@ pub struct Identity {
 impl Identity {
     pub fn new() -> Self {
         let identity = Identity {
-            age: 28,
+            age: Age::new(28),
             sex: Sex::Male,
             role: Role::None,
             ethnicity: Ethnicity::from_nation_kind(&NationKind::Eagle),

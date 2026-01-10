@@ -94,6 +94,7 @@ impl Renderer {
         encoder: &mut wgpu::CommandEncoder,
     ) {
         WorldRenderer::render(
+            gpu_context,
             &surface_texture_view,
             &asset_manager.depth_texture_view,
             &camera.uniform_bind_group,
@@ -103,9 +104,9 @@ impl Renderer {
         );
 
         PopulationRenderer::render(
+            gpu_context,
             &surface_texture_view,
             &asset_manager.depth_texture_view,
-            gpu_context,
             &camera.uniform_bind_group,
             asset_manager,
             &renderer.population_renderer,

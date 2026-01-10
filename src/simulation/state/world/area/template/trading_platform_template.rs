@@ -3,6 +3,7 @@ use crate::simulation::{
     state::world::{
         area::template::{self, Template},
         block::block_kind::BlockKind,
+        grid::Direction,
     },
 };
 use ultraviolet::IVec3;
@@ -21,6 +22,7 @@ impl Template for TradingPlatformTemplate {
                 2 * TRADING_PLATFORM_RADIUS_Y as i32 + 1,
                 1,
             ),
+            &Direction::North,
             &BlockKind::Metal2,
             area,
             world,
@@ -29,6 +31,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(1, 2, 1),
             IVec3::new(1, 1, 2),
+            &Direction::North,
             &BlockKind::Server1,
             area,
             world,
@@ -37,6 +40,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(8, 4, 1),
             IVec3::new(2, 2, 2),
+            &Direction::North,
             &BlockKind::Server2,
             area,
             world,
@@ -45,6 +49,7 @@ impl Template for TradingPlatformTemplate {
         template::set_block_cube(
             IVec3::new(1, 4, 1),
             IVec3::new(1, 2, 1),
+            &Direction::North,
             &BlockKind::Server3,
             area,
             world,

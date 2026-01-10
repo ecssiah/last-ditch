@@ -34,18 +34,18 @@ impl PopulationRenderer {
     }
 
     pub fn render(
+        gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
-        gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
         asset_manager: &AssetManager,
         population_renderer: &Self,
         encoder: &mut wgpu::CommandEncoder,
     ) {
         PersonRenderer::render(
+            gpu_context,
             surface_texture_view,
             depth_texture_view,
-            gpu_context,
             camera_uniform_bind_group,
             asset_manager,
             &population_renderer.person_renderer,

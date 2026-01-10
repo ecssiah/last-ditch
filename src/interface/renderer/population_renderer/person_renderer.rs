@@ -2,17 +2,36 @@ pub mod person_instance_data;
 pub mod person_model;
 pub mod person_vertex_data;
 
+use crate::{
+    include_assets,
+    interface::{
+        asset_manager::{
+            person_model_key::PersonModelKey, person_texture_key::PersonTextureKey, AssetManager,
+        },
+        camera::Camera,
+        gpu::gpu_context::GPUContext,
+        renderer::population_renderer::{
+            person_renderer::{
+                self, person_instance_data::PersonInstanceData,
+                person_vertex_data::PersonVertexData,
+            },
+            PopulationRenderer,
+        },
+    },
+    simulation::{
+        constants::PERSON_DEFAULT_RADIUS_Z,
+        state::{physics::body::Body, population::person::person_id::PersonID},
+        supervisor::viewer::view::PopulationView,
+    },
+};
 use std::{collections::HashMap, sync::Arc};
 use tracing::instrument;
-use crate::{include_assets, interface::{
-    asset_manager::{AssetManager, person_key::PersonKey}, camera::Camera, gpu::gpu_context::GPUContext, renderer::population_renderer::{PopulationRenderer, person_renderer::{self, person_instance_data::PersonInstanceData, person_vertex_data::PersonVertexData}}
-}, simulation::{constants::PERSON_DEFAULT_RADIUS_Z, state::{physics::body::Body, population::person::person_id::PersonID}, supervisor::viewer::view::PopulationView}};
 
 pub struct PersonRenderer {
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: Option<wgpu::BindGroup>,
     pub person_instance_buffer: wgpu::Buffer,
-    pub person_instance_data_group_vec: Vec<(PersonKey, Vec<PersonInstanceData>)>,
+    pub person_instance_data_group_vec: Vec<(PersonModelKey, Vec<PersonInstanceData>)>,
     pub render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -193,7 +212,8 @@ impl PersonRenderer {
     ) {
         person_renderer.person_instance_data_group_vec.clear();
 
-        let mut instance_group_map: HashMap<String, Vec<PersonInstanceData>> = HashMap::new();
+        let mut person_model_instance_map: HashMap<PersonModelKey, Vec<PersonInstanceData>> =
+            HashMap::new();
 
         for (person_id, person_view) in &population_view.person_view_map {
             if person_id == &PersonID::JUDGE_ID_1 {
@@ -203,41 +223,32 @@ impl PersonRenderer {
             let world_position = *(person_view.transform.world_position).as_array();
             let person_scale = Body::get_size(&person_view.body).z / PERSON_DEFAULT_RADIUS_Z;
             let rotation_xy = person_view.transform.rotation_xy;
-
-            let person_texture_name = AssetManager::get_person_texture_name(
-                &person_view.appearance.skin_tone,
+            let layer_index = AssetManager::get_person_layer_index(
+                &PersonTextureKey::from_skin_tone(&person_view.appearance.skin_tone),
                 asset_manager,
             );
-
-            let texture_atlas = asset_manager
-                .texture_atlas
-                .as_ref()
-                .expect("Texture atlas should be available during run");
-
-            let texture_layer_index = texture_atlas
-                .name_layer_map
-                .get(person_texture_name)
-                .expect("All blocks should have textures available")
-                .clone();
 
             let person_instance_data = PersonInstanceData::new(
                 world_position,
                 person_scale,
                 rotation_xy,
-                texture_layer_index.into(),
+                layer_index.into(),
             );
 
-            let person_model_name = person_view.identity.sex.to_string();
+            let person_model_key = PersonModelKey::from_sex_and_age(
+                &person_view.identity.sex,
+                person_view.identity.age.period,
+            );
 
-            instance_group_map
-                .entry(person_model_name)
+            person_model_instance_map
+                .entry(person_model_key)
                 .or_default()
                 .push(person_instance_data);
         }
 
         person_renderer
             .person_instance_data_group_vec
-            .extend(instance_group_map.into_iter());
+            .extend(person_model_instance_map.into_iter());
 
         let total_instance_count: usize = person_renderer
             .person_instance_data_group_vec
@@ -273,9 +284,9 @@ impl PersonRenderer {
 
     #[instrument(skip_all)]
     pub fn render(
+        gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
-        gpu_context: &GPUContext,
         camera_uniform_bind_group: &wgpu::BindGroup,
         asset_manager: &AssetManager,
         person_renderer: &Self,
@@ -323,7 +334,7 @@ impl PersonRenderer {
 
         let mut offset_bytes = 0;
 
-        for (person_model_name, person_instance_data_vec) in
+        for (person_model_key, person_instance_data_vec) in
             &person_renderer.person_instance_data_group_vec
         {
             let byte_len = (person_instance_data_vec.len()
@@ -336,12 +347,8 @@ impl PersonRenderer {
                 bytemuck::cast_slice(&person_instance_data_vec),
             );
 
-            let person_gpu_mesh_arc = Arc::clone(
-                asset_manager.
-                    .person_gpu_mesh_map
-                    .get(person_model_name)
-                    .unwrap(),
-            );
+            let person_gpu_mesh =
+                AssetManager::get_person_model_gpu_mesh(person_model_key, asset_manager);
 
             render_pass.set_vertex_buffer(
                 1,
@@ -350,15 +357,15 @@ impl PersonRenderer {
                     .slice(offset_bytes..offset_bytes + byte_len),
             );
 
-            render_pass.set_vertex_buffer(0, person_gpu_mesh_arc.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(0, person_gpu_mesh.vertex_buffer.slice(..));
 
             render_pass.set_index_buffer(
-                person_gpu_mesh_arc.index_buffer.slice(..),
+                person_gpu_mesh.index_buffer.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
 
             let instance_count = person_instance_data_vec.len() as u32;
-            render_pass.draw_indexed(0..person_gpu_mesh_arc.index_count, 0, 0..instance_count);
+            render_pass.draw_indexed(0..person_gpu_mesh.index_count, 0, 0..instance_count);
 
             offset_bytes += byte_len;
         }

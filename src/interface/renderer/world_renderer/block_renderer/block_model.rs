@@ -1,25 +1,25 @@
 use crate::interface::{
-    gpu::gpu_mesh::GpuMesh, renderer::population_renderer::person_renderer::person_vertex_data::PersonVertexData,
+    gpu::gpu_mesh::GpuMesh, renderer::world_renderer::block_renderer::block_vertex_data::BlockVertexData,
 };
 
-pub struct PersonModel {
-    pub vertex_vec: Vec<PersonVertexData>,
+pub struct BlockModel {
+    pub vertex_vec: Vec<BlockVertexData>,
     pub index_vec: Vec<u32>,
 }
 
-impl PersonModel {
-    pub fn to_gpu_mesh(person_model: &Self, device: &wgpu::Device) -> GpuMesh {
+impl BlockModel {
+    pub fn to_gpu_mesh(block_model: &Self, device: &wgpu::Device) -> GpuMesh {
         assert!(
-            !person_model.vertex_vec.is_empty(),
+            !block_model.vertex_vec.is_empty(),
             "Vertex buffer is empty!"
         );
-        assert!(!person_model.index_vec.is_empty(), "Index buffer is empty!");
+        assert!(!block_model.index_vec.is_empty(), "Index buffer is empty!");
 
         let vertex_buffer = wgpu::util::DeviceExt::create_buffer_init(
             device,
             &wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&person_model.vertex_vec),
+                contents: bytemuck::cast_slice(&block_model.vertex_vec),
                 usage: wgpu::BufferUsages::VERTEX,
             },
         );
@@ -28,12 +28,12 @@ impl PersonModel {
             device,
             &wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&person_model.index_vec),
+                contents: bytemuck::cast_slice(&block_model.index_vec),
                 usage: wgpu::BufferUsages::INDEX,
             },
         );
 
-        let index_count = person_model.index_vec.len() as u32;
+        let index_count = block_model.index_vec.len() as u32;
 
         let material_id = 0;
 

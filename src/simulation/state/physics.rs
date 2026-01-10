@@ -26,7 +26,7 @@ use crate::{
                 Population,
             },
             world::{
-                block::{block_kind::BlockKind, block_state::block_type::BlockType},
+                block::{block_shape::BlockShape, Block},
                 grid::{self, axis::Axis},
             },
             World,
@@ -210,8 +210,8 @@ impl Physics {
 
         for grid_position in overlap_grid_positions {
             if let Some(block) = World::get_block(grid_position, &world.sector_vec) {
-                match block.block_state.block_type {
-                    BlockType::Block => {
+                match block.block_shape {
+                    BlockShape::Block => {
                         let contact_point = Vec3::from(grid_position);
 
                         let hit = Hit {
@@ -222,10 +222,7 @@ impl Physics {
                         hit_vec.push(hit);
                     }
                     _ => {
-                        let block_float_box_array = BlockKind::get_float_box_array(
-                            &block.block_state,
-                            &block.block_kind,
-                        );
+                        let block_float_box_array = Block::get_float_box_array(block);
 
                         for block_float_box in block_float_box_array {
                             if FloatBox::overlap(float_box, block_float_box) {

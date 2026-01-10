@@ -1,22 +1,29 @@
 use crate::interface::{
-    asset_manager::layer_index::LayerIndex, gpu::gpu_texture_data::GpuTextureData,
+    asset_manager::{
+        block_texture_key::BlockTextureKey, layer_index::LayerIndex,
+        person_texture_key::PersonTextureKey,
+    },
+    gpu::gpu_texture_data::GpuTextureData,
 };
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct TextureAtlas {
     pub gpu_texture_data: GpuTextureData,
-    pub name_layer_map: HashMap<String, LayerIndex>,
+    pub block_layer_map: HashMap<BlockTextureKey, LayerIndex>,
+    pub person_layer_map: HashMap<PersonTextureKey, LayerIndex>,
 }
 
 impl TextureAtlas {
     pub fn new(
         gpu_texture_data: GpuTextureData,
-        name_layer_map: HashMap<String, LayerIndex>,
+        block_layer_map: HashMap<BlockTextureKey, LayerIndex>,
+        person_layer_map: HashMap<PersonTextureKey, LayerIndex>,
     ) -> Self {
         Self {
             gpu_texture_data,
-            name_layer_map,
+            block_layer_map,
+            person_layer_map,
         }
     }
 }

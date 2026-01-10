@@ -31,14 +31,12 @@ impl WorldRenderer {
 
     pub fn apply_world_view(
         gpu_context: &GPUContext,
-        camera: &Camera,
         asset_manager: &AssetManager,
         world_view: &WorldView,
         world_renderer: &mut Self,
     ) {
         BlockRenderer::apply_world_view(
             gpu_context,
-            camera,
             asset_manager,
             world_view,
             &mut world_renderer.block_renderer,
@@ -46,7 +44,6 @@ impl WorldRenderer {
 
         SectorRenderer::apply_world_view(
             gpu_context,
-            camera,
             asset_manager,
             world_view,
             &mut world_renderer.sector_renderer,
@@ -54,6 +51,7 @@ impl WorldRenderer {
     }
 
     pub fn render(
+        gpu_context: &GPUContext,
         surface_texture_view: &wgpu::TextureView,
         depth_texture_view: &wgpu::TextureView,
         camera_uniform_bind_group: &wgpu::BindGroup,
@@ -62,6 +60,7 @@ impl WorldRenderer {
         encoder: &mut wgpu::CommandEncoder,
     ) {
         BlockRenderer::render(
+            gpu_context,
             surface_texture_view,
             depth_texture_view,
             camera_uniform_bind_group,
@@ -78,6 +77,5 @@ impl WorldRenderer {
             &world_renderer.sector_renderer,
             encoder,
         );
-
     }
 }

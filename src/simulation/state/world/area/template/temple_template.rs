@@ -6,6 +6,7 @@ use crate::simulation::state::{
             template::{self, Template},
         },
         block::block_kind::BlockKind,
+        grid::Direction,
     },
 };
 use ultraviolet::IVec3;
@@ -21,6 +22,7 @@ impl Template for TempleTemplate {
             template::set_block_wireframe(
                 IVec3::new(1, 1, 1),
                 area.size - IVec3::new(2, 2, 2),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -28,6 +30,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(1, 1, area.size.z - 3),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -35,6 +38,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(area.size.x - 2, 1, area.size.z - 3),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -42,6 +46,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(1, area.size.y - 2, area.size.z - 3),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -49,6 +54,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(area.size.x - 2, area.size.y - 2, area.size.z - 3),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -56,6 +62,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(1, 1, 2),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -63,6 +70,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(area.size.x - 2, 1, 2),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -70,6 +78,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(1, area.size.y - 2, 2),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -77,6 +86,7 @@ impl Template for TempleTemplate {
 
             template::set_block(
                 IVec3::new(area.size.x - 2, area.size.y - 2, 2),
+                &Direction::North,
                 Nation::get_nation_symbol(&nation_kind),
                 area,
                 world,
@@ -85,7 +95,8 @@ impl Template for TempleTemplate {
             template::set_block_cube(
                 IVec3::new(0, 0, 0),
                 IVec3::new(area.size.x, area.size.y, 1),
-                &BlockKind::Stone4,
+                &Direction::North,
+                &BlockKind::Smooth4,
                 area,
                 world,
             );
@@ -93,7 +104,8 @@ impl Template for TempleTemplate {
             template::set_block_cube(
                 IVec3::new(1, 1, 1),
                 IVec3::new(area.size.x - 2, area.size.y - 2, 1),
-                &BlockKind::Stone4,
+                &Direction::North,
+                &BlockKind::Smooth4,
                 area,
                 world,
             );
@@ -101,7 +113,8 @@ impl Template for TempleTemplate {
             template::set_block_cube(
                 IVec3::new(0, 0, area.size.z - 1),
                 IVec3::new(area.size.x, area.size.y, 1),
-                &BlockKind::Stone4,
+                &Direction::North,
+                &BlockKind::Smooth4,
                 area,
                 world,
             );
@@ -109,7 +122,8 @@ impl Template for TempleTemplate {
             template::set_block_cube(
                 IVec3::new(1, 1, area.size.z - 2),
                 IVec3::new(area.size.x - 2, area.size.y - 2, 1),
-                &BlockKind::Stone4,
+                &Direction::North,
+                &BlockKind::Smooth4,
                 area,
                 world,
             );

@@ -42,7 +42,7 @@ pub struct Interface<'window> {
     pub interface_mode: InterfaceMode,
     pub last_instant: Instant,
     pub message_tx: crossbeam::channel::Sender<Message>,
-    pub asset_manager: AssetManager<'window>,
+    pub asset_manager: AssetManager,
     pub input: Input,
     pub camera: Camera,
     pub gui: GUI,
@@ -275,11 +275,14 @@ impl<'window> Interface<'window> {
         renderer: &mut Renderer,
     ) {
         match &asset_manager.asset_status {
-            AssetStatus::Init => {
+            AssetStatus::InitTextures => {
                 AssetManager::init_texture_loading(asset_manager);
             }
             AssetStatus::LoadingTextures => {
                 AssetManager::update_texture_loading(gpu_context, asset_manager);
+            }
+            AssetStatus::InitModels => {
+                AssetManager::init_model_loading(asset_manager);
             }
             AssetStatus::LoadingModels => {
                 AssetManager::update_model_loading(gpu_context, asset_manager);
@@ -307,7 +310,6 @@ impl<'window> Interface<'window> {
 
         WorldRenderer::apply_world_view(
             gpu_context,
-            camera,
             asset_manager,
             &view.world_view,
             &mut renderer.world_renderer,
@@ -385,7 +387,8 @@ impl<'window> Interface<'window> {
             camera,
             gpu_context,
             asset_manager,
-            renderer, &mut encoder
+            renderer,
+            &mut encoder,
         );
 
         GUI::render(

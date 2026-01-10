@@ -1,7 +1,8 @@
 #[derive(Clone, PartialEq)]
 pub enum AssetStatus {
-    Init,
+    InitTextures,
     LoadingTextures,
+    InitModels,
     LoadingModels,
     Complete,
 }

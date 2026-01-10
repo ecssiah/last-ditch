@@ -1,12 +1,15 @@
 use crate::{
     interface::{
-        asset_manager::AssetManager, gpu::gpu_mesh::GpuMesh,
-        renderer::world_renderer::sector_vertex::SectorVertexData,
+        asset_manager::{block_texture_key::BlockTextureKey, AssetManager},
+        gpu::gpu_mesh::GpuMesh,
+        renderer::world_renderer::sector_renderer::{
+            sector_face::SectorFace, sector_vertex::SectorVertexData,
+        },
     },
     simulation::{
         constants::*,
         state::world::{
-            block::block_state::block_type::BlockType,
+            block::{block_shape::BlockShape, block_state::BlockState},
             grid::{self, axis::Axis, direction_set::DirectionSet, Direction},
             sector::{sector_index::SectorIndex, Sector},
         },
@@ -30,24 +33,9 @@ impl SectorModel {
     }
 
     fn lysenko_optimization(sector_view: &SectorView, asset_manager: &AssetManager) -> Self {
-        let (sector_block_vec, sector_face_vec) =
-            Self::collect_sector_geometry(sector_view, asset_manager);
+        let sector_face_vec = Self::collect_sector_geometry(sector_view, asset_manager);
 
-        let (sector_face_vertex_vec, sector_face_index_vec) =
-            Self::get_sector_face_geometry(sector_face_vec);
-
-        let (sector_block_vertex_vec, sector_block_index_vec) =
-            Self::get_sector_block_geometry(asset_manager, sector_block_vec);
-
-        let sector_vertex_vec: Vec<SectorVertexData> = sector_face_vertex_vec
-            .into_iter()
-            .chain(sector_block_vertex_vec.into_iter())
-            .collect();
-
-        let sector_index_vec: Vec<u32> = sector_face_index_vec
-            .into_iter()
-            .chain(sector_block_index_vec.into_iter())
-            .collect();
+        let (sector_vertex_vec, sector_index_vec) = Self::get_sector_face_geometry(sector_face_vec);
 
         let sector_model = SectorModel {
             sector_index: sector_view.sector_index,
@@ -62,14 +50,12 @@ impl SectorModel {
     fn collect_sector_geometry(
         sector_view: &SectorView,
         asset_manager: &AssetManager,
-    ) -> (Vec<SectorBlock>, Vec<Vec<Vec<Option<SectorFace>>>>) {
+    ) -> Vec<Vec<Vec<Option<SectorFace>>>> {
         let sector_radius_in_cells = SECTOR_RADIUS_IN_CELLS as i32;
         let sector_size_in_cells = SECTOR_SIZE_IN_CELLS as i32;
         let sector_area_in_cells = SECTOR_AREA_IN_CELLS as i32;
 
         let slice_count = (sector_size_in_cells + 1) as usize;
-
-        let mut sector_block_vec = Vec::new();
 
         let mut sector_face_vec = vec![
             vec![vec![None; sector_area_in_cells as usize]; slice_count],
@@ -90,169 +76,134 @@ impl SectorModel {
                         grid::grid_position_to_world_position(block_grid_position);
 
                     if let Some(block) = Sector::get_block(cell_index, &sector_view.block_vec) {
-                        match block.block_state.block_type {
-                            BlockType::Block => {
-                                let block_texture_name = AssetManager::get_block_texture_name(
-                                    &block.block_kind,
-                                    asset_manager,
-                                );
+                        if block.block_shape == BlockShape::Block {
+                            let BlockState::Block(ref block_data) = block.block_state else {
+                                panic!("block should have block data")
+                            };
 
-                                let texture_atlas = asset_manager
-                                    .texture_atlas
-                                    .as_ref()
-                                    .expect("Texture atlas should be available during run");
+                            let layer_index = AssetManager::get_block_layer_index(
+                                &BlockTextureKey::from_block_kind(&block.block_kind),
+                                asset_manager,
+                            );
 
-                                let layer_index = texture_atlas
-                                    .name_layer_map
-                                    .get(block_texture_name)
-                                    .expect("All blocks should have textures available")
-                                    .clone();
+                            if DirectionSet::has(&Direction::North, &block_data.exposure_set) {
+                                let slice_index = (y + sector_radius_in_cells + 1) as usize;
 
-                                if DirectionSet::has(
-                                    &Direction::North,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (y + sector_radius_in_cells + 1) as usize;
+                                let local_x = (x + sector_radius_in_cells) as usize;
+                                let local_z = (z + sector_radius_in_cells) as usize;
 
-                                    let local_x = (x + sector_radius_in_cells) as usize;
-                                    let local_z = (z + sector_radius_in_cells) as usize;
+                                let mask_index =
+                                    local_z * (sector_size_in_cells as usize) + local_x;
 
-                                    let mask_index =
-                                        local_z * (sector_size_in_cells as usize) + local_x;
+                                let direction = Direction::North;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
 
-                                    let direction = Direction::North;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
 
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::Y as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
-
-                                if DirectionSet::has(
-                                    &Direction::West,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (x + sector_radius_in_cells) as usize;
-
-                                    let local_y = (y + sector_radius_in_cells) as usize;
-                                    let local_z = (z + sector_radius_in_cells) as usize;
-
-                                    let mask_index =
-                                        local_y * (sector_size_in_cells as usize) + local_z;
-
-                                    let direction = Direction::West;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
-
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::X as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
-
-                                if DirectionSet::has(
-                                    &Direction::South,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (y + sector_radius_in_cells) as usize;
-
-                                    let local_x = (x + sector_radius_in_cells) as usize;
-                                    let local_z = (z + sector_radius_in_cells) as usize;
-
-                                    let mask_index =
-                                        local_z * (sector_size_in_cells as usize) + local_x;
-
-                                    let direction = Direction::South;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
-
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::Y as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
-
-                                if DirectionSet::has(
-                                    &Direction::East,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (x + sector_radius_in_cells + 1) as usize;
-
-                                    let local_y = (y + sector_radius_in_cells) as usize;
-                                    let local_z = (z + sector_radius_in_cells) as usize;
-
-                                    let mask_index =
-                                        local_y * (sector_size_in_cells as usize) + local_z;
-
-                                    let direction = Direction::East;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
-
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::X as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
-
-                                if DirectionSet::has(
-                                    &Direction::Up,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (z + sector_radius_in_cells + 1) as usize;
-
-                                    let local_x = (x + sector_radius_in_cells) as usize;
-                                    let local_y = (y + sector_radius_in_cells) as usize;
-
-                                    let mask_index =
-                                        local_y * (sector_size_in_cells as usize) + local_x;
-
-                                    let direction = Direction::Up;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
-
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::Z as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
-
-                                if DirectionSet::has(
-                                    &Direction::Down,
-                                    &block.block_state.exposure_set,
-                                ) {
-                                    let slice_index = (z + sector_radius_in_cells) as usize;
-
-                                    let local_x = (x + sector_radius_in_cells) as usize;
-                                    let local_y = (y + sector_radius_in_cells) as usize;
-
-                                    let mask_index =
-                                        local_y * (sector_size_in_cells as usize) + local_x;
-
-                                    let direction = Direction::Down;
-                                    let normal = Direction::to_vec3(&direction);
-                                    let world_position = block_world_position + normal * 0.5;
-
-                                    let sector_face =
-                                        SectorFace::new(world_position, direction, layer_index);
-
-                                    sector_face_vec[Axis::Z as usize][slice_index][mask_index] =
-                                        Some(sector_face);
-                                }
+                                sector_face_vec[Axis::Y as usize][slice_index][mask_index] =
+                                    Some(sector_face);
                             }
-                            _ => {
-                                let sector_block = SectorBlock::new(
-                                    block_world_position,
-                                    block.block_state.clone(),
-                                );
 
-                                sector_block_vec.push(sector_block);
+                            if DirectionSet::has(&Direction::West, &block_data.exposure_set) {
+                                let slice_index = (x + sector_radius_in_cells) as usize;
+
+                                let local_y = (y + sector_radius_in_cells) as usize;
+                                let local_z = (z + sector_radius_in_cells) as usize;
+
+                                let mask_index =
+                                    local_y * (sector_size_in_cells as usize) + local_z;
+
+                                let direction = Direction::West;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
+
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
+
+                                sector_face_vec[Axis::X as usize][slice_index][mask_index] =
+                                    Some(sector_face);
+                            }
+
+                            if DirectionSet::has(&Direction::South, &block_data.exposure_set) {
+                                let slice_index = (y + sector_radius_in_cells) as usize;
+
+                                let local_x = (x + sector_radius_in_cells) as usize;
+                                let local_z = (z + sector_radius_in_cells) as usize;
+
+                                let mask_index =
+                                    local_z * (sector_size_in_cells as usize) + local_x;
+
+                                let direction = Direction::South;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
+
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
+
+                                sector_face_vec[Axis::Y as usize][slice_index][mask_index] =
+                                    Some(sector_face);
+                            }
+
+                            if DirectionSet::has(&Direction::East, &block_data.exposure_set) {
+                                let slice_index = (x + sector_radius_in_cells + 1) as usize;
+
+                                let local_y = (y + sector_radius_in_cells) as usize;
+                                let local_z = (z + sector_radius_in_cells) as usize;
+
+                                let mask_index =
+                                    local_y * (sector_size_in_cells as usize) + local_z;
+
+                                let direction = Direction::East;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
+
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
+
+                                sector_face_vec[Axis::X as usize][slice_index][mask_index] =
+                                    Some(sector_face);
+                            }
+
+                            if DirectionSet::has(&Direction::Up, &block_data.exposure_set) {
+                                let slice_index = (z + sector_radius_in_cells + 1) as usize;
+
+                                let local_x = (x + sector_radius_in_cells) as usize;
+                                let local_y = (y + sector_radius_in_cells) as usize;
+
+                                let mask_index =
+                                    local_y * (sector_size_in_cells as usize) + local_x;
+
+                                let direction = Direction::Up;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
+
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
+
+                                sector_face_vec[Axis::Z as usize][slice_index][mask_index] =
+                                    Some(sector_face);
+                            }
+
+                            if DirectionSet::has(&Direction::Down, &block_data.exposure_set) {
+                                let slice_index = (z + sector_radius_in_cells) as usize;
+
+                                let local_x = (x + sector_radius_in_cells) as usize;
+                                let local_y = (y + sector_radius_in_cells) as usize;
+
+                                let mask_index =
+                                    local_y * (sector_size_in_cells as usize) + local_x;
+
+                                let direction = Direction::Down;
+                                let normal = Direction::to_vec3(&direction);
+                                let world_position = block_world_position + normal * 0.5;
+
+                                let sector_face =
+                                    SectorFace::new(world_position, direction, layer_index);
+
+                                sector_face_vec[Axis::Z as usize][slice_index][mask_index] =
+                                    Some(sector_face);
                             }
                         }
                     }
@@ -260,7 +211,7 @@ impl SectorModel {
             }
         }
 
-        (sector_block_vec, sector_face_vec)
+        sector_face_vec
     }
 
     fn get_sector_face_geometry(
@@ -558,18 +509,6 @@ impl SectorModel {
             index_vec.push(initial_index + 3);
             index_vec.push(initial_index + 2);
         }
-    }
-
-    fn get_sector_block_geometry(
-        asset_manager: &AssetManager,
-        sector_block_vec: Vec<SectorBlock>,
-    ) -> (Vec<SectorVertexData>, Vec<u32>) {
-        let mut vertex_vec = Vec::new();
-        let mut index_vec = Vec::new();
-
-        for sector_block in sector_block_vec {}
-
-        (vertex_vec, index_vec)
     }
 
     fn get_axis_coordinate(slice_index: usize, sector_radius: i32) -> f32 {

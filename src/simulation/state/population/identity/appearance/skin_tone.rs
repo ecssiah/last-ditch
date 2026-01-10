@@ -1,11 +1,13 @@
-#[derive(Clone, Hash, PartialEq, Eq)]
+use strum_macros::{Display, EnumString};
+
+#[derive(Clone, Display, Hash, PartialEq, Eq, EnumString)]
 pub enum SkinTone {
-    Color1,
-    Color2,
-    Color3,
-    Color4,
-    Color5,
-    Color6,
-    Color7,
-    Color8,
+    Person1,
+    Person2,
+    Person3,
+    Person4,
+    Person5,
+    Person6,
+    Person7,
+    Person8,
 }

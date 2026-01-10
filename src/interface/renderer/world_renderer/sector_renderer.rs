@@ -1,3 +1,7 @@
+pub mod sector_face;
+pub mod sector_model;
+pub mod sector_vertex;
+
 use crate::{
     include_assets,
     interface::{
@@ -5,6 +9,7 @@ use crate::{
         camera::Camera,
         constants::*,
         gpu::{gpu_context::GPUContext, gpu_mesh::GpuMesh},
+        renderer::world_renderer::sector_renderer::{sector_model::SectorModel, sector_vertex::SectorVertexData},
     },
     simulation::{
         constants::*,
@@ -192,7 +197,6 @@ impl SectorRenderer {
     #[instrument(skip_all)]
     pub fn apply_world_view(
         gpu_context: &GPUContext,
-        camera: &Camera,
         asset_manager: &AssetManager,
         world_view: &WorldView,
         world_renderer: &mut Self,
@@ -200,15 +204,7 @@ impl SectorRenderer {
         world_renderer.active_sector_index_set.clear();
         world_renderer.active_gpu_mesh_vec.clear();
 
-        // TODO: Block modification causes edge of sector to be invalid mesh
         for (sector_index, sector_view) in &world_view.sector_view_map {
-            if !camera
-                .frustum
-                .sphere_in_frustum(sector_view.world_position, SECTOR_RADIUS_IN_METERS * 1.5)
-            {
-                continue;
-            }
-
             let sector_model = Self::get_or_build_sector_model(
                 sector_view,
                 asset_manager,

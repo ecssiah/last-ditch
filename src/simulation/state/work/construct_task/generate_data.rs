@@ -236,7 +236,8 @@ impl GenerateData {
         World::set_block_cube(
             base_int_box.min,
             IVec3::new(base_int_box.max.x, base_int_box.max.y, base_int_box.min.z),
-            &BlockKind::Stone3,
+            &Direction::North,
+            &BlockKind::Smooth3,
             world,
         );
 
@@ -258,6 +259,7 @@ impl GenerateData {
                     floor_int_box.max.y,
                     floor_int_box.min.z,
                 ),
+                &Direction::North,
                 &BlockKind::Panel2,
                 world,
             );
@@ -269,6 +271,7 @@ impl GenerateData {
                     floor_int_box.max.z,
                 ),
                 floor_int_box.max,
+                &Direction::North,
                 &BlockKind::Panel2,
                 world,
             );
@@ -276,6 +279,7 @@ impl GenerateData {
             World::set_block_wireframe(
                 floor_int_box.min,
                 floor_int_box.max,
+                &Direction::North,
                 &BlockKind::Caution1,
                 world,
             );
@@ -310,6 +314,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(-tower_radius, y, floor_z_random),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -317,6 +322,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(-tower_radius, y, floor_z_random),
                         IVec3::new(-tower_radius, y, floor_int_box.max.z - 1),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -332,6 +338,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_int_box.min.z + 1),
                         IVec3::new(tower_radius, y, floor_z_random),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -339,6 +346,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(tower_radius, y, floor_z_random),
                         IVec3::new(tower_radius, y, floor_int_box.max.z - 1),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -356,6 +364,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, -tower_radius, floor_z_random),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -363,6 +372,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, -tower_radius, floor_z_random),
                         IVec3::new(x, -tower_radius, floor_int_box.max.z - 1),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -378,6 +388,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_int_box.min.z + 1),
                         IVec3::new(x, tower_radius, floor_z_random),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -385,6 +396,7 @@ impl GenerateData {
                     World::set_block_cube(
                         IVec3::new(x, tower_radius, floor_z_random),
                         IVec3::new(x, tower_radius, floor_int_box.max.z - 1),
+                        &Direction::North,
                         &BlockKind::Metal3,
                         world,
                     );
@@ -403,7 +415,8 @@ impl GenerateData {
         World::set_block_cube(
             roof_int_box.min,
             IVec3::new(roof_int_box.max.x, roof_int_box.max.y, roof_int_box.min.z),
-            &BlockKind::Stone3,
+            &Direction::North,
+            &BlockKind::Smooth3,
             world,
         );
 

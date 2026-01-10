@@ -19,6 +19,7 @@ use crate::simulation::state::{
     navigation::Navigation,
     population::{person::Person, sight::Sight},
     work::Work,
+    world::grid::Direction,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -62,14 +63,19 @@ impl State {
     pub fn place_block(person: &Person, world: &mut World) {
         let range = 8.0;
         let origin = person.sight.world_position;
-        let direction = Sight::get_forward(&person.sight);
+        let forward = Sight::get_forward(&person.sight);
 
-        if let Some((hit_position, normal)) =
-            World::raycast_to_block(origin, direction, range, world)
+        if let Some((hit_position, normal)) = World::raycast_to_block(origin, forward, range, world)
         {
             let placement_position = hit_position + normal;
+            let placement_direction = Direction::from_rotation(person.transform.rotation_xy);
 
-            World::set_block(placement_position, &person.selected_block_kind, world);
+            World::set_block(
+                placement_position,
+                &placement_direction,
+                &person.selected_block_kind,
+                world,
+            );
         }
     }
 

@@ -46,6 +46,7 @@ impl Template for GenericRoomTemplate {
         template::set_block_box(
             IVec3::new(0, 0, 0),
             area.size,
+            &Direction::North,
             &BlockKind::Metal1,
             area,
             world,
@@ -106,6 +107,7 @@ impl Template for GenericRoomTemplate {
             World::set_block_cube(
                 IVec3::new(x, y, area_int_box.min.z + 1),
                 IVec3::new(x, y, z),
+                &Direction::North,
                 resource_block_kind,
                 world,
             );
