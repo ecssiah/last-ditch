@@ -5,6 +5,7 @@ pub mod content;
 use crate::{
     interface::{
         gpu::gpu_context::GPUContext,
+        input::Input,
         interface_mode::InterfaceMode,
         renderer::{overlay_renderer::content::Content, render_mode::RenderMode},
     },
@@ -72,18 +73,19 @@ impl OverlayRenderer {
             .take_egui_input(&window_arc);
 
         let mut content_working = std::mem::take(&mut overlay_renderer.content);
-        let mut message_deque = std::mem::take(&mut overlay_renderer.message_deque);
+        let mut message_deque_working = std::mem::take(&mut overlay_renderer.message_deque);
 
         let full_output: FullOutput = overlay_renderer.egui_context.run(raw_input, |context| {
             Self::show(
                 context,
                 interface_mode,
                 &mut content_working,
-                &mut message_deque,
+                &mut message_deque_working,
             );
         });
 
         overlay_renderer.content = content_working;
+        overlay_renderer.message_deque = message_deque_working;
 
         full_output
     }
@@ -189,7 +191,6 @@ impl OverlayRenderer {
                                 };
 
                                 message_deque.push_back(Message::SetSeed(seed_data));
-
                                 message_deque.push_back(Message::Generate);
                             }
 
@@ -578,24 +579,28 @@ impl OverlayRenderer {
         )
     }
 
+    pub fn handle_window_event(
+        event: &WindowEvent,
+        gpu_context: &GPUContext,
+        input: &mut Input,
+        overlay_renderer: &mut Self,
+    ) {
+        match event {
+            WindowEvent::CloseRequested => Input::handle_close_requested(&mut input.message_deque),
+            _ => {
+                let _ = overlay_renderer
+                    .egui_winit_state
+                    .on_window_event(&gpu_context.window_arc, event);
+            }
+        }
+    }
+
     pub fn handle_device_event(event: &DeviceEvent, overlay_renderer: &mut Self) {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
             overlay_renderer
                 .egui_winit_state
                 .on_mouse_motion((*dx, *dy))
         };
-    }
-
-    pub fn handle_window_event(
-        event: &WindowEvent,
-        gpu_context: &GPUContext,
-        overlay_renderer: &mut Self,
-    ) -> bool {
-        let event_response = overlay_renderer
-            .egui_winit_state
-            .on_window_event(&gpu_context.window_arc, event);
-
-        event_response.consumed
     }
 
     pub fn set_main_window_active(

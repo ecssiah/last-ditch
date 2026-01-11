@@ -15,7 +15,7 @@ use crate::{
         camera::Camera,
         constants::*,
         gpu::gpu_context::GPUContext,
-        input::Input,
+        input::{input_mode::InputMode, Input},
         interface_mode::InterfaceMode,
         renderer::{
             block_renderer::BlockRenderer, debug_renderer::DebugRenderer,
@@ -315,6 +315,13 @@ impl<'window> Interface<'window> {
                     .setup_content
                     .loading_string = String::from("Complete!");
 
+                gpu_context.window_arc.set_cursor_visible(true);
+
+                gpu_context
+                    .window_arc
+                    .set_cursor_grab(winit::window::CursorGrabMode::None)
+                    .expect("Failed to grab cursor");
+
                 *interface_mode = InterfaceMode::Menu;
             }
         }
@@ -370,37 +377,37 @@ impl<'window> Interface<'window> {
                 &mut interface.renderer,
             ),
             WindowEvent::Resized(size) => Self::handle_resized(*size, &mut interface.gpu_context),
-            _ => {
-                if Input::handle_window_event(
+            _ => match interface.input.input_mode {
+                InputMode::Game => Input::handle_window_event(
                     event,
                     &mut interface.renderer.debug_renderer,
                     &mut interface.renderer.overlay_renderer,
                     &mut interface.gpu_context,
                     &mut interface.input,
-                ) {
-                    return;
-                };
-
-                OverlayRenderer::handle_window_event(
+                ),
+                InputMode::Overlay => OverlayRenderer::handle_window_event(
                     event,
                     &interface.gpu_context,
+                    &mut interface.input,
                     &mut interface.renderer.overlay_renderer,
-                );
-            }
+                ),
+            },
         }
     }
 
     #[instrument(skip_all)]
     pub fn handle_device_event(event: &DeviceEvent, interface: &mut Self) {
-        if Input::handle_device_event(
-            event,
-            &interface.renderer.overlay_renderer,
-            &mut interface.input,
-        ) {
-            return;
+        match interface.input.input_mode {
+            InputMode::Game => Input::handle_device_event(
+                event,
+                &interface.renderer.overlay_renderer,
+                &mut interface.input,
+            ),
+            InputMode::Overlay => OverlayRenderer::handle_device_event(
+                event,
+                &mut interface.renderer.overlay_renderer,
+            ),
         }
-
-        OverlayRenderer::handle_device_event(event, &mut interface.renderer.overlay_renderer);
     }
 
     #[instrument(skip_all)]

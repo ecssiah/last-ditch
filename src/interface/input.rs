@@ -1,5 +1,6 @@
 //! User input processing
 
+pub mod input_mode;
 pub mod key_inputs;
 pub mod mouse_inputs;
 
@@ -7,7 +8,7 @@ use crate::{
     interface::{
         constants::*,
         gpu::gpu_context::GPUContext,
-        input::{key_inputs::KeyInputs, mouse_inputs::MouseInputs},
+        input::{input_mode::InputMode, key_inputs::KeyInputs, mouse_inputs::MouseInputs},
         renderer::{debug_renderer::DebugRenderer, overlay_renderer::OverlayRenderer},
     },
     simulation::supervisor::{
@@ -27,6 +28,7 @@ use winit::{
 };
 
 pub struct Input {
+    pub input_mode: InputMode,
     pub key_inputs: KeyInputs,
     pub mouse_inputs: MouseInputs,
     pub message_deque: VecDeque<supervisor::Message>,
@@ -34,6 +36,8 @@ pub struct Input {
 
 impl Input {
     pub fn new() -> Self {
+        let input_mode = InputMode::Overlay;
+
         let key_inputs = KeyInputs {
             key_w: 0.0,
             key_a: 0.0,
@@ -50,6 +54,7 @@ impl Input {
         let message_deque = VecDeque::new();
 
         Self {
+            input_mode,
             key_inputs,
             mouse_inputs,
             message_deque,
@@ -98,7 +103,7 @@ impl Input {
         overlay_renderer: &mut OverlayRenderer,
         gpu_context: &mut GPUContext,
         input: &mut Self,
-    ) -> bool {
+    ) {
         match event {
             WindowEvent::CloseRequested => Self::handle_close_requested(&mut input.message_deque),
             WindowEvent::KeyboardInput {
@@ -131,7 +136,7 @@ impl Input {
                 delta,
                 phase,
             } => Self::handle_mouse_wheel(device_id, delta, phase, &mut input.message_deque),
-            _ => false,
+            _ => (),
         }
     }
 
@@ -139,9 +144,9 @@ impl Input {
         event: &DeviceEvent,
         overlay_renderer: &OverlayRenderer,
         input: &mut Self,
-    ) -> bool {
+    ) {
         if let DeviceEvent::MouseMotion { delta: (dx, dy) } = event {
-            return Self::handle_mouse_motion(
+            Self::handle_mouse_motion(
                 *dx,
                 *dy,
                 overlay_renderer,
@@ -149,14 +154,10 @@ impl Input {
                 &mut input.message_deque,
             );
         }
-
-        false
     }
 
-    fn handle_close_requested(message_deque: &mut VecDeque<Message>) -> bool {
+    pub fn handle_close_requested(message_deque: &mut VecDeque<Message>) {
         message_deque.push_back(Message::Quit);
-
-        true
     }
 
     fn handle_keyboard_input(
@@ -168,56 +169,39 @@ impl Input {
         gpu_context: &mut GPUContext,
         key_inputs: &mut KeyInputs,
         message_deque: &mut VecDeque<Message>,
-    ) -> bool {
-        if key_event.physical_key == PhysicalKey::Code(KeyCode::Tab) {
-            if key_event.state == ElementState::Released {
-                OverlayRenderer::toggle_main_window_active(overlay_renderer, gpu_context);
-            }
-
-            return true;
-        }
-
-        if overlay_renderer.content.run_content.main_window_active {
-            return false;
-        }
-
+    ) {
         match key_event.physical_key {
+            PhysicalKey::Code(KeyCode::Tab) => {
+                if key_event.state == ElementState::Released {
+                    OverlayRenderer::toggle_main_window_active(overlay_renderer, gpu_context);
+                }
+            }
             PhysicalKey::Code(KeyCode::Backquote) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Debug);
 
                     DebugRenderer::toggle_debug_active(debug_renderer);
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Digit1) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option1);
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Digit2) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option2);
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Digit3) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option3);
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Digit4) => {
                 if key_event.state == ElementState::Released {
                     message_deque.push_back(Message::Option4);
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyW) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -225,8 +209,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_w -= 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyS) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -234,8 +216,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_s += 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyA) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -243,8 +223,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_a += 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyD) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -252,8 +230,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_d -= 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyQ) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -261,8 +237,6 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_q += 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::KeyE) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
@@ -270,17 +244,13 @@ impl Input {
                 } else if key_event.state == ElementState::Released {
                     key_inputs.key_e -= 1.0;
                 }
-
-                true
             }
             PhysicalKey::Code(KeyCode::Space) => {
                 if key_event.state == ElementState::Pressed && !key_event.repeat {
                     message_deque.push_back(Message::JumpInput);
                 }
-
-                true
             }
-            _ => false,
+            _ => (),
         }
     }
 
@@ -290,25 +260,13 @@ impl Input {
         button: &MouseButton,
         overlay_renderer: &OverlayRenderer,
         message_deque: &mut VecDeque<Message>,
-    ) -> bool {
-        if overlay_renderer.content.run_content.main_window_active {
-            return false;
-        }
-
+    ) {
         if state == &ElementState::Pressed {
             if button == &MouseButton::Left {
                 message_deque.push_back(Message::Interact1);
-
-                true
             } else if button == &MouseButton::Right {
                 message_deque.push_back(Message::Interact2);
-
-                true
-            } else {
-                false
             }
-        } else {
-            false
         }
     }
 
@@ -317,10 +275,8 @@ impl Input {
         delta: &MouseScrollDelta,
         phase: &TouchPhase,
         _message_deque: &mut VecDeque<Message>,
-    ) -> bool {
+    ) {
         tracing::info!("{:?} {:?}", delta, phase);
-
-        true
     }
 
     fn handle_mouse_motion(
@@ -329,15 +285,9 @@ impl Input {
         overlay_renderer: &OverlayRenderer,
         mouse_inputs: &mut MouseInputs,
         _message_deque: &mut VecDeque<Message>,
-    ) -> bool {
-        if overlay_renderer.content.run_content.main_window_active {
-            return false;
-        }
-
+    ) {
         let delta = Vec2::new(dx as f32, dy as f32);
 
         mouse_inputs.delta += delta;
-
-        true
     }
 }

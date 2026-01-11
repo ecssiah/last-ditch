@@ -1,10 +1,9 @@
 pub mod message;
+pub mod scheduler;
 pub mod supervisor_status;
-pub mod timestep;
 pub mod viewer;
 
 pub use message::Message;
-pub use timestep::Timestep;
 pub use viewer::Viewer;
 
 use crate::{
@@ -24,7 +23,9 @@ use crate::{
             world::block::block_kind::BlockKind,
             State,
         },
-        supervisor::{supervisor_status::SupervisorStatus, viewer::view::View},
+        supervisor::{
+            scheduler::Scheduler, supervisor_status::SupervisorStatus, viewer::view::View,
+        },
     },
 };
 use std::time::{Duration, Instant};
@@ -33,11 +34,14 @@ use ultraviolet::Vec3;
 
 pub struct Supervisor {
     pub supervisor_status: SupervisorStatus,
-    pub evolution_rate: f32,
-    pub timestep: Timestep,
-    pub viewer: Viewer,
+    pub tick: u32,
+    pub frame_ticks: u32,
+    pub instant_start: Instant,
+    pub instant_next: Instant,
     pub message_limit: usize,
     pub message_rx: crossbeam::channel::Receiver<Message>,
+    pub viewer: Viewer,
+    pub scheduler: Scheduler,
 }
 
 impl Supervisor {
@@ -47,35 +51,66 @@ impl Supervisor {
     ) -> Self {
         let supervisor_status = SupervisorStatus::Start;
 
-        let evolution_rate = 1.0;
+        let tick = 0;
+        let frame_ticks = 0;
+        let instant_start = Instant::now();
+        let instant_next = Instant::now();
 
-        let timestep = Timestep::new();
-        let viewer = Viewer::new(view_input);
         let message_limit = OVERSEER_MESSAGE_LIMIT;
+
+        let viewer = Viewer::new(view_input);
+        let scheduler = Scheduler::new();
 
         Self {
             supervisor_status,
-            evolution_rate,
-            timestep,
-            viewer,
+            tick,
+            frame_ticks,
+            instant_start,
+            instant_next,
             message_limit,
             message_rx,
+            viewer,
+            scheduler,
         }
     }
 
-    pub fn start(supervisor: &mut Self) {
-        supervisor.timestep.ticks_frame = 0;
+    pub fn start_timestep(supervisor: &mut Self) {
+        supervisor.frame_ticks = 0;
     }
 
     pub fn has_work(supervisor: &Self) -> bool {
-        Instant::now() >= supervisor.timestep.next_instant
-            && supervisor.timestep.ticks_frame < SIMULATION_MAX_TICKS_PER_FRAME
+        Instant::now() >= supervisor.instant_next
+            && supervisor.frame_ticks < SIMULATION_MAX_TICKS_PER_FRAME
+    }
+
+    pub fn update_timestep(supervisor: &mut Self) {
+        supervisor.tick += 1;
+        supervisor.frame_ticks += 1;
+
+        supervisor.instant_next =
+            supervisor.instant_start + supervisor.tick * SIMULATION_TICK_DURATION;
+    }
+
+    pub fn fix_timestep(supervisor: &mut Self) {
+        let current_instant = Instant::now();
+
+        if current_instant < supervisor.instant_next {
+            let remaining_duration = supervisor.instant_next - current_instant;
+
+            if remaining_duration > Duration::from_millis(2) {
+                std::thread::sleep(remaining_duration - Duration::from_millis(1));
+            }
+
+            while Instant::now() < supervisor.instant_next {
+                std::hint::spin_loop();
+            }
+        }
     }
 
     #[instrument(skip_all)]
     pub fn tick(state: &mut State, supervisor: &mut Self) -> bool {
-        Self::receive_messages(state, supervisor);
         Self::update_timestep(supervisor);
+        Self::receive_messages(state, supervisor);
 
         Viewer::tick(state, supervisor);
 
@@ -106,7 +141,14 @@ impl Supervisor {
         }
     }
 
-    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
+    fn handle_start_message(message: &Message, state: &mut State, supervisor: &mut Self) {
+        match message {
+            Message::SetSeed(seed_data) => Self::handle_set_seed_message(seed_data, state),
+            Message::Generate => Self::handle_generate_message(state),
+            Message::Quit => Self::handle_quit_message(state, supervisor),
+            _ => (),
+        }
+    }
 
     fn handle_run_message(message: &Message, state: &mut State, supervisor: &mut Self) {
         match message {
@@ -128,7 +170,9 @@ impl Supervisor {
         }
     }
 
-    fn handle_done_message(message: &Message, state: &mut State, supervisor: &mut Self) {}
+    fn handle_done_message(_message: &Message, _state: &mut State, _supervisor: &mut Self) {
+        
+    }
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {
@@ -243,29 +287,5 @@ impl Supervisor {
 
     fn handle_option4_message(_state: &mut State) {
         tracing::info!("Option 4 Message");
-    }
-
-    pub fn update_timestep(supervisor: &mut Self) {
-        supervisor.timestep.ticks_total += 1;
-        supervisor.timestep.ticks_frame += 1;
-
-        supervisor.timestep.next_instant = supervisor.timestep.start_instant
-            + supervisor.timestep.ticks_total * SIMULATION_TICK_DURATION;
-    }
-
-    pub fn fix_timestep(supervisor: &mut Self) {
-        let current_instant = Instant::now();
-
-        if current_instant < supervisor.timestep.next_instant {
-            let remaining_duration = supervisor.timestep.next_instant - current_instant;
-
-            if remaining_duration > Duration::from_millis(2) {
-                std::thread::sleep(remaining_duration - Duration::from_millis(1));
-            }
-
-            while Instant::now() < supervisor.timestep.next_instant {
-                std::hint::spin_loop();
-            }
-        }
     }
 }

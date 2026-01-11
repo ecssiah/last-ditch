@@ -30,7 +30,7 @@ impl Simulation {
     #[instrument(skip_all)]
     pub fn run(supervisor: &mut Supervisor, state: &mut State) {
         loop {
-            Supervisor::start(supervisor);
+            Supervisor::start_timestep(supervisor);
 
             while Supervisor::has_work(&supervisor) {
                 if Supervisor::tick(state, supervisor) == false {

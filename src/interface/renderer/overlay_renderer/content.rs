@@ -15,9 +15,9 @@ pub struct Content {
 
 impl Content {
     pub fn new() -> Self {
-        let setup_content = SetupContent::default();
-        let menu_content = MenuContent::default();
-        let run_content = RunContent::default();
+        let setup_content = SetupContent::new();
+        let menu_content = MenuContent::new();
+        let run_content = RunContent::new();
 
         Self {
             setup_content,
