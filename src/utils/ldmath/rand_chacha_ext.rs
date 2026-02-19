@@ -2,7 +2,7 @@ use rand_chacha::rand_core::RngCore;
 
 #[inline]
 pub fn gen_bool(rng: &mut impl RngCore) -> bool {
-    let bool = if gen_i32(0, 1, rng) == 1 { true } else { false };
+    let bool = gen_i32(0, 1, rng) == 1;
 
     bool
 }

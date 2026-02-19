@@ -170,9 +170,7 @@ impl Supervisor {
         }
     }
 
-    fn handle_done_message(_message: &Message, _state: &mut State, _supervisor: &mut Self) {
-        
-    }
+    fn handle_done_message(_message: &Message, _state: &mut State, _supervisor: &mut Self) {}
 
     fn handle_interact1(state: &mut State) {
         let place_block_data = PlaceBlockData {

@@ -79,13 +79,13 @@ impl Direction {
     pub fn from_rotation(rotation: f32) -> Self {
         let rotation_normalized = rotation.rem_euclid(360.0);
 
-        if rotation_normalized < 45.0 || rotation_normalized >= 315.0 {
+        if !(45.0..315.0).contains(&rotation_normalized) {
             Self::North
-        } else if rotation_normalized < 135.0 && rotation_normalized >= 45.0 {
+        } else if (45.0..135.0).contains(&rotation_normalized) {
             Self::West
-        } else if rotation_normalized < 225.0 && rotation_normalized >= 135.0 {
+        } else if (135.0..225.0).contains(&rotation_normalized) {
             Self::South
-        } else if rotation_normalized < 315.0 && rotation_normalized >= 225.0 {
+        } else if (225.0..315.0).contains(&rotation_normalized) {
             Self::East
         } else {
             panic!("Improper rotation value")

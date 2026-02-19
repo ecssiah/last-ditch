@@ -32,8 +32,8 @@ impl Simulation {
         loop {
             Supervisor::start_timestep(supervisor);
 
-            while Supervisor::has_work(&supervisor) {
-                if Supervisor::tick(state, supervisor) == false {
+            while Supervisor::has_work(supervisor) {
+                if !Supervisor::tick(state, supervisor) {
                     return;
                 }
             }

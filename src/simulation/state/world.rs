@@ -342,7 +342,7 @@ impl World {
                         };
 
                         DirectionSet::add(
-                            &Direction::to_opposing(&direction),
+                            &Direction::to_opposing(direction),
                             &mut block_data.exposure_set,
                         );
                     }
@@ -522,9 +522,9 @@ impl World {
                     connection_vec: Vec::new(),
                 };
 
-                return Some((west_area, east_area));
+                Some((west_area, east_area))
             } else {
-                return None;
+                None
             }
         } else {
             let split_position = gen_range_i32(2, area.size.y - 2, rng);
@@ -555,9 +555,9 @@ impl World {
                     connection_vec: Vec::new(),
                 };
 
-                return Some((south_area, north_area));
+                Some((south_area, north_area))
             } else {
-                return None;
+                None
             }
         }
     }

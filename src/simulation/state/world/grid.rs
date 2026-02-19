@@ -21,14 +21,14 @@ use ultraviolet::{IVec3, Vec3};
 #[inline]
 pub fn cell_index_vec() -> Vec<CellIndex> {
     (0usize..SECTOR_VOLUME_IN_CELLS)
-        .map(|index| CellIndex::new(index))
+        .map(CellIndex::new)
         .collect()
 }
 
 #[inline]
 pub fn sector_index_vec() -> Vec<SectorIndex> {
     (0usize..WORLD_VOLUME_IN_SECTORS)
-        .map(|index| SectorIndex::new(index))
+        .map(SectorIndex::new)
         .collect()
 }
 
@@ -282,7 +282,7 @@ pub fn world_position_to_cell_coordinate(world_position: Vec3) -> IVec3 {
 #[inline]
 pub fn get_cell_float_box(grid_position: IVec3) -> FloatBox {
     let world_position = grid_position_to_world_position(grid_position);
-    let radius = Vec3::broadcast(CELL_RADIUS_IN_METERS as f32);
+    let radius = Vec3::broadcast(CELL_RADIUS_IN_METERS);
 
     FloatBox::new(world_position, radius)
 }
